@@ -1,6 +1,7 @@
 "use client";
 
-import { write, strokePath, strokeLength, measure } from "@/lib/hand";
+import { write, strokePath, strokeLength, measure, type HandStroke } from "@/lib/hand";
+import { hasSuperscript, inkRuns, runTop } from "./richInk";
 
 /**
  * Handwriting, written rather than displayed.
@@ -94,7 +95,7 @@ export function Ink({
   still = false,
   className = "",
 }: InkProps) {
-  const strokes = write(text, { size, box: { x, y, width }, maxLines, seed });
+  const strokes = layOut(text, { x, y, size, width, maxLines, seed });
 
   // Each stroke's path, its length, and when the pen reaches it.
   //
@@ -145,6 +146,41 @@ interface DrawnStroke {
   length: number;
   start: number;
   duration: number;
+}
+
+/**
+ * The strokes for a line, with superscripts set smaller and raised.
+ *
+ * Text with no `^` goes straight through the ported layout, wrapping and all.
+ * Text with one is laid out as runs on a single line — wrapping a line that
+ * changes size partway through would need the hand's line breaker to know
+ * about runs, and no line on this site both wraps and carries an exponent.
+ */
+function layOut(
+  text: string,
+  {
+    x,
+    y,
+    size,
+    width,
+    maxLines,
+    seed,
+  }: { x: number; y: number; size: number; width: number; maxLines: number; seed: number },
+): HandStroke[] {
+  if (!hasSuperscript(text)) {
+    return write(text, { size, box: { x, y, width }, maxLines, seed });
+  }
+
+  return inkRuns(text, size).flatMap((run) =>
+    write(run.text, {
+      size: run.size,
+      box: { x: x + run.x, y: runTop(y, size, run), width },
+      maxLines: 1,
+      // Each run keeps its own seed so the drift does not restart identically
+      // on every exponent, which would be a visible repeat at this size.
+      seed: seed + Math.round(run.x),
+    }),
+  );
 }
 
 

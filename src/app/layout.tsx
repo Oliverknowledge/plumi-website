@@ -52,7 +52,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(site.domain),
   title: {
-    default: "Plumi — the notebook that knows what you don't know",
+    default: "Plumi: the notebook that knows what you don't know",
     template: "%s · Plumi",
   },
   description:
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     url: site.domain,
     siteName: site.name,
     locale: site.locale,
-    title: "Plumi — a notebook that knows what you don't know",
+    title: "Plumi: a notebook that knows what you don't know",
     description:
       "Write on your iPad like normal. Plumi works out what you can do, and what to study next.",
     images: [
@@ -81,13 +81,13 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "“A notebook that knows what you don't know.” — handwritten on ruled paper, with “don't know” underlined in indigo.",
+        alt: "The words “A notebook that knows what you don't know.” handwritten on ruled paper, with “don't know” underlined in indigo.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Plumi — a notebook that knows what you don't know",
+    title: "Plumi: a notebook that knows what you don't know",
     description:
       "Write on your iPad like normal. Plumi works out what you can do, and what to study next.",
     images: ["/og.png"],

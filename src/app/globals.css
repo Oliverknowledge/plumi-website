@@ -99,6 +99,11 @@
   --color-mastery-mastered: #2158d4;
   --color-mastery-unseen: #c2c7cf;
 
+  /* The "no" mark in the comparison. The unseen grey it used to borrow is
+     1.7:1 on white — a graphical object carrying meaning has to clear 3:1, and
+     a cross nobody can see is a row nobody can read. Quiet, but present. */
+  --color-mark-absent: #868e9b;
+
   --color-mastery-weak-text: #c0392b;
   --color-mastery-developing-text: #a45f12;
   --color-mastery-secure-text: #0b7a53;
@@ -242,6 +247,18 @@ body {
    every scroll-driven scene has a resolved static state, so nothing is hidden
    behind an animation that never plays.
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The invitation loop in the AI Pen demo is drawn by an animation, so with
+   motion disabled it would stay at its starting dash offset — which is to say
+   invisible, removing the only visual cue to draw, from exactly the people most
+   likely to want an explicit one. Resolved rather than removed. */
+@media (prefers-reduced-motion: reduce) {
+  .ghost-loop {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    stroke-opacity: 0.45;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -418,6 +435,39 @@ body {
     stroke-dashoffset: 0;
     opacity: 0;
   }
+}
+
+/* Plumi reading a line: one pass, left to right, the width of the line. The
+   distance is set inline because it depends on how long the writing is. */
+@keyframes read-sweep {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--sweep-to, 200px));
+  }
+}
+
+.read-sweep {
+  animation: read-sweep 0.62s var(--ease-in-out-soft) forwards;
+}
+
+/* The AI Pen menu arriving under the line. The app's "underFinger" register:
+   a small rise and a touch of scale, high-damped, felt rather than seen. */
+@keyframes menu-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pen-menu {
+  transform-origin: top left;
+  animation: menu-open 0.24s var(--ease-out-soft) backwards;
 }
 
 /* A fade that can stop short of 1, for tints. Set --fade-to inline. */

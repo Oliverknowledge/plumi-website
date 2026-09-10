@@ -1,7 +1,7 @@
 import { Ink } from "@/components/product/Ink";
 import { inkDuration } from "@/components/product/inkTiming";
 import { PaperSurface, ruleAt } from "@/components/product/Paper";
-import { width as inkWidth } from "@/lib/hand";
+import { richWidth as inkWidth } from "@/components/product/richInk";
 
 /**
  * The hero. Four moments, no words: WRITE → CIRCLE → TEACH → REMEMBER.
@@ -29,9 +29,17 @@ import { width as inkWidth } from "@/lib/hand";
 const SCREEN = { w: 1194, h: 834 };
 const PAGE = { x: 118, y: 74, w: 958, h: 726 };
 
-/** The student writes quickly; Plumi writes deliberately. Px of path per second. */
-const STUDENT_SPEED = 1100;
-const TUTOR_SPEED = 520;
+/**
+ * The student writes quickly; Plumi writes deliberately. Px of path per second.
+ *
+ * Both were slower. The full sequence ran four and a half seconds, and for the
+ * first three of those the hero was a field of disconnected grey marks — which
+ * is the worst possible first impression for a page whose argument is that you
+ * can read what somebody wrote. The whole thing now resolves in about two and a
+ * half, and the line the visitor most needs to see is legible in one.
+ */
+const STUDENT_SPEED = 2100;
+const TUTOR_SPEED = 900;
 
 const INK_SIZE = 38;
 const NOTE_SIZE = 28;
@@ -42,8 +50,8 @@ const WRITE_X = 132;
 /** Every third rule, so the working spreads down the visible page as it would
  *  on a real one rather than bunching into the top third. */
 const working = [
-  { text: "Let u = x,  dv = e^x dx", rule: 2, seed: 9 },
-  { text: "du = dx,   v = e^x", rule: 5, seed: 17 },
+  { text: "Let u = x, dv = e^x dx", rule: 2, seed: 9 },
+  { text: "du = dx, v = e^x", rule: 5, seed: 17 },
   { text: "∫ x e^x dx = x e^x − ∫ e^x dx", rule: 8, seed: 23 },
   { text: "= x e^x + e^x + c", rule: 11, seed: 31 },
 ] as const;
@@ -73,9 +81,9 @@ function topForRule(rule: number, size: number): number {
  * not pure.
  */
 const schedule = (() => {
-  const gap = 0.12;
+  const gap = 0.06;
   const starts: number[] = [];
-  let t = 0.35;
+  let t = 0.2;
 
   for (const { text } of working) {
     starts.push(t);
@@ -84,9 +92,9 @@ const schedule = (() => {
 
   // The loop is drawn while the last line is still settling — a student reaches
   // for help the moment they doubt the line, not politely afterwards.
-  const lasso = t - 0.15;
-  const underline = lasso + 0.75;
-  const note = underline + 0.2;
+  const lasso = t - 0.1;
+  const underline = lasso + 0.5;
+  const note = underline + 0.15;
   const noteDuration = inkDuration(TUTOR_NOTE, NOTE_SIZE, 300, 1, TUTOR_SPEED);
 
   return { starts, lasso, underline, note, chip: note + noteDuration * 0.55 };

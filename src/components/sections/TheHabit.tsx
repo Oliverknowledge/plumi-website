@@ -50,15 +50,9 @@ export function TheHabit() {
         ))}
       </ol>
 
-      <div className="mt-12 grid gap-6 border-t border-[var(--color-hairline)] pt-10 sm:grid-cols-2 lg:gap-12">
-        <p className="text-[0.9375rem] leading-relaxed text-[var(--color-ink-secondary)]">
-          {habit.focusLine}{" "}
-          <span className="text-[var(--color-ink)]">{habit.reassurance}</span>
-        </p>
-        <p className="text-[0.9375rem] leading-relaxed text-[var(--color-ink-secondary)]">
-          {habit.noDecay}
-        </p>
-      </div>
+      <p className="mt-12 measure-wide border-t border-[var(--color-hairline)] pt-10 text-[0.9375rem] leading-relaxed text-[var(--color-ink-secondary)]">
+        {habit.focusLine} <span className="text-[var(--color-ink)]">{habit.reassurance}</span>
+      </p>
     </Section>
   );
 }

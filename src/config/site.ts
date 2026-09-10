@@ -51,8 +51,13 @@ export const cta = {
     /** Shorter label for the sticky mobile bar and the nav, where space is tight. */
     compact: "Join waitlist",
     supporting: "Built for iPad and Apple Pencil",
-    /** Shown under the closing CTA. Must stay honest — no launch date is set. */
-    reassurance: "One email when it opens. Nothing else.",
+    /**
+     * Shown under the closing CTA and in the sticky mobile bar. Must agree with
+     * `waitlist.reassurance` in src/content/copy.ts — on a phone the two are
+     * visible in the same viewport, and a page whose argument is candour cannot
+     * afford to promise a different number of emails in two places.
+     */
+    reassurance: "Two emails, then nothing.",
   },
   appStore: {
     primary: "Download on the App Store",

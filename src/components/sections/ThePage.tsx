@@ -22,8 +22,8 @@ export function ThePage() {
         A page of handwritten working is shown. Circling any line with a finger or an Apple Pencil
         selects it, and Plumi reads the line together with the printed question above it. It then
         offers to explain, hint, check or answer a question about what was circled. Asking again gives
-        a different kind of help — a nudge first, then the principle behind it — rather than the same
-        explanation reworded.
+        a different kind of help rather than the same explanation reworded: a nudge first, then the
+        principle behind it.
       </p>
     </Section>
   );

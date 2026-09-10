@@ -5,45 +5,70 @@ import getStroke from "perfect-freehand";
 
 import { Ink } from "@/components/product/Ink";
 import { PaperSurface, ruleAt } from "@/components/product/Paper";
-import { width as inkWidth } from "@/lib/hand";
+import { inkPlainText, richWidth as inkWidth } from "@/components/product/richInk";
 import { penActions, penDemo } from "@/content/copy";
 import { track } from "@/lib/analytics";
 
 /**
  * The one part of Plumi a visitor can actually use.
  *
- * Draw a loop round a line of working with a finger, a Pencil or a mouse; the
- * ink follows the pointer with real pressure geometry; the line you enclosed is
- * read back to you; and a hint appears beside it, in the margin, written in
- * Plumi's own hand. Ask again and you get a different KIND of help rather than
- * the same sentence reworded.
+ * Draw a loop round a line of working with a finger, a Pencil or a mouse. The
+ * ink follows the pointer with real pressure geometry, Plumi reads the line
+ * back to you, and its menu opens on the page beside what you circled. Pick
+ * Explain, Hint or Check and the answer is written into the margin in Plumi's
+ * own hand. Ask again and you get a different KIND of help, never the same
+ * sentence reworded.
  *
- * ── Deliberately forgiving ───────────────────────────────────────────────────
- * Whatever you draw, the selection resolves to the line your stroke covers
- * most. A demo that can be "done wrong" on a phone at 11pm is a demo that will
- * be abandoned, and the point being made — Plumi already knows what you are
- * looking at — is undermined by an app that needs a neat circle.
+ * The menu is on the page, not in a sidebar. It used to be a list down the
+ * right-hand side, which was wrong twice. It was wrong to the product: the AI
+ * Pen's menu opens under your pencil, anchored to the thing you selected,
+ * because the whole argument is that help arrives where you are working rather
+ * than somewhere else. And it was wrong on a phone, where a static column of
+ * four descriptions ended up taller than the notebook it was secondary to.
  *
- * ── Not the only way to understand this ──────────────────────────────────────
- * Drawing is an enhancement. Every line is also a real button, so the whole
- * thing is operable from the keyboard, and a static caption states the point
- * for anyone who never touches it.
+ * It is deliberately forgiving. Whatever you draw resolves to the line your
+ * stroke covers most. A demo that can be done wrong at 11pm is a demo that gets
+ * abandoned, and the point being made is that Plumi already knows what you are
+ * looking at.
+ *
+ * Drawing is an enhancement, never the only route. Every line is also a real
+ * button, the menu is real buttons, and a caption states the point in prose for
+ * anyone who never touches it.
  */
 
-const PAGE = { w: 900, h: 448 };
-const INK_SIZE = 32;
-const NOTE_SIZE = 24;
-const WRITE_X = 128;
+/**
+ * A narrower page than the hero's, on purpose. This card is full width on a
+ * phone, so the viewBox decides how large the handwriting renders: at 900 units
+ * in 350px of viewport the ink came out around twelve pixels, on the one
+ * element whose entire job is to be read.
+ */
+const PAGE = { w: 660, h: 520 };
+const INK_SIZE = 30;
+const NOTE_SIZE = 22;
+/** Clear of the margin rule at x = 96. */
+const WRITE_X = 114;
 /** Rules the working sits on. */
 const LINE_RULES = [2, 5, 8] as const;
 
-type Phase = "idle" | "drawing" | "selected";
+type Phase = "idle" | "drawing" | "reading" | "menu" | "answered";
+
+/** The AI Pen's four actions, by their labels in `penActions`. */
+type ActionKey = "Explain" | "Hint" | "Check" | "Ask";
+
+/** What Plumi writes back: a short margin note, and what kind of help it is. */
+interface Answer {
+  readonly kind: string;
+  readonly note: string;
+}
 
 interface Point {
   x: number;
   y: number;
   pressure: number;
 }
+
+/** How long Plumi spends visibly reading the line before its menu opens. */
+const READ_MS = 620;
 
 /**
  * perfect-freehand's outline, as an SVG path. The stroke thins toward both ends
@@ -55,24 +80,15 @@ function outlinePath(points: readonly Point[]): string {
 
   const outline = getStroke(
     points.map((p) => [p.x, p.y, p.pressure]),
-    {
-      size: 7,
-      thinning: 0.55,
-      smoothing: 0.6,
-      streamline: 0.42,
-      simulatePressure: true,
-      last: true,
-    },
+    { size: 7, thinning: 0.55, smoothing: 0.6, streamline: 0.42, simulatePressure: true, last: true },
   );
 
   if (outline.length === 0) return "";
 
-  // One `Q` command, then repeated coordinate pairs — the path grammar allows a
-  // command to be implicitly repeated, and each quadratic takes its control
-  // point from the outline vertex and its end point from the midpoint of the
-  // next edge. Emitting a fresh `Q` before every segment produces a `d` the
-  // browser rejects outright, which is a silent, invisible failure: the stroke
-  // simply never appears.
+  // One `Q`, then repeated coordinate pairs: the path grammar allows a command
+  // to be implicitly repeated. Emitting a fresh `Q` before every segment
+  // produces a `d` the browser rejects outright, which fails silently and
+  // invisibly, with the stroke simply never appearing.
   const [start] = outline;
   let d = `M ${start[0].toFixed(2)} ${start[1].toFixed(2)} Q`;
 
@@ -105,16 +121,17 @@ function lineUnderStroke(points: readonly Point[]): number {
   return votes.indexOf(Math.max(...votes));
 }
 
+const percent = (value: number, of: number) => `${(value / of) * 100}%`;
+
 export function PenDemo() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [stroke, setStroke] = useState<Point[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
-  const [hintLevel, setHintLevel] = useState(0);
-  const [showHint, setShowHint] = useState(false);
+  const [action, setAction] = useState<ActionKey | null>(null);
+  const [rung, setRung] = useState(0);
   const reported = useRef(false);
 
-  /** Pointer position in page coordinates, whatever the element's rendered size. */
   const toPage = useCallback((event: React.PointerEvent): Point => {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0, pressure: 0.5 };
@@ -127,25 +144,24 @@ export function PenDemo() {
     };
   }, []);
 
-  function selectLine(index: number, how: "drawn" | "tapped") {
+  const selectLine = useCallback((index: number, how: "drawn" | "tapped") => {
     setSelected(index);
-    setPhase("selected");
-    setHintLevel(0);
-    setShowHint(false);
+    setAction(null);
+    setRung(0);
+    // Plumi reads before it offers. The pause is short, and it is the moment
+    // the claim in the headline becomes checkable, so it is shown rather than
+    // skipped over.
+    setPhase("reading");
     if (!reported.current) {
       reported.current = true;
       track("product_demo_interacted", { placement: "pen_demo", action: how });
     }
-  }
+  }, []);
 
-  // The live stroke is kept in refs, not in state.
-  //
-  // React state is asynchronous: a `pointermove` that fires before the render
-  // caused by `pointerdown` has committed would still see phase "idle" and drop
-  // its point on the floor. On a fast flick — which is exactly how someone
-  // circles something — that is most of the stroke. The refs are the truth
-  // during a stroke; state is updated once per frame purely so the path
-  // re-renders.
+  // The live stroke lives in refs, not state. React state is asynchronous: a
+  // `pointermove` firing before the render caused by `pointerdown` has
+  // committed would see the old phase and drop its point. On a fast flick,
+  // which is how people circle things, that is most of the stroke.
   const drawing = useRef(false);
   const points = useRef<Point[]>([]);
   const frame = useRef<number | null>(null);
@@ -165,27 +181,24 @@ export function PenDemo() {
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch {
-      // Capture is an optimisation — it keeps the stroke alive if the pointer
-      // leaves the page mid-drag. A synthetic or already-released pointer
-      // throws here, and losing capture is not a reason to lose the stroke.
+      // Capture keeps the stroke alive if the pointer leaves the page. A
+      // synthetic or already-released pointer throws, and losing capture is not
+      // a reason to lose the stroke.
     }
     drawing.current = true;
     points.current = [toPage(event)];
     setPhase("drawing");
-    setShowHint(false);
+    setAction(null);
     scheduleFlush();
   }
 
   function onPointerMove(event: React.PointerEvent) {
     if (!drawing.current) return;
-    // getCoalescedEvents returns every sample the OS captured between frames,
-    // which is the difference between a smooth line and a polygon on a 120Hz
-    // iPad.
+    // Every sample the OS captured between frames: the difference between a
+    // smooth line and a polygon on a 120Hz iPad.
     const samples = event.nativeEvent.getCoalescedEvents?.() ?? [];
     if (samples.length > 0) {
-      for (const sample of samples) {
-        points.current.push(toPage(sample as unknown as React.PointerEvent));
-      }
+      for (const sample of samples) points.current.push(toPage(sample as unknown as React.PointerEvent));
     } else {
       points.current.push(toPage(event));
     }
@@ -202,7 +215,6 @@ export function PenDemo() {
 
     const drawn = points.current;
     if (drawn.length < 5) {
-      // A tap, not a loop. Nothing was selected; leave the page alone.
       points.current = [];
       setStroke([]);
       setPhase("idle");
@@ -216,295 +228,368 @@ export function PenDemo() {
   function reset() {
     drawing.current = false;
     points.current = [];
-    setPhase("idle");
     setStroke([]);
     setSelected(null);
-    setHintLevel(0);
-    setShowHint(false);
+    setAction(null);
+    setRung(0);
+    setPhase("idle");
   }
 
-  // The stroke fades out once the selection has been made — it has done its
-  // job, and leaving it on the page competes with the hint.
+  // Reading finishes, the menu opens.
   useEffect(() => {
-    if (phase !== "selected") return;
-    const timer = window.setTimeout(() => setStroke([]), 900);
+    if (phase !== "reading") return;
+    const timer = window.setTimeout(() => setPhase("menu"), READ_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  // The visitor's own ink fades once it has done its job; leaving it on the
+  // page competes with the answer.
+  useEffect(() => {
+    if (phase === "idle" || phase === "drawing") return;
+    const timer = window.setTimeout(() => setStroke([]), 1100);
     return () => window.clearTimeout(timer);
   }, [phase]);
 
   const line = selected === null ? null : penDemo.lines[selected];
   const hints = line?.hints ?? [];
-  const hint = showHint ? hints[Math.min(hintLevel, hints.length - 1)] : null;
-  const atEndOfLadder = showHint && hintLevel >= hints.length - 1;
+
+  const answer: Answer | null =
+    line === null || action === null || action === "Ask"
+      ? null
+      : action === "Hint"
+        ? hints[Math.min(rung, hints.length - 1)]
+        : action === "Explain"
+          ? line.explain
+          : line.check;
+
+  const atEndOfLadder = action === "Hint" && rung >= hints.length - 1;
+
+  function choose(key: ActionKey) {
+    setAction(key);
+    setRung(0);
+    setPhase("answered");
+    track("product_demo_interacted", { placement: "pen_demo", action: key.toLowerCase() });
+  }
+
+  const lineRule = selected === null ? LINE_RULES[2] : LINE_RULES[selected];
+  const lineWidth = line ? inkWidth(line.text, INK_SIZE) : 0;
+
+  // Where Plumi writes its answer.
+  //
+  // Beside the working if there is room, which is where a margin note belongs.
+  // The third line of this working is nearly the width of the page, though, so
+  // for a long line the note drops to the rule underneath and starts at the
+  // margin, with the whole width to run in. That is what a person does with a
+  // note that will not fit in a margin, and it is a great deal better than
+  // truncating the note or writing it over the student's own ink.
+  const NOTE_BOX = 214;
+  const noteFitsBeside = WRITE_X + lineWidth + 28 + NOTE_BOX <= PAGE.w - 20;
+  const note = noteFitsBeside
+    ? { x: WRITE_X + lineWidth + 28, rule: lineRule, width: NOTE_BOX }
+    : { x: WRITE_X, rule: lineRule + 1, width: PAGE.w - WRITE_X - 30 };
+
+  /** The menu clears whatever the note did. */
+  const menuTop = ruleAt(noteFitsBeside ? lineRule : lineRule + 1) + 26;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-10">
-      <div>
-        <div className="relative overflow-hidden rounded-[var(--radius-sheet)] bg-[var(--color-paper)] shadow-[var(--shadow-resting)] ring-1 ring-[var(--color-hairline)]">
-          <svg
-            ref={svgRef}
-            viewBox={`0 0 ${PAGE.w} ${PAGE.h}`}
-            className="block w-full touch-none select-none"
-            style={{ cursor: phase === "drawing" ? "grabbing" : "crosshair" }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            aria-hidden="true"
+    <div className="max-w-3xl">
+      {/* Two wrappers, and the reason is the menu. The page clips its own
+          contents, because a page does; the menu opens near the bottom line and
+          has to be allowed past that edge, the way a popover does. So the outer
+          element positions and the inner element clips. */}
+      <div className="relative">
+        <div className="overflow-hidden rounded-[var(--radius-sheet)] bg-[var(--color-paper)] shadow-[var(--shadow-resting)] ring-1 ring-[var(--color-hairline)]">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${PAGE.w} ${PAGE.h}`}
+          className="block w-full touch-none select-none"
+          style={{ cursor: phase === "drawing" ? "grabbing" : "crosshair" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          aria-hidden="true"
+        >
+          <PaperSurface width={PAGE.w} height={PAGE.h} radius={0} />
+
+          {/* The printed question, in a serif, as printed maths is. */}
+          <text x={WRITE_X} y={52} fontFamily="var(--font-serif)" fontSize={23} fill="var(--color-ink)">
+            Find{" "}
+            <tspan fontStyle="italic" fontSize={25}>
+              &#8747; x e
+            </tspan>
+            <tspan fontStyle="italic" fontSize={16} dy={-8}>
+              x
+            </tspan>
+            <tspan fontStyle="italic" fontSize={25} dy={8}>
+              {" "}
+              dx
+            </tspan>
+          </text>
+          <text
+            x={PAGE.w - 44}
+            y={52}
+            textAnchor="end"
+            fontFamily="var(--font-serif)"
+            fontSize={16}
+            fill="var(--color-ink-tertiary)"
           >
-            <PaperSurface width={PAGE.w} height={PAGE.h} radius={0} />
+            {penDemo.marks}
+          </text>
 
-            {/* The printed question, in a serif, as printed maths is. */}
-            <text x={WRITE_X} y={52} fontFamily="var(--font-serif)" fontSize={24} fill="var(--color-ink)">
-              Find{" "}
-              <tspan fontStyle="italic" fontSize={26}>
-                ∫ x e
-              </tspan>
-              <tspan fontStyle="italic" fontSize={17} dy={-8}>
-                x
-              </tspan>
-              <tspan fontStyle="italic" fontSize={26} dy={8}>
-                {" "}
-                dx
-              </tspan>
-            </text>
-            <text
-              x={PAGE.w - 48}
-              y={52}
-              textAnchor="end"
-              fontFamily="var(--font-serif)"
-              fontSize={17}
-              fill="var(--color-ink-tertiary)"
-            >
-              {penDemo.marks}
-            </text>
+          {/* The line Plumi read, tinted behind the ink. */}
+          {selected !== null && (
+            <rect
+              x={WRITE_X - 16}
+              y={ruleAt(lineRule) - INK_SIZE - 4}
+              width={lineWidth + 32}
+              height={INK_SIZE + 20}
+              rx={7}
+              fill="var(--color-blue-600)"
+              opacity={0.08}
+              style={{ animation: "fade-in 0.22s ease-out" }}
+            />
+          )}
 
-            {/* The line Plumi read, tinted behind the ink. */}
-            {selected !== null && (
-              <rect
-                x={WRITE_X - 18}
-                y={ruleAt(LINE_RULES[selected]) - INK_SIZE - 4}
-                width={inkWidth(penDemo.lines[selected].text, INK_SIZE) + 36}
-                height={INK_SIZE + 22}
-                rx={8}
-                fill="var(--color-blue-600)"
-                opacity={0.08}
-                style={{ animation: "fade-in 0.25s ease-out" }}
-              />
-            )}
+          {/* Plumi reading it: one pass, left to right, the width of the line.
+              Short, and the only moment on the page that depicts the model
+              doing anything. A spinner would have said the same thing and meant
+              nothing. */}
+          {phase === "reading" && selected !== null && (
+            <rect
+              x={WRITE_X - 16}
+              y={ruleAt(lineRule) - INK_SIZE - 4}
+              width={44}
+              height={INK_SIZE + 20}
+              rx={7}
+              fill="var(--color-blue-600)"
+              opacity={0.16}
+              className="read-sweep"
+              style={{ ["--sweep-to" as string]: `${lineWidth - 12}px` }}
+            />
+          )}
 
-            {/* The working. Already written — this page is one the student
-                filled in earlier, not one being written now. */}
-            {penDemo.lines.map((l, index) => (
-              <Ink
-                key={l.text}
-                text={l.text}
-                x={WRITE_X}
-                y={ruleAt(LINE_RULES[index]) - INK_SIZE * 0.7}
-                size={INK_SIZE}
-                width={PAGE.w - WRITE_X - 40}
-                maxLines={1}
-                seed={9 + index * 7}
-                still
-              />
-            ))}
+          {/* The working. Already written: this is a page the student filled in
+              earlier, not one being written now. */}
+          {penDemo.lines.map((l, index) => (
+            <Ink
+              key={l.text}
+              text={l.text}
+              x={WRITE_X}
+              y={ruleAt(LINE_RULES[index]) - INK_SIZE * 0.7}
+              size={INK_SIZE}
+              width={PAGE.w - WRITE_X - 30}
+              maxLines={1}
+              seed={9 + index * 7}
+              still
+            />
+          ))}
 
-            {/* Plumi's answer, in the margin beside the line. */}
-            {hint && selected !== null && (
-              <Ink
-                key={`${selected}-${hintLevel}`}
-                text={hint.note}
-                x={Math.min(
-                  WRITE_X + inkWidth(penDemo.lines[selected].text, INK_SIZE) + 56,
-                  PAGE.w - 250,
-                )}
-                y={ruleAt(LINE_RULES[selected]) - NOTE_SIZE * 0.7 - 2}
-                size={NOTE_SIZE}
-                width={240}
-                maxLines={1}
-                tone="tutor"
-                seed={3 + hintLevel}
-                speed={520}
-              />
-            )}
+          {/* Plumi's answer, in the margin beside the line, in its own hand. */}
+          {answer && selected !== null && (
+            <Ink
+              key={`${selected}-${action}-${rung}`}
+              text={answer.note}
+              x={note.x}
+              y={ruleAt(note.rule) - NOTE_SIZE * 0.7 - 2}
+              size={NOTE_SIZE}
+              width={note.width}
+              maxLines={1}
+              tone="tutor"
+              seed={3 + rung * 5}
+              speed={560}
+            />
+          )}
 
-            {/* The visitor's own ink. */}
-            {stroke.length > 1 && (
-              <path
-                d={outlinePath(stroke)}
-                fill="var(--color-blue-600)"
-                opacity={phase === "selected" ? 0 : 0.9}
-                style={{ transition: "opacity 0.5s ease-out" }}
-              />
-            )}
+          {/* The visitor's own ink. */}
+          {stroke.length > 1 && (
+            <path
+              d={outlinePath(stroke)}
+              fill="var(--color-blue-600)"
+              opacity={phase === "idle" || phase === "drawing" ? 0.9 : 0}
+              style={{ transition: "opacity 0.55s ease-out" }}
+            />
+          )}
 
-            {/* A ghost loop that draws itself once, so nobody has to be told
-                twice what to do. It stops the moment the visitor touches the
-                page. */}
-            {phase === "idle" && stroke.length === 0 && <GhostLoop />}
-          </svg>
-
-          {/* The same three lines as real buttons, layered over the drawing
-              surface. This is how the demo is operated from a keyboard, and it
-              is why the whole thing is not a mouse-only party trick. */}
-          <div className="absolute inset-0">
-            {penDemo.lines.map((l, index) => (
-              <button
-                key={l.text}
-                type="button"
-                onClick={() => selectLine(index, "tapped")}
-                className="absolute rounded-[8px] opacity-0 focus-visible:opacity-100"
-                style={{
-                  left: `${((WRITE_X - 18) / PAGE.w) * 100}%`,
-                  top: `${((ruleAt(LINE_RULES[index]) - INK_SIZE - 4) / PAGE.h) * 100}%`,
-                  width: `${((inkWidth(l.text, INK_SIZE) + 36) / PAGE.w) * 100}%`,
-                  height: `${((INK_SIZE + 22) / PAGE.h) * 100}%`,
-                }}
-              >
-                <span className="sr-only">Ask Plumi about the line: {l.text}</span>
-              </button>
-            ))}
-          </div>
+          {/* The invitation, drawn once, so nobody has to be told twice. */}
+          {phase === "idle" && stroke.length === 0 && <GhostLoop />}
+        </svg>
         </div>
 
-        {/* The invitation, and then the read-back. Making Plumi say what it read
-            is the app's first design principle — "show what we read, and let the
-            student fix it" — and it is also the moment the claim in the headline
-            becomes checkable. */}
-        <p
-          className="mt-4 flex items-center gap-2.5 text-[0.9375rem] text-[var(--color-ink-secondary)]"
-          aria-live="polite"
-        >
-          {phase === "selected" ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="shrink-0">
-                <circle cx="8" cy="8" r="7" fill="var(--color-blue-600)" opacity="0.12" />
-                <path
-                  d="M4.5 8.2 6.9 10.6 11.5 5.6"
-                  fill="none"
-                  stroke="var(--color-blue-600)"
-                  strokeWidth="1.7"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>
-                {penDemo.readBack}:{" "}
-                <span className="text-[var(--color-ink)]">“{penDemo.lines[selected!].text}”</span>
-              </span>
-            </>
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="shrink-0">
-                <path
-                  d="M13 3.2 5.4 10.8 3 13l2.2-2.4L12.8 3a.7.7 0 0 1 1 0 .7.7 0 0 1 0 1Z"
-                  fill="none"
-                  stroke="var(--color-ink-tertiary)"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>{penDemo.prompt}</span>
-            </>
-          )}
-        </p>
-      </div>
+        {/* Every line, as a real button. This is how the demo is operated from a
+            keyboard, and it is why the whole thing is not a mouse-only trick. */}
+        <div className="absolute inset-0">
+          {penDemo.lines.map((l, index) => (
+            <button
+              key={l.text}
+              type="button"
+              onClick={() => selectLine(index, "tapped")}
+              className="absolute rounded-[7px] opacity-0 focus-visible:opacity-100"
+              style={{
+                left: percent(WRITE_X - 16, PAGE.w),
+                top: percent(ruleAt(LINE_RULES[index]) - INK_SIZE - 4, PAGE.h),
+                width: percent(inkWidth(l.text, INK_SIZE) + 32, PAGE.w),
+                height: percent(INK_SIZE + 20, PAGE.h),
+              }}
+            >
+              <span className="sr-only">Ask Plumi about the line: {inkPlainText(l.text)}</span>
+            </button>
+          ))}
+        </div>
 
-      {/* The AI Pen's menu. Four things, named as the app names them. */}
-      <div className="lg:pt-2">
-        <div className="rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-elevated)] p-5 shadow-[var(--shadow-resting)]">
-          <div className="flex items-center gap-2.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M12 1.5c.8 4.8 4 8 8.8 8.8v1.4c-4.8.8-8 4-8.8 8.8h-1.4c-.8-4.8-4-8-8.8-8.8v-1.4c4.8-.8 8-4 8.8-8.8h1.4Z"
-                fill="var(--color-blue-600)"
-              />
-            </svg>
-            <span className="font-semibold">AI Pen</span>
-          </div>
+        {/* The AI Pen menu, anchored on the page under the line it belongs to,
+            so it arrives where the student was already looking. HTML rather
+            than SVG because these are real buttons that take real focus. */}
+        {selected !== null && (phase === "menu" || phase === "answered") && (
+          <div
+            className="pen-menu absolute right-[4%] left-[4%] sm:right-auto sm:left-[16%] sm:w-[64%]"
+            style={{ top: percent(menuTop, PAGE.h) }}
+          >
+            <div className="rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-elevated)] p-3 shadow-[var(--shadow-floating)]">
+              <div className="flex items-center gap-2 px-1 pb-2.5">
+                <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+                  <path
+                    d="M12 1.5c.8 4.8 4 8 8.8 8.8v1.4c-4.8.8-8 4-8.8 8.8h-1.4c-.8-4.8-4-8-8.8-8.8v-1.4c4.8-.8 8-4 8.8-8.8h1.4Z"
+                    fill="var(--color-blue-600)"
+                  />
+                </svg>
+                <span className="text-[13px] font-semibold text-[var(--color-ink)]">AI Pen</span>
+                <span className="truncate text-[13px] text-[var(--color-ink-tertiary)]">
+                  {penDemo.readBack}
+                </span>
+              </div>
 
-          <ul className="mt-4 space-y-3">
-            {penActions.map((action) => {
-              const isHint = action.label === "Hint";
-              const enabled = phase === "selected" && isHint;
-              return (
-                <li key={action.label}>
-                  <button
-                    type="button"
-                    disabled={!enabled}
-                    onClick={() => {
-                      setShowHint(true);
-                      track("product_demo_interacted", { placement: "pen_demo", action: "hint" });
-                    }}
-                    className={`w-full rounded-[var(--radius-control)] px-3 py-2.5 text-left transition-colors ${
-                      enabled
-                        ? "cursor-pointer bg-[var(--color-blue-50)] hover:bg-[var(--color-blue-100)]"
-                        : "cursor-default"
-                    }`}
-                  >
-                    <span
-                      className={`block text-[0.9375rem] font-semibold ${
-                        enabled ? "text-[var(--color-blue-700)]" : "text-[var(--color-ink)]"
+              <div className="flex flex-wrap gap-1.5">
+                {penActions.map(({ label }) => {
+                  const key = label as ActionKey;
+                  // Ask is the one action this page does not pretend at: it
+                  // needs a composer and a conversation, not a margin note.
+                  const isAsk = key === "Ask";
+                  const chosen = action === key;
+
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      disabled={isAsk}
+                      aria-pressed={isAsk ? undefined : chosen}
+                      onClick={() => choose(key)}
+                      className={`min-h-[38px] flex-1 rounded-full px-3 text-[14px] font-medium transition-colors ${
+                        chosen
+                          ? "bg-[var(--color-blue-600)] text-white"
+                          : isAsk
+                            ? "cursor-default text-[var(--color-ink-tertiary)]"
+                            : "bg-[var(--color-blue-50)] text-[var(--color-blue-700)] hover:bg-[var(--color-blue-100)]"
                       }`}
                     >
-                      {action.label}
-                    </span>
-                    <span className="mt-0.5 block text-[0.8125rem] leading-snug text-[var(--color-ink-secondary)]">
-                      {action.detail}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
 
-          {showHint && (
-            <div className="mt-4 border-t border-[var(--color-hairline)] pt-4">
-              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-[var(--color-tutor)]">
-                {hint?.kind}
-              </p>
-              {atEndOfLadder ? (
-                <p className="mt-2 text-[0.8125rem] leading-snug text-[var(--color-ink-secondary)]">
-                  {penDemo.exhausted}
+              {/* What kind of help this was, and the offer of a different kind.
+                  The ladder is the point: ask again and Plumi does not rephrase,
+                  it changes approach. */}
+              {answer && (
+                <div className="mt-3 border-t border-[var(--color-hairline)] px-1 pt-2.5">
+                  <p className="text-[11px] font-semibold tracking-[0.1em] text-[var(--color-tutor)] uppercase">
+                    {answer.kind}
+                  </p>
+
+                  <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                    {action === "Hint" ? (
+                      atEndOfLadder ? (
+                        <p className="text-[13px] text-[var(--color-ink-secondary)]">{penDemo.exhausted}</p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setRung((n) => n + 1)}
+                          className="text-[13px] font-medium text-[var(--color-blue-600)] hover:underline"
+                        >
+                          {penDemo.anotherWay}
+                        </button>
+                      )
+                    ) : (
+                      <span />
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="text-[13px] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]"
+                    >
+                      {penDemo.reset}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {action === "Ask" && (
+                <p className="mt-3 border-t border-[var(--color-hairline)] px-1 pt-2.5 text-[13px] text-[var(--color-ink-secondary)]">
+                  {penDemo.askOnly}
                 </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setHintLevel((n) => n + 1)}
-                  className="mt-2 text-[0.875rem] font-medium text-[var(--color-blue-600)] hover:underline"
-                >
-                  {penDemo.anotherWay} →
-                </button>
               )}
             </div>
-          )}
-
-          {phase === "selected" && (
-            <button
-              type="button"
-              onClick={reset}
-              className="mt-4 text-[0.8125rem] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]"
-            >
-              {penDemo.reset}
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      <p
+        className="mt-4 flex items-center gap-2.5 text-[0.9375rem] text-[var(--color-ink-secondary)]"
+        aria-live="polite"
+      >
+        {selected === null ? (
+          <>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="shrink-0">
+              <path
+                d="M13 3.2 5.4 10.8 3 13l2.2-2.4L12.8 3a.7.7 0 0 1 1 0 .7.7 0 0 1 0 1Z"
+                fill="none"
+                stroke="var(--color-ink-tertiary)"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>{penDemo.prompt}</span>
+          </>
+        ) : (
+          <>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="shrink-0">
+              <circle cx="8" cy="8" r="7" fill="var(--color-blue-600)" opacity="0.12" />
+              <path
+                d="M4.5 8.2 6.9 10.6 11.5 5.6"
+                fill="none"
+                stroke="var(--color-blue-600)"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>
+              {penDemo.readBack}:{" "}
+              <span className="text-[var(--color-ink)]">
+                &ldquo;{inkPlainText(penDemo.lines[selected].text)}&rdquo;
+              </span>
+            </span>
+          </>
+        )}
+      </p>
     </div>
   );
 }
 
-/** The invitation: a loop that draws itself round the last line, once. */
+/** The invitation: a loop that draws itself round the last line. */
 function GhostLoop() {
   const y = ruleAt(LINE_RULES[2]);
-  const x1 = WRITE_X - 22;
-  const x2 = WRITE_X + inkWidth(penDemo.lines[2].text, INK_SIZE) + 22;
+  const x1 = WRITE_X - 20;
+  const x2 = WRITE_X + inkWidth(penDemo.lines[2].text, INK_SIZE) + 20;
   const w = x2 - x1;
 
-  const d = `M ${x1 + 16} ${y - 34}
-             C ${x1 - 18} ${y - 28}, ${x1 - 20} ${y + 16}, ${x1 + 20} ${y + 20}
-             C ${x1 + w * 0.45} ${y + 27}, ${x2 - 40} ${y + 24}, ${x2 - 10} ${y + 14}
-             C ${x2 + 22} ${y + 4}, ${x2 + 20} ${y - 28}, ${x2 - 20} ${y - 32}
-             C ${x1 + w * 0.5} ${y - 40}, ${x1 + w * 0.2} ${y - 38}, ${x1 + 8} ${y - 26}`;
+  const d = `M ${x1 + 14} ${y - 32}
+             C ${x1 - 16} ${y - 26}, ${x1 - 18} ${y + 15}, ${x1 + 18} ${y + 19}
+             C ${x1 + w * 0.45} ${y + 25}, ${x2 - 36} ${y + 22}, ${x2 - 9} ${y + 13}
+             C ${x2 + 20} ${y + 3}, ${x2 + 18} ${y - 26}, ${x2 - 18} ${y - 30}
+             C ${x1 + w * 0.5} ${y - 37}, ${x1 + w * 0.2} ${y - 35}, ${x1 + 7} ${y - 24}`;
 
   return (
     <path
@@ -513,7 +598,8 @@ function GhostLoop() {
       stroke="var(--color-blue-600)"
       strokeWidth={2.4}
       strokeLinecap="round"
-      strokeOpacity={0.32}
+      strokeOpacity={0.5}
+      className="ghost-loop"
       style={{
         strokeDasharray: 1400,
         strokeDashoffset: 1400,

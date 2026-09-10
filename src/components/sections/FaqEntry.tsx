@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { track } from "@/lib/analytics";
 import type { FaqItem } from "@/content/copy";
 
@@ -16,14 +18,23 @@ import type { FaqItem } from "@/content/copy";
  * `::details-content`. Browsers that do not know that pseudo-element ignore the
  * rule entirely and snap open, which is exactly the behaviour we had before.
  */
-export function FaqEntry({ item }: { item: FaqItem }) {
+export function FaqEntry({ item, open = false }: { item: FaqItem; open?: boolean }) {
+  // Genuinely controlled rather than a default. The first question is rendered
+  // open — on the server, so it is in the HTML and readable with JavaScript off
+  // — and a visitor can still close it, which an uncontrolled `open` attribute
+  // would fight the moment anything above re-rendered.
+  const [isOpen, setIsOpen] = useState(open);
+
   return (
     <details
+      open={isOpen}
       // Deliberately not an exclusive accordion (`name=`): a student comparing
       // "is it free?" against "when does it launch?" should be able to hold both
       // open at once.
       onToggle={(event) => {
-        if (event.currentTarget.open) track("faq_opened", { question: item.question });
+        const nowOpen = event.currentTarget.open;
+        setIsOpen(nowOpen);
+        if (nowOpen) track("faq_opened", { question: item.question });
       }}
       className="group border-b border-[var(--color-hairline)] [interpolate-size:allow-keywords] [&::details-content]:h-0 [&::details-content]:overflow-hidden [&::details-content]:transition-[height,content-visibility] [&::details-content]:duration-300 [&::details-content]:ease-[var(--ease-out-soft)] [&::details-content]:[transition-behavior:allow-discrete] open:[&::details-content]:h-auto"
     >

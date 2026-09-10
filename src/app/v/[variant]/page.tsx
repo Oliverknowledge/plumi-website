@@ -33,7 +33,7 @@ export async function generateMetadata({
   const copy = heroFor(variant);
 
   return {
-    title: `Plumi — ${copy.headline.replace(/\.$/, "")}`,
+    title: `Plumi: ${copy.headline.replace(/\.$/, "")}`,
     description: copy.subhead,
     // The variants are the same page with a different pitch. Pointing the
     // canonical at the homepage stops them competing with it in search, which

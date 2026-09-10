@@ -27,10 +27,28 @@ const VERDICT_MARK: Record<Verdict, MarkName> = {
   no: "cross",
 };
 
+/**
+ * Monochrome, deliberately, and this is the one place it matters most.
+ *
+ * These marks were green, amber and red — which broke the rule the whole site
+ * runs on: that green, amber and red mean *marking* and nothing else. Seventy
+ * traffic-light glyphs in a competitor grid is not rationing, it is a decoration
+ * budget.
+ *
+ * It also inverted the argument. Red is the colour of the Weak mastery band
+ * three sections above, so a row this table concedes honestly — "a chatbot
+ * answers questions about anything; Plumi doesn't" — rendered as Plumi being
+ * marked wrong. The copy said "we lose this one" and the colour said "we failed
+ * this one", which is a worse claim than the one being made.
+ *
+ * Ink for yes, a lighter ink for partly, and a quiet grey for no — one that
+ * still clears 3:1, because a cross nobody can see is a row nobody can read.
+ * The shapes carry the meaning, and they are the app's own drawn marks.
+ */
 const VERDICT_COLOUR: Record<Verdict, string> = {
-  yes: "var(--color-correct)",
-  partly: "var(--color-partial)",
-  no: "var(--color-incorrect)",
+  yes: "var(--color-ink)",
+  partly: "var(--color-ink-secondary)",
+  no: "var(--color-mark-absent)",
 };
 
 function VerdictCell({ verdict }: { verdict: Verdict }) {
@@ -219,7 +237,19 @@ export function HeadToHead() {
         </table>
       </div>
 
-      <p className="mt-4 measure-wide text-sm leading-relaxed text-[var(--color-ink-tertiary)] text-pretty">
+      {/* The marks, named. A drawn half-tick means "partly" to the person who
+          drew it and nothing at all to a reader — which is the same problem as
+          an undefined tilde in somebody else's table. */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-ink-tertiary)]">
+        {(["yes", "partly", "no"] as const).map((verdict) => (
+          <span key={verdict} className="inline-flex items-center gap-1.5">
+            <HandMark mark={VERDICT_MARK[verdict]} size={16} colour={VERDICT_COLOUR[verdict]} />
+            {verdictLabels[verdict]}
+          </span>
+        ))}
+      </div>
+
+      <p className="mt-3 measure-wide text-sm leading-relaxed text-[var(--color-ink-tertiary)] text-pretty">
         {comparison.footnote}
       </p>
     </div>

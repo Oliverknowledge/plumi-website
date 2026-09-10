@@ -32,8 +32,15 @@ export function Faq() {
     <Section copy={sections.faq}>
       <div className="measure-wide">
         <div className="border-t border-[var(--color-hairline)]">
-          {faq.map((item) => (
-            <FaqEntry key={item.question} item={item} />
+          {faq.map((item, index) => (
+            <FaqEntry
+              key={item.question}
+              item={item}
+              // The first one is the differentiation argument — "is this just
+              // ChatGPT in a notebook?" — and collapsed at 85% scroll depth it
+              // was the best-written thing on the site that nobody would read.
+              open={index === 0}
+            />
           ))}
         </div>
       </div>

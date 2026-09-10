@@ -42,7 +42,7 @@ export const heroVariants = {
     headline: "A notebook that knows what you don't know.",
     headlineLines: ["A notebook that knows", "what you don't know."],
     subhead:
-      "Write everything on your iPad like normal. Plumi works out what you can actually do — and what to study next.",
+      "Write everything on your iPad like normal. Plumi works out what you can actually do, and what to study next.",
     secondaryCta: "See how it works",
     supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
   },
@@ -106,7 +106,7 @@ export const sections = {
     eyebrow: "What counts",
     headline: "Reading your notes proves nothing.",
     subhead:
-      "Notes make a topic “seen” and nothing more. Only marked work moves it — and getting there on your own counts differently from getting there after five hints.",
+      "Notes make a topic “seen” and nothing more. Only marked work moves it. And getting there on your own counts differently from getting there after five hints.",
   },
 
   /** The credibility keystone. An app that removes its own best feature under a
@@ -211,34 +211,54 @@ export const penActions = [
 export const penDemo = {
   question: "Find ∫ x e^x dx",
   marks: "[6 marks]",
-  prompt: "Draw a circle round any line",
-  promptShort: "Circle a line",
-  /** Shown once the loop closes, above the action pills. */
+  prompt: "Draw a circle round any line. Use your finger, a Pencil or a mouse.",
   readBack: "Plumi read this line",
   reset: "Start again",
   anotherWay: "Try another way",
   /** Reached the end of the ladder for this line. */
   exhausted: "That's as far as a hint goes. The rest is yours.",
+  /** Ask needs a keyboard and a conversation; it is not pretended at here. */
+  askOnly: "Ask needs somewhere to type. That one is in the app.",
+
+  /**
+   * Three of the AI Pen's four actions answer here, per line.
+   *
+   * They used to be listed and disabled, which was worse than not listing them:
+   * a full-strength label with a full description that does nothing when
+   * tapped is a broken promise inside the one part of the product a visitor can
+   * actually touch. Ask is the exception and says so, because it needs a
+   * composer and a conversation rather than a margin note.
+   *
+   * Every answer is short because Plumi's margin notes are short. The app's own
+   * rule: "Short things. 'unit?', 'why?', '+1', 'check sign', 'try u = x', a
+   * formula fragment. Never a paragraph."
+   */
   lines: [
     {
-      text: "Let u = x,  dv = e^x dx",
+      text: "Let u = x, dv = e^x dx",
+      explain: { kind: "What this is", note: "differentiate u" },
+      check: { kind: "Does it hold?", note: "good choice of u" },
       hints: [
-        { kind: "A nudge", note: "which gets simpler?" },
+        { kind: "A nudge", note: "which is simpler?" },
         { kind: "The principle", note: "d/dx of x is 1" },
       ],
     },
     {
       text: "∫ x e^x dx = x e^x − ∫ e^x dx",
+      explain: { kind: "What this is", note: "this is uv − ∫v du" },
+      check: { kind: "Does it hold?", note: "parts done right" },
       hints: [
-        { kind: "A nudge", note: "now do the second ∫" },
+        { kind: "A nudge", note: "do the second ∫" },
         { kind: "The principle", note: "∫ e^x dx = e^x" },
       ],
     },
     {
       text: "= x e^x + e^x + c",
+      explain: { kind: "What this is", note: "the final answer" },
+      check: { kind: "Does it hold?", note: "sign is wrong" },
       hints: [
         { kind: "A nudge", note: "check the sign" },
-        { kind: "The principle", note: "you subtracted ∫ e^x" },
+        { kind: "The principle", note: "minus, not plus" },
       ],
     },
   ],
@@ -267,7 +287,7 @@ export const evidenceCases = [
     work: "You got there, after the tutor talked you through it",
     band: "Developing",
     tone: "developing",
-    note: "Counts — for less. Work reached from a hint is a weaker claim.",
+    note: "Counts. For less. Work reached from a hint is a weaker claim.",
   },
   {
     work: "You got it right on your own",
@@ -281,11 +301,11 @@ export const evidenceCases = [
  * The top band is gated on a success under a clock — and the bar is half marks,
  * not full, "because a six-mark question answered for four marks under a clock
  * is far better evidence than a perfect untimed practice answer."
- * The sentence below is the app's own, verbatim.
+ * The sentence below is the app's own, with its dash rewritten as a colon.
  */
 export const masteredGate = {
   band: "Mastered",
-  note: "To go further — Plumi needs to see this under exam conditions.",
+  note: "To go further: Plumi needs to see this under exam conditions.",
 } as const;
 
 /**
@@ -300,14 +320,14 @@ export const masteredGate = {
 export const compounding = {
   lead: "Nothing here is a survey you fill in. It is the work you were doing anyway.",
   steps: [
-    { when: "Week one", detail: "Notes, and one marked question.", filled: 1 },
-    { when: "Week two", detail: "Two more marked, one with the tutor.", filled: 2 },
-    { when: "Week four", detail: "A timed paper. Now some topics are proven.", filled: 3 },
-    { when: "Week six", detail: "Enough to be specific about where you stand.", filled: 4 },
+    { when: "Week one", detail: "Notes, and one marked question." },
+    { when: "Week two", detail: "Two more marked, one with the tutor." },
+    { when: "Week four", detail: "A timed paper. Now some topics are proven." },
+    { when: "Week six", detail: "Enough to be specific about where you stand." },
   ],
   /** Real, and a genuine differentiator: there is no forgetting curve in the app. */
   closing:
-    "And it never quietly takes it back. There is no decay curve in Plumi — if it has been a while, it says so, rather than moving your topic down while you weren't looking.",
+    "And it never quietly takes it back. There is no decay curve in Plumi: if it has been a while, it says so, rather than moving your topic down while you weren't looking.",
 } as const;
 
 /**
@@ -395,13 +415,6 @@ export const habit = {
   ],
   focusLine: "Focus Mode protects the time and tells you honestly what you actually did with it.",
   reassurance: "Nothing here punishes you for missing a day.",
-  /**
-   * A real and unusual design decision, worth saying out loud: most study apps
-   * quietly decay your progress so the graph goes down when you stop opening
-   * them. Plumi reports staleness as a fact and never silently downgrades what
-   * you proved.
-   */
-  noDecay: "And a topic you proved stays proved. Plumi will tell you it's been a while; it won't quietly take it back.",
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -412,7 +425,7 @@ export const waitlist = {
   emailLabel: "Your email",
   emailPlaceholder: "you@school.ac.uk",
   studyingLabel: "What are you studying?",
-  studyingHelper: "Pick the closest — you can change it later.",
+  studyingHelper: "Pick the closest. You can change it later.",
   subjects: ["Maths", "Physics", "Chemistry", "Biology", "Something else"],
   boards: ["AQA", "OCR", "Edexcel", "WJEC", "Not sure yet"],
   /** Labels for the two pill groups. Both groups are optional, and say so. */
@@ -429,6 +442,8 @@ export const waitlist = {
   /** Kills the single biggest unstated objection — "am I going to get spammed?" */
   reassurance: "Two emails. One when your course is ready, one when we launch. That's it.",
   privacy: "Your email, and nothing else. No sharing, no ads, no reselling.",
+  /** Shown beside the errors a visitor cannot retry past. */
+  emailUsInstead: "Email us instead and we'll add you by hand →",
   successTitle: "You're on the list.",
   successBody: "Two emails. One when your course is ready, one when we launch. Nothing else, ever.",
   /** Shown when the student skipped the subject/board step. */
@@ -442,17 +457,17 @@ export const waitlist = {
    * this page is trying not to tell.
    */
   successBodyCourse:
-    "{course}. We build the topic tree for each course by hand, from the board's own specification — so a course being asked for genuinely changes the order we build them in.",
+    "{course}. We build the topic tree for each course by hand, from the board's own specification. So a course being asked for genuinely changes the order we build them in.",
   courseSeparator: " · ",
   errors: {
     empty: "Pop your email in first.",
-    invalid: "That doesn't look like an email address — check it for us?",
-    network: "That didn't send — probably us, not you. Try again?",
+    invalid: "That doesn't look like an email address. Check it for us?",
+    network: "That didn't send. Probably us, not you. Try again?",
     server: "Something broke on our end. Give it a minute and try again.",
     rateLimited: "That's plenty of tries. Give it a minute.",
     /** Never fake a success. If persistence is down, say so. */
     unconfigured:
-      "We can't take sign-ups right this second. Try again shortly — we haven't lost anything you typed.",
+      "We can't take sign-ups right this second. Try again shortly. We haven't lost anything you typed.",
   },
 } as const;
 
@@ -469,31 +484,31 @@ export const faq: readonly FaqItem[] = [
   {
     question: "Is this just ChatGPT in a notebook?",
     answer:
-      "No, and the difference is easy to check. ChatGPT starts from nothing every time — you photograph the question, retype the context and explain what you've tried. Plumi is already looking at the page: it reads your handwriting and the printed question underneath it, so you circle the line and that's the whole ask. It also won't hand you the answer. Get it wrong four times and you get four genuinely different explanations — the principle, an analogy, a worked example, the problem broken down — each starting with what you got right. And it remembers: this week's work changes what it suggests next week.",
+      "No, and the difference is easy to check. ChatGPT starts from nothing every time. You photograph the question, retype the context and explain what you've tried. Plumi is already looking at the page: it reads your handwriting and the printed question underneath it, so you circle the line and that's the whole ask. It also won't hand you the answer. Get it wrong four times and you get four genuinely different explanations: the principle, an analogy, a worked example, the problem broken down. Each one starts with what you got right. And it remembers: this week's work changes what it suggests next week.",
   },
   {
     question: "Do I need an iPad?",
     answer:
-      "Yes, and an Apple Pencil. Plumi is built around handwriting — the whole point is that you write normally and it reads it, so there isn't a sensible version of this on a laptop or a phone. We know that rules some people out, and we'd rather say so plainly than take your email under false pretences. There's no iPhone, Android or web version planned for launch.",
+      "Yes, and an Apple Pencil. Plumi is built around handwriting. The whole point is that you write normally and it reads it, so there isn't a sensible version of this on a laptop or a phone. We know that rules some people out, and we'd rather say so plainly than take your email under false pretences. There's no iPhone, Android or web version planned for launch.",
   },
   {
     question: "When does it launch?",
     answer:
-      "We haven't set a public date, and we're not going to invent one. What's left is the work of getting each course properly finished, because we hand-build the topic tree for every specification rather than generating them. That's why we ask which course you're taking when you join — we're releasing course by course, and yours moving up the list is a genuine consequence of people asking for it.",
+      "We haven't set a public date, and we're not going to invent one. What's left is the work of getting each course properly finished, because we hand-build the topic tree for every specification rather than generating them. That's why we ask which course you're taking when you join. We're releasing course by course, and yours moving up the list is a genuine consequence of people asking for it.",
   },
   {
     question: "Is it free?",
     answer:
-      "The notebook is free — writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn't need a subscription. The parts that understand you — the tutor, the marking, the topic map, the adaptive sessions — will be a paid plan called Plumi Pro. We haven't set that price yet. When we do, everyone on the waitlist hears it from us before it goes public. There's no price on this page because there isn't one to put here.",
+      "The notebook is free: writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn't need a subscription. The parts that understand you (the tutor, the marking, the topic map, the adaptive sessions) will be a paid plan called Plumi Pro. We haven't set that price yet. When we do, everyone on the waitlist hears it from us before it goes public. There's no price on this page because there isn't one to put here.",
   },
   {
     question: "Does it work for my exam board?",
     answer:
-      "It depends which one, and we'd rather be specific than reassuring. Plumi maps your progress onto your actual specification — real topic codes from the real board — which means each one is built by hand. We're starting with Maths, Physics, Chemistry and Biology across AQA, OCR and Edexcel, and the boards aren't all at the same stage. Tell us your board and subject when you join and we'll tell you honestly where yours is.",
+      "It depends which one, and we'd rather be specific than reassuring. Plumi maps your progress onto your actual specification, with real topic codes from the real board. That means each one is built by hand. We're starting with Maths, Physics, Chemistry and Biology across AQA, OCR and Edexcel, and the boards aren't all at the same stage. Tell us your board and subject when you join and we'll tell you honestly where yours is.",
   },
   {
     question: "What happens to my work and my data?",
     answer:
-      "Your notes are yours. We use your work to build your own learner model — which topics you've been marked on, and what you got right unaided — and that's what powers the recommendations. It isn't used to train models for anyone else, it isn't sold, and it isn't shared with your school unless you decide to share it. On the waitlist specifically we store your email and the course you told us, and nothing else; we don't put email addresses into our analytics. If you'd like off the list before launch, reply to any email and you're off.",
+      "Your notes are yours. We use your work to build your own learner model: which topics you've been marked on, and what you got right unaided. That's what powers the recommendations. It isn't used to train models for anyone else, it isn't sold, and it isn't shared with your school unless you decide to share it. On the waitlist specifically we store your email and the course you told us, and nothing else; we don't put email addresses into our analytics. If you'd like off the list before launch, reply to any email and you're off.",
   },
 ] as const;

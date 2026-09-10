@@ -58,14 +58,27 @@ export function WhatNow() {
               ))}
             </ol>
 
-            {/* Rendered as it appears in the app, not as a link. It is an
-                illustration of the product, so it is not focusable and does not
-                pretend to be a control on this page. */}
-            <p
-              className="mt-7 inline-flex h-11 items-center rounded-full bg-[var(--color-blue-600)] px-5 font-medium text-white"
-              aria-hidden="true"
-            >
-              {recommendation.cta} →
+            {/*
+              Deliberately not drawn as a button.
+
+              In the app this is a filled blue pill, and rendering it that way
+              here made it the most saturated object on the page — larger than
+              the real call to action at that scroll position, on a card that
+              cannot be started, on a page that promises not to pretend. People
+              click a painted primary button. So it is set as the label it
+              actually is: the name of the thing the card would do.
+            */}
+            <p className="mt-7 flex items-center gap-2 text-[0.9375rem] font-medium text-[var(--color-blue-600)]">
+              {recommendation.cta}
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M3 8h10M9 4l4 4-4 4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </p>
           </article>
         </div>

@@ -46,7 +46,14 @@ export const footer = {
   copyright: "© 2026 Plumi. Made in the UK, for GCSE and A-Level.",
   /**
    * Pre-empts the "this is all concept art" objection that any well-designed
-   * pre-launch site attracts — and unlike most reassurances, it is checkable.
+   * pre-launch site attracts.
+   *
+   * Carefully worded, because the obvious version — "everything here is the
+   * real app" — is not true. These are drawings: recreations built from the
+   * app's own values. What IS true is that the ingredients are the product's,
+   * and every one of them is checkable at launch. On a page whose only social
+   * proof is candour, the difference matters.
    */
-  honesty: "Plumi hasn't launched yet. Everything shown here is the real app, not a mock-up.",
+  honesty:
+    "Plumi hasn't launched yet, so every screen here is drawn rather than photographed. Drawn from the app's own colours, its own page geometry and its own handwriting. Nothing is claimed that the app cannot do.",
 } as const;

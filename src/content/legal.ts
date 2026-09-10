@@ -81,8 +81,8 @@ export const privacy: LegalDoc = {
           kind: "list",
           items: [
             "Your email address.",
-            "The subject and exam board you picked, if you picked them. Both are optional, and the form works without them. We only accept the exact options the form offers — anything else is thrown away rather than stored.",
-            "Where you came from: the utm_source, utm_medium, utm_campaign, utm_content and utm_term parameters that were on the link you clicked, any advertising click identifier it carried, which version of the page you saw, and the host name of the site that linked to you. Not the full address of that page — just the host.",
+            "The subject and exam board you picked, if you picked them. Both are optional, and the form works without them. We only accept the exact options the form offers. Anything else is thrown away rather than stored.",
+            "Where you came from: the utm_source, utm_medium, utm_campaign, utm_content and utm_term parameters that were on the link you clicked, any advertising click identifier it carried, which version of the page you saw, and the host name of the site that linked to you. Not the full address of that page, just the host.",
             "A two-letter country code, worked out at the edge by our host.",
             "Your browser's user-agent string, and the date and time.",
           ],
@@ -97,7 +97,7 @@ export const privacy: LegalDoc = {
         },
         {
           kind: "todo",
-          text: "TODO(founder): once the Supabase project exists, state its region here — students and their parents are entitled to know which country their email address is sitting in. See docs/WAITLIST.md.",
+          text: "TODO(founder): once the Supabase project exists, state its region here: students and their parents are entitled to know which country their email address is sitting in. See docs/WAITLIST.md.",
         },
       ],
     },
@@ -119,7 +119,7 @@ export const privacy: LegalDoc = {
         },
         {
           kind: "text",
-          text: "We keep it until you ask us to remove you, or until the waitlist has done its job after launch — whichever comes first.",
+          text: "We keep it until you ask us to remove you, or until the waitlist has done its job after launch, whichever comes first.",
         },
       ],
     },
@@ -134,7 +134,7 @@ export const privacy: LegalDoc = {
           kind: "list",
           items: [
             "Person profiles are off, so PostHog is not building a record of you as an individual.",
-            "Session recording is off. Nothing you type or point at is played back to us — and the only thing you can type on this site is your email address.",
+            "Session recording is off. Nothing you type or point at is played back to us. And the only thing you can type on this site is your email address.",
             "Autocapture is off. We send a short list of named events we chose in advance, not everything you touch.",
             "Your email address is never sent to it. When you join the list we record that a signup happened and whether a course was picked. The address itself is stripped in code before anything leaves your browser.",
           ],
@@ -196,7 +196,7 @@ export const privacy: LegalDoc = {
       blocks: [
         {
           kind: "text",
-          text: "If this changes in a way that matters — a new thing collected, a new company involved — we'll email the people on the list rather than quietly editing the date at the top.",
+          text: "If this changes in a way that matters (a new thing collected, a new company involved), we'll email the people on the list rather than quietly editing the date at the top.",
         },
       ],
     },
@@ -247,7 +247,7 @@ export const terms: LegalDoc = {
       blocks: [
         {
           kind: "text",
-          text: "Most of the people this app is for are at school, and that's fine — the site is written for them. If you're under 13, please ask a parent or guardian before giving us your email address.",
+          text: "Most of the people this app is for are at school, and that's fine. The site is written for them. If you're under 13, please ask a parent or guardian before giving us your email address.",
         },
       ],
     },
@@ -265,7 +265,7 @@ export const terms: LegalDoc = {
       blocks: [
         {
           kind: "text",
-          text: "The words, design, illustrations and code on this site are ours. You're welcome to link to it, quote it and screenshot it — including to argue with it.",
+          text: "The words, design, illustrations and code on this site are ours. You're welcome to link to it, quote it and screenshot it, including to argue with it.",
         },
         {
           kind: "text",

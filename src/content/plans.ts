@@ -25,7 +25,7 @@
  */
 export const freePlan = {
   name: "Plumi Free",
-  promise: "The notebook. Free forever, and never metered.",
+  promise: "The notebook, free forever. No trial, no page limit, no counter.",
   /** Things with no gate anywhere in the app. */
   includes: [
     "Writing with pen, pencil and highlighter",
@@ -42,7 +42,8 @@ export const freePlan = {
    * These are the app's current metered values — update them together with
    * Entitlements.swift if they change.
    */
-  allowanceLead: "Plus a daily go at the rest of it:",
+  /** Names the meter openly rather than letting a reader discover it. */
+  allowanceLead: "The intelligence is metered on Free. You get a go at all of it, every day:",
   allowances: [
     { feature: "AI Pen", allowance: "12 a day" },
     { feature: "Marking", allowance: "5 a day" },
@@ -119,14 +120,16 @@ export const alternatives: readonly Alternative[] = [
     label: "A chatbot",
     sublabel: "ChatGPT, Gemini, Claude",
     rows: [
-      { claim: "Answers questions about anything, not just your subjects", them: "yes", plumi: "no" },
       { claim: "There at 11pm the night before", them: "yes", plumi: "yes" },
       {
         claim: "You don't have to explain the question first",
         them: "no",
         plumi: "yes",
-        note: "Photograph, crop, retype the context — or circle the line.",
+        note: "Photograph, crop, retype the context. Or circle the line.",
       },
+      // The concession, placed after the argument has started rather than as
+      // the first thing a reader sees. It is still here, and still unhedged.
+      { claim: "Answers questions about anything, not just your subjects", them: "yes", plumi: "no" },
       { claim: "Reads the printed question under your working", them: "partly", plumi: "yes" },
       { claim: "Helps on the page instead of in a chat", them: "no", plumi: "yes" },
       { claim: "Marks against your board's actual mark scheme", them: "partly", plumi: "yes" },
@@ -207,13 +210,22 @@ export const alternatives: readonly Alternative[] = [
     id: "paper",
     label: "Paper and a pen",
     sublabel: "What most people actually use",
+    // Interleaved rather than grouped. Listed by outcome, paper's three
+    // advantages ran consecutively at the top and the panel read as a list of
+    // defeats before it read as a comparison — which is not more honest, just
+    // worse at making the point that both are true.
     rows: [
-      { claim: "Never runs out of battery", them: "yes", plumi: "no" },
-      { claim: "Allowed in the exam", them: "yes", plumi: "no" },
-      { claim: "Costs nothing", them: "yes", plumi: "partly" },
       { claim: "You can find the page from three weeks ago", them: "no", plumi: "yes" },
+      { claim: "Never runs out of battery", them: "yes", plumi: "no" },
       { claim: "Tells you when you've got it wrong", them: "no", plumi: "yes" },
+      {
+        claim: "Allowed in the exam",
+        them: "yes",
+        plumi: "no",
+        note: "Which is the point of Exam Mode: it is practice for a room you take a pen into.",
+      },
       { claim: "Turns the work you already did into a plan", them: "no", plumi: "yes" },
+      { claim: "Costs nothing", them: "yes", plumi: "partly" },
     ],
     cost: "About £3",
   },
@@ -239,6 +251,9 @@ export const comparison = {
   costLabel: "What it costs",
   /** Names the claim column for a screen reader; the column head is blank by design. */
   claimLabel: "What you get",
+  /** Names the three marks. The audit's complaint about Lumi's table was an
+   *  undefined tilde; a drawn half-tick has exactly the same problem. */
+  legend: "Yes · Partly · No",
   /** The honesty that makes the rest of the table land. */
   footnote:
     "Rows where the alternative wins are marked against us. A comparison that loses nothing isn't a comparison.",

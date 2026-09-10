@@ -84,11 +84,27 @@ export function WhatCounts() {
           {compounding.lead}
         </p>
 
+        {/*
+          A timeline, not a mastery meter.
+
+          These four steps used the same four-bar component as the bands above,
+          filled 1/4 through 4/4 in brand blue — which quietly turned the site's
+          most semantically loaded object into a decorative counter, and painted
+          "week six" in the exact glyph and colour that means "Mastered" three
+          sections later. A dot on a rule says "time passing" and cannot be
+          mistaken for anything else.
+        */}
         <ol className="mt-10 grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
           {compounding.steps.map((step) => (
-            <li key={step.when}>
-              <BandBars filled={step.filled} colour="var(--color-blue-600)" />
-              <p className="mt-4 text-[0.9375rem] font-semibold">{step.when}</p>
+            <li key={step.when} className="relative">
+              <span
+                aria-hidden="true"
+                className="mb-4 flex h-2 items-center gap-2 text-[var(--color-hairline-strong)]"
+              >
+                <span className="size-2 rounded-full bg-[var(--color-blue-600)]" />
+                <span className="h-px flex-1 bg-current" />
+              </span>
+              <p className="text-[0.9375rem] font-semibold">{step.when}</p>
               <p className="mt-1 text-[0.9375rem] leading-snug text-[var(--color-ink-secondary)]">
                 {step.detail}
               </p>

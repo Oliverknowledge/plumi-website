@@ -227,7 +227,7 @@ export const granularityNote = {
   /** Verbatim from spec point 8.5 of Edexcel 9MA0. */
   boardWording: "Integration by substitution and by parts",
   body:
-    "That is one line on the specification. It is two different problems, and a student is weak at one of them, not both — so Plumi splits it, and bands each half on its own evidence.",
+    "That is one line on the specification. It is two different problems, and a student is weak at one of them, not both. So Plumi splits it, and bands each half on its own evidence.",
 } as const;
 
 /**
@@ -245,4 +245,4 @@ export const subjects = ["Maths", "Physics", "Chemistry", "Biology"] as const;
  * named alongside an admission of uneven coverage trusts the rest of the page.
  */
 export const coverageNote =
-  "Maths, Physics, Chemistry and Biology, across AQA, Edexcel and OCR. The trees are hand-built, so they aren't all at the same stage — tell us your course and we'll tell you honestly where yours is.";
+  "Maths, Physics, Chemistry and Biology, across AQA, Edexcel and OCR. The trees are hand-built, so they aren't all at the same stage. Tell us your course and we'll tell you honestly where yours is.";

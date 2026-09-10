@@ -1,4 +1,5 @@
 import { write, strokeLength, type HandStroke } from "@/lib/hand";
+import { hasSuperscript, inkRuns } from "./richInk";
 
 /**
  * How long a block of ink takes to write.
@@ -18,7 +19,12 @@ export function inkDuration(
   maxLines = 2,
   speed = 420,
 ): number {
-  const strokes: HandStroke[] = write(text, { size, box: { x: 0, y: 0, width }, maxLines });
+  const strokes: HandStroke[] = hasSuperscript(text)
+    ? inkRuns(text, size).flatMap((run) =>
+        write(run.text, { size: run.size, box: { x: run.x, y: 0, width }, maxLines: 1 }),
+      )
+    : write(text, { size, box: { x: 0, y: 0, width }, maxLines });
+
   const total = strokes.reduce((sum, stroke) => sum + strokeLength(stroke), 0);
   return total / speed;
 }

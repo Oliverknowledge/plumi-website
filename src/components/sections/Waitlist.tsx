@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 
 import { Mascot } from "@/components/ui/Mascot";
 import { Section } from "@/components/ui/Section";
+import { site } from "@/config/site";
 import { sections, waitlist } from "@/content/copy";
 import { track } from "@/lib/analytics";
 import { getAttribution } from "@/lib/attribution";
@@ -362,9 +363,31 @@ export function Waitlist() {
                   its text is announced unreliably. */}
               <div id={errorId} role="alert" aria-live="assertive" className="empty:hidden">
                 {error && (
-                  <p className="mt-4 rounded-[var(--radius-control)] border-l-2 border-[var(--color-incorrect)] bg-[color-mix(in_srgb,var(--color-incorrect)_16%,transparent)] px-4 py-3 text-sm text-[var(--color-ink-inverse)]">
-                    {waitlist.errors[error]}
-                  </p>
+                  <div className="mt-4 rounded-[var(--radius-control)] border-l-2 border-[var(--color-incorrect)] bg-[color-mix(in_srgb,var(--color-incorrect)_16%,transparent)] px-4 py-3 text-sm text-[var(--color-ink-inverse)]">
+                    <p>{waitlist.errors[error]}</p>
+
+                    {/*
+                      A way out, for the one failure the visitor cannot retry
+                      their way past.
+
+                      If the backend is unconfigured or broken, every call to
+                      action on the page terminates in this box — the funnel is
+                      not merely converting badly, it is converting at zero. A
+                      mailto costs nothing, needs no infrastructure, and is the
+                      difference between losing a signup and losing a student
+                      who was ready to give us one.
+                    */}
+                    {(error === "unconfigured" || error === "server" || error === "network") && (
+                      <p className="mt-2">
+                        <a
+                          href={`mailto:${site.contactEmail}?subject=${encodeURIComponent("Put me on the Plumi waitlist")}`}
+                          className="font-medium text-[var(--color-blue-300)] underline underline-offset-2"
+                        >
+                          {waitlist.emailUsInstead}
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
 

@@ -80,11 +80,10 @@ export function SessionWeighting() {
             {chip}
           </span>
         ))}
-        <span
-          aria-hidden="true"
-          className="ml-auto inline-flex h-9 items-center rounded-full bg-[var(--color-blue-600)] px-4 text-[0.875rem] font-medium text-white"
-        >
-          {picker.start}
+        {/* A label, not a button — see the note in WhatNow. Nothing on this
+            card can be started, so nothing on it is painted as startable. */}
+        <span aria-hidden="true" className="ml-auto text-[0.875rem] font-medium text-[var(--color-blue-600)]">
+          {picker.start} →
         </span>
       </div>
 
