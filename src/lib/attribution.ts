@@ -85,8 +85,13 @@ export function readCurrentTouch(): Attribution {
     if (value) touch[key] = value.slice(0, 200);
   }
 
-  const variant = params.get("v") ?? params.get("landing_variant");
-  touch.landing_variant = (variant ?? DEFAULT_LANDING_VARIANT).slice(0, 60);
+  // The variant normally comes from the path — `/v/mirror` — because the
+  // alternate landings are prerendered routes rather than a query string on a
+  // dynamic homepage. `?v=` is still honoured so a link written by hand, or an
+  // ad platform that appends rather than rewrites, still lands correctly.
+  const fromPath = /^\/v\/([a-z0-9-]{1,40})\/?$/i.exec(window.location.pathname)?.[1];
+  const fromQuery = params.get("v") ?? params.get("landing_variant");
+  touch.landing_variant = (fromPath ?? fromQuery ?? DEFAULT_LANDING_VARIANT).slice(0, 60);
 
   const host = referrerHost();
   if (host) touch.referrer_host = host;
