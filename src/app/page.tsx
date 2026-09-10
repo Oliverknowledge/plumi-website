@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { StickyCta } from "@/components/StickyCta";
+import { SectionImpressions } from "@/components/SectionImpressions";
 
 import { Hero } from "@/components/sections/Hero";
 import { ThePage } from "@/components/sections/ThePage";
@@ -51,6 +52,7 @@ export default function Page() {
 
       <SiteFooter />
       <StickyCta />
+      <SectionImpressions />
     </>
   );
 }
