@@ -1,0 +1,523 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLUMI — WEB DESIGN TOKENS
+
+   Every colour below is transcribed from the app's own source of truth,
+   Sources/PlumiKit/Design/PlumiTheme.swift, so the website and the product are
+   the same object seen from two sides.
+
+   The app's thesis carries over unchanged:
+     · Paper is never #FFFFFF. Real paper is warm and slightly dim.
+     · Ink is never #000000. Fountain-pen black is a very dark blue-black.
+     · One confident blue for interaction; semantic colour rationed hard so that
+       green, amber and red only ever mean marking.
+
+   The site is deliberately light-only — `color-scheme: light` stops mobile
+   browsers force-darkening a page whose entire subject is paper. Two sections
+   go dark on purpose (Exam Mode, the closing panel); those use the app's real
+   dark values, not a filter.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Plumi blue ─────────────────────────────────────────────────────────
+     Hue ~219°. Cooler and deeper than iOS #007AFF, less violet than the
+     ubiquitous Tailwind blue-600. */
+  --color-blue-50: #eff4fe;
+  --color-blue-100: #dce7fc;
+  --color-blue-200: #bed2f9;
+  --color-blue-300: #93b4f4;
+  --color-blue-400: #6390ec;
+  --color-blue-500: #3b70e2;
+  --color-blue-600: #2158d4; /* primary — buttons, selection, active tool */
+  --color-blue-700: #1a46ac;
+  --color-blue-800: #173a8a;
+  --color-blue-900: #16306e;
+
+  /* ── Paper and chrome ─────────────────────────────────────────────────── */
+  --color-paper: #fcfcf9; /* the writing surface */
+  --color-surface: #f3f4f6; /* the desk the paper sits on */
+  --color-elevated: #ffffff; /* cards, popovers, sheets */
+
+  /* Dark counterparts, for the two sections that go dark on purpose. */
+  --color-paper-dark: #17191d;
+  --color-surface-dark: #0d0e11;
+  --color-elevated-dark: #1d2025;
+
+  /* ── Ink and text ─────────────────────────────────────────────────────── */
+  --color-ink: #16202e; /* primary text and the default pen */
+  --color-ink-secondary: #5a6474;
+  /* Darkened from the app's #8992A1, which is 3.05:1 on paper and fails WCAG
+     AA for body text. iOS gets away with it at 11–13pt inside a dense UI; a
+     marketing page read on a phone in daylight does not. This is the one place
+     the web expression deliberately departs from the app's literal value. */
+  --color-ink-tertiary: #666f7d;
+  --color-ink-inverse: #f2f4f7;
+  --color-ink-inverse-secondary: #a3abb8;
+  /* The quiet voice on the two dark sections. `--color-ink-tertiary` is tuned
+     against paper and drops to 3.46:1 on #17191D, so it must not be reused
+     there — a light-mode grey on a dark ground is the most common way an
+     otherwise careful palette fails an audit. */
+  --color-ink-inverse-tertiary: #8a92a0;
+
+  /* ── Lines and fills ──────────────────────────────────────────────────── */
+  --color-hairline: #e3e5e9;
+  --color-hairline-strong: #ced2d9;
+  --color-fill: #edeff2;
+  --color-fill-strong: #e1e4e9;
+  --color-hairline-dark: #2c3037;
+
+  /* ── Marking semantics — never decorative ─────────────────────────────── */
+  --color-correct: #0f9d6b;
+  --color-correct-bg: #e6f7f0;
+  --color-partial: #c8791a;
+  --color-partial-bg: #fdf3e4;
+  --color-incorrect: #d8453a;
+  --color-incorrect-bg: #fdecea;
+
+  /* ── Tutor ink ────────────────────────────────────────────────────────────
+     The colour Plumi's own handwritten annotations are drawn in. Indigo,
+     deliberately: unmistakably not the student's ink, and unmistakably not a
+     grade colour. A teacher's pen without the emotional charge of red. */
+  --color-tutor: #5a4fe0;
+  --color-tutor-soft: #edebfe;
+
+  /* ── Mastery bands ────────────────────────────────────────────────────────
+     Two sets, because the two uses have different rules.
+
+     The first set is the app's own, used for the four-bar indicators. Those
+     are non-text UI components, which WCAG holds to 3:1 against what they sit
+     on — and every one of them clears it.
+
+     The second set is for the band NAME set as text, which is held to 4.5:1.
+     The app's amber and green land around 3.4:1 on white, so used as words they
+     would fail on the smallest screen where the type is under 24px. These are
+     the same hues, darkened until they pass. */
+  --color-mastery-weak: #d8453a;
+  --color-mastery-developing: #c8791a;
+  --color-mastery-secure: #0f9d6b;
+  --color-mastery-mastered: #2158d4;
+  --color-mastery-unseen: #c2c7cf;
+
+  /* The "no" mark in the comparison. The unseen grey it used to borrow is
+     1.7:1 on white — a graphical object carrying meaning has to clear 3:1, and
+     a cross nobody can see is a row nobody can read. Quiet, but present. */
+  --color-mark-absent: #868e9b;
+
+  --color-mastery-weak-text: #c0392b;
+  --color-mastery-developing-text: #a45f12;
+  --color-mastery-secure-text: #0b7a53;
+  --color-mastery-mastered-text: #2158d4;
+
+  /* ── Student ink palette (the notebook's pen colours) ─────────────────── */
+  --color-pen-ink: #16202e;
+  --color-pen-blue: #1f4fbf;
+  --color-pen-red: #c0392b;
+  --color-pen-green: #117a54;
+  --color-pen-violet: #6b3fa0;
+  --color-pen-graphite: #5a6474;
+  --color-highlighter-yellow: #ffe14d;
+
+  /* ── Type ─────────────────────────────────────────────────────────────────
+     One webfont, and two voices that are not webfonts at all.
+
+       sans  — the working voice. Everything the site says in its own words.
+               Inter, because it is the closest open sibling to the SF Pro the
+               app actually uses, and this site is meant to look like the app.
+       serif — mathematical notation only, and the system stack rather than a
+               webfont. Printed maths is set in a serif italic, in the app and
+               in every exam paper ever printed; Georgia and Times both render
+               that correctly, and neither costs a download.
+       ink   — handwriting. Not a webfont: the strokes come from PlumiHand,
+               the app's own stroke-based hand, ported in src/lib/hand. A font
+               is an outline and can only fade in; these can be written.
+
+     Families are injected by next/font in layout.tsx. */
+  --font-sans: var(--font-plumi-sans), ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Display scale. Fluid, so nothing needs a breakpoint to stay in proportion;
+     every step is clamp(mobile, viewport, desktop).
+
+     Sized against the column it actually sits in, not against the viewport.
+     A display step tuned to a full-bleed centred hero produces one word per
+     line in a 36rem column, which is a stack of words rather than a sentence. */
+  --text-display: clamp(2.5rem, 1.6rem + 3.4vw, 4.5rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.032em;
+
+  --text-h1: clamp(2.125rem, 1.1rem + 4.2vw, 4.25rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.03em;
+
+  --text-h2: clamp(1.75rem, 1.15rem + 2.4vw, 3rem);
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.025em;
+
+  --text-h3: clamp(1.375rem, 1.1rem + 1.1vw, 1.875rem);
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.02em;
+
+  --text-lead: clamp(1.0625rem, 0.95rem + 0.5vw, 1.375rem);
+  --text-lead--line-height: 1.5;
+  --text-lead--letter-spacing: -0.011em;
+
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.14em;
+
+  /* ── Radii — the app's own ladder ─────────────────────────────────────── */
+  --radius-chip: 7px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+  --radius-modal: 28px;
+  /* Web-only: the iPad bezel. */
+  --radius-device: 38px;
+
+  /* ── Elevation — exactly two levels, as in the app ────────────────────── */
+  --shadow-resting: 0 2px 10px rgb(22 32 46 / 0.07);
+  --shadow-floating: 0 10px 28px rgb(22 32 46 / 0.15);
+  --shadow-device: 0 2px 6px rgb(22 32 46 / 0.06), 0 24px 64px -12px rgb(22 32 46 / 0.24);
+
+  /* ── Motion ────────────────────────────────────────────────────────────────
+     One spring-ish curve for entrances, one flat curve for anything that has
+     to feel mechanical (progress bars, counters). */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+  /* Height of the sticky header, used by scroll-margin so anchored sections
+     don't land underneath it. */
+  --header-height: 4rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* The site is a long vertical page; a horizontal scrollbar is always a bug. */
+  overflow-x: clip;
+}
+
+/* Anchored sections clear the sticky header. */
+[id] {
+  scroll-margin-top: calc(var(--header-height) + 1.5rem);
+}
+
+/* Visible, generous focus. Uses Plumi blue rather than the browser default so
+   keyboard users get the same brand as everyone else. */
+:focus-visible {
+  outline: 2px solid var(--color-blue-600);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background-color: var(--color-blue-100);
+  color: var(--color-ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOTION POLICY
+
+   One rule, applied globally: if a visitor has asked their operating system to
+   reduce motion, the site does not animate. It still tells the whole story —
+   every scroll-driven scene has a resolved static state, so nothing is hidden
+   behind an animation that never plays.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The invitation loop in the AI Pen demo is drawn by an animation, so with
+   motion disabled it would stay at its starting dash offset — which is to say
+   invisible, removing the only visual cue to draw, from exactly the people most
+   likely to want an explicit one. Resolved rather than removed. */
+@media (prefers-reduced-motion: reduce) {
+  .ghost-loop {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    stroke-opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@utility container-plumi {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  max-width: 78rem;
+
+  @media (width >= 48rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (width >= 80rem) {
+    padding-inline: 3rem;
+  }
+}
+
+/* A narrower measure for reading. Long lines are the fastest way to make a
+   marketing page feel unedited. */
+@utility measure {
+  max-width: 34rem;
+}
+
+@utility measure-wide {
+  max-width: 44rem;
+}
+
+/* The small tracked-out label above a section heading. */
+@utility eyebrow {
+  font-size: var(--text-eyebrow);
+  line-height: var(--text-eyebrow--line-height);
+  letter-spacing: var(--text-eyebrow--letter-spacing);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-blue-600);
+}
+
+/* Ruled notebook paper, drawn with gradients rather than an image so it stays
+   crisp at any zoom and costs no request.
+
+   `--rule-height` is the line spacing; text placed on this surface should use
+   the same value as its line-height so writing sits ON the rules rather than
+   drifting between them. */
+@utility paper-ruled {
+  --rule-height: 2rem;
+  background-color: var(--color-paper);
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(var(--rule-height) - 1px),
+    color-mix(in srgb, var(--color-blue-600) 12%, transparent) calc(var(--rule-height) - 1px),
+    color-mix(in srgb, var(--color-blue-600) 12%, transparent) var(--rule-height)
+  );
+  background-size: 100% var(--rule-height);
+}
+
+/* Screen-reader-only, but focusable (for the skip link). */
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+
+  &:focus {
+    position: fixed;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+
+   Two rules for everything here: nothing bounces, and nothing loops on a period
+   that divides into another period. Phase-locked idle animation is what makes a
+   character read as a GIF rather than as an object sitting in the air.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REVEALS
+
+   Both of these replace what an animation library would otherwise be carried
+   for. They are compositor-only properties, they cost no main-thread work, and
+   `data-shown` is set by one IntersectionObserver rather than by a scroll
+   listener.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The specification tree arriving. Only the top-level branches stagger; their
+   children come with them, because a four-level tree that reveals node by node
+   is a loading screen. */
+.tree-reveal[data-shown="false"] > li {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.tree-reveal[data-shown="true"] > li {
+  animation: row-rise 0.35s var(--ease-out-soft) backwards;
+}
+
+.tree-reveal[data-shown="true"] > li:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.tree-reveal[data-shown="true"] > li:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+/* Comparison rows re-arriving when a different alternative is chosen. The
+   delay is per row and capped by having only a handful of rows. */
+.rows-stagger > tr {
+  animation: row-rise 0.22s var(--ease-out-soft) backwards;
+}
+
+@keyframes row-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ink being written. The path's own length is set as the dash array inline;
+   this only has to walk the offset to zero. Linear, because a pen crossing a
+   page does not ease. */
+@keyframes ink-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The invitation loop in the AI Pen demo: draws on, holds, fades, waits.
+   Long enough between repeats that it reads as a hint rather than a nag. */
+@keyframes ghost-loop {
+  0% {
+    stroke-dashoffset: 1400;
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  70%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Plumi reading a line: one pass, left to right, the width of the line. The
+   distance is set inline because it depends on how long the writing is. */
+@keyframes read-sweep {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--sweep-to, 200px));
+  }
+}
+
+.read-sweep {
+  animation: read-sweep 0.62s var(--ease-in-out-soft) forwards;
+}
+
+/* The AI Pen menu arriving under the line. The app's "underFinger" register:
+   a small rise and a touch of scale, high-damped, felt rather than seen. */
+@keyframes menu-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pen-menu {
+  transform-origin: top left;
+  animation: menu-open 0.24s var(--ease-out-soft) backwards;
+}
+
+/* A fade that can stop short of 1, for tints. Set --fade-to inline. */
+@keyframes fade-in {
+  to {
+    opacity: var(--fade-to, 1);
+  }
+}
+
+/* The mastery chip arriving. 8pt of travel — enough to say "this arrived",
+   not enough to read as a slide. */
+@keyframes chip-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* The mascot's idle float. Amplitude comes from --plumi-drift, set per size. */
+@keyframes plumi-drift {
+  0%,
+  100% {
+    transform: translateY(calc(var(--plumi-drift, 3px) * -1));
+  }
+  50% {
+    transform: translateY(var(--plumi-drift, 3px));
+  }
+}
+
+/* Roll, anchored at the feet. 0.9° — felt rather than seen. */
+@keyframes plumi-roll {
+  0%,
+  100% {
+    transform: rotate(-0.9deg);
+  }
+  50% {
+    transform: rotate(0.9deg);
+  }
+}
+
+/* Handwriting, drawn on. Set `--draw-length` to the path length and animate
+   `--draw-progress` from 0 to 1. Kept here rather than inline so every
+   handwritten stroke on the site behaves identically. */
+@utility ink-stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
