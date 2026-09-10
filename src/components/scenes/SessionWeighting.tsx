@@ -12,17 +12,25 @@ import { whatNow } from "@/content/copy";
  * Choose three topics evenly; Plumi weights them by what your work says.
  *
  * The bars start at the even split the student actually picked and move to the
- * weighting Plumi builds — so the adaptation is something the visitor watches
+ * weighting Plumi builds, so the adaptation is something the visitor watches
  * happen rather than something a caption asserts. This is the one place on the
  * page where the movement itself is the argument, which is why it is worth a
  * client component and a scroll trigger.
  *
- * It runs once, on approach, and never replays. A section that re-animates
- * every time it scrolls past is a section that is showing off.
+ * A diagram, not a screen. The weighting is real: the session brief steers
+ * toward the topics your marked work says you are weakest at, and the engine
+ * keeps adjusting as you go. The app does not draw you a bar chart of it, so
+ * this is presented as an explanation of the behaviour and never as a surface
+ * you would find in the product.
  *
- * With reduced motion the bars are simply rendered in their final state. The
- * point survives intact: the weighting is legible from the numbers and the
- * widths, and only the transition is lost.
+ * There are no percentages, for the same reason there are none anywhere else in
+ * Plumi: the product publishes no confidence numbers, and a figure like "62%"
+ * claims a precision nobody has earned. Relative width is the whole point and
+ * it says everything a number would.
+ *
+ * It runs once, on approach, and never replays. A section that re-animates
+ * every time it scrolls past is a section that is showing off. With reduced
+ * motion the bars render resolved; only the transition is lost.
  */
 export function SessionWeighting() {
   const ref = useRef<HTMLDivElement>(null);
@@ -100,14 +108,13 @@ export function SessionWeighting() {
 
             return (
               <li key={topic.name}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate text-[0.875rem] text-[var(--color-ink-secondary)]">
-                    {topic.name}
-                  </span>
-                  <span className="shrink-0 text-[0.8125rem] font-medium tabular-nums text-[var(--color-ink-tertiary)]">
-                    {settled ? to : from}%
-                  </span>
-                </div>
+                {/* No percentage. Plumi publishes no confidence numbers
+                    anywhere, and a figure like "62%" is a precision nobody has
+                    earned. The bar carries the relative weight, which is the
+                    only thing being claimed. */}
+                <p className="truncate text-[0.875rem] text-[var(--color-ink-secondary)]">
+                  {topic.name}
+                </p>
 
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--color-fill-strong)]">
                   <span

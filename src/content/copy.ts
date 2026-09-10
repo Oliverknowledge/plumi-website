@@ -364,8 +364,22 @@ export const whatNow = {
       { name: "Differential equations", band: "secure", chosen: true },
     ],
   },
+  /**
+   * The weighting, as a diagram rather than as a screen.
+   *
+   * Two honesty constraints shape this, both from the audit of the app:
+   *
+   *   · The adaptation is real. The session brief steers toward the topics your
+   *     marked work says you are weakest at, and the session engine keeps
+   *     adjusting as you go. What the app does NOT do is render a bar chart of
+   *     it, so the copy describes the behaviour and never implies a surface.
+   *   · The percentages are gone. Plumi publishes no confidence numbers
+   *     anywhere, on purpose, and "62%" is a precision nobody has earned. The
+   *     bars carry relative weight, which is the whole point, without inventing
+   *     a figure to two significant figures.
+   */
   composition: {
-    label: "How the session is weighted",
+    label: "What the session gets built from",
     before: [
       { name: "Integration by parts", share: 34 },
       { name: "Integration by substitution", share: 33 },
@@ -376,7 +390,7 @@ export const whatNow = {
       { name: "Integration by substitution", share: 20 },
       { name: "Differential equations", share: 18 },
     ],
-    note: "You picked three topics evenly. Plumi weights them by what your work says, and keeps adjusting while you go.",
+    note: "You picked three topics evenly. The session is not even. It is weighted toward whichever of them your marked work says you are weakest at, and it keeps adjusting as you go.",
   },
   /** The loop closing. Three independent successes retire a recommendation. */
   retire: {
