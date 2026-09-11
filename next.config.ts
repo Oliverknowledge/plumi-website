@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
    * list — but a site collecting email addresses with no headers at all is an
    * easy finding for anyone who looks.
    */
+  allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud"],
   async headers() {
     return [
       {
