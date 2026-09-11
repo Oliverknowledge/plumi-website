@@ -42,6 +42,8 @@ null, so the site can never ship with a download button that goes nowhere.
 | `src/components/sections/` | One file per section, in page order |
 | `src/components/scenes/` | The three interactive/animated set pieces |
 | `src/components/product/` | Reusable pieces of the product's own UI |
+| `src/components/quill/` | Plumi the quill: the SVG character and its flights |
+| `src/lib/quill/` | The scene choreographer that lets the quill draw ink in real time |
 | `src/lib/hand/` | Plumi's handwriting, ported from the app (see below) |
 | `src/lib/analytics.ts` | The only place the site talks to PostHog |
 | `src/lib/waitlist/` | The waitlist storage boundary |
@@ -114,5 +116,6 @@ Measured on the production build, mobile emulation:
 | Total blocking time | 0 ms |
 
 Roughly 164 kB of JavaScript, 130 kB of font, 78 kB of document. There is no
-animation library: the hero is CSS keyframes over server-rendered SVG, and the
-two scroll-triggered moments use one small `IntersectionObserver` hook.
+animation library: reveals are CSS keyframes, flights are SMIL, and the quill's
+drawing scenes run on one `requestAnimationFrame` loop only while on screen
+(see `docs/rebuild/quill-pass.md`).
