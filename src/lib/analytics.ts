@@ -151,7 +151,7 @@ async function load(): Promise<PostHogLike | null> {
  * never able to throw into a click handler.
  */
 export function track(event: PlumiEvent, properties: EventProperties = {}): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !apiKey()) return;
 
   const payload = scrub({ ...attributionProperties(), ...properties });
 

@@ -1,61 +1,29 @@
+import Image from "next/image";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { StickyCta } from "@/components/StickyCta";
-import { SectionImpressions } from "@/components/SectionImpressions";
+import { CtaButton, SecondaryCta } from "@/components/ui/CtaButton";
+import { LaunchCountdown, TutorMedia, NotebookGallery, Comparison } from "@/components/scenes/StoryMedia";
+import { MechanicsStory } from "@/components/scenes/MechanicsStory";
 
-import { Hero } from "@/components/sections/Hero";
-import { ThePage } from "@/components/sections/ThePage";
-import { WhatCounts } from "@/components/sections/WhatCounts";
-import { UnderAClock } from "@/components/sections/UnderAClock";
-import { WhatNow } from "@/components/sections/WhatNow";
-import { YourCourse } from "@/components/sections/YourCourse";
-import { FreeAndPro } from "@/components/sections/FreeAndPro";
-import { TheHabit } from "@/components/sections/TheHabit";
-import { Faq } from "@/components/sections/Faq";
-import { Waitlist } from "@/components/sections/Waitlist";
-
-/**
- * The story, in order. Every section shows something the one before it could
- * not, and the order is an argument rather than a list of features:
- *
- *   1  Hero          — it is a notebook, it is on an iPad, and it knows something
- *   2  The page      — the anti-chatbot claim, made with your own finger
- *   3  What counts   — the rule that makes "it knows" believable
- *   4  Under a clock — the trust beat: it switches itself off
- *   5  What now      — the loop pays off, and you can overrule it
- *   6  Your course   — it is YOUR specification, with your board named
- *   7  Free & Pro    — what costs money, and how it compares
- *   8  Day to day    — there is a personality, in one band, not a chapter
- *   9  FAQ           — the real objections
- *  10  Waitlist      — the ask, having earned it
- *
- * Free & Pro sits at seven deliberately. A pricing-shaped section on a product
- * nobody can use yet reads as presumptuous until the product is believed.
- *
- * Only the hero changes between landing variants. Everything below it is the
- * proof, and the proof does not change with the pitch.
- */
 export function LandingPage({ variant }: { variant?: string }) {
-  return (
-    <>
-      <SiteHeader />
-
-      <main id="main">
-        <Hero variant={variant} />
-        <ThePage />
-        <WhatCounts />
-        <UnderAClock />
-        <WhatNow />
-        <YourCourse />
-        <FreeAndPro />
-        <TheHabit />
-        <Faq />
-        <Waitlist />
-      </main>
-
-      <SiteFooter />
-      <StickyCta />
-      <SectionImpressions />
-    </>
-  );
+  return <div className="plumi-story" data-variant={variant}><SiteHeader/><main id="main">
+    <section id="product" className="hero-section" data-testid="hero-section"><div className="story-container hero-layout"><div className="hero-copy">
+      <div className="hero-kicker"><span className="small-blue-dot"/> A NEW CHAPTER IN STUDYING</div>
+      <h1>Your notebook.<br/>Now your <span className="tutor-word">tutor.<svg viewBox="0 0 240 16" fill="none" aria-hidden="true"><path d="M4 10Q97 0 231 7M13 15Q115 5 215 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg></span></h1>
+      <p className="hero-description">Write naturally. Get help right on the page.<br className="desktop-break"/> Then practise what you need most.</p>
+      <div className="hero-cta"><CtaButton placement="hero" size="large"/><SecondaryCta label="Watch it click" href="#how-it-works" placement="hero"/></div>
+      <div className="hero-platform"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="2" y="1" width="12" height="18" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M6 16h4" stroke="currentColor" strokeWidth="1.2"/></svg>Made for iPad & Apple Pencil</div>
+      <LaunchCountdown/>
+    </div><div className="hero-product"><Image className="hero-bird" src="/mascot/plumi-welcoming.webp" width={768} height={768} alt="Plumi's blue origami bird, ready to help" sizes="160px" preload/><TutorMedia/></div></div>
+      <div className="story-container hero-bottom"><span>LESS ASKING. MORE UNDERSTANDING.</span><a href="#how-it-works" data-testid="hero-scroll-link">Follow the working <span aria-hidden="true">↓</span></a><span>YOUR PEN. A LITTLE POSSIBILITY.</span></div>
+    </section>
+    <section className="on-page-statement story-container" aria-labelledby="on-page-title"><span className="scene-eyebrow"><span>01</span> THE PAGE BECOMES THE TUTOR</span><h2 id="on-page-title">Not in another tab.<br/><span className="muted-line">Right where you’re thinking.</span></h2><p>Plumi reads your working and helps you take the next step. Without taking the pen out of your hand.</p><div className="statement-rule" aria-hidden="true"><span/></div></section>
+    <MechanicsStory/>
+    <section className="practice-proof story-container" aria-labelledby="practice-proof-title"><div><div className="scene-eyebrow"><span>04</span> FROM UNDERSTANDING TO PRACTICE</div><h2 id="practice-proof-title">That little<br/><span className="muted-line">“I’ve got it.”</span></h2><p>Another question, on the same idea. This time, you know where to start.</p></div><figure className="practice-crop"><Image src="/product/next-question.webp" width={1100} height={300} alt="Real Plumi Tutor handwriting: Yes. Now try this one. Integral of e to the 3x." sizes="(max-width: 700px) 90vw, 650px"/><figcaption>From Oliver’s actual Tutor session</figcaption></figure></section>
+    <section id="notebook" className="notebook-section"><div className="story-container"><div className="section-topline"><div><div className="scene-eyebrow"><span>05</span> STILL YOUR NOTEBOOK</div><h2>All your notes.<br/><span className="muted-line">Not another subscription.</span></h2></div><div className="free-notes-aside"><span className="free-tag">FREE TO WRITE. ALWAYS.</span><p>Handwriting, folders, PDFs and your favourite tools.<br/>The notebook is free. Extra AI is optional.</p></div></div><NotebookGallery/></div></section>
+    <section className="memory-section story-container" aria-labelledby="memory-title"><div className="memory-copy"><div className="scene-eyebrow"><span>06</span> EVERY PAGE ADDS UP</div><h2 id="memory-title">A fresh page.<br/><span className="muted-line">Not a fresh start.</span></h2><p>Plumi remembers the work you’ve done, so you don’t have to guess what to study next.</p></div><div className="memory-proof"><div className="memory-loop" aria-label="Your work leads to evidence, then practice, then stronger understanding"><span>Your work</span><i>→</i><span>What it reveals</span><i>→</i><span>Your next step</span></div><figure><picture><source media="(max-width: 700px)" srcSet="/product/next-move-mobile.webp"/><img src="/product/next-move.webp" alt="Real Home recommendation: Electrical circuits. Still weak after four pieces of marked work. 12 minutes, 4 questions." width="1400" height="328" loading="lazy"/></picture><figcaption>One recommendation. Grounded in your actual work.</figcaption></figure></div></section>
+    <section className="focus-note story-container" aria-labelledby="focus-title"><div><span className="tiny-label">A LITTLE ROOM TO CONCENTRATE</span><h2 id="focus-title">Make time for the next step.</h2><p>Focus sessions count the time you spend doing real work.</p></div><figure><Image src="/product/focus-strip.webp" width={1072} height={120} alt="Real Plumi Focus session strip: 9 of 30 minutes studied." sizes="(max-width: 700px) 90vw, 500px"/><figcaption>Focus timer · Development capture</figcaption></figure></section>
+    <section id="compare" className="compare-section story-container"><div className="compare-heading"><div className="scene-eyebrow"><span>07</span> A DIFFERENT WAY TO STUDY</div><h2>Your notes and your tutor.<br/><span className="muted-line">Finally on the same page.</span></h2></div><Comparison/></section>
+    <section id="community" className="community-section" data-testid="community-section"><div className="story-container community-layout"><div className="community-copy"><div className="community-eyebrow">GOOD QUESTIONS START SOMETHING.</div><h2>Help write<br/>the next chapter.</h2><p>Join the Plumi community. Meet the team, share your ideas, and follow the journey to launch.</p><CtaButton placement="footer" label="Join the Plumi community" size="large"/><LaunchCountdown variant="footer"/></div><div className="community-art"><svg className="bird-trail" viewBox="0 0 500 450" aria-hidden="true"><path d="M4 366C75 353 183 466 220 344S47 314 122 248 299 294 267 163 364 106 400 41" fill="none" stroke="#91b3f0" strokeWidth="1.2" strokeDasharray="5 8"/></svg><Image src="/mascot/plumi-celebrating.webp" alt="Plumi's blue origami bird celebrating the next chapter" width={768} height={768} sizes="(max-width: 700px) 240px, 420px"/></div></div></section>
+  </main><SiteFooter/></div>;
 }
