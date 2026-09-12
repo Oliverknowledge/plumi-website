@@ -158,7 +158,7 @@ export const sections = {
     id: "the-habit",
     eyebrow: "Day to day",
     headline: "Thirty minutes. Then it leaves you alone.",
-    subhead: "A daily goal, one clear task, and a bird that falls asleep rather than nags you.",
+    subhead: "A daily goal, one clear task, and a quill that rests rather than nags you.",
   },
 
   faq: {

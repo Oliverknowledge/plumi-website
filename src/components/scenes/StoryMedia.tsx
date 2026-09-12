@@ -3,7 +3,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useMotionReady } from "@/lib/useMotionReady";
 import { countdownAt } from "@/lib/countdown";
-import { tutorFrames, tutorMedia, notebookViews, comparison } from "@/content/story";
+import { tutorFrames, tutorMedia, notebookViews, comparison, type Mark } from "@/content/story";
+import { Quill } from "@/components/quill/Quill";
 
 export function LaunchCountdown({ variant = "hero" }: { variant?: "hero" | "footer" }) {
   const [time, setTime] = useState<ReturnType<typeof countdownAt> | null>(null);
@@ -51,9 +52,13 @@ export function NotebookGallery() {
     </div><p className="capture-caption">The real Plumi notebook · Free to write. Free to organise.</p></div>;
 }
 
+function Cell({ mark }: { mark: Mark }) {
+  return <span className={`mark ${mark.ok ? "yes" : "no"}`} title={mark.note} aria-label={mark.ok ? "Yes" : mark.note ? `No. ${mark.note}` : "No"}>{mark.ok ? "✓" : "✕"}</span>;
+}
+
 export function Comparison() {
   const [active, setActive] = useState(0);
   return <div className="comparison-wrap"><div className="compare-mobile-switch" aria-label="Compare Plumi with">{comparison.alternatives.map((name,i)=><button key={name} onClick={()=>setActive(i)} aria-pressed={active===i} data-testid={`compare-option-${i}`}>{name}</button>)}</div>
-    <table className={`comparison-table alternative-${active}`} data-testid="comparison-table"><caption className="sr-only">How Plumi fits beside other ways to study. General categories; individual services vary.</caption><thead><tr><th scope="col"><span className="tiny-label">A different kind of study companion</span></th><th scope="col" className="plumi-column"><span className="compare-star" aria-hidden="true">✦</span> Plumi</th>{comparison.alternatives.map((name,i)=><th scope="col" key={name} className={`alternative col-${i}`}>{name}</th>)}</tr></thead><tbody>{comparison.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td className="plumi-column">{row.plumi}</td>{row.others.map((value,i)=><td className={`alternative col-${i}`} key={value}>{value}</td>)}</tr>)}</tbody></table><p className="capture-caption">Different tools, different strengths. Individual services vary; this is a guide, not a claim about every provider.</p>
+    <table className={`comparison-table alternative-${active}`} data-testid="comparison-table"><caption className="sr-only">How Plumi fits beside other ways to study. General categories; individual services vary.</caption><thead><tr><th scope="col"><span className="tiny-label">AT A GLANCE</span></th><th scope="col" className="plumi-column"><Quill mood="happy" size={22}/> Plumi</th>{comparison.alternatives.map((name,i)=><th scope="col" key={name} className={`alternative col-${i}`}>{name}</th>)}</tr></thead><tbody>{comparison.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td className="plumi-column"><Cell mark={row.plumi}/></td>{row.others.map((value,i)=><td className={`alternative col-${i}`} key={i}><Cell mark={value}/></td>)}</tr>)}</tbody></table><p className="capture-caption">General categories, not specific providers. Hover a ✕ for the detail. Individual services vary.</p>
   </div>;
 }

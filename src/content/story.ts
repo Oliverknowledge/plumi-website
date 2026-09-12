@@ -16,13 +16,22 @@ export const notebookViews = [
   { id: "folders", label: "Your subjects", image: "folders", alt: "Real Plumi Physics folder containing Notes and Past papers." },
   { id: "notebook", label: "Your tools", image: "notebook", alt: "Real Plumi squared-paper notebook with pen, pencil, highlighter, eraser, lasso and AI Pen tools." },
 ];
+// Specifications the app carries topic data for. Coverage is uneven; never claim "every board".
+export const specifications = ["Edexcel Maths 9MA0", "AQA Chemistry 7405", "OCR Physics H556"];
+
+export type Mark = { ok: boolean; note?: string };
+const yes: Mark = { ok: true };
+const no = (note?: string): Mark => ({ ok: false, note });
 export const comparison = {
   alternatives: ["AI web tutor", "Private tutor", "Note-taking app"],
   rows: [
-    { label: "Where you work", plumi: "Your handwritten page", others: ["Usually a separate conversation", "Together, in a session", "Your handwritten page"] },
-    { label: "When you're stuck", plumi: "Tutoring, on the page", others: ["Ask for an explanation", "Personal, human guidance", "Usually a separate tool"] },
-    { label: "What to study next", plumi: "Practice from your work", others: ["Depends on the platform", "Your tutor's judgement", "Usually up to you"] },
-    { label: "What carries forward", plumi: "Evidence of your progress", others: ["Varies by platform", "What you share in sessions", "Your saved notes"] },
-    { label: "How you access it", plumi: "Free notes. Optional Pro.", others: ["Free or subscription", "Typically paid per session", "Free or paid plans"] },
+    { label: "Write naturally", plumi: yes, others: [no("Typed prompts and pasted photos"), yes, yes] },
+    { label: "Tutor where you work", plumi: yes, others: [no("A separate chat tab"), yes, no()] },
+    { label: "Learns from your actual work", plumi: yes, others: [no("Only what you paste in"), yes, no()] },
+    { label: "Knows your specification", plumi: yes, others: [no("Usually general, not board-specific"), yes, no()] },
+    { label: "Targeted practice", plumi: yes, others: [yes, yes, no()] },
+    { label: "Remembers your weaknesses", plumi: yes, others: [no("Varies; often per conversation"), yes, no()] },
+    { label: "Available whenever you study", plumi: yes, others: [yes, no("Booked sessions"), yes] },
+    { label: "Notebook included", plumi: yes, others: [no(), no(), yes] },
   ],
 };
