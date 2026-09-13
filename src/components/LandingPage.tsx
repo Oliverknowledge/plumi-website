@@ -17,7 +17,12 @@ export function LandingPage({ variant }: { variant?: string }) {
     <section id="product" className="hero-section" data-testid="hero-section"><div className="story-container hero-layout"><div className="hero-copy">
       <div className="hero-kicker reveal-line"><span className="small-blue-dot"/> A NEW CHAPTER IN STUDYING</div>
       <h1 data-testid="hero-headline"><span className="reveal-line"><span>Your handwriting.</span></span><span className="reveal-line"><span>Read, understood,</span></span><span className="reveal-line"><span className="tutor-word">visualised.<svg viewBox="0 0 240 16" fill="none" aria-hidden="true"><path d="M4 10Q97 0 231 7M13 15Q115 5 215 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg></span></span></h1>
-      <p className="hero-description reveal-line">Write the way you already do. Plumi reads your working, tutors you on the page, and knows what you should practise next.</p>
+      {/* The headline is a promise; this is the definition. A crawler landing
+          here needs one sentence that says the category out loud — AI study
+          notebook, GCSE and A-Level — because "Your handwriting. Read,
+          understood, visualised." never does. Kept to one added clause so it
+          still reads as product copy rather than a keyword list. */}
+      <p className="hero-description reveal-line">Plumi is the AI study notebook for GCSE and A-Level. Write the way you already do — it reads your working, tutors you on the page, and knows what you should practise next.</p>
       <div className="hero-cta reveal-line"><CtaButton placement="hero" size="large"/><SecondaryCta label="Watch it click" href="#how-it-works" placement="hero"/></div>
       <div className="hero-platform reveal-line"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="2" y="1" width="12" height="18" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M6 16h4" stroke="currentColor" strokeWidth="1.2"/></svg>Made for iPad & Apple Pencil</div>
       <LaunchCountdown/>

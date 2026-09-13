@@ -41,3 +41,11 @@
   .paper-heading{font-size:8.5px;letter-spacing:.5px}.paper-foot{font-size:9px}.hero-bottom>span{max-width:180px;line-height:1.6}.comparison-table thead th:first-child{width:25%}
 }
 @media(prefers-reduced-motion:reduce){.mechanics-figure + .physics-content .exam-question p{animation:none;clip-path:none}.hero-product .device-desk{animation:none;transform:none}}
+
+/* Footer: the entity sentence is longer than the tagline it replaced, and the
+   link list is longer than the six anchors it replaced. Cap both so the footer
+   stays two balanced columns instead of one long line pushing the nav off. */
+.footer-blurb{max-width:335px;line-height:1.85}
+.footer-top nav{max-width:470px;justify-content:flex-end;row-gap:10px}
+@media(max-width:1099px){.footer-top nav{max-width:400px}}
+@media(max-width:700px){.footer-blurb{max-width:none}.footer-top nav{max-width:none;justify-content:flex-start}}
