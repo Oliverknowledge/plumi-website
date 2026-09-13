@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "og": "tsx scripts/build-og-image.ts"
+    "og": "tsx scripts/build-og-image.ts",
+    "seo:map": "tsx scripts/build-keyword-map.ts"
   },
   "dependencies": {
     "next": "16.3.4",

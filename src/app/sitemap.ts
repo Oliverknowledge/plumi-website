@@ -1,18 +1,26 @@
 import type { MetadataRoute } from "next";
 
-import { site } from "@/config/site";
+import { absoluteUrl } from "@/config/site";
+import { indexableRoutes } from "@/config/routes";
 
 /**
- * Three pages. A sitemap this small changes nothing for a crawler that has
- * already found the homepage, but it costs one file and it is the difference
- * between the legal pages being discovered on day one and on day thirty.
+ * Generated from the route registry rather than hand-listed.
+ *
+ * The failure mode of a hand-written sitemap is not that it breaks, it is that
+ * it quietly goes stale — a new landing page ships, nobody edits this file, and
+ * the page waits months to be found. Deriving it from `src/config/routes.ts`
+ * means adding a route is the only step.
+ *
+ * Only canonical, indexable, 200-returning URLs belong here. The `/v/*` variant
+ * landings are noindex and excluded by construction.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  return [
-    { url: site.domain, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${site.domain}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${site.domain}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-  ];
+  return indexableRoutes.map((route) => ({
+    url: absoluteUrl(route.path),
+    lastModified: now,
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
+  }));
 }
