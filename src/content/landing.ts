@@ -184,8 +184,50 @@ export const aiTutorALevelMaths: LandingContent = {
       ],
       image: recommendationCapture,
     },
+    {
+      // The page ranked for "A-Level Maths tutor AI" while never naming a
+      // single thing on the A-Level Maths course — no Pure, no Mechanics, no
+      // Statistics, no past papers, no grades. A page about the mechanism is
+      // not the same as a page about the subject, and a reader deciding whether
+      // this covers *their* course had nothing to go on.
+      heading: "What it covers: Pure, Mechanics and Statistics",
+      body: [
+        "A-Level Maths is two Pure papers and one split between Statistics and Mechanics, and Plumi works from the specification rather than from a generic idea of “maths”. Edexcel 9MA0 is the board it carries the most topic data for today.",
+        "In Pure that means the things that actually cost marks: differentiation and integration, integration by parts and by substitution, trigonometric identities, exponentials and logarithms, sequences and series, proof, vectors and parametric equations. In Mechanics, kinematics, forces, moments and projectiles. In Statistics, probability, distributions, sampling and hypothesis testing.",
+        "Coverage is genuinely uneven across boards, and saying otherwise would be the easiest lie on this page. Check your own specification before you rely on it.",
+      ],
+      bullets: [
+        "Whole past papers marked question by question, with where the marks went.",
+        "Marking against your board's actual mark scheme, with the option to challenge a mark and have it re-marked.",
+        "Predicted grades built from your timed papers, never from guesswork.",
+        "Exam Mode turns the help off when you sit a timed paper, because that is the room you are practising for.",
+      ],
+    },
+    {
+      heading: "What it costs",
+      body: [
+        "The notebook is free forever and never metered: writing, notebooks, folders, search, ruled, grid, dotted, Cornell and graph paper, importing a PDF and writing straight onto it, and Focus Mode.",
+        "The intelligence is metered rather than locked on the free tier, so you get a go at all of it every day — 12 AI Pen answers, 5 marks, 10 practice questions and one Tutor Mode session. Your first AI Pen answer, your first tutoring exchange and your first mark never count against it.",
+        "Plumi Pro removes the meter and adds full mark-scheme marking, adaptive practice, whole past papers and predicted grades. There is no price yet — the App Store has not confirmed one, and a price it has not confirmed is a price Plumi cannot charge. Everyone in the community hears it before it is public.",
+      ],
+    },
   ],
   faqs: [
+    {
+      question: "Is Plumi free?",
+      answer:
+        "The notebook is free forever and never metered. The tutoring is metered rather than locked: on the free tier you get 12 AI Pen answers, 5 marks, 10 practice questions and one Tutor Mode session a day. Plumi Pro removes the meter, and it does not have a price yet.",
+    },
+    {
+      question: "Can it mark a whole past paper?",
+      answer:
+        "Yes, question by question, against your exam board's actual mark scheme, showing where the marks went rather than just a total. If you think a mark is wrong you can challenge it and have it re-marked. This is a Plumi Pro feature.",
+    },
+    {
+      question: "Can it predict my grade?",
+      answer:
+        "It predicts from timed papers you have actually sat in the app, never from guesswork or from how much you have revised. A prediction built from anything other than your own marked work would not be worth having.",
+    },
     {
       question: "Is this better than ChatGPT for A-Level Maths?",
       answer:
