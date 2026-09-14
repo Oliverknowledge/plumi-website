@@ -1,23 +1,41 @@
 "use client";
 
 import { useEffect } from "react";
-
 import { track } from "@/lib/analytics";
 
 /**
  * Records how far down the page a visitor actually got.
  *
- * Scroll depth is the secondary metric that keeps the primary one honest: a
- * landing variant that converts but is never read past the third section has
- * bought a dead list, and only this event can tell the two apart.
+ * Scroll depth is the metric that keeps conversion honest: a page that converts
+ * but is never read past the third chapter has bought a dead list, and only
+ * this event can tell the two apart. On a page built as five arcs, the arc a
+ * visitor stopped in is the more useful unit than the section, so both go on
+ * the event and the arc is the one to group by.
  *
- * One component and one observer for the whole page, rather than a wrapper
- * around each section. Wrapping ten Server Components in a client boundary
- * would push all of their rendered markup into the RSC flight payload as
- * `children` props — which is the same duplication that made the handwriting
- * cost twice what it should. This reaches for the sections by id instead and
- * renders nothing.
+ * One component and one observer for the whole page rather than a wrapper round
+ * each section: wrapping ten Server Components in a client boundary would push
+ * all of their rendered markup into the RSC flight payload as `children`, which
+ * is the duplication that made the handwriting cost twice what it should. This
+ * reaches for the sections by id instead and renders nothing.
  */
+const ARCS: Record<string, string> = {
+  product: "0-hero",
+  "on-page": "1-reads-you",
+  "the-mark": "1-reads-you",
+  trust: "2-trust-it",
+  "what-counts": "2-trust-it",
+  "learner-model": "3-remembers",
+  practice: "3-remembers",
+  "exam-mode": "3-remembers",
+  notebook: "4-replaces-stack",
+  diagrams: "4-replaces-stack",
+  "your-course": "4-replaces-stack",
+  compare: "5-the-deal",
+  "free-and-pro": "5-the-deal",
+  faq: "5-the-deal",
+  close: "5-the-deal",
+};
+
 export function SectionImpressions() {
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("main section[id]");
@@ -32,12 +50,15 @@ export function SectionImpressions() {
           if (!entry.isIntersecting || seen.has(id)) continue;
           seen.add(id);
           observer.unobserve(entry.target);
-          track("story_section_viewed", { section: id });
+          track("story_section_viewed", { section: id, arc: ARCS[id] ?? "unmapped" });
         }
       },
-      // Half a section on screen, so a fast scroll past does not count as a
-      // read. This is meant to measure attention, not velocity.
-      { threshold: 0.5 },
+      // "Did this section cross the middle of the screen?" rather than "was N%
+      // of it visible" — a percentage threshold is unreachable for the tall
+      // sticky scenes, which would then never report and read as nobody having
+      // got past the mark. The middle band is height-independent and it is also
+      // a better definition of read.
+      { rootMargin: "-40% 0px -40% 0px", threshold: 0 },
     );
 
     for (const section of sections) observer.observe(section);

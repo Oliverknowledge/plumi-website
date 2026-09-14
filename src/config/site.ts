@@ -66,13 +66,79 @@ export function absoluteUrl(path = "/"): string {
   return new URL(path, site.domain).href;
 }
 
+/**
+ * Every CTA on the site reads its label, its destination and its event from
+ * here, so flipping `launchMode` on launch day is a one-constant change rather
+ * than a search for every button.
+ *
+ * `secondary` is the launch-day email capture. It is a *secondary* CTA on
+ * purpose: Discord stays primary pre-launch because the point of the next
+ * eleven days is a small number of real students we can actually watch use the
+ * product, and an email address does not give us that. Post-launch the pair
+ * inverts — the App Store becomes primary and the email becomes the handoff for
+ * anyone who is not currently holding an iPad.
+ */
 export const cta = {
-  community: { primary: "Join the Discord community", compact: "Join Discord", supporting: "Made for iPad. Built around you.", reassurance: "Launching 25 September 2026" },
-  waitlist: { primary: "Join the Discord community", compact: "Join Discord", supporting: "Made for iPad. Built around you.", reassurance: "Launching 25 September 2026" },
-  appStore: { primary: "Download on the App Store", compact: "Download", supporting: "Free to write in. iPad and Apple Pencil.", reassurance: "Requires iPadOS 17 or later." },
+  community: {
+    primary: "Join the Discord community",
+    compact: "Join Discord",
+    secondary: "Get notified on launch day",
+    supporting: "Made for iPad. Built around you.",
+    reassurance: "Launching 25 September 2026",
+  },
+  waitlist: {
+    primary: "Get notified on launch day",
+    compact: "Get notified",
+    secondary: "Join the Discord community",
+    supporting: "Made for iPad. Built around you.",
+    reassurance: "Launching 25 September 2026",
+  },
+  appStore: {
+    primary: "Download on the App Store",
+    compact: "Download",
+    secondary: "Not on an iPad? Send yourself the link",
+    supporting: "Free to write in. iPad and Apple Pencil.",
+    reassurance: "Requires iPadOS 17 or later.",
+  },
 } as const;
 export const activeCta = cta[launchMode];
 export function isWaitlistMode(): boolean { return false; }
+
+/**
+ * What the primary CTA actually is, for analytics and for the markup.
+ *
+ * `cta_clicked` needs a stable machine name that survives a copy change —
+ * counting clicks on a label is how a funnel silently resets itself the day
+ * somebody rewrites a button.
+ */
+export type CtaKind = "discord" | "launch_notify" | "app_store";
+export function primaryCtaKind(): CtaKind {
+  return launchMode === "appStore" ? "app_store" : "discord";
+}
+/**
+ * LAUNCH DAY, in order. Everything here is a content change; none of it is a
+ * rebuild, which is the point of the switch above.
+ *
+ *   1. Set `appStoreUrl`, flip `launchMode` to `"appStore"`. The build fails if
+ *      you do the second without the first, which is what `assertLaunchConfig`
+ *      is for.
+ *   2. Add the Smart App Banner — `<meta name="apple-itunes-app">` in the root
+ *      layout. It is the highest-value single line on the day: iPadOS Safari
+ *      turns it into an install button above the page.
+ *   3. Rewrite the close's email capture. `LaunchNotify` currently says "one
+ *      email on launch day", which stops being true at 00:01. Post-launch it
+ *      becomes the desktop → iPad handoff ("send yourself the link"), and
+ *      `cta.appStore.secondary` already carries that label.
+ *   4. Add `offers` to the SoftwareApplication JSON-LD and the App Store URL to
+ *      `sameAs`, and publish prices in the Free & Pro chapter — but only once
+ *      they match App Store Connect exactly. The local StoreKit test config is
+ *      not App Store Connect.
+ *   5. Revisit `footer.honesty`. "Every screen here is drawn rather than
+ *      photographed" is true today and stops being the whole truth the moment
+ *      a real capture replaces a drawing.
+ *   6. The countdown needs no attention. `LaunchCountdown` already handles
+ *      `time.ended`.
+ */
 export function assertLaunchConfig(): void {
   if (launchMode === "appStore" && (!appStoreUrl || !appStoreUrl.startsWith("https://apps.apple.com/"))) {
     throw new Error("Set a verified App Store URL before switching launchMode to appStore.");

@@ -39,8 +39,8 @@ export interface HeroCopy {
  */
 export const heroVariants = {
   notebook: {
-    headline: "A notebook that knows what you don't know.",
-    headlineLines: ["A notebook that knows", "what you don't know."],
+    headline: "A notebook that knows what you don’t know.",
+    headlineLines: ["A notebook that knows", "what you don’t know."],
     subhead:
       "Write everything on your iPad like normal. Plumi works out what you can actually do, and what to study next.",
     secondaryCta: "See how it works",
@@ -50,15 +50,15 @@ export const heroVariants = {
     headline: "Stop deciding what to revise.",
     headlineLines: ["Stop deciding", "what to revise."],
     subhead:
-      "Write on your iPad like normal. Plumi finds the topics you can't do yet, and starts you there.",
+      "Write on your iPad like normal. Plumi finds the topics you can’t do yet, and starts you there.",
     secondaryCta: "See how it works",
     supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
   },
   mirror: {
-    headline: "Seen it isn't the same as can do it.",
-    headlineLines: ["Seen it isn't the same", "as can do it."],
+    headline: "Seen it isn’t the same as can do it.",
+    headlineLines: ["Seen it isn’t the same", "as can do it."],
     subhead:
-      "Plumi only counts work you've actually been marked on. Notes make a topic “seen” and nothing more.",
+      "Plumi only counts work you’ve actually been marked on. Notes make a topic “seen” and nothing more.",
     secondaryCta: "See what it counts",
     supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
   },
@@ -93,7 +93,7 @@ export const sections = {
   thePage: {
     id: "the-page",
     eyebrow: "The page",
-    headline: "Circle it. It already knows what you're looking at.",
+    headline: "Circle it. It already knows what you’re looking at.",
     subhead:
       "No screenshot, no retyping, no explaining the question. Plumi reads your working and the printed question underneath it.",
   },
@@ -173,7 +173,7 @@ export const sections = {
     eyebrow: "",
     headline: "Get it when your course is ready.",
     subhead:
-      "Tell us what you're studying. We build the topic tree for each course by hand, so it genuinely changes what we build next.",
+      "Tell us what you’re studying. We build the topic tree for each course by hand, so it genuinely changes what we build next.",
   },
 } as const satisfies Record<string, SectionCopy>;
 
@@ -216,7 +216,7 @@ export const penDemo = {
   reset: "Start again",
   anotherWay: "Try another way",
   /** Reached the end of the ladder for this line. */
-  exhausted: "That's as far as a hint goes. The rest is yours.",
+  exhausted: "That’s as far as a hint goes. The rest is yours.",
   /** Ask needs a keyboard and a conversation; it is not pretended at here. */
   askOnly: "Ask needs somewhere to type. That one is in the app.",
 
@@ -309,6 +309,33 @@ export const masteredGate = {
 } as const;
 
 /**
+ * The fourth rung, and the one that makes the other three mean something.
+ *
+ * `LearnerModel.band(estimate:uncertainty:evidenceCount:examSuccesses:)` will not
+ * return `.mastered` unless `examSuccesses >= 1`, and `EvidenceKind.weight` puts
+ * `.examQuestion` at 1.0 with the comment "timed, unaided — the strongest signal
+ * there is". Ordinary practice can carry a topic all the way to `.secure` and no
+ * further, which is exactly what the note below says and no more.
+ */
+export const examCase = {
+  work: "You did it under a clock",
+  band: masteredGate.band,
+  tone: "mastered",
+  note: "The strongest evidence there is. Untimed practice cannot reach this band.",
+} as const;
+
+/**
+ * The bars beside each rung: how far this kind of work is allowed to move an
+ * estimate, as a shape rather than as a figure.
+ *
+ * The real weights are `EvidenceKind.weight` — notes 0.0, a hinted answer 0.15,
+ * marked work 0.8, a timed question 1.0. They are drawn rather than printed
+ * because printing them would put a number on a page whose own rule is that
+ * Plumi publishes no confidence figures, and because the ordering is the point.
+ */
+export const evidenceWeight = { unseen: 0, developing: 1, secure: 3, mastered: 4 } as const;
+
+/**
  * The compounding story, as an accumulation rather than a claim.
  *
  * Weeks are illustrative of the mechanism, not a promise about a timescale —
@@ -327,7 +354,7 @@ export const compounding = {
   ],
   /** Real, and a genuine differentiator: there is no forgetting curve in the app. */
   closing:
-    "And it never quietly takes it back. There is no decay curve in Plumi: if it has been a while, it says so, rather than moving your topic down while you weren't looking.",
+    "And it never quietly takes it back. There is no decay curve in Plumi: if it has been a while, it says so, rather than moving your topic down while you weren’t looking.",
 } as const;
 
 /**
@@ -454,15 +481,15 @@ export const waitlist = {
   submitIdle: "Join the waitlist",
   submitPending: "One second…",
   /** Kills the single biggest unstated objection — "am I going to get spammed?" */
-  reassurance: "Two emails. One when your course is ready, one when we launch. That's it.",
+  reassurance: "Two emails. One when your course is ready, one when we launch. That’s it.",
   privacy: "Your email, and nothing else. No sharing, no ads, no reselling.",
   /** Shown beside the errors a visitor cannot retry past. */
-  emailUsInstead: "Email us instead and we'll add you by hand →",
-  successTitle: "You're on the list.",
+  emailUsInstead: "Email us instead and we’ll add you by hand →",
+  successTitle: "You’re on the list.",
   successBody: "Two emails. One when your course is ready, one when we launch. Nothing else, ever.",
   /** Shown when the student skipped the subject/board step. */
   successBodyGeneric:
-    "We'll start with Maths, Physics, Chemistry and Biology. Yours is on the list to build.",
+    "We’ll start with Maths, Physics, Chemistry and Biology. Yours is on the list to build.",
   /**
    * Shown instead of `successBodyGeneric` when they told us what they study.
    * `{course}` is replaced with what they actually picked, joined by
@@ -471,17 +498,17 @@ export const waitlist = {
    * this page is trying not to tell.
    */
   successBodyCourse:
-    "{course}. We build the topic tree for each course by hand, from the board's own specification. So a course being asked for genuinely changes the order we build them in.",
+    "{course}. We build the topic tree for each course by hand, from the board’s own specification. So a course being asked for genuinely changes the order we build them in.",
   courseSeparator: " · ",
   errors: {
     empty: "Pop your email in first.",
-    invalid: "That doesn't look like an email address. Check it for us?",
-    network: "That didn't send. Probably us, not you. Try again?",
+    invalid: "That doesn’t look like an email address. Check it for us?",
+    network: "That didn’t send. Probably us, not you. Try again?",
     server: "Something broke on our end. Give it a minute and try again.",
-    rateLimited: "That's plenty of tries. Give it a minute.",
+    rateLimited: "That’s plenty of tries. Give it a minute.",
     /** Never fake a success. If persistence is down, say so. */
     unconfigured:
-      "We can't take sign-ups right this second. Try again shortly. We haven't lost anything you typed.",
+      "We can’t take sign-ups right this second. Try again shortly. We haven’t lost anything you typed.",
   },
 } as const;
 
@@ -498,31 +525,42 @@ export const faq: readonly FaqItem[] = [
   {
     question: "Is this just ChatGPT in a notebook?",
     answer:
-      "No, and the difference is easy to check. ChatGPT starts from nothing every time. You photograph the question, retype the context and explain what you've tried. Plumi is already looking at the page: it reads your handwriting and the printed question underneath it, so you circle the line and that's the whole ask. It also won't hand you the answer. Get it wrong four times and you get four genuinely different explanations: the principle, an analogy, a worked example, the problem broken down. Each one starts with what you got right. And it remembers: this week's work changes what it suggests next week.",
+      "No, and the difference is easy to check. ChatGPT starts from nothing every time. You photograph the question, retype the context and explain what you’ve tried. Plumi is already looking at the page: it reads your handwriting and the printed question underneath it, so you circle the line and that’s the whole ask. It also won’t hand you the answer. Get it wrong four times and you get four genuinely different explanations: the principle, an analogy, a worked example, the problem broken down. Each one starts with what you got right. And it remembers: this week’s work changes what it suggests next week.",
+  },
+  {
+    /**
+     * The objection the trust chapter answers visually. Written to be checkable
+     * rather than reassuring, and it says the part that is not finished — the
+     * deterministic checker runs in shadow mode (`PhysicsVerifierMode.off` is the
+     * shipped default) and is described as exactly that.
+     */
+    question: "Can I trust the marking?",
+    answer:
+      "Trust it the way you’d trust a good teacher rather than a calculator. Plumi shows you the line it read before it marks it, so a misreading is yours to correct rather than a silent cause of a wrong mark. It works out which step earned which mark and quotes your own words back as the evidence, and the rules — method marks, follow-through, dependencies — are worked out in code rather than asked of a model. It will tell you when a mark could go either way instead of pretending, and it publishes no confidence percentages anywhere, because a number to two significant figures is a precision nobody has earned. If you disagree, challenge it: it re-reads the work from scratch, and a re-mark can never cost you a mark you already had.",
+  },
+  {
+    question: "Is using Plumi cheating?",
+    answer:
+      "No, and the distinction matters. Plumi marks work you wrote yourself; it doesn’t write it for you. Exam boards care about work submitted for assessment being your own, and a marker reading your handwriting and telling you which marks you lost is the opposite of that problem. Exam Mode goes further and switches Plumi’s own intelligence off entirely while you sit a timed paper. If your school has a policy on AI, we’d rather you showed them this page than hid the app.",
+  },
+  {
+    question: "Which subjects and exam boards does it cover?",
+    answer:
+      "A-Level, and we’d rather be specific than reassuring. Plumi carries hand-built topic trees for twelve A-Level specifications: Maths, Physics, Chemistry and Biology across AQA, OCR and Pearson Edexcel. They are not all at the same depth — Edexcel Biology is currently topic-level only, and the trees are deliberately ragged where a specification does not name its own sub-topics. There are no GCSE specifications in Plumi yet, so a GCSE student gets the notebook, the AI Pen and marking on subject knowledge, but not their own spec mapped out. We build each one by hand from the board’s published specification, which is why it takes as long as it does. Plumi is not affiliated with, endorsed by or licensed by any exam board.",
   },
   {
     question: "Do I need an iPad?",
     answer:
-      "Yes, and an Apple Pencil. Plumi is built around handwriting. The whole point is that you write normally and it reads it, so there isn't a sensible version of this on a laptop or a phone. We know that rules some people out, and we'd rather say so plainly than take your email under false pretences. There's no iPhone, Android or web version planned for launch.",
-  },
-  {
-    question: "When does it launch?",
-    answer:
-      "We haven't set a public date, and we're not going to invent one. What's left is the work of getting each course properly finished, because we hand-build the topic tree for every specification rather than generating them. That's why we ask which course you're taking when you join. We're releasing course by course, and yours moving up the list is a genuine consequence of people asking for it.",
+      "Yes, and an Apple Pencil. Plumi is built around handwriting. The whole point is that you write normally and it reads it, so there isn’t a sensible version of this on a laptop or a phone. We know that rules some people out, and we’d rather say so plainly than take your email under false pretences. There’s no iPhone, Android or web version planned for launch.",
   },
   {
     question: "Is it free?",
     answer:
-      "The notebook is free: writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn't need a subscription. The parts that understand you (the tutor, the marking, the topic map, the adaptive sessions) will be a paid plan called Plumi Pro. We haven't set that price yet. When we do, everyone on the waitlist hears it from us before it goes public. There's no price on this page because there isn't one to put here.",
-  },
-  {
-    question: "Does it work for my exam board?",
-    answer:
-      "It depends which one, and we'd rather be specific than reassuring. Plumi maps your progress onto your actual specification, with real topic codes from the real board. That means each one is built by hand. We're starting with Maths, Physics, Chemistry and Biology across AQA, OCR and Edexcel, and the boards aren't all at the same stage. Tell us your board and subject when you join and we'll tell you honestly where yours is.",
+      "The notebook is free forever and never metered: writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn’t need a subscription. The intelligence is metered rather than walled off — every day, free, you get twelve AI Pen answers, five markings, ten practice questions and a tutor exchange, and your first AI Pen answer, first tutoring exchange and first mark never count against it. Plumi Pro removes the meter. We haven’t set that price yet, and there’s no price on this page because there isn’t one to put here.",
   },
   {
     question: "What happens to my work and my data?",
     answer:
-      "Your notes are yours. We use your work to build your own learner model: which topics you've been marked on, and what you got right unaided. That's what powers the recommendations. It isn't used to train models for anyone else, it isn't sold, and it isn't shared with your school unless you decide to share it. On the waitlist specifically we store your email and the course you told us, and nothing else; we don't put email addresses into our analytics. If you'd like off the list before launch, reply to any email and you're off.",
+      "Your notes are yours. We use your work to build your own learner model: which topics you’ve been marked on, and what you got right unaided. That’s what powers the recommendations. It isn’t used to train models for anyone else, it isn’t sold, and it isn’t shared with your school unless you decide to share it. Nothing you write reaches our analytics — this website measures which sections were read and which buttons were pressed, and nothing else. If you join the launch list we store your email and the course you told us, and if you’d like off it before launch, reply to any email and you’re off.",
   },
 ] as const;

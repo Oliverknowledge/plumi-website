@@ -112,7 +112,7 @@
 /* ── 07–09 tightened ─────────────────────────────────────────────────────── */
 .notebook-section{padding:56px 0 40px}.section-topline h2{font-size:clamp(32px,3.1vw,48px)}.notebook-gallery{margin-top:24px}.gallery-window{max-width:660px}.gallery-tabs{margin-bottom:20px}.free-notes-aside{max-width:360px}.free-notes-aside p b{display:block;margin-top:8px;color:#16202e;font-weight:500}
 .memory-section{padding-top:64px;padding-bottom:32px}.memory-proof figure{padding:8px}.memory-copy h2{font-size:clamp(32px,3.1vw,48px)}
-.spec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px;padding:0;list-style:none}.spec-chips li{font-size:10px;color:#3b4b58;background:#f0f3f4;border-radius:99px;padding:6px 11px}.spec-chips .spec-more{background:none;color:#7a8488}
+.spec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px;padding:0;list-style:none}.spec-chips li{font-size:10px;color:#3b4b58;background:#f0f3f4;border-radius:99px;padding:6px 11px}.spec-chips .spec-more{background:none;color:var(--color-ink-tertiary)}
 .compare-section{padding-top:72px;padding-bottom:72px}.comparison-wrap{margin-top:32px}
 .comparison-table tbody td{text-align:center;padding-block:8px}.comparison-table tbody th{padding-block:8px}.comparison-table thead th{height:52px}.compare-heading h2{font-size:clamp(32px,3vw,46px)}
 .mark{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:600;line-height:1}.mark.yes{background:#e6f7f0;color:#0b7a53}.mark.no{background:#eef0f3;color:#868e9b;cursor:help}.plumi-column .mark.yes{background:#2158d4;color:#fff}
@@ -186,3 +186,349 @@
   .compare-section{padding-block:40px}.comparison-wrap{margin-top:16px}.comparison-table tbody td,.comparison-table tbody th{padding-block:6px}.comparison-table thead th{height:48px}.compare-mobile-switch{margin-bottom:12px;padding-bottom:10px}
   .community-layout{padding-block:34px 28px}.footer-top{padding-block:26px 20px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARC 1–5 — the chapters added and rebuilt for the five-arc homepage.
+
+   Three deliberate layouts, matching the rest of this file's breakpoints:
+     desktop   ≥ 1100px
+     iPad      701–1099px   (its own tier, not a wide phone)
+     phone     ≤ 700px
+
+   Colour rule, unchanged and load-bearing: green, amber and red mean marking.
+   They appear in the marking chapter, in the evidence bands and nowhere else.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Hero: the launch-day email, as a quiet third line ───────────────────── */
+.hero-notify{display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:12px;color:#5c6c72;min-height:44px;transition:color .2s}
+.hero-notify:hover{color:var(--color-blue-600)}
+
+/* ── 02 · THE MARK ───────────────────────────────────────────────────────── */
+.mark-section{padding:96px 0 104px;background:var(--color-paper)}
+.mark-layout{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px;align-items:center}
+/* The new chapters carry sentences rather than two-word titles, so they take a
+   slightly tighter display size than the site's default h2. Without this,
+   "Free is the notebook. Pro is the part that understands you." is three lines
+   of 57px and the section opens on a wall. */
+.mark-copy h2,.trust-heading h2,.counts-heading h2,.plans-heading h2,.faq-heading h2{font-size:clamp(32px,3vw,46px);letter-spacing:-1.8px}
+.mark-copy>p{font-size:14px;line-height:1.85;color:#5a6474;max-width:360px;margin-top:22px}
+.mark-footnote{margin-top:18px;padding-left:14px;border-left:2px solid var(--color-correct);font-size:12px;line-height:1.8;color:#5a6474}
+.mark-controls{margin-top:22px}
+.mark-stage{display:grid;grid-template-columns:1.3fr .7fr;gap:22px;align-items:start;min-width:0}
+
+.marked-paper{background:#fcfcf9;border:1px solid #dee1d9;box-shadow:0 12px 33px -18px #233c432d,0 2px 2px #26394b0a;padding:22px 24px 18px;min-width:0}
+.mark-question{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:start;font-family:var(--font-serif);font-size:14px;line-height:1.55;padding:16px 0 10px;border-bottom:1px solid #eceee7}
+.mark-question .question-number{font-size:15px;color:#3d4954}
+.mark-question p{color:#26323d}
+.mark-question small{display:block;margin-top:5px;font-size:11px;color:var(--color-ink-tertiary);letter-spacing:.3px}
+.printed-maths{white-space:nowrap}
+/* Limits on an integral sign: the hand has none, so they are printed. */
+.integral{display:inline-flex;align-items:center;font-size:22px;line-height:1;vertical-align:-5px}
+.integral i{display:inline-flex;flex-direction:column;justify-content:space-between;height:21px;margin:0 4px 0 1px;font-style:normal}
+.integral b{font-size:9px;font-weight:400;line-height:1}
+.mark-score{align-self:center;font-family:var(--font-serif);font-size:15px;color:var(--color-ink-tertiary);border:1px solid #e0e3dd;border-radius:30px;padding:6px 13px;white-space:nowrap;transition:color .3s,border-color .3s}
+.mark-score b{font-size:19px;color:#3d4954}
+.mark-score[data-complete=true]{border-color:#cfd8d2}
+.mark-page{display:block;width:100%;height:auto;margin-top:6px}
+.mark-codes text{font-weight:500}
+
+.mark-breakdown{padding-top:22px}
+.mark-breakdown>.tiny-label{display:block;font-size:9px;letter-spacing:1.4px;color:var(--color-ink-tertiary);padding-left:12px;margin-bottom:12px}
+.mark-ledger{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:none}
+/* The rows do not dim.
+   An earlier version faded un-landed rows to 0.28 opacity, which looked right
+   and failed colour contrast on every one of them — and the un-landed state is
+   the *resting* state, the one a visitor sees before they have scrolled far
+   enough for anything to animate. So the reveal moved off the text and onto the
+   two things that are genuinely about to change: the mark code takes its
+   marking colour, and a lost row takes its tint. Every word stays legible the
+   whole time. */
+.mark-ledger li{display:grid;grid-template-columns:34px 1fr 16px;gap:11px;align-items:baseline;padding:11px 12px;border-radius:10px;
+  transition:background-color .45s var(--ease-out-soft),transform .45s var(--ease-out-soft);transform:translateX(-4px)}
+.mark-ledger li[data-landed=true]{transform:none}
+.mark-ledger li[data-landed=true][data-awarded=false]{background:var(--color-incorrect-bg)}
+.ledger-code{font-family:var(--font-serif);font-style:italic;font-size:14px;color:var(--color-ink-tertiary);transition:color .45s}
+.mark-ledger li[data-landed=true][data-awarded=true] .ledger-code{color:var(--color-mastery-secure-text)}
+.mark-ledger li[data-landed=true][data-awarded=false] .ledger-code{color:var(--color-mastery-weak-text)}
+.ledger-body b{display:block;font-size:12.5px;font-weight:500;line-height:1.45;color:#26323d}
+.ledger-body small{display:block;margin-top:5px;font-size:11.5px;line-height:1.65;color:var(--color-ink-secondary)}
+.ledger-value{font-family:var(--font-serif);font-size:13px;color:var(--color-ink-tertiary);text-align:right}
+
+/* ── 03 · TRUST ──────────────────────────────────────────────────────────── */
+.trust-section{padding:84px 0 86px;background:#f3f4ef;border-block:1px solid #e7e8e1}
+.trust-heading{max-width:760px}
+.trust-lead{font-size:15px;line-height:1.8;color:#5a6474;margin-top:22px;max-width:520px}
+.trust-steps{list-style:none;margin:52px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e2e5de;border:1px solid #e2e5de;border-radius:14px;overflow:hidden}
+.trust-steps li{background:#fcfcf9;padding:28px 26px 30px}
+.trust-step-n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#eef2f6;color:var(--color-blue-700);font-size:10px;font-weight:500;letter-spacing:.5px}
+.trust-steps h3{margin-top:18px;font-size:17px;font-weight:500;letter-spacing:-.2px;line-height:1.3}
+.trust-steps p{margin-top:11px;font-size:12.5px;line-height:1.8;color:#5a6474}
+
+.trust-honesty{display:flex;gap:22px;align-items:flex-start;margin-top:26px;padding:24px 28px;border:1px dashed #cdd3cc;border-radius:14px;background:transparent}
+.trust-honesty>svg{flex:none;margin-top:-4px}
+.trust-honesty p{font-size:13px;line-height:1.85;color:#4c5663}
+
+/* Deliberately lighter than the three steps above.
+   Six cards in a row is a wall, and it also says the wrong thing: the three
+   steps ARE the argument and these three are the evidence that the argument is
+   kept. Dropping the card chrome puts that hierarchy in the composition rather
+   than asking the reader to infer it from the order, and it takes ~120px of
+   scroll out of the longest section in arc 2. */
+.trust-panels{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;margin-top:38px;padding-top:30px;border-top:1px solid #e2e5de}
+.trust-panels h3{font-size:14.5px;font-weight:500;letter-spacing:-.15px}
+.trust-panels p{margin-top:9px;font-size:12.5px;line-height:1.8;color:#5a6474}
+
+/* ── 04 · WHAT COUNTS ────────────────────────────────────────────────────── */
+.counts-section{padding:88px 0 84px;background:var(--color-paper)}
+.counts-heading{max-width:760px}
+.counts-heading>p{font-size:15px;line-height:1.8;color:#5a6474;margin-top:22px;max-width:540px}
+.evidence-rungs{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.evidence-rungs li{display:flex;flex-direction:column;padding:24px 22px 26px;border:1px solid #e3e5e9;border-radius:14px;background:#fff}
+/* The last rung is the gate, so it is drawn as one: dashed, not filled in. */
+.evidence-rungs li[data-tone=mastered]{border-style:dashed;background:transparent}
+.rung-work{font-size:13.5px;line-height:1.55;color:#3f4a57;min-height:42px}
+.rung-band{display:flex;align-items:center;gap:11px;margin-top:20px;font-size:17px;font-weight:500;letter-spacing:-.2px}
+.rung-note{margin-top:12px;font-size:12px;line-height:1.75;color:#666f7d}
+.counts-closing{margin-top:34px;padding-top:28px;border-top:1px solid #e3e5e9;font-size:13px;line-height:1.85;color:#5a6474;max-width:680px}
+
+/* ── 05/06 · the loop ───────────────────────────────────────────────────── */
+.tree-aside{font-size:12px;line-height:1.8;color:var(--color-ink-tertiary);margin-top:14px;max-width:320px}
+.practice-retire{font-size:12px;line-height:1.8;color:var(--color-ink-tertiary);margin-top:20px;max-width:340px}
+
+/* ── 07 · EXAM MODE — the one section that goes dark ─────────────────────── */
+.exam-section{background:var(--color-surface-dark);color:var(--color-ink-inverse);padding:92px 0 96px}
+.exam-layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:64px;align-items:center}
+.exam-copy .scene-eyebrow{color:var(--color-blue-300)}
+.exam-copy .scene-eyebrow>span{background:#22283040;color:var(--color-blue-300)}
+.exam-copy h2{color:var(--color-ink-inverse)}
+.exam-copy .muted-line{color:#78818f}
+.exam-copy>p{font-size:14px;line-height:1.85;color:var(--color-ink-inverse-secondary);margin-top:22px;max-width:380px}
+.exam-footnote{margin-top:20px;font-size:12px;line-height:1.8;color:var(--color-ink-inverse-tertiary);max-width:360px}
+
+.exam-stage{background:var(--color-elevated-dark);border:1px solid var(--color-hairline-dark);border-radius:16px;padding:26px 28px 24px}
+.exam-clock{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--color-hairline-dark)}
+.exam-clock-label{font-size:9px;letter-spacing:1.5px;color:var(--color-ink-inverse-tertiary)}
+.exam-clock b{font-family:var(--font-serif);font-size:30px;font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.exam-surfaces{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:0 26px}
+.exam-surfaces li{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #23272e;font-size:12.5px;color:#8f98a6;animation:surface-dim .5s var(--ease-out-soft) backwards;animation-delay:calc(var(--i) * .045s)}
+.exam-surface-name{text-decoration:line-through;text-decoration-color:#565e6a}
+.exam-surface-state{font-size:10px;letter-spacing:1.4px;color:#9aa3b1}
+.exam-caveat{margin-top:20px;font-size:11.5px;line-height:1.75;color:var(--color-ink-inverse-tertiary)}
+@keyframes surface-dim{from{opacity:0;color:var(--color-ink-inverse)}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.exam-surfaces li{animation:none}}
+
+/* ── 08 · the Focus band, inside the notebook chapter ────────────────────── */
+.focus-band{margin-top:52px;padding-top:40px;border-top:1px solid #dde2e0;display:flex;align-items:center;justify-content:space-between;gap:56px}
+.focus-band-copy{max-width:380px}
+.focus-band-copy h3{margin-top:12px;font-size:23px;font-weight:500;letter-spacing:-.8px}
+.focus-band-copy p{margin-top:12px;font-size:13px;line-height:1.85;color:#5a6474}
+.focus-band-proof{flex:1;max-width:520px;min-width:0}
+.focus-band-proof img{width:100%;height:auto;border-radius:10px}
+.focus-band-proof figcaption{margin-top:10px;font-size:9px;color:#5f6875;letter-spacing:.1px}
+
+/* ── 10 · the coverage note ──────────────────────────────────────────────── */
+.spec-note{margin-top:16px;font-size:11.5px;line-height:1.8;color:var(--color-ink-tertiary);max-width:420px}
+
+/* ── 11 · comparison ─────────────────────────────────────────────────────── */
+.compare-lead{margin-top:20px;font-size:13px;line-height:1.8;color:#5a6474;max-width:440px;margin-inline:auto}
+.comparison-table .cost-row th,.comparison-table .cost-row td{font-size:12px;color:#4c5663;border-top:1px solid #d9ddd7;padding-top:20px}
+.comparison-table .cost-row .plumi-column{font-weight:500;color:var(--color-blue-700)}
+
+/* ── 12 · FREE & PRO ─────────────────────────────────────────────────────── */
+.plans-section{padding:92px 0 96px;background:#f3f4ef;border-block:1px solid #e7e8e1}
+.plans-heading{max-width:860px}
+.plan-columns{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px;align-items:stretch}
+/* Same card, same weight, no badge. Free is a real product here, not a trial. */
+.plan-card{display:flex;flex-direction:column;background:#fcfcf9;border:1px solid #e2e5de;border-radius:16px;padding:30px 30px 32px}
+.plan-card h3{font-size:21px;font-weight:500;letter-spacing:-.6px}
+.plan-promise{margin-top:9px;font-size:13px;line-height:1.75;color:#5a6474}
+.plan-list{list-style:none;margin:24px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.plan-list li{display:flex;gap:11px;font-size:13px;line-height:1.5;color:#26323d}
+.plan-list li>svg{margin-top:1px;flex:none}
+.plan-list-detailed{gap:16px}
+.plan-list-detailed b{display:block;font-size:13.5px;font-weight:500}
+.plan-list-detailed small{display:block;margin-top:3px;font-size:12px;line-height:1.65;color:#5a6474}
+.plan-allowance-lead{margin-top:26px;font-size:13px;line-height:1.6;font-weight:500}
+.plan-allowances{margin-top:12px;border-top:1px solid #e6e8e2}
+.plan-allowances>div{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid #e6e8e2;padding:9px 0}
+.plan-allowances dt{font-size:13px;color:#5a6474}
+.plan-allowances dd{font-size:13px;font-weight:500;margin:0}
+.plan-fine{margin-top:14px;font-size:11.5px;line-height:1.7;color:var(--color-ink-tertiary)}
+.plan-price{margin-top:auto;padding-top:22px;border-top:1px solid #e6e8e2}
+.plan-price strong{display:block;font-size:21px;font-weight:500;letter-spacing:-.6px}
+.plan-price span{display:block;margin-top:7px;font-size:12.5px;line-height:1.7;color:#5a6474}
+.plans-summary{margin:40px auto 0;max-width:640px;text-align:center;font-size:19px;font-weight:500;letter-spacing:-.5px;line-height:1.45}
+
+/* ── 13 · FAQ ────────────────────────────────────────────────────────────── */
+.faq-section{padding:88px 0 92px;background:var(--color-paper)}
+.faq-layout{display:grid;grid-template-columns:.7fr 1.3fr;gap:64px;align-items:start}
+.faq-list{border-top:1px solid #e3e5e9}
+.faq-entry{border-bottom:1px solid #e3e5e9;interpolate-size:allow-keywords}
+.faq-entry::details-content{height:0;overflow:hidden;transition:height .3s var(--ease-out-soft),content-visibility .3s;transition-behavior:allow-discrete}
+.faq-entry[open]::details-content{height:auto}
+.faq-entry summary{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;cursor:pointer;list-style:none;padding:22px 0;font-size:17px;font-weight:500;letter-spacing:-.25px;line-height:1.35;transition:color .15s}
+.faq-entry summary::-webkit-details-marker{display:none}
+.faq-entry summary:hover{color:var(--color-blue-700)}
+.faq-toggle{position:relative;flex:none;width:18px;height:18px;margin-top:4px;color:#8a929b;transition:color .2s}
+.faq-entry[open] .faq-toggle{color:var(--color-blue-600)}
+.faq-toggle i{position:absolute;top:50%;left:0;width:18px;height:1px;background:currentColor}
+.faq-toggle i:last-child{transform:rotate(90deg);transition:transform .3s var(--ease-out-soft)}
+.faq-entry[open] .faq-toggle i:last-child{transform:rotate(0)}
+.faq-entry>p{padding-bottom:26px;max-width:640px;font-size:13.5px;line-height:1.9;color:#5a6474}
+
+/* ── 14 · CLOSE ──────────────────────────────────────────────────────────── */
+.close-honesty{font-size:12px;line-height:1.85;color:var(--color-blue-100);max-width:400px;margin-bottom:26px}
+.close-notify{margin-top:26px;padding-top:24px;border-top:1px solid #4d7ce0}
+.close-notify-label{font-size:11px;letter-spacing:.3px;color:var(--color-blue-100);margin-bottom:12px}
+
+/* ── The launch-day email form ───────────────────────────────────────────── */
+.notify-row{display:flex;gap:8px;flex-wrap:wrap}
+.notify-row input{flex:1;min-width:200px;min-height:48px;border-radius:99px;border:1px solid #6d95e8;background:#1a49b5;color:#fff;padding:0 20px;font-size:13px}
+.notify-row input::placeholder{color:#c7d9fb}
+.notify-row input:focus-visible{outline:2px solid #bed2f9;outline-offset:2px;border-color:#bed2f9}
+.notify-row .story-button.primary{background:#fcfcf9;color:var(--color-blue-600)}
+.notify-row .story-button.primary:hover{background:#e8f0fe;box-shadow:none}
+.notify-row .story-button[disabled]{opacity:.65;cursor:default;transform:none}
+.notify-honeypot{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.notify-error{margin-top:10px;font-size:12px;color:#ffe3df}
+.notify-pills{display:flex;flex-wrap:wrap;gap:18px 32px;margin-top:20px}
+.pill-label{display:block;font-size:10px;letter-spacing:1.3px;color:var(--color-blue-100);margin-bottom:9px}
+/* Differentiated by tracking, not by a lighter blue: 'Optional' at 65%
+   opacity on Plumi blue is 2.8:1 and unreadable in daylight. */
+.pill-label i{font-style:normal;letter-spacing:.6px;text-transform:none}
+.pill-group [role=radiogroup]{display:flex;flex-wrap:wrap;gap:6px}
+.pill-group button{min-height:40px;padding:0 14px;border-radius:99px;border:1px solid #7fa4ee;color:#eff4fe;font-size:12px;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}
+.pill-group button:hover{border-color:#bed2f9;color:#fff}
+.pill-group button[aria-checked=true]{background:#fcfcf9;border-color:#fcfcf9;color:var(--color-blue-700);font-weight:500}
+.notify-fine{margin-top:18px;font-size:11px;line-height:1.75;color:var(--color-blue-100);max-width:420px}
+.notify-done{max-width:420px}
+.notify-done p{font-size:13px;line-height:1.8;color:var(--color-blue-100);margin-bottom:10px}
+.notify-done p:focus-visible{outline:2px solid #bed2f9;outline-offset:4px}
+.notify-done strong{font-size:19px;font-weight:500;color:#fff}
+
+/* ── The phone-only bottom bar ───────────────────────────────────────────── */
+.sticky-cta{display:none}
+@media(max-width:700px){
+  .sticky-cta{position:fixed;inset-inline:0;bottom:0;z-index:40;display:flex;align-items:center;gap:14px;
+    padding:12px 20px calc(env(safe-area-inset-bottom) + 12px);
+    background:color-mix(in srgb,var(--color-paper) 93%,transparent);backdrop-filter:blur(12px);
+    border-top:1px solid var(--color-hairline);transform:translateY(110%);transition:transform .3s var(--ease-out-soft)}
+  .sticky-cta[data-visible=true]{transform:translateY(0)}
+  .sticky-cta p{flex:1;min-width:0;font-size:10px;line-height:1.5;color:#5a6474}
+}
+@media(prefers-reduced-motion:reduce){.sticky-cta{transition:none}}
+
+/* ── iPad, as its own tier ───────────────────────────────────────────────── */
+@media(min-width:701px) and (max-width:1099px){
+  /* The single most valuable rule here: the story columns stop being capped at
+     a phone measure, so a 1024pt portrait iPad uses its width instead of
+     framing a phone layout in two inches of margin either side. */
+  .on-page-layout,.tree-layout,.practice-layout,.mark-layout,.exam-layout,.faq-layout{max-width:none}
+  .mechanics-layout{max-width:none}
+  .mark-layout{grid-template-columns:1fr;gap:34px}
+  .mark-copy>p,.mark-footnote{max-width:520px}
+  .mark-stage{grid-template-columns:1.2fr .8fr;gap:24px}
+  .trust-steps{grid-template-columns:1fr;gap:1px}
+  .trust-panels{grid-template-columns:1fr;gap:20px}
+  .evidence-rungs{grid-template-columns:1fr 1fr;gap:14px}
+  .rung-work{min-height:0}
+  .exam-layout{grid-template-columns:1fr;gap:34px}
+  .exam-copy>p,.exam-footnote{max-width:560px}
+  .plan-columns{gap:18px}
+  .plan-card{padding:26px 24px 28px}
+  .faq-layout{grid-template-columns:1fr;gap:30px}
+  .focus-band{gap:36px}
+  /* Every scene control on a touch tier is a finger target, not a mouse one. */
+  .round-control,.replay-control,.gallery-tabs button,.compare-mobile-switch button,.media-dots button{min-height:44px}
+  .round-control{width:44px;height:44px}
+}
+
+/* ── iPad and below ──────────────────────────────────────────────────────── */
+@media(max-width:1099px){
+  .mark-section,.trust-section,.counts-section,.plans-section,.faq-section{padding-block:68px}
+  .exam-section{padding-block:72px}
+  .mark-layout{grid-template-columns:1fr;gap:34px}
+  .exam-layout{grid-template-columns:1fr;gap:34px}
+  .faq-layout{grid-template-columns:1fr;gap:28px}
+  .trust-steps{border-radius:12px}
+  .plans-summary{font-size:17px}
+}
+
+/* ── Phone ───────────────────────────────────────────────────────────────── */
+@media(max-width:700px){
+  .hero-notify{font-size:11px;margin-top:10px}
+  .mark-section{padding:56px 0 60px}
+  .mark-copy>p{font-size:12px;max-width:none}
+  .mark-footnote{font-size:11px}
+  /* The page keeps the marks beside the working; the ledger carries the words
+     underneath, at 12px rather than at 12 units of a viewBox. */
+  .mark-stage{grid-template-columns:1fr;gap:12px}
+  .mark-breakdown{padding-top:6px}
+  .marked-paper{padding:15px 16px 14px}
+  .mark-question{grid-template-columns:auto 1fr;gap:10px;font-size:12px;padding-top:12px}
+  .mark-score{grid-column:1 / -1;justify-self:start;margin-top:8px;padding:5px 11px;font-size:13px}
+  .mark-score b{font-size:16px}
+  .mark-ledger li{grid-template-columns:30px 1fr 14px;gap:9px;padding:9px 10px}
+  .ledger-body b{font-size:12px}
+  .ledger-body small{font-size:11px}
+
+  .trust-section{padding:56px 0 60px}
+  .trust-lead{font-size:13px}
+  .trust-steps{grid-template-columns:1fr;margin-top:34px}
+  .trust-steps li{padding:22px 20px 24px}
+  .trust-steps h3{font-size:16px}
+  .trust-honesty{flex-direction:column;gap:12px;padding:20px 20px 22px}
+  .trust-honesty p{font-size:12px}
+  .trust-panels{grid-template-columns:1fr;gap:22px;margin-top:28px;padding-top:24px}
+
+  .counts-section{padding:56px 0 58px}
+  .counts-heading>p{font-size:13px}
+  .evidence-rungs{grid-template-columns:1fr;gap:10px;margin-top:32px}
+  .evidence-rungs li{padding:18px 20px 20px}
+  .rung-work{min-height:0;font-size:13px}
+  .rung-band{margin-top:14px;font-size:16px}
+  .counts-closing{font-size:12px;margin-top:26px;padding-top:22px}
+
+  .exam-section{padding:58px 0 60px}
+  .exam-copy>p{font-size:12px}
+  .exam-footnote{font-size:11px}
+  .exam-stage{padding:20px 20px 18px;border-radius:14px}
+  .exam-clock b{font-size:24px}
+  .exam-surfaces{grid-template-columns:1fr}
+  .exam-surfaces li{font-size:12px;padding:8px 0}
+  .exam-caveat{font-size:11px}
+
+  .focus-band{display:block;margin-top:36px;padding-top:28px}
+  .focus-band-copy h3{font-size:20px}
+  .focus-band-copy p{font-size:11.5px}
+  .focus-band-proof{margin-top:20px;max-width:none}
+
+  .spec-note{font-size:11px}
+  .compare-lead{font-size:12px;margin-inline:0}
+  .comparison-table .cost-row th,.comparison-table .cost-row td{font-size:10px;padding-top:16px}
+
+  .plans-section{padding:58px 0 60px}
+  .plan-columns{grid-template-columns:1fr;gap:14px;margin-top:32px}
+  .plan-card{padding:24px 22px 26px;border-radius:14px}
+  .plan-card h3{font-size:19px}
+  .plans-summary{font-size:16px;margin-top:28px}
+
+  .faq-section{padding:56px 0 58px}
+  .faq-entry summary{font-size:15px;gap:18px;padding:18px 0}
+  .faq-entry>p{font-size:12.5px;line-height:1.85;padding-bottom:22px}
+
+  .close-honesty{font-size:11px;max-width:none}
+  .close-notify{margin-top:22px}
+  .notify-row input{min-width:0;width:100%;font-size:14px}
+  .notify-row .story-button{width:100%}
+  .notify-fine{font-size:10px}
+  /* The bar is fixed over the page, so the close needs room under it. */
+  .community-section{padding-bottom:64px}
+}
+
+/* ── Touch targets ───────────────────────────────────────────────────────────
+   The hero's step dots were 23x40 with 0 gap, which is under the 24x24 minimum
+   and, more to the point, is a mouse target on a page about an iPad. Widened
+   here rather than in the phone block so every pointer gets the same hit area. */
+.media-dots button{width:28px;height:44px}
+@media(prefers-reduced-motion:reduce){.mark-ledger li{transform:none;transition:none}}

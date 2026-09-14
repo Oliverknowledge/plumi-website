@@ -72,7 +72,11 @@ export function LearnerTree() {
   const branch = (x: number) => `M320 ${nodes.forces.y + H / 2}C320 ${nodes.forces.y + 60} ${x} ${nodes.forces.y + 50} ${x} ${r.y - H / 2}`;
   return <section id="learner-model" className="tree-section" data-testid="learner-tree-section">
     <div className="story-container tree-layout">
-      <div className="tree-copy"><div className="scene-eyebrow"><span>04</span> EVERY ANSWER TEACHES PLUMI ABOUT YOU</div><h2>You don’t have to know<br/><span className="muted-line">what you’re weak at.</span></h2><p>Every marked answer updates a model of your course. Plumi notices the branch that needs you, and turns it into the next thing to do.</p>
+      <div className="tree-copy"><div className="scene-eyebrow"><span>05</span> EVERY ANSWER TEACHES PLUMI ABOUT YOU</div><h2>You don’t have to know<br/><span className="muted-line">what you’re weak at.</span></h2><p>Every marked answer updates a model of your course. Plumi notices the branch that needs you, and turns it into the next thing to do.</p>
+        {/* The line that keeps the tree from reading as a personality quiz. It is
+            true: the learner model is written only from work a student was
+            already doing, and there is no survey anywhere in the app. */}
+        <p className="tree-aside">Nothing here is a survey you fill in. It is the work you were doing anyway.</p>
         <div className="tree-controls"><button className="replay-control" data-testid="tree-replay-button" onClick={() => { setCard(false); scene.replay(); }}>Replay ↻</button></div></div>
       <div className="tree-stage" data-card={showCard}>
         <svg ref={svg} viewBox="0 0 640 400" className="learner-tree" role="img" aria-label="A three-level curriculum tree: A-Level Maths, Mechanics, Forces, then Resolving forces (weak), Friction (strong) and Connected particles (improving).">

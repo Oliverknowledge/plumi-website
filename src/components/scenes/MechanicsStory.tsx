@@ -1,14 +1,35 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Ink } from "@/components/product/Ink";
 import { QuillGlyph } from "@/components/quill/Quill";
 import { useQuillScene, type Step } from "@/lib/quill/scene";
 import { useMotionReady } from "@/lib/useMotionReady";
 
-const beats = [
-  { label: "PLUMI BUILDS WHAT IT TEACHES", title: "Big ideas.\nDrawn simply.", text: "Plumi draws the diagram stroke by stroke, the way a tutor would beside you at the desk. Then asks the question." },
-  { label: "THE UNDERSTANDING", title: "Not just a mistake.\nA place to grow.", text: "What you get right matters. So does knowing exactly where you got stuck." },
-];
+/**
+ * One beat, not two.
+ *
+ * This scene used to carry a second phase — "Not just a mistake. A place to
+ * grow." — on a sticky rail that was hard-gated at `min-width: 1100px`, so a
+ * 1024pt iPad in portrait got the phone fallback of a site advertising an iPad
+ * app. The second beat's idea (one answer, two different insights) is now made
+ * properly by the marking chapter and the evidence chapter, where it is shown
+ * rather than asserted, and "a place to grow" was the one line on this site that
+ * sounded like an education brochure rather than a product.
+ *
+ * Retiring it takes the rail with it, which is how the iPad tier gets fixed: the
+ * scene is now one sticky canvas at every width above a phone.
+ *
+ * ── Why it moved down the page ──────────────────────────────────────────────
+ * It is the most technically impressive thing here and it is a *capability*
+ * demo. It used to sit at position 02, which is the highest-value slot on the
+ * page and belongs to a *consequence*. Its job now is a single belief — Plumi
+ * understands the subject, not merely the handwriting — and that belief is worth
+ * installing after the marking has been believed, not before.
+ */
+const beat = {
+  label: "BIG IDEAS, DRAWN SIMPLY",
+  title: "Big ideas.\nDrawn simply.",
+  text: "Plumi draws the figure stroke by stroke, the way a tutor would beside you at the desk. Then asks the question.",
+};
 
 export function geometry(theta: number) {
   const a = theta * Math.PI / 180;
@@ -105,35 +126,25 @@ function buildSteps(setWritten: (v: boolean) => void): Step[] {
 }
 
 export function MechanicsStory() {
-  const [phase, setPhase] = useState(0);
   const [written, setWritten] = useState(false);
   const motion = useMotionReady();
   const svgWrap = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement | null>(null);
-  const rail = useRef<HTMLDivElement>(null);
   const [narrow, setNarrow] = useState(false);
   useEffect(() => { const mq = window.matchMedia("(max-width: 700px)"); const f = () => setNarrow(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
-  useEffect(() => { svg.current = svgWrap.current?.querySelector("svg") ?? null; }, [phase]);
-  const scene = useQuillScene(svg, () => buildSteps(setWritten), { motion: motion && phase === 0, speed: narrow ? 1.45 : 1, deps: [phase] });
-  const railLock = useRef(false);
-  const railUpdate = useRef<() => void>(() => {});
-  useEffect(() => { if (scene.done) { railLock.current = false; railUpdate.current(); } }, [scene.done]);
-  useEffect(() => {
-    const el = rail.current; if (!el) return;
-    const second = el.querySelector<HTMLElement>('[data-phase="1"]'); if (!second) return;
-    railUpdate.current = () => { if (railLock.current || !window.matchMedia("(min-width: 1100px)").matches) return; setPhase(second.getBoundingClientRect().top < window.innerHeight * 0.42 ? 1 : 0); };
-    const obs = new IntersectionObserver(() => railUpdate.current(), { rootMargin: "0px 0px -58% 0px", threshold: [0, 1] });
-    obs.observe(second); return () => obs.disconnect();
-  }, []);
-  const replay = () => { railLock.current = true; setPhase(0); setWritten(false); scene.replay(); };
-  const showQuestion = !motion || written || scene.done || phase === 1;
-  return <section id="how-it-works" className="mechanics-section" data-testid="mechanics-story">
-    <div className="story-container mechanics-layout"><div className="mechanics-rail" ref={rail}>{beats.map((beat, i) => <article key={beat.label} data-phase={i} className={`story-beat ${phase === i ? "active-beat" : ""}`}><div className="scene-eyebrow"><span>0{i + 2}</span>{beat.label}</div><h2>{beat.title.split("\n").map((line, j) => <span key={line} className={j ? "muted-line" : ""}>{line}</span>)}</h2><p>{beat.text}</p></article>)}</div>
-    <div className="mechanics-sticky"><div className="physics-paper" data-testid="mechanics-paper" data-phase={phase} data-written={showQuestion}>
+  useEffect(() => { svg.current = svgWrap.current?.querySelector("svg") ?? null; }, []);
+  const scene = useQuillScene(svg, () => buildSteps(setWritten), { motion, speed: narrow ? 1.45 : 1 });
+  const replay = () => { setWritten(false); scene.replay(); };
+  const showQuestion = !motion || written || scene.done;
+  return <section id="diagrams" className="mechanics-section" data-testid="mechanics-story">
+    <div className="story-container mechanics-layout"><div className="mechanics-rail">
+      <article className="story-beat active-beat"><div className="scene-eyebrow"><span>09</span>{beat.label}</div><h2>{beat.title.split("\n").map((line, j) => <span key={line} className={j ? "muted-line" : ""}>{line}</span>)}</h2><p>{beat.text}</p></article>
+    </div>
+    <div className="mechanics-sticky"><div className="physics-paper" data-testid="mechanics-paper" data-written={showQuestion}>
       <div className="paper-heading"><span>A-LEVEL MATHEMATICS</span><span>MECHANICS / 01</span></div>
-      <div ref={svgWrap} className="figure-wrap"><MechanicsFigure key={phase} theta={30} live={phase === 0}/></div>
-      <div className="physics-content">{phase === 0 ? <div className="exam-question" data-testid="mechanics-question"><span className="question-number">1.</span><p>A 2 kg block moves up a rough 30° slope, connected to a 3 kg mass by a light string over a smooth pulley. Find the normal reaction and frictional force.<small>μ = 0.2 · g = 9.8 m s⁻² <span>[4 marks]</span></small></p></div> : <div className="evidence-work"><div className="work-line"><svg viewBox="0 0 230 48" role="img" aria-label="F equals mu R, correct friction law"><Ink text="F =" x={3} y={9} size={32} still/><path d="M83 16l-6 24M82 20q-2 15 5 10q6-3 8-14q-3 14 3 16" stroke="#16202e" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/><Ink text="R" x={103} y={9} size={32} still/><path d="M180 22l9 9 18-24" stroke="#0b7a53" fill="none" strokeWidth="2.5"/></svg><div><span className="evidence-label correct">Friction law</span><small>Evidence strengthened</small></div></div><div className="work-line"><svg viewBox="0 0 230 48" role="img" aria-label="R equals mg is incorrect on this slope"><Ink text="R = mg" x={3} y={9} size={32} still/><path d="M57 41q35 4 80-2" stroke="#a45f12" fill="none" strokeWidth="2.5"/><path d="M187 13l19 20m-19 0 19-20" stroke="#a45f12" fill="none" strokeWidth="2"/></svg><div><span className="evidence-label partial">Normal reaction</span><small>A concept to revisit</small></div></div><p className="tutor-note">Resolve perpendicular to the slope: <b>R = mg cos θ</b></p></div>}</div>
-      <div className="paper-foot"><span>{phase === 0 ? "A question takes shape." : "One answer. Two different insights."}</span><span>plumi</span></div>
-    </div><div className="mechanics-controls"><div className="scene-switch" aria-label="Learning story steps">{["Build", "Understand"].map((label, i) => <button key={label} aria-pressed={phase === i} data-testid={`mechanics-phase-${i}`} onClick={() => setPhase(i)}><span>0{i + 1}</span>{label}</button>)}</div><div className="mechanics-transport"><button data-testid="mechanics-step-pause-button" className="round-control" aria-label={scene.paused ? "Resume diagram animation" : "Pause diagram animation"} aria-pressed={scene.paused} disabled={!motion || phase !== 0} onClick={scene.togglePause}>{scene.paused ? "▷" : "Ⅱ"}</button><button className="replay-control" data-testid="mechanics-replay-button" onClick={replay}>Replay ↻</button></div></div><p className="capture-caption">Illustrative learning sequence · Not an app recording</p></div></div>
+      <div ref={svgWrap} className="figure-wrap"><MechanicsFigure theta={30} live/></div>
+      <div className="physics-content"><div className="exam-question" data-testid="mechanics-question"><span className="question-number">1.</span><p>A 2 kg block moves up a rough 30° slope, connected to a 3 kg mass by a light string over a smooth pulley. Find the normal reaction and frictional force.<small>μ = 0.2 · g = 9.8 m s⁻² <span>[4 marks]</span></small></p></div></div>
+      <div className="paper-foot"><span>A question takes shape.</span><span>plumi</span></div>
+    </div><div className="mechanics-controls"><div className="mechanics-transport"><button data-testid="mechanics-step-pause-button" className="round-control" aria-label={scene.paused ? "Resume diagram animation" : "Pause diagram animation"} aria-pressed={scene.paused} disabled={!motion} onClick={scene.togglePause}>{scene.paused ? "▷" : "Ⅱ"}</button><button className="replay-control" data-testid="mechanics-replay-button" onClick={replay}>Replay ↻</button></div></div><p className="capture-caption">Illustrative learning sequence · Not an app recording</p></div></div>
   </section>;
 }

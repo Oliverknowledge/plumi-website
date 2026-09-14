@@ -20,7 +20,7 @@ npm run og           # regenerate public/og.png from the current headline
 **`src/config/site.ts`** holds the launch switch.
 
 ```ts
-export const launchMode: LaunchMode = "waitlist";
+export const launchMode: LaunchMode = "community";
 export const appStoreUrl: string | null = null;
 ```
 
@@ -39,8 +39,9 @@ null, so the site can never ship with a download button that goes nowhere.
 | `src/content/` | **Every word on the site.** Copy never lives in a component. |
 | `src/config/site.ts` | The launch switch, domains, CTA labels |
 | `src/app/globals.css` | The design tokens, transcribed from the iPad app |
-| `src/components/sections/` | One file per section, in page order |
-| `src/components/scenes/` | The three interactive/animated set pieces |
+| `src/components/sections/` | The static chapters: trust, evidence, exam mode, plans, FAQ |
+| `src/components/scenes/` | The animated set pieces: the marking pass, the learner tree, the practice card, the diagram build, the hero media, the ink close |
+| `src/components/LandingPage.tsx` | The homepage, and the only place the chapter order lives |
 | `src/components/product/` | Reusable pieces of the product's own UI |
 | `src/components/quill/` | Plumi the quill: the SVG character and its flights |
 | `src/lib/quill/` | The scene choreographer that lets the quill draw ink in real time |
@@ -50,6 +51,36 @@ null, so the site can never ship with a download button that goes nowhere.
 | `supabase/migrations/` | The waitlist table |
 | `docs/WAITLIST.md` | How to turn the waitlist on |
 | `.context/research/` | The research the site was built from (gitignored) |
+
+## The homepage is five arcs, not fifteen sections
+
+`LandingPage.tsx` is the only place the order lives, and the order is an
+argument: every chapter inherits a belief from the one above it and hands one
+on.
+
+```
+        HERO            Your handwriting. Read, understood, visualised.
+ARC 1   01 on-page      Not in another tab.
+        02 the-mark     Six marks. You got four. Here are the two.
+ARC 2   03 trust        Plumi doesn't guess your mark.
+        04 what-counts  Reading your notes proves nothing.
+ARC 3   05 learner-model  You don't have to know what you're weak at.
+        06 practice     Your next question starts here.
+        07 exam-mode    Then it takes it all away.            [dark]
+ARC 4   08 notebook     All your notes. Not another subscription.
+        09 diagrams     Big ideas. Drawn simply.
+        10 your-course  A fresh page. Not a fresh start.
+ARC 5   11 compare      A chatbot sees what you paste.
+        12 free-and-pro Free is the notebook.
+        13 faq          The things people actually ask.
+        14 close        Write like you always have. Find out what it proves.
+```
+
+You cannot ask somebody to trust a mark they have not seen, so 02 precedes 03.
+The learner model reads as generic AI personalisation unless the rule about what
+counts as evidence has been stated first, so 04 precedes 05. The arcs are never
+labelled in type; they are felt through pacing, and the two dark sections close
+arcs 3 and 5.
 
 ## The handwriting is real
 
@@ -98,24 +129,40 @@ Nothing is required to run the site locally. Everything degrades to a no-op.
 | `SUPABASE_WAITLIST_TABLE` | Waitlist | Optional; defaults to `waitlist_signups` |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Analytics | Without it, analytics is inert |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Analytics | Defaults to the EU cloud |
+| `NEXT_PUBLIC_FOCUS_BLOCKING` | The Focus chapter | `"true"` restores the app-blocking wording and the blocked-app artwork. **Leave it unset** until Apple's Family Controls *distribution* entitlement is granted and blocking is verified on a shipping build on a real device. Until then Focus is described as what it is on a shipping build: a study timer. |
 
 Without Supabase configured the waitlist form returns an honest error rather
 than a false success. See `docs/WAITLIST.md`.
 
 ## Performance
 
-Measured on the production build, mobile emulation:
+Measured on the production build with Lighthouse 12, after the five-arc rebuild.
+Both columns are the same commit; the desktop preset and the mobile preset
+disagree about LCP because they disagree about the network.
 
-| | |
-|---|---|
-| Performance | 93 |
-| Accessibility | 100 |
-| Best Practices | 100 |
-| SEO | 100 |
-| CLS | 0 |
-| Total blocking time | 0 ms |
+| | Mobile | Desktop |
+|---|---|---|
+| Performance | 92–93 | 100 |
+| Accessibility | 100 | 100 |
+| Best Practices | 100 | 100 |
+| SEO | 100 | 100 |
+| LCP | 3.2–3.4 s | 0.7 s |
+| CLS | 0 | 0 |
+| Total blocking time | 0–20 ms | 0 ms |
 
-Roughly 164 kB of JavaScript, 130 kB of font, 78 kB of document. There is no
+Against the previous generation of the homepage, measured the same way: mobile
+performance 94 → 92, accessibility 92 → 100, best practices 96 → 100; desktop
+accessibility 88 → 100. Three new chapters cost one to two points of mobile
+performance and bought back twelve points of accessibility.
+
+**LCP is the one number to watch, and it is an asset problem rather than a code
+problem.** The largest paint is the hero's fifth still — the frame the server
+renders — and it now carries `fetchpriority="high"`, which is the whole of the
+cheap win. The rest is the hero film: when `tutorMedia.videoMp4` is set, the
+`<picture>` becomes the poster underneath it and that is where the next second
+comes from.
+
+Roughly 173 kB of JavaScript, 130 kB of font, 96 kB of document. There is no
 animation library: reveals are CSS keyframes, flights are SMIL, and the quill's
 drawing scenes run on one `requestAnimationFrame` loop only while on screen
 (see `docs/rebuild/quill-pass.md`).

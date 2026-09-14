@@ -11,11 +11,19 @@ export interface NavLink {
   href: string;
 }
 
+/**
+ * Four links, named after the arcs rather than after the features.
+ *
+ * "How it works" is what every site in this category calls its second link and
+ * it commits the reader to nothing. "Can I trust it?" is the question they
+ * actually have, and a nav item that asks it out loud is worth more than one
+ * that describes a mechanism.
+ */
 export const navLinks: readonly NavLink[] = [
-  { label: "How it works", href: "#the-page" },
-  { label: "What it learns", href: "#what-counts" },
+  { label: "The mark", href: "#the-mark" },
+  { label: "Can I trust it?", href: "#trust" },
+  { label: "What it learns", href: "#learner-model" },
   { label: "Free & Pro", href: "#free-and-pro" },
-  { label: "FAQ", href: "#faq" },
 ] as const;
 
 export const footer = {
@@ -24,8 +32,9 @@ export const footer = {
     {
       title: "Product",
       links: [
-        { label: "How it works", href: "#the-page" },
-        { label: "What it learns", href: "#what-counts" },
+        { label: "The mark", href: "#the-mark" },
+        { label: "Can I trust it?", href: "#trust" },
+        { label: "What it learns", href: "#learner-model" },
         { label: "Your course", href: "#your-course" },
         { label: "Free & Pro", href: "#free-and-pro" },
         { label: "FAQ", href: "#faq" },

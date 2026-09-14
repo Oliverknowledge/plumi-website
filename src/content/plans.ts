@@ -27,13 +27,12 @@ export const freePlan = {
   name: "Plumi Free",
   promise: "The notebook, free forever. No trial, no page limit, no counter.",
   /** Things with no gate anywhere in the app. */
+  /** Five lines, not seven. Two pairs were one idea each written twice. */
   includes: [
-    "Writing with pen, pencil and highlighter",
-    "Notebooks, folders and search",
+    "Pen, pencil, highlighter, lasso and shape snapping",
+    "Notebooks, folders, search and export",
     "Ruled, grid, dotted, Cornell and graph paper",
     "Import a PDF and write straight onto it",
-    "Lasso, shape snapping and export",
-    "Focus Mode",
     "Everything you write, kept and readable, always",
   ],
   /**
@@ -57,21 +56,45 @@ export const freePlan = {
 export const proPlan = {
   name: "Plumi Pro",
   promise: "The part that understands you.",
-  /** Verbatim from the paywall, in the app's own order. */
+  /**
+   * Verbatim from the paywall (`PaywallView.benefits`), in the app's own order,
+   * with one row removed and one reworded.
+   *
+   * **Removed: "Predicted grades."** `PremiumFeature.predictedGrade` has a free
+   * allowance of zero, so the table says Pro-only — but the only call to
+   * `entitlements.check(.predictedGrade)` anywhere in `Sources/` is inside
+   * `SelfTest.swift`. No production surface gates it, so a free user gets it
+   * today. Advertising it as a reason to pay would be selling something the
+   * product gives away. It goes back on this list the day the gate is wired.
+   *
+   * **Reworded: "Whole past papers."** The app holds paper *metadata* and links
+   * to the boards' own PDFs; it does not hold a library of papers. What is true
+   * and shipped is that a paper you sit is marked question by question
+   * (`ExamSubmission` → `PaperMarker` → `PaperMarkingProgress`), so that is what
+   * this row says.
+   */
   includes: [
     { title: "Unlimited AI Pen", detail: "Explain, hint and check anything, as often as you like." },
     { title: "Full marking", detail: "Against the real mark scheme, with challenge and re-marking." },
     { title: "Adaptive practice", detail: "Questions built from the marks you actually lost." },
-    { title: "Whole past papers", detail: "Marked question by question, with where the marks went." },
-    { title: "Predicted grades", detail: "From your timed papers, never from guesswork." },
+    { title: "A whole paper, marked", detail: "Sit it timed, then get it back question by question, with where each mark went." },
+    { title: "Unlimited tutoring", detail: "On the page, for as long as the idea takes." },
   ],
   priceLine: "No price yet.",
-  priceDetail: "Everyone on the waitlist hears it from us before it's public.",
+  priceDetail: "Everyone on the launch list hears it from us before it’s public.",
 } as const;
 
-/** The sentence the app itself uses. Hard to improve on. */
+/**
+ * The sentence the app itself uses, corrected on one point.
+ *
+ * "Pro is the marking, the practice and the tracking" over-claims: the tracking
+ * is not gated. `PremiumFeature` has no case for the learner model and none for
+ * Exam Mode, so both are free — they are simply *fed* by marking, which is
+ * metered. The deal is a meter, not a wall, and saying so is a better offer
+ * than the one it replaces.
+ */
 export const planSummary =
-  "Your notebook is free forever. Pro is the marking, the practice and the tracking.";
+  "Your notebook is free forever. The intelligence is free every day, in real amounts. Pro removes the meter.";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // THE COMPARISON
@@ -122,7 +145,7 @@ export const alternatives: readonly Alternative[] = [
     rows: [
       { claim: "There at 11pm the night before", them: "yes", plumi: "yes" },
       {
-        claim: "You don't have to explain the question first",
+        claim: "You don’t have to explain the question first",
         them: "no",
         plumi: "yes",
         note: "Photograph, crop, retype the context. Or circle the line.",
@@ -132,14 +155,14 @@ export const alternatives: readonly Alternative[] = [
       { claim: "Answers questions about anything, not just your subjects", them: "yes", plumi: "no" },
       { claim: "Reads the printed question under your working", them: "partly", plumi: "yes" },
       { claim: "Helps on the page instead of in a chat", them: "no", plumi: "yes" },
-      { claim: "Marks against your board's actual mark scheme", them: "partly", plumi: "yes" },
+      { claim: "Marks against your board’s actual mark scheme", them: "partly", plumi: "yes" },
       {
         claim: "Knows what you got wrong last week",
         them: "partly",
         plumi: "yes",
         note: "Chat memory remembers what you said. Plumi records what you were marked on.",
       },
-      { claim: "Won't just hand you the answer", them: "no", plumi: "yes" },
+      { claim: "Won’t just hand you the answer", them: "no", plumi: "yes" },
       { claim: "Turns itself off when you sit a timed paper", them: "no", plumi: "yes" },
     ],
     cost: "Free, or about £20 a month",
@@ -149,11 +172,11 @@ export const alternatives: readonly Alternative[] = [
     label: "A private tutor",
     sublabel: "One to one, in person",
     rows: [
-      { claim: "Can tell when you're tired rather than stuck", them: "yes", plumi: "no" },
-      { claim: "Can teach you something that isn't on the spec", them: "yes", plumi: "no" },
+      { claim: "Can tell when you’re tired rather than stuck", them: "yes", plumi: "no" },
+      { claim: "Can teach you something that isn’t on the spec", them: "yes", plumi: "no" },
       { claim: "Reads your handwriting", them: "yes", plumi: "yes" },
-      { claim: "Already knows what you're stuck on", them: "yes", plumi: "yes" },
-      { claim: "Won't just hand you the answer", them: "yes", plumi: "yes" },
+      { claim: "Already knows what you’re stuck on", them: "yes", plumi: "yes" },
+      { claim: "Won’t just hand you the answer", them: "yes", plumi: "yes" },
       { claim: "Knows what you got wrong last week", them: "yes", plumi: "yes" },
       {
         claim: "There at 11pm the night before",
@@ -174,21 +197,21 @@ export const alternatives: readonly Alternative[] = [
       { claim: "Free, or nearly", them: "yes", plumi: "partly" },
       { claim: "Someone else has already made the notes", them: "yes", plumi: "no" },
       { claim: "Reads the work you actually did", them: "no", plumi: "yes" },
-      { claim: "Helps you while you're stuck, not afterwards", them: "no", plumi: "yes" },
+      { claim: "Helps you while you’re stuck, not afterwards", them: "no", plumi: "yes" },
       {
         claim: "Knows which topics you can do unaided",
         them: "no",
         plumi: "yes",
         note: "A quiz score is a score. Plumi separates “got it right” from “got it right on your own”.",
       },
-      { claim: "Builds tomorrow's practice from the marks you lost", them: "no", plumi: "yes" },
+      { claim: "Builds tomorrow’s practice from the marks you lost", them: "no", plumi: "yes" },
     ],
     cost: "£0–10 a month",
   },
   {
     id: "note-apps",
     label: "A note-taking app",
-    sublabel: "The one you're writing in now",
+    sublabel: "The one you’re writing in now",
     rows: [
       { claim: "Beautiful to write in", them: "yes", plumi: "yes" },
       { claim: "Years of features and templates", them: "yes", plumi: "no" },
@@ -217,7 +240,7 @@ export const alternatives: readonly Alternative[] = [
     rows: [
       { claim: "You can find the page from three weeks ago", them: "no", plumi: "yes" },
       { claim: "Never runs out of battery", them: "yes", plumi: "no" },
-      { claim: "Tells you when you've got it wrong", them: "no", plumi: "yes" },
+      { claim: "Tells you when you’ve got it wrong", them: "no", plumi: "yes" },
       {
         claim: "Allowed in the exam",
         them: "yes",
@@ -256,5 +279,5 @@ export const comparison = {
   legend: "Yes · Partly · No",
   /** The honesty that makes the rest of the table land. */
   footnote:
-    "Rows where the alternative wins are marked against us. A comparison that loses nothing isn't a comparison.",
+    "Rows where the alternative wins are marked against us. A comparison that loses nothing isn’t a comparison.",
 } as const;

@@ -26,6 +26,56 @@ const glyphs: Record<string, React.ReactNode> = {
   photos: <><circle cx="16" cy="10" r="4" fill="#fff" opacity=".9"/><circle cx="21" cy="19" r="4" fill="#fff" opacity=".7"/><circle cx="11" cy="19" r="4" fill="#fff" opacity=".8"/></>,
 };
 
+/**
+ * Whether the website is allowed to say Plumi blocks other apps.
+ *
+ * ── The state of the claim, checked in the app repo rather than in a document ─
+ * `com.apple.developer.family-controls` **is** declared, in both
+ * `Sources/Plumi/Plumi.entitlements` and `Sources/PlumiShield/PlumiShield.entitlements`,
+ * and the shield extension is built and embedded (`project.yml:164`, `:257`).
+ * The blocking is genuinely written. What is not established is Apple granting
+ * the *distribution* entitlement, and `FocusShield.capability` degrades honestly
+ * to `.timerOnly` / `.unauthorised` without it — which means on a shipping build
+ * today Focus is a study timer.
+ *
+ * So the claim is conditionally true, and it becomes false for every user on
+ * launch day if the grant has not landed. A caption saying "illustrative
+ * recreation" does not repair that. The wording and the artwork therefore live
+ * behind one flag, **off by default**, and the timer band ships in their place.
+ * Turn it on the day blocking is verified working on a shipping build on a real
+ * device, and not before.
+ */
+export const FOCUS_BLOCKING = process.env.NEXT_PUBLIC_FOCUS_BLOCKING === "true";
+
+/**
+ * The band inside the notebook chapter.
+ *
+ * Focus used to be numbered chapter 06, which put it in the middle of the
+ * tightest causal run on the page — learner model, next question, exam mode.
+ * It is a good feature and it is not part of that argument, so it is a band in
+ * chapter 08 now.
+ */
+export function FocusBand() {
+  if (FOCUS_BLOCKING) return <FocusScene />;
+  return <div className="focus-band" data-testid="focus-band">
+    <div className="focus-band-copy">
+      <span className="tiny-label">FOCUS</span>
+      <h3>Focus protects the time.</h3>
+      {/* Exactly what a shipping build does today: it counts real study and it
+          tells you honestly what you did with it. No blocking is claimed. */}
+      <p>Start a session, set the length, and Plumi tells you honestly what you actually did with it.</p>
+    </div>
+    <figure className="focus-band-proof">
+      <Image src="/product/focus-strip.webp" width={1072} height={120} alt="Real Plumi Focus session strip: 9 of 30 minutes studied." sizes="(max-width: 700px) 90vw, 520px"/>
+      <figcaption>The real Focus timer · Development capture</figcaption>
+    </figure>
+  </div>;
+}
+
+/**
+ * The blocked-app demonstration. Good work, and true the day Apple grants the
+ * distribution entitlement — so it is held behind the flag rather than deleted.
+ */
 export function FocusScene() {
   const motion = useMotionReady();
   const [rawStage, setStage] = useState(0);

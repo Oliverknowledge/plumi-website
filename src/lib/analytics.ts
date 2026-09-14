@@ -20,14 +20,19 @@ import { launchMode } from "@/config/site";
 /** Every event the website can emit. Adding one here is the only way to send it. */
 export type PlumiEvent =
   | "landing_viewed"
-  | "hero_waitlist_clicked"
-  | "waitlist_started"
-  | "waitlist_completed"
-  | "waitlist_failed"
+  /** Every button and text link that asks for something. Carries `placement`. */
+  | "cta_clicked"
+  /** Fired alongside `cta_clicked` when the destination is Discord, so the
+   *  Discord funnel can be read without parsing destinations. */
+  | "discord_clicked"
+  | "launch_notify_started"
+  | "launch_notify_completed"
+  | "launch_notify_failed"
   | "product_demo_interacted"
-  | "comparison_viewed"
-  | "free_pro_viewed"
   | "story_section_viewed"
+  | "trust_viewed"
+  | "comparison_viewed"
+  | "pricing_viewed"
   | "faq_opened"
   | "app_store_clicked";
 
@@ -164,16 +169,68 @@ export function track(event: PlumiEvent, properties: EventProperties = {}): void
   void load();
 }
 
-/** Called once from the app shell. Captures attribution, then the pageview. */
+/**
+ * Called once from the app shell. Records the attribution touch, then the one
+ * pageview this site sends.
+ *
+ * `capture_pageview` is off in `init` because the denominator needs the
+ * variant, the launch mode and a device class on it, and PostHog's automatic
+ * pageview carries none of them. There is exactly one landing per visit, so
+ * there is exactly one of these.
+ */
+let initialised = false;
 export function initAnalytics(): void {
   if (typeof window === "undefined") return;
+  // React's StrictMode runs mount effects twice in development, and a double
+  // `landing_viewed` halves every conversion rate on the chart that matters.
+  // Guarded at the module rather than at the call site so a second mount point
+  // added later cannot reintroduce it.
+  if (initialised) return;
+  initialised = true;
   void load();
+  track("landing_viewed", {
+    device_class: deviceClass(),
+    referrer_class: referrerClass(),
+    path: window.location.pathname,
+  });
+}
+
+/**
+ * Which of the three layouts this visitor is actually getting.
+ *
+ * Bucketed rather than reported as a width, because the only question worth
+ * answering is "is the iPad tier converting", and a histogram of pixel widths
+ * cannot be read at this traffic volume. The boundaries are the CSS ones.
+ */
+function deviceClass(): "mobile" | "tablet" | "desktop" {
+  const width = window.innerWidth;
+  if (width <= 700) return "mobile";
+  if (width <= 1180) return "tablet";
+  return "desktop";
+}
+
+/** Coarse, and deliberately not the referring URL — that is a fingerprint. */
+function referrerClass(): "direct" | "search" | "social" | "other" {
+  const referrer = document.referrer;
+  if (!referrer) return "direct";
+  let host = "";
+  try {
+    host = new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {
+    return "other";
+  }
+  if (host === window.location.hostname) return "direct";
+  if (/^(google|bing|duckduckgo|ecosia|yahoo|search\.brave)\./.test(host)) return "search";
+  if (/^(t\.co|x\.com|twitter|reddit|youtube|tiktok|instagram|facebook|discord|linkedin)\./.test(host)) {
+    return "social";
+  }
+  return "other";
 }
 
 /**
  * Fires an event the first time an element becomes meaningfully visible.
- * Returns a cleanup function. Used for `comparison_viewed`, `free_pro_viewed`
- * and the story sections, which are impressions rather than clicks.
+ * Returns a cleanup function. Used for `trust_viewed`, `comparison_viewed` and
+ * `pricing_viewed`, which are impressions rather than clicks.
  */
 export function trackOnceWhenVisible(
   element: Element | null,

@@ -1,3 +1,22 @@
+/**
+ * ── NOT ON THE PAGE, AND DELIBERATELY SO ────────────────────────────────────
+ *
+ * This is the only part of Plumi a visitor can actually *use*: drag a loop round
+ * a line of working with a finger and get a hint beside it, from the app's real
+ * hint ladder. It is finished work and it is held back rather than abandoned.
+ *
+ * Why it is not mounted: it is the heaviest interactive thing in the repo, the
+ * homepage's INP budget currently has no measurements behind it, and the page it
+ * would sit on is already making its argument without it. Reviving it is a
+ * deliberate decision with a measurement attached, not a tidy-up.
+ *
+ * To revive: mount it beneath chapter 01 as an opt-in reveal so it costs nothing
+ * at LCP, and watch `product_demo_interacted` → `cta_clicked` against INP p75.
+ * Its copy is `penDemo` in `src/content/copy.ts` and is still current.
+ *
+ * Everything else from the abandoned first generation of this homepage has been
+ * deleted rather than left lying around. This one file survives on its merits.
+ */
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";

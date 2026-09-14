@@ -1,18 +1,17 @@
 import { FaqEntry } from "@/components/sections/FaqEntry";
-import { Section } from "@/components/ui/Section";
-import { faq, sections } from "@/content/copy";
+import { faq } from "@/content/copy";
 
 /**
  * The objection handler.
  *
- * Six questions, each answered with the awkward part left in — "you need an
- * iPad", "we haven't set a date", "there's no price here". A FAQ that only
- * answers the easy questions is read as marketing; one that answers the hard
- * ones is read as an answer.
+ * Seven questions, each answered with the awkward part left in — "you need an
+ * iPad", "there are no GCSE specifications yet", "there's no price here". A FAQ
+ * that only answers the easy questions is read as marketing; one that answers
+ * the hard ones is read as an answer.
  *
- * The structured data below is generated from the same `faq` array the page
- * renders, so what Google is told and what a student is shown cannot drift
- * apart — which is the only version of this Google actually permits.
+ * The structured data is generated from the same array the page renders, so what
+ * Google is told and what a student is shown cannot drift apart — which is the
+ * only version of this Google actually permits.
  */
 export function Faq() {
   const structuredData = {
@@ -26,32 +25,25 @@ export function Faq() {
   };
 
   return (
-    // Paper, deliberately: the habit band above it is `surface` and the close
-    // below it is `dark`, so two `surface` sections in a row would read as one
-    // very long band with a heading in the middle of it.
-    <Section copy={sections.faq}>
-      <div className="measure-wide">
-        <div className="border-t border-[var(--color-hairline)]">
+    <section id="faq" className="faq-section" data-testid="faq-section">
+      <div className="story-container faq-layout">
+        <div className="faq-heading">
+          <div className="scene-eyebrow"><span>13</span> QUESTIONS</div>
+          <h2>The things<br /><span className="muted-line">people actually ask.</span></h2>
+        </div>
+        <div className="faq-list">
+          {/* The first is the differentiation argument. Collapsed at 85% scroll
+              depth it was the best-written thing on the site that nobody read. */}
           {faq.map((item, index) => (
-            <FaqEntry
-              key={item.question}
-              item={item}
-              // The first one is the differentiation argument — "is this just
-              // ChatGPT in a notebook?" — and collapsed at 85% scroll depth it
-              // was the best-written thing on the site that nobody would read.
-              open={index === 0}
-            />
+            <FaqEntry key={item.question} item={item} open={index === 0} />
           ))}
         </div>
       </div>
-
       <script
         type="application/ld+json"
         // `<` is escaped so a copy change can never close this script tag early.
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
-    </Section>
+    </section>
   );
 }

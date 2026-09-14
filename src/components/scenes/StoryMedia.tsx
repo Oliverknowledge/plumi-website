@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useMotionReady } from "@/lib/useMotionReady";
+import { trackOnceWhenVisible, track } from "@/lib/analytics";
 import { countdownAt } from "@/lib/countdown";
 import { tutorFrames, tutorMedia, notebookViews, comparison, type Mark } from "@/content/story";
 import { Quill } from "@/components/quill/Quill";
@@ -30,17 +31,25 @@ export function TutorMedia() {
   // Manual stepping also works with reduced motion. Auto motion never resumes on its own.
   const [manual, setManual] = useState<number | null>(null);
   const displayed = manual ?? active;
-  const choose = (i: number) => { setFrame(i); setManual(i); setPaused(true); };
+  // Whether the hero media is touched at all is the one question the slideshow
+  // has to answer before it is replaced by a film: a stepper nobody steps is a
+  // stepper, and a stepper everybody steps is a demo.
+  const choose = (i: number) => { setFrame(i); setManual(i); setPaused(true); track("product_demo_interacted", { placement: "hero_media", action: "step", step: i + 1 }); };
   return <div ref={root} className="tutor-theatre" data-testid="hero-media" data-frame={displayed}>
     <div className="device-desk"><div className="ipad-device"><div className="ipad-camera"/><div className="ipad-screen">
+      {/* Frame 5 is what the server renders (`active` is 4 until motion is
+          confirmed), so it is the LCP element on a cold load — and it was the
+          one frame not carrying a priority hint, which put the largest paint on
+          this page behind every other request. Frame 1 keeps its hint because
+          it is what appears the instant hydration allows motion. */}
       {hasVideo ? <video ref={video} className="tutor-video" muted loop playsInline preload="none" poster={tutorMedia.poster} onError={() => setVideoFailed(true)} data-testid="hero-video">{tutorMedia.videoWebm && <source src={tutorMedia.videoWebm} type="video/webm"/>}{tutorMedia.videoMp4 && <source src={tutorMedia.videoMp4} type="video/mp4"/>}</video> : tutorFrames.map((item, i) => <picture key={item.title} className={`tutor-frame ${displayed === i ? "is-current" : ""}`}>
         <source media="(max-width: 600px)" srcSet={`/product/tutor-${i+1}-mobile.webp`} />
         {/* Pre-optimised art-directed sources; native picture avoids downloading both crops. */}
-        <img src={`/product/tutor-${i+1}.webp`} width="1600" height="1045" alt={displayed === i ? item.alt : ""} aria-hidden={displayed !== i} loading={i === 0 || i === 4 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : "auto"}/>
+        <img src={`/product/tutor-${i+1}.webp`} width="1600" height="1045" alt={displayed === i ? item.alt : ""} aria-hidden={displayed !== i} loading={i === 0 || i === 4 ? "eager" : "lazy"} fetchPriority={i === 0 || i === 4 ? "high" : "auto"}/>
       </picture>)}
     </div></div><div className="pencil-prop" aria-hidden="true"><span/></div></div>
     <div className="media-controls"><div className="media-caption"><span className="tiny-label">{hasVideo ? "ON THE PAGE" : `${String(displayed+1).padStart(2,"0")} / 05`}</span><strong>{hasVideo ? "Plumi Tutor" : tutorFrames[displayed].title}</strong><p>{hasVideo ? "Your work. A little guidance." : tutorFrames[displayed].detail}</p></div>
-      <div className="media-actions">{!hasVideo && <div className="media-dots" aria-label="Tutor demonstration steps">{tutorFrames.map((item, i) => <button key={item.title} aria-label={item.title} aria-pressed={displayed === i} data-testid={`hero-media-step-${i+1}`} onClick={() => choose(i)}><span/></button>)}</div>}<button className="round-control" aria-label={playing ? "Pause tutor demonstration" : "Play tutor demonstration"} aria-pressed={!playing} data-testid="hero-media-pause-button" onClick={() => {setManual(null); setPaused(v=>!v);}} disabled={!motion}><span aria-hidden="true">{playing ? "Ⅱ" : "▷"}</span></button></div>
+      <div className="media-actions">{!hasVideo && <div className="media-dots" aria-label="Tutor demonstration steps">{tutorFrames.map((item, i) => <button key={item.title} aria-label={item.title} aria-pressed={displayed === i} data-testid={`hero-media-step-${i+1}`} onClick={() => choose(i)}><span/></button>)}</div>}<button className="round-control" aria-label={playing ? "Pause tutor demonstration" : "Play tutor demonstration"} aria-pressed={!playing} data-testid="hero-media-pause-button" onClick={() => {setManual(null); setPaused(v=>!v); track("product_demo_interacted", { placement: "hero_media", action: playing ? "pause" : "play" });}} disabled={!motion}><span aria-hidden="true">{playing ? "Ⅱ" : "▷"}</span></button></div>
     </div><p className="capture-caption">{hasVideo ? "A real Plumi Tutor session." : "Real Plumi captures. Not a generated interface."}</p>
   </div>;
 }
@@ -56,9 +65,23 @@ function Cell({ mark }: { mark: Mark }) {
   return <span className={`mark ${mark.ok ? "yes" : "no"}`} title={mark.note} aria-label={mark.ok ? "Yes" : mark.note ? `No. ${mark.note}` : "No"}>{mark.ok ? "✓" : "✕"}</span>;
 }
 
+/**
+ * Four ways to get help, side by side.
+ *
+ * The mobile switcher collapses the three alternatives to one at a time — the
+ * correct solution to the hardest responsive problem on this page, and the
+ * reason this can stay a real `<table>` with `scope` attributes rather than
+ * becoming a stack of cards that a screen reader reads as prose.
+ *
+ * The last row is prose rather than marks, because "free to write in" against
+ * "paid by the hour" is a difference in kind and a tick cannot carry it.
+ */
 export function Comparison() {
   const [active, setActive] = useState(0);
-  return <div className="comparison-wrap"><div className="compare-mobile-switch" aria-label="Compare Plumi with">{comparison.alternatives.map((name,i)=><button key={name} onClick={()=>setActive(i)} aria-pressed={active===i} data-testid={`compare-option-${i}`}>{name}</button>)}</div>
-    <table className={`comparison-table alternative-${active}`} data-testid="comparison-table"><caption className="sr-only">How Plumi fits beside other ways to study. General categories; individual services vary.</caption><thead><tr><th scope="col"><span className="tiny-label">AT A GLANCE</span></th><th scope="col" className="plumi-column"><Quill mood="happy" size={22}/> Plumi</th>{comparison.alternatives.map((name,i)=><th scope="col" key={name} className={`alternative col-${i}`}>{name}</th>)}</tr></thead><tbody>{comparison.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td className="plumi-column"><Cell mark={row.plumi}/></td>{row.others.map((value,i)=><td className={`alternative col-${i}`} key={i}><Cell mark={value}/></td>)}</tr>)}</tbody></table><p className="capture-caption">General categories, not specific providers. Hover a ✕ for the detail. Individual services vary.</p>
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => trackOnceWhenVisible(root.current, "comparison_viewed"), []);
+  return <div className="comparison-wrap" ref={root}><div className="compare-mobile-switch" aria-label="Compare Plumi with">{comparison.alternatives.map((name,i)=><button key={name} onClick={()=>setActive(i)} aria-pressed={active===i} data-testid={`compare-option-${i}`}>{name}</button>)}</div>
+    <table className={`comparison-table alternative-${active}`} data-testid="comparison-table"><caption className="sr-only">How Plumi fits beside other ways to study. General categories; individual services vary.</caption><thead><tr><th scope="col"><span className="tiny-label">AT A GLANCE</span></th><th scope="col" className="plumi-column"><Quill mood="happy" size={22}/> Plumi</th>{comparison.alternatives.map((name,i)=><th scope="col" key={name} className={`alternative col-${i}`}>{name}</th>)}</tr></thead><tbody>{comparison.rows.map(row=><tr key={row.label}><th scope="row">{row.label}</th><td className="plumi-column"><Cell mark={row.plumi}/></td>{row.others.map((value,i)=><td className={`alternative col-${i}`} key={i}><Cell mark={value}/></td>)}</tr>)}
+      <tr className="cost-row"><th scope="row">{comparison.cost.label}</th><td className="plumi-column">{comparison.cost.plumi}</td>{comparison.cost.others.map((value,i)=><td className={`alternative col-${i}`} key={i}>{value}</td>)}</tr></tbody></table><p className="capture-caption">General categories, not specific providers. Hover a ✕ for the detail. Individual services vary.</p>
   </div>;
 }
