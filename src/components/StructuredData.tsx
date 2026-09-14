@@ -40,11 +40,51 @@ function JsonLd({ data }: { data: object }) {
 }
 
 /**
- * The site-wide graph: who Plumi is, what the site is, what the product is.
+ * The site name Google prints above a search result.
+ *
+ * This is the block that decides whether a result is labelled "Plumi" or
+ * "tryplumi.app", and it has two requirements that are easy to miss:
+ *
+ *   1. It must be on the **homepage**. Google derives one site name for the
+ *      whole site and only reads it from the root URL, so putting this on every
+ *      page achieves nothing and putting it only on subpages achieves less.
+ *   2. Google's documented example is a **standalone** `WebSite` object, which
+ *      is why this is its own script tag rather than another node inside the
+ *      site-wide `@graph` below. `@graph` is valid JSON-LD and Google parses it,
+ *      but there is no reason to make the one block whose formatting is
+ *      load-bearing differ from the shape Google publishes.
+ *
+ * No `alternateName`. Google picks one name, and offering it a second candidate
+ * ("Plumi Study") risks winning the wrong one — better to give one clear answer.
+ *
+ * Google recomputes site names on its own schedule and ignores requests to
+ * hurry. This makes the signal unambiguous; it cannot make Google act on it.
+ */
+export function HomeStructuredData() {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": WEBSITE_ID,
+        name: site.name,
+        url: site.domain,
+        description: entityDescription,
+        inLanguage: "en-GB",
+        publisher: { "@id": ORGANISATION_ID },
+        // No `potentialAction`/SearchAction: the site has no search box, and
+        // claiming one produces a sitelinks searchbox that leads nowhere.
+      }}
+    />
+  );
+}
+
+/**
+ * The site-wide graph: who Plumi is, and what the product is.
  *
  * Rendered once in the root layout so every page carries it. A `@graph` keeps
  * it to a single script tag with the nodes cross-referenced by `@id`, which is
- * both smaller and easier for a parser to resolve than three loose blocks.
+ * both smaller and easier for a parser to resolve than two loose blocks.
  */
 export function SiteStructuredData() {
   return (
@@ -66,17 +106,6 @@ export function SiteStructuredData() {
             },
             // Only profiles genuinely controlled by Plumi. See src/config/site.ts.
             sameAs,
-          },
-          {
-            "@type": "WebSite",
-            "@id": WEBSITE_ID,
-            name: site.name,
-            url: site.domain,
-            description: entityDescription,
-            inLanguage: "en-GB",
-            publisher: { "@id": ORGANISATION_ID },
-            // No `potentialAction`/SearchAction: the site has no search box, and
-            // claiming one produces a sitelinks searchbox that leads nowhere.
           },
           {
             "@type": "SoftwareApplication",

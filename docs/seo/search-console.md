@@ -109,13 +109,48 @@ curl -s -o /dev/null -w "%{http_code}\n" https://tryplumi.app/favicon.ico   # ex
 
 ---
 
+## If a result says "tryplumi.app" instead of "Plumi"
+
+The line above the URL in a search result is Google's **site name**, and Google
+picks it — you cannot set it directly. Every signal it documents is now in
+place:
+
+- `WebSite` structured data with `name: "Plumi"`, **standalone and on the
+  homepage only**. Google derives one site name per site and reads it from the
+  root URL, so it lives in `src/app/page.tsx`, not the root layout.
+- `og:site_name` on **every** page. It was previously on the homepage alone:
+  Next.js merges metadata shallowly, so any page defining its own `openGraph`
+  silently dropped the layout's `siteName`.
+- A homepage `<title>` that leads with the brand.
+
+Three things to know:
+
+1. **The homepage has to be indexed.** The site name comes from the homepage. If
+   only subpages are indexed, Google has no source and falls back to the domain.
+   Check with URL Inspection on `https://tryplumi.app/` before assuming anything
+   is broken.
+2. **It updates on Google's schedule**, typically days to weeks after a
+   re-crawl. There is no way to hurry it and re-requesting indexing does not.
+3. If it is still wrong weeks after the homepage is indexed, there is a
+   dedicated feedback form:
+   <https://search.google.com/search-console/site-name-feedback>
+
+One thing already working: Google appends " - Plumi" to page titles in results
+even though our `<title>` tags do not contain it. That means Google has
+*already* worked out the brand is Plumi — which is why the site-name row is
+worth fixing rather than worrying about.
+
+---
+
 ## Validate the structured data
 
 Both take a URL and need no account:
 
 - **Rich Results Test** — <https://search.google.com/test/rich-results>
-  Expect `Organization`, `WebSite`, `SoftwareApplication`, `WebPage`,
-  `BreadcrumbList`, and `FAQPage` on pages that have FAQs.
+  On the homepage: `Organization`, `SoftwareApplication` and `WebSite`. On a
+  landing page: `Organization`, `SoftwareApplication`, `WebPage`,
+  `BreadcrumbList`, plus `FAQPage` where the page shows FAQs. `WebSite` is
+  homepage-only by design — see the site name section above.
 - **Schema Markup Validator** — <https://validator.schema.org/>
 
 `FAQPage` no longer produces a rich result for most sites, and that is fine —
