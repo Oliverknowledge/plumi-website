@@ -1,6 +1,6 @@
 import { HandMark } from "@/components/ui/HandMark";
 import { Impression } from "@/components/ui/Impression";
-import { freePlan, planSummary, proPlan } from "@/content/plans";
+import { freePlan, planSummary, proAnchor, proFootnote, proOptions, proPlan } from "@/content/plans";
 
 /**
  * The deal, stated late and stated plainly.
@@ -18,11 +18,20 @@ import { freePlan, planSummary, proPlan } from "@/content/plans";
  * way to win that comparison is to say the number. They are the app's own values
  * (`PremiumFeature.freeDailyAllowance`) and they move together with it.
  *
- * ── Why there is no price ───────────────────────────────────────────────────
- * The app's own rule: "a price the App Store has not confirmed is a price Plumi
- * cannot charge." There are numbers in a local StoreKit *test* configuration.
- * They are not approved, they do not agree with the planned pricing, and they
- * are not going on this page until one of those two things changes.
+ ── Why the price is here rather than higher up ─────────────────────────────
+ * Chapter 12 of fourteen. A pricing table on a product whose argument has not
+ * landed yet reads as presumptuous, and hiding a £19.99 price entirely reads as
+ * a trap to a parent who has been trained to expect one. So: show it, once, and
+ * show it after the desire exists.
+ *
+ * ── Why annual is favoured in the composition and not in the copy ───────────
+ * It is shown first, given the accent border and carries the per-month
+ * arithmetic. There is no "best value" badge, no strike-through on the monthly
+ * price and no countdown, because a student who wants to pay monthly is not
+ * doing anything wrong and a page that implies otherwise is doing the thing
+ * every weekly-priced revision app does. The trial difference is stated on the
+ * monthly card rather than left as an absence — finding that out at the till is
+ * how a product loses somebody.
  *
  * The ticks are Plumi's own pen, not an icon set: the app draws every row of its
  * paywall list this way, and a tick from a system symbol set would be a
@@ -76,10 +85,24 @@ export function FreeAndPro() {
                   </li>
                 ))}
               </ul>
-              {/* There is no price, so this is where a price would be and it says so. */}
               <div className="plan-price">
-                <strong>{proPlan.priceLine}</strong>
-                <span>{proPlan.priceDetail}</span>
+                <p className="plan-anchor">
+                  <b>{proAnchor.headline}</b>
+                  <span>{proAnchor.detail}</span>
+                </p>
+                <ul className="plan-options">
+                  {proOptions.map((option) => (
+                    <li key={option.id} data-featured={option.featured}>
+                      <span className="option-label">{option.label}</span>
+                      <p className="option-price">
+                        <b>{option.price}</b> {option.period}
+                      </p>
+                      {option.perMonth && <p className="option-permonth">{option.perMonth}</p>}
+                      <p className="option-terms">{option.terms}</p>
+                    </li>
+                  ))}
+                </ul>
+                <p className="plan-fine">{proFootnote}</p>
               </div>
             </article>
           </div>

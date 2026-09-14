@@ -129,10 +129,12 @@ export function primaryCtaKind(): CtaKind {
  *      email on launch day", which stops being true at 00:01. Post-launch it
  *      becomes the desktop → iPad handoff ("send yourself the link"), and
  *      `cta.appStore.secondary` already carries that label.
- *   4. Add `offers` to the SoftwareApplication JSON-LD and the App Store URL to
- *      `sameAs`, and publish prices in the Free & Pro chapter — but only once
- *      they match App Store Connect exactly. The local StoreKit test config is
- *      not App Store Connect.
+ *   4. Add the App Store URL to `sameAs`, and drop `availabilityStarts` from the
+ *      JSON-LD offers — the prices are already published in the Free & Pro
+ *      chapter and in the graph, dated to open on launch day.
+ *      **Check them against App Store Connect before the store goes live.**
+ *      The local `Plumi.storekit` test configuration is not App Store Connect,
+ *      and at the time of writing it disagrees with the published figures.
  *   5. Revisit `footer.honesty`. "Every screen here is drawn rather than
  *      photographed" is true today and stops being the whole truth the moment
  *      a real capture replaces a drawing.

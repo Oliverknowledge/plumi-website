@@ -10,7 +10,9 @@
  * `primaryQuery` is deliberately one per page. Two pages chasing one query is
  * cannibalisation, and the fix is always to merge them rather than to write
  * both — which is why there is a `/ai-tutor-for-a-level-maths` and no separate
- * `/a-level-maths`, and why `/pricing` is absent until the prices are real.
+ * `/a-level-maths`, and why there is no `/pricing`: the prices live in chapter 12 of the
+ * homepage, and a page that can only ever repeat two numbers is a page that
+ * competes with the one already ranking for the brand.
  */
 
 export interface RouteIntent {

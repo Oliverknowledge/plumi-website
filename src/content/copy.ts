@@ -556,7 +556,7 @@ export const faq: readonly FaqItem[] = [
   {
     question: "Is it free?",
     answer:
-      "The notebook is free forever and never metered: writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn’t need a subscription. The intelligence is metered rather than walled off — every day, free, you get twelve AI Pen answers, five markings, ten practice questions and a tutor exchange, and your first AI Pen answer, first tutoring exchange and first mark never count against it. Plumi Pro removes the meter. We haven’t set that price yet, and there’s no price on this page because there isn’t one to put here.",
+      "The notebook is free forever and never metered: writing, pens, highlighter, lasso, notebooks and folders, PDFs, paper styles, search, and keeping all of your work. We think a good digital notebook shouldn’t need a subscription. The intelligence is metered rather than walled off — every day, free, you get twelve AI Pen answers, five markings, ten practice questions and a tutor exchange, and your first AI Pen answer, first tutoring exchange and first mark never count against it. Plumi Pro removes the meter: £79.99 a year with the first seven days free, which works out at £6.67 a month, or £19.99 a month with no trial. Paying monthly for a year would be £239.88, so the yearly plan is the one we would take. It is billed through the App Store and you cancel it in your Apple account rather than here.",
   },
   {
     question: "What happens to my work and my data?",

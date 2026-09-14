@@ -208,7 +208,7 @@ export const aiTutorALevelMaths: LandingContent = {
       body: [
         "The notebook is free forever and never metered: writing, notebooks, folders, search, ruled, grid, dotted, Cornell and graph paper, importing a PDF and writing straight onto it, and Focus Mode.",
         "The intelligence is metered rather than locked on the free tier, so you get a go at all of it every day — 12 AI Pen answers, 5 marks, 10 practice questions and one Tutor Mode session. Your first AI Pen answer, your first tutoring exchange and your first mark never count against it.",
-        "Plumi Pro removes the meter and adds full mark-scheme marking, adaptive practice, whole past papers and predicted grades. There is no price yet — the App Store has not confirmed one, and a price it has not confirmed is a price Plumi cannot charge. Everyone in the community hears it before it is public.",
+        "Plumi Pro removes the meter and adds full mark-scheme marking, adaptive practice and a whole paper marked question by question. It is £79.99 a year with the first seven days free — £6.67 a month — or £19.99 a month with no trial. Billed through the App Store; cancel it in your Apple account.",
       ],
     },
   ],
@@ -216,7 +216,7 @@ export const aiTutorALevelMaths: LandingContent = {
     {
       question: "Is Plumi free?",
       answer:
-        "The notebook is free forever and never metered. The tutoring is metered rather than locked: on the free tier you get 12 AI Pen answers, 5 marks, 10 practice questions and one Tutor Mode session a day. Plumi Pro removes the meter, and it does not have a price yet.",
+        "The notebook is free forever and never metered. The tutoring is metered rather than locked: on the free tier you get 12 AI Pen answers, 5 marks, 10 practice questions and one Tutor Mode session a day. Plumi Pro removes the meter: £79.99 a year with seven days free, or £19.99 a month.",
     },
     {
       question: "Can it mark a whole past paper?",

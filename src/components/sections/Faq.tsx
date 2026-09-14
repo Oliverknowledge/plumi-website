@@ -5,7 +5,7 @@ import { faq } from "@/content/copy";
  * The objection handler.
  *
  * Seven questions, each answered with the awkward part left in — "you need an
- * iPad", "there are no GCSE specifications yet", "there's no price here". A FAQ
+ * iPad", "there are no GCSE specifications yet", "no trial on monthly". A FAQ
  * that only answers the easy questions is read as marketing; one that answers
  * the hard ones is read as an answer.
  *

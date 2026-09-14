@@ -355,8 +355,20 @@
 .plan-allowances dd{font-size:13px;font-weight:500;margin:0}
 .plan-fine{margin-top:14px;font-size:11.5px;line-height:1.7;color:var(--color-ink-tertiary)}
 .plan-price{margin-top:auto;padding-top:22px;border-top:1px solid #e6e8e2}
-.plan-price strong{display:block;font-size:21px;font-weight:500;letter-spacing:-.6px}
-.plan-price span{display:block;margin-top:7px;font-size:12.5px;line-height:1.7;color:#5a6474}
+.plan-anchor b{display:block;font-size:17px;font-weight:500;letter-spacing:-.4px}
+.plan-anchor span{display:block;margin-top:6px;font-size:12.5px;line-height:1.7;color:var(--color-ink-secondary)}
+.plan-options{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.plan-options li{padding:16px 18px 18px;border:1px solid var(--color-hairline);border-radius:12px;background:var(--color-paper)}
+/* Annual is favoured by the accent border and by being first. No badge, no
+   strike-through on the monthly price: paying monthly is not a mistake. */
+.plan-options li[data-featured=true]{border-color:var(--color-blue-300);background:var(--color-blue-50)}
+.option-label{font-size:9px;letter-spacing:1.4px;color:var(--color-ink-tertiary);font-weight:500}
+.plan-options li[data-featured=true] .option-label{color:var(--color-blue-700)}
+.option-price{margin-top:9px;font-size:12.5px;color:var(--color-ink-secondary)}
+.option-price b{font-size:25px;font-weight:500;letter-spacing:-1px;color:var(--color-ink);margin-right:3px}
+/* Smaller than the charged figure, always: nobody can pay £6.67. */
+.option-permonth{margin-top:5px;font-size:11.5px;line-height:1.6;color:var(--color-blue-700)}
+.option-terms{margin-top:10px;font-size:11.5px;line-height:1.65;color:var(--color-ink-secondary)}
 .plans-summary{margin:40px auto 0;max-width:640px;text-align:center;font-size:19px;font-weight:500;letter-spacing:-.5px;line-height:1.45}
 
 /* ── 13 · FAQ ────────────────────────────────────────────────────────────── */
@@ -436,6 +448,7 @@
   .exam-copy>p,.exam-footnote{max-width:560px}
   .plan-columns{gap:18px}
   .plan-card{padding:26px 24px 28px}
+  .plan-options{grid-template-columns:1fr;gap:10px}
   .faq-layout{grid-template-columns:1fr;gap:30px}
   .focus-band{gap:36px}
   /* Every scene control on a touch tier is a finger target, not a mouse one. */
@@ -510,6 +523,8 @@
   .plans-section{padding:58px 0 60px}
   .plan-columns{grid-template-columns:1fr;gap:14px;margin-top:32px}
   .plan-card{padding:24px 22px 26px;border-radius:14px}
+  .plan-options{grid-template-columns:1fr;gap:10px}
+  .option-price b{font-size:23px}
   .plan-card h3{font-size:19px}
   .plans-summary{font-size:16px;margin-top:28px}
 

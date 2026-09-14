@@ -104,8 +104,15 @@ These are not style preferences. Breaking them makes the site wrong.
 
 1. **No claim the product cannot support.** `.context/research/product.md` §11 is
    the do-not-claim list and §11.8 is the verified allowlist. Read them before
-   writing copy. In particular: no prices, no streaks, no app blocking, no sync,
-   no collaboration, no exam-board endorsement.
+   writing copy. In particular: no streaks, no app blocking, no sync, no
+   collaboration, no exam-board endorsement.
+   **Prices are the sharpest case of this rule, not an exception to it.** The
+   site publishes £19.99 a month and £79.99 a year with seven days free on the
+   annual plan only. Those three facts appear in `src/content/plans.ts`, in the
+   FAQ, in two deeper pages, in the comparison table and in the JSON-LD graph —
+   and every one of them has to match App Store Connect. "A price the App Store
+   has not confirmed is a price Plumi cannot charge" is the app's own comment
+   and it is still the rule.
 2. **No fake proof.** No testimonials, user counts, ratings, press logos or
    outcome statistics. None exist, so none are rendered. The product has to do
    the convincing.

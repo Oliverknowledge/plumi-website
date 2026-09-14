@@ -64,11 +64,12 @@ const no = (note?: string): Mark => ({ ok: false, note });
  * capability rows, and conceding that is the only thing that makes the two rows
  * they lose believable. A comparison that loses nothing is not a comparison.
  *
- * ── Why there are no prices in the cost row ─────────────────────────────────
- * Plumi has no approved price yet, and a third-party hourly rate is a number
- * this repo cannot check. The structural fact — one is paid by the hour and the
- * other is not — is the part of the argument that does the work, and it is true
- * without a figure attached to it.
+ * ── Why only Plumi's own price appears in the cost row ──────────────────────
+ * A third-party hourly rate is a number this repo cannot check, and an
+ * unfootnoted price comparison is the one move this site does not make. Plumi's
+ * own figure is checkable; the others are the structural fact — one is paid by
+ * the hour and the others are not — which is the part of the argument that
+ * actually does the work.
  */
 export const comparison = {
   alternatives: ["A chatbot", "A private tutor", "A notes app"],
@@ -84,7 +85,7 @@ export const comparison = {
   /** Prose, not ticks. The last row, and the one that reframes everything above it. */
   cost: {
     label: "What it costs",
-    plumi: "Free to write in",
+    plumi: "Free, or £79.99 a year",
     others: ["Free, or a monthly plan", "Paid by the hour", "Usually a yearly plan"],
   },
 };
