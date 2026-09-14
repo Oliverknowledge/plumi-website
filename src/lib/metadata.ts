@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { intentFor } from "@/config/routes";
+import { site } from "@/config/site";
 
 /**
  * Page metadata, derived from the route registry.
@@ -33,6 +34,14 @@ export function metadataFor(path: string): Metadata {
       url: path,
       title: intent.title,
       description: intent.description,
+      // `siteName` and `locale` are repeated from the root layout on purpose.
+      // Metadata objects are merged *shallowly*, so a page that defines its own
+      // `openGraph` replaces the parent's whole object rather than extending it —
+      // omit these and every page but the homepage silently ships with no
+      // `og:site_name` at all. That tag is one of the signals Google uses to
+      // decide whether a result is labelled "Plumi" or "tryplumi.app".
+      siteName: site.name,
+      locale: site.locale,
     },
     twitter: {
       card: "summary_large_image",
