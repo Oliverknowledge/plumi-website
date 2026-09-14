@@ -72,7 +72,7 @@ export const routeIntents: readonly RouteIntent[] = [
   {
     path: "/ai-tutor-for-a-level-maths",
     primaryQuery: "AI tutor for A-Level Maths",
-    secondaryQueries: ["A-Level Maths AI tutor", "AI maths tutor A Level", "best AI for A-Level Maths", "AI tutor vs ChatGPT for maths"],
+    secondaryQueries: ["A-Level Maths AI tutor", "AI maths tutor A Level", "best AI for A-Level Maths", "AI tutor vs ChatGPT for maths", "AI past paper marking A-Level Maths", "AI predicted grade A-Level Maths", "is there a free AI maths tutor"],
     intent: "Find an AI that can actually help with A-Level Maths working, not just final answers.",
     objective: "Show tutoring happening on real handwritten working, and why that beats retyping into a chatbot.",
     title: "AI Tutor for A-Level Maths That Reads Your Working",

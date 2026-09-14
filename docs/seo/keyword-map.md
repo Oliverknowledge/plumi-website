@@ -43,7 +43,7 @@ see the note at the top of `src/config/routes.ts`.
 | | |
 | --- | --- |
 | **Primary query** | AI tutor for A-Level Maths |
-| **Secondary** | A-Level Maths AI tutor · AI maths tutor A Level · best AI for A-Level Maths · AI tutor vs ChatGPT for maths |
+| **Secondary** | A-Level Maths AI tutor · AI maths tutor A Level · best AI for A-Level Maths · AI tutor vs ChatGPT for maths · AI past paper marking A-Level Maths · AI predicted grade A-Level Maths · is there a free AI maths tutor |
 | **User intent** | Find an AI that can actually help with A-Level Maths working, not just final answers. |
 | **Page objective** | Show tutoring happening on real handwritten working, and why that beats retyping into a chatbot. |
 | **Title** (50 chars) | AI Tutor for A-Level Maths That Reads Your Working |
