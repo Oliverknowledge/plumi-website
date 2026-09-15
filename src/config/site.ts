@@ -61,6 +61,41 @@ export const entityDescription =
  */
 export const sameAs: readonly string[] = [discordUrl];
 
+/**
+ * The Google Ads conversion tag.
+ *
+ * Not a secret — it is readable in the page source of every site that runs one,
+ * which is why it sits here beside `discordUrl` rather than in an env var.
+ *
+ * ── Why it is the second measurement service and not the first ──────────────
+ * `lib/analytics.ts` is Plumi's own measurement: a closed event union, no
+ * profiles, no autocapture, no session recording, EU host, and a `scrub()` pass
+ * that drops anything email-shaped. This tag is a different thing with a
+ * different purpose — it exists to tell Google Ads which advert produced a
+ * conversion, and it sets an advertising cookie to do it. Keeping the two
+ * separate is deliberate: one can be switched off without the other, and the
+ * privacy notice can describe them honestly because they are not the same claim.
+ */
+export const googleAdsId = "AW-18452791039";
+
+/**
+ * Where the tag is allowed to load.
+ *
+ * Production only, and never on a Vercel preview. A preview deployment firing
+ * conversions into a live ad account is how a campaign learns from traffic that
+ * was a developer refreshing a page, and the damage is invisible until the
+ * optimiser has already spent money on it.
+ *
+ * Set `NEXT_PUBLIC_GOOGLE_ADS_FORCE=true` to load it locally when you need to
+ * confirm the tag fires — with Google's Tag Assistant, for instance — and unset
+ * it afterwards.
+ */
+export function googleAdsEnabled(): boolean {
+  if (process.env.NEXT_PUBLIC_GOOGLE_ADS_FORCE === "true") return true;
+  if (process.env.NODE_ENV !== "production") return false;
+  return process.env.NEXT_PUBLIC_VERCEL_ENV !== "preview";
+}
+
 /** An absolute URL on the canonical domain. Schema.org wants absolute; so does OG. */
 export function absoluteUrl(path = "/"): string {
   return new URL(path, site.domain).href;

@@ -6,6 +6,24 @@ acquisition and product are one journey rather than two disconnected funnels.
 Everything goes through `src/lib/analytics.ts`. Nothing else in the codebase
 imports `posthog-js`.
 
+## There is a second tag, and it is not this one
+
+`src/components/GoogleAds.tsx` loads Google Ads conversion tracking
+(`AW-18452791039`) on production only, never on a Vercel preview. It is
+deliberately *not* routed through `lib/analytics.ts`: it exists to tell Google
+which advert produced a conversion, it sets an advertising cookie to do it, and
+it is the only thing on this website that shares data with a third party for
+advertising. Keeping the two apart means either can be switched off without the
+other, and the privacy notice can describe them separately because they are not
+the same claim.
+
+**It has no consent gate yet.** Under UK PECR an advertising cookie needs
+consent before it is set, and this site has no banner. The tag is the plain
+gtag.js snippet rather than a Consent Mode v2 default of `denied`, because
+defaulting every signal to denied with no way to grant would leave conversion
+reporting looking broken with no visible cause. Adding a banner and wiring
+`gtag('consent', ...)` is the next thing that file should grow.
+
 ## Turning it on
 
 | Variable | Notes |

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { assertLaunchConfig, entityDescription, site } from "@/config/site";
 import { intentFor } from "@/config/routes";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
+import { GoogleAds } from "@/components/GoogleAds";
 import { SiteStructuredData } from "@/components/StructuredData";
 import "./globals.css";
 import "./story.css";
@@ -44,5 +45,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: "#fcfcf9", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en-GB" className={inter.variable}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/>{children}</body></html>;
+  return <html lang="en-GB" className={inter.variable}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/>{children}</body></html>;
 }
