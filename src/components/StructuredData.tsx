@@ -128,7 +128,7 @@ export function SiteStructuredData() {
             audience: {
               "@type": "EducationalAudience",
               educationalRole: "student",
-              audienceType: "GCSE and A-Level students",
+              audienceType: "A-Level and GCSE STEM students",
             },
             featureList: [
               "Reads handwritten working on iPad",

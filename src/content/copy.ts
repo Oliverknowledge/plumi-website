@@ -44,7 +44,7 @@ export const heroVariants = {
     subhead:
       "Write everything on your iPad like normal. Plumi works out what you can actually do, and what to study next.",
     secondaryCta: "See how it works",
-    supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
+    supporting: "Built for iPad + Apple Pencil · STEM for A-Level and GCSE",
   },
   decide: {
     headline: "Stop deciding what to revise.",
@@ -52,7 +52,7 @@ export const heroVariants = {
     subhead:
       "Write on your iPad like normal. Plumi finds the topics you can’t do yet, and starts you there.",
     secondaryCta: "See how it works",
-    supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
+    supporting: "Built for iPad + Apple Pencil · STEM for A-Level and GCSE",
   },
   mirror: {
     headline: "Seen it isn’t the same as can do it.",
@@ -60,7 +60,7 @@ export const heroVariants = {
     subhead:
       "Plumi only counts work you’ve actually been marked on. Notes make a topic “seen” and nothing more.",
     secondaryCta: "See what it counts",
-    supporting: "Built for iPad + Apple Pencil · GCSE and A-Level",
+    supporting: "Built for iPad + Apple Pencil · STEM for A-Level and GCSE",
   },
 } as const satisfies Record<string, HeroCopy>;
 

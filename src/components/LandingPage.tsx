@@ -21,7 +21,7 @@ import { Faq } from "@/components/sections/Faq";
 import { InkSignature } from "@/components/scenes/InkSignature";
 import { specifications, specificationsMore, specificationNote } from "@/content/story";
 import { footer } from "@/content/nav";
-import { activeCta } from "@/config/site";
+import { activeCta, appIsLive } from "@/config/site";
 
 /**
  * The homepage, as five arcs rather than fourteen sections.
@@ -78,11 +78,12 @@ export function LandingPage({ variant }: { variant?: string }) {
           subject knowledge — and chapter 10 and the FAQ say exactly that rather
           than leaving them to find out. The board-specific claim is made where
           it is qualified, not in the one sentence nobody scrolls past. */}
-      <p className="hero-description reveal-line">Plumi is the AI study notebook for GCSE and A-Level. Write the way you already do — it reads your working, marks it on the page, and knows what you should practise next.</p>
+      <p className="hero-description reveal-line">Plumi is the AI study notebook for STEM at A-Level and GCSE. Write the way you already do — it reads your working, marks it on the page, and knows what you should practise next.</p>
+      <p className="hero-subjects reveal-line" data-testid="hero-subjects">Maths · Physics · Chemistry · Biology &nbsp;|&nbsp; AQA · OCR · Edexcel</p>
       <div className="hero-cta reveal-line"><CtaButton placement="hero" size="large"/><SecondaryCta label="Watch a mark land" href="#the-mark" placement="hero"/></div>
-      <a className="hero-notify reveal-line" href="#close" data-testid="hero-notify-link">{activeCta.secondary} <span aria-hidden="true">↓</span></a>
+      {!appIsLive && <a className="hero-notify reveal-line" href="#close" data-testid="hero-notify-link">{activeCta.secondary} <span aria-hidden="true">↓</span></a>}
       <div className="hero-platform reveal-line"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="2" y="1" width="12" height="18" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M6 16h4" stroke="currentColor" strokeWidth="1.2"/></svg>Made for iPad & Apple Pencil</div>
-      <LaunchCountdown/>
+      {!appIsLive && <LaunchCountdown/>}
     </div><div className="hero-product"><Quill mood="happy" size={132} className="hero-quill" label="Plumi, the quill"/><TutorMedia/></div></div>
     </section>
 
@@ -130,9 +131,9 @@ export function LandingPage({ variant }: { variant?: string }) {
           candour, this is the most trust-building sentence on the site and it
           was buried three scrolls below the last thing anybody reads. */}
       <p className="close-honesty">{footer.honesty}</p>
-      <CtaButton placement="close" label="Join the Plumi community" size="large"/>
-      <div className="close-notify"><p className="close-notify-label">Or just get one email on launch day.</p><LaunchNotify placement="close"/></div>
-      <LaunchCountdown variant="footer"/>
+      <CtaButton placement="close" label={appIsLive ? undefined : "Join the Plumi community"} size="large"/>
+      {!appIsLive && <><div className="close-notify"><p className="close-notify-label">Or just get one email on launch day.</p><LaunchNotify placement="close"/></div>
+      <LaunchCountdown variant="footer"/></>}
     </div></div></section>
 
   </main><SiteFooter/><StickyCta/><SectionImpressions/></div>;

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { CtaButton } from "@/components/ui/CtaButton";
+import { appIsLive } from "@/config/site";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { FaqStructuredData, PageStructuredData } from "@/components/StructuredData";
@@ -138,7 +139,9 @@ export function MarketingPage({ content }: { content: LandingContent }) {
               <CtaButton placement={`${content.slug}-footer`} size="large" className="!bg-[var(--color-paper)] !text-[var(--color-blue-600)]" />
             </div>
             <p className="mt-5 text-xs text-[var(--color-blue-100)]">
-              Plumi hasn&rsquo;t launched yet. The community is where you see it first.
+              {appIsLive
+                ? "Free to write in on iPad and Apple Pencil."
+                : "Plumi hasn\u2019t launched yet. The community is where you see it first."}
             </p>
           </section>
         </article>
