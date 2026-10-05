@@ -1,6 +1,14 @@
 export type LaunchMode = "community" | "waitlist" | "appStore";
-export const launchMode: LaunchMode = "community";
-export const appStoreUrl: string | null = null;
+/**
+ * The App Store listing, `https://apps.apple.com/gb/app/plumi/id<number>`.
+ *
+ * Setting this is the whole switch: every call to action on the site (header,
+ * hero, sticky bar, close) points here and the Discord and launch-email
+ * wording drops away. While it is null the site falls back to the Discord
+ * community, so a build can never ship a download button with nowhere to go.
+ */
+export const appStoreUrl: string | null = "https://apps.apple.com/gb/app/plumi/id6811389052";
+export const launchMode: LaunchMode = appStoreUrl ? "appStore" : "community";
 export const discordUrl = "https://discord.com/invite/mPhTczwfpk";
 // Midnight in Britain on the confirmed launch date (BST, UTC+1).
 export const launchDate = "2026-09-25T00:00:00+01:00";
@@ -29,7 +37,7 @@ export const site = {
   alternateDomain: "https://plumi.study",
   tagline: "Your handwriting. Read, understood, visualised.",
   description:
-    "Plumi is an AI study notebook for GCSE and A-Level students that reads your handwritten working, tutors you on the page and builds practice around what you actually know.",
+    "Plumi is an AI study notebook for STEM at A-Level and GCSE (Maths, Physics, Chemistry and Biology) that reads your handwritten working, tutors you on the page and builds practice around what you actually know.",
   contactEmail: "hello@tryplumi.app",
   locale: "en_GB",
 } as const;
@@ -48,7 +56,7 @@ export const site = {
  * Every clause is a feature that exists today. Do not add one that does not.
  */
 export const entityDescription =
-  "Plumi is an AI-powered study notebook for GCSE and A-Level students. It reads your handwritten working on iPad, tutors you directly on the page, and turns what your work reveals into personalised practice.";
+  "Plumi is an AI-powered study notebook for STEM at A-Level and GCSE: Maths, Physics, Chemistry and Biology. It reads your handwritten working on iPad, tutors you directly on the page, and turns what your work reveals into personalised practice.";
 
 /**
  * Profiles that genuinely belong to Plumi, for `sameAs`.
@@ -59,7 +67,7 @@ export const entityDescription =
  * corroboration, which is worse than no corroboration. Add to this list as
  * profiles are genuinely claimed (see docs/seo/entity-checklist.md).
  */
-export const sameAs: readonly string[] = [discordUrl];
+export const sameAs: readonly string[] = appStoreUrl ? [discordUrl, appStoreUrl] : [discordUrl];
 
 /**
  * The Google Ads conversion tag.
@@ -131,13 +139,15 @@ export const cta = {
   appStore: {
     primary: "Download on the App Store",
     compact: "Download",
-    secondary: "Not on an iPad? Send yourself the link",
+    secondary: "See how it works",
     supporting: "Free to write in. iPad and Apple Pencil.",
-    reassurance: "Requires iPadOS 17 or later.",
+    reassurance: "Free on the App Store. Requires iPadOS 17 or later.",
   },
 } as const;
 export const activeCta = cta[launchMode];
 export function isWaitlistMode(): boolean { return false; }
+/** True once the App Store link is set: the app is out and nothing is "coming soon". */
+export const appIsLive: boolean = launchMode === "appStore";
 
 /**
  * What the primary CTA actually is, for analytics and for the markup.

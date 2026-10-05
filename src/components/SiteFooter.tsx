@@ -36,5 +36,5 @@ export function SiteFooter() {
           believe when all three agree word for word. */}
       <p className="footer-blurb">{entityDescription}</p></div>
     <nav aria-label="Footer navigation">{footerLinks.map(([label, href]) => <Link key={label} href={href} data-testid={`footer-${label.toLowerCase().replaceAll(" ", "-")}-link`}>{label}</Link>)}</nav>
-  </div><div className="story-container footer-bottom"><span>© 2026 Plumi</span><span>Made in the UK, for GCSE and A-Level.</span><a href={`mailto:${site.contactEmail}`} data-testid="footer-contact-link">Say hello ↗</a></div></footer>;
+  </div><div className="story-container footer-bottom"><span>© 2026 Plumi</span><span>Made in the UK, for STEM at A-Level and GCSE.</span><a href={`mailto:${site.contactEmail}`} data-testid="footer-contact-link">Say hello ↗</a></div></footer>;
 }

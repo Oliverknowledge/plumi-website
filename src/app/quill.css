@@ -200,6 +200,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Hero: the launch-day email, as a quiet third line ───────────────────── */
+.hero-subjects{margin:10px 0 0;font-size:13px;letter-spacing:.02em;color:#5c6c72}.hero-copy .hero-subjects{animation-delay:.55s}
 .hero-notify{display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:12px;color:#5c6c72;min-height:44px;transition:color .2s}
 .hero-notify:hover{color:var(--color-blue-600)}
 

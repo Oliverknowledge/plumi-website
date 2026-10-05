@@ -44,15 +44,15 @@ export const routeIntents: readonly RouteIntent[] = [
     primaryQuery: "Plumi",
     secondaryQueries: ["Plumi study", "Plumi app", "Plumi AI tutor", "AI study notebook"],
     intent: "Find out what Plumi is and whether it is for me.",
-    objective: "Establish the entity and category, then send high-intent visitors to Discord.",
+    objective: "Establish the entity and category, then send high-intent visitors to the App Store.",
     // Leads with the brand, because the first job of the homepage title is to
     // win "Plumi". The category follows. "Handwriting" is deliberately left to
     // /ai-handwriting-tutor rather than repeated here — two pages chasing the
     // same phrase is how you end up ranking neither.
-    title: "Plumi — AI Study Notebook for GCSE & A-Level",
+    title: "Plumi — AI Study Notebook for A-Level & GCSE STEM",
     h1: "Your handwriting. Read, understood, visualised.",
     description:
-      "Plumi is an AI study notebook for GCSE and A-Level students. Write on your iPad, get tutored on the page, and practise exactly what your work reveals.",
+      "Plumi is an AI study notebook for STEM at A-Level and GCSE: Maths, Physics, Chemistry and Biology. Write on your iPad, get tutored on the page, and practise exactly what your work reveals.",
     linksTo: ["/how-it-works", "/ai-tutor-for-a-level-maths", "/ai-handwriting-tutor", "/about"],
     changeFrequency: "weekly",
     priority: 1,

@@ -38,7 +38,7 @@ export function CtaButton({ placement, variant = "primary", size = "default", la
   const href = primaryCtaHref();
   const kind = primaryCtaKind();
   const text = label ?? activeCta.primary;
-  return <a href={href} target="_blank" rel="noopener noreferrer" data-testid={`${placement}-join-discord-button`} className={`story-button ${variant} ${size} ${className}`} onClick={() => noteCtaClick(placement, kind, text, href)}>
+  return <a href={href} target="_blank" rel="noopener noreferrer" data-testid={`${placement}-cta-button`} className={`story-button ${variant} ${size} ${className}`} onClick={() => noteCtaClick(placement, kind, text, href)}>
     {children ?? text}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
   </a>;
 }

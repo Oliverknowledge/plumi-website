@@ -462,7 +462,7 @@ export const about: LandingContent = {
   slug: "about",
   breadcrumbLabel: "About",
   eyebrow: "What this is",
-  lead: "Plumi is an AI study notebook built for students who work things out by hand. It is made for GCSE and A-Level, it runs on iPad and Apple Pencil, and it launches on 25 September 2026.",
+  lead: "Plumi is an AI study notebook built for students who work things out by hand. It is made for STEM at A-Level and GCSE (Maths, Physics, Chemistry and Biology), and it runs on iPad and Apple Pencil.",
   sections: [
     {
       heading: "What Plumi does",

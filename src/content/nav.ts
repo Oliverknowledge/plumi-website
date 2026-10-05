@@ -52,7 +52,7 @@ export const footer = {
       ],
     },
   ],
-  copyright: "© 2026 Plumi. Made in the UK, for GCSE and A-Level.",
+  copyright: "© 2026 Plumi. Made in the UK, for STEM at A-Level and GCSE.",
   /**
    * Pre-empts the "this is all concept art" objection that any well-designed
    * pre-launch site attracts.
