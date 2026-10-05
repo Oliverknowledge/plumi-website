@@ -7,7 +7,7 @@ export type LaunchMode = "community" | "waitlist" | "appStore";
  * wording drops away. While it is null the site falls back to the Discord
  * community, so a build can never ship a download button with nowhere to go.
  */
-export const appStoreUrl: string | null = null;
+export const appStoreUrl: string | null = "https://apps.apple.com/gb/app/plumi/id6811389052";
 export const launchMode: LaunchMode = appStoreUrl ? "appStore" : "community";
 export const discordUrl = "https://discord.com/invite/mPhTczwfpk";
 // Midnight in Britain on the confirmed launch date (BST, UTC+1).
