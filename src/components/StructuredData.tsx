@@ -226,33 +226,3 @@ export function PageStructuredData({
     />
   );
 }
-
-/**
- * `FAQPage` for a page that visibly shows these exact questions and answers.
- *
- * Google requires the marked-up Q&A to be present on the page — marking up FAQs
- * a visitor cannot see is a manual-action risk, so this takes the same array the
- * page renders rather than a separate copy that could drift.
- */
-export function FaqStructuredData({
-  path,
-  faqs,
-}: {
-  path: string;
-  faqs: readonly { question: string; answer: string }[];
-}) {
-  return (
-    <JsonLd
-      data={{
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "@id": `${absoluteUrl(path)}#faq`,
-        mainEntity: faqs.map((faq) => ({
-          "@type": "Question",
-          name: faq.question,
-          acceptedAnswer: { "@type": "Answer", text: faq.answer },
-        })),
-      }}
-    />
-  );
-}

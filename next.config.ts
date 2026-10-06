@@ -15,6 +15,13 @@ const nonCanonicalHosts = ["plumi.study", "www.plumi.study", "www.tryplumi.app"]
 
 const canonicalOrigin = "https://tryplumi.app";
 
+/** [removed path, where it goes] */
+const removedPages: readonly (readonly [string, string])[] = [
+  ["/how-it-works", "/#the-mark"],
+  ["/ai-handwriting-tutor", "/"],
+  ["/ipad-study-app", "/"],
+];
+
 const nextConfig: NextConfig = {
   /**
    * Security headers.
@@ -48,12 +55,20 @@ const nextConfig: NextConfig = {
    * loses the path also loses whatever ranking that URL had earned.
    */
   async redirects() {
-    return nonCanonicalHosts.map((host) => ({
-      source: "/:path*",
-      has: [{ type: "host" as const, value: host }],
-      destination: `${canonicalOrigin}/:path*`,
-      permanent: true,
-    }));
+    return [
+      ...nonCanonicalHosts.map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host" as const, value: host }],
+        destination: `${canonicalOrigin}/:path*`,
+        permanent: true,
+      })),
+      /**
+       * Pages that only restated the homepage. A removed URL that used to answer
+       * 200 redirects permanently rather than 404ing, so any inbound link or
+       * indexed result lands on the nearest thing that still exists.
+       */
+      ...removedPages.map(([source, destination]) => ({ source, destination, permanent: true })),
+    ];
   },
 };
 
