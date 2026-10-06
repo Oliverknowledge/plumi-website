@@ -59,7 +59,7 @@ export const theMark = {
   headline: "Six marks. You got four.",
   headlineMuted: "Here are the two.",
   lead:
-    "Marked against the mark scheme, point by point. Each mark drawn beside the line it earned, in Plumi\u2019s own hand.",
+    "Marked against the mark scheme, point by point.",
 
   paperLabel: "A-LEVEL MATHEMATICS",
   paperRef: "PURE / INTEGRATION",

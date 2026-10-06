@@ -38,6 +38,9 @@ export const specifications = [
   "OCR Biology H420",
 ];
 export const specificationCount = 12;
+/** The strip under the scenes: what Plumi is for, and whose papers. */
+export const subjects = ["Physics", "Maths", "Chemistry", "Biology"] as const;
+export const boards = ["AQA", "OCR", "Edexcel"] as const;
 export const specificationsMore = "+ 8 more A-Level specs";
 /** Edexcel Biology 9BN0 is eight topics with no level beneath them, and says so. */
 export const specificationNote =

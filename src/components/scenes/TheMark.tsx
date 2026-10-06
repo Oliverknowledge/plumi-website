@@ -103,10 +103,8 @@ export function TheMark() {
     <section id={theMark.id} className="mark-section" data-testid="the-mark-section">
       <div className="story-container mark-layout">
         <div className="mark-copy">
-          <div className="scene-eyebrow"><span>{theMark.eyebrow}</span> {theMark.eyebrowLabel}</div>
           <h2>{theMark.headline}<br /><span className="muted-line">{theMark.headlineMuted}</span></h2>
           <p>{theMark.lead}</p>
-          <p className="mark-footnote">{theMark.footnote}</p>
           <div className="mark-controls">
             <button className="replay-control" data-testid="mark-replay-button" onClick={() => { setLanded(0); scene.replay(); }}>
               {theMark.replay}
