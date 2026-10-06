@@ -82,12 +82,12 @@ export function TheMark() {
       ORDER.forEach((index, n) => {
         const { point, strokes } = marks[index];
         const rect = markRect(point.line);
-        steps.push({ move: [rect.x + 2, rect.y + rect.height * 0.5], dur: n === 0 ? 0.55 : 0.34, lift: 26 });
-        strokes.forEach((_, s) => steps.push({ draw: `mk-${index}-${s}`, dur: 0.2 }));
-        steps.push({ reveal: `code-${index}`, dur: 0.22 });
+        steps.push({ move: [rect.x + 2, rect.y + rect.height * 0.5], dur: n === 0 ? 0.4 : 0.22, lift: 26 });
+        strokes.forEach((_, s) => steps.push({ draw: `mk-${index}-${s}`, dur: 0.12 }));
+        steps.push({ reveal: `code-${index}`, dur: 0.14 });
         steps.push({ call: () => setLanded(n + 1) });
         // A beat before the quill turns back for the two it has to take away.
-        if (n === 3) steps.push({ hold: 0.55, mood: "happy" });
+        if (n === 3) steps.push({ hold: 0.35, mood: "happy" });
       });
       steps.push({ hold: 0.5, mood: "proud" }, { exit: [PAGE.w + 70, -60], dur: 0.8 });
       return steps;

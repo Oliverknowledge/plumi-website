@@ -91,7 +91,7 @@ export function Ink({
   maxLines = 2,
   seed = 9,
   delay = 0,
-  speed = 420,
+  speed = 1000,
   still = false,
   className = "",
 }: InkProps) {

@@ -35,8 +35,8 @@ export function InkSignature() {
       { cls: "risen", add: "has-risen" },
       { move: [pot.x, pot.y - 60], dur: 0.35, lift: 0, mood: "happy" },
     ];
-    strokes.forEach((s, i) => { const [x, y] = s.points[0]; steps.push({ move: [x, y], dur: i === 0 ? 0.5 : 0.09, lift: i === 0 ? 30 : 5, mood: "focused" }, { draw: `s${i}`, dur: Math.max(0.06, strokeLength(s) / 240) }); });
-    steps.push({ move: [92, 232], dur: 0.25, lift: 8 }, { draw: "underline", dur: 0.7 }, { hold: 0.4, mood: "proud" }, { move: [612, 262], dur: 0.6, lift: 40, mood: "wink" });
+    strokes.forEach((s, i) => { const [x, y] = s.points[0]; steps.push({ move: [x, y], dur: i === 0 ? 0.35 : 0.06, lift: i === 0 ? 30 : 5, mood: "focused" }, { draw: `s${i}`, dur: Math.max(0.06, strokeLength(s) / 600) }); });
+    steps.push({ move: [92, 232], dur: 0.25, lift: 8 }, { draw: "underline", dur: 0.4 }, { hold: 0.4, mood: "proud" }, { move: [612, 262], dur: 0.6, lift: 40, mood: "wink" });
     return steps;
   }, { motion, deps: [strokes] });
   return <div className="ink-signature" data-done={scene.done}>
