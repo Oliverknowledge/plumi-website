@@ -17,7 +17,7 @@ export function inkDuration(
   size: number,
   width = 600,
   maxLines = 2,
-  speed = 420,
+  speed = 1000,
 ): number {
   const strokes: HandStroke[] = hasSuperscript(text)
     ? inkRuns(text, size).flatMap((run) =>

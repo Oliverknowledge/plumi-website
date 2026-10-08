@@ -416,7 +416,7 @@ export function PenDemo() {
               maxLines={1}
               tone="tutor"
               seed={3 + rung * 5}
-              speed={560}
+              speed={1250}
             />
           )}
 

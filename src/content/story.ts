@@ -88,7 +88,7 @@ export const comparison = {
   /** Prose, not ticks. The last row, and the one that reframes everything above it. */
   cost: {
     label: "What it costs",
-    plumi: "Free, or £79.99 a year",
+    plumi: "Free, or £135 a year",
     others: ["Free, or a monthly plan", "Paid by the hour", "Usually a yearly plan"],
   },
 };
