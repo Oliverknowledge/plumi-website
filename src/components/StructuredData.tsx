@@ -15,7 +15,7 @@ import { absoluteUrl, entityDescription, launchDate, sameAs, site } from "@/conf
  *
  * `offers` **is** here now that the prices are published, and it is three
  * entries rather than one. A single `price: 0` would misrepresent a product with
- * a paid tier, and a single `price: 135.99` would misrepresent one whose notebook
+ * a paid tier, and a single `price: 135` would misrepresent one whose notebook
  * is free forever — so the free tier and both Pro plans are each stated, and
  * each carries `availabilityStarts`, because none of them can be bought until
  * the app is on the store. An offer without that date is a claim that a student
@@ -153,16 +153,16 @@ export function SiteStructuredData() {
               {
                 "@type": "Offer",
                 name: "Plumi Pro, yearly",
-                description: "Seven days free, then £135.99 a year.",
-                price: "135.99",
+                description: "Seven days free, then £135 a year.",
+                price: "135.00",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,
               },
               {
                 "@type": "Offer",
                 name: "Plumi Pro, monthly",
-                description: "£19.99 a month. No free trial.",
-                price: "19.99",
+                description: "£20 a month. No free trial.",
+                price: "20.00",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,
               },

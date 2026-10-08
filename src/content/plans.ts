@@ -9,13 +9,13 @@
  * .context/research/product.md §7 for citations.
  *
  * ── The prices ──────────────────────────────────────────────────────────────
- * £19.99 a month, or £135.99 a year with the first seven days free (the launch
+ * £20 a month, or £135 a year with the first seven days free (the launch
  * pricing, confirmed 1 October 2026; `PlumiProduct` in PaywallView.swift). The
- * annual plan works out at £11.33 a month, about 43% under paying monthly for a
- * year (£239.88), and the arithmetic is checkable rather than asserted.
+ * annual plan works out at £11.25 a month, about 44% under paying monthly for a
+ * year (£240), and the arithmetic is checkable rather than asserted.
  *
  * Only the annual plan carries a trial, deliberately. A free week on a monthly
- * plan converts a £19.99 decision into a £0 decision and then a cancellation
+ * plan converts a £20 decision into a £0 decision and then a cancellation
  * seven days later; a free week on an annual plan is the whole of the risk a
  * student is being asked to take, removed.
  *
@@ -23,7 +23,7 @@
  * The app's own comment: "a price the App Store has not confirmed is a price
  * Plumi cannot charge." That still holds. These figures must match App Store
  * Connect exactly. Until 6 October 2026 this file said £79.99 a year and
- * £6.67 a month, which was an earlier plan; the app and App Store say £135.99.
+ * £6.67 a month, which was an earlier plan; the app and App Store say £135.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,8 +103,8 @@ export const proPlan = {
  * the monthly card is stated plainly beside it and is not made to look like a
  * mistake. A student who wants to pay monthly is not doing anything wrong.
  *
- * `perMonth` is £135.99 ÷ 12 = £11.3325, rounded to the penny it actually works
- * out at. It is never presented as a *price* — nobody can pay £11.33 — which is
+ * `perMonth` is £135 ÷ 12 = £11.25, rounded to the penny it actually works
+ * out at. It is never presented as a *price* — nobody can pay £11.25 — which is
  * why the line says "works out at" and the charged figure sits above it in
  * larger type than the equivalent.
  */
@@ -124,16 +124,16 @@ export const proOptions: readonly ProPlanOption[] = [
   {
     id: "annual",
     label: "Yearly",
-    price: "£135.99",
+    price: "£135",
     period: "a year",
-    perMonth: "Works out at £11.33 a month",
-    terms: "Seven days free, then £135.99 a year. Cancel any time before it renews.",
+    perMonth: "Works out at £11.25 a month",
+    terms: "Seven days free, then £135 a year. Cancel any time before it renews.",
     featured: true,
   },
   {
     id: "monthly",
     label: "Monthly",
-    price: "£19.99",
+    price: "£20",
     period: "a month",
     // Said out loud rather than left as an absence. A trial that exists on one
     // plan and not the other is the sort of thing a student finds out at the
@@ -149,11 +149,11 @@ export const proOptions: readonly ProPlanOption[] = [
  * The obvious anchor is an hour of private tuition, and it is the strongest one
  * available — but a third-party hourly rate is a number this repo cannot check,
  * and an unfootnoted price comparison is exactly the move this site does not
- * make. £135.99 against £239.88 is Plumi's own two prices, and anyone can do it.
+ * make. £135 against £240 is Plumi's own two prices, and anyone can do it.
  */
 export const proAnchor = {
   headline: "A year costs less than seven months.",
-  detail: "Paying monthly for a year is £239.88. The yearly plan is £135.99.",
+  detail: "Paying monthly for a year is £240. The yearly plan is £135.",
 } as const;
 
 /** Where the money is actually taken, and by whom. */
@@ -345,7 +345,7 @@ export const comparison = {
   question: "What are you using now?",
   ourLabel: "Plumi",
   ourSublabel: "iPad and Apple Pencil",
-  ourCost: "Free, or £135.99 a year",
+  ourCost: "Free, or £135 a year",
   /** The last row of every head-to-head, and the one that does the arguing. */
   costLabel: "What it costs",
   /** Names the claim column for a screen reader; the column head is blank by design. */
