@@ -11,6 +11,7 @@ import { useEffect } from "react";
  *                      sets `data-active` on its [data-story] root, which crossfades
  *                      the screen in the pinned iPad
  *   [data-count]       a number that counts from data-from to data-count, once
+ *   [data-nav="dark"]  a dark band: while one is under the nav, the nav goes dark too
  *
  * Only opacity and transform are animated (in CSS). Nothing hijacks the scroll, and
  * with prefers-reduced-motion everything is shown at once (the CSS does the rest).
@@ -72,6 +73,18 @@ export function HomeMotion() {
     }, { rootMargin: "-45% 0px -45% 0px" });
     document.querySelectorAll("[data-step]").forEach(el => step.observe(el));
     observers.push(step);
+
+    // The nav turns dark while a dark band sits under it.
+    const nav = document.querySelector<HTMLElement>(".hp-nav");
+    if (nav) {
+      const under = new Set<Element>();
+      const dark = new IntersectionObserver(entries => {
+        for (const e of entries) { if (e.isIntersecting) under.add(e.target); else under.delete(e.target); }
+        nav.classList.toggle("is-dark", under.size > 0);
+      }, { rootMargin: "0px 0px -94% 0px" });
+      document.querySelectorAll("[data-nav='dark']").forEach(el => dark.observe(el));
+      observers.push(dark);
+    }
 
     return () => observers.forEach(o => o.disconnect());
   }, []);

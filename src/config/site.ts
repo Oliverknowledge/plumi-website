@@ -56,7 +56,7 @@ export const site = {
  * Every clause is a feature that exists today. Do not add one that does not.
  */
 export const entityDescription =
-  "Plumi is an AI-powered study notebook for STEM at A-Level and GCSE: Maths, Physics, Chemistry and Biology. It reads your handwritten working on iPad, tutors you directly on the page, and turns what your work reveals into personalised practice.";
+  "Plumi is a GCSE and A-Level revision app for iPad: Maths, Physics, Chemistry and Biology, for AQA, OCR and Edexcel. It marks your handwritten exam answers line by line against a mark scheme, tutors you directly on the page, and turns the marks you drop into your next practice question.";
 
 /**
  * Profiles that genuinely belong to Plumi, for `sameAs`.

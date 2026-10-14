@@ -25,11 +25,12 @@ export const prices = {
 } as const;
 
 export const hero = {
-  eyebrow: "GCSE & A-Level · Physics, Maths, Chemistry, Biology",
+  eyebrow: "GCSE & A-Level revision app for iPad",
   h1a: "Handwrite it.",
   h1b: "Plumi marks it.",
-  sub: "Exam-style questions for AQA, OCR and Edexcel. Answer with Apple Pencil and see every mark, line by line.",
-  note: "Free to download. Pro free for 7 days.",
+  sub: "Exam-style questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see which marks you got, and which you lost.",
+  note: "Free to download. 7 days of Pro free on the yearly plan.",
+  zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275, alt: "Close up of the handwritten working: M1 ticked, M2 crossed, and the final value 1.73 crossed for A1.", caption: "A1 is the accuracy mark. Lost on the final value." },
 } as const;
 
 export const pain = {
@@ -37,10 +38,15 @@ export const pain = {
   lines: [
     "You do past papers on your iPad.",
     "Screenshot the question. Paste it into AI.",
-    "Then another. And another.",
-    "By the end, what were you even weak at?",
+    "It never tells you which mark you lost.",
+    "And by the end, what were you even weak at?",
   ],
-  answer: "Plumi is the clean version of all that.",
+  answer: "Plumi marks the answer you wrote, against the mark scheme, and remembers every mark you drop.",
+  contrast: [
+    { title: "Your handwriting.", line: "No screenshots. No retyping." },
+    { title: "Marked like the exam.", line: "Method, accuracy and explanation marks, line by line." },
+    { title: "Never forgotten.", line: "Every dropped mark sets your next question." },
+  ],
 } as const;
 
 export const story = {
@@ -55,6 +61,7 @@ export const story = {
       image: "/site/question.webp",
       alt: "An exam-style A-Level Physics question about a light-dependent resistor circuit, with its circuit diagram, in Plumi.",
       fit: "contain" as const,
+      zoom: { image: "/site/zoom-write.webp", w: 1170, h: 605 },
     },
     {
       id: "marked",
@@ -64,37 +71,42 @@ export const story = {
       image: "/site/shot-mark.webp",
       alt: "A handwritten answer marked 3 out of 5 by Plumi, with a red cross on the line where an accuracy mark was lost.",
       fit: "cover" as const,
+      zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275 },
     },
     {
       id: "why",
       kicker: "03 · Why",
       title: "See exactly why.",
-      line: "Open the mark scheme beside your answer. Every point quotes the line of yours it was given for.",
+      line: "Open the mark scheme beside your answer and see what each mark needed.",
       image: "/site/shot-scheme.webp",
       alt: "Plumi's mark scheme panel open beside a marked answer, showing which marks were awarded and why.",
       fit: "cover" as const,
+      zoom: { image: "/site/zoom-why.webp", w: 960, h: 500 },
     },
     {
       id: "up",
       kicker: "04 · Better",
       title: "Fix it. Watch it go up.",
-      line: "Correct the slip, re-mark it, and see 5/7 become 7/7.",
+      line: "Correct the slip on any question, re-mark it, and watch the score go up.",
       image: "/site/shot-up.webp",
       alt: "A re-marked answer in Plumi going from 5 out of 7 to 7 out of 7.",
       fit: "cover" as const,
+      zoom: { image: "/site/zoom-up.webp", w: 587, h: 260 },
     },
   ],
+  cta: "10 answers marked free, every week.",
 } as const;
 
 export const weak = {
   eyebrow: "Knows your gaps",
   title: "It knows what you’re weak at.",
-  line: "Every topic on your specification, tracked as you practise. You never have to guess what to revise next.",
+  line: "Every topic on your AQA, OCR or Edexcel specification, tracked as you practise. You never have to guess what to revise next.",
   legend: [
     { label: "Needs attention", tone: "red" },
-    { label: "Rusty", tone: "amber" },
+    { label: "Rusty", tone: "orange" },
     { label: "Developing", tone: "amber" },
     { label: "Strong", tone: "green" },
+    { label: "Too early to tell", tone: "grey" },
   ],
 } as const;
 
@@ -103,43 +115,52 @@ export const questions = {
   title: "Questions on your gaps. Diagrams included.",
   line: "Original exam-style questions for your board, with the figure the real paper would draw.",
   diagrams: [
-    { id: "d4", label: "Resonance" },
-    { id: "d1", label: "Cyclotron" },
-    { id: "d3", label: "I-V characteristics" },
-    { id: "d6", label: "Refraction" },
-    { id: "d9", label: "Circuits" },
-    { id: "d7", label: "Projectiles" },
-    { id: "d5", label: "Micrometer" },
-    { id: "d8", label: "Orbits" },
-    { id: "d10", label: "Kinetic theory" },
+    { id: "d4", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
+    { id: "d1", label: "Cyclotron", alt: "A cyclotron: two dees in a magnetic field with a spiral particle path from the source S." },
+    { id: "d3", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
+    { id: "d6", label: "Refraction", alt: "A ray of light refracting through a glass block, with the angles of incidence and refraction marked." },
+    { id: "d9", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
+    { id: "d7", label: "Projectiles", alt: "A projectile launched at 35 degrees from the top of a cliff." },
+    { id: "d5", label: "Micrometer", alt: "A micrometer screw gauge with the anvil, spindle, sleeve and thimble labelled." },
+    { id: "d8", label: "Orbits", alt: "Circular orbits around a planet, with points P, Q, U and V and a 250 km gap marked." },
+    { id: "d10", label: "Kinetic theory", alt: "Gas particles moving at random in a cylinder sealed by a piston." },
   ],
 } as const;
 
 export const bento = {
-  eyebrow: "And everything around it",
-  title: "Everything else you need to revise.",
+  eyebrow: "And the rest of revision",
+  title: "Everything around the marking.",
   tiles: [
-    { id: "notes", title: "Notes that become flashcards.", line: "Handwrite it once. Plumi quizzes you on it.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
+    { id: "papers", title: "Every past paper, one tap away.", line: "Papers, mark schemes and grade boundaries for your board.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
     { id: "streak", title: "Keep your streak.", line: "Study a little every day. A freeze covers a missed one.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
+    { id: "notes", title: "Notes that become flashcards.", line: "Handwrite it once. Plumi quizzes you on it.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
+    { id: "focus", title: "Lock in with Focus.", line: "Pomodoros that can block distracting apps.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
     { id: "stats", title: "Every minute counted.", line: "A daily goal, and where your study time actually goes.", image: "/site/tile-stats2.webp", w: 1344, h: 580, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
     { id: "friends", title: "Study with friends.", line: "Add a friend or start a group, and revise side by side.", image: "/site/tile-groups2.webp", w: 1270, h: 590, alt: "Plumi's study groups screen with an Add a friend button and a four member group." },
-    { id: "focus", title: "Lock in with Focus.", line: "Pomodoros that can block distracting apps.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
-    { id: "papers", title: "Every past paper, one tap away.", line: "Papers, mark schemes and grade boundaries for your board.", image: "/site/tile-papers.webp", w: 1400, h: 952, alt: "Plumi's past papers screen for OCR Physics, with paper, mark scheme and report links for each paper." },
   ],
 } as const;
 
 export const identity = {
   eyebrow: "The habit",
-  title: "Become the student who gets the A*.",
-  line: "Streaks, study time and a daily goal build the habit. Plumi shows the grade it’s building towards.",
+  title: "Make revision a habit.",
+  line: "Streaks, study time and a daily goal keep you coming back. Set the grade you’re aiming for and see where you stand.",
+  // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
+  // Current comes only from board papers Plumi has marked, Goal is the student's.
+  grades: [
+    { label: "Predicted", value: "A", tone: "" },
+    { label: "Current", value: "B", tone: "is-muted" },
+    { label: "Goal", value: "A*", tone: "is-goal" },
+  ],
+  caption: "An example. Predicted is your school’s, Current comes from board papers Plumi has marked, Goal is yours.",
 } as const;
 
 export const subjects = {
+  eyebrow: "GCSE and A-Level revision",
   title: "Built for your exams.",
-  line: "GCSE and A-Level, for the three biggest boards.",
+  line: "Physics, Maths, Chemistry and Biology, for AQA, OCR and Edexcel.",
   list: [
     { name: "Physics", detail: "Circuits, forces, waves, fields" },
-    { name: "Maths", detail: "Pure, statistics, mechanics" },
+    { name: "Maths", detail: "Pure, statistics, mechanics", links: [{ label: "GCSE Maths", href: "/gcse-maths" }, { label: "A-Level Maths", href: "/ai-tutor-for-a-level-maths" }] },
     { name: "Chemistry", detail: "Moles, energetics, organic" },
     { name: "Biology", detail: "Cells, genetics, ecology" },
   ],
@@ -167,13 +188,14 @@ export const pricing = {
     name: "Pro",
     price: prices.yearlyPerMonth,
     period: "a month, billed yearly",
-    billing: `${prices.trialDays} days free, then ${prices.yearly} a year. Or ${prices.monthly} a month.`,
+    billing: `${prices.trialDays} days free, then ${prices.yearly} a year.`,
+    billing2: `Or ${prices.monthly} a month, no trial.`,
     lead: "Everything unlimited, for the run-up to your exams.",
     items: [
       "Unlimited marking, line by line",
       "Unlimited practice on your weak topics",
       "Unlimited AI Pen and tutoring on the page",
-      "A whole paper, sat timed and marked",
+      "Block distracting apps in every Focus session",
     ],
   },
   small: "Subscriptions renew automatically. Cancel any time in Settings, at least 24 hours before renewal.",
@@ -202,7 +224,7 @@ export const faq = [
   },
   {
     q: "How is it different from asking ChatGPT?",
-    a: "Plumi marks your own handwritten working against a mark scheme, on the page, then remembers what you got wrong and sets your next question from it. No screenshots, no copy and paste, and a record of every topic.",
+    a: "Plumi marks your own handwritten working against a mark scheme, on the page, and shows the exact mark you lost. Then it remembers what you got wrong and sets your next question from it. No screenshots, no copy and paste, and a record of every topic.",
   },
   {
     q: "Is my work private?",
@@ -210,8 +232,10 @@ export const faq = [
   },
 ] as const;
 
+export const faqTitle = "Plumi questions, answered.";
+
 export const close = {
-  title: "Your next mark starts here.",
+  title: "Your next mark is one answer away.",
   line: "Free on the App Store for iPad.",
   qr: "Scan with your iPad camera",
 } as const;

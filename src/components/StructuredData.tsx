@@ -1,4 +1,4 @@
-import { absoluteUrl, entityDescription, launchDate, sameAs, site } from "@/config/site";
+import { absoluteUrl, appStoreUrl, entityDescription, launchDate, sameAs, site } from "@/config/site";
 
 /**
  * JSON-LD, the honest subset.
@@ -121,7 +121,14 @@ export function SiteStructuredData() {
             // The closest accurate Schema.org category. Plumi is a study tool,
             // not a productivity or reference app.
             applicationCategory: "EducationalApplication",
-            applicationSubCategory: "Study notebook and AI tutor",
+            applicationSubCategory: "GCSE and A-Level revision app with handwritten answer marking",
+            ...(appStoreUrl ? { installUrl: appStoreUrl, downloadUrl: appStoreUrl } : {}),
+            image: absoluteUrl("/og.png"),
+            screenshot: [
+              { "@type": "ImageObject", url: absoluteUrl("/site/shot-mark.webp"), caption: "A handwritten A-Level Physics answer marked line by line against the mark scheme" },
+              { "@type": "ImageObject", url: absoluteUrl("/site/shot-map.webp"), caption: "Every topic on the specification, coloured by how well it is known" },
+              { "@type": "ImageObject", url: absoluteUrl("/site/shot-up.webp"), caption: "A corrected answer re-marked from 5 out of 7 to 7 out of 7" },
+            ],
             operatingSystem: "iPadOS 17 or later",
             inLanguage: "en-GB",
             publisher: { "@id": ORGANISATION_ID },
@@ -131,6 +138,8 @@ export function SiteStructuredData() {
               audienceType: "A-Level and GCSE STEM students",
             },
             featureList: [
+              "Marks handwritten exam answers line by line against a mark scheme",
+              "Exam-style questions for AQA, OCR and Edexcel, GCSE and A-Level",
               "Reads handwritten working on iPad",
               "Tutors directly on the page rather than in a separate chat",
               "Builds a model of demonstrated strengths and weaknesses",
@@ -149,6 +158,7 @@ export function SiteStructuredData() {
                 price: "0",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,
+                ...(appStoreUrl ? { url: appStoreUrl } : {}),
               },
               {
                 "@type": "Offer",
@@ -157,6 +167,7 @@ export function SiteStructuredData() {
                 price: "135.99",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,
+                ...(appStoreUrl ? { url: appStoreUrl } : {}),
               },
               {
                 "@type": "Offer",
@@ -165,6 +176,7 @@ export function SiteStructuredData() {
                 price: "14.99",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,
+                ...(appStoreUrl ? { url: appStoreUrl } : {}),
               },
             ],
           },

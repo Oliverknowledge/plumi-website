@@ -1,13 +1,18 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import { Caveat } from "next/font/google";
 import Link from "next/link";
 import { footerLinks } from "@/components/SiteFooter";
 import { site } from "@/config/site";
 import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge, HeaderDownload, HomeAnchor } from "./AppStoreBadge";
 import { HomeMotion } from "./Motion";
-import { bento, close, faq, hero, identity, pain, pricing, questions, story, subjects, weak } from "@/content/home";
+import { ArrowBack, Burst, LoopArrow, Ring, Sparkle, Underline } from "./Doodles";
+import { bento, close, faq, faqTitle, hero, identity, pain, pricing, questions, story, subjects, weak } from "@/content/home";
 import "@/app/home.css";
+
+/** The pencil voice of the doodle notes: a handwriting face, used for a few words only. */
+const hand = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-hand", display: "swap" });
 
 /**
  * The homepage, in the order the ad tells it (plumi-ad-v90), then the rest of the app.
@@ -26,12 +31,12 @@ import "@/app/home.css";
  *
  * Every product image is a real capture from the app (see src/content/home.ts).
  */
-function IPad({ src, alt, priority = false, fit = "cover", className = "" }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string }) {
+function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px" }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string }) {
   return (
     <div className={`hp-ipad ${className}`}>
       <div className="hp-ipad-screen">
         <Image src={src} alt={alt} width={2000} height={1500} priority={priority}
-          sizes="(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px"
+          sizes={sizes}
           className={fit === "contain" ? "is-contain" : ""} />
       </div>
     </div>
@@ -76,7 +81,7 @@ function HomeFooter() {
 
 export function HomePage({ variant }: { variant?: string }) {
   return (
-    <div className="hp" data-variant={variant}>
+    <div className={`hp ${hand.variable}`} data-variant={variant}>
       <HomeMotion />
       <header className="hp-nav">
         <nav aria-label="Main navigation" className="hp-nav-inner">
@@ -101,7 +106,7 @@ export function HomePage({ variant }: { variant?: string }) {
             <p className="hp-eyebrow hp-rise" style={{ ["--d" as string]: "0ms" }}>{hero.eyebrow}</p>
             <h1 id="hero-title" className="hp-hero-title" data-testid="hero-headline">
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>
-              <span className="hp-rise hp-blue" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}</span>
+              <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /><Sparkle className="hp-hero-spark" /></span>
             </h1>
             <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}>{hero.sub}</p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
@@ -112,15 +117,18 @@ export function HomePage({ variant }: { variant?: string }) {
           </div>
           <div className="hp-hero-stage">
             <IPad src="/site/shot-mark.webp" priority className="hp-hero-ipad"
+              sizes="(max-width: 760px) 92vw, (max-width: 1100px) 90vw, 1040px"
               alt="Plumi on iPad: a handwritten A-Level Physics answer marked 3 out of 5, with ticks, crosses and the mark breakdown." />
-            <div className="hp-chip hp-chip-a" aria-hidden="true"><span className="hp-dot red" />A1 · Not the value the scheme gives</div>
-            <div className="hp-chip hp-chip-b" aria-hidden="true"><span className="hp-dot green" />M1 · Awarded</div>
-            <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-hero-quill" priority />
+            <figure className="hp-loupe hp-hero-loupe">
+              <Image src={hero.zoom.image} width={hero.zoom.w} height={hero.zoom.h} alt={hero.zoom.alt} sizes="(max-width: 760px) 92vw, 520px" priority />
+              <figcaption><span className="hp-dot red" />{hero.zoom.caption}</figcaption>
+            </figure>
+            <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-hero-quill" sizes="150px" />
           </div>
         </section>
 
         {/* PAIN */}
-        <section className="hp-pain" aria-labelledby="pain-title">
+        <section className="hp-pain" aria-labelledby="pain-title" data-nav="dark">
           <div className="hp-wrap hp-narrow">
             <p className="hp-eyebrow is-dark" data-reveal>{pain.eyebrow}</p>
             <h2 id="pain-title" className="sr-only">{pain.lines.join(" ")}</h2>
@@ -128,17 +136,25 @@ export function HomePage({ variant }: { variant?: string }) {
               {pain.lines.map(line => <p key={line} data-lit className="hp-pain-line">{line}</p>)}
             </div>
             <p className="hp-pain-answer" data-reveal>{pain.answer}</p>
+            <ul className="hp-contrast">
+              {pain.contrast.map((c, i) => (
+                <li key={c.title} data-reveal style={{ ["--d" as string]: `${i * 90}ms` }}>
+                  <strong>{c.title}</strong><span>{c.line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
         {/* STORY: pinned iPad */}
         <section id="how" className="hp-story" aria-labelledby="story-title" data-story data-active="write">
           <div className="hp-wrap">
-            <div className="hp-section-head" data-reveal>
-              <p className="hp-eyebrow">{story.eyebrow}</p>
-              <h2 id="story-title" className="hp-h2">{story.title}</h2>
-            </div>
             <div className="hp-story-grid">
+              <div className="hp-story-left">
+              <div className="hp-section-head hp-story-head" data-reveal>
+                <p className="hp-eyebrow">{story.eyebrow}</p>
+                <h2 id="story-title" className="hp-h2">{story.title}</h2>
+              </div>
               <ol className="hp-story-steps">
                 {story.steps.map(s => (
                   <li key={s.id} data-step={s.id} className="hp-step">
@@ -146,28 +162,43 @@ export function HomePage({ variant }: { variant?: string }) {
                     <h3 className="hp-h3">{s.title}</h3>
                     <p className="hp-body">{s.line}</p>
                     {s.id === "up" && (
-                      <p className="hp-score" aria-label="From 5 out of 7 to 7 out of 7">
-                        <span className="hp-score-old">5/7</span>
+                      <p className="hp-score">
+                        <span className="sr-only">From 5 out of 7 to 7 out of 7.</span>
+                        <span className="hp-score-old" aria-hidden="true">5/7</span>
                         <span className="hp-score-arrow" aria-hidden="true">→</span>
-                        <span className="hp-score-new"><span data-count="7" data-from="5">7</span>/7</span>
+                        <span className="hp-score-new" aria-hidden="true"><span data-count="7" data-from="5">7</span>/7<Burst className="hp-score-burst" /></span>
                       </p>
                     )}
-                    <div className="hp-step-media">
-                      <IPad src={s.image} alt={s.alt} fit={s.fit} />
-                    </div>
+                    <figure className="hp-step-media hp-loupe">
+                      <Image src={s.zoom.image} width={s.zoom.w} height={s.zoom.h} alt={s.alt} sizes="92vw" />
+                    </figure>
                   </li>
                 ))}
               </ol>
+              </div>
               <div className="hp-story-stage" aria-hidden="true">
-                <div className="hp-ipad hp-story-ipad">
-                  <div className="hp-ipad-screen">
+                <div className="hp-story-pin">
+                  <div className="hp-story-device">
+                    <div className="hp-ipad hp-story-ipad">
+                      <div className="hp-ipad-screen">
+                        {story.steps.map(s => (
+                          <Image key={s.id} src={s.image} alt="" width={2000} height={1500} data-screen={s.id}
+                            sizes="(max-width: 1200px) 55vw, 720px" className={s.fit === "contain" ? "is-contain" : ""} />
+                        ))}
+                      </div>
+                    </div>
                     {story.steps.map(s => (
-                      <Image key={s.id} src={s.image} alt="" width={2000} height={1500} data-screen={s.id}
-                        sizes="(max-width: 1200px) 55vw, 720px" className={s.fit === "contain" ? "is-contain" : ""} />
+                      <figure key={s.id} className={`hp-loupe hp-story-loupe is-${s.id}`} data-loupe={s.id}>
+                        <Image src={s.zoom.image} width={s.zoom.w} height={s.zoom.h} alt="" sizes="440px" />
+                      </figure>
                     ))}
                   </div>
                 </div>
               </div>
+            </div>
+            <div className="hp-story-cta" data-reveal>
+              <AppStoreBadge placement="story-end" height={52} />
+              <p>{story.cta}</p>
             </div>
           </div>
         </section>
@@ -180,7 +211,7 @@ export function HomePage({ variant }: { variant?: string }) {
               <h2 id="weak-title" className="hp-h2">{weak.title}</h2>
               <p className="hp-lede">{weak.line}</p>
               <ul className="hp-legend" aria-label="How Plumi rates each topic">
-                {weak.legend.map(l => <li key={l.label}><span className={`hp-dot ${l.tone}`} />{l.label}</li>)}
+                {weak.legend.map((l, i) => <li key={l.label}><span className={`hp-dot ${l.tone}`} />{l.label}{i === 0 && <Ring className="hp-legend-ring" />}</li>)}
               </ul>
             </div>
             <div data-reveal className="hp-zoom">
@@ -191,7 +222,7 @@ export function HomePage({ variant }: { variant?: string }) {
         </section>
 
         {/* QUESTIONS */}
-        <section className="hp-questions" aria-labelledby="q-title">
+        <section className="hp-questions" aria-labelledby="q-title" data-nav="dark">
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
               <p className="hp-eyebrow is-dark">{questions.eyebrow}</p>
@@ -204,7 +235,7 @@ export function HomePage({ variant }: { variant?: string }) {
                   <figure>
                     <div className="hp-diagram-paper">
                       <Image src={`/site/diagram-${d.id}.webp`} width={640} height={480} sizes="(max-width: 760px) 92vw, 340px"
-                        alt={`A ${d.label.toLowerCase()} diagram from a Plumi question.`} />
+                        alt={d.alt} />
                     </div>
                     <figcaption>{d.label}</figcaption>
                   </figure>
@@ -224,12 +255,13 @@ export function HomePage({ variant }: { variant?: string }) {
             <div className="hp-bento">
               {bento.tiles.map((t, i) => (
                 <article key={t.id} className={`hp-tile hp-tile-${t.id}`} data-reveal style={{ ["--d" as string]: `${(i % 3) * 80}ms` }}>
+                  {t.id === "focus" && <Image src="/site/plumi-focused.webp" alt="" width={700} height={732} sizes="64px" className="hp-perch hp-perch-focus" />}
                   <div className="hp-tile-copy">
                     <h3 className="hp-tile-title">{t.title}</h3>
                     <p className="hp-tile-line">{t.line}</p>
                   </div>
                   <div className="hp-tile-media">
-                    <Image src={t.image} width={t.w} height={t.h} alt={t.alt} sizes="(max-width: 760px) 92vw, 560px" />
+                    <Image src={t.image} width={t.w} height={t.h} alt={t.alt} sizes="(max-width: 760px) 80vw, 640px" />
                   </div>
                 </article>
               ))}
@@ -238,23 +270,24 @@ export function HomePage({ variant }: { variant?: string }) {
         </section>
 
         {/* IDENTITY */}
-        <section className="hp-identity" aria-labelledby="id-title">
+        <section className="hp-identity" aria-labelledby="id-title" data-nav="dark">
           <div className="hp-wrap hp-identity-grid">
             <div data-reveal>
               <p className="hp-eyebrow is-dark">{identity.eyebrow}</p>
               <h2 id="id-title" className="hp-h2 is-light">{identity.title}</h2>
               <p className="hp-lede is-light">{identity.line}</p>
             </div>
-            <div className="hp-grade" data-reveal aria-label="An example grade card: current grade B, predicted A, goal A star.">
-              <div className="hp-grade-card">
-                <div className="hp-grade-col"><span>Current</span><strong className="is-muted">B</strong></div>
-                <div className="hp-grade-rule" />
-                <div className="hp-grade-col"><span>Predicted</span><strong>A</strong></div>
-                <div className="hp-grade-rule" />
-                <div className="hp-grade-col"><span>Goal</span><strong className="is-goal">A*</strong></div>
+            <div className="hp-grade" data-reveal>
+              <div className="hp-grade-card" role="img" aria-label="An example grade card: predicted A, current B, goal A star.">
+                {identity.grades.map((g, i) => (
+                  <div key={g.label} className="hp-grade-cell">
+                    {i > 0 && <div className="hp-grade-rule" />}
+                    <div className="hp-grade-col"><span>{g.label}</span><strong className={g.tone}>{g.value}</strong></div>
+                  </div>
+                ))}
               </div>
               <div className="hp-grade-bar"><span /></div>
-              <p className="hp-grade-caption">An example. Your grades come from your own marked work.</p>
+              <p className="hp-grade-caption">{identity.caption}</p>
               <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-grade-quill" />
             </div>
           </div>
@@ -264,6 +297,7 @@ export function HomePage({ variant }: { variant?: string }) {
         <section className="hp-subjects" aria-labelledby="subjects-title">
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
+              <p className="hp-eyebrow">{subjects.eyebrow}</p>
               <h2 id="subjects-title" className="hp-h2">{subjects.title}</h2>
               <p className="hp-lede">{subjects.line}</p>
             </div>
@@ -274,6 +308,11 @@ export function HomePage({ variant }: { variant?: string }) {
                   <span className="hp-subject-level">GCSE · A-Level</span>
                   <strong>{s.name}</strong>
                   <span className="hp-subject-detail">{s.detail}</span>
+                  {"links" in s && (
+                    <span className="hp-subject-links">
+                      {s.links.map(l => <Link key={l.href} href={l.href} data-testid={`subject-${l.href.slice(1)}-link`}>{l.label} ›</Link>)}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -296,12 +335,15 @@ export function HomePage({ variant }: { variant?: string }) {
                 <p className="hp-plan-price"><strong>{pricing.free.price}</strong> <span>{pricing.free.period}</span></p>
                 <p className="hp-plan-lead">{pricing.free.lead}</p>
                 <ul>{pricing.free.items.map(i => <li key={i}>{i}</li>)}</ul>
+                <div className="hp-plan-cta"><AppStoreBadge placement="pricing-free" height={48} /></div>
               </article>
               <article className="hp-plan is-pro" data-reveal style={{ ["--d" as string]: "80ms" }}>
+                <Image src="/site/plumi-encouraging.webp" alt="" width={700} height={732} sizes="72px" className="hp-perch hp-perch-pro" />
+                <p className="hp-note hp-note-pro" aria-hidden="true"><ArrowBack className="hp-note-arrow" /><span>7 days free, then decide</span></p>
                 <p className="hp-plan-badge">7 days free</p>
                 <h3 className="hp-plan-name">{pricing.pro.name}</h3>
                 <p className="hp-plan-price"><strong>{pricing.pro.price}</strong> <span>{pricing.pro.period}</span></p>
-                <p className="hp-plan-billing">{pricing.pro.billing}</p>
+                <p className="hp-plan-billing">{pricing.pro.billing}<br />{pricing.pro.billing2}</p>
                 <p className="hp-plan-lead">{pricing.pro.lead}</p>
                 <ul>{pricing.pro.items.map(i => <li key={i}>{i}</li>)}</ul>
                 <div className="hp-plan-cta"><AppStoreBadge placement="pricing" height={48} /></div>
@@ -314,7 +356,7 @@ export function HomePage({ variant }: { variant?: string }) {
         {/* FAQ */}
         <section id="faq" className="hp-faq" aria-labelledby="faq-title">
           <div className="hp-wrap hp-narrow">
-            <h2 id="faq-title" className="hp-h2" data-reveal>Questions.</h2>
+            <h2 id="faq-title" className="hp-h2 hp-faq-title" data-reveal>{faqTitle}<Image src="/site/plumi-thinking.webp" alt="" width={700} height={732} sizes="72px" className="hp-perch hp-perch-faq" /></h2>
             <div className="hp-faq-list">
               {faq.map(f => (
                 <details key={f.q} className="hp-faq-item" data-testid="faq-item">
@@ -338,6 +380,7 @@ export function HomePage({ variant }: { variant?: string }) {
             <h2 id="close-title" className="hp-h2 is-xl">{close.title}</h2>
             <p className="hp-lede">{close.line}</p>
             <div className="hp-close-cta">
+              <p className="hp-note hp-note-close" aria-hidden="true"><span>free to download</span><LoopArrow className="hp-note-loop" /></p>
               <AppStoreBadge placement="close" height={56} />
               <div className="hp-qr">
                 <Image src="/site/qr-app-store.svg" alt="QR code linking to Plumi on the App Store" width={92} height={92} unoptimized />
