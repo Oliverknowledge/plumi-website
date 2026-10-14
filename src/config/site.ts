@@ -87,6 +87,77 @@ export const sameAs: readonly string[] = appStoreUrl ? [discordUrl, appStoreUrl]
 export const googleAdsId = "AW-18452791039";
 
 /**
+ * The Google Ads conversion labels for the site's two download signals.
+ *
+ * PLACEHOLDERS. Both are null until the founder creates the conversion actions
+ * in Google Ads (Goals > Conversions > New conversion action > Website > set up
+ * manually) and pastes each label, the part after the slash in
+ * `send_to: 'AW-18452791039/xxxxxxxx'`, into the Vercel environment variable
+ * named below, then redeploys. While a label is unset, `lib/adsConversion.ts`
+ * sends nothing for it.
+ *
+ *   appStoreClick  someone who can install (not on a phone) pressed a download
+ *                  button and left for the App Store.
+ *   sendToIpad     someone on a phone sent the App Store link on to their iPad
+ *                  (the share sheet completed, or a mail draft to themselves opened).
+ *
+ * Neither is a download. They are the last thing the website can see before the
+ * App Store takes over, which is why both belong in Google Ads as conversions
+ * now, and why the install itself has to come from the app (see the
+ * measurement plan in the founder's report).
+ */
+export const googleAdsConversionLabels = {
+  appStoreClick: process.env.NEXT_PUBLIC_GOOGLE_ADS_LABEL_APP_STORE_CLICK || null,
+  sendToIpad: process.env.NEXT_PUBLIC_GOOGLE_ADS_LABEL_SEND_TO_IPAD || null,
+} as const;
+export type AdsConversion = keyof typeof googleAdsConversionLabels;
+
+/**
+ * The App Store Connect provider token (`pt=`), for Apple's own install-source
+ * reporting (App Analytics > Campaigns).
+ *
+ * PLACEHOLDER. Null until the founder generates one campaign link in App Store
+ * Connect (App Analytics > Acquisition > Campaigns > Generate Campaign Link) and
+ * copies the `pt=` number from it into `NEXT_PUBLIC_APP_STORE_PROVIDER_TOKEN`.
+ * Apple says the token cannot be made up by hand. While it is unset every link
+ * below is the plain `appStoreUrl`, exactly as before.
+ */
+export const appStoreProviderToken: string | null = process.env.NEXT_PUBLIC_APP_STORE_PROVIDER_TOKEN || null;
+
+/**
+ * The campaign token (`ct=`) a link carries, by where on the site it was pressed.
+ *
+ * Deliberately coarse. Apple hides a campaign until it has five first-time
+ * downloads, so one token per placement (there are more than a dozen) would
+ * leave every row empty at launch volumes. Five buckets answer the questions
+ * worth asking: does the hero convert, does the phone handoff produce installs
+ * on the iPad, and does Safari's own banner do anything. At most 30 characters.
+ */
+export function appStoreCampaignToken(placement: string, via: "link" | "send" = "link"): string {
+  if (via === "send") return "web-send-to-ipad";
+  if (placement === "smart-banner") return "web-smart-banner";
+  if (placement === "header" || placement === "sticky_mobile") return "web-header";
+  if (placement === "hero" || placement.endsWith("-hero")) return "web-hero";
+  return "web-page";
+}
+
+/**
+ * The App Store link for one placement: `appStoreUrl` plus Apple's campaign
+ * tokens once a provider token is configured, or `appStoreUrl` untouched while
+ * it is not. Deterministic from the placement, so the server and the browser
+ * render the same `href`.
+ */
+export function appStoreLink(placement: string, via: "link" | "send" = "link"): string | null {
+  if (!appStoreUrl) return null;
+  if (!appStoreProviderToken) return appStoreUrl;
+  const url = new URL(appStoreUrl);
+  url.searchParams.set("pt", appStoreProviderToken);
+  url.searchParams.set("ct", appStoreCampaignToken(placement, via));
+  url.searchParams.set("mt", "8");
+  return url.toString();
+}
+
+/**
  * Where the tag is allowed to load.
  *
  * Production only, and never on a Vercel preview. A preview deployment firing
@@ -191,4 +262,4 @@ export function assertLaunchConfig(): void {
     throw new Error("Set a verified App Store URL before switching launchMode to appStore.");
   }
 }
-export function primaryCtaHref(): string { return launchMode === "appStore" ? appStoreUrl! : discordUrl; }
+export function primaryCtaHref(placement = "page"): string { return launchMode === "appStore" ? appStoreLink(placement)! : discordUrl; }

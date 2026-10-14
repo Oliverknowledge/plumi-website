@@ -34,7 +34,10 @@ export type PlumiEvent =
   | "comparison_viewed"
   | "pricing_viewed"
   | "faq_opened"
-  | "app_store_clicked";
+  | "app_store_clicked"
+  /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
+   *  The first two are also the Google Ads `sendToIpad` conversion. */
+  | "send_to_ipad_result";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 

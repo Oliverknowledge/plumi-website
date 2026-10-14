@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { activeCta, primaryCtaHref, primaryCtaKind, type CtaKind } from "@/config/site";
 import { track } from "@/lib/analytics";
+import { reportAdsConversion } from "@/lib/adsConversion";
 
 /**
  * The primary call to action, wherever it appears.
@@ -16,12 +17,17 @@ import { track } from "@/lib/analytics";
  * `app_store_clicked` are the destination-specific counts, so "how many people
  * went to Discord" is a question with an answer rather than a filter someone has
  * to remember to apply. The label is sent too, but nothing is keyed on it.
+ * An App Store click is also a Google Ads conversion (`lib/adsConversion.ts`),
+ * which sends nothing until its label is configured and nothing from a phone.
  */
 export function noteCtaClick(placement: string, kind: CtaKind, label: string, destination: string) {
   const host = safeHost(destination);
   track("cta_clicked", { placement, cta_kind: kind, label, destination: host });
   if (kind === "discord") track("discord_clicked", { placement });
-  if (kind === "app_store") track("app_store_clicked", { placement });
+  if (kind === "app_store") {
+    track("app_store_clicked", { placement });
+    reportAdsConversion("appStoreClick");
+  }
 }
 
 /** The host only. A full URL in an event is a query string waiting to leak. */
@@ -35,7 +41,7 @@ function safeHost(destination: string): string {
 }
 
 export function CtaButton({ placement, variant = "primary", size = "default", label, className = "", children }: { placement: string; variant?: "primary" | "secondary" | "ghost"; size?: "default" | "large" | "compact"; label?: string; className?: string; children?: ReactNode }) {
-  const href = primaryCtaHref();
+  const href = primaryCtaHref(placement);
   const kind = primaryCtaKind();
   const text = label ?? activeCta.primary;
   return <a href={href} target="_blank" rel="noopener noreferrer" data-testid={`${placement}-cta-button`} className={`story-button ${variant} ${size} ${className}`} onClick={() => noteCtaClick(placement, kind, text, href)}>

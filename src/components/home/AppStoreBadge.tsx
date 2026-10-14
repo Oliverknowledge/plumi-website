@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { appStoreUrl } from "@/config/site";
+import { appStoreLink } from "@/config/site";
 import { noteCtaClick } from "@/components/ui/CtaButton";
 import { track } from "@/lib/analytics";
+import { reportAdsConversion } from "@/lib/adsConversion";
 
 /**
  * Plumi is iPad only, and most ad traffic lands on a phone, where the App Store page
@@ -11,22 +12,33 @@ import { track } from "@/lib/analytics";
  * there is one, otherwise an email to themselves). CSS shows one of them: the button
  * on a small touch screen, the badge everywhere else, so a phone never sees, or taps,
  * a badge that leads nowhere, not even for a moment before the page hydrates.
+ *
+ * The link carries Apple's campaign tokens once a provider token is configured
+ * (`appStoreLink`), including the one that is sent on: opened on the iPad, it still
+ * says it came from the website's send-on, so App Analytics can count those installs.
  */
-const storeHref = () => appStoreUrl ?? "https://tryplumi.app";
+const storeHref = (placement: string, via: "link" | "send" = "link") => appStoreLink(placement, via) ?? "https://tryplumi.app";
 
-function emailLink() {
-  window.location.href = `mailto:?subject=${encodeURIComponent("Plumi for my iPad")}&body=${encodeURIComponent(storeHref())}`;
+function emailLink(placement: string) {
+  window.location.href = `mailto:?subject=${encodeURIComponent("Plumi for my iPad")}&body=${encodeURIComponent(storeHref(placement, "send"))}`;
+}
+
+/** The send-on's outcome, in our own analytics and, when it got the link out, as a Google Ads conversion. */
+function noteSendResult(placement: string, outcome: "sent" | "emailed" | "dismissed") {
+  track("send_to_ipad_result", { placement, outcome });
+  if (outcome !== "dismissed") reportAdsConversion("sendToIpad");
 }
 
 /** Sends the link on: "sent" by the share sheet, "emailed" when a mail draft was opened, "dismissed" when the sheet was closed. */
 async function sendToIPad(placement: string, label: string): Promise<"sent" | "emailed" | "dismissed"> {
-  const href = storeHref();
+  const href = storeHref(placement, "send");
   track("cta_clicked", { placement, cta_kind: "send_to_ipad", label, destination: href });
   if (navigator.share) {
-    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi marks your handwritten answers on iPad.", url: href }); return "sent"; }
-    catch { return "dismissed"; }
+    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi marks your handwritten answers on iPad.", url: href }); noteSendResult(placement, "sent"); return "sent"; }
+    catch { noteSendResult(placement, "dismissed"); return "dismissed"; }
   }
-  emailLink();
+  emailLink(placement);
+  noteSendResult(placement, "emailed");
   return "emailed";
 }
 
@@ -42,7 +54,7 @@ const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCo
  */
 export function AppStoreBadge({ placement, tone = "black", height = 52, showLine = false }: { placement: string; tone?: "black" | "white"; height?: number; showLine?: boolean }) {
   const [state, setState] = useState<SendState>("idle");
-  const href = storeHref();
+  const href = storeHref(placement);
   const width = Math.round((718 / 240) * height);
   return (
     <>
@@ -62,7 +74,7 @@ export function AppStoreBadge({ placement, tone = "black", height = 52, showLine
           {sendLabel(state, phoneCopy.button)}
         </button>
         {state === "dismissed"
-          ? <button type="button" className="hp-phone-email" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: phoneCopy.email, destination: "mailto" }); emailLink(); }}>{phoneCopy.email}</button>
+          ? <button type="button" className="hp-phone-email" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: phoneCopy.email, destination: "mailto" }); emailLink(placement); noteSendResult(placement, "emailed"); }}>{phoneCopy.email}</button>
           : showLine && <span className="hp-phone-line" aria-live="polite">{phoneCopy.line}</span>}
       </span>
     </>
@@ -82,7 +94,7 @@ export function HomeAnchor({ href, label, placement, className = "hp-link" }: { 
 /** The header's small pill: the badge's destination, or the phone's send-on (see above). */
 export function HeaderDownload() {
   const [state, setState] = useState<SendState>("idle");
-  const href = storeHref();
+  const href = storeHref("header");
   const label = state === "sent" ? "Sent" : state === "emailed" ? "Check email" : "Send to iPad";
   return (
     <>

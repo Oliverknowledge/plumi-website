@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { assertLaunchConfig, entityDescription, site } from "@/config/site";
+import { appStoreCampaignToken, appStoreProviderToken, assertLaunchConfig, entityDescription, site } from "@/config/site";
 import { intentFor } from "@/config/routes";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { GoogleAds } from "@/components/GoogleAds";
@@ -40,8 +40,12 @@ export const metadata: Metadata = {
     // Read by nothing that ranks, but it is the fastest way for a human — or an
     // LLM summarising the page — to get the one-line definition of the product.
     "description:entity": entityDescription,
-    // Safari on iPad turns this into an install banner above the page.
-    "apple-itunes-app": "app-id=6811389052",
+    // Safari on iPad turns this into an install banner above the page. Once a
+    // provider token is configured it carries Apple's campaign tokens too, so
+    // App Analytics can say how many installs the banner itself produced.
+    "apple-itunes-app": appStoreProviderToken
+      ? `app-id=6811389052, affiliate-data=pt=${appStoreProviderToken}&ct=${appStoreCampaignToken("smart-banner")}&mt=8`
+      : "app-id=6811389052",
   },
 };
 export const viewport: Viewport = { themeColor: "#fcfcf9", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };

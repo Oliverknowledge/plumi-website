@@ -17,12 +17,28 @@ advertising. Keeping the two apart means either can be switched off without the
 other, and the privacy notice can describe them separately because they are not
 the same claim.
 
-**It has no consent gate yet.** Under UK PECR an advertising cookie needs
-consent before it is set, and this site has no banner. The tag is the plain
-gtag.js snippet rather than a Consent Mode v2 default of `denied`, because
-defaulting every signal to denied with no way to grant would leave conversion
-reporting looking broken with no visible cause. Adding a banner and wiring
-`gtag('consent', ...)` is the next thing that file should grow.
+**Consent.** The tag runs Consent Mode v2 with every signal `denied` by default,
+and `ConsentBanner` grants them on Allow (see the comment in `GoogleAds.tsx`).
+
+**Conversions.** `src/lib/adsConversion.ts` sends two Google Ads conversions,
+each only once its label is set (see the table below):
+
+| Conversion | Fires when | Never fires |
+|---|---|---|
+| `appStoreClick` | an App Store button is pressed on an iPad or a computer | on a phone, which cannot install an iPad app |
+| `sendToIpad` | "Send it to my iPad" completes the share sheet, or opens the email draft | when the share sheet is dismissed |
+
+PostHog records the same moments as `app_store_clicked` and
+`send_to_ipad_result` (`outcome`: sent, emailed, dismissed), so the two can be
+reconciled. Neither is a download: the install happens in the App Store, out of
+the website's sight, and has to be reported by the app.
+
+**App Store campaign tokens.** Once `NEXT_PUBLIC_APP_STORE_PROVIDER_TOKEN` is
+set, every App Store link, the shared send-on link and the Smart App Banner
+carry `pt=`, `ct=` and `mt=8`, so App Store Connect > App Analytics > Campaigns
+shows installs by website surface (`web-hero`, `web-header`, `web-page`,
+`web-send-to-ipad`, `web-smart-banner`). See `appStoreCampaignToken` in
+`src/config/site.ts`.
 
 ## Turning it on
 
@@ -30,6 +46,9 @@ reporting looking broken with no visible cause. Adding a banner and wiring
 |---|---|
 | `NEXT_PUBLIC_POSTHOG_KEY` | Without it the module is inert: no script is loaded, no request is made |
 | `NEXT_PUBLIC_POSTHOG_HOST` | Defaults to `https://eu.i.posthog.com` |
+| `NEXT_PUBLIC_GOOGLE_ADS_LABEL_APP_STORE_CLICK` | Label of the Google Ads action "App Store click (web)". Unset: nothing is sent |
+| `NEXT_PUBLIC_GOOGLE_ADS_LABEL_SEND_TO_IPAD` | Label of the Google Ads action "Send to iPad (web)". Unset: nothing is sent |
+| `NEXT_PUBLIC_APP_STORE_PROVIDER_TOKEN` | The `pt=` number from an App Store Connect campaign link. Unset: links stay plain |
 
 PostHog is imported dynamically and only after a key is found, so a visitor with
 no key configured — or with an ad blocker — never pays for it and never sees an
