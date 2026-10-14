@@ -30,14 +30,18 @@ export const hero = {
   h1b: "Plumi marks it.",
   sub: "Exam-style questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see which marks you got, and which you lost.",
   note: "Free to download. 7 days of Pro free on the yearly plan.",
-  zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275, alt: "Close up of the handwritten working: M1 ticked, M2 crossed, and the final value 1.73 crossed for A1.", caption: "Method mark got. Accuracy mark lost on the final value." },
+  device: "For iPad, with iPadOS 17 or later.",
+  qr: "Scan with your iPad",
+  zoom: { image: "/site/loupe-mark.webp", w: 540, h: 155, alt: "Close up of the handwritten working: M2 crossed on the divider, and the final value 1.73 crossed for A1.", caption: "Lost: the 1.5 kΩ went on the wrong side of the divider." },
+  // Where the close-up sits on the full capture, as fractions of its width and height.
+  ring: { x: 0.3, y: 0.683, w: 0.27, h: 0.103 },
 } as const;
 
 export const pain = {
   eyebrow: "Sound familiar?",
   lines: [
-    "You do past papers on your iPad.",
-    "Screenshot the question. Paste it into AI.",
+    "You do a past paper.",
+    "Screenshot it. Paste it into AI.",
     "It never tells you which mark you lost.",
     "And by the end, what were you even weak at?",
   ],
@@ -62,6 +66,7 @@ export const story = {
       alt: "An exam-style A-Level Physics question about a light-dependent resistor circuit, with its circuit diagram, in Plumi.",
       fit: "contain" as const,
       zoom: { image: "/site/zoom-write.webp", w: 1170, h: 605 },
+      loupe: { image: "/site/loupe-write.webp", w: 570, h: 370 },
     },
     {
       id: "marked",
@@ -72,6 +77,7 @@ export const story = {
       alt: "A handwritten answer marked 3 out of 5 by Plumi, with a red cross on the line where an accuracy mark was lost.",
       fit: "cover" as const,
       zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275 },
+      loupe: { image: "/site/loupe-mark.webp", w: 540, h: 155 },
     },
     {
       id: "why",
@@ -82,6 +88,7 @@ export const story = {
       alt: "Plumi's mark scheme panel open beside a marked answer, showing which marks were awarded and why.",
       fit: "cover" as const,
       zoom: { image: "/site/zoom-why.webp", w: 960, h: 500 },
+      loupe: { image: "/site/loupe-why.webp", w: 450, h: 320 },
     },
     {
       id: "up",
@@ -92,6 +99,7 @@ export const story = {
       alt: "A re-marked answer in Plumi going from 5 out of 7 to 7 out of 7.",
       fit: "cover" as const,
       zoom: { image: "/site/zoom-up.webp", w: 587, h: 260 },
+      loupe: { image: "/site/loupe-up.webp", w: 315, h: 120 },
     },
   ],
   cta: "10 answers marked free, every week.",
@@ -100,20 +108,22 @@ export const story = {
 export const weak = {
   eyebrow: "Knows your gaps",
   title: "It knows what you’re weak at.",
-  line: "Every topic on your AQA, OCR or Edexcel specification, tracked as you practise. You never have to guess what to revise next.",
+  line: "Every topic on your AQA, OCR or Edexcel specification. Each mark you drop lands here, and your next practice is chosen from it.",
+  zoom: { image: "/site/zoom-map.webp", w: 940, h: 280, alt: "Close up of the topic map: Forces and motion and Foundations of physics, each topic a square marked strong, developing or needs attention." },
   legend: [
-    { label: "Needs attention", tone: "red" },
-    { label: "Rusty", tone: "orange" },
-    { label: "Developing", tone: "amber" },
-    { label: "Strong", tone: "green" },
-    { label: "Too early to tell", tone: "grey" },
+    // The app's own key (TopicGrid.swift): never colour alone, a glyph on every state.
+    { label: "Needs attention", tone: "red", glyph: "alert" },
+    { label: "Developing", tone: "amber", glyph: "half" },
+    { label: "Rusty", tone: "amber", glyph: "clock" },
+    { label: "Strong", tone: "green", glyph: "check" },
+    { label: "Too early to tell", tone: "grey", glyph: "none" },
   ],
 } as const;
 
 export const questions = {
   eyebrow: "Written for you",
   title: "Questions on your gaps. Diagrams included.",
-  line: "Original exam-style questions for your board, with the figure the real paper would draw.",
+  line: "Questions on the topics you keep dropping marks on, with the diagram drawn in.",
   diagrams: [
     { id: "d4", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
     { id: "d1", label: "Cyclotron", alt: "A cyclotron: two dees in a magnetic field with a spiral particle path from the source S." },
@@ -141,14 +151,14 @@ export const bento = {
 } as const;
 
 export const identity = {
-  eyebrow: "The habit",
-  title: "Make revision a habit.",
-  line: "Streaks, study time and a daily goal keep you coming back. Set the grade you’re aiming for and see where you stand.",
+  eyebrow: "Your grade",
+  title: "Know where you stand.",
+  line: "Set the grade you’re aiming for. See where your marked papers put you.",
   // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
   // Current comes only from board papers Plumi has marked, Goal is the student's.
   grades: [
     { label: "Predicted", value: "A", tone: "" },
-    { label: "Current", value: "B", tone: "is-muted" },
+    { label: "Current", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
   caption: "An example. Predicted is your school’s, Current comes from board papers Plumi has marked, Goal is yours.",
@@ -181,14 +191,16 @@ export const pricing = {
       "Handwriting, folders, PDFs, search and export",
       "10 answers marked a week",
       "5 practice questions a week",
-      "12 AI Pen answers and 1 tutor session a week",
+      "12 AI Pen answers a week: ask about anything you wrote",
+      "1 tutor session a week, on the page",
     ],
   },
   pro: {
     name: "Pro",
-    price: prices.yearlyPerMonth,
-    period: "a month, billed yearly",
-    billing: `${prices.trialDays} days free, then ${prices.yearly} a year.`,
+    // The sum actually charged leads; the monthly equivalent is the sub-line.
+    price: prices.yearly,
+    period: "a year",
+    billing: `That’s ${prices.yearlyPerMonth} a month. ${prices.trialDays} days free first.`,
     billing2: `Or ${prices.monthly} a month, no trial.`,
     lead: "Everything unlimited, for the run-up to your exams.",
     items: [
@@ -198,7 +210,7 @@ export const pricing = {
       "Block distracting apps in every Focus session",
     ],
   },
-  small: "Subscriptions renew automatically. Cancel any time in Settings, at least 24 hours before renewal.",
+  small: "Needs an iPad with iPadOS 17 or later. Subscriptions renew automatically. Cancel any time in Settings, at least 24 hours before renewal.",
 } as const;
 
 export const faq = [
@@ -232,7 +244,7 @@ export const faq = [
   },
 ] as const;
 
-export const faqTitle = "Plumi questions, answered.";
+export const faqTitle = "Questions about Plumi";
 
 export const close = {
   title: "Your next mark is one answer away.",

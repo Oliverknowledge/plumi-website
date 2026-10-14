@@ -521,3 +521,13 @@ body {
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
+
+/* The ad-cookie question (ConsentBanner): small, bottom corner, the app's chunky key. */
+.consent { position: fixed; z-index: 90; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 360px; padding: 16px 18px; border-radius: 18px; background: #fff; color: #16202e; border: 2px solid #e3e5e9; box-shadow: 0 4px 0 #e3e5e9, 0 18px 40px -20px rgba(16, 24, 40, 0.35); font-size: 14px; line-height: 1.45; }
+.consent p { margin: 0 0 12px; }
+.consent-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.consent button { appearance: none; cursor: pointer; font: inherit; font-weight: 700; border-radius: 980px; padding: 8px 16px; border: 2px solid #e3e5e9; background: #fff; color: #16202e; }
+.consent button.is-primary { border-color: #2158d4; background: #2158d4; color: #fff; box-shadow: 0 3px 0 #173a8a; }
+.consent button:focus-visible { outline: 3px solid #3b74ee; outline-offset: 2px; }
+@media (max-width: 640px) { .consent { left: 12px; right: 12px; max-width: none; } }
+.skip-content { z-index: 100; background: #2158d4; color: white; padding: 14px; left: 15px; top: 15px; }

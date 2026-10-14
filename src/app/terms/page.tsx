@@ -1,3 +1,5 @@
+import "../story.css";
+import "../quill.css";
 import type { Metadata } from "next";
 
 import { LegalDocument } from "@/components/LegalDocument";

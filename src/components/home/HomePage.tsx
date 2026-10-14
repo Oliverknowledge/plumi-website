@@ -7,7 +7,8 @@ import { site } from "@/config/site";
 import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge, HeaderDownload, HomeAnchor } from "./AppStoreBadge";
 import { HomeMotion } from "./Motion";
-import { ArrowBack, Burst, LoopArrow, Ring, Sparkle, Underline } from "./Doodles";
+import { Burst, Ring, Underline } from "./Doodles";
+import { BentoDots } from "./BentoDots";
 import { bento, close, faq, faqTitle, hero, identity, pain, pricing, questions, story, subjects, weak } from "@/content/home";
 import "@/app/home.css";
 
@@ -31,13 +32,14 @@ const hand = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-han
  *
  * Every product image is a real capture from the app (see src/content/home.ts).
  */
-function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px" }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string }) {
+function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px", children }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string; children?: ReactNode }) {
   return (
     <div className={`hp-ipad ${className}`}>
       <div className="hp-ipad-screen">
         <Image src={src} alt={alt} width={2000} height={1500} priority={priority}
           sizes={sizes}
           className={fit === "contain" ? "is-contain" : ""} />
+        {children}
       </div>
     </div>
   );
@@ -52,6 +54,18 @@ function SubjectGlyph({ name }: { name: string }) {
     Biology: <path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15Zm0 0 7-7" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />,
   };
   return <span className="hp-subject-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24">{paths[name]}</svg></span>;
+}
+
+/** The app's topic square: a coloured tile with a glyph, so no state is colour alone. */
+function TopicGlyph({ tone, glyph }: { tone: string; glyph: string }) {
+  const paths: Record<string, ReactNode> = {
+    alert: <><path d="M12 5 20 19H4Z" fill="#fff" /><path d="M12 10.2v4" stroke="var(--tone-c)" strokeWidth="2" strokeLinecap="round" /><circle cx="12" cy="16.6" r="1.1" fill="var(--tone-c)" /></>,
+    half: <><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" strokeWidth="2" /><path d="M12 5.8a6.2 6.2 0 0 1 0 12.4Z" fill="#fff" /></>,
+    clock: <><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" strokeWidth="2" /><path d="M12 8.6V12l2.4 1.6" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></>,
+    check: <path d="m7.5 12.4 3 3 6-6.4" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />,
+    none: null,
+  };
+  return <svg className={`hp-topic ${tone}`} viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect width="24" height="24" rx="6" className="hp-topic-tile" />{paths[glyph]}</svg>;
 }
 
 /** Apple's footer: fine print first, then the links, then the line. */
@@ -105,25 +119,30 @@ export function HomePage({ variant }: { variant?: string }) {
           <div className="hp-wrap hp-hero-copy">
             <p className="hp-eyebrow hp-rise" style={{ ["--d" as string]: "0ms" }}>{hero.eyebrow}</p>
             <h1 id="hero-title" className="hp-hero-title" data-testid="hero-headline">
-              <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>
-              <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /><Sparkle className="hp-hero-spark" /></span>
+              <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>{" "}
+              <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
             <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}>{hero.sub}</p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
               <AppStoreBadge placement="hero" height={56} />
-              <HomeAnchor href="#how" label="See how it marks" placement="hero-how" />
+              <div className="hp-hero-qr" aria-hidden="true">
+                <Image src="/site/qr-app-store.svg" alt="" width={56} height={56} unoptimized />
+                <span>{hero.qr}</span>
+              </div>
             </div>
-            <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">For iPad.</span></p>
+            <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" />
+            <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">{hero.device}</span></p>
           </div>
           <div className="hp-hero-stage">
             <IPad src="/site/shot-mark.webp" priority className="hp-hero-ipad"
               sizes="(max-width: 760px) 92vw, (max-width: 1100px) 90vw, 1040px"
-              alt="Plumi on iPad: a handwritten A-Level Physics answer marked 3 out of 5, with ticks, crosses and the mark breakdown." />
+              alt="Plumi on iPad: a handwritten A-Level Physics answer marked 3 out of 5, with ticks, crosses and the mark breakdown.">
+              <span className="hp-ring" aria-hidden="true" style={{ left: `${hero.ring.x * 100}%`, top: `${hero.ring.y * 100}%`, width: `${hero.ring.w * 100}%`, height: `${hero.ring.h * 100}%` }} />
+            </IPad>
             <figure className="hp-loupe hp-hero-loupe">
               <Image src={hero.zoom.image} width={hero.zoom.w} height={hero.zoom.h} alt={hero.zoom.alt} sizes="(max-width: 760px) 92vw, 520px" priority />
-              <figcaption><span className="hp-mark-chip is-got">M1</span><span className="hp-mark-chip is-lost">A1</span>{hero.zoom.caption}</figcaption>
+              <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span><span>{hero.zoom.caption}</span></figcaption>
             </figure>
-            <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-hero-quill" sizes="150px" />
           </div>
         </section>
 
@@ -189,7 +208,7 @@ export function HomePage({ variant }: { variant?: string }) {
                     </div>
                     {story.steps.map(s => (
                       <figure key={s.id} className={`hp-loupe hp-story-loupe is-${s.id}`} data-loupe={s.id}>
-                        <Image src={s.zoom.image} width={s.zoom.w} height={s.zoom.h} alt="" sizes="440px" />
+                        <Image src={s.loupe.image} width={s.loupe.w} height={s.loupe.h} alt="" sizes="440px" />
                       </figure>
                     ))}
                   </div>
@@ -211,9 +230,12 @@ export function HomePage({ variant }: { variant?: string }) {
               <h2 id="weak-title" className="hp-h2">{weak.title}</h2>
               <p className="hp-lede">{weak.line}</p>
               <ul className="hp-legend" aria-label="How Plumi rates each topic">
-                {weak.legend.map((l, i) => <li key={l.label}><span className={`hp-dot ${l.tone}`} />{l.label}{i === 0 && <Ring className="hp-legend-ring" />}</li>)}
+                {weak.legend.map((l, i) => <li key={l.label}><TopicGlyph tone={l.tone} glyph={l.glyph} />{l.label}{i === 0 && <Ring className="hp-legend-ring" />}</li>)}
               </ul>
             </div>
+            <figure className="hp-loupe hp-map-zoom">
+              <Image src={weak.zoom.image} width={weak.zoom.w} height={weak.zoom.h} alt={weak.zoom.alt} sizes="92vw" />
+            </figure>
             <div data-reveal className="hp-zoom">
               <IPad src="/site/shot-map.webp" className="is-wide"
                 alt="Plumi's course map for OCR A-Level Physics: every topic on the specification as a square coloured by how well you know it." />
@@ -252,10 +274,9 @@ export function HomePage({ variant }: { variant?: string }) {
               <p className="hp-eyebrow">{bento.eyebrow}</p>
               <h2 id="bento-title" className="hp-h2">{bento.title}</h2>
             </div>
-            <div className="hp-bento">
+            <div className="hp-bento" id="hp-bento">
               {bento.tiles.map((t, i) => (
                 <article key={t.id} className={`hp-tile hp-tile-${t.id}`} data-reveal style={{ ["--d" as string]: `${(i % 3) * 80}ms` }}>
-                  {t.id === "focus" && <Image src="/site/plumi-focused.webp" alt="" width={700} height={732} sizes="64px" className="hp-perch hp-perch-focus" />}
                   <div className="hp-tile-copy">
                     <h3 className="hp-tile-title">{t.title}</h3>
                     <p className="hp-tile-line">{t.line}</p>
@@ -266,6 +287,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 </article>
               ))}
             </div>
+            <BentoDots count={bento.tiles.length} target="hp-bento" />
           </div>
         </section>
 
@@ -339,7 +361,6 @@ export function HomePage({ variant }: { variant?: string }) {
               </article>
               <article className="hp-plan is-pro" data-reveal style={{ ["--d" as string]: "80ms" }}>
                 <Image src="/site/plumi-encouraging.webp" alt="" width={700} height={732} sizes="72px" className="hp-perch hp-perch-pro" />
-                <p className="hp-note hp-note-pro" aria-hidden="true"><ArrowBack className="hp-note-arrow" /><span>7 days free, then decide</span></p>
                 <p className="hp-plan-badge">7 days free</p>
                 <h3 className="hp-plan-name">{pricing.pro.name}</h3>
                 <p className="hp-plan-price"><strong>{pricing.pro.price}</strong> <span>{pricing.pro.period}</span></p>
@@ -356,7 +377,7 @@ export function HomePage({ variant }: { variant?: string }) {
         {/* FAQ */}
         <section id="faq" className="hp-faq" aria-labelledby="faq-title">
           <div className="hp-wrap hp-narrow">
-            <h2 id="faq-title" className="hp-h2 hp-faq-title" data-reveal>{faqTitle}<Image src="/site/plumi-thinking.webp" alt="" width={700} height={732} sizes="72px" className="hp-perch hp-perch-faq" /></h2>
+            <h2 id="faq-title" className="hp-h2 hp-faq-title" data-reveal>{faqTitle}</h2>
             <div className="hp-faq-list">
               {faq.map(f => (
                 <details key={f.q} className="hp-faq-item" data-testid="faq-item">
@@ -380,7 +401,6 @@ export function HomePage({ variant }: { variant?: string }) {
             <h2 id="close-title" className="hp-h2 is-xl">{close.title}</h2>
             <p className="hp-lede">{close.line}</p>
             <div className="hp-close-cta">
-              <p className="hp-note hp-note-close" aria-hidden="true"><span>free to download</span><LoopArrow className="hp-note-loop" /></p>
               <AppStoreBadge placement="close" height={56} />
               <div className="hp-qr">
                 <Image src="/site/qr-app-store.svg" alt="QR code linking to Plumi on the App Store" width={92} height={92} unoptimized />

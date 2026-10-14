@@ -1,5 +1,6 @@
 import Script from "next/script";
 import { googleAdsEnabled, googleAdsId } from "@/config/site";
+import { CONSENT_KEY } from "@/lib/consent";
 
 /**
  * Google Ads conversion tracking. Renders nothing visible.
@@ -20,11 +21,10 @@ import { googleAdsEnabled, googleAdsId } from "@/config/site";
  * privacy notice now names advertising cookies instead of denying them.
  *
  * **Consent.** Under UK PECR an advertising cookie needs consent before it is
- * set, and this site has no consent banner yet. The tag is deliberately written
- * as the plain snippet rather than wired to a Consent Mode default, because
- * silently defaulting every consent signal to `denied` would leave conversion
- * reporting looking broken with no visible cause. Adding a banner and Consent
- * Mode v2 is one function call away and is the next thing this file should grow.
+ * set, and most visitors here are 15 to 18. So the tag runs Consent Mode v2 with
+ * every signal `denied` by default: no `_gcl_au` cookie is written, and Google gets
+ * only cookieless pings it can model conversions from. A visitor who taps Allow in
+ * `ConsentBanner` is granted, and the choice is remembered on their device.
  */
 export function GoogleAds() {
   if (!googleAdsEnabled()) return null;
@@ -38,6 +38,8 @@ export function GoogleAds() {
       <Script id="google-ads-gtag" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', wait_for_update: 500 });
+try { if (localStorage.getItem('${CONSENT_KEY}') === 'granted') gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' }); } catch (e) {}
 gtag('js', new Date());
 gtag('config', '${googleAdsId}');`}
       </Script>
