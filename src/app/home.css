@@ -605,5 +605,19 @@ a.hp-diagram-subject:hover { text-decoration: underline; }
   .hp-subject-hero .hp-hero-stage:not(:has(.hp-ipad)) .hp-subject-loupe { order: 2; margin: 18px auto 0; }
 }
 .hp-pill { min-height: 36px; display: inline-flex; align-items: center; }
-.hp-versus-empty { display: flex !important; justify-content: space-between; align-items: flex-start; margin-top: 12px; max-width: 320px; min-height: 128px; padding: 12px 14px; border: 1.5px dashed #3a3a3f; border-radius: 14px; color: #6e6e73; font-size: 15px; font-weight: 600; }
-.hp-versus li div > span.hp-versus-empty { margin-top: 12px; color: #6e6e73; }
+.hp-versus-empty { display: flex !important; justify-content: space-between; align-items: flex-start; margin-top: 12px; max-width: 320px; min-height: 128px; padding: 12px 14px; border: 1.5px dashed #4a4a50; border-radius: 14px; color: #98989d; font-size: 15px; font-weight: 600; }
+.hp-versus li div > span.hp-versus-empty { margin-top: 12px; color: #98989d; }
+
+/* ── round 11 ───────────────────────────────────────────────────────────── */
+.hp-sub-line { display: block; }
+@media (max-width: 760px) {
+  .hp-versus-empty { min-height: 0 !important; padding: 10px 14px !important; }
+  .hp-subject-figure figcaption { text-align: center; text-wrap: balance; }
+  .is-subject .hp-h1b { display: block; text-wrap: balance; }
+}
+@media (max-width: 1100px) {
+  .hp-subject-hero .hp-hero-stage:not(:has(.hp-ipad)) .hp-subject-loupe { position: static; width: min(480px, 92%); margin: 18px auto 0; }
+}
+@media (min-width: 1101px) {
+  .hp-subject-hero .hp-hero-stage:not(:has(.hp-ipad)) .hp-subject-loupe { left: -12%; bottom: 8%; width: 44%; }
+}

@@ -82,9 +82,9 @@ export const story = {
       title: "Every line, marked.",
       line: "Ticks and crosses land on your page: method marks, accuracy marks, and the exact line a mark was lost.",
       image: "/site/shot-mark.webp",
-      alt: "A handwritten answer marked 3 out of 5 by Plumi, with a red cross on the line where an accuracy mark was lost.",
+      alt: "A handwritten explanation for part (b), with both marks, B1 and B2, ticked by Plumi on the lines that earned them.",
       fit: "cover" as const,
-      zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275 },
+      zoom: { image: "/site/zoom-mark-b.webp", w: 1115, h: 160 },
       loupe: { image: "/site/loupe-mark4.webp", w: 885, h: 148 },
     },
     {

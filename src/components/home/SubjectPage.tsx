@@ -51,7 +51,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{content.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{content.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
-            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{content.sub}</span><span className="hp-sub-short">{content.subShort}</span></p>
+            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{content.sub}</span><span className="hp-sub-short">{content.subShort.split(". ").map((t, i, a) => <span key={i} className="hp-sub-line">{t}{i < a.length - 1 ? "." : ""}</span>)}</span></p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
               <AppStoreBadge placement={`${content.slug}-hero`} height={56} showLine />
               <div className="hp-hero-qr" aria-hidden="true">

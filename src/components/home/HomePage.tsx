@@ -125,7 +125,7 @@ export function HomePage({ variant }: { variant?: string }) {
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
-            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{hero.sub}</span><span className="hp-sub-short">{hero.subShort}</span></p>
+            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{hero.sub}</span><span className="hp-sub-short">{hero.subShort.split(". ").map((t, i, a) => <span key={i} className="hp-sub-line">{t}{i < a.length - 1 ? "." : ""}</span>)}</span></p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
               <AppStoreBadge placement="hero" height={56} showLine />
               <div className="hp-hero-qr" aria-hidden="true">
@@ -175,7 +175,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 <ul>
                   {pain.us.rows.map(r => (
                     <li key={r.title}><span className="hp-versus-mark is-yes" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span>
-                      {"proof" in r && <span className="hp-versus-proof"><Image src="/site/part-a2.webp" width={568} height={227} sizes="320px" alt="Plumi's marking panel for part (a): M1 awarded, M2 not awarded, A1 not the value the scheme gives, 1 out of 3." /></span>}
+                      {"proof" in r && <span className="hp-versus-proof"><Image src="/site/part-a3.webp" width={540} height={227} sizes="320px" alt="Plumi's marking panel for part (a): M1 awarded, M2 not awarded, A1 not the value the scheme gives, 1 out of 3." /></span>}
                     </div></li>
                   ))}
                 </ul>
