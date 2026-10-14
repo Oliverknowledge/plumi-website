@@ -7,7 +7,7 @@ import { site } from "@/config/site";
 import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge, HeaderDownload, HomeAnchor } from "./AppStoreBadge";
 import { HomeMotion } from "./Motion";
-import { Burst, Ring, Underline } from "./Doodles";
+import { Ring, Underline } from "./Doodles";
 import { BentoDots } from "./BentoDots";
 import { bento, close, faq, faqTitle, hero, identity, pain, pricing, questions, story, subjects, weak } from "@/content/home";
 import "@/app/home.css";
@@ -122,7 +122,7 @@ export function HomePage({ variant }: { variant?: string }) {
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
-            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}>{hero.sub}</p>
+            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{hero.sub}</span><span className="hp-sub-short">{hero.subShort}</span></p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
               <AppStoreBadge placement="hero" height={56} />
               <div className="hp-hero-qr" aria-hidden="true">
@@ -130,8 +130,8 @@ export function HomePage({ variant }: { variant?: string }) {
                 <span>{hero.qr}</span>
               </div>
             </div>
-            <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" />
             <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">{hero.device}</span></p>
+            <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" />
           </div>
           <div className="hp-hero-stage">
             <IPad src="/site/shot-mark.webp" priority className="hp-hero-ipad"
@@ -180,14 +180,6 @@ export function HomePage({ variant }: { variant?: string }) {
                     <p className="hp-step-kicker">{s.kicker}</p>
                     <h3 className="hp-h3">{s.title}</h3>
                     <p className="hp-body">{s.line}</p>
-                    {s.id === "up" && (
-                      <p className="hp-score">
-                        <span className="sr-only">From 5 out of 7 to 7 out of 7.</span>
-                        <span className="hp-score-old" aria-hidden="true">5/7</span>
-                        <span className="hp-score-arrow" aria-hidden="true">→</span>
-                        <span className="hp-score-new" aria-hidden="true"><span data-count="7" data-from="5">7</span>/7<Burst className="hp-score-burst" /></span>
-                      </p>
-                    )}
                     <figure className="hp-step-media hp-loupe">
                       <Image src={s.zoom.image} width={s.zoom.w} height={s.zoom.h} alt={s.alt} sizes="92vw" />
                     </figure>
@@ -236,10 +228,18 @@ export function HomePage({ variant }: { variant?: string }) {
             <figure className="hp-loupe hp-map-zoom">
               <Image src={weak.zoom.image} width={weak.zoom.w} height={weak.zoom.h} alt={weak.zoom.alt} sizes="92vw" />
             </figure>
+            <figure className="hp-loupe hp-map-zoom">
+              <Image src={weak.next.image} width={weak.next.w} height={weak.next.h} alt={weak.next.alt} sizes="92vw" />
+              <figcaption>{weak.next.caption}</figcaption>
+            </figure>
             <div data-reveal className="hp-zoom">
               <IPad src="/site/shot-map.webp" className="is-wide"
-                alt="Plumi's course map for OCR A-Level Physics: every topic on the specification as a square coloured by how well you know it." />
+                alt="Plumi's course map for OCR A-Level Physics: every topic on the specification as a square coloured by how well you know it, with practice suggestions picked from it.">
+                <span className="hp-ring" aria-hidden="true" style={{ left: `${weak.next.ring.x * 100}%`, top: `${weak.next.ring.y * 100}%`, width: `${weak.next.ring.w * 100}%`, height: `${weak.next.ring.h * 100}%` }} />
+              </IPad>
+              <p className="hp-map-caption"><span className="hp-map-caption-dot" />{weak.next.caption}</p>
             </div>
+            <div className="hp-section-cta" data-reveal><AppStoreBadge placement="weak-end" height={48} /></div>
           </div>
         </section>
 
@@ -259,7 +259,7 @@ export function HomePage({ variant }: { variant?: string }) {
                       <Image src={`/site/diagram-${d.id}.webp`} width={640} height={480} sizes="(max-width: 760px) 92vw, 340px"
                         alt={d.alt} />
                     </div>
-                    <figcaption>{d.label}</figcaption>
+                    <figcaption><span className="hp-diagram-subject">{d.subject}</span>{d.label}</figcaption>
                   </figure>
                 </li>
               ))}
@@ -308,7 +308,6 @@ export function HomePage({ variant }: { variant?: string }) {
                   </div>
                 ))}
               </div>
-              <div className="hp-grade-bar"><span /></div>
               <p className="hp-grade-caption">{identity.caption}</p>
               <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-grade-quill" />
             </div>

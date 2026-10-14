@@ -25,8 +25,8 @@ function emailLink() {
   window.location.href = `mailto:?subject=${encodeURIComponent("Plumi for my iPad")}&body=${encodeURIComponent(storeHref())}`;
 }
 
-/** Sends the link on; resolves "sent", or "dismissed" when the share sheet was closed. */
-async function sendToIPad(placement: string, label: string): Promise<"sent" | "dismissed"> {
+/** Sends the link on: "sent" by the share sheet, "emailed" when a mail draft was opened, "dismissed" when the sheet was closed. */
+async function sendToIPad(placement: string, label: string): Promise<"sent" | "emailed" | "dismissed"> {
   const href = storeHref();
   track("cta_clicked", { placement, cta_kind: "send_to_ipad", label, destination: href });
   if (navigator.share) {
@@ -34,10 +34,13 @@ async function sendToIPad(placement: string, label: string): Promise<"sent" | "d
     catch { return "dismissed"; }
   }
   emailLink();
-  return "sent";
+  return "emailed";
 }
 
-export const phoneCopy = { line: "Plumi is for iPad.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", email: "Email me the link instead" } as const;
+export const phoneCopy = { line: "Plumi is for iPad, with iPadOS 17 or later.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", emailed: "Now send that email to yourself.", email: "Email me the link instead" } as const;
+
+type SendState = "idle" | "sent" | "emailed" | "dismissed";
+const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCopy.sent : state === "emailed" ? phoneCopy.emailed : idle;
 
 /**
  * Apple's own "Download on the App Store" artwork: never redrawn, recoloured or
@@ -46,12 +49,12 @@ export const phoneCopy = { line: "Plumi is for iPad.", button: "Send it to my iP
  */
 export function AppStoreBadge({ placement, tone = "black", height = 52 }: { placement: string; tone?: "black" | "white"; height?: number }) {
   const isPhone = useIsPhone();
-  const [state, setState] = useState<"idle" | "sent" | "dismissed">("idle");
+  const [state, setState] = useState<SendState>("idle");
   if (isPhone) {
     return (
       <span className="hp-phone" data-testid={`${placement}-phone-hint`}>
         <button type="button" className="hp-phone-button" onClick={async () => setState(await sendToIPad(placement, phoneCopy.button))}>
-          {state === "sent" ? phoneCopy.sent : phoneCopy.button}
+          {sendLabel(state, phoneCopy.button)}
         </button>
         {state === "dismissed"
           ? <button type="button" className="hp-phone-email" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: phoneCopy.email, destination: "mailto" }); emailLink(); }}>{phoneCopy.email}</button>
@@ -89,8 +92,10 @@ export function HomeAnchor({ href, label, placement, className = "hp-link" }: { 
 /** The header's small pill: the badge's destination, or the phone's send-on. */
 export function HeaderDownload() {
   const isPhone = useIsPhone();
+  const [state, setState] = useState<SendState>("idle");
   if (isPhone) {
-    return <button type="button" className="hp-pill" data-testid="header-cta-button" onClick={() => sendToIPad("header", "Send to iPad")}>Send to iPad</button>;
+    const label = state === "sent" ? "Sent" : state === "emailed" ? "Check email" : "Send to iPad";
+    return <button type="button" className="hp-pill" data-testid="header-cta-button" aria-live="polite" onClick={async () => setState(await sendToIPad("header", "Send to iPad"))}>{label}</button>;
   }
   const href = storeHref();
   return (

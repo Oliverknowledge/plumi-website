@@ -24,9 +24,9 @@ export function BentoDots({ count, target }: { count: number; target: string }) 
     card?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
   };
   return (
-    <div className="hp-dots" role="tablist" aria-label="Features">
+    <div className="hp-dots" aria-label="Features">
       {Array.from({ length: count }, (_, i) => (
-        <button key={i} type="button" role="tab" aria-selected={i === active} aria-label={`Feature ${i + 1} of ${count}`}
+        <button key={i} type="button" aria-current={i === active ? "true" : undefined} aria-label={`Show feature ${i + 1} of ${count}`}
           className={i === active ? "is-on" : ""} onClick={() => go(i)} />
       ))}
     </div>

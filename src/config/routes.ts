@@ -91,10 +91,10 @@ export const routeIntents: readonly RouteIntent[] = [
     secondaryQueries: ["Goodnotes vs Plumi", "free Goodnotes alternative iPad", "Notability alternative students", "note taking app that tutors you"],
     intent: "Compare against the note app I already pay for.",
     objective: "Be scrupulously fair about Goodnotes, and clear about the one thing it does not do.",
-    title: "Goodnotes Alternative for Students — Notes That Tutor",
+    title: "Goodnotes Alternative for Students: Notes That Tutor",
     h1: "A Goodnotes alternative that teaches, not just stores",
     description:
-      "Everything you expect from a notes app — handwriting, folders, PDFs — free. The difference is Plumi reads what you wrote and helps you with it.",
+      "Everything you expect from a notes app, from handwriting to folders and PDFs, free. The difference is Plumi reads what you wrote and helps you with it.",
     linksTo: ["/ai-tutor-for-a-level-maths", "/"],
     changeFrequency: "monthly",
     priority: 0.8,
@@ -105,7 +105,7 @@ export const routeIntents: readonly RouteIntent[] = [
     secondaryQueries: ["Plumi about", "who makes Plumi", "Plumi study app company"],
     intent: "Work out who is behind this and whether it is credible.",
     objective: "State plainly what Plumi is, who it is for, and why it exists. No invented history.",
-    title: "About Plumi — The AI Study Notebook",
+    title: "About Plumi: The GCSE and A-Level Revision App",
     h1: "About Plumi",
     description:
       "Plumi is an AI study notebook built for students who work things out by hand. What it is, who it is for, and why we are building it.",
