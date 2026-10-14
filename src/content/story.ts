@@ -81,7 +81,7 @@ export const comparison = {
     { label: "Marks it against your board’s mark scheme", plumi: yes, others: [no("Marks on general knowledge"), yes, no()] },
     { label: "Knows your specification", plumi: yes, others: [no("Usually general, not board-specific"), yes, no()] },
     { label: "Remembers every piece of work, not every conversation", plumi: yes, others: [no("Varies; often per conversation"), yes, no()] },
-    { label: "Turns the marks you lost into the next question", plumi: yes, others: [yes, yes, no()] },
+    { label: "Keeps a map of the topics your marks show you need", plumi: yes, others: [yes, yes, no()] },
     { label: "There at eleven the night before", plumi: yes, others: [yes, no("Booked sessions"), yes] },
     { label: "Is also your notebook", plumi: yes, others: [no(), no(), yes] },
   ],
