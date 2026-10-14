@@ -121,7 +121,7 @@ export function HomePage({ variant }: { variant?: string }) {
               alt="Plumi on iPad: a handwritten A-Level Physics answer marked 3 out of 5, with ticks, crosses and the mark breakdown." />
             <figure className="hp-loupe hp-hero-loupe">
               <Image src={hero.zoom.image} width={hero.zoom.w} height={hero.zoom.h} alt={hero.zoom.alt} sizes="(max-width: 760px) 92vw, 520px" priority />
-              <figcaption><span className="hp-dot red" />{hero.zoom.caption}</figcaption>
+              <figcaption><span className="hp-mark-chip is-got">M1</span><span className="hp-mark-chip is-lost">A1</span>{hero.zoom.caption}</figcaption>
             </figure>
             <Image src="/site/plumi-celebrating.webp" alt="" width={700} height={732} className="hp-hero-quill" sizes="150px" />
           </div>

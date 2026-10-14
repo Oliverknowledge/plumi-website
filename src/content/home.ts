@@ -30,7 +30,7 @@ export const hero = {
   h1b: "Plumi marks it.",
   sub: "Exam-style questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see which marks you got, and which you lost.",
   note: "Free to download. 7 days of Pro free on the yearly plan.",
-  zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275, alt: "Close up of the handwritten working: M1 ticked, M2 crossed, and the final value 1.73 crossed for A1.", caption: "A1 is the accuracy mark. Lost on the final value." },
+  zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275, alt: "Close up of the handwritten working: M1 ticked, M2 crossed, and the final value 1.73 crossed for A1.", caption: "Method mark got. Accuracy mark lost on the final value." },
 } as const;
 
 export const pain = {
