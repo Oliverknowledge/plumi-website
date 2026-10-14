@@ -16,8 +16,17 @@ import { site } from "@/config/site";
  * against the canonical domain, so the copy of this page served from any other
  * host still points home.
  */
+/** The share card for a path: a subject page has its own, every other page the homepage's. */
+function shareImageFor(path: string) {
+  const subject = { "/physics-revision": "physics", "/chemistry-revision": "chemistry", "/biology-revision": "biology" }[path];
+  return subject
+    ? { url: `/og-${subject}.png`, width: 1200, height: 630, alt: `${subject[0].toUpperCase()}${subject.slice(1)} revision that marks your working: GCSE and A-Level, for AQA, OCR and Edexcel, on iPad.` }
+    : { url: "/og.png", width: 1200, height: 630, alt: "Handwrite it. Plumi marks it. A GCSE and A-Level revision app for iPad." };
+}
+
 export function metadataFor(path: string): Metadata {
   const intent = intentFor(path);
+  const image = shareImageFor(path);
 
   return {
     // `absolute` opts out of the root layout's " · Plumi" template. These
@@ -42,11 +51,15 @@ export function metadataFor(path: string): Metadata {
       // decide whether a result is labelled "Plumi" or "tryplumi.app".
       siteName: site.name,
       locale: site.locale,
+      // Repeated per page for the same shallow-merge reason: without it a shared
+      // link to any page but the homepage shows no picture at all.
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: intent.title,
       description: intent.description,
+      images: [image.url],
     },
   };
 }

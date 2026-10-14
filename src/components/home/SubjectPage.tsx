@@ -6,11 +6,15 @@ import { intentFor } from "@/config/routes";
 import { AppStoreBadge, HeaderDownload } from "./AppStoreBadge";
 import { HomeFooter, IPad } from "./HomePage";
 import { HomeMotion } from "./Motion";
+import { SpecCard } from "./SpecCard";
 import { Underline } from "./Doodles";
 import { hero as homeHero, prices } from "@/content/home";
 import { specUnits } from "@/content/specs";
 import { subjectPages, type SubjectPageContent } from "@/content/subjects";
 import "@/app/home.css";
+
+/** Schema text with ordinary hyphens and spaces, as search engines read it. */
+const plain = (text: string) => text.replace(/\u2011/g, "-").replace(/\u00a0/g, " ");
 
 /**
  * A subject revision page (Physics, Chemistry, Biology): the homepage's design and
@@ -47,7 +51,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{content.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{content.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
-            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}>{content.sub}</p>
+            <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{content.sub}</span><span className="hp-sub-short">{content.subShort}</span></p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
               <AppStoreBadge placement={`${content.slug}-hero`} height={56} showLine />
               <div className="hp-hero-qr" aria-hidden="true">
@@ -84,6 +88,13 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
                 </li>
               ))}
             </ol>
+            {content.slug !== "physics" && (
+              <figure className="hp-loupe hp-subject-proof" data-reveal>
+                <Image src="/site/loupe-mark3.webp" width={885} height={136} sizes="(max-width: 760px) 92vw, 640px"
+                  alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
+                <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span><span>How marking looks, on a Physics answer. Every subject is marked on the page like this.</span></figcaption>
+              </figure>
+            )}
             {content.figures.length > 1 && (
               <ul className="hp-diagrams is-light" aria-label={`Diagrams from Plumi ${content.name} questions`}>
                 {content.figures.map(f => (
@@ -110,15 +121,14 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <div key={level} className="hp-spec-level">
                 <h3 className="hp-spec-level-title">{level} {content.name}</h3>
                 <div className="hp-spec-grid">
-                  {specs.filter(s => s.level === level).map(s => (
-                    <article key={s.code} className="hp-spec-card" data-reveal>
-                      <header><strong>{s.board}</strong><span>{s.code}</span></header>
-                      <ul>{s.units.map(u => <li key={u}>{u}</li>)}</ul>
-                    </article>
-                  ))}
+                  {specs.filter(s => s.level === level).map(s => <SpecCard key={s.code} board={s.board} code={s.code} units={s.units} />)}
                 </div>
               </div>
             ))}
+            <div className="hp-section-cta is-stacked" data-reveal>
+              <AppStoreBadge placement={`${content.slug}-spec`} height={52} />
+              <p className="hp-small">Pick your board when you open the app.</p>
+            </div>
           </div>
         </section>
 
@@ -152,7 +162,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: content.faq.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+            mainEntity: content.faq.map(f => ({ "@type": "Question", name: plain(f.q), acceptedAnswer: { "@type": "Answer", text: plain(f.a) } })),
           }).replace(/</g, "\\u003c") }} />
         </section>
       </main>

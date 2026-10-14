@@ -250,7 +250,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 @media (max-width: 1000px) {
   .hp-bento { grid-template-columns: 1fr 1fr; }
   .hp-bento > .hp-tile { grid-column: span 1; }
-  .hp-bento > .hp-tile-papers { grid-column: span 2; }
+  .hp-bento > .hp-tile-papers, .hp-bento > .hp-tile-friends { grid-column: span 2; }
 }
 @media (max-width: 640px) {
   .hp-bento-section .hp-wrap { padding-inline: 0; }
@@ -290,14 +290,14 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-subjects { background: var(--paper); padding: clamp(80px, 10vw, 120px) 0 clamp(80px, 10vw, 130px); }
 .hp-subject-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .hp-subject { background: #fff; border: 2px solid var(--hairline); box-shadow: 0 4px 0 var(--hairline); border-radius: 24px; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 8px; }
-@media (min-width: 641px) { .hp-subject-links { margin-top: auto; flex-direction: column; gap: 0; } .hp-subject-links a { min-height: 36px; } }
+@media (min-width: 641px) { .hp-subject-links a { min-height: 36px; } }
 /* the app's IconBadge: a coloured tile with a lighter band along the top */
 .hp-subject-glyph { position: relative; width: 48px; height: 48px; border-radius: 14px; background: var(--tone); color: #fff; display: grid; place-items: center; margin-bottom: 18px; }
 .hp-subject-glyph::before { content: ""; position: absolute; left: 10px; right: 10px; top: 4px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.16); }
 .hp-subject-level { font-size: 13px; font-weight: 600; color: var(--ink-3); letter-spacing: 0.01em; }
 .hp-subject strong { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
 .hp-subject-detail { font-size: 15px; color: var(--ink-2); line-height: 1.4; }
-.hp-subject-links { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; }
+.hp-subject-links { display: flex; flex-wrap: wrap; gap: 0 14px; margin-top: auto; padding-top: 6px; }
 .hp-subject-links a { color: var(--blue); font-size: 15px; font-weight: 500; text-decoration: none; }
 .hp-subject-links a:hover { text-decoration: underline; }
 .hp-boards { list-style: none; padding: 0; margin: 40px 0 0; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
@@ -405,7 +405,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-dots { display: none; }
 @media (max-width: 640px) {
   .hp-dots { display: flex; justify-content: center; gap: 4px; margin-top: 14px; }
-  .hp-dots button { appearance: none; border: 0; padding: 10px 5px; background: none; cursor: pointer; }
+  .hp-dots button { appearance: none; border: 0; padding: 0; width: 28px; height: 44px; display: grid; place-items: center; background: none; cursor: pointer; }
   .hp-dots button::before { content: ""; display: block; width: 7px; height: 7px; border-radius: 50%; background: #c9cbd1; transition: width 200ms var(--ease), background 200ms var(--ease); }
   .hp-dots button.is-on::before { width: 20px; border-radius: 4px; background: var(--ink); }
 }
@@ -443,7 +443,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-subject-pricing .hp-lede { margin-inline: auto; max-width: 46ch; }
 .hp-subject-pricing .hp-small a, .hp-subject-more a { color: var(--blue); text-decoration: none; }
 .hp-subject-pricing .hp-small a:hover, .hp-subject-more a:hover { text-decoration: underline; }
-.hp-subject-more { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 36px; font-size: 16px; color: var(--ink-2); }
+.hp-subject-more { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; margin-top: 36px; font-size: 16px; color: var(--ink-2); }
 @media (max-width: 900px) { .hp-steps-row, .hp-spec-grid { grid-template-columns: 1fr; } }
 
 /* ── which download control: the badge, or on a small touch screen the send-on ── */
@@ -457,7 +457,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 }
 .hp-phone-subjects { list-style: none; margin: 18px 0 0; padding: 0; justify-content: center; flex-wrap: wrap; gap: 8px 10px; }
 .hp-phone-subjects li { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--ink); }
-.hp-phone-subjects .hp-subject-glyph { width: 22px; height: 22px; border-radius: 8px; margin: 0; }
+.hp-phone-subjects .hp-subject-glyph { align-self: center; width: 22px; height: 22px; border-radius: 8px; margin: 0; }
 .hp-phone-subjects .hp-subject-glyph::before { left: 5px; right: 5px; top: 2px; height: 5px; border-radius: 3px; }
 .hp-phone-subjects .hp-subject-glyph svg { width: 15px; height: 15px; }
 
@@ -465,17 +465,17 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-h1-eyebrow { display: block; font-size: 17px; line-height: 1.3; letter-spacing: -0.01em; margin: 0 0 14px; }
 
 /* short laptop screens: the marked page still shows in the first screen */
-@media (min-width: 761px) and (max-height: 860px) {
+@media (min-width: 761px) and (max-height: 940px) {
   .hp-hero { padding-top: 28px; }
   .hp-hero-title { font-size: clamp(52px, 8.2vh, 88px); }
   .hp-hero-sub { margin-top: 16px; font-size: clamp(18px, 2.4vh, 22px); }
   .hp-hero-cta { margin-top: 20px; }
   .hp-hero-stage { margin-top: 16px; }
 }
+@media (min-width: 1100px) and (max-height: 940px) { .hp-hero-loupe { top: 8%; } }
 
 /* 44px tap targets for the small text links */
 .hp-subject-links a, .hp-subject-more a { display: inline-flex; align-items: center; min-height: 44px; }
-.hp-subject-links { margin-top: 0; }
 
 /* phone carousel: every card the same height */
 @media (max-width: 640px) {
@@ -491,8 +491,25 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 @media (min-width: 1100px) { .hp-hero-loupe { bottom: auto; top: 22%; } }
 
 /* subject links from the gallery and the phone's subject row */
-a.hp-diagram-subject { text-decoration: none; display: inline-flex; justify-content: center; align-items: center; min-height: 28px; }
+a.hp-diagram-subject { text-decoration: none; display: inline-flex; justify-content: center; align-items: center; min-height: 28px; padding: 8px 0; margin: -8px 0; }
 a.hp-diagram-subject:hover { text-decoration: underline; }
 .hp-phone-subjects a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; color: inherit; text-decoration: none; }
 
-@media (max-width: 640px) { .hp-footer-links a { padding: 8px 0; } .hp-pain-line { opacity: 0.45; } }
+@media (max-width: 640px) { .hp-footer-links a { display: inline-block; padding: 12px 0; } .hp-pain-line { opacity: 0.45; } .hp-tile-copy + .hp-tile-media { margin-top: 22px; } }
+
+/* subject pages, round 7 */
+.hp-subject-proof { max-width: 640px; margin: clamp(32px, 4vw, 48px) auto 0; }
+.hp-section-cta.is-stacked { flex-direction: column; align-items: center; gap: 10px; }
+.hp-section-cta.is-stacked .hp-small { margin: 0; }
+.hp-spec-card summary { list-style: none; display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; cursor: pointer; }
+.hp-spec-card summary::-webkit-details-marker { display: none; }
+.hp-spec-card summary strong { font-size: 19px; letter-spacing: -0.02em; }
+.hp-spec-card summary span:not(.hp-faq-plus) { margin-left: auto; font: 600 13px/1 ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-2); }
+.hp-spec-card summary .hp-faq-plus { display: none; align-self: center; }
+.hp-spec-card:not([open]) summary { margin-bottom: 0; }
+.hp-spec-card[open] .hp-faq-plus::after { transform: rotate(0deg); }
+@media (max-width: 760px) { .hp-spec-card summary .hp-faq-plus { display: block; } .hp-spec-card summary { min-height: 44px; align-items: center; margin-bottom: 0; } .hp-spec-card[open] summary { margin-bottom: 12px; } }
+.hp-eyebrow { text-wrap: balance; }
+@media (max-width: 640px) {
+  .is-subject .hp-hero-underline { left: 15%; right: auto; width: 70%; }
+}

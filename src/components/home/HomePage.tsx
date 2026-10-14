@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { Caveat } from "next/font/google";
 import Link from "next/link";
 import { footerLinks } from "@/components/SiteFooter";
 import { site } from "@/config/site";
@@ -12,8 +11,6 @@ import { BentoDots } from "./BentoDots";
 import { bento, close, faq, faqTitle, hero, identity, pain, pricing, questions, story, subjects, weak } from "@/content/home";
 import "@/app/home.css";
 
-/** The pencil voice of the doodle notes: a handwriting face, used for a few words only. */
-const hand = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-hand", display: "swap" });
 
 /**
  * The homepage, in the order the ad tells it (plumi-ad-v90), then the rest of the app.
@@ -55,6 +52,9 @@ function SubjectGlyph({ name }: { name: string }) {
   };
   return <span className="hp-subject-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24">{paths[name]}</svg></span>;
 }
+
+/** Schema text with ordinary hyphens and spaces, as search engines read it. */
+const plain = (text: string) => text.replace(/\u2011/g, "-").replace(/\u00a0/g, " ");
 
 /** Where each subject's own page lives. Maths has two pages of its own, so GCSE leads. */
 const subjectHref: Record<string, string> = { Physics: "/physics-revision", Chemistry: "/chemistry-revision", Biology: "/biology-revision", Maths: "/gcse-maths" };
@@ -98,7 +98,7 @@ export function HomeFooter() {
 
 export function HomePage({ variant }: { variant?: string }) {
   return (
-    <div className={`hp ${hand.variable}`} data-variant={variant}>
+    <div className="hp" data-variant={variant}>
       <HomeMotion />
       <header className="hp-nav">
         <nav aria-label="Main navigation" className="hp-nav-inner">
@@ -187,6 +187,7 @@ export function HomePage({ variant }: { variant?: string }) {
                     <p className="hp-body">{s.line}</p>
                     <figure className="hp-step-media hp-loupe">
                       <Image src={s.zoom.image} width={s.zoom.w} height={s.zoom.h} alt={s.alt} sizes="92vw" />
+                      {"caption" in s && <figcaption>{s.caption}</figcaption>}
                     </figure>
                   </li>
                 ))}
@@ -206,6 +207,7 @@ export function HomePage({ variant }: { variant?: string }) {
                     {story.steps.map(s => (
                       <figure key={s.id} className={`hp-loupe hp-story-loupe is-${s.id}`} data-loupe={s.id}>
                         <Image src={s.loupe.image} width={s.loupe.w} height={s.loupe.h} alt="" sizes="440px" />
+                        {"caption" in s && <figcaption>{s.caption}</figcaption>}
                       </figure>
                     ))}
                   </div>
@@ -260,7 +262,7 @@ export function HomePage({ variant }: { variant?: string }) {
                       <Image src={`/site/diagram-${d.id}.webp`} width={640} height={480} sizes="(max-width: 760px) 92vw, 340px"
                         alt={d.alt} />
                     </div>
-                    <figcaption><Link href={subjectHref[d.subject]} className="hp-diagram-subject">{d.subject}</Link>{d.label}</figcaption>
+                    <figcaption><Link href={subjectHref[d.subject]} className="hp-diagram-subject">{d.level} {d.subject}</Link>{d.label}</figcaption>
                   </figure>
                 </li>
               ))}
@@ -390,7 +392,7 @@ export function HomePage({ variant }: { variant?: string }) {
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: faq.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+            mainEntity: faq.map(f => ({ "@type": "Question", name: plain(f.q), acceptedAnswer: { "@type": "Answer", text: plain(f.a) } })),
           }) }} />
         </section>
 

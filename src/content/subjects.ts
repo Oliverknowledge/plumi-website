@@ -17,6 +17,8 @@ export interface SubjectPageContent {
   h1a: string;
   h1b: string;
   sub: string;
+  /** The hero line on a phone: one short line, the home page's rule. */
+  subShort: string;
   /** The hero picture: a marked iPad page for Physics, a real question figure otherwise. */
   hero: { kind: "ipad"; image: string; alt: string } | { kind: "figure"; image: string; alt: string; caption: string };
   figures: readonly { image: string; label: string; alt: string }[];
@@ -24,10 +26,10 @@ export interface SubjectPageContent {
   faq: readonly { q: string; a: string }[];
 }
 
-const commonSteps = (subject: string, marks = "method, accuracy and explanation marks") => [
-  { title: "Answer it like the real exam.", line: `An exam-style ${subject} question for your board, with the diagram the paper would have. You write underneath with Apple Pencil.` },
-  { title: "Every line, marked.", line: `Ticks and crosses land on your page: ${marks}, and the exact line a mark was lost.` },
-  { title: "Your gaps, then your next question.", line: "Every topic on your specification is tracked as you go, and your next practice is picked from the marks you dropped." },
+const steps = (first: string, second: string, third: string) => [
+  { title: "Answer it like the real exam.", line: first },
+  { title: "Every line, marked.", line: second },
+  { title: "Your gaps, then your next question.", line: third },
 ] as const;
 
 const commonFaq = (subject: string) => [
@@ -55,13 +57,18 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1a: "Physics revision",
     h1b: "that marks your working.",
     sub: "Exam-style Physics questions for AQA, OCR and Edexcel, with the circuit or graph drawn in. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    subShort: "Write it with Apple Pencil. See every mark you lost, on Physics questions for your board.",
     hero: { kind: "ipad", image: "/site/shot-mark.webp", alt: "A handwritten A-Level Physics answer about a light sensor circuit, marked 3 out of 5 in Plumi, with the lost method and accuracy marks shown on the page." },
     figures: [
       { image: "/site/diagram-d4b.webp", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
       { image: "/site/diagram-d3b.webp", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
       { image: "/site/diagram-d9b.webp", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
     ],
-    steps: commonSteps("Physics"),
+    steps: steps(
+      "An exam-style Physics question for your board, with the circuit, graph or field drawn in. You write underneath with Apple Pencil.",
+      "Ticks and crosses land on your page: method, accuracy and explanation marks, and the exact line a mark was lost.",
+      "Forces, fields or waves: whichever topic loses marks comes back next, picked from your map.",
+    ),
     faq: [
       ...commonFaq("Physics"),
       { q: "Does it check units and significant figures?", a: "Plumi marks against the mark scheme for the question, so where the scheme gives a mark for the unit or the final value, that is the mark it awards or withholds, on the line where it was won or lost." },
@@ -76,14 +83,19 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1a: "Chemistry revision",
     h1b: "that marks your working.",
     sub: "Exam-style Chemistry questions for AQA, OCR and Edexcel, from moles to energetics to organic. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    subShort: "Write it with Apple Pencil. See every mark you lost, on Chemistry questions for your board.",
     hero: { kind: "figure", image: "/site/diagram-chemb.webp", alt: "A reaction profile from a Plumi Chemistry question: energy against progress of reaction, with the uncatalysed and catalysed routes and the activation energy marked.", caption: "From a Plumi question on reaction profiles, AQA GCSE Chemistry." },
     figures: [
       { image: "/site/diagram-chemb.webp", label: "Energy profile", alt: "A reaction profile with a solid uncatalysed curve, a dashed catalysed curve, and arrows for the activation energy and the overall energy change." },
     ],
-    steps: commonSteps("Chemistry"),
+    steps: steps(
+      "An exam-style Chemistry question for your board, with the reaction profile, apparatus or graph drawn in. You write underneath with Apple Pencil.",
+      "Ticks and crosses land on your page, and where the scheme gives a value, your answer is checked by arithmetic.",
+      "Moles, rates or organic: whichever topic loses marks comes back next, picked from your map.",
+    ),
     faq: [
       ...commonFaq("Chemistry"),
-      { q: "Does it check my calculations?", a: "Yes. Where the mark scheme states a value, Plumi checks your working by arithmetic: the same number in any equivalent unit, at a precision the board accepts. It only takes a mark away when the arithmetic is conclusive." },
+      { q: "Does it check my calculations?", a: "Yes. Where the mark scheme states a value, Plumi checks your answer by arithmetic: the same number in any equivalent unit, at a precision the board accepts. It only takes a mark away when the arithmetic is conclusive." },
     ],
   },
   biology: {
@@ -95,11 +107,16 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1a: "Biology revision",
     h1b: "that marks your answers.",
     sub: "Exam-style Biology questions for AQA, OCR and Edexcel, from cells to ecology. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    subShort: "Write it with Apple Pencil. See every mark you lost, on Biology questions for your board.",
     hero: { kind: "figure", image: "/site/diagram-biob.webp", alt: "A woodland food web from a Plumi Biology question: an oak tree feeding a caterpillar, an aphid and an earthworm, up to a sparrowhawk.", caption: "From a Plumi question on communities, AQA GCSE Biology." },
     figures: [
       { image: "/site/diagram-biob.webp", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
     ],
-    steps: commonSteps("Biology", "every marking point"),
+    steps: steps(
+      "An exam-style Biology question for your board, with the food web, cell or graph drawn in. You write underneath with Apple Pencil.",
+      "Longer answers marked point by point, the way the scheme lists them, with the line each point was found on.",
+      "Cells, genetics or ecology: whichever topic loses marks comes back next, picked from your map.",
+    ),
     faq: [
       ...commonFaq("Biology"),
       { q: "Can I practise the AQA A‑Level Biology essay?", a: "Yes. On AQA A‑Level Biology, Plumi sets a 25‑mark essay sitting with two titles of its own, and marks it in the board’s five bands, counting the areas of the specification your essay draws on." },

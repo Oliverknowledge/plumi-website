@@ -101,6 +101,7 @@ export const story = {
       fit: "cover" as const,
       zoom: { image: "/site/zoom-up.webp", w: 587, h: 260 },
       loupe: { image: "/site/loupe-up2.webp", w: 580, h: 123 },
+      caption: "Another question, re‑marked.",
     },
   ],
   cta: "10 answers marked free, every week.",
@@ -128,12 +129,12 @@ export const questions = {
   line: "Questions on the topics you keep dropping marks on, with the diagram drawn in.",
   // Real figures from bank questions, drawn by the app's own diagram renderer.
   diagrams: [
-    { id: "chemb", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
-    { id: "d4b", subject: "Physics", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
-    { id: "biob", subject: "Biology", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
-    { id: "mathsb", subject: "Maths", label: "Projectile path", alt: "A ball thrown at angle alpha from the top of a 34 m building, over an 8 m street, landing on the roof of a 14 m building." },
-    { id: "d3b", subject: "Physics", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
-    { id: "d9b", subject: "Physics", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
+    { id: "chemb", level: "GCSE", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
+    { id: "d4b", level: "A‑Level", subject: "Physics", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
+    { id: "biob", level: "GCSE", subject: "Biology", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
+    { id: "mathsb", level: "A‑Level", subject: "Maths", label: "Projectile path", alt: "A ball thrown at angle alpha from the top of a 34 m building, over an 8 m street, landing on the roof of a 14 m building." },
+    { id: "d3b", level: "A‑Level", subject: "Physics", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
+    { id: "d9b", level: "A‑Level", subject: "Physics", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
   ],
 } as const;
 
@@ -161,7 +162,7 @@ export const identity = {
     { label: "Current", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "An A‑Level example. Current comes from your marked board papers, with Pro.",
+  caption: "GCSE or A‑Level, set your goal. At A‑Level, Current comes from your marked board papers, with Pro.",
 } as const;
 
 export const subjects = {

@@ -29,7 +29,14 @@ export function ConsentBanner() {
     window.addEventListener("pointerdown", tap, { once: true });
     return () => { window.removeEventListener("scroll", wake); window.removeEventListener("pointerdown", tap); };
   }, []);
-  if (!googleAdsEnabled() || answered || stored !== null || !ready) return null;
+  const showing = googleAdsEnabled() && !answered && stored === null && ready;
+  // While the card is up, the page gains room at the bottom so the card never sits on
+  // the last download button or the footer.
+  useEffect(() => {
+    document.body.classList.toggle("has-consent", showing);
+    return () => document.body.classList.remove("has-consent");
+  }, [showing]);
+  if (!showing) return null;
 
   const answer = (choice: "granted" | "denied") => {
     try { localStorage.setItem(CONSENT_KEY, choice); } catch { /* private mode: ask again next time */ }
@@ -40,7 +47,7 @@ export function ConsentBanner() {
 
   return (
     <div className="consent" role="region" aria-label="Cookie choice" data-testid="consent-banner">
-      <p>Can Plumi use an ad cookie to see which of its ads work?<span className="consent-more"> Our own visit counts stay anonymous either way.</span></p>
+      <p>Can Plumi use an ad cookie to see which ads work? <a href="/privacy" className="consent-link">How we use it</a><span className="consent-more"> Our own visit counts stay anonymous either way.</span></p>
       <div className="consent-actions">
         <button type="button" onClick={() => answer("denied")} data-testid="consent-deny">No thanks</button>
         <button type="button" onClick={() => answer("granted")} data-testid="consent-allow">Allow</button>

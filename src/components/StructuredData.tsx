@@ -115,6 +115,7 @@ export function SiteStructuredData() {
           },
           {
             "@type": "SoftwareApplication",
+            "@id": absoluteUrl("/#app"),
             name: site.name,
             url: site.domain,
             description: entityDescription,
@@ -220,7 +221,7 @@ export function PageStructuredData({
             description,
             inLanguage: "en-GB",
             isPartOf: { "@id": WEBSITE_ID },
-            about: { "@id": ORGANISATION_ID },
+            about: { "@id": absoluteUrl("/#app") },
             primaryImageOfPage: { "@type": "ImageObject", url: absoluteUrl("/og.png") },
           },
           {
