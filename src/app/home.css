@@ -234,13 +234,15 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-tile-media { margin: 14px 12px 12px; margin-top: auto; padding: 16px; background: var(--gray); border-radius: 20px; height: clamp(250px, 24vw, 320px); display: flex; align-items: center; justify-content: center; }
 .hp-tile-copy + .hp-tile-media { margin-top: 22px; }
 .hp-tile-media img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 16px 32px -20px rgba(16, 24, 40, 0.3); }
-.hp-tile-papers { grid-column: span 4; }
-.hp-tile-streak { grid-column: span 2; }
-.hp-tile-notes, .hp-tile-focus, .hp-tile-stats, .hp-tile-friends { grid-column: span 3; }
+/* rows, in the order of bento.tiles: notes 4 + streak 2, focus 2 + papers 4, stats 3 + friends 3 */
+.hp-tile-notes, .hp-tile-papers { grid-column: span 4; }
+.hp-tile-streak, .hp-tile-focus { grid-column: span 2; }
+.hp-tile-stats, .hp-tile-friends { grid-column: span 3; }
 @media (max-width: 1000px) {
   .hp-bento { grid-template-columns: 1fr 1fr; }
   .hp-bento > .hp-tile { grid-column: span 1; }
-  .hp-bento > .hp-tile-papers, .hp-bento > .hp-tile-friends { grid-column: span 2; }
+  /* notes / streak + focus / papers / stats + friends */
+  .hp-bento > .hp-tile-notes, .hp-bento > .hp-tile-papers { grid-column: span 2; }
 }
 @media (max-width: 640px) {
   .hp-bento-section .hp-wrap { padding-inline: 0; }
@@ -621,3 +623,24 @@ a.hp-diagram-subject:hover { text-decoration: underline; }
 @media (min-width: 1101px) {
   .hp-subject-hero .hp-hero-stage:not(:has(.hp-ipad)) .hp-subject-loupe { left: -12%; bottom: 8%; width: 44%; }
 }
+
+/* ── copy v3 ────────────────────────────────────────────────────────────── */
+/* The hero's two lines are longer now. Each stays whole from a tablet up (the type
+   shrinks to the column, never past the old size), and a phone breaks them in
+   balanced pairs, never leaving one word alone. */
+.hp-hero-copy { container-type: inline-size; }
+.hp-hero-title > span:not(.hp-h1-eyebrow) { text-wrap: balance; }
+@media (min-width: 641px) { .hp-hero-title:not(.is-subject) > span:not(.hp-h1-eyebrow) { font-size: min(1em, 6.8cqi); } }
+@media (max-width: 640px) { .hp-hero-title:not(.is-subject) > span:not(.hp-h1-eyebrow) { font-size: min(1em, 13.4cqi); } }
+.hp-hero-note { text-wrap: balance; }
+.hp-hero-qr { max-width: 180px; }
+.hp-grade-caption, .hp-versus li strong, .hp-versus li div > span, .hp-tile-line, .hp-lede, .hp-faq-item p { text-wrap: pretty; }
+/* subject heroes on a phone: "Physics questions," and "A Biology notebook" stay on one line */
+@media (max-width: 640px) { .hp-hero-title.is-subject > span:not(.hp-h1-eyebrow) { font-size: min(1em, 11.2cqi); } }
+/* no line ends on a lone word in the longer v3 lines */
+.hp-body, .hp-plan li, .hp-plan-lead, .hp-small, .hp-faq-item summary, .hp-map-caption { text-wrap: pretty; }
+.hp-free-tiles span { text-wrap: balance; }
+/* bento: the grey panel fills the tile, so tiles in one row end level whatever their copy */
+@media (min-width: 641px) { .hp-bento > .hp-tile > .hp-tile-media { flex-grow: 1; } }
+/* centred ledes break into even lines */
+.hp-section-head.is-center .hp-lede, .hp-close .hp-lede { text-wrap: balance; }

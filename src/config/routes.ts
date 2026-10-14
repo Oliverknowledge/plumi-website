@@ -50,9 +50,9 @@ export const routeIntents: readonly RouteIntent[] = [
     // Leads with the brand, because the first job of the homepage title is to
     // win "Plumi". The category follows.
     title: "Plumi: GCSE & A-Level Revision That Marks Your Handwriting",
-    h1: "Handwrite it. Plumi marks it.",
+    h1: "Handwrite your answer. See the line that cost you marks.",
     description:
-      "Exam-style GCSE and A-Level questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line, then sets your next question.",
+      "Answer GCSE and A-Level questions for AQA, OCR or Edexcel with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
     linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,
@@ -92,9 +92,9 @@ export const routeIntents: readonly RouteIntent[] = [
     intent: "Find a Physics revision tool for my board that marks exam answers and shows what to revise next.",
     objective: "Show Physics questions marked line by line, and list every unit of every Physics specification Plumi tracks.",
     title: "GCSE & A-Level Physics Revision App for iPad | Plumi",
-    h1: "Physics revision that marks your working.",
+    h1: "Physics questions, marked on your working.",
     description:
-      "Exam-style GCSE and A-Level Physics questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line and tracks every unit.",
+      "GCSE and A-Level Physics questions in AQA, OCR or Edexcel style. Show your working on iPad and each mark lands on the line that won or lost it.",
     linksTo: ["/", "/chemistry-revision", "/biology-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
@@ -106,9 +106,9 @@ export const routeIntents: readonly RouteIntent[] = [
     intent: "Find a Chemistry revision tool for my board that marks exam answers and shows what to revise next.",
     objective: "Show Chemistry questions marked line by line, and list every unit of every Chemistry specification Plumi tracks.",
     title: "GCSE & A-Level Chemistry Revision App for iPad | Plumi",
-    h1: "Chemistry revision that marks your working.",
+    h1: "Write 57.1 kJ where the scheme says 57,100 J. You still get the mark.",
     description:
-      "Exam-style GCSE and A-Level Chemistry questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line and tracks every unit.",
+      "GCSE and A-Level Chemistry in AQA, OCR or Edexcel style. Handwrite the working on iPad. Where the scheme gives a value, Plumi checks yours by arithmetic.",
     linksTo: ["/", "/physics-revision", "/biology-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
@@ -120,9 +120,9 @@ export const routeIntents: readonly RouteIntent[] = [
     intent: "Find a Biology revision tool for my board that marks exam answers and shows what to revise next.",
     objective: "Show Biology questions marked line by line, and list every unit of every Biology specification Plumi tracks.",
     title: "GCSE & A-Level Biology Revision App for iPad | Plumi",
-    h1: "Biology revision that marks your answers.",
+    h1: "A Biology notebook that marks your 6-markers too.",
     description:
-      "Exam-style GCSE and A-Level Biology questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks it the way the paper does and tracks every unit.",
+      "GCSE and A-Level Biology questions in AQA, OCR or Edexcel style. Short answers marked point by point, 6-markers in levels where your board uses them.",
     linksTo: ["/", "/physics-revision", "/chemistry-revision"],
     changeFrequency: "monthly",
     priority: 0.9,

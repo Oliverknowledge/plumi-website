@@ -26,50 +26,52 @@ export const prices = {
 
 export const hero = {
   eyebrow: "GCSE & A-Level revision app for iPad",
-  h1a: "Handwrite it.",
-  h1b: "Plumi marks it.",
-  sub: "Exam-style questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see which marks you got, and which you lost.",
-  subShort: "Write it with Apple Pencil. See every mark you lost.",
-  note: "Free to download. 7 days of Pro free on the yearly plan.",
-  device: "For iPad, with iPadOS 17 or later.",
-  qr: "Scan with your iPad",
-  zoom: { image: "/site/loupe-mark4.webp", w: 885, h: 148, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost 2 marks: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
+  h1a: "Handwrite your answer.",
+  h1b: "See the line that cost you marks.",
+  sub: "Answer AQA, OCR or Edexcel style questions with Apple Pencil. Plumi writes each one with its own mark scheme, then marks your working against it.",
+  subShort: "Answer with Apple Pencil. Plumi marks your working against the question’s own mark scheme.",
+  note: "Free to download. Plumi marks 10 answers a week for free.",
+  device: "Runs on iPad with iPadOS 17 or later. A finger works too, if your Pencil’s gone missing.",
+  qr: "Scan with your iPad camera",
+  zoom: { image: "/site/loupe-mark4.webp", w: 885, h: 148, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "The 10 kΩ belongs on top of the fraction. That cost a method mark and the answer mark." },
   // Where the close-up sits on the full capture, as fractions of its width and height.
   ring: { x: 0.128, y: 0.668, w: 0.45, h: 0.104 },
 } as const;
 
 export const pain = {
-  eyebrow: "Sound familiar?",
-  title: "Screenshot. Paste into AI. Repeat.",
-  line: "It gives you an answer. Not the marks, and not what you keep getting wrong.",
-  // Two honest columns: what pasting into a chatbot gives a student, and what Plumi does.
+  eyebrow: "Marking it yourself",
+  title: "ChatGPT agreed with you. Your mock didn’t.",
+  line: "At home it’s easy to be soft on yourself, and a chatbot is usually softer.",
+  // Two honest columns: what asking a chatbot gives a student, and what Plumi does.
+  // Row for row: the misreading, the score, the topic map.
   them: {
-    label: "Pasting into a chatbot",
+    label: "Asking a chatbot",
     rows: [
-      { title: "Retype or screenshot it", line: "Every question, every time." },
-      { title: "A verdict, not marks", line: "No mark scheme, no marks to count.", empty: true },
-      { title: "Starts from zero", line: "Nothing tracks the topics you drop marks on." },
+      { title: "Screenshot your working", line: "Then retype the bit it misread." },
+      { title: "Its score is a guess", line: "Unless you find the mark scheme and paste it in yourself.", empty: true },
+      { title: "No topic map", line: "Nothing shows which topics keep costing you marks." },
     ],
   },
   us: {
     label: "Plumi",
     rows: [
-      { title: "Write it on the page", line: "Your own handwriting, with Apple Pencil." },
-      { title: "Marked like the exam", line: "Against the mark scheme, line by line.", proof: true },
-      { title: "A map of your topics", line: "Your marks colour in the topics on your spec, so you can see what needs work." },
+      // "Is this what you wrote?" is asked before marks are drawn (PageMarkingController.swift).
+      { title: "Write under the question", line: "By hand. If a misread could cost you a mark, Plumi asks \"Is this what you wrote?\" before it marks." },
+      { title: "1 out of 3 on part (a)", line: "1 mark for the method, then 2 lost to one wrong fraction. With both marks on part (b), that’s 3 out of 5.", proof: true },
+      { title: "It builds your topic map", line: "Each topic on your spec gets a square, and your marked answers colour it in." },
     ],
   },
 } as const;
 
 export const story = {
   eyebrow: "How it marks",
-  title: "Marked against the mark scheme, line by line.",
+  title: "This answer got 3 out of 5.",
   steps: [
     {
       id: "write",
       kicker: "01 · Write",
-      title: "Answer it like the real exam.",
-      line: "A question for your board, with the diagram the paper would have. You write underneath, in your own hand.",
+      title: "The circuit’s drawn. You do the working.",
+      line: "Plumi wrote this A‑Level Physics question and drew the circuit. GCSE questions that need a diagram get one too.",
       image: "/site/question.webp",
       alt: "An exam-style A-Level Physics question about a light-dependent resistor circuit, with its circuit diagram, in Plumi.",
       fit: "contain" as const,
@@ -78,9 +80,9 @@ export const story = {
     },
     {
       id: "marked",
-      kicker: "02 · Marked",
-      title: "Every line, marked.",
-      line: "Ticks and crosses land on your page: method marks, accuracy marks, and the exact line a mark was lost.",
+      kicker: "02 · Mark",
+      title: "The ticks land on your working.",
+      line: "Each mark goes on the line that won or lost it. If Plumi isn’t sure about one, it says so, and that mark stays off your topic map until you’ve checked it.",
       image: "/site/shot-mark.webp",
       alt: "A handwritten explanation for part (b), with both marks, B1 and B2, ticked by Plumi on the lines that earned them.",
       fit: "cover" as const,
@@ -89,9 +91,9 @@ export const story = {
     },
     {
       id: "why",
-      kicker: "03 · Why",
-      title: "See exactly why.",
-      line: "Open the mark scheme beside your answer and see what each mark needed.",
+      kicker: "03 · Check",
+      title: "Open the mark scheme beside it.",
+      line: "See what each mark wanted. If you think you earned one, tap \"I disagree\" and Plumi looks again.",
       image: "/site/shot-scheme.webp",
       alt: "Plumi's mark scheme panel open beside a marked answer, showing which marks were awarded and why.",
       fit: "cover" as const,
@@ -100,25 +102,25 @@ export const story = {
     },
     {
       id: "up",
-      kicker: "04 · Re‑mark",
-      title: "Fix it. Watch it go up.",
-      line: "Correct the slip on any question, re‑mark it, and watch the score go up.",
+      kicker: "04 · Fix",
+      title: "Fix the slip and mark it again.",
+      line: "On a different question, the fix took it from 5 out of 7 to 7 out of 7.",
       image: "/site/shot-up.webp",
       alt: "A re-marked answer in Plumi going from 5 out of 7 to 7 out of 7.",
       fit: "cover" as const,
       zoom: { image: "/site/zoom-up.webp", w: 587, h: 260 },
       loupe: { image: "/site/loupe-up2.webp", w: 580, h: 123 },
-      caption: "Another question, re‑marked.",
+      caption: "Marked again after the fix.",
     },
   ],
-  cta: "10 answers marked free, every week.",
+  cta: "Mark one of your own. Your first 10 each week are free.",
 } as const;
 
 export const weak = {
-  eyebrow: "Knows your gaps",
-  title: "It knows what you’re weak at.",
-  line: "Every topic on your AQA, OCR or Edexcel specification, coloured as your answers are marked.",
-  next: { image: "/site/zoom-next2.webp", w: 947, h: 226, alt: "Two practice suggestions picked from the topic map: check what you have not used lately, and test what you remember.", caption: "Your next practice, picked from your map.", ring: { x: 0.27, y: 0.18, w: 0.705, h: 0.14 } },
+  eyebrow: "Your topic map",
+  title: "The red squares are where your marks are going.",
+  line: "Your whole spec is here, one square per topic, coloured as your answers are marked. One answer isn’t enough to call a topic Strong.",
+  next: { image: "/site/zoom-next2.webp", w: 947, h: 226, alt: "Two practice suggestions picked from the topic map: check what you have not used lately, and test what you remember.", caption: "On A‑Level Physics, your topic map also suggests what to practise next.", ring: { x: 0.27, y: 0.18, w: 0.705, h: 0.14 } },
   zoom: { image: "/site/zoom-map3.webp", w: 470, h: 270, alt: "Close up of the topic map: the Forces and motion topics, each a square marked strong, developing or needs attention." },
   legend: [
     // The app's own key (TopicGrid.swift): never colour alone, a glyph on every state.
@@ -131,9 +133,9 @@ export const weak = {
 } as const;
 
 export const questions = {
-  eyebrow: "Written for you",
-  title: "Questions on your gaps. Diagrams included.",
-  line: "Exam-style questions for your board, with the diagram drawn in.",
+  eyebrow: "Written by Plumi",
+  title: "Plumi draws the diagram the paper would give you.",
+  line: "Pick the topic that keeps catching you out, GCSE or A‑Level, and Plumi writes you a question on it. All six were drawn for questions Plumi has set.",
   // Real figures from bank questions, drawn by the app's own diagram renderer.
   diagrams: [
     { id: "chemb", level: "GCSE", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
@@ -146,37 +148,42 @@ export const questions = {
 } as const;
 
 export const bento = {
-  eyebrow: "And the rest of revision",
-  title: "Everything around the marking.",
+  eyebrow: "Also in the notebook",
+  title: "Your notes and past papers go in the same notebook.",
+  // Papers sits fourth, so the bento opens on tiles that are true for every GCSE
+  // student. Desktop rows (home.css): notes 4 + streak 2, focus 2 + papers 4, stats 3 + friends 3.
   tiles: [
-    { id: "papers", title: "Past papers, one tap away.", line: "A‑Level papers, mark schemes and grade boundaries for your board. Or upload any paper.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
-    { id: "streak", title: "Keep your streak.", line: "Study a little every day. Sit a whole A‑Level paper with Pro and you earn a freeze for a missed day.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
-    { id: "notes", title: "Notes that become flashcards.", line: "Handwrite it once. Plumi quizzes you on it.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
-    { id: "focus", title: "Lock in with Focus.", line: "Pomodoros that can block distracting apps.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
-    { id: "stats", title: "Every minute counted.", line: "A daily goal, and where your study time actually goes.", image: "/site/tile-stats3.webp", w: 1430, h: 610, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
-    { id: "friends", title: "Study with friends.", line: "Add a friend or start a group, and revise side by side.", image: "/site/tile-groups3.webp", w: 1432, h: 640, alt: "Plumi's study groups screen with an Add a friend button and a four member group." },
+    { id: "notes", title: "Handwritten notes become flashcards.", line: "Write them once and Plumi quizzes you on them.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
+    // Freezes come only from a whole A-Level paper with Pro, are spent automatically, capped at two.
+    { id: "streak", title: "A missed day doesn’t have to end your streak.", line: "Sit a whole A‑Level paper with Pro to earn a streak freeze. Miss a day and it’s spent for you. You can hold two.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
+    // The timer is free; only app blocking is metered (Entitlements.swift: 3 free sessions).
+    { id: "focus", title: "Pomodoros that block apps.", line: "Plumi stops distracting apps opening while you work. The timer is free, and so is app blocking for your first 3 sessions.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
+    { id: "papers", title: "Your board’s A‑Level past papers are in the Papers tab.", line: "Their mark schemes and grade boundaries are there too. A PDF from school, GCSE or A‑Level, can go in your notebook to write on like any page.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
+    { id: "stats", title: "An hour open isn’t an hour studied.", line: "Set a daily goal. Leaving the app open on your desk doesn’t count towards it.", image: "/site/tile-stats3.webp", w: 1430, h: 610, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
+    { id: "friends", title: "Only people you invite can join your group.", line: "Add a friend, or send your mates the group’s link or code.", image: "/site/tile-groups3.webp", w: 1432, h: 640, alt: "Plumi's study groups screen with an Add a friend button and a four member group." },
   ],
 } as const;
 
 export const identity = {
-  eyebrow: "Your grade",
-  title: "Know where you stand.",
-  line: "Set the grade you’re aiming for. At A‑Level, see where your marked papers put you.",
+  eyebrow: "Your grades",
+  title: "Predicted an A? See if your papers agree.",
+  line: "Put your predicted grade next to your target, say a 6 aiming for a 7, or an A aiming for an A*.",
   // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
-  // Plumi's own marking never fills Current (SubjectStanding.swift); what Pro gives is a
-  // grade on each A-Level paper it marks, from that year's boundaries (PaperChart.swift).
+  // Plumi's own marking never fills Current (SubjectStanding.swift), so the word is not
+  // used here; what Pro gives is a grade on each A-Level paper it marks, from that
+  // year's boundaries where Plumi has them, an indicative ladder otherwise (PaperChart.swift).
   grades: [
     { label: "Predicted", value: "A", tone: "" },
     { label: "Last paper", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "GCSE or A‑Level, set your goal. With Pro, each A‑Level past paper Plumi marks gets a grade from that year’s boundaries.",
+  caption: "With Pro, each A‑Level past paper Plumi marks gets a grade, from that year’s boundaries where Plumi has them.",
 } as const;
 
 export const subjects = {
-  eyebrow: "GCSE and A-Level revision",
+  eyebrow: "Subjects",
   title: "Physics, Maths, Chemistry and Biology.",
-  line: "GCSE and A-Level, for AQA, OCR and Edexcel.",
+  line: "GCSE and A-Level, in the style of AQA, OCR or Edexcel.",
   list: [
     { name: "Physics", detail: "Circuits, forces, waves, fields", links: [{ label: "Physics revision", href: "/physics-revision" }] },
     { name: "Maths", detail: "Pure, statistics, mechanics", links: [{ label: "GCSE Maths", href: "/gcse-maths" }, { label: "A-Level Maths", href: "/ai-tutor-for-a-level-maths" }] },
@@ -190,18 +197,18 @@ export const subjects = {
 
 export const pricing = {
   eyebrow: "Pricing",
-  title: "Free to start. Pro when you’re ready.",
+  title: "10 answers a week free. Pro if you need more.",
   free: {
     name: "Free",
     price: "£0",
     period: "forever",
-    lead: "The whole notebook, with no limits on writing.",
+    lead: "The notebook is free for good. Write as much as you like.",
     items: [
       "Handwriting, folders, PDFs, search and export",
       "10 answers marked a week",
-      "5 practice questions a week",
-      "12 AI Pen answers a week: ask about anything you wrote",
-      "1 tutor session a week, on the page",
+      "5 new practice questions a week",
+      "12 AI Pen answers a week, to ask about anything you’ve written",
+      "1 AI tutor session a week, worked through on your page",
     ],
   },
   pro: {
@@ -210,60 +217,65 @@ export const pricing = {
     // charged sits directly under it, in the first line, never further away.
     price: prices.yearlyPerMonth,
     period: "a month, billed yearly",
-    billing: `Billed ${prices.yearly} a year. ${prices.trialDays} days free first.`,
-    billing2: `Or ${prices.monthly} a month, no trial.`,
-    lead: "Everything unlimited, for the run‑up to your exams.",
+    billing: `Billed ${prices.yearly} a year, after ${prices.trialDays}\u00a0days free.`,
+    billing2: `Or ${prices.monthly} a month, with no trial.`,
+    lead: "For the run‑up to mocks, when 10 answers a week runs out by Tuesday.",
     items: [
-      "Unlimited marking, line by line",
+      "Unlimited marking",
       "Unlimited practice questions",
-      "Unlimited AI Pen and tutoring on the page",
-      "Whole past papers, sat and marked",
-      "A grade for each A‑Level past paper it marks",
-      "Block distracting apps in every Focus session",
+      "Unlimited AI Pen and AI tutor sessions",
+      "Whole A‑Level past papers marked and graded",
+      "App blocking in all your Focus sessions",
     ],
   },
-  small: "Needs an iPad with iPadOS 17 or later. Subscriptions renew automatically. Cancel any time in Settings, at least 24 hours before renewal.",
+  small: "Cancel any time in Settings. Subscriptions renew automatically unless you cancel at least 24 hours before renewal. Needs an iPad with iPadOS 17 or later.",
 } as const;
 
+/**
+ * Written as replies to a message. Spending, as the app does it: a first mark, a re-mark
+ * after a fix, and "Check again" after "I disagree" each spend one of the 10 marks;
+ * opening "I disagree" to see the scheme's line spends nothing (MarkChallenge.swift,
+ * PageMarkingController.swift).
+ */
 export const faq = [
   {
+    q: "Isn’t this just ChatGPT?",
+    a: "Plumi uses AI too. It writes each question with its own mark scheme, then marks your answer against that scheme. Each mark you get or lose points to a line in it, and you can open the scheme beside your answer. Where the scheme gives a number, Plumi checks yours by arithmetic. A chatbot only has a mark scheme if you find one and paste it in.",
+  },
+  {
+    q: "Can it read my handwriting?",
+    a: "You write with Apple Pencil like you would on paper. If Plumi might have misread a line that would cost you a mark, it shows you its reading and asks \"Is this what you wrote?\" before the marks go on. If it still isn’t sure about a mark, it holds it, labelled \"Plumi isn’t sure\", and keeps it off your topic map until you’ve checked it.",
+  },
+  {
+    q: "What if I think Plumi got a mark wrong?",
+    a: "Tap \"I disagree\" on any mark you didn’t get in full. You’ll see the scheme’s line for that mark, the line you wrote and Plumi’s reason, and seeing them is free. Tap \"Check again\" and Plumi looks again, then either corrects the mark or keeps it and tells you why. On the free plan, that check uses one of your 10 marks a week. If you’re still sure, you can give yourself the mark, and it’s labelled self-marked, never counted as Plumi’s.",
+  },
+  {
     q: "Which exam boards and subjects does Plumi cover?",
-    a: "GCSE and A-Level Physics, Maths, Chemistry and Biology, for AQA, OCR and Edexcel. Pick your board and Plumi tracks every topic on that specification.",
-  },
-  {
-    q: "Can Plumi mark AQA, OCR and Edexcel questions?",
-    a: "Yes. Pick your board and Plumi writes exam-style questions in that board’s style, each with its own mark scheme, and marks your handwritten answer against it: method, accuracy and explanation marks, line by line. With Pro, it also marks whole past papers you sit.",
-  },
-  {
-    q: "Does it really mark my handwriting?",
-    a: "Yes. Write your answer with Apple Pencil, the way you would on paper. Plumi reads your working, marks each line against the mark scheme, and shows which mark was lost and why.",
+    a: "AQA, OCR and Edexcel, for GCSE and A‑Level Physics, Maths, Chemistry and Biology. Pick your board and its topics become the squares on your topic map.",
   },
   {
     q: "Are these real past paper questions?",
-    a: "Practice questions and mark schemes are written by Plumi in the style of your board, on the topics you need. For A‑Level, the Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.",
+    a: "No. Plumi writes its own in your board’s style, and the mark scheme for each. The Papers tab links to your board’s real A‑Level past papers, mark schemes and grade boundaries. With Pro, Plumi marks a whole A‑Level paper you sit and gives it a grade. A GCSE paper from school can go in your notebook as a PDF to write on. Plumi isn’t affiliated with any exam board.",
   },
   {
     q: "Is Plumi free?",
-    a: `The notebook is free forever. Marking, practice, AI Pen and tutoring come with a free weekly allowance. Pro makes them unlimited: ${prices.yearly} a year with ${prices.trialDays} days free first, or ${prices.monthly} a month with no trial.`,
+    a: `Yes to download, and the notebook stays free. Each week you also get 10 answers marked, 5 new practice questions, 12 AI Pen answers and 1 AI tutor session. Seeing the scheme’s line for a mark is free. A re-mark after a fix, or asking Plumi to check a mark again, uses one of the 10. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial. Paying monthly instead is ${prices.monthly}, and that has no trial. Cancel any time in Settings.`,
   },
   {
     q: "Is it on iPhone or Android?",
-    a: "Not yet. Plumi is made for iPad and Apple Pencil, because exam answers are handwritten. It needs iPadOS 17 or later, and also works with your finger.",
-  },
-  {
-    q: "How is it different from asking ChatGPT?",
-    a: "Plumi marks your own handwritten working against a mark scheme, on the page, and shows the exact mark you lost. Then your marks build a map of your topics, so you can see what to practise. No screenshots, no copy and paste, and a record of every topic.",
+    a: "No. Plumi is built for iPad, because exams are handwritten. It needs iPadOS 17 or later.",
   },
   {
     q: "Is my work private?",
-    a: "Your notebook is yours. Plumi asks for your consent before sending any of your work to be marked or explained.",
+    a: "Your notes, drawings, PDFs, marks and progress are stored on your iPad. You don’t need an account, and if you make one you can delete it in Settings. Plumi asks your permission once, before any of your work goes to AI, and then sends only the part of the page it needs. Nothing you upload or write is used to train any AI model. There are no ads, and your work is never sold.",
   },
 ] as const;
 
-export const faqTitle = "Questions about Plumi";
+export const faqTitle = "Before you download";
 
 export const close = {
-  title: "Your next mark is one answer away.",
-  line: "Free on the App Store for iPad.",
+  title: "Try it on the topic you keep losing marks on.",
+  line: "Write one answer and see the line that cost you. It’s free on iPad.",
   qr: "Scan with your iPad camera",
 } as const;

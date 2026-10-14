@@ -16,12 +16,12 @@ import "@/app/home.css";
  * The homepage, in the order the ad tells it (plumi-ad-v90), then the rest of the app.
  *
  *   HERO        the promise, the badge, the marked page
- *   PAIN        screenshots into AI, and losing track of what you are weak at
- *   STORY       pinned iPad: write, marked, why, better
+ *   PAIN        a chatbot agreed with you, a mock did not; asking one beside Plumi
+ *   STORY       pinned iPad: one answer that got 3 out of 5, and where the 2 marks went
  *   WEAK        the topic map
  *   QUESTIONS   a question written on a gap, and the diagrams
- *   BENTO       notes, streaks, study time, Focus, friends, past papers
- *   IDENTITY    the habit, and the grade it builds towards
+ *   BENTO       notes, streaks, Focus, past papers, study time, friends
+ *   IDENTITY    predicted, last paper and goal grades
  *   SUBJECTS    four subjects, three boards
  *   PRICING     free, then Pro
  *   FAQ         what students and parents ask
@@ -156,7 +156,7 @@ export function HomePage({ variant }: { variant?: string }) {
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
               <p className="hp-eyebrow is-dark">{pain.eyebrow}</p>
-              <h2 id="pain-title" className="hp-h2 is-light">{pain.title}</h2>
+              <h2 id="pain-title" className="hp-h2 is-light">{pain.title.split(". ").map((t, i, a) => <span key={i} className="hp-sub-line">{t}{i < a.length - 1 ? ". " : ""}</span>)}</h2>
               <p className="hp-lede is-light">{pain.line}</p>
             </div>
             <div className="hp-versus">
@@ -181,7 +181,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 </ul>
               </div>
             </div>
-            <div className="hp-pain-how"><HomeAnchor href="#how" label="See how Plumi marks it" placement="pain-how" /></div>
+            <div className="hp-pain-how"><HomeAnchor href="#how" label="Follow this answer through" placement="pain-how" /></div>
           </div>
         </section>
 

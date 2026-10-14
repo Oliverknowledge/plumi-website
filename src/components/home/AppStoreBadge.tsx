@@ -23,14 +23,14 @@ async function sendToIPad(placement: string, label: string): Promise<"sent" | "e
   const href = storeHref();
   track("cta_clicked", { placement, cta_kind: "send_to_ipad", label, destination: href });
   if (navigator.share) {
-    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi: handwrite it, Plumi marks it.", url: href }); return "sent"; }
+    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi marks your handwritten answers on iPad.", url: href }); return "sent"; }
     catch { return "dismissed"; }
   }
   emailLink();
   return "emailed";
 }
 
-export const phoneCopy = { line: "Free for iPad, with iPadOS 17 or later.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", emailed: "Now send that email to yourself.", email: "Email me the link instead" } as const;
+export const phoneCopy = { line: "It’s free and iPad only, so send it there.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", emailed: "Now send that email to yourself.", email: "Email me the link instead" } as const;
 
 type SendState = "idle" | "sent" | "emailed" | "dismissed";
 const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCopy.sent : state === "emailed" ? phoneCopy.emailed : idle;

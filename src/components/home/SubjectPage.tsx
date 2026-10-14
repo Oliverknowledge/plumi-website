@@ -74,7 +74,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <Image src="/site/loupe-mark4.webp" width={885} height={148} sizes="(max-width: 760px) 92vw, 480px" priority
                 alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
               <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span>
-                <span>{content.slug === "physics" ? "Lost 2 marks: the 10\u00a0kΩ goes on top of the fraction, not the 1.5\u00a0kΩ." : "A Physics answer, marked by Plumi."}</span></figcaption>
+                <span>{content.slug === "physics" ? "The 10\u00a0kΩ belongs on top of the fraction. That cost a method mark and the answer mark." : "This one’s Physics. It lost a method mark and the answer mark on the lines you can see."}</span></figcaption>
             </figure>
           </div>
         </section>
@@ -113,8 +113,8 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
               <p className="hp-eyebrow">Your specification</p>
-              <h2 id="spec-title" className="hp-h2">Every {content.name} unit, tracked.</h2>
-              <p className="hp-lede">GCSE and A-Level {content.name}, for AQA, OCR and Edexcel. Pick your board and Plumi tracks every topic in it.</p>
+              <h2 id="spec-title" className="hp-h2">Your topic map follows your board’s units.</h2>
+              <p className="hp-lede">GCSE and A-Level {content.name}, for AQA, OCR and Edexcel. Each topic in a unit gets its own square.</p>
             </div>
             {(["GCSE", "A-Level"] as const).map(level => (
               <div key={level} className="hp-spec-level">
@@ -126,22 +126,22 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
             ))}
             <div className="hp-section-cta is-stacked" data-reveal>
               <AppStoreBadge placement={`${content.slug}-spec`} height={52} />
-              <p className="hp-small">Pick your board when you open the app.</p>
+              <p className="hp-small">You choose your board the first time you open it.</p>
             </div>
           </div>
         </section>
 
         <section id="pricing" className="hp-subject-pricing" aria-labelledby="price-title">
           <div className="hp-wrap hp-narrow is-center-text" data-reveal>
-            <h2 id="price-title" className="hp-h2">Free {content.name} revision, every week.</h2>
+            <h2 id="price-title" className="hp-h2">What you get free each week.</h2>
             <ul className="hp-free-tiles" aria-label="Free every week">
-              {[["10", "answers marked"], ["5", "practice questions"], ["12", "AI Pen answers"], ["1", "tutor session"]].map(([n, l]) => (
+              {[["10", "answers marked"], ["5", "new practice questions"], ["12", "AI Pen answers"], ["1", "AI tutor session"]].map(([n, l]) => (
                 <li key={l}><strong>{n}</strong><span>{l}</span></li>
               ))}
             </ul>
-            <p className="hp-pro-line">Pro: <strong>{prices.yearlyPerMonth} a month</strong>, billed {prices.yearly} a year, {prices.trialDays} days free first. Or {prices.monthly} a month, no trial.</p>
+            <p className="hp-pro-line">Pro is <strong>{prices.yearlyPerMonth} a month</strong>. Billed {prices.yearly} a year, after {prices.trialDays}{"\u00a0"}days free. Or {prices.monthly} a month, with no trial.</p>
             <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
-            <p className="hp-small">Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">See everything in Free and Pro</Link>.</p>
+            <p className="hp-small">Cancel any time in Settings. Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">Compare Free and Pro</Link>.</p>
           </div>
         </section>
 
