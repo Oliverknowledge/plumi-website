@@ -64,7 +64,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1b: "that marks your working.",
     sub: "Exam-style Physics questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see every mark you lost.",
     stepsTitle: "Physics, marked line by line.",
-    subShort: "Write your answer with Apple Pencil. See every mark you lost, on Physics questions for your board.",
+    subShort: "Write it with Apple Pencil. See every Physics mark you lost.",
     hero: { kind: "ipad", image: "/site/shot-mark.webp", alt: "A handwritten A-Level Physics answer about a light sensor circuit, marked 3 out of 5 in Plumi, with the lost method and accuracy marks shown on the page." },
     figures: [
       { image: "/site/diagram-d4b.webp", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
@@ -91,7 +91,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1b: "that marks your working.",
     sub: "Exam-style Chemistry questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see every mark you lost.",
     stepsTitle: "Chemistry, marked line by line.",
-    subShort: "Write your answer with Apple Pencil. See every mark you lost, on Chemistry questions for your board.",
+    subShort: "Write it with Apple Pencil. See every Chemistry mark you lost.",
     hero: { kind: "figure", image: "/site/diagram-chemb.webp", alt: "A reaction profile from a Plumi Chemistry question: energy against progress of reaction, with the uncatalysed and catalysed routes and the activation energy marked.", caption: "From a Plumi question on reaction profiles, AQA GCSE Chemistry." },
     figures: [
       { image: "/site/diagram-chemb.webp", label: "Energy profile", alt: "A reaction profile with a solid uncatalysed curve, a dashed catalysed curve, and arrows for the activation energy and the overall energy change." },
@@ -103,6 +103,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     ),
     faq: [
       ...commonFaq("Chemistry"),
+      { q: "Does it understand chemical formulae?", a: "Yes. Plumi reads a formula you write, such as Ca(OH)2, as the atoms it contains rather than as letters, so a correct formula is recognised however it is written. Where it cannot read one for certain, it does not mark you down for it." },
       { q: "Does it check my calculations?", a: "Yes. Where the mark scheme states a value, Plumi checks your answer by arithmetic: the same number in any equivalent unit, at a precision the board accepts. It only takes a mark away when the arithmetic is conclusive." },
     ],
   },
@@ -116,7 +117,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1b: "that marks your answers.",
     sub: "Exam-style Biology questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see every mark you lost.",
     stepsTitle: "Biology, marked point by point.",
-    subShort: "Write your answer with Apple Pencil. See every mark you lost, on Biology questions for your board.",
+    subShort: "Write it with Apple Pencil. See every Biology mark you lost.",
     hero: { kind: "figure", image: "/site/diagram-biob.webp", alt: "A woodland food web from a Plumi Biology question: an oak tree feeding a caterpillar, an aphid and an earthworm, up to a sparrowhawk.", caption: "From a Plumi question on communities, AQA GCSE Biology." },
     figures: [
       { image: "/site/diagram-biob.webp", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },

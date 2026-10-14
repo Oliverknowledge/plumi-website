@@ -74,7 +74,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <Image src="/site/loupe-mark4.webp" width={885} height={148} sizes="(max-width: 760px) 92vw, 480px" priority
                 alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
               <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span>
-                <span>{content.slug === "physics" ? "Lost 2 marks: the 10\u00a0kΩ goes on top of the fraction, not the 1.5\u00a0kΩ." : "How marking looks, on a Physics answer. Every subject is marked like this."}</span></figcaption>
+                <span>{content.slug === "physics" ? "Lost 2 marks: the 10\u00a0kΩ goes on top of the fraction, not the 1.5\u00a0kΩ." : "A Physics answer, marked by Plumi."}</span></figcaption>
             </figure>
           </div>
         </section>

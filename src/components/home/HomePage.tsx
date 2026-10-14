@@ -164,7 +164,9 @@ export function HomePage({ variant }: { variant?: string }) {
                 <p className="hp-versus-label">{pain.them.label}</p>
                 <ul>
                   {pain.them.rows.map(r => (
-                    <li key={r.title}><span className="hp-versus-mark is-no" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span></div></li>
+                    <li key={r.title}><span className="hp-versus-mark is-no" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span>
+                      {"empty" in r && <span className="hp-versus-empty" aria-hidden="true"><span>Part (a)</span><span>? / 3</span></span>}
+                    </div></li>
                   ))}
                 </ul>
               </div>
@@ -173,7 +175,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 <ul>
                   {pain.us.rows.map(r => (
                     <li key={r.title}><span className="hp-versus-mark is-yes" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span>
-                      {"proof" in r && <span className="hp-versus-proof"><Image src="/site/part-a.webp" width={568} height={405} sizes="320px" alt="Plumi's marking panel for part (a): M1 awarded, M2 not awarded, A1 not the value the scheme gives, 1 out of 3." /></span>}
+                      {"proof" in r && <span className="hp-versus-proof"><Image src="/site/part-a2.webp" width={568} height={227} sizes="320px" alt="Plumi's marking panel for part (a): M1 awarded, M2 not awarded, A1 not the value the scheme gives, 1 out of 3." /></span>}
                     </div></li>
                   ))}
                 </ul>
@@ -406,7 +408,7 @@ export function HomePage({ variant }: { variant?: string }) {
             "@context": "https://schema.org",
             "@type": "FAQPage",
             mainEntity: faq.map(f => ({ "@type": "Question", name: plain(f.q), acceptedAnswer: { "@type": "Answer", text: plain(f.a) } })),
-          }) }} />
+          }).replace(/</g, "\\u003c") }} />
         </section>
 
         {/* CLOSE */}

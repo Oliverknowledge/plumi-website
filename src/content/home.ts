@@ -47,7 +47,7 @@ export const pain = {
     label: "Pasting into a chatbot",
     rows: [
       { title: "Retype or screenshot it", line: "Every question, every time." },
-      { title: "A verdict, not marks", line: "No mark scheme, no marks to count." },
+      { title: "A verdict, not marks", line: "No mark scheme, no marks to count.", empty: true },
       { title: "Starts from zero", line: "Nothing tracks the topics you drop marks on." },
     ],
   },
@@ -56,7 +56,7 @@ export const pain = {
     rows: [
       { title: "Write it on the page", line: "Your own handwriting, with Apple Pencil." },
       { title: "Marked like the exam", line: "Against the mark scheme, line by line.", proof: true },
-      { title: "Never forgotten", line: "Every dropped mark sets your next question." },
+      { title: "Never forgotten", line: "Every dropped mark shapes your next question." },
     ],
   },
 } as const;
