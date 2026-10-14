@@ -45,7 +45,7 @@ const commonFaq = (subject: string) => [
   },
   {
     q: "Are the required practicals covered?",
-    a: `The practical skills on your ${subject} specification, including the required or core practicals where your board lists them, are topics on your map, so questions on them are marked and tracked like any other topic.`,
+    a: `On most boards, yes. Where your board’s practicals are on your ${subject} map, Plumi sets and marks practical questions like any other.`,
   },
   {
     q: "Is it free?",
@@ -116,7 +116,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     h1a: "Biology revision",
     h1b: "that marks your answers.",
     sub: "Exam-style Biology questions for AQA, OCR and Edexcel. Write your answer with Apple Pencil and see every mark you lost.",
-    stepsTitle: "Biology, marked point by point.",
+    stepsTitle: "Biology, marked the way the paper marks it.",
     subShort: "Write it with Apple Pencil. See every Biology mark you lost.",
     hero: { kind: "figure", image: "/site/diagram-biob.webp", alt: "A woodland food web from a Plumi Biology question: an oak tree feeding a caterpillar, an aphid and an earthworm, up to a sparrowhawk.", caption: "From a Plumi question on communities, AQA GCSE Biology." },
     figures: [
@@ -124,9 +124,9 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     ],
     steps: steps(
       "An exam-style Biology question for your board, with the food web, cell or graph drawn in. You write underneath with Apple Pencil.",
-      "Longer answers marked point by point, the way the scheme lists them, with the line each point was found on.",
+      "Short answers are marked point by point, the way the scheme lists them. A 6‑marker gets a level, like the real paper.",
       "One good answer on inheritance won't turn its square green. Your map waits for more.",
-      "Every point, marked.",
+      "Points and levels, marked.",
     ),
     faq: [
       ...commonFaq("Biology"),

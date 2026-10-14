@@ -150,7 +150,7 @@ export const bento = {
   title: "Everything around the marking.",
   tiles: [
     { id: "papers", title: "Past papers, one tap away.", line: "A‑Level papers, mark schemes and grade boundaries for your board. Or upload any paper.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
-    { id: "streak", title: "Keep your streak.", line: "Study a little every day. With Pro, a full past paper marked earns a freeze.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
+    { id: "streak", title: "Keep your streak.", line: "Study a little every day. Sit a whole A‑Level paper with Pro and you earn a freeze for a missed day.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
     { id: "notes", title: "Notes that become flashcards.", line: "Handwrite it once. Plumi quizzes you on it.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
     { id: "focus", title: "Lock in with Focus.", line: "Pomodoros that can block distracting apps.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
     { id: "stats", title: "Every minute counted.", line: "A daily goal, and where your study time actually goes.", image: "/site/tile-stats3.webp", w: 1430, h: 610, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
@@ -163,13 +163,14 @@ export const identity = {
   title: "Know where you stand.",
   line: "Set the grade you’re aiming for. At A‑Level, see where your marked papers put you.",
   // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
-  // Current comes only from board papers Plumi has marked, Goal is the student's.
+  // Plumi's own marking never fills Current (SubjectStanding.swift); what Pro gives is a
+  // grade on each A-Level paper it marks, from that year's boundaries (PaperChart.swift).
   grades: [
     { label: "Predicted", value: "A", tone: "" },
-    { label: "Current", value: "B", tone: "" },
+    { label: "Last paper", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "GCSE or A‑Level, set your goal. At A‑Level, Current comes from your marked board papers, with Pro.",
+  caption: "GCSE or A‑Level, set your goal. With Pro, each A‑Level past paper Plumi marks gets a grade from that year’s boundaries.",
 } as const;
 
 export const subjects = {
@@ -217,7 +218,7 @@ export const pricing = {
       "Unlimited practice questions",
       "Unlimited AI Pen and tutoring on the page",
       "Whole past papers, sat and marked",
-      "Your A‑Level grade so far, from your marked papers",
+      "A grade for each A‑Level past paper it marks",
       "Block distracting apps in every Focus session",
     ],
   },

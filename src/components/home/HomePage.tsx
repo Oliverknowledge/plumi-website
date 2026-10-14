@@ -318,7 +318,7 @@ export function HomePage({ variant }: { variant?: string }) {
               <p className="hp-lede is-light">{identity.line}</p>
             </div>
             <div className="hp-grade" data-reveal>
-              <div className="hp-grade-card" role="img" aria-label="An example grade card: predicted A, current B, goal A star.">
+              <div className="hp-grade-card" role="img" aria-label="An example grade card: predicted A, last paper B, goal A star.">
                 {identity.grades.map((g, i) => (
                   <div key={g.label} className="hp-grade-cell">
                     {i > 0 && <div className="hp-grade-rule" />}

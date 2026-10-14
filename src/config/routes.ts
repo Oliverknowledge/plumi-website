@@ -122,7 +122,7 @@ export const routeIntents: readonly RouteIntent[] = [
     title: "GCSE & A-Level Biology Revision App for iPad | Plumi",
     h1: "Biology revision that marks your answers.",
     description:
-      "Exam-style GCSE and A-Level Biology questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every point and tracks every unit.",
+      "Exam-style GCSE and A-Level Biology questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks it the way the paper does and tracks every unit.",
     linksTo: ["/", "/physics-revision", "/chemistry-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
