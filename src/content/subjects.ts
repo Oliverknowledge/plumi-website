@@ -31,7 +31,7 @@ export interface SubjectPageContent {
 const steps = (first: string, second: string, third: string, markedTitle = "Every line, marked.") => [
   { title: "Answer it like the real exam.", line: first },
   { title: markedTitle, line: second },
-  { title: "Your gaps, then your next question.", line: third },
+  { title: "Your map shows what needs work.", line: third },
 ] as const;
 
 const commonFaq = (subject: string) => [
@@ -74,7 +74,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     steps: steps(
       "An exam-style Physics question for your board, with the circuit, graph or field drawn in. You write underneath with Apple Pencil.",
       "Ticks and crosses land on your page: method, accuracy and explanation marks, and the exact line a mark was lost.",
-      "Forces, fields or waves: whichever topic loses marks comes back next, picked from your map.",
+      "Keep dropping marks on potential dividers and that square turns red. At A‑Level, your next practice is suggested from the map.",
     ),
     faq: [
       ...commonFaq("Physics"),
@@ -99,7 +99,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     steps: steps(
       "An exam-style Chemistry question for your board, with the reaction profile, apparatus or graph drawn in. You write underneath with Apple Pencil.",
       "Ticks and crosses land on your page, and where the scheme gives a value, your answer is checked by arithmetic.",
-      "Moles, rates or organic: whichever topic loses marks comes back next, picked from your map.",
+      "Moles gets its own square on your map, coloured by how your marked answers on it went.",
     ),
     faq: [
       ...commonFaq("Chemistry"),
@@ -125,7 +125,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     steps: steps(
       "An exam-style Biology question for your board, with the food web, cell or graph drawn in. You write underneath with Apple Pencil.",
       "Longer answers marked point by point, the way the scheme lists them, with the line each point was found on.",
-      "Cells, genetics or ecology: whichever topic loses marks comes back next, picked from your map.",
+      "One good answer on inheritance won't turn its square green. Your map waits for more.",
       "Every point, marked.",
     ),
     faq: [

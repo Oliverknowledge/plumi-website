@@ -56,7 +56,7 @@ export const pain = {
     rows: [
       { title: "Write it on the page", line: "Your own handwriting, with Apple Pencil." },
       { title: "Marked like the exam", line: "Against the mark scheme, line by line.", proof: true },
-      { title: "Never forgotten", line: "Every dropped mark shapes your next question." },
+      { title: "A map of your topics", line: "Your marks colour in the topics on your spec, so you can see what needs work." },
     ],
   },
 } as const;
@@ -117,7 +117,7 @@ export const story = {
 export const weak = {
   eyebrow: "Knows your gaps",
   title: "It knows what you’re weak at.",
-  line: "Every topic on your AQA, OCR or Edexcel specification. Each mark you drop lands here, and your next practice is chosen from it.",
+  line: "Every topic on your AQA, OCR or Edexcel specification, coloured as your answers are marked.",
   next: { image: "/site/zoom-next2.webp", w: 947, h: 226, alt: "Two practice suggestions picked from the topic map: check what you have not used lately, and test what you remember.", caption: "Your next practice, picked from your map.", ring: { x: 0.27, y: 0.18, w: 0.705, h: 0.14 } },
   zoom: { image: "/site/zoom-map3.webp", w: 470, h: 270, alt: "Close up of the topic map: the Forces and motion topics, each a square marked strong, developing or needs attention." },
   legend: [
@@ -133,7 +133,7 @@ export const weak = {
 export const questions = {
   eyebrow: "Written for you",
   title: "Questions on your gaps. Diagrams included.",
-  line: "Questions on the topics you keep dropping marks on, with the diagram drawn in.",
+  line: "Exam-style questions for your board, with the diagram drawn in.",
   // Real figures from bank questions, drawn by the app's own diagram renderer.
   diagrams: [
     { id: "chemb", level: "GCSE", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
@@ -214,7 +214,7 @@ export const pricing = {
     lead: "Everything unlimited, for the run‑up to your exams.",
     items: [
       "Unlimited marking, line by line",
-      "Unlimited practice on your weak topics",
+      "Unlimited practice questions",
       "Unlimited AI Pen and tutoring on the page",
       "Whole past papers, sat and marked",
       "Your A‑Level grade so far, from your marked papers",
@@ -251,7 +251,7 @@ export const faq = [
   },
   {
     q: "How is it different from asking ChatGPT?",
-    a: "Plumi marks your own handwritten working against a mark scheme, on the page, and shows the exact mark you lost. Then it remembers what you got wrong and sets your next question from it. No screenshots, no copy and paste, and a record of every topic.",
+    a: "Plumi marks your own handwritten working against a mark scheme, on the page, and shows the exact mark you lost. Then your marks build a map of your topics, so you can see what to practise. No screenshots, no copy and paste, and a record of every topic.",
   },
   {
     q: "Is my work private?",
