@@ -47,7 +47,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
             </h1>
             <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}>{content.sub}</p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
-              <AppStoreBadge placement={`${content.slug}-hero`} height={56} />
+              <AppStoreBadge placement={`${content.slug}-hero`} height={56} showLine />
               <div className="hp-hero-qr" aria-hidden="true">
                 <Image src="/site/qr-app-store.svg" alt="" width={56} height={56} unoptimized />
                 <span>{homeHero.qr}</span>
@@ -124,7 +124,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
           <div className="hp-wrap hp-narrow is-center-text" data-reveal>
             <h2 id="price-title" className="hp-h2">Free to start.</h2>
             <p className="hp-lede">10 answers marked, 5 practice questions, 12 AI Pen answers and 1 tutor session every week, free. Pro is {prices.yearly} a year with {prices.trialDays} days free first, or {prices.monthly} a month.</p>
-            <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
+            <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} showLine /></div>
             <p className="hp-small">Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">See everything in Free and Pro</Link>.</p>
           </div>
         </section>

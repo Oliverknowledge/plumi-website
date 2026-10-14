@@ -526,7 +526,7 @@ body {
 .consent { position: fixed; z-index: 90; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 360px; padding: 16px 18px; border-radius: 18px; background: #fff; color: #16202e; border: 2px solid #e3e5e9; box-shadow: 0 4px 0 #e3e5e9, 0 18px 40px -20px rgba(16, 24, 40, 0.35); font-size: 14px; line-height: 1.45; }
 .consent p { margin: 0 0 12px; }
 .consent-actions { display: flex; gap: 8px; justify-content: flex-end; }
-.consent button { appearance: none; cursor: pointer; font: inherit; font-weight: 700; border-radius: 980px; padding: 8px 16px; border: 2px solid #e3e5e9; background: #fff; color: #16202e; }
+.consent button { appearance: none; cursor: pointer; font: inherit; font-weight: 700; border-radius: 980px; padding: 8px 16px; min-height: 44px; border: 2px solid #e3e5e9; background: #fff; color: #16202e; }
 .consent button:focus-visible { outline: 3px solid #3b74ee; outline-offset: 2px; }
-@media (max-width: 640px) { .consent { left: 12px; right: 12px; max-width: none; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 1.35; } .consent p { margin: 0; flex: 1; } .consent-actions { flex-direction: column; gap: 6px; } .consent button { padding: 6px 12px; font-size: 13px; } }
+@media (max-width: 640px) { .consent { left: 12px; right: 12px; max-width: none; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 1.35; } .consent p { margin: 0; flex: 1; } .consent-actions { flex-direction: column; gap: 6px; } .consent button { padding: 6px 14px; font-size: 13px; min-height: 44px; } }
 .skip-content { z-index: 100; background: #2158d4; color: white; padding: 14px; left: 15px; top: 15px; }

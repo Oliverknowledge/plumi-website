@@ -33,7 +33,7 @@ export const hero = {
   note: "Free to download. 7 days of Pro free on the yearly plan.",
   device: "For iPad, with iPadOS 17 or later.",
   qr: "Scan with your iPad",
-  zoom: { image: "/site/loupe-mark3.webp", w: 885, h: 136, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
+  zoom: { image: "/site/loupe-mark3.webp", w: 885, h: 136, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
   // Where the close-up sits on the full capture, as fractions of its width and height.
   ring: { x: 0.128, y: 0.693, w: 0.45, h: 0.096 },
 } as const;
@@ -110,8 +110,8 @@ export const weak = {
   eyebrow: "Knows your gaps",
   title: "It knows what you’re weak at.",
   line: "Every topic on your AQA, OCR or Edexcel specification. Each mark you drop lands here, and your next practice is chosen from it.",
-  next: { image: "/site/zoom-next.webp", w: 1410, h: 210, alt: "Plumi's practice suggestions picked from the topic map: check what you have not used lately, test what you remember, and start elastic and plastic deformation.", caption: "Your next practice, picked from your map.", ring: { x: 0.27, y: 0.18, w: 0.705, h: 0.14 } },
-  zoom: { image: "/site/zoom-map2.webp", w: 940, h: 270, alt: "Close up of the topic map: Forces and motion and Foundations of physics, each topic a square marked strong, developing or needs attention." },
+  next: { image: "/site/zoom-next2.webp", w: 947, h: 226, alt: "Two practice suggestions picked from the topic map: check what you have not used lately, and test what you remember.", caption: "Your next practice, picked from your map.", ring: { x: 0.27, y: 0.18, w: 0.705, h: 0.14 } },
+  zoom: { image: "/site/zoom-map3.webp", w: 470, h: 270, alt: "Close up of the topic map: the Forces and motion topics, each a square marked strong, developing or needs attention." },
   legend: [
     // The app's own key (TopicGrid.swift): never colour alone, a glyph on every state.
     { label: "Needs attention", tone: "red", glyph: "alert" },
@@ -128,12 +128,12 @@ export const questions = {
   line: "Questions on the topics you keep dropping marks on, with the diagram drawn in.",
   // Real figures from bank questions, drawn by the app's own diagram renderer.
   diagrams: [
-    { id: "chem", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
-    { id: "d4", subject: "Physics", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
-    { id: "bio", subject: "Biology", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
-    { id: "maths", subject: "Maths", label: "Projectile path", alt: "A ball thrown at angle alpha from the top of a 34 m building, over an 8 m street, landing on the roof of a 14 m building." },
-    { id: "d3", subject: "Physics", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
-    { id: "d9", subject: "Physics", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
+    { id: "chemb", subject: "Chemistry", label: "Energy profile", alt: "A reaction profile of energy against progress of reaction, with a solid curve for the uncatalysed route, a lower dashed curve for the catalysed route, and arrows for the activation energy and the overall energy change." },
+    { id: "d4b", subject: "Physics", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
+    { id: "biob", subject: "Biology", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
+    { id: "mathsb", subject: "Maths", label: "Projectile path", alt: "A ball thrown at angle alpha from the top of a 34 m building, over an 8 m street, landing on the roof of a 14 m building." },
+    { id: "d3b", subject: "Physics", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
+    { id: "d9b", subject: "Physics", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
   ],
 } as const;
 
@@ -153,7 +153,7 @@ export const bento = {
 export const identity = {
   eyebrow: "Your grade",
   title: "Know where you stand.",
-  line: "Set the grade you’re aiming for. See where your marked papers put you.",
+  line: "Set the grade you’re aiming for. At A‑Level, see where your marked papers put you.",
   // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
   // Current comes only from board papers Plumi has marked, Goal is the student's.
   grades: [
@@ -161,7 +161,7 @@ export const identity = {
     { label: "Current", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "An example. Predicted is your school’s, Goal is yours. Current is a Pro reading, from board papers Plumi has marked.",
+  caption: "An A‑Level example. Predicted is your school’s, Goal is yours. Current needs Pro and a few marked board papers.",
 } as const;
 
 export const subjects = {
@@ -207,7 +207,8 @@ export const pricing = {
       "Unlimited marking, line by line",
       "Unlimited practice on your weak topics",
       "Unlimited AI Pen and tutoring on the page",
-      "Your current grade, from your marked board papers",
+      "Whole past papers, sat and marked",
+      "Your A‑Level grade so far, from your marked papers",
       "Block distracting apps in every Focus session",
     ],
   },
@@ -221,7 +222,7 @@ export const faq = [
   },
   {
     q: "Can Plumi mark AQA, OCR and Edexcel questions?",
-    a: "Yes. Pick your board and Plumi writes exam-style questions in that board’s style, each with its own mark scheme, and marks your handwritten answer against it: method, accuracy and explanation marks, line by line.",
+    a: "Yes. Pick your board and Plumi writes exam-style questions in that board’s style, each with its own mark scheme, and marks your handwritten answer against it: method, accuracy and explanation marks, line by line. With Pro, it also marks whole past papers you sit.",
   },
   {
     q: "Does it really mark my handwriting?",

@@ -117,21 +117,23 @@ export function HomePage({ variant }: { variant?: string }) {
         {/* HERO */}
         <section className="hp-hero" data-testid="hero-section" aria-labelledby="hero-title">
           <div className="hp-wrap hp-hero-copy">
-            <p className="hp-eyebrow hp-rise" style={{ ["--d" as string]: "0ms" }}>{hero.eyebrow}</p>
             <h1 id="hero-title" className="hp-hero-title" data-testid="hero-headline">
+              <span className="hp-eyebrow hp-h1-eyebrow hp-rise" style={{ ["--d" as string]: "0ms" }}>{hero.eyebrow}</span>{" "}
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{hero.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{hero.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
             <p className="hp-hero-sub hp-rise" style={{ ["--d" as string]: "320ms" }}><span className="hp-sub-long">{hero.sub}</span><span className="hp-sub-short">{hero.subShort}</span></p>
             <div className="hp-hero-cta hp-rise" style={{ ["--d" as string]: "420ms" }}>
-              <AppStoreBadge placement="hero" height={56} />
+              <AppStoreBadge placement="hero" height={56} showLine />
               <div className="hp-hero-qr" aria-hidden="true">
                 <Image src="/site/qr-app-store.svg" alt="" width={56} height={56} unoptimized />
                 <span>{hero.qr}</span>
               </div>
             </div>
-            <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">{hero.device}</span></p>
-            <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" />
+            <ul className="hp-phone-subjects hp-only-phone" aria-label="Subjects">
+              {subjects.list.map(sub => <li key={sub.name} style={{ ["--tone" as string]: subjects.tones[sub.name] }}><SubjectGlyph name={sub.name} />{sub.name}</li>)}
+            </ul>
+            <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">{hero.device}</span> <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" /></p>
           </div>
           <div className="hp-hero-stage">
             <IPad src="/site/shot-mark.webp" priority className="hp-hero-ipad"
@@ -366,7 +368,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 <p className="hp-plan-billing">{pricing.pro.billing}<br />{pricing.pro.billing2}</p>
                 <p className="hp-plan-lead">{pricing.pro.lead}</p>
                 <ul>{pricing.pro.items.map(i => <li key={i}>{i}</li>)}</ul>
-                <div className="hp-plan-cta"><AppStoreBadge placement="pricing" height={48} /></div>
+                <div className="hp-plan-cta"><AppStoreBadge placement="pricing" height={48} showLine /></div>
               </article>
             </div>
             <p className="hp-small">{pricing.small}</p>

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { googleAdsEnabled } from "@/config/site";
 import { CONSENT_KEY } from "@/lib/consent";
 
@@ -15,12 +15,21 @@ function storedChoice(): string | null {
 /**
  * One question, asked once: may Plumi set the advertising cookie that tells it which
  * ads work? Nothing is set until the answer is yes (see GoogleAds.tsx). Small, at the
- * bottom, never over a download button for long, and gone for good after one tap.
+ * bottom, and gone for good after one tap. It waits until the visitor has scrolled a
+ * little (or tapped something), so it never covers the first screen of the page.
  */
 export function ConsentBanner() {
   const stored = useSyncExternalStore(noSubscribe, storedChoice, () => "server");
   const [answered, setAnswered] = useState(false);
-  if (!googleAdsEnabled() || answered || stored !== null) return null;
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const wake = () => { if (window.scrollY > 400) setReady(true); };
+    const tap = () => setReady(true);
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("pointerdown", tap, { once: true });
+    return () => { window.removeEventListener("scroll", wake); window.removeEventListener("pointerdown", tap); };
+  }, []);
+  if (!googleAdsEnabled() || answered || stored !== null || !ready) return null;
 
   const answer = (choice: "granted" | "denied") => {
     try { localStorage.setItem(CONSENT_KEY, choice); } catch { /* private mode: ask again next time */ }

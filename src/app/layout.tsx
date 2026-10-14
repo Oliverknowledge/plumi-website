@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     "apple-itunes-app": "app-id=6811389052",
   },
 };
-export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
+export const viewport: Viewport = { themeColor: "#fcfcf9", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="en-GB" className={inter.variable}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/>{children}<ConsentBanner/></body></html>;
 }

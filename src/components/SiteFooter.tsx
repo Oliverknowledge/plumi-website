@@ -7,6 +7,9 @@ import { discordUrl, site } from "@/config/site";
  * Every indexable page stays one click from every other page.
  */
 export const footerLinks: readonly (readonly [string, string])[] = [
+  ["Physics revision", "/physics-revision"],
+  ["Chemistry revision", "/chemistry-revision"],
+  ["Biology revision", "/biology-revision"],
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
   ["GCSE Maths", "/gcse-maths"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],
