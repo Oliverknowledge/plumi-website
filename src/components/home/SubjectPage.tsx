@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SectionImpressions } from "@/components/SectionImpressions";
+import { PageStructuredData } from "@/components/StructuredData";
+import { intentFor } from "@/config/routes";
 import { AppStoreBadge, HeaderDownload } from "./AppStoreBadge";
 import { HomeFooter, IPad } from "./HomePage";
 import { HomeMotion } from "./Motion";
@@ -155,6 +157,8 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
         </section>
       </main>
       <HomeFooter />
+      <PageStructuredData path={content.path} name={intentFor(content.path).title} description={intentFor(content.path).description}
+        breadcrumb={[{ name: `${content.name} revision`, path: content.path }]} />
       <SectionImpressions />
     </div>
   );

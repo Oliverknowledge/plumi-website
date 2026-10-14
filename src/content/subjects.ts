@@ -24,9 +24,9 @@ export interface SubjectPageContent {
   faq: readonly { q: string; a: string }[];
 }
 
-const commonSteps = (subject: string) => [
+const commonSteps = (subject: string, marks = "method, accuracy and explanation marks") => [
   { title: "Answer it like the real exam.", line: `An exam-style ${subject} question for your board, with the diagram the paper would have. You write underneath with Apple Pencil.` },
-  { title: "Every line, marked.", line: "Ticks and crosses land on your page: method, accuracy and explanation marks, and the exact line a mark was lost." },
+  { title: "Every line, marked.", line: `Ticks and crosses land on your page: ${marks}, and the exact line a mark was lost.` },
   { title: "Your gaps, then your next question.", line: "Every topic on your specification is tracked as you go, and your next practice is picked from the marks you dropped." },
 ] as const;
 
@@ -37,7 +37,7 @@ const commonFaq = (subject: string) => [
   },
   {
     q: `Are these real ${subject} past paper questions?`,
-    a: `Practice questions and mark schemes are written by Plumi in the style of your board. The Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.`,
+    a: `Practice questions and mark schemes are written by Plumi in the style of your board. For A‑Level, the Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.`,
   },
   {
     q: "Is it free?",
@@ -81,7 +81,10 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
       { image: "/site/diagram-chemb.webp", label: "Energy profile", alt: "A reaction profile with a solid uncatalysed curve, a dashed catalysed curve, and arrows for the activation energy and the overall energy change." },
     ],
     steps: commonSteps("Chemistry"),
-    faq: commonFaq("Chemistry"),
+    faq: [
+      ...commonFaq("Chemistry"),
+      { q: "Does it check my calculations?", a: "Yes. Where the mark scheme states a value, Plumi checks your working by arithmetic: the same number in any equivalent unit, at a precision the board accepts. It only takes a mark away when the arithmetic is conclusive." },
+    ],
   },
   biology: {
     slug: "biology",
@@ -96,7 +99,10 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     figures: [
       { image: "/site/diagram-biob.webp", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
     ],
-    steps: commonSteps("Biology"),
-    faq: commonFaq("Biology"),
+    steps: commonSteps("Biology", "every marking point"),
+    faq: [
+      ...commonFaq("Biology"),
+      { q: "Can I practise the AQA A‑Level Biology essay?", a: "Yes. On AQA A‑Level Biology, Plumi sets a 25‑mark essay sitting with two titles of its own, and marks it in the board’s five bands, counting the areas of the specification your essay draws on." },
+    ],
   },
 };

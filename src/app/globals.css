@@ -528,5 +528,5 @@ body {
 .consent-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .consent button { appearance: none; cursor: pointer; font: inherit; font-weight: 700; border-radius: 980px; padding: 8px 16px; min-height: 44px; border: 2px solid #e3e5e9; background: #fff; color: #16202e; }
 .consent button:focus-visible { outline: 3px solid #3b74ee; outline-offset: 2px; }
-@media (max-width: 640px) { .consent { left: 12px; right: 12px; max-width: none; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 1.35; } .consent p { margin: 0; flex: 1; } .consent-actions { flex-direction: column; gap: 6px; } .consent button { padding: 6px 14px; font-size: 13px; min-height: 44px; } }
+@media (max-width: 640px) { .consent { left: 12px; right: 12px; max-width: none; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 1.35; } .consent p { margin: 0; flex: 1; } .consent-actions { flex-direction: row; gap: 6px; } .consent button { padding: 6px 12px; font-size: 13px; min-height: 44px; } .consent-more { display: none; } }
 .skip-content { z-index: 100; background: #2158d4; color: white; padding: 14px; left: 15px; top: 15px; }

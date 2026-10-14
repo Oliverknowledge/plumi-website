@@ -30,7 +30,7 @@ async function sendToIPad(placement: string, label: string): Promise<"sent" | "e
   return "emailed";
 }
 
-export const phoneCopy = { line: "Plumi is for iPad, with iPadOS 17 or later.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", emailed: "Now send that email to yourself.", email: "Email me the link instead" } as const;
+export const phoneCopy = { line: "Free for iPad, with iPadOS 17 or later.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", emailed: "Now send that email to yourself.", email: "Email me the link instead" } as const;
 
 type SendState = "idle" | "sent" | "emailed" | "dismissed";
 const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCopy.sent : state === "emailed" ? phoneCopy.emailed : idle;

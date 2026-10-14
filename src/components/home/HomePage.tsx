@@ -32,11 +32,11 @@ const hand = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-han
  *
  * Every product image is a real capture from the app (see src/content/home.ts).
  */
-export function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px", children }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string; children?: ReactNode }) {
+export function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px", width = 2000, height = 1500, children }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string; width?: number; height?: number; children?: ReactNode }) {
   return (
     <div className={`hp-ipad ${className}`}>
       <div className="hp-ipad-screen">
-        <Image src={src} alt={alt} width={2000} height={1500} priority={priority}
+        <Image src={src} alt={alt} width={width} height={height} priority={priority}
           sizes={sizes}
           className={fit === "contain" ? "is-contain" : ""} />
         {children}
@@ -55,6 +55,9 @@ function SubjectGlyph({ name }: { name: string }) {
   };
   return <span className="hp-subject-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24">{paths[name]}</svg></span>;
 }
+
+/** Where each subject's own page lives. Maths has two pages of its own, so GCSE leads. */
+const subjectHref: Record<string, string> = { Physics: "/physics-revision", Chemistry: "/chemistry-revision", Biology: "/biology-revision", Maths: "/gcse-maths" };
 
 /** The app's topic square: a coloured tile with a glyph, so no state is colour alone. */
 function TopicGlyph({ tone, glyph }: { tone: string; glyph: string }) {
@@ -131,12 +134,12 @@ export function HomePage({ variant }: { variant?: string }) {
               </div>
             </div>
             <ul className="hp-phone-subjects hp-only-phone" aria-label="Subjects">
-              {subjects.list.map(sub => <li key={sub.name} style={{ ["--tone" as string]: subjects.tones[sub.name] }}><SubjectGlyph name={sub.name} />{sub.name}</li>)}
+              {subjects.list.map(sub => <li key={sub.name} style={{ ["--tone" as string]: subjects.tones[sub.name] }}><Link href={subjectHref[sub.name]} data-testid={`hero-subject-${sub.name.toLowerCase()}`}><SubjectGlyph name={sub.name} />{sub.name}</Link></li>)}
             </ul>
             <p className="hp-hero-note hp-rise" style={{ ["--d" as string]: "480ms" }}>{hero.note} <span className="hp-ipad-only">{hero.device}</span> <HomeAnchor href="#how" label="See how it marks" placement="hero-how" className="hp-link hp-hero-how" /></p>
           </div>
           <div className="hp-hero-stage">
-            <IPad src="/site/shot-mark.webp" priority className="hp-hero-ipad"
+            <IPad src="/site/shot-mark-hero.webp" width={2000} height={1388} priority className="hp-hero-ipad"
               sizes="(max-width: 760px) 92vw, (max-width: 1100px) 90vw, 1040px"
               alt="Plumi on iPad: a handwritten A-Level Physics answer marked 3 out of 5, with ticks, crosses and the mark breakdown.">
               <span className="hp-ring" aria-hidden="true" style={{ left: `${hero.ring.x * 100}%`, top: `${hero.ring.y * 100}%`, width: `${hero.ring.w * 100}%`, height: `${hero.ring.h * 100}%` }} />
@@ -230,10 +233,6 @@ export function HomePage({ variant }: { variant?: string }) {
             <figure className="hp-loupe hp-map-zoom">
               <Image src={weak.zoom.image} width={weak.zoom.w} height={weak.zoom.h} alt={weak.zoom.alt} sizes="92vw" />
             </figure>
-            <figure className="hp-loupe hp-map-zoom">
-              <Image src={weak.next.image} width={weak.next.w} height={weak.next.h} alt={weak.next.alt} sizes="92vw" />
-              <figcaption>{weak.next.caption}</figcaption>
-            </figure>
             <div data-reveal className="hp-zoom">
               <IPad src="/site/shot-map.webp" className="is-wide"
                 alt="Plumi's course map for OCR A-Level Physics: every topic on the specification as a square coloured by how well you know it, with practice suggestions picked from it.">
@@ -261,7 +260,7 @@ export function HomePage({ variant }: { variant?: string }) {
                       <Image src={`/site/diagram-${d.id}.webp`} width={640} height={480} sizes="(max-width: 760px) 92vw, 340px"
                         alt={d.alt} />
                     </div>
-                    <figcaption><span className="hp-diagram-subject">{d.subject}</span>{d.label}</figcaption>
+                    <figcaption><Link href={subjectHref[d.subject]} className="hp-diagram-subject">{d.subject}</Link>{d.label}</figcaption>
                   </figure>
                 </li>
               ))}

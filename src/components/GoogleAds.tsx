@@ -7,9 +7,8 @@ import { CONSENT_KEY } from "@/lib/consent";
  *
  * This is Google's own gtag.js snippet, unchanged, loaded through `next/script`
  * rather than dropped into the document so the framework owns when it runs.
- * `afterInteractive` is the default and the right one here: the tag has to run
- * on every page but nothing on the page waits for it, and `beforeInteractive`
- * would put a third-party request ahead of Plumi's own code for no benefit.
+ * `lazyOnload`: the tag is the heaviest file on the page (about 500 KB) and
+ * nothing a student sees waits for it, so it loads once the page is idle.
  *
  * The inline block carries an `id`, which `next/script` requires in order to
  * track and de-duplicate it across client-side navigations.
@@ -33,9 +32,9 @@ export function GoogleAds() {
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
-      <Script id="google-ads-gtag" strategy="afterInteractive">
+      <Script id="google-ads-gtag" strategy="lazyOnload">
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', wait_for_update: 500 });

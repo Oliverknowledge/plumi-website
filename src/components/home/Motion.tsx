@@ -34,7 +34,7 @@ export function HomeMotion() {
     if (!reduced) {
       const reveal = new IntersectionObserver(entries => {
         for (const e of entries) if (e.isIntersecting) { e.target.classList.add("is-in"); reveal.unobserve(e.target); }
-      }, { rootMargin: "0px 0px -12% 0px", threshold: 0.12 });
+      }, { rootMargin: "0px 0px -4% 0px", threshold: 0.08 });
       reveals.forEach(el => reveal.observe(el));
       observers.push(reveal);
 

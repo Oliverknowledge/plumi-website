@@ -40,7 +40,7 @@ export function ConsentBanner() {
 
   return (
     <div className="consent" role="region" aria-label="Cookie choice" data-testid="consent-banner">
-      <p>Can Plumi use an ad cookie to see which of its ads work? Our own visit counts stay anonymous either way.</p>
+      <p>Can Plumi use an ad cookie to see which of its ads work?<span className="consent-more"> Our own visit counts stay anonymous either way.</span></p>
       <div className="consent-actions">
         <button type="button" onClick={() => answer("denied")} data-testid="consent-deny">No thanks</button>
         <button type="button" onClick={() => answer("granted")} data-testid="consent-allow">Allow</button>

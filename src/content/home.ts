@@ -33,9 +33,9 @@ export const hero = {
   note: "Free to download. 7 days of Pro free on the yearly plan.",
   device: "For iPad, with iPadOS 17 or later.",
   qr: "Scan with your iPad",
-  zoom: { image: "/site/loupe-mark3.webp", w: 885, h: 136, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
+  zoom: { image: "/site/loupe-mark3.webp", w: 885, h: 136, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost 2 marks: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
   // Where the close-up sits on the full capture, as fractions of its width and height.
-  ring: { x: 0.128, y: 0.693, w: 0.45, h: 0.096 },
+  ring: { x: 0.128, y: 0.668, w: 0.45, h: 0.104 },
 } as const;
 
 export const pain = {
@@ -93,7 +93,7 @@ export const story = {
     },
     {
       id: "up",
-      kicker: "04 · Better, on any question",
+      kicker: "04 · Re‑mark",
       title: "Fix it. Watch it go up.",
       line: "Correct the slip on any question, re‑mark it, and watch the score go up.",
       image: "/site/shot-up.webp",
@@ -141,8 +141,8 @@ export const bento = {
   eyebrow: "And the rest of revision",
   title: "Everything around the marking.",
   tiles: [
-    { id: "papers", title: "Every past paper, one tap away.", line: "Papers, mark schemes and grade boundaries for your board.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
-    { id: "streak", title: "Keep your streak.", line: "Study a little every day. A freeze covers a missed one.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
+    { id: "papers", title: "Past papers, one tap away.", line: "A‑Level papers, mark schemes and grade boundaries for your board. Or upload any paper.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
+    { id: "streak", title: "Keep your streak.", line: "Study a little every day. With Pro, a full past paper marked earns a freeze.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
     { id: "notes", title: "Notes that become flashcards.", line: "Handwrite it once. Plumi quizzes you on it.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
     { id: "focus", title: "Lock in with Focus.", line: "Pomodoros that can block distracting apps.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
     { id: "stats", title: "Every minute counted.", line: "A daily goal, and where your study time actually goes.", image: "/site/tile-stats3.webp", w: 1430, h: 610, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
@@ -161,7 +161,7 @@ export const identity = {
     { label: "Current", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "An A‑Level example. Predicted is your school’s, Goal is yours. Current needs Pro and a few marked board papers.",
+  caption: "An A‑Level example. Current comes from your marked board papers, with Pro.",
 } as const;
 
 export const subjects = {
@@ -230,7 +230,7 @@ export const faq = [
   },
   {
     q: "Are these real past paper questions?",
-    a: "Practice questions and mark schemes are written by Plumi in the style of your board, on the topics you need. The Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.",
+    a: "Practice questions and mark schemes are written by Plumi in the style of your board, on the topics you need. For A‑Level, the Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.",
   },
   {
     q: "Is Plumi free?",
