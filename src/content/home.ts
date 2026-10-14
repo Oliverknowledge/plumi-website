@@ -33,7 +33,7 @@ export const hero = {
   note: "Free to download. 7 days of Pro free on the yearly plan.",
   device: "For iPad, with iPadOS 17 or later.",
   qr: "Scan with your iPad",
-  zoom: { image: "/site/loupe-mark3.webp", w: 885, h: 136, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost 2 marks: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
+  zoom: { image: "/site/loupe-mark4.webp", w: 885, h: 148, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "Lost 2 marks: the 10 kΩ goes on top of the fraction, not the 1.5 kΩ." },
   // Where the close-up sits on the full capture, as fractions of its width and height.
   ring: { x: 0.128, y: 0.668, w: 0.45, h: 0.104 },
 } as const;
@@ -41,21 +41,21 @@ export const hero = {
 export const pain = {
   eyebrow: "Sound familiar?",
   title: "Screenshot. Paste into AI. Repeat.",
-  line: "It checks the answer. It never says which mark you lost, or what you keep getting wrong.",
+  line: "It gives you an answer. Not the marks, and not what you keep getting wrong.",
   // Two honest columns: what pasting into a chatbot gives a student, and what Plumi does.
   them: {
     label: "Pasting into a chatbot",
     rows: [
       { title: "Retype or screenshot it", line: "Every question, every time." },
       { title: "A verdict, not marks", line: "No mark scheme, no marks to count." },
-      { title: "Gone by tomorrow", line: "Nothing remembers what you got wrong." },
+      { title: "Starts from zero", line: "Nothing tracks the topics you drop marks on." },
     ],
   },
   us: {
     label: "Plumi",
     rows: [
       { title: "Write it on the page", line: "Your own handwriting, with Apple Pencil." },
-      { title: "Marked like the exam", line: "Against the mark scheme, line by line.", chips: true },
+      { title: "Marked like the exam", line: "Against the mark scheme, line by line.", proof: true },
       { title: "Never forgotten", line: "Every dropped mark sets your next question." },
     ],
   },
@@ -85,7 +85,7 @@ export const story = {
       alt: "A handwritten answer marked 3 out of 5 by Plumi, with a red cross on the line where an accuracy mark was lost.",
       fit: "cover" as const,
       zoom: { image: "/site/zoom-mark.webp", w: 1130, h: 275 },
-      loupe: { image: "/site/loupe-mark3.webp", w: 885, h: 136 },
+      loupe: { image: "/site/loupe-mark4.webp", w: 885, h: 148 },
     },
     {
       id: "why",
@@ -208,7 +208,7 @@ export const pricing = {
     // The founder's call (14 October): the monthly equivalent leads. The sum actually
     // charged sits directly under it, in the first line, never further away.
     price: prices.yearlyPerMonth,
-    period: "a month",
+    period: "a month, billed yearly",
     billing: `Billed ${prices.yearly} a year. ${prices.trialDays} days free first.`,
     billing2: `Or ${prices.monthly} a month, no trial.`,
     lead: "Everything unlimited, for the run‑up to your exams.",

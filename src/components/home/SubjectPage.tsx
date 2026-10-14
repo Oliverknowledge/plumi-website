@@ -71,7 +71,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
                 </figure>
               )}
             <figure className="hp-loupe hp-hero-loupe hp-subject-loupe">
-              <Image src="/site/loupe-mark3.webp" width={885} height={136} sizes="(max-width: 760px) 92vw, 480px" priority
+              <Image src="/site/loupe-mark4.webp" width={885} height={148} sizes="(max-width: 760px) 92vw, 480px" priority
                 alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
               <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span>
                 <span>{content.slug === "physics" ? "Lost 2 marks: the 10\u00a0kΩ goes on top of the fraction, not the 1.5\u00a0kΩ." : "How marking looks, on a Physics answer. Every subject is marked like this."}</span></figcaption>
@@ -94,13 +94,6 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
                 </li>
               ))}
             </ol>
-            {content.slug !== "physics" && (
-              <figure className="hp-loupe hp-subject-proof" data-reveal>
-                <Image src="/site/loupe-mark3.webp" width={885} height={136} sizes="(max-width: 760px) 92vw, 640px"
-                  alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
-                <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span><span>How marking looks, on a Physics answer. Every subject is marked on the page like this.</span></figcaption>
-              </figure>
-            )}
             {content.figures.length > 1 && (
               <ul className="hp-diagrams is-light" aria-label={`Diagrams from Plumi ${content.name} questions`}>
                 {content.figures.map(f => (
@@ -120,7 +113,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
               <p className="hp-eyebrow">Your specification</p>
-              <h2 id="spec-title" className="hp-h2">Every unit, tracked.</h2>
+              <h2 id="spec-title" className="hp-h2">Every {content.name} unit, tracked.</h2>
               <p className="hp-lede">GCSE and A-Level {content.name}, for AQA, OCR and Edexcel. Pick your board and Plumi tracks every topic in it.</p>
             </div>
             {(["GCSE", "A-Level"] as const).map(level => (
@@ -140,14 +133,13 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
 
         <section id="pricing" className="hp-subject-pricing" aria-labelledby="price-title">
           <div className="hp-wrap hp-narrow is-center-text" data-reveal>
-            <h2 id="price-title" className="hp-h2">Free to start.</h2>
+            <h2 id="price-title" className="hp-h2">Free {content.name} revision, every week.</h2>
             <ul className="hp-free-tiles" aria-label="Free every week">
               {[["10", "answers marked"], ["5", "practice questions"], ["12", "AI Pen answers"], ["1", "tutor session"]].map(([n, l]) => (
                 <li key={l}><strong>{n}</strong><span>{l}</span></li>
               ))}
             </ul>
-            <p className="hp-free-every">Free, every week.</p>
-            <p className="hp-pro-line">Pro: <strong>{prices.yearlyPerMonth} a month</strong>, billed {prices.yearly} a year, {prices.trialDays} days free first. Or {prices.monthly} a month.</p>
+            <p className="hp-pro-line">Pro: <strong>{prices.yearlyPerMonth} a month</strong>, billed {prices.yearly} a year, {prices.trialDays} days free first. Or {prices.monthly} a month, no trial.</p>
             <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
             <p className="hp-small">Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">See everything in Free and Pro</Link>.</p>
           </div>

@@ -52,7 +52,7 @@ export const routeIntents: readonly RouteIntent[] = [
     title: "Plumi: GCSE & A-Level Revision That Marks Your Handwriting",
     h1: "Handwrite it. Plumi marks it.",
     description:
-      "Exam-style GCSE and A-Level questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line, finds your weak topics and sets your next question.",
+      "Exam-style GCSE and A-Level questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line, then sets your next question.",
     linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,

@@ -173,12 +173,13 @@ export function HomePage({ variant }: { variant?: string }) {
                 <ul>
                   {pain.us.rows.map(r => (
                     <li key={r.title}><span className="hp-versus-mark is-yes" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span>
-                      {"chips" in r && <span className="hp-versus-chips" aria-hidden="true"><span className="hp-mark-chip is-got">M1 ✓</span><span className="hp-mark-chip is-lost">M2 ✗</span><span className="hp-mark-chip is-lost">A1 ✗</span></span>}
+                      {"proof" in r && <span className="hp-versus-proof"><Image src="/site/part-a.webp" width={568} height={405} sizes="320px" alt="Plumi's marking panel for part (a): M1 awarded, M2 not awarded, A1 not the value the scheme gives, 1 out of 3." /></span>}
                     </div></li>
                   ))}
                 </ul>
               </div>
             </div>
+            <div className="hp-pain-how"><HomeAnchor href="#how" label="See how Plumi marks it" placement="pain-how" /></div>
           </div>
         </section>
 

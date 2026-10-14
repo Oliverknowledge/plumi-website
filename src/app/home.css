@@ -126,7 +126,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 /* the app's mark chip: M1 in green, A1 in red, set in the app's monospace */
 .hp-mark-chip { flex: none; font: 700 13px/1 ui-monospace, "SF Mono", Menlo, monospace; padding: 5px 7px; border-radius: 7px; }
 .hp-mark-chip.is-lost { background: var(--incorrect-bg); color: #b3261e; }
-.hp-mark-chip.is-got { background: var(--correct-bg); color: var(--correct); }
+.hp-mark-chip.is-got { background: var(--correct-bg); color: #0b7a53; }
 /* the loupe: a real crop of the same capture, held up close so the marks can be read */
 .hp-loupe { margin: 0; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 30px 60px -24px rgba(16, 24, 40, 0.38); }
 .hp-loupe img { width: 100%; }
@@ -187,7 +187,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-story[data-active="marked"] img[data-screen="marked"],
 .hp-story[data-active="why"] img[data-screen="why"],
 .hp-story[data-active="up"] img[data-screen="up"] { opacity: 1; transform: none; }
-.hp-step { opacity: 0.5; transition: opacity 500ms var(--ease); }
+.hp-step { opacity: 0.72; transition: opacity 500ms var(--ease); }
 .hp-story[data-active="write"] .hp-step[data-step="write"],
 .hp-story[data-active="marked"] .hp-step[data-step="marked"],
 .hp-story[data-active="why"] .hp-step[data-step="why"],
@@ -310,7 +310,7 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-plan-price { margin: 18px 0 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .hp-plan-price strong { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
 .hp-plan-price span { color: var(--ink-2); font-size: 17px; }
-.hp-plan-billing { margin: 10px 0 0; font-size: 15px; color: var(--ink); font-weight: 600; }
+.hp-plan-billing { margin: 10px 0 0; font-size: 17px; color: var(--ink); font-weight: 600; }
 .hp-plan-lead { margin: 18px 0 0; font-size: 17px; color: var(--ink-2); line-height: 1.45; }
 .hp-plan ul { list-style: none; margin: 22px 0 0; padding: 22px 0 0; border-top: 1px solid #e8e8ed; display: flex; flex-direction: column; gap: 13px; }
 .hp-plan li { font-size: 16px; line-height: 1.4; padding-left: 28px; position: relative; letter-spacing: -0.01em; }
@@ -516,7 +516,7 @@ a.hp-diagram-subject:hover { text-decoration: underline; }
 .hp-versus ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
 .hp-versus li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; align-items: start; }
 .hp-versus li strong { display: block; font-size: clamp(19px, 1.9vw, 23px); line-height: 1.2; letter-spacing: -0.02em; }
-.hp-versus li span { display: block; }
+.hp-versus li div > span { display: block; }
 .hp-versus li div > span:not(.hp-versus-chips) { margin-top: 4px; font-size: 16px; line-height: 1.45; }
 .is-them li strong { color: #d2d2d7; }
 .is-them li div > span { color: #86868b; }
@@ -544,7 +544,7 @@ a.hp-diagram-subject:hover { text-decoration: underline; }
 }
 
 /* ── round 8 ─────────────────────────────────────────────────────────────── */
-@media (min-width: 1100px) and (max-height: 800px) {
+@media (min-width: 1100px) and (max-height: 860px) {
   .hp-hero { padding-top: 32px; }
   .hp-hero .hp-hero-loupe { top: 0; }
   .hp-hero-title { font-size: clamp(48px, 7.2vh, 80px); }
@@ -576,3 +576,16 @@ a.hp-diagram-subject:hover { text-decoration: underline; }
 .hp-free-every { margin: 14px 0 0; font-size: 15px; font-weight: 600; color: var(--ink-2); }
 .hp-pro-line { margin: 24px auto 0; max-width: 46ch; font-size: 17px; line-height: 1.45; color: var(--ink); }
 @media (max-width: 640px) { .hp-free-tiles { grid-template-columns: 1fr 1fr; } }
+
+/* ── round 9 ─────────────────────────────────────────────────────────────── */
+.hp-versus-proof { margin: 12px 0 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--hairline); max-width: 320px; }
+.hp-versus-proof img { width: 100%; height: auto; display: block; }
+.hp-pain-how { display: flex; justify-content: center; margin-top: 36px; }
+.hp-pain-how .hp-link { color: #6f9dff; }
+.hp-subject-figure figcaption { text-align: right; }
+.hp-subject-hero .hp-subject-loupe { bottom: 26%; }
+.hp-plan-price span { font-size: 16px; }
+@media (max-width: 760px) {
+  .is-subject .hp-h1b { display: inline; }
+  .is-subject .hp-hero-underline { display: none; }
+}
