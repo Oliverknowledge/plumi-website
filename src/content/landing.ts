@@ -16,6 +16,8 @@ export interface LandingImage {
   caption: string;
   width: number;
   height: number;
+  /** Widest the figure is shown, in CSS pixels. For small captures and tall figures. */
+  maxWidth?: number;
 }
 
 export interface LandingSection {
@@ -46,12 +48,22 @@ const tutorCapture: LandingImage = {
   height: 300,
 };
 
-const recommendationCapture: LandingImage = {
-  src: "/product/next-move.webp",
-  alt: "Plumi Home recommending Electrical circuits, noted as still weak after four pieces of marked work, with a twelve minute four question practice set.",
-  caption: "One recommendation, grounded in marked work.",
-  width: 1400,
-  height: 328,
+const projectileFigure: LandingImage = {
+  src: "/site/diagram-mathsb.webp",
+  alt: "A ball thrown at angle alpha from the top of a 34 m building, over an 8 m street, landing on the roof of a 14 m building.",
+  caption: "A projectile question Plumi wrote, with its diagram drawn in.",
+  width: 1200,
+  height: 900,
+  maxWidth: 640,
+};
+
+const topicMapZoom: LandingImage = {
+  src: "/site/zoom-map3.webp",
+  alt: "A close-up of a Plumi topic map: topic squares marked strong, developing or needs attention.",
+  caption: "Your topic map: each square is a topic, coloured by your marked answers.",
+  width: 470,
+  height: 270,
+  maxWidth: 520,
 };
 
 const notebookCapture: LandingImage = {
@@ -79,13 +91,13 @@ export const aiTutorALevelMaths: LandingContent = {
       line: "A question appears in the margin and you keep the pen.",
     },
     {
-      heading: "It picks what to practise",
-      line: "Every marked answer shapes your next short set.",
-      image: recommendationCapture,
+      heading: "Pick the topic, get a question",
+      line: "Choose what keeps catching you out and Plumi writes you a question on it, with its own mark scheme.",
+      image: projectileFigure,
     },
     {
       heading: "Pure, Mechanics and Statistics",
-      line: "Edexcel 9MA0 first, with other boards added over time.",
+      line: "AQA, OCR and Edexcel, with your board's topics on your topic map.",
     },
   ],
   closing: "Bring your actual working.",
@@ -96,27 +108,27 @@ export const gcseMaths: LandingContent = {
   slug: "gcse-maths",
   breadcrumbLabel: "GCSE Maths",
   eyebrow: "GCSE",
-  lead: "Plumi marks your working and picks the next topic for you.",
+  lead: "Plumi marks your working, method marks included, against the question's own mark scheme.",
   sections: [
     {
-      heading: "Familiar is not secure",
-      line: "Notes only count as seen. Marked right makes a topic secure.",
+      heading: "One answer isn't enough",
+      line: "A topic turns Strong after more than one marked answer. Notes don't move it.",
     },
     {
-      heading: "One honest recommendation",
-      line: "Home names the topic costing you marks, and why.",
-      image: recommendationCapture,
+      heading: "Your topic map",
+      line: "Each topic on your spec gets a square, and your marked answers colour it in.",
+      image: topicMapZoom,
     },
     {
-      heading: "Short sets, aimed at the gap",
-      line: "A handful of questions, answered by hand in the same notebook.",
+      heading: "Pick a topic, get a question",
+      line: "Plumi writes it in your board's style, and you answer by hand in the same notebook.",
     },
     {
-      heading: "Where it is up to",
-      line: "Topic coverage is deepest at A-Level and growing at GCSE.",
+      heading: "Your board",
+      line: "AQA, OCR and Edexcel GCSE Maths, each with its own topic map.",
     },
   ],
-  closing: "Stop guessing what to revise.",
+  closing: "Write one answer and see where the marks went.",
 };
 
 export const goodnotesAlternative: LandingContent = {
@@ -153,15 +165,15 @@ export const about: LandingContent = {
   sections: [
     {
       heading: "What it is",
-      line: "A notebook that reads your handwriting, marks it and plans your practice.",
+      line: "A notebook that reads your handwriting and marks it against each question's own mark scheme.",
     },
     {
       heading: "Who it is for",
-      line: "GCSE and A-Level STEM students on iPad and Apple Pencil.",
+      line: "GCSE and A-Level students of Maths, Physics, Chemistry and Biology, on iPad.",
     },
     {
       heading: "Why it exists",
-      line: "Notes apps never read your working, and chatbots forget you.",
+      line: "Notes apps keep your working. Plumi marks it.",
     },
   ],
   closing: "Come and see it.",

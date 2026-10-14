@@ -66,7 +66,7 @@ export const routeIntents: readonly RouteIntent[] = [
     title: "AI Tutor for A-Level Maths That Reads Your Working",
     h1: "An AI tutor for A-Level Maths that understands your working",
     description:
-      "Most AI maths help starts with retyping the question. Plumi reads the working already on your page, nudges before it answers, and practises what you got wrong.",
+      "No retyping. Plumi reads the working already on your page, nudges before it answers, and marks your method against the question's own mark scheme.",
     linksTo: ["/gcse-maths", "/goodnotes-alternative-for-students", "/"],
     changeFrequency: "monthly",
     priority: 0.9,
@@ -77,10 +77,10 @@ export const routeIntents: readonly RouteIntent[] = [
     secondaryQueries: ["GCSE maths AI tutor", "AI revision app GCSE", "GCSE maths revision iPad"],
     intent: "Find a revision tool for GCSE that shows what to work on next.",
     objective: "Speak to GCSE specifically, and be honest about which specs are covered.",
-    title: "AI Study App for GCSE Maths Revision | Plumi",
-    h1: "GCSE revision that knows what you should do next",
+    title: "GCSE Maths Revision App That Marks Your Working | Plumi",
+    h1: "GCSE Maths, marked on your working",
     description:
-      "Plumi marks your handwritten GCSE maths, spots the topics costing you marks, and turns them into short targeted practice. Built for iPad and Apple Pencil.",
+      "Answer GCSE Maths questions in AQA, OCR or Edexcel style with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
     linksTo: ["/ai-tutor-for-a-level-maths", "/"],
     changeFrequency: "monthly",
     priority: 0.8,
@@ -106,7 +106,7 @@ export const routeIntents: readonly RouteIntent[] = [
     intent: "Find a Chemistry revision tool for my board that marks exam answers and shows what to revise next.",
     objective: "Show Chemistry questions marked line by line, and list every unit of every Chemistry specification Plumi tracks.",
     title: "GCSE & A-Level Chemistry Revision App for iPad | Plumi",
-    h1: "Write 57.1 kJ where the scheme says 57,100 J. You still get the mark.",
+    h1: "Write 57,100 J where the scheme says 57.1 kJ. You still get the mark.",
     description:
       "GCSE and A-Level Chemistry in AQA, OCR or Edexcel style. Handwrite the working on iPad. Where the scheme gives a value, Plumi checks yours by arithmetic.",
     linksTo: ["/", "/physics-revision", "/biology-revision"],
@@ -150,7 +150,7 @@ export const routeIntents: readonly RouteIntent[] = [
     title: "About Plumi: The GCSE and A-Level Revision App",
     h1: "About Plumi",
     description:
-      "Plumi is an AI study notebook built for students who work things out by hand. What it is, who it is for, and why we are building it.",
+      "Plumi is a GCSE and A-Level revision app for iPad that marks your handwritten answers. What it is, who it is for, and why it exists.",
     linksTo: ["/", "/privacy"],
     changeFrequency: "monthly",
     priority: 0.6,

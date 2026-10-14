@@ -56,7 +56,10 @@ export function MarketingPage({ content }: { content: LandingContent }) {
               <p className="measure mt-4 text-[var(--color-ink-secondary)] text-pretty">{section.line}</p>
 
               {section.image ? (
-                <figure className="mt-10 overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-fill)] p-2 sm:p-3">
+                <figure
+                  className="mt-10 overflow-hidden rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-fill)] p-2 sm:p-3"
+                  style={section.image.maxWidth ? { maxWidth: section.image.maxWidth } : undefined}
+                >
                   {/* Real capture, described factually in the alt text. An alt
                       that says "screenshot" tells a crawler and a screen reader
                       nothing; this one says what is actually in the picture. */}
@@ -65,7 +68,7 @@ export function MarketingPage({ content }: { content: LandingContent }) {
                     alt={section.image.alt}
                     width={section.image.width}
                     height={section.image.height}
-                    sizes="(max-width: 700px) 92vw, 1100px"
+                    sizes={section.image.maxWidth ? `(max-width: 700px) 92vw, ${section.image.maxWidth}px` : "(max-width: 700px) 92vw, 1100px"}
                     className="h-auto w-full rounded-[calc(var(--radius-card)-0.25rem)]"
                   />
                   <figcaption className="px-2 pt-3 pb-1 text-center text-xs text-[var(--color-ink-tertiary)]">

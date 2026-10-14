@@ -74,7 +74,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               <Image src="/site/loupe-mark4.webp" width={885} height={148} sizes="(max-width: 760px) 92vw, 480px" priority
                 alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
               <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span>
-                <span>{content.slug === "physics" ? "The 10\u00a0kΩ belongs on top of the fraction. That cost a method mark and the answer mark." : "This one’s Physics. It lost a method mark and the answer mark on the lines you can see."}</span></figcaption>
+                <span>{content.slug === "physics" ? "The 10\u00a0kΩ belongs on top of the fraction. That cost a method mark and the answer mark." : "A Physics answer, marked by Plumi. Your answers get their ticks on the lines you wrote them too."}</span></figcaption>
             </figure>
           </div>
         </section>
@@ -139,7 +139,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
                 <li key={l}><strong>{n}</strong><span>{l}</span></li>
               ))}
             </ul>
-            <p className="hp-pro-line">Pro is <strong>{prices.yearlyPerMonth} a month</strong>. Billed {prices.yearly} a year, after {prices.trialDays}{"\u00a0"}days free. Or {prices.monthly} a month, with no trial.</p>
+            <p className="hp-pro-line">Pro is <strong>{prices.yearlyPerMonth} a month, billed yearly</strong>: {prices.yearly} a year, after {prices.trialDays}{"\u00a0"}days free. Or {prices.monthly} a month, with no trial.</p>
             <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
             <p className="hp-small">Cancel any time in Settings. Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">Compare Free and Pro</Link>.</p>
           </div>

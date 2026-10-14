@@ -144,7 +144,7 @@ export function SiteStructuredData() {
               "Reads handwritten working on iPad",
               "Tutors directly on the page rather than in a separate chat",
               "Builds a model of demonstrated strengths and weaknesses",
-              "Generates targeted practice from your own work",
+              "Writes exam-style practice questions on the topic you choose",
               "Handwriting, folders and PDF annotation, free",
             ],
             // The same three figures the Free & Pro chapter shows, in the same

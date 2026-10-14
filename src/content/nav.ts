@@ -1,9 +1,11 @@
 /**
  * Navigation.
  *
- * Three links to the three scenes, no hamburger. Below 700px the links hide
- * and the bar carries the wordmark and the download button only. The footer
- * (src/components/SiteFooter.tsx) holds the page links and the legal links.
+ * Four links to the homepage's sections, no hamburger. Each href is
+ * root-relative ("/#how") so it works from every page, not only the homepage.
+ * Below 700px the links hide and the bar carries the wordmark and the download
+ * button only. The footer (src/components/SiteFooter.tsx) holds the page links
+ * and the legal links.
  */
 
 export interface NavLink {
@@ -12,7 +14,8 @@ export interface NavLink {
 }
 
 export const navLinks: readonly NavLink[] = [
-  { label: "The mark", href: "#the-mark" },
-  { label: "What it learns", href: "#learner-model" },
-  { label: "Next question", href: "#practice" },
+  { label: "How it marks", href: "/#how" },
+  { label: "Features", href: "/#features" },
+  { label: "Pricing", href: "/#pricing" },
+  { label: "FAQ", href: "/#faq" },
 ] as const;

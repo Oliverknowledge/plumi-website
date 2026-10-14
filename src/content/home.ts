@@ -30,7 +30,7 @@ export const hero = {
   h1b: "See the line that cost you marks.",
   sub: "Answer AQA, OCR or Edexcel style questions with Apple Pencil. Plumi writes each one with its own mark scheme, then marks your working against it.",
   subShort: "Answer with Apple Pencil. Plumi marks your working against the question’s own mark scheme.",
-  note: "Free to download. Plumi marks 10 answers a week for free.",
+  note: "Free to download, with 10 answers marked free every week.",
   device: "Runs on iPad with iPadOS 17 or later. A finger works too, if your Pencil’s gone missing.",
   qr: "Scan with your iPad camera",
   zoom: { image: "/site/loupe-mark4.webp", w: 885, h: 148, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "The 10 kΩ belongs on top of the fraction. That cost a method mark and the answer mark." },
@@ -268,7 +268,7 @@ export const faq = [
   },
   {
     q: "Is my work private?",
-    a: "Your notes, drawings, PDFs, marks and progress are stored on your iPad. You don’t need an account, and if you make one you can delete it in Settings. Plumi asks your permission once, before any of your work goes to AI, and then sends only the part of the page it needs. Nothing you upload or write is used to train any AI model. There are no ads, and your work is never sold.",
+    a: "Your notes, drawings, PDFs, marks and progress are stored on your iPad. You don’t need an account, and if you make one you can delete it in Settings. Plumi asks your permission once, before any of your work goes to AI, and then sends only the part of the page it needs. Nothing you upload or write is used to train any AI model. There are no ads in the app, and your work is never sold.",
   },
 ] as const;
 

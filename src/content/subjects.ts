@@ -84,7 +84,7 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     eyebrow: "GCSE & A-Level Chemistry revision app for iPad",
     // A worked example as the headline: ChemistryMarkCheck agrees -57100 J mol-1 with
     // -57.1 kJ mol-1 (ChemistryMarkCheckTests.swift). Non-breaking spaces keep each unit on its number.
-    h1a: "Write 57.1 kJ where the scheme says 57,100 J.",
+    h1a: "Write 57,100 J where the scheme says 57.1 kJ.",
     h1b: "You still get the mark.",
     sub: "Write the calculation by hand, the way you would in the exam. Where Plumi’s mark scheme gives a value, Plumi checks yours by arithmetic.",
     stepsTitle: "Your numbers are checked, not just read.",

@@ -37,7 +37,7 @@ export const site = {
   alternateDomain: "https://plumi.study",
   tagline: "Your handwriting. Read, understood, visualised.",
   description:
-    "Plumi is an AI study notebook for STEM at A-Level and GCSE (Maths, Physics, Chemistry and Biology) that reads your handwritten working, tutors you on the page and builds practice around what you actually know.",
+    "Plumi is an AI study notebook for STEM at A-Level and GCSE (Maths, Physics, Chemistry and Biology) that reads your handwritten working, marks it and tutors you on the page.",
   contactEmail: "hello@tryplumi.app",
   locale: "en_GB",
 } as const;
@@ -56,7 +56,7 @@ export const site = {
  * Every clause is a feature that exists today. Do not add one that does not.
  */
 export const entityDescription =
-  "Plumi is a GCSE and A-Level revision app for iPad: Maths, Physics, Chemistry and Biology, for AQA, OCR and Edexcel. It marks your handwritten exam answers line by line against a mark scheme, tutors you directly on the page, and turns the marks you drop into your next practice question.";
+  "Plumi is a GCSE and A-Level revision app for iPad: Maths, Physics, Chemistry and Biology, for AQA, OCR and Edexcel. It writes exam-style questions, marks your handwritten answers line by line against each question's own mark scheme, tutors you directly on the page, and colours a map of your specification's topics from your marked answers.";
 
 /**
  * Profiles that genuinely belong to Plumi, for `sameAs`.

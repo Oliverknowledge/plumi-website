@@ -2,7 +2,14 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { LandingPage } from "@/components/LandingPage";
-import { HERO_VARIANTS, heroFor, type HeroVariant } from "@/content/copy";
+import { intentFor } from "@/config/routes";
+
+/**
+ * The variant slugs. Paid ads may point at /v/decide and /v/mirror, so these
+ * keep resolving. Every variant now renders the homepage with the homepage's
+ * own title and description; only the slug travels on as `landing_variant`.
+ */
+const LANDING_VARIANTS = ["notebook", "decide", "mirror"] as const;
 
 /**
  * The alternate landings.
@@ -15,27 +22,23 @@ import { HERO_VARIANTS, heroFor, type HeroVariant } from "@/content/copy";
  *
  * Paid social points at `/v/decide`; organic and referral at `/v/mirror`.
  * `landing_variant` is read from the path by `src/lib/attribution.ts`, so it
- * still travels with every analytics event and onto the waitlist row.
+ * still travels with every analytics event.
  */
 export function generateStaticParams(): Array<{ variant: string }> {
-  return HERO_VARIANTS.map((variant) => ({ variant }));
+  return LANDING_VARIANTS.map((variant) => ({ variant }));
 }
 
 /** Anything that is not a known variant is a 404, not a silent fallback. */
 export const dynamicParams = false;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ variant: string }>;
-}): Promise<Metadata> {
-  const { variant } = await params;
-  const copy = heroFor(variant);
+export function generateMetadata(): Metadata {
+  const home = intentFor("/");
 
   return {
-    title: `Plumi: ${copy.headline.replace(/\.$/, "")}`,
-    description: copy.subhead,
-    // The variants are the same page with a different pitch. Pointing the
+    // Absolute, so the layout's " · Plumi" template does not double the brand.
+    title: { absolute: home.title },
+    description: home.description,
+    // The variants are the same page as the homepage. Pointing the
     // canonical at the homepage stops them competing with it in search, which
     // is the usual way an A/B test quietly costs you your own ranking.
     alternates: { canonical: "/" },
@@ -49,7 +52,7 @@ export default async function VariantPage({
   params: Promise<{ variant: string }>;
 }) {
   const { variant } = await params;
-  if (!(HERO_VARIANTS as readonly string[]).includes(variant)) notFound();
+  if (!(LANDING_VARIANTS as readonly string[]).includes(variant)) notFound();
 
-  return <LandingPage variant={variant as HeroVariant} />;
+  return <LandingPage variant={variant} />;
 }
