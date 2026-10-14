@@ -32,7 +32,7 @@ const hand = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-han
  *
  * Every product image is a real capture from the app (see src/content/home.ts).
  */
-function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px", children }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string; children?: ReactNode }) {
+export function IPad({ src, alt, priority = false, fit = "cover", className = "", sizes = "(max-width: 760px) 92vw, (max-width: 1200px) 60vw, 760px", children }: { src: string; alt: string; priority?: boolean; fit?: "cover" | "contain"; className?: string; sizes?: string; children?: ReactNode }) {
   return (
     <div className={`hp-ipad ${className}`}>
       <div className="hp-ipad-screen">
@@ -69,7 +69,7 @@ function TopicGlyph({ tone, glyph }: { tone: string; glyph: string }) {
 }
 
 /** Apple's footer: fine print first, then the links, then the line. */
-function HomeFooter() {
+export function HomeFooter() {
   return (
     <footer className="hp-footer">
       <div className="hp-wrap">

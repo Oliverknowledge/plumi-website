@@ -1,0 +1,102 @@
+/**
+ * The subject revision pages: one per science, each covering GCSE and A-Level for
+ * all three boards. Same truth rules as the homepage (see src/content/home.ts):
+ * no counts, no ratings, every image a real capture or a figure from a real bank
+ * question, and the units come from the app's own curriculum (src/content/specs.ts).
+ */
+import { prices } from "@/content/home";
+
+export type SubjectSlug = "physics" | "chemistry" | "biology";
+
+export interface SubjectPageContent {
+  slug: SubjectSlug;
+  name: "Physics" | "Chemistry" | "Biology";
+  path: string;
+  tone: string;
+  eyebrow: string;
+  h1a: string;
+  h1b: string;
+  sub: string;
+  /** The hero picture: a marked iPad page for Physics, a real question figure otherwise. */
+  hero: { kind: "ipad"; image: string; alt: string } | { kind: "figure"; image: string; alt: string; caption: string };
+  figures: readonly { image: string; label: string; alt: string }[];
+  steps: readonly { title: string; line: string }[];
+  faq: readonly { q: string; a: string }[];
+}
+
+const commonSteps = (subject: string) => [
+  { title: "Answer it like the real exam.", line: `An exam-style ${subject} question for your board, with the diagram the paper would have. You write underneath with Apple Pencil.` },
+  { title: "Every line, marked.", line: "Ticks and crosses land on your page: method, accuracy and explanation marks, and the exact line a mark was lost." },
+  { title: "Your gaps, then your next question.", line: "Every topic on your specification is tracked as you go, and your next practice is picked from the marks you dropped." },
+] as const;
+
+const commonFaq = (subject: string) => [
+  {
+    q: `Which ${subject} specifications does Plumi follow?`,
+    a: `GCSE and A-Level ${subject} for AQA, OCR and Edexcel. Pick your board and Plumi tracks every unit on that specification, listed on this page.`,
+  },
+  {
+    q: `Are these real ${subject} past paper questions?`,
+    a: `Practice questions and mark schemes are written by Plumi in the style of your board. The Papers tab links to the boards’ own past papers, mark schemes and grade boundaries. Plumi is not affiliated with any exam board.`,
+  },
+  {
+    q: "Is it free?",
+    a: `Plumi is free to download, with 10 answers marked, 5 practice questions, 12 AI Pen answers and 1 tutor session every week. Pro makes them unlimited: ${prices.yearly} a year with ${prices.trialDays} days free first, or ${prices.monthly} a month with no trial. iPad only, with iPadOS 17 or later.`,
+  },
+] as const;
+
+export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
+  physics: {
+    slug: "physics",
+    name: "Physics",
+    path: "/physics-revision",
+    tone: "#e8892b",
+    eyebrow: "GCSE & A-Level Physics revision app for iPad",
+    h1a: "Physics revision",
+    h1b: "that marks your working.",
+    sub: "Exam-style Physics questions for AQA, OCR and Edexcel, with the circuit or graph drawn in. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    hero: { kind: "ipad", image: "/site/shot-mark.webp", alt: "A handwritten A-Level Physics answer about a light sensor circuit, marked 3 out of 5 in Plumi, with the lost method and accuracy marks shown on the page." },
+    figures: [
+      { image: "/site/diagram-d4.webp", label: "Resonance", alt: "Resonance curves of amplitude against driving frequency, with a sharp peak at 2 Hz." },
+      { image: "/site/diagram-d3.webp", label: "I-V characteristics", alt: "Current against potential difference for four components, labelled A to D." },
+      { image: "/site/diagram-d9.webp", label: "Circuits", alt: "A circuit with a capacitor, a switch and four resistors." },
+    ],
+    steps: commonSteps("Physics"),
+    faq: [
+      ...commonFaq("Physics"),
+      { q: "Does it check units and significant figures?", a: "Plumi marks against the mark scheme for the question, so where the scheme gives a mark for the unit or the final value, that is the mark it awards or withholds, on the line where it was won or lost." },
+    ],
+  },
+  chemistry: {
+    slug: "chemistry",
+    name: "Chemistry",
+    path: "/chemistry-revision",
+    tone: "#22a35a",
+    eyebrow: "GCSE & A-Level Chemistry revision app for iPad",
+    h1a: "Chemistry revision",
+    h1b: "that marks your working.",
+    sub: "Exam-style Chemistry questions for AQA, OCR and Edexcel, from moles to energetics to organic. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    hero: { kind: "figure", image: "/site/diagram-chem.webp", alt: "A reaction profile from a Plumi Chemistry question: energy against progress of reaction, with the uncatalysed and catalysed routes and the activation energy marked.", caption: "From a Plumi question on reaction profiles, AQA GCSE Chemistry." },
+    figures: [
+      { image: "/site/diagram-chem.webp", label: "Energy profile", alt: "A reaction profile with a solid uncatalysed curve, a dashed catalysed curve, and arrows for the activation energy and the overall energy change." },
+    ],
+    steps: commonSteps("Chemistry"),
+    faq: commonFaq("Chemistry"),
+  },
+  biology: {
+    slug: "biology",
+    name: "Biology",
+    path: "/biology-revision",
+    tone: "#0f9e95",
+    eyebrow: "GCSE & A-Level Biology revision app for iPad",
+    h1a: "Biology revision",
+    h1b: "that marks your answers.",
+    sub: "Exam-style Biology questions for AQA, OCR and Edexcel, from cells to ecology. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    hero: { kind: "figure", image: "/site/diagram-bio.webp", alt: "A woodland food web from a Plumi Biology question: an oak tree feeding a caterpillar, an aphid and an earthworm, up to a sparrowhawk.", caption: "From a Plumi question on communities, AQA GCSE Biology." },
+    figures: [
+      { image: "/site/diagram-bio.webp", label: "Food web", alt: "A woodland food web: an oak tree feeds a caterpillar, an aphid and an earthworm, which feed blue tits and shrews, which feed a sparrowhawk." },
+    ],
+    steps: commonSteps("Biology"),
+    faq: commonFaq("Biology"),
+  },
+};

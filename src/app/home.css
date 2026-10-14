@@ -414,3 +414,32 @@ button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-section-cta { display: flex; justify-content: center; margin-top: clamp(36px, 5vw, 56px); }
 .hp-map-zoom + .hp-map-zoom { margin-top: 14px; }
 @media (max-width: 640px) { .hp-bento { align-items: flex-start; } }
+
+/* ── SUBJECT PAGES ───────────────────────────────────────────────────────── */
+.hp-hero-title.is-subject { font-size: clamp(42px, 6.2vw, 80px); }
+.hp-subject-figure { margin: 0 auto; max-width: 820px; }
+.hp-subject-figure .hp-diagram-paper { border: 2px solid var(--hairline); box-shadow: 0 4px 0 var(--hairline); border-radius: 26px; }
+.hp-subject-figure figcaption { margin-top: 14px; font-size: 14px; color: var(--ink-2); text-align: center; }
+.hp-subject-steps { background: var(--gray); padding: clamp(80px, 10vw, 120px) 0; }
+.hp-steps-row { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.hp-steps-row li { background: #fff; border: 2px solid var(--hairline); box-shadow: 0 4px 0 var(--hairline); border-radius: 24px; padding: 30px; }
+.hp-step-num { display: inline-block; font: 700 13px/1 ui-monospace, "SF Mono", Menlo, monospace; color: var(--blue); background: #eff4fe; padding: 6px 8px; border-radius: 7px; margin-bottom: 16px; }
+.hp-diagrams.is-light { margin-top: clamp(32px, 4vw, 48px); }
+.hp-diagrams.is-light figcaption { color: var(--ink-2); }
+.hp-spec { background: var(--paper); padding: clamp(80px, 10vw, 120px) 0; }
+.hp-spec-level + .hp-spec-level { margin-top: 44px; }
+.hp-spec-level-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 16px; }
+.hp-spec-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.hp-spec-card { background: #fff; border: 2px solid var(--hairline); box-shadow: 0 4px 0 var(--hairline); border-radius: 22px; padding: 22px 24px 24px; }
+.hp-spec-card header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.hp-spec-card header strong { font-size: 19px; letter-spacing: -0.02em; }
+.hp-spec-card header span { font: 600 13px/1 ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink-2); }
+.hp-spec-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.hp-spec-card li { font-size: 15px; line-height: 1.35; color: var(--ink); padding-left: 16px; position: relative; }
+.hp-spec-card li::before { content: ""; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; border-radius: 2px; background: var(--tone, var(--blue)); }
+.hp-subject-pricing { background: var(--gray); padding: clamp(80px, 10vw, 120px) 0; text-align: center; }
+.hp-subject-pricing .hp-lede { margin-inline: auto; max-width: 46ch; }
+.hp-subject-pricing .hp-small a, .hp-subject-more a { color: var(--blue); text-decoration: none; }
+.hp-subject-pricing .hp-small a:hover, .hp-subject-more a:hover { text-decoration: underline; }
+.hp-subject-more { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 36px; font-size: 16px; color: var(--ink-2); }
+@media (max-width: 900px) { .hp-steps-row, .hp-spec-grid { grid-template-columns: 1fr; } }

@@ -169,10 +169,10 @@ export const subjects = {
   title: "Physics, Maths, Chemistry and Biology.",
   line: "GCSE and A-Level, for AQA, OCR and Edexcel.",
   list: [
-    { name: "Physics", detail: "Circuits, forces, waves, fields" },
+    { name: "Physics", detail: "Circuits, forces, waves, fields", links: [{ label: "Physics revision", href: "/physics-revision" }] },
     { name: "Maths", detail: "Pure, statistics, mechanics", links: [{ label: "GCSE Maths", href: "/gcse-maths" }, { label: "A-Level Maths", href: "/ai-tutor-for-a-level-maths" }] },
-    { name: "Chemistry", detail: "Moles, energetics, organic" },
-    { name: "Biology", detail: "Cells, genetics, ecology" },
+    { name: "Chemistry", detail: "Moles, energetics, organic", links: [{ label: "Chemistry revision", href: "/chemistry-revision" }] },
+    { name: "Biology", detail: "Cells, genetics, ecology", links: [{ label: "Biology revision", href: "/biology-revision" }] },
   ],
   boards: ["AQA", "OCR", "Edexcel"],
   // The app's own subject colours.
