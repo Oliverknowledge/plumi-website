@@ -4,18 +4,19 @@
  * ── Every claim here is checked ──────────────────────────────────────────────
  * The Free/Pro split is transcribed from the app's own entitlement table
  * (`Sources/PlumiKit/Core/Entitlements.swift:29-53`) and the paywall's benefit
- * list (`Features/Paywall/PaywallView.swift:346-352`). The daily allowances are
+ * list (`Features/Paywall/PaywallView.swift:346-352`). The weekly allowances are
  * the real numbers the app meters against today. See
  * .context/research/product.md §7 for citations.
  *
  * ── The prices ──────────────────────────────────────────────────────────────
- * £19.99 a month, or £79.99 a year with the first seven days free. The annual
- * plan works out at £6.67 a month, which is the number that does the arguing:
- * it is the same product for a third of the monthly price, and the arithmetic
- * is checkable rather than asserted.
+ * £14.99 a month, or £135.99 a year with the first seven days free. The annual
+ * plan works out at £11.33 a month, which is the number that does the arguing:
+ * a year for the price of about nine months, and the arithmetic is checkable
+ * rather than asserted. (A £99.99 launch price is an A/B arm in the app; the site
+ * states the standard price and never promises the launch one.)
  *
  * Only the annual plan carries a trial, deliberately. A free week on a monthly
- * plan converts a £19.99 decision into a £0 decision and then a cancellation
+ * plan converts a £14.99 decision into a £0 decision and then a cancellation
  * seven days later; a free week on an annual plan is the whole of the risk a
  * student is being asked to take, removed.
  *
@@ -50,18 +51,18 @@ export const freePlan = {
     "Everything you write, kept and readable, always",
   ],
   /**
-   * The daily allowances. Included deliberately: a specific number is the
+   * The weekly allowances. Included deliberately: a specific number is the
    * cheapest proof available, and vagueness here would read as a trap.
    * These are the app's current metered values — update them together with
    * Entitlements.swift if they change.
    */
   /** Names the meter openly rather than letting a reader discover it. */
-  allowanceLead: "The intelligence is metered on Free. You get a go at all of it, every day:",
+  allowanceLead: "The intelligence is metered on Free. You get a go at all of it, every week:",
   allowances: [
-    { feature: "AI Pen", allowance: "12 a day" },
-    { feature: "Marking", allowance: "5 a day" },
-    { feature: "Practice", allowance: "10 a day" },
-    { feature: "Tutor Mode", allowance: "1 a day" },
+    { feature: "AI Pen", allowance: "12 a week" },
+    { feature: "Marking", allowance: "10 a week" },
+    { feature: "Practice", allowance: "5 a week" },
+    { feature: "Tutor Mode", allowance: "1 a week" },
   ],
   /** True: the first AI Pen answer, tutoring exchange and mark are unmetered. */
   footnote: "Your first AI Pen answer, your first tutoring exchange and your first mark never count against it.",
@@ -105,8 +106,8 @@ export const proPlan = {
  * the monthly card is stated plainly beside it and is not made to look like a
  * mistake. A student who wants to pay monthly is not doing anything wrong.
  *
- * `perMonth` is £79.99 ÷ 12 = £6.666…, rounded to the penny it actually works
- * out at. It is never presented as a *price* — nobody can pay £6.67 — which is
+ * `perMonth` is £135.99 ÷ 12 = £11.3325, rounded to the penny it actually works
+ * out at. It is never presented as a *price* (nobody can pay £11.33), which is
  * why the line says "works out at" and the charged figure sits above it in
  * larger type than the equivalent.
  */
@@ -126,16 +127,16 @@ export const proOptions: readonly ProPlanOption[] = [
   {
     id: "annual",
     label: "Yearly",
-    price: "£79.99",
+    price: "£135.99",
     period: "a year",
-    perMonth: "Works out at £6.67 a month",
-    terms: "Seven days free, then £79.99 a year. Cancel any time before it renews.",
+    perMonth: "Works out at £11.33 a month",
+    terms: "Seven days free, then £135.99 a year. Cancel any time before it renews.",
     featured: true,
   },
   {
     id: "monthly",
     label: "Monthly",
-    price: "£19.99",
+    price: "£14.99",
     period: "a month",
     // Said out loud rather than left as an absence. A trial that exists on one
     // plan and not the other is the sort of thing a student finds out at the
@@ -151,11 +152,11 @@ export const proOptions: readonly ProPlanOption[] = [
  * The obvious anchor is an hour of private tuition, and it is the strongest one
  * available — but a third-party hourly rate is a number this repo cannot check,
  * and an unfootnoted price comparison is exactly the move this site does not
- * make. £79.99 against £239.88 is Plumi's own two prices, and anyone can do it.
+ * make. £135.99 against £179.88 is Plumi's own two prices, and anyone can do it.
  */
 export const proAnchor = {
-  headline: "A year costs less than five months.",
-  detail: "Paying monthly for a year is £239.88. The yearly plan is £79.99.",
+  headline: "A year costs about nine months.",
+  detail: "Paying monthly for a year is £179.88. The yearly plan is £135.99.",
 } as const;
 
 /** Where the money is actually taken, and by whom. */
@@ -347,7 +348,7 @@ export const comparison = {
   question: "What are you using now?",
   ourLabel: "Plumi",
   ourSublabel: "iPad and Apple Pencil",
-  ourCost: "Free, or £79.99 a year",
+  ourCost: "Free, or £135.99 a year",
   /** The last row of every head-to-head, and the one that does the arguing. */
   costLabel: "What it costs",
   /** Names the claim column for a screen reader; the column head is blank by design. */

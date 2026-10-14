@@ -41,9 +41,11 @@ export const metadata: Metadata = {
     // Read by nothing that ranks, but it is the fastest way for a human — or an
     // LLM summarising the page — to get the one-line definition of the product.
     "description:entity": entityDescription,
+    // Safari on iPad turns this into an install banner above the page.
+    "apple-itunes-app": "app-id=6811389052",
   },
 };
-export const viewport: Viewport = { themeColor: "#fcfcf9", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
+export const viewport: Viewport = { themeColor: "#ffffff", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="en-GB" className={inter.variable}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/>{children}</body></html>;
 }

@@ -6,7 +6,7 @@ import { discordUrl, site } from "@/config/site";
  * Footer links: the pages that exist, the community, and the legal pair.
  * Every indexable page stays one click from every other page.
  */
-const footerLinks: readonly (readonly [string, string])[] = [
+export const footerLinks: readonly (readonly [string, string])[] = [
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
   ["GCSE Maths", "/gcse-maths"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],

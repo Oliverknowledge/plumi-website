@@ -49,10 +49,10 @@ export const routeIntents: readonly RouteIntent[] = [
     objective: "Establish the entity and category, then send high-intent visitors to the App Store.",
     // Leads with the brand, because the first job of the homepage title is to
     // win "Plumi". The category follows.
-    title: "Plumi — AI Study Notebook for A-Level & GCSE STEM",
-    h1: "Your handwriting. Read, understood, visualised.",
+    title: "Plumi: GCSE & A-Level Revision That Marks Your Handwriting",
+    h1: "Handwrite it. Plumi marks it.",
     description:
-      "Plumi is an AI study notebook for STEM at A-Level and GCSE: Maths, Physics, Chemistry and Biology. Write on your iPad, get tutored on the page, and practise exactly what your work reveals.",
+      "Exam-style GCSE and A-Level questions for AQA, OCR and Edexcel. Handwrite your answer on iPad and Plumi marks every line, finds your weak topics and sets your next question.",
     linksTo: ["/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,
