@@ -90,6 +90,7 @@
 .hp-phone-button { appearance: none; border: 0; cursor: pointer; background: var(--blue); color: #fff; font: inherit; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; padding: 14px 26px; border-radius: 980px; min-height: 52px; box-shadow: 0 4px 0 var(--blue-edge); transition: transform 120ms var(--ease), box-shadow 120ms var(--ease); }
 .hp-phone-button:active { transform: translateY(4px); box-shadow: 0 0 0 var(--blue-edge); }
 .hp-phone-line { font-size: 14px; color: var(--ink-2); }
+.hp-phone-email { appearance: none; border: 0; background: none; cursor: pointer; font: inherit; font-size: 15px; font-weight: 600; color: var(--blue); padding: 6px; }
 .hp-identity .hp-phone-line, .hp-questions .hp-phone-line { color: #a1a1a6; }
 button.hp-pill { border: 0; cursor: pointer; font-family: inherit; }
 .hp-phone-button:focus-visible { outline: 3px solid var(--blue-hi); outline-offset: 3px; }

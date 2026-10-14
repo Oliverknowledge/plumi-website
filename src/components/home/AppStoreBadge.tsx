@@ -1,5 +1,5 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { appStoreUrl } from "@/config/site";
 import { noteCtaClick } from "@/components/ui/CtaButton";
 import { track } from "@/lib/analytics";
@@ -21,17 +21,23 @@ function useIsPhone() {
 
 const storeHref = () => appStoreUrl ?? "https://tryplumi.app";
 
-async function sendToIPad(placement: string, label: string) {
+function emailLink() {
+  window.location.href = `mailto:?subject=${encodeURIComponent("Plumi for my iPad")}&body=${encodeURIComponent(storeHref())}`;
+}
+
+/** Sends the link on; resolves "sent", or "dismissed" when the share sheet was closed. */
+async function sendToIPad(placement: string, label: string): Promise<"sent" | "dismissed"> {
   const href = storeHref();
   track("cta_clicked", { placement, cta_kind: "send_to_ipad", label, destination: href });
   if (navigator.share) {
-    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi: handwrite it, Plumi marks it.", url: href }); } catch { /* dismissed */ }
-    return;
+    try { await navigator.share({ title: "Plumi for iPad", text: "Plumi: handwrite it, Plumi marks it.", url: href }); return "sent"; }
+    catch { return "dismissed"; }
   }
-  window.location.href = `mailto:?subject=${encodeURIComponent("Plumi for my iPad")}&body=${encodeURIComponent(href)}`;
+  emailLink();
+  return "sent";
 }
 
-export const phoneCopy = { line: "Plumi is for iPad.", button: "Send it to my iPad" } as const;
+export const phoneCopy = { line: "Plumi is for iPad.", button: "Send it to my iPad", sent: "Sent. Open it on your iPad.", email: "Email me the link instead" } as const;
 
 /**
  * Apple's own "Download on the App Store" artwork: never redrawn, recoloured or
@@ -40,11 +46,16 @@ export const phoneCopy = { line: "Plumi is for iPad.", button: "Send it to my iP
  */
 export function AppStoreBadge({ placement, tone = "black", height = 52 }: { placement: string; tone?: "black" | "white"; height?: number }) {
   const isPhone = useIsPhone();
+  const [state, setState] = useState<"idle" | "sent" | "dismissed">("idle");
   if (isPhone) {
     return (
       <span className="hp-phone" data-testid={`${placement}-phone-hint`}>
-        <button type="button" className="hp-phone-button" onClick={() => sendToIPad(placement, phoneCopy.button)}>{phoneCopy.button}</button>
-        <span className="hp-phone-line">{phoneCopy.line}</span>
+        <button type="button" className="hp-phone-button" onClick={async () => setState(await sendToIPad(placement, phoneCopy.button))}>
+          {state === "sent" ? phoneCopy.sent : phoneCopy.button}
+        </button>
+        {state === "dismissed"
+          ? <button type="button" className="hp-phone-email" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: phoneCopy.email, destination: "mailto" }); emailLink(); }}>{phoneCopy.email}</button>
+          : <span className="hp-phone-line" aria-live="polite">{phoneCopy.line}</span>}
       </span>
     );
   }
