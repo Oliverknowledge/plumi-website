@@ -214,7 +214,7 @@ export const trust = {
     {
       title: "Disagree with a mark? Say so",
       body:
-        "Challenge any mark and Plumi reads the work again from scratch — a stronger model, the mark scheme restated, and its own previous reasoning handed over to be argued against. A re-mark can never cost you a mark you already had.",
+        "Challenge any mark and Plumi reads the work again from scratch, with a stronger model, the mark scheme restated and its own previous reasoning handed over to be argued against. A re-mark can never cost you a mark you already had.",
     },
     {
       title: "Plumi marks what you wrote",

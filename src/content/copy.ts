@@ -536,7 +536,7 @@ export const faq: readonly FaqItem[] = [
      */
     question: "Can I trust the marking?",
     answer:
-      "Trust it the way you’d trust a good teacher rather than a calculator. Plumi shows you the line it read before it marks it, so a misreading is yours to correct rather than a silent cause of a wrong mark. It works out which step earned which mark and quotes your own words back as the evidence, and the rules — method marks, follow-through, dependencies — are worked out in code rather than asked of a model. It will tell you when a mark could go either way instead of pretending, and it publishes no confidence percentages anywhere, because a number to two significant figures is a precision nobody has earned. If you disagree, challenge it: it re-reads the work from scratch, and a re-mark can never cost you a mark you already had.",
+      "Trust it the way you’d trust a good teacher rather than a calculator. Plumi shows you the line it read before it marks it, so a misreading is yours to correct rather than a silent cause of a wrong mark. It works out which step earned which mark and quotes your own words back as the evidence, and the rules, method marks, follow-through, dependencies, are worked out in code rather than asked of a model. It will tell you when a mark could go either way instead of pretending, and it publishes no confidence percentages anywhere, because a number to two significant figures is a precision nobody has earned. If you disagree, challenge it: it re-reads the work from scratch, and a re-mark can never cost you a mark you already had.",
   },
   {
     question: "Is using Plumi cheating?",
@@ -546,7 +546,7 @@ export const faq: readonly FaqItem[] = [
   {
     question: "Which subjects and exam boards does it cover?",
     answer:
-      "A-Level, and we’d rather be specific than reassuring. Plumi carries hand-built topic trees for twelve A-Level specifications: Maths, Physics, Chemistry and Biology across AQA, OCR and Pearson Edexcel. They are not all at the same depth — Edexcel Biology is currently topic-level only, and the trees are deliberately ragged where a specification does not name its own sub-topics. There are no GCSE specifications in Plumi yet, so a GCSE student gets the notebook, the AI Pen and marking on subject knowledge, but not their own spec mapped out. We build each one by hand from the board’s published specification, which is why it takes as long as it does. Plumi is not affiliated with, endorsed by or licensed by any exam board.",
+      "A-Level, and we’d rather be specific than reassuring. Plumi carries hand-built topic trees for twelve A-Level specifications: Maths, Physics, Chemistry and Biology across AQA, OCR and Pearson Edexcel. They are not all at the same depth, Edexcel Biology is currently topic-level only, and the trees are deliberately ragged where a specification does not name its own sub-topics. There are no GCSE specifications in Plumi yet, so a GCSE student gets the notebook, the AI Pen and marking on subject knowledge, but not their own spec mapped out. We build each one by hand from the board’s published specification, which is why it takes as long as it does. Plumi is not affiliated with, endorsed by or licensed by any exam board.",
   },
   {
     question: "Do I need an iPad?",
@@ -561,6 +561,6 @@ export const faq: readonly FaqItem[] = [
   {
     question: "What happens to my work and my data?",
     answer:
-      "Your notes are yours. We use your work to build your own learner model: which topics you’ve been marked on, and what you got right unaided. That’s what powers the recommendations. It isn’t used to train models for anyone else, it isn’t sold, and it isn’t shared with your school unless you decide to share it. Nothing you write reaches our analytics — this website measures which sections were read and which buttons were pressed, and nothing else. If you join the launch list we store your email and the course you told us, and if you’d like off it before launch, reply to any email and you’re off.",
+      "Your notes are yours. We use your work to build your own learner model: which topics you’ve been marked on, and what you got right unaided. That’s what powers the recommendations. It isn’t used to train models for anyone else, it isn’t sold, and it isn’t shared with your school unless you decide to share it. Nothing you write reaches our analytics, this website measures which sections were read and which buttons were pressed, and nothing else. If you join the launch list we store your email and the course you told us, and if you’d like off it before launch, reply to any email and you’re off.",
   },
 ] as const;

@@ -265,7 +265,7 @@ export const alternatives: readonly Alternative[] = [
       },
       { claim: "Marks a whole past paper, question by question", them: "partly", plumi: "yes" },
     ],
-    cost: "£30–60 an hour",
+    cost: "£30 to £60 an hour",
   },
   {
     id: "revision-sites",
@@ -285,7 +285,7 @@ export const alternatives: readonly Alternative[] = [
       },
       { claim: "Builds tomorrow’s practice from the marks you lost", them: "no", plumi: "yes" },
     ],
-    cost: "£0–10 a month",
+    cost: "£0 to £10 a month",
   },
   {
     id: "note-apps",
