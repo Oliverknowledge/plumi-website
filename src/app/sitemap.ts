@@ -14,12 +14,10 @@ import { indexableRoutes } from "@/config/routes";
  * Only canonical, indexable, 200-returning URLs belong here. The `/v/*` variant
  * landings are noindex and excluded by construction.
  */
+// No lastModified: a date that is always the build time teaches Google to ignore it.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
   return indexableRoutes.map((route) => ({
     url: absoluteUrl(route.path),
-    lastModified: now,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));

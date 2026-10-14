@@ -151,22 +151,34 @@ export function HomePage({ variant }: { variant?: string }) {
           </div>
         </section>
 
-        {/* PAIN */}
+        {/* PAIN: what pasting into a chatbot gives you, beside what Plumi does */}
         <section className="hp-pain" aria-labelledby="pain-title" data-nav="dark">
-          <div className="hp-wrap hp-narrow">
-            <p className="hp-eyebrow is-dark" data-reveal>{pain.eyebrow}</p>
-            <h2 id="pain-title" className="sr-only">{pain.lines.join(" ")}</h2>
-            <div className="hp-pain-lines" aria-hidden="true">
-              {pain.lines.map(line => <p key={line} data-lit className="hp-pain-line">{line}</p>)}
+          <div className="hp-wrap">
+            <div className="hp-section-head is-center" data-reveal>
+              <p className="hp-eyebrow is-dark">{pain.eyebrow}</p>
+              <h2 id="pain-title" className="hp-h2 is-light">{pain.title}</h2>
+              <p className="hp-lede is-light">{pain.line}</p>
             </div>
-            <p className="hp-pain-answer" data-reveal>{pain.answer}</p>
-            <ul className="hp-contrast">
-              {pain.contrast.map((c, i) => (
-                <li key={c.title} data-reveal style={{ ["--d" as string]: `${i * 90}ms` }}>
-                  <strong>{c.title}</strong><span>{c.line}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="hp-versus">
+              <div className="hp-versus-col is-them" data-reveal>
+                <p className="hp-versus-label">{pain.them.label}</p>
+                <ul>
+                  {pain.them.rows.map(r => (
+                    <li key={r.title}><span className="hp-versus-mark is-no" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span></div></li>
+                  ))}
+                </ul>
+              </div>
+              <div className="hp-versus-col is-us" data-reveal style={{ ["--d" as string]: "120ms" }}>
+                <p className="hp-versus-label"><Image src="/site/app-icon.webp" alt="" width={22} height={22} />{pain.us.label}</p>
+                <ul>
+                  {pain.us.rows.map(r => (
+                    <li key={r.title}><span className="hp-versus-mark is-yes" aria-hidden="true" /><div><strong>{r.title}</strong><span>{r.line}</span>
+                      {"chips" in r && <span className="hp-versus-chips" aria-hidden="true"><span className="hp-mark-chip is-got">M1 ✓</span><span className="hp-mark-chip is-lost">M2 ✗</span><span className="hp-mark-chip is-lost">A1 ✗</span></span>}
+                    </div></li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -277,7 +289,7 @@ export function HomePage({ variant }: { variant?: string }) {
               <p className="hp-eyebrow">{bento.eyebrow}</p>
               <h2 id="bento-title" className="hp-h2">{bento.title}</h2>
             </div>
-            <div className="hp-bento" id="hp-bento">
+            <div className="hp-bento" id="hp-bento" tabIndex={0} role="region" aria-label="More of Plumi">
               {bento.tiles.map((t, i) => (
                 <article key={t.id} className={`hp-tile hp-tile-${t.id}`} data-reveal style={{ ["--d" as string]: `${(i % 3) * 80}ms` }}>
                   <div className="hp-tile-copy">
@@ -369,7 +381,7 @@ export function HomePage({ variant }: { variant?: string }) {
                 <p className="hp-plan-billing">{pricing.pro.billing}<br />{pricing.pro.billing2}</p>
                 <p className="hp-plan-lead">{pricing.pro.lead}</p>
                 <ul>{pricing.pro.items.map(i => <li key={i}>{i}</li>)}</ul>
-                <div className="hp-plan-cta"><AppStoreBadge placement="pricing" height={48} showLine /></div>
+                <div className="hp-plan-cta"><AppStoreBadge placement="pricing" height={48} /></div>
               </article>
             </div>
             <p className="hp-small">{pricing.small}</p>

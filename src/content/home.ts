@@ -40,18 +40,25 @@ export const hero = {
 
 export const pain = {
   eyebrow: "Sound familiar?",
-  lines: [
-    "You do a past paper.",
-    "Screenshot it. Paste it into AI.",
-    "It never tells you which mark you lost.",
-    "And by the end, what were you even weak at?",
-  ],
-  answer: "Plumi marks what you wrote, and remembers every mark you drop.",
-  contrast: [
-    { title: "Your handwriting.", line: "No screenshots. No retyping." },
-    { title: "Marked like the exam.", line: "Method, accuracy and explanation marks, line by line." },
-    { title: "Never forgotten.", line: "Every dropped mark sets your next question." },
-  ],
+  title: "Screenshot. Paste into AI. Repeat.",
+  line: "It checks the answer. It never says which mark you lost, or what you keep getting wrong.",
+  // Two honest columns: what pasting into a chatbot gives a student, and what Plumi does.
+  them: {
+    label: "Pasting into a chatbot",
+    rows: [
+      { title: "Retype or screenshot it", line: "Every question, every time." },
+      { title: "A verdict, not marks", line: "No mark scheme, no marks to count." },
+      { title: "Gone by tomorrow", line: "Nothing remembers what you got wrong." },
+    ],
+  },
+  us: {
+    label: "Plumi",
+    rows: [
+      { title: "Write it on the page", line: "Your own handwriting, with Apple Pencil." },
+      { title: "Marked like the exam", line: "Against the mark scheme, line by line.", chips: true },
+      { title: "Never forgotten", line: "Every dropped mark sets your next question." },
+    ],
+  },
 } as const;
 
 export const story = {

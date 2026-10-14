@@ -19,6 +19,8 @@ export interface SubjectPageContent {
   sub: string;
   /** The hero line on a phone: one short line, the home page's rule. */
   subShort: string;
+  /** The how-it-marks heading. */
+  stepsTitle: string;
   /** The hero picture: a marked iPad page for Physics, a real question figure otherwise. */
   hero: { kind: "ipad"; image: string; alt: string } | { kind: "figure"; image: string; alt: string; caption: string };
   figures: readonly { image: string; label: string; alt: string }[];
@@ -56,7 +58,8 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     eyebrow: "GCSE & A-Level Physics revision app for iPad",
     h1a: "Physics revision",
     h1b: "that marks your working.",
-    sub: "Exam-style Physics questions for AQA, OCR and Edexcel, with the circuit or graph drawn in. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    sub: "Exam-style Physics questions for AQA, OCR and Edexcel. Write it with Apple Pencil and see every mark you lost.",
+    stepsTitle: "Physics, marked line by line.",
     subShort: "Write it with Apple Pencil. See every mark you lost, on Physics questions for your board.",
     hero: { kind: "ipad", image: "/site/shot-mark.webp", alt: "A handwritten A-Level Physics answer about a light sensor circuit, marked 3 out of 5 in Plumi, with the lost method and accuracy marks shown on the page." },
     figures: [
@@ -82,7 +85,8 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     eyebrow: "GCSE & A-Level Chemistry revision app for iPad",
     h1a: "Chemistry revision",
     h1b: "that marks your working.",
-    sub: "Exam-style Chemistry questions for AQA, OCR and Edexcel, from moles to energetics to organic. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    sub: "Exam-style Chemistry questions for AQA, OCR and Edexcel. Write it with Apple Pencil and see every mark you lost.",
+    stepsTitle: "Chemistry, marked line by line.",
     subShort: "Write it with Apple Pencil. See every mark you lost, on Chemistry questions for your board.",
     hero: { kind: "figure", image: "/site/diagram-chemb.webp", alt: "A reaction profile from a Plumi Chemistry question: energy against progress of reaction, with the uncatalysed and catalysed routes and the activation energy marked.", caption: "From a Plumi question on reaction profiles, AQA GCSE Chemistry." },
     figures: [
@@ -106,7 +110,8 @@ export const subjectPages: Record<SubjectSlug, SubjectPageContent> = {
     eyebrow: "GCSE & A-Level Biology revision app for iPad",
     h1a: "Biology revision",
     h1b: "that marks your answers.",
-    sub: "Exam-style Biology questions for AQA, OCR and Edexcel, from cells to ecology. Write your answer with Apple Pencil and see every mark you got, and every one you lost.",
+    sub: "Exam-style Biology questions for AQA, OCR and Edexcel. Write it with Apple Pencil and see every mark you lost.",
+    stepsTitle: "Biology, marked point by point.",
     subShort: "Write it with Apple Pencil. See every mark you lost, on Biology questions for your board.",
     hero: { kind: "figure", image: "/site/diagram-biob.webp", alt: "A woodland food web from a Plumi Biology question: an oak tree feeding a caterpillar, an aphid and an earthworm, up to a sparrowhawk.", caption: "From a Plumi question on communities, AQA GCSE Biology." },
     figures: [

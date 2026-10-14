@@ -46,8 +46,8 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
       <main id="main">
         <section className="hp-hero hp-subject-hero" aria-labelledby="subject-title">
           <div className="hp-wrap hp-hero-copy">
-            <p className="hp-eyebrow hp-rise">{content.eyebrow}</p>
             <h1 id="subject-title" className="hp-hero-title is-subject">
+              <span className="hp-eyebrow hp-h1-eyebrow hp-rise">{content.eyebrow}</span>{" "}
               <span className="hp-rise" style={{ ["--d" as string]: "80ms" }}>{content.h1a}</span>{" "}
               <span className="hp-rise hp-blue hp-h1b" style={{ ["--d" as string]: "200ms" }}>{content.h1b}<Underline className="hp-hero-underline" /></span>
             </h1>
@@ -66,10 +66,16 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
               ? <IPad src={content.hero.image} priority alt={content.hero.alt} sizes="(max-width: 760px) 92vw, (max-width: 1100px) 90vw, 1040px" />
               : (
                 <figure className="hp-subject-figure">
-                  <div className="hp-diagram-paper"><Image src={content.hero.image} width={1200} height={900} priority alt={content.hero.alt} sizes="(max-width: 760px) 92vw, 760px" /></div>
+                  <div className="hp-diagram-paper"><Image src={content.hero.image} width={1200} height={900} priority alt={content.hero.alt} sizes="(max-width: 760px) 92vw, 560px" /></div>
                   <figcaption>{content.hero.caption}</figcaption>
                 </figure>
               )}
+            <figure className="hp-loupe hp-hero-loupe hp-subject-loupe">
+              <Image src="/site/loupe-mark3.webp" width={885} height={136} sizes="(max-width: 760px) 92vw, 480px" priority
+                alt="Close up of a handwritten Physics answer marked by Plumi: M2 crossed on the working and A1 crossed on the final value." />
+              <figcaption><span className="hp-mark-chip is-lost">M2</span><span className="hp-mark-chip is-lost">A1</span>
+                <span>{content.slug === "physics" ? "Lost 2 marks: the 10\u00a0kΩ goes on top of the fraction, not the 1.5\u00a0kΩ." : "How marking looks, on a Physics answer. Every subject is marked like this."}</span></figcaption>
+            </figure>
           </div>
         </section>
 
@@ -77,7 +83,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
           <div className="hp-wrap">
             <div className="hp-section-head is-center" data-reveal>
               <p className="hp-eyebrow">How it marks</p>
-              <h2 id="steps-title" className="hp-h2">{content.name}, marked line by line.</h2>
+              <h2 id="steps-title" className="hp-h2">{content.stepsTitle}</h2>
             </div>
             <ol className="hp-steps-row">
               {content.steps.map((s, i) => (
@@ -135,8 +141,14 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
         <section id="pricing" className="hp-subject-pricing" aria-labelledby="price-title">
           <div className="hp-wrap hp-narrow is-center-text" data-reveal>
             <h2 id="price-title" className="hp-h2">Free to start.</h2>
-            <p className="hp-lede">10 answers marked, 5 practice questions, 12 AI Pen answers and 1 tutor session every week, free. Pro is {prices.yearlyPerMonth} a month, billed {prices.yearly} a year with {prices.trialDays} days free first, or {prices.monthly} a month.</p>
-            <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} showLine /></div>
+            <ul className="hp-free-tiles" aria-label="Free every week">
+              {[["10", "answers marked"], ["5", "practice questions"], ["12", "AI Pen answers"], ["1", "tutor session"]].map(([n, l]) => (
+                <li key={l}><strong>{n}</strong><span>{l}</span></li>
+              ))}
+            </ul>
+            <p className="hp-free-every">Free, every week.</p>
+            <p className="hp-pro-line">Pro: <strong>{prices.yearlyPerMonth} a month</strong>, billed {prices.yearly} a year, {prices.trialDays} days free first. Or {prices.monthly} a month.</p>
+            <div className="hp-section-cta"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
             <p className="hp-small">Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">See everything in Free and Pro</Link>.</p>
           </div>
         </section>
@@ -167,7 +179,7 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
         </section>
       </main>
       <HomeFooter />
-      <PageStructuredData path={content.path} name={intentFor(content.path).title} description={intentFor(content.path).description}
+      <PageStructuredData image={`/og-${content.slug}.png`} path={content.path} name={intentFor(content.path).title} description={intentFor(content.path).description}
         breadcrumb={[{ name: `${content.name} revision`, path: content.path }]} />
       <SectionImpressions />
     </div>

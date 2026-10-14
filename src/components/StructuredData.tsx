@@ -199,7 +199,10 @@ export function PageStructuredData({
   name,
   description,
   breadcrumb,
+  image = "/og.png",
 }: {
+  /** The page's own share image, if it has one. */
+  image?: string;
   path: string;
   name: string;
   description: string;
@@ -222,7 +225,7 @@ export function PageStructuredData({
             inLanguage: "en-GB",
             isPartOf: { "@id": WEBSITE_ID },
             about: { "@id": absoluteUrl("/#app") },
-            primaryImageOfPage: { "@type": "ImageObject", url: absoluteUrl("/og.png") },
+            primaryImageOfPage: { "@type": "ImageObject", url: absoluteUrl(image) },
           },
           {
             "@type": "BreadcrumbList",
