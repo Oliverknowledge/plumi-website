@@ -198,10 +198,11 @@ export const pricing = {
   },
   pro: {
     name: "Pro",
-    // The sum actually charged leads; the monthly equivalent is the sub-line.
-    price: prices.yearly,
-    period: "a year",
-    billing: `That’s ${prices.yearlyPerMonth} a month. ${prices.trialDays} days free first.`,
+    // The founder's call (14 October): the monthly equivalent leads. The sum actually
+    // charged sits directly under it, in the first line, never further away.
+    price: prices.yearlyPerMonth,
+    period: "a month",
+    billing: `Billed ${prices.yearly} a year. ${prices.trialDays} days free first.`,
     billing2: `Or ${prices.monthly} a month, no trial.`,
     lead: "Everything unlimited, for the run‑up to your exams.",
     items: [
