@@ -64,7 +64,7 @@ export const routeIntents: readonly RouteIntent[] = [
     intent: "Find an AI that can actually help with A-Level Maths working, not just final answers.",
     objective: "Show tutoring happening on real handwritten working, and why that beats retyping into a chatbot.",
     title: "AI Tutor for A-Level Maths That Reads Your Working",
-    h1: "An AI tutor for A-Level Maths that understands your working",
+    h1: "An AI tutor for A‑Level Maths that understands your working",
     description:
       "No retyping. Plumi reads the working already on your page, nudges before it answers, and marks your method against the question's own mark scheme.",
     linksTo: ["/gcse-maths", "/goodnotes-alternative-for-students", "/"],
