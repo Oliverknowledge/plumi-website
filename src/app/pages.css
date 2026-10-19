@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE OTHER PAGES, IN THE COSY NOTEBOOK
+
+   Subject revision pages (src/components/home/SubjectPage.tsx), the intent
+   pages (src/components/MarketingPage.tsx), the legal notices
+   (src/components/LegalDocument.tsx) and the missing page. The paper, type,
+   keys, cards, header and footer are cosy.css's, shared with the homepage.
+   Scoped under .lp like everything else.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Real captures and diagrams are photographs of a screen, not pixel art. */
+.lp .lp-sp-stage img, .lp .lp-sp-figs img, .lp .lp-mk-figure img { image-rendering: auto; width: 100%; height: auto; display: block; }
+
+/* ── Subject pages: hero ─────────────────────────────────────────────────── */
+.lp .lp-sp-title { font-size: clamp(36px, 4.8vw, 62px); line-height: 1.05; }
+.lp-sp-title > span { display: inline; }
+.lp-sp-title > .lp-eyebrow { display: block; margin-bottom: 14px; font-size: 17px; line-height: 1.4; }
+.lp-sub-short { display: none; }
+.lp-ipad-only { font-weight: 600; }
+.lp-sp-stage { display: grid; gap: 30px; min-width: 0; }
+.lp-sp-shot { padding-bottom: 14px; }
+.lp-sp-screen { border-radius: 10px; overflow: hidden; background: #fcfcf9; }
+.lp-sp-figure { padding: 14px; margin: 0; }
+.lp-sp-paper { background: #fff; border: 2px solid #e2d6c2; border-radius: 10px; overflow: hidden; }
+.lp-sp-figure figcaption, .lp-mk-figure figcaption { font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink-soft); text-align: center; margin-top: 10px; }
+.lp-sp-loupe { margin: 0; padding: 22px 16px 14px; transform: rotate(-1deg); width: min(100%, 520px); justify-self: end; }
+.lp .lp-sp-loupe img { border-radius: 8px; border: 2px solid #e2d6c2; background: #fff; }
+.lp-sp-loupe figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 12px; font-size: 15px; font-weight: 700; }
+.lp-sp-loupe figcaption > span:last-child { flex: 1 1 220px; }
+
+/* ── Subject pages: how it marks ─────────────────────────────────────────── */
+.lp-sp-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.lp-sp-figs { list-style: none; margin: 34px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.lp-sp-figs li:nth-child(odd) .lp-sp-figure { transform: rotate(-.8deg); }
+.lp-sp-figs li:nth-child(even) .lp-sp-figure { transform: rotate(.8deg); }
+
+/* ── Subject pages: specification ────────────────────────────────────────── */
+.lp .lp-sp-level h3 { margin: 30px 0 14px; font-size: 25px; }
+.lp-sp-specs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.lp-spec { padding: 16px 20px 18px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.lp-spec summary { list-style: none; display: flex; align-items: baseline; gap: 10px; cursor: pointer; }
+.lp-spec summary::-webkit-details-marker { display: none; }
+.lp-spec summary strong { font-family: var(--f-px); font-weight: 600; font-size: 21px; }
+.lp-spec summary span { margin-left: auto; font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink-soft); border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; background: var(--lp-paper-2); }
+.lp-spec ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.lp-spec li { position: relative; padding-left: 20px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.lp-spec li::before { content: ""; position: absolute; left: 0; top: 5px; width: 10px; height: 10px; border: 2px solid var(--lp-line); border-radius: 3px; background: var(--tone, var(--lp-gold)); }
+.lp-sp-cta { margin-top: 32px; }
+
+/* ── Subject pages: free each week ───────────────────────────────────────── */
+.lp-sp-price { max-width: 880px; margin: 0 auto; padding: 38px 30px 34px; display: grid; justify-items: center; gap: 20px; text-align: center; background: #fff4dd; }
+.lp-sp-tiles { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.lp-sp-tiles li { display: grid; gap: 2px; padding: 14px 10px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp-sp-tiles strong { font-family: var(--f-px); font-weight: 700; font-size: 44px; line-height: 1; color: var(--lp-orange); }
+.lp-sp-tiles span { font-size: 14.5px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp-sp-pro { font-weight: 600; max-width: 36em; }
+.lp-sp-price .lp-cta-row { justify-content: center; }
+.lp-sp-price .hp-desk-panel { left: 50%; transform: translateX(-50%); }
+.lp-sp-price .lp-fine { font-size: 13.5px; font-weight: 600; color: var(--lp-ink-soft); }
+
+/* ── Subject pages: other subjects ───────────────────────────────────────── */
+.lp-sp-more { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 30px; }
+.lp-sp-more > span { font-weight: 700; color: var(--lp-ink-soft); }
+.lp .lp-sp-more a { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--f-px); font-weight: 600; color: var(--lp-ink); text-decoration: none; border: 2px solid var(--lp-line); border-radius: 10px; padding: 0 12px; background: var(--lp-card-bg); box-shadow: 0 3px 0 var(--lp-shadow); }
+.lp .lp-sp-more a:hover { background: var(--lp-gold); }
+
+/* ── Intent pages (A-Level Maths, GCSE Maths, Goodnotes, About) ──────────── */
+.lp-mk-hero { display: grid; gap: 20px; padding-top: 64px; padding-bottom: 52px; }
+.lp .lp-mk-hero h1 { font-size: clamp(36px, 5vw, 64px); line-height: 1.05; max-width: 15em; }
+.lp-mk-list { display: grid; gap: 30px; }
+.lp .lp-mk-sec { padding: 26px 30px 28px; }
+.lp-mk-sec:nth-child(odd) { transform: rotate(-.3deg); }
+.lp-mk-sec:nth-child(even) { transform: rotate(.3deg); background: #fff4dd; }
+.lp-mk-sec.has-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--side, 480px)); gap: 28px; align-items: center; }
+.lp-mk-head { display: grid; gap: 8px; max-width: 760px; }
+.lp .lp-mk-head h2 { font-size: clamp(28px, 3.2vw, 38px); }
+.lp-mk-figure { margin: 22px 0 0; }
+.lp-mk-sec.has-side .lp-mk-figure { margin: 0; }
+.lp .lp-mk-figure img { border-radius: 10px; border: 2px solid #e2d6c2; background: #fff; }
+.lp .lp-mk-close { padding-top: 72px; }
+.lp-mk-close h2 { max-width: 16em; }
+
+/* ── Legal notices ───────────────────────────────────────────────────────── */
+.lp .lp-legal { padding-block: 48px 80px; }
+.lp-doc { max-width: 780px; margin: 0 auto; padding: 44px 52px 48px; font-size: 17px; line-height: 1.7; }
+.lp .lp-doc h1 { font-size: clamp(38px, 5vw, 56px); }
+.lp .lp-doc .lp-doc-date { margin-top: 10px; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .lp-doc .lp-doc-intro { margin-top: 18px; font-size: 19px; font-weight: 600; color: var(--lp-ink-soft); }
+.lp .lp-doc section { padding-block: 0; margin-top: 34px; padding-top: 26px; border-top: 2px dashed #d8c8ad; }
+.lp .lp-doc h2 { font-size: 26px; line-height: 1.2; }
+.lp .lp-doc p { margin-top: 12px; max-width: 66ch; }
+.lp-doc ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; max-width: 66ch; }
+.lp-doc li { position: relative; padding-left: 24px; }
+.lp-doc li::before { content: ""; position: absolute; left: 2px; top: .55em; width: 10px; height: 10px; border: 2px solid var(--lp-line); border-radius: 3px; background: var(--lp-gold); }
+.lp .lp-doc .lp-doc-todo { border: 2px dashed var(--lp-line); border-radius: 12px; background: var(--lp-paper-2); padding: 10px 14px; font-family: ui-monospace, monospace; font-size: 14px; }
+
+/* ── The missing page ────────────────────────────────────────────────────── */
+.lp .lp-missing { padding-block: 72px 96px; }
+.lp .lp-missing h1 { font-size: clamp(34px, 4.6vw, 52px); max-width: 14em; }
+.lp .lp-missing img { width: 140px; height: 140px; }
+
+@media (max-width: 980px) {
+  .lp-sp-steps, .lp-sp-specs { grid-template-columns: minmax(0, 1fr); }
+  .lp-sp-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-sp-loupe { justify-self: center; }
+  .lp-mk-sec.has-side { grid-template-columns: minmax(0, 1fr); }
+  .lp-mk-sec.has-side .lp-mk-figure { margin-top: 6px; }
+}
+@media (max-width: 760px) {
+  .lp-spec summary { min-height: 44px; align-items: center; }
+  .lp-spec summary::after { content: "+"; font-family: var(--f-px); font-size: 22px; line-height: 1; }
+  .lp-spec[open] summary::after { content: "−"; }
+}
+@media (max-width: 620px) {
+  .lp-sub-long { display: none; }
+  .lp-sub-short { display: inline; }
+  .lp-sp-title > .lp-eyebrow { font-size: 15px; }
+  .lp-sp-figs, .lp-sp-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lp-sp-figs li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .lp-sp-price { padding: 30px 18px 28px; }
+  .lp-sp-tiles strong { font-size: 36px; }
+  .lp-mk-hero { padding-top: 40px; }
+  .lp .lp-mk-sec { padding: 22px 18px 22px; }
+  .lp-doc { padding: 30px 20px 34px; font-size: 16.5px; }
+  .lp .lp-doc .lp-doc-intro { font-size: 17.5px; }
+  .lp .lp-legal { padding-block: 28px 56px; }
+}

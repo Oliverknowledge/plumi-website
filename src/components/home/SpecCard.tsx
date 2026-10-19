@@ -12,8 +12,8 @@ export function SpecCard({ board, code, units }: { board: string; code: string; 
     if (ref.current && window.matchMedia("(max-width: 760px)").matches) ref.current.open = false;
   }, []);
   return (
-    <details ref={ref} className="hp-spec-card" open data-reveal>
-      <summary><strong>{board}</strong><span>{code}</span><span className="hp-faq-plus" aria-hidden="true" /></summary>
+    <details ref={ref} className="lp-card lp-spec" open>
+      <summary><strong>{board}</strong><span>{code}</span></summary>
       <ul>{units.map(u => <li key={u}>{u}</li>)}</ul>
     </details>
   );

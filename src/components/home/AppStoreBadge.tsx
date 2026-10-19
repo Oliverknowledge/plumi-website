@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { appStoreLink } from "@/config/site";
-import { noteCtaClick } from "@/components/ui/CtaButton";
+import { noteCtaClick } from "@/lib/cta";
 import { track } from "@/lib/analytics";
 import { reportAdsConversion } from "@/lib/adsConversion";
 import "@/app/send-to-ipad.css";
@@ -153,21 +153,11 @@ function DesktopSend({ placement }: { placement: string }) {
   );
 }
 
-/** A plain text link into the page, reported as a scroll CTA. */
-export function HomeAnchor({ href, label, placement, className = "hp-link" }: { href: string; label: string; placement: string; className?: string }) {
-  return (
-    <a href={href} className={className} data-testid={`${placement}-link`}
-      onClick={() => track("cta_clicked", { placement, cta_kind: "scroll", label, destination: "self" })}>
-      {label}<span aria-hidden="true"> ›</span>
-    </a>
-  );
-}
-
 /**
  * The header's small pill: the badge's destination, or the phone's send-on (see above).
- * `download` is the wording on the App Store link ("Download" on the subject pages, "Get
- * it free" on the cosy homepage) and `className` the pill's look; the destination, the
- * phone's send-on and the events are the same whatever they are.
+ * `download` is the wording on the App Store link ("Get it free" in the cosy header on
+ * every page) and `className` the key's look; the destination, the phone's send-on and
+ * the events are the same whatever they are.
  */
 export function HeaderDownload({ download = "Download", className = "hp-pill" }: { download?: string; className?: string } = {}) {
   const [state, setState] = useState<SendState>("idle");

@@ -1,5 +1,3 @@
-import "../story.css";
-import "../quill.css";
 import { MarketingPage } from "@/components/MarketingPage";
 import { goodnotesAlternative } from "@/content/landing";
 import { metadataFor } from "@/lib/metadata";
