@@ -151,3 +151,9 @@
   .lp .lp-navbtn { font-size: 14px; padding: 6px 12px; }
   .lp .lp-logo { font-size: 26px; }
 }
+
+/* Join the Discord (19 October 2026): the community key, beside the App Store badge. */
+.lp .lp-discord { background: #5865f2; color: #fff; border-color: var(--lp-line); }
+.lp .lp-discord:hover { background: #4f5bd5; }
+.lp-final .lp-close-ctas { justify-content: center; }
+.lp-feature-list .lp-discord { justify-self: start; align-self: start; }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge } from "@/components/home/AppStoreBadge";
+import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
 import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, plans, shelf } from "@/content/cosyHome";
 import { HeroDialog, MeetPlumi, PixelPortrait, RoomScene } from "./LandingClient";
@@ -151,6 +152,7 @@ export function CosyHome({ variant }: { variant?: string }) {
                   <div><b>{f.title}{f.soon && <> <Soon /></>}</b><span>{f.line}</span></div>
                 </div>
               ))}
+              <DiscordButton placement="friends" />
             </div>
           </div>
         </div>
@@ -257,7 +259,10 @@ export function CosyHome({ variant }: { variant?: string }) {
             <Image src="/landing/plumi-lofi-cozy-anim.svg" alt="Plumi, cosy and smiling" width={150} height={150} unoptimized />
             <h2 id="close-title">{finale.title} <em>{finale.titleEm}</em></h2>
             <p className="lp-lead">{finale.line}</p>
-            <AppStoreBadge placement="close" height={56} />
+            <div className="lp-cta-row lp-close-ctas">
+              <AppStoreBadge placement="close" height={56} />
+              <DiscordButton placement="close" />
+            </div>
           </div>
         </div>
       </section>
