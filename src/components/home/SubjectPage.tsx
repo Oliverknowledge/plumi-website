@@ -4,7 +4,7 @@ import { SectionImpressions } from "@/components/SectionImpressions";
 import { PageStructuredData } from "@/components/StructuredData";
 import { intentFor } from "@/config/routes";
 import { AppStoreBadge, HeaderDownload } from "./AppStoreBadge";
-import { HomeFooter, IPad } from "./HomePage";
+import { HomeFooter, IPad } from "./Frame";
 import { HomeMotion } from "./Motion";
 import { SpecCard } from "./SpecCard";
 import { Underline } from "./Doodles";

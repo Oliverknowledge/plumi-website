@@ -20,6 +20,14 @@ import { track } from "@/lib/analytics";
  */
 const ARCS: Record<string, string> = {
   product: "0-hero",
+  // The cosy homepage (19 October 2026).
+  meet: "1-reads-you",
+  marking: "1-reads-you",
+  friends: "3-remembers",
+  habit: "3-remembers",
+  more: "4-replaces-stack",
+  subjects: "4-replaces-stack",
+  pricing: "5-the-deal",
   "on-page": "1-reads-you",
   "the-mark": "1-reads-you",
   trust: "2-trust-it",

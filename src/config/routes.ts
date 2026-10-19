@@ -50,7 +50,7 @@ export const routeIntents: readonly RouteIntent[] = [
     // Leads with the brand, because the first job of the homepage title is to
     // win "Plumi". The category follows.
     title: "Plumi: GCSE & A-Level Revision That Marks Your Handwriting",
-    h1: "Handwrite your answer. See the line that cost you marks.",
+    h1: "The cosy notebook that marks your work.",
     description:
       "Answer GCSE and A-Level questions for AQA, OCR or Edexcel with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
     linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],

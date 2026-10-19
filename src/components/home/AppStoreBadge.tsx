@@ -91,18 +91,23 @@ export function HomeAnchor({ href, label, placement, className = "hp-link" }: { 
   );
 }
 
-/** The header's small pill: the badge's destination, or the phone's send-on (see above). */
-export function HeaderDownload() {
+/**
+ * The header's small pill: the badge's destination, or the phone's send-on (see above).
+ * `download` is the wording on the App Store link ("Download" on the subject pages, "Get
+ * it free" on the cosy homepage) and `className` the pill's look; the destination, the
+ * phone's send-on and the events are the same whatever they are.
+ */
+export function HeaderDownload({ download = "Download", className = "hp-pill" }: { download?: string; className?: string } = {}) {
   const [state, setState] = useState<SendState>("idle");
   const href = storeHref("header");
   const label = state === "sent" ? "Sent" : state === "emailed" ? "Check email" : "Send to iPad";
   return (
     <>
-      <a href={href} target="_blank" rel="noopener noreferrer" className="hp-pill hp-not-phone" data-testid="header-cta-button"
-        onClick={() => noteCtaClick("header", "app_store", "Download", href)}>
-        Download
+      <a href={href} target="_blank" rel="noopener noreferrer" className={`${className} hp-not-phone`} data-testid="header-cta-button"
+        onClick={() => noteCtaClick("header", "app_store", download, href)}>
+        {download}
       </a>
-      <button type="button" className="hp-pill hp-only-phone" data-testid="header-send-button" aria-live="polite"
+      <button type="button" className={`${className} hp-only-phone`} data-testid="header-send-button" aria-live="polite"
         onClick={async () => setState(await sendToIPad("header", "Send to iPad"))}>{label}</button>
     </>
   );

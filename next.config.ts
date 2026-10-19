@@ -17,7 +17,7 @@ const canonicalOrigin = "https://tryplumi.app";
 
 /** [removed path, where it goes] */
 const removedPages: readonly (readonly [string, string])[] = [
-  ["/how-it-works", "/#how"],
+  ["/how-it-works", "/#marking"],
   ["/ai-handwriting-tutor", "/"],
   ["/ipad-study-app", "/"],
 ];
