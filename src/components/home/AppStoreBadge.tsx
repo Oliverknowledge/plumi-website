@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { appStoreLink } from "@/config/site";
 import { noteCtaClick } from "@/components/ui/CtaButton";
 import { track } from "@/lib/analytics";
 import { reportAdsConversion } from "@/lib/adsConversion";
+import "@/app/send-to-ipad.css";
 
 /**
  * Plumi is iPad only, and most ad traffic lands on a phone, where the App Store page
@@ -52,7 +53,7 @@ const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCo
  * animated (App Store marketing guidelines), at least 40px tall, with clear space of a
  * quarter of its height. Reports itself through the same funnel as every other CTA.
  */
-export function AppStoreBadge({ placement, tone = "black", height = 52, showLine = false }: { placement: string; tone?: "black" | "white"; height?: number; showLine?: boolean }) {
+export function AppStoreBadge({ placement, tone = "black", height = 52, showLine = false, desktopSend = true }: { placement: string; tone?: "black" | "white"; height?: number; showLine?: boolean; desktopSend?: boolean }) {
   const [state, setState] = useState<SendState>("idle");
   const href = storeHref(placement);
   const width = Math.round((718 / 240) * height);
@@ -77,7 +78,78 @@ export function AppStoreBadge({ placement, tone = "black", height = 52, showLine
           ? <button type="button" className="hp-phone-email" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: phoneCopy.email, destination: "mailto" }); emailLink(placement); noteSendResult(placement, "emailed"); }}>{phoneCopy.email}</button>
           : showLine && <span className="hp-phone-line" aria-live="polite">{phoneCopy.line}</span>}
       </span>
+      {desktopSend && <DesktopSend placement={placement} />}
     </>
+  );
+}
+
+export const desktopCopy = {
+  button: "Send to my iPad",
+  scan: "Point your iPad’s camera here",
+  share: "AirDrop or share",
+  email: "Email me the link",
+  close: "Close",
+} as const;
+
+/**
+ * On a computer, beside the badge: Plumi is iPad only, so the link is handed across. The
+ * panel shows the link as a QR code for the iPad's camera, the share sheet where the
+ * browser has one (Safari on a Mac offers AirDrop), and an email to themselves. Hidden on a
+ * phone, which has its own "Send it to my iPad" above. The code is drawn on first open, so
+ * the library costs nothing to a visitor who never asks for it.
+ */
+function DesktopSend({ placement }: { placement: string }) {
+  const [open, setOpen] = useState(false);
+  const [qr, setQr] = useState<string | null>(null);
+  const [canShare, setCanShare] = useState(false);
+  const [done, setDone] = useState<"sent" | "emailed" | null>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const href = storeHref(placement, "send");
+
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    import("qrcode").then(QR => QR.toString(href, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#2b2326", light: "#fffdf8" } }))
+      .then(svg => { if (live) setQr(svg); }).catch(() => { if (live) setQr(null); });
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onDown = (e: MouseEvent) => { if (panel.current && !panel.current.parentElement?.contains(e.target as Node)) setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onDown);
+    return () => { live = false; window.removeEventListener("keydown", onKey); window.removeEventListener("mousedown", onDown); };
+  }, [open, href]);
+
+  return (
+    <span className="hp-desk hp-not-phone">
+      <button type="button" className="hp-desk-button" aria-expanded={open} data-testid={`${placement}-desktop-send`}
+        onClick={() => {
+          if (!open) {
+            track("cta_clicked", { placement, cta_kind: "send_to_ipad_desktop", label: desktopCopy.button, destination: "panel" });
+            setCanShare(!!navigator.share);
+          }
+          setOpen(!open);
+        }}>
+        <svg aria-hidden="true" width="16" height="20" viewBox="0 0 16 20"><rect x="1.5" y="1.5" width="13" height="17" rx="2.5" fill="none" stroke="currentColor" strokeWidth="2" /><circle cx="8" cy="15.5" r="1" fill="currentColor" /></svg>
+        {done === "sent" ? phoneCopy.sent : done === "emailed" ? phoneCopy.emailed : desktopCopy.button}
+      </button>
+      {open && (
+        <div ref={panel} className="hp-desk-panel" role="dialog" aria-label={desktopCopy.button}>
+          <div className="hp-desk-qr" aria-hidden={!qr}>
+            {qr ? <span dangerouslySetInnerHTML={{ __html: qr }} /> : <span className="hp-desk-qr-wait" />}
+          </div>
+          <p className="hp-desk-scan">{desktopCopy.scan}</p>
+          <div className="hp-desk-actions">
+            {canShare && (
+              <button type="button" onClick={async () => { const outcome = await sendToIPad(placement, desktopCopy.share); if (outcome !== "dismissed") { setDone(outcome); setOpen(false); } }}>
+                {desktopCopy.share}
+              </button>
+            )}
+            <button type="button" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: desktopCopy.email, destination: "mailto" }); emailLink(placement); noteSendResult(placement, "emailed"); setDone("emailed"); setOpen(false); }}>
+              {desktopCopy.email}
+            </button>
+          </div>
+        </div>
+      )}
+    </span>
   );
 }
 

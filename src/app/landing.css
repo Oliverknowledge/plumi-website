@@ -65,6 +65,10 @@
 .lp .hp-phone-button { appearance: none; cursor: pointer; background: #2b2326; color: #fdf9f1; border: 3px solid #2b2326; border-radius: 14px; box-shadow: 0 5px 0 var(--lp-shadow); padding: 12px 22px; font-family: var(--f-px); font-weight: 600; font-size: 20px; min-height: 52px; transition: transform .08s, box-shadow .08s; }
 .lp .hp-phone-button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--lp-shadow); }
 .lp .hp-phone-line { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .hp-desk-button { border: 3px solid #2b2326; border-radius: 14px; box-shadow: 0 5px 0 var(--lp-shadow); background: #fdf9f1; color: #2b2326; font-family: var(--f-px); font-weight: 600; font-size: 18px; min-height: 52px; transition: transform .08s, box-shadow .08s; }
+.lp .hp-desk-button:hover { background: #fff; }
+.lp .hp-desk-button:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--lp-shadow); }
+.lp-final .hp-desk-panel { left: 50%; transform: translateX(-50%); }
 .lp .hp-phone-email { appearance: none; border: 0; background: none; cursor: pointer; font: inherit; font-size: 15px; font-weight: 700; color: var(--lp-blue); padding: 6px 0; }
 .lp .hp-only-phone { display: none !important; }
 @media (pointer: coarse) and (max-width: 640px) {
@@ -191,6 +195,18 @@
 .lp-book::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 5px; background: rgba(91, 71, 65, .22); }
 .lp .lp-label { display: block; background: #fffdf8; border: 2px solid var(--lp-line); border-radius: 4px; padding: 6px 10px; text-align: center; width: 78%; color: var(--lp-ink); text-decoration: none; position: relative; }
 .lp .lp-label:hover { background: #fff; }
+/* A book you point at or tap comes off the shelf: it lifts and tilts, its label turns ink and
+   says where it goes, so choosing Maths or Physics reads as choosing (the founder, 19 October). */
+.lp-book { transition: transform .16s cubic-bezier(.2, .9, .3, 1.3), box-shadow .16s; cursor: pointer; }
+.lp-book:hover, .lp-book:focus-within { transform: translateY(-18px) rotate(-2.5deg); box-shadow: 0 12px 0 rgba(43, 35, 38, .2); z-index: 2; }
+.lp-book:active { transform: translateY(-8px) rotate(-1deg); }
+.lp-book:hover .lp-label, .lp-book:focus-within .lp-label { background: var(--lp-ink); color: #fdf9f1; border-color: var(--lp-ink); }
+.lp-book:hover .lp-label small, .lp-book:focus-within .lp-label small { color: #f2e6d2; }
+.lp-label .lp-open { display: block; margin-top: 6px; font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-gold); max-height: 0; opacity: 0; overflow: hidden; transition: max-height .16s, opacity .16s; }
+.lp-book:hover .lp-open, .lp-book:focus-within .lp-open { max-height: 24px; opacity: 1; }
+.lp .lp-label:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 3px; }
+@media (hover: none) { .lp-label .lp-open { max-height: 24px; opacity: 1; color: var(--lp-blue); } }
+@media (prefers-reduced-motion: reduce) { .lp-book, .lp-book:hover, .lp-book:focus-within, .lp-book:active { transform: none; transition: none; } }
 .lp .lp-label::after { content: ""; position: absolute; inset: -22px -16px -200px; }
 .lp-label b { font-family: var(--f-px); font-weight: 600; font-size: 18px; display: block; }
 .lp-label small { display: block; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }

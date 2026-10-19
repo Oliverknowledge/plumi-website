@@ -226,7 +226,7 @@ export function CosyHome({ variant }: { variant?: string }) {
             <ul className="lp-shelf">
               {shelf.books.map(b => (
                 <li key={b.name} className="lp-book" style={{ background: b.colour, ["--book-h" as string]: `${b.height}px` }}>
-                  <Link href={b.href} className="lp-label" data-testid={`subject-${b.href.slice(1)}-link`}><b>{b.name}</b><small>{b.detail}</small></Link>
+                  <Link href={b.href} className="lp-label" data-testid={`subject-${b.href.slice(1)}-link`}><b>{b.name}</b><small>{b.detail}</small><span className="lp-open" aria-hidden="true">Open ›</span></Link>
                 </li>
               ))}
             </ul>
