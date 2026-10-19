@@ -2,8 +2,8 @@
  * The cosy homepage's words (the founder's design, 19 October 2026), in one place so
  * every claim can be checked in one place. Same rules as src/content/home.ts: no em
  * dashes anywhere a student reads, and every sentence true of the released app today.
- * Anything built but not yet released (the study room, the study hall, ink, outfits,
- * high fives, the group jar) says "soon".
+ * The study room, the study hall, ink, outfits, high fives and the group jar are out
+ * (founder, 19 October: "these aren't coming soon now"), so nothing on this page says "soon".
  *
  * Where the design's draft said something the app or the vetted copy (home.ts) does not
  * support, the true version is here instead:
@@ -20,7 +20,7 @@
  *   against ("One answer isn't enough to call a topic Strong"); it now names the
  *   re-mark after a fix (5 to 7 out of 7), which home.ts vouches for.
  * - The habit line said the room "fills up as your marks improve" as if it were here;
- *   the room is coming soon, and says so.
+ *   the room was not out then; it is now (19 October).
  * - The study-with-friends line said you "study side by side", which is the unreleased
  *   study hall. Groups, invites by link or code and invite-only are released.
  * - Prices, the trial and the weekly allowances are home.ts's, which are the app's
@@ -39,7 +39,6 @@ export const cosyHero = {
   sceneLabel: "A pixel study room at night. Plumi sits at the desk, writing, while a cat naps on the rug.",
   studying: "Studying projectiles",
   hint: "Tap the floor to walk about.",
-  soon: "Study room · coming soon",
   // Physics true to the worked example below (g = 9.8).
   tips: [
     ["Tip:", "tan θ = v", "y", " ÷ v", "x"],
@@ -104,12 +103,11 @@ export const friends = {
   dialog: "Maya started a 25-min session",
   dialogTip: ["Aisha joined.", "Pull up a chair to study with them."],
   hint: "Tap someone to send a high five.",
-  soon: "Study hall · coming soon",
   features: [
     { av: "maya", title: "Invite-only groups", soon: false, line: "Add a friend, or share the group’s link or code." },
-    { av: "aisha", title: "Pull up a chair", soon: true, line: "Sit at a friend’s table to join their session. You keep your own topic." },
-    { av: "josh", title: "Fill the jar together", soon: true, line: "Everyone’s marked answers fill one jar each week." },
-    { av: "sam", title: "High fives, no chat", soon: true, line: "Cheer friends on with a tap. No messages, so nothing to scroll." },
+    { av: "aisha", title: "Pull up a chair", soon: false, line: "Tap a friend who’s studying to start your own timer in their subject." },
+    { av: "josh", title: "Fill the jar together", soon: false, line: "Everyone’s study time fills one jar each week." },
+    { av: "sam", title: "High fives", soon: false, line: "Cheer a friend on with a tap while they work." },
   ],
 } as const;
 
@@ -117,11 +115,11 @@ export const habit = {
   eyebrow: "Make it a habit",
   title: "Small sessions that",
   titleEm: "add up.",
-  lead: "A daily goal, a streak to protect, and soon a room of your own to fill.",
+  lead: "A daily goal, a streak to protect, and a room of your own to fill.",
   cards: [
     { id: "streak", title: "Keep your streak", soon: false, line: "Sit a whole A-Level paper with Pro to earn a streak freeze. Miss a day and it’s spent for you." },
     { id: "pomo", title: "Pomodoros that block apps", soon: false, line: "Distracting apps stay shut while you work. An hour open isn’t an hour studied, so only real study counts towards your goal." },
-    { id: "room", title: "Earn your room", soon: true, line: "Marked answers earn ink. Spend it on lamps, plants, outfits and a cat called Biscuit." },
+    { id: "room", title: "Earn your room", soon: false, line: "Marked answers earn ink. Spend it on lamps, plants, outfits and a cat called Biscuit." },
   ],
 } as const;
 

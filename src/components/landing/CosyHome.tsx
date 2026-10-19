@@ -12,11 +12,11 @@ import "@/app/landing.css";
  * The homepage: the founder's cosy notebook design (19 October 2026). The whole page is
  * a sheet of ruled paper; sections are pinned cards, sticky notes and pixel windows on it.
  *
- *   HERO      the promise, the App Store badge, your room at night (coming soon)
+ *   HERO      the promise, the App Store badge, your room at night
  *   MEET      Plumi and its moods
  *   MARKING   a handwritten answer marked line by line, the three steps, the topic map
- *   FRIENDS   groups (released) and the study hall (coming soon)
- *   HABIT     streaks, Pomodoros that block apps, the room you earn (coming soon)
+ *   FRIENDS   groups and the study hall
+ *   HABIT     streaks, Pomodoros that block apps, the room you earn
  *   MORE      six sticky notes
  *   SUBJECTS  four books on a shelf, linking to their pages
  *   PRICING   Free and Pro
@@ -64,7 +64,7 @@ export function CosyHome({ variant }: { variant?: string }) {
               <RoomScene room="home" label={cosyHero.sceneLabel} />
               <HeroDialog />
             </div>
-            <p className="lp-scene-hint">{cosyHero.hint} <Soon>{cosyHero.soon}</Soon></p>
+            <p className="lp-scene-hint">{cosyHero.hint}</p>
           </div>
         </div>
       </section>
@@ -143,7 +143,7 @@ export function CosyHome({ variant }: { variant?: string }) {
                 <RoomScene room="hall" label={friends.sceneLabel} />
                 <div className="lp-dialog"><div className="lp-row1"><b>{friends.dialog}</b></div><div className="lp-tip"><span>{friends.dialogTip[0]}</span> {friends.dialogTip[1]}</div></div>
               </div>
-              <p className="lp-scene-hint">{friends.hint} <Soon>{friends.soon}</Soon></p>
+              <p className="lp-scene-hint">{friends.hint}</p>
             </div>
             <div className="lp-feature-list">
               {friends.features.map(f => (
