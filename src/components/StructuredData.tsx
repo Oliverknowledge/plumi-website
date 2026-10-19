@@ -155,7 +155,7 @@ export function SiteStructuredData() {
                 "@type": "Offer",
                 name: "Plumi Free",
                 description:
-                  "The notebook, free forever and never metered, plus a weekly allowance of the marking, tutoring and practice.",
+                  "Free to start: the notebook, plus a weekly allowance of the marking, tutoring and practice.",
                 price: "0",
                 priceCurrency: "GBP",
                 availabilityStarts: launchDate,

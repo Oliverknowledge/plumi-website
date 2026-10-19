@@ -155,13 +155,13 @@ export const shelf = {
 
 export const plans = {
   eyebrow: "Pricing",
-  title: "Free for good.",
+  title: "Start free.",
   titleEm: "Pro if you need more.",
   free: {
     name: "Free",
     price: "£0",
-    period: "forever",
-    lead: "The notebook is free for good. Write as much as you like.",
+    period: "to start",
+    lead: "Start with the notebook and a weekly allowance of marking.",
     items: ["Handwriting, folders, PDFs, search and export", "10 answers marked a week", "5 new practice questions a week", "12 AI Pen answers a week", "1 AI tutor session a week"],
   },
   pro: {
