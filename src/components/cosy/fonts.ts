@@ -1,4 +1,5 @@
-import { Caveat, Nunito, Pixelify_Sans } from "next/font/google";
+import { Caveat, Nunito } from "next/font/google";
+import localFont from "next/font/local";
 
 /**
  * The site's three faces, self-hosted by next/font (no request to Google from the
@@ -7,7 +8,10 @@ import { Caveat, Nunito, Pixelify_Sans } from "next/font/google";
  * handwriting on the marked page. The app uses the same pair of Pixelify
  * Sans and Nunito (Design/LofiFonts.swift).
  */
-const pixel = Pixelify_Sans({ subsets: ["latin"], weight: ["500", "600", "700"], display: "swap", variable: "--lp-font-px" });
+// The app's own cut of Pixelify Sans SemiBold, with the e redrawn on the font's grid so it
+// reads as an e at every size (app commit a3ccdb69). It is the only weight the app ships, so
+// it serves the whole 500 to 700 range here: headings and keys match the app exactly.
+const pixel = localFont({ src: "./PixelifySans-SemiBold.ttf", weight: "500 700", display: "swap", variable: "--lp-font-px" });
 const body = Nunito({ subsets: ["latin"], weight: ["500", "600", "700", "800"], display: "swap", variable: "--lp-font-body" });
 const hand = Caveat({ subsets: ["latin"], weight: ["600", "700"], display: "swap", variable: "--lp-font-hand" });
 
