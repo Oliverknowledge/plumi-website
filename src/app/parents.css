@@ -1,0 +1,125 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOR PARENTS (src/app/parents/page.tsx)
+
+   The hero reuses the subject pages' stage (pages.css). This file adds the
+   page's own pieces: the facts row, the four steps, the two plans, the buying
+   flow, the nine question tiles and the contact card. Scoped under .lp.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lp .lp-pa-hero h1 { font-size: clamp(40px, 5.4vw, 68px); }
+.lp-pa-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.lp-pa-facts li { font-family: var(--f-px); font-weight: 600; font-size: 17px; border: 2px solid var(--lp-line); border-radius: 10px; padding: 3px 12px; background: var(--lp-card-bg); box-shadow: 0 3px 0 var(--lp-shadow); }
+.lp-pa-facts li:nth-child(3) { background: var(--lp-gold); }
+
+/* the marks, drawn: green for a tick, red for a cross */
+.lp-pa-mk { font-family: var(--f-body); font-weight: 800; font-size: 12.5px; padding: 1px 8px; border-radius: 7px; border: 2px solid var(--lp-line); color: var(--lp-ink); background: #9fd7a8; white-space: nowrap; }
+.lp-pa-mk.is-no { background: var(--lp-needs); }
+
+/* ── Four steps ──────────────────────────────────────────────────────────── */
+.lp .lp-pa-steps img, .lp .lp-pa-shot img { image-rendering: auto; width: 100%; height: auto; display: block; }
+.lp-pa-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.lp-pa-step { padding: 14px 14px 18px; display: grid; gap: 6px; align-content: start; }
+.lp-pa-step:nth-child(odd) { transform: rotate(-.6deg); }
+.lp-pa-step:nth-child(even) { transform: rotate(.6deg); }
+.lp-pa-step-img { aspect-ratio: 4 / 3; background: #fcfcf9; border: 2px solid #e2d6c2; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+.lp .lp-pa-step-img img { width: 100%; height: 100%; }
+.lp .lp-pa-step h3 { font-size: 21px; }
+.lp-pa-step p { font-weight: 600; color: var(--lp-ink-soft); font-size: 15.5px; }
+
+/* ── Plans ───────────────────────────────────────────────────────────────── */
+.lp-pa-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.lp-pa-plan { padding: 28px 26px 24px; display: grid; gap: 16px; align-content: start; }
+.lp-pa-plan.is-pro { background: #fff4dd; }
+.lp .lp-pa-plan h3 { font-size: 26px; }
+.lp-pa-price { font-family: var(--f-px); font-weight: 700; font-size: 52px; line-height: 1; color: var(--lp-ink); }
+.lp-pa-price small { font-family: var(--f-body); font-size: 16px; font-weight: 700; color: var(--lp-ink-soft); margin-left: 6px; }
+.lp-pa-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lp-pa-tiles strong { font-size: 40px; }
+.lp-pa-plan-note { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp-pa-options { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.lp-pa-option { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp-pa-option .lp-pa-price { font-size: 40px; }
+.lp-pa-or { font-family: var(--f-hand); font-size: 26px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp-pa-ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-weight: 700; }
+.lp-pa-ticks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
+.lp-pa-ticks li::before { content: "✓"; font-weight: 800; color: var(--lp-blue); }
+
+/* ── How buying works ────────────────────────────────────────────────────── */
+.lp-pa-buy { margin-top: 34px; padding: 26px 26px 22px; display: grid; gap: 18px; }
+.lp .lp-pa-buy h3 { font-size: 26px; }
+.lp-pa-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; counter-reset: none; }
+.lp-pa-flow li { position: relative; display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: start; padding: 14px; background: var(--lp-card-bg); border: 2px dashed #cdbb9f; border-radius: 14px; }
+.lp-pa-flow li > .lp-pa-flow-ico { grid-row: 1 / span 2; }
+.lp-pa-flow li b { font-family: var(--f-px); font-weight: 600; font-size: 19px; line-height: 1.2; }
+.lp-pa-flow li b .lp-num { font-size: 16px; margin-right: 2px; }
+.lp-pa-flow li > span:last-child { font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
+.lp-pa-flow li:not(:last-child)::after { content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); font-family: var(--f-px); font-size: 22px; color: var(--lp-orange); z-index: 1; }
+.lp-pa-flow-ico { width: 56px; height: 56px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 14px; background: var(--lp-paper-2); color: var(--lp-line); }
+.lp-pa-ico { width: 30px; height: 30px; display: block; }
+.lp-pa-flow li:nth-child(2) .lp-pa-flow-ico { background: var(--lp-gold); }
+
+/* ── The nine questions ──────────────────────────────────────────────────── */
+.lp-pa-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.lp-pa-tile { padding: 20px 20px 22px; display: grid; gap: 10px; align-content: start; box-shadow: 0 6px 0 var(--lp-shadow); }
+.lp-pa-tile:nth-child(3n+2) { background: #fff4dd; }
+.lp-pa-tile-head { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; }
+.lp-pa-tile-ico { width: 44px; height: 44px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 12px; background: var(--lp-paper-2); color: var(--lp-line); }
+.lp-pa-tile-ico .lp-pa-ico { width: 26px; height: 26px; }
+.lp-pa-tile.is-marking .lp-pa-tile-ico { background: #9fd7a8; }
+.lp-pa-tile.is-wellbeing .lp-pa-tile-ico { background: #f9dcd5; }
+.lp-pa-tile.is-ads .lp-pa-tile-ico, .lp-pa-tile.is-data .lp-pa-tile-ico { background: var(--lp-blue-soft); }
+.lp .lp-pa-tile h3 { font-size: 21px; }
+.lp-pa-tile > p { font-weight: 600; color: var(--lp-ink-soft); font-size: 15.5px; }
+
+.lp-pa-art { margin: 4px 0 0; }
+.lp-pa-marks { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lp-pa-ask { flex-basis: 100%; justify-self: start; margin-top: 4px; font-family: var(--f-hand); font-size: 22px; font-weight: 600; color: #1f3d8a; }
+.lp-pa-chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.lp-pa-chips li { font-family: var(--f-px); font-weight: 600; font-size: 15px; border: 2px solid var(--lp-line); border-radius: 9px; padding: 2px 10px; background: var(--lp-card-bg); }
+.lp-pa-chips.is-small li { font-size: 13.5px; padding: 1px 8px; }
+.lp-pa-chips.is-ticks li::before { content: "✓ "; color: var(--lp-blue); }
+.lp .lp-pa-more { display: inline-block; margin-top: 10px; font-weight: 700; font-size: 14.5px; }
+.lp-pa-code { display: inline-block; margin-bottom: 10px; font-family: var(--f-px); font-weight: 700; font-size: 22px; letter-spacing: .08em; padding: 4px 14px; background: #fff; border: 2px dashed var(--lp-line); border-radius: 10px; }
+/* The tutor capture, cut to the student's line and the tutor's question back. */
+.lp-pa-shot { background: #fcfcf9; border: 2px solid #e2d6c2; border-radius: 10px; overflow: hidden; aspect-ratio: 2.2 / 1; }
+.lp .lp-pa-shot img { width: 170%; max-width: none; height: auto; margin-left: -2%; }
+.lp-pa-zero { display: flex; align-items: baseline; gap: 10px; }
+.lp-pa-zero strong { font-family: var(--f-px); font-weight: 700; font-size: 56px; line-height: 1; color: var(--lp-orange); }
+.lp-pa-zero span { font-family: var(--f-px); font-weight: 600; font-size: 20px; }
+.lp-pa-lines { list-style: none; padding: 0; display: grid; gap: 6px; }
+.lp-pa-lines li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 10px; border: 2px solid var(--lp-line); border-radius: 9px; background: #fff; font-size: 14.5px; font-weight: 700; }
+.lp-pa-lines b { font-family: var(--f-px); font-weight: 600; }
+.lp-pa-lines span { color: var(--lp-ink-soft); text-align: right; }
+.lp-pa-device { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; }
+.lp-pa-device svg { width: 110px; height: auto; }
+.lp-pa-device span { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp-pa-age { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lp-pa-age span { display: grid; place-items: center; min-height: 48px; font-family: var(--f-px); font-weight: 600; font-size: 16px; border: 2px solid var(--lp-line); border-radius: 12px; background: #fff; box-shadow: 0 3px 0 var(--lp-shadow); }
+.lp-pa-age span:first-child { background: var(--lp-gold); }
+
+/* ── Contact ─────────────────────────────────────────────────────────────── */
+.lp .lp-pa-contact-sec { padding-block: 24px 8px; }
+.lp-pa-contact { padding: 24px 26px; display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; background: #dff0ee; transform: rotate(-.4deg); }
+.lp .lp-pa-contact h2 { font-size: clamp(26px, 3vw, 34px); }
+.lp .lp-pa-contact .lp-lead { font-size: 18px; }
+
+@media (max-width: 980px) {
+  .lp-pa-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-pa-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-pa-plans { grid-template-columns: minmax(0, 1fr); }
+  .lp-pa-flow { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .lp-pa-flow li:not(:last-child)::after { content: "↓"; right: auto; left: 34px; top: auto; bottom: -24px; transform: none; }
+  .lp-pa-contact { grid-template-columns: 56px 1fr; }
+  .lp-pa-contact .lp-btn { grid-column: 1 / -1; justify-self: start; }
+}
+@media (max-width: 620px) {
+  .lp-pa-facts li { font-size: 15px; }
+  .lp-pa-steps, .lp-pa-grid { grid-template-columns: minmax(0, 1fr); }
+  .lp-pa-plan { padding: 22px 18px 20px; }
+  .lp-pa-price { font-size: 44px; }
+  .lp-pa-option .lp-pa-price { font-size: 34px; }
+  .lp-pa-buy { padding: 22px 18px 18px; }
+  .lp-pa-contact { padding: 20px 18px; }
+  .lp .lp-pa-contact .lp-btn { white-space: normal; word-break: break-all; font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) { .lp-pa-step, .lp-pa-contact { transform: none; } }

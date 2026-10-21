@@ -25,6 +25,7 @@ export const footerLinks: readonly (readonly [string, string])[] = [
   ["GCSE Maths", "/gcse-maths"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],
   ["About", "/about"],
+  ["For parents", "/parents"],
   ["Community", discordUrl],
   ["Privacy", "/privacy"],
   ["Terms", "/terms"],

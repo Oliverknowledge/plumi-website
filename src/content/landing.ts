@@ -179,37 +179,9 @@ export const about: LandingContent = {
   closing: "Come and see it.",
 };
 
-export const parents: LandingContent = {
-  path: "/parents",
-  slug: "parents",
-  breadcrumbLabel: "For parents",
-  eyebrow: "For parents",
-  lead: "Your child asked you about Plumi. Here is what it is and what it costs.",
-  sections: [
-    {
-      heading: "What it does",
-      line: "Your child answers GCSE and A-Level questions by hand on iPad, and Plumi marks the working against each question's own mark scheme.",
-    },
-    {
-      heading: "What it costs",
-      line: "Free to start. Plumi Pro is £14.99 a month, or £135.99 a year with the first 7 days free.",
-    },
-    {
-      heading: "How to buy it",
-      line: "Through the App Store, and cancelled any time in Apple's subscription settings. With Ask to Buy on, the request comes to you to approve.",
-    },
-    {
-      heading: "Questions",
-      line: "Write to hello@tryplumi.app and a person will answer.",
-    },
-  ],
-  closing: "See it on the App Store.",
-};
-
 export const landingPages: readonly LandingContent[] = [
   aiTutorALevelMaths,
   gcseMaths,
   goodnotesAlternative,
   about,
-  parents,
 ];
