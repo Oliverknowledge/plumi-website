@@ -160,7 +160,7 @@ export const plans = {
     price: "£0",
     period: "to start",
     lead: "Start with the notebook and a weekly allowance of marking.",
-    items: ["Handwriting, folders, PDFs, search and export", "10 answers marked a week", "5 new practice questions a week", "12 AI Pen answers a week", "1 AI tutor session a week"],
+    items: ["Handwriting, folders, PDFs, search and export", "10 answers marked a week", "3 practice sessions a week", "12 AI Pen answers a week", "1 AI tutor session a week"],
   },
   pro: {
     tag: `${prices.trialDays} days free`,

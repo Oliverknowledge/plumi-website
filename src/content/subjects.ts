@@ -44,7 +44,7 @@ const commonFaq = (subject: string) => [
   },
   {
     q: "Is it free?",
-    a: `Free to download. Each week you get 10 answers marked, 5 new practice questions, 12 AI Pen answers and 1 AI tutor session. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial, or ${prices.monthly} paid monthly, which has no trial. Cancel any time in Settings.`,
+    a: `Free to download. Each week you get 10 answers marked, 3 practice sessions, 12 AI Pen answers and 1 AI tutor session. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial, or ${prices.monthly} paid monthly, which has no trial. Cancel any time in Settings.`,
   },
 ] as const;
 

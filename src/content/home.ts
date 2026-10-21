@@ -206,7 +206,7 @@ export const pricing = {
     items: [
       "Handwriting, folders, PDFs, search and export",
       "10 answers marked a week",
-      "5 new practice questions a week",
+      "3 practice sessions a week",
       "12 AI Pen answers a week, to ask about anything you’ve written",
       "1 AI tutor session a week, worked through on your page",
     ],
@@ -260,7 +260,7 @@ export const faq = [
   },
   {
     q: "Is Plumi free?",
-    a: `Yes to download, and the notebook stays free. Each week you also get 10 answers marked, 5 new practice questions, 12 AI Pen answers and 1 AI tutor session. Seeing the scheme’s line for a mark is free. A re-mark after a fix, or asking Plumi to check a mark again, uses one of the 10. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial. Paying monthly instead is ${prices.monthly}, and that has no trial. Cancel any time in Settings.`,
+    a: `Yes to download, and the notebook stays free. Each week you also get 10 answers marked, 3 practice sessions, 12 AI Pen answers and 1 AI tutor session. Seeing the scheme’s line for a mark is free. A re-mark after a fix, or asking Plumi to check a mark again, uses one of the 10. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial. Paying monthly instead is ${prices.monthly}, and that has no trial. Cancel any time in Settings.`,
   },
   {
     q: "Is it on iPhone or Android?",
