@@ -7,15 +7,32 @@
    every page. Scoped under .lp like everything else.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* hero scene */
-.lp-scene { position: relative; border-radius: 10px; overflow: hidden; background: #c99c6c; }
-.lp-scene canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; touch-action: manipulation; cursor: pointer; }
+/* the hero gives the café a little more of the row than the other pages' heroes give their pictures */
+.lp-hero-cafe .lp-wrap { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr); gap: 44px; }
+.lp .lp-hero-cafe h1 { font-size: clamp(40px, 5.4vw, 66px); }
+@media (max-width: 980px) { .lp-hero-cafe .lp-wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* the café (the hero and the friends' window): a canvas in a box CSS reserves, so nothing
+   moves when the art arrives; labels over people's heads live in the overlay */
+.lp-scene { position: relative; border-radius: 10px; overflow: hidden; background: #2a1d1a; }
+.lp-cafe { aspect-ratio: 416 / 288; }
+.lp-cafe[data-mode="friends"] { aspect-ratio: 204 / 150; }
+.lp-cafe canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: manipulation; cursor: pointer; opacity: 0; transition: opacity .6s; -webkit-tap-highlight-color: transparent; }
+.lp-cafe[data-ready] canvas { opacity: 1; }
+.lp-cafe canvas:focus { outline: none; }
+.lp-cafe canvas:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: -3px; }
 .lp-ov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.lp-nm { position: absolute; transform: translate(-50%, -100%); background: rgba(253, 249, 241, .95); color: var(--lp-ink); border: 2px solid var(--lp-line); border-radius: 7px; font: 700 11px/1.5 var(--f-body); padding: 0 6px; white-space: nowrap; }
-.lp-nm b { font-weight: 800; }
-.lp-fl { position: absolute; width: 18px; transform: translate(-50%, -100%); animation: lp-rise 1.4s steps(7) forwards; }
-.lp-fl svg { display: block; width: 100%; height: auto; }
-@keyframes lp-rise { to { margin-top: -36px; opacity: 0; } }
+.lp-ov > div { position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; }
+.lp-nm { background: rgba(253, 249, 241, .95); color: var(--lp-ink); border: 2px solid var(--lp-line); border-radius: 7px; font: 700 11px/1.5 var(--f-body); padding: 0 6px; transition: opacity .3s; }
+.lp-nm.is-timer { font: 600 12px/1.45 var(--f-px); color: var(--lp-ink); }
+.lp-nm.is-you { background: var(--lp-gold); }
+.lp-cafe[data-mode="friends"] .lp-nm { font-size: 13px; }
+@media (max-width: 620px) { .lp-nm.is-timer, .lp-pop { font-size: 11px; } }
+.lp-pop { font: 600 13px/1.4 var(--f-px); color: var(--lp-ink); background: #fdf9f1; border: 2px solid var(--lp-line); border-radius: 7px; padding: 0 6px; animation: lp-pop 1.6s ease-out forwards; }
+.lp-pop.is-tick { color: #d33a2f; }
+.lp-pop.is-ink { color: #fdf9f1; background: var(--lp-blue); }
+@keyframes lp-pop { 0% { margin-top: 4px; opacity: 0; } 15% { margin-top: 0; opacity: 1; } 70% { opacity: 1; } 100% { margin-top: -22px; opacity: 0; } }
+.lp-look { display: inline-block; background: url(/cafe/cafe-people.png) no-repeat; image-rendering: pixelated; flex: none; }
 .lp-dialog { margin: 12px -14px 0; background: var(--lp-card-bg); border-top: 3px solid var(--lp-line); padding: 12px 18px 14px; display: grid; gap: 6px; border-radius: 0 0 17px 17px; }
 .lp-row1 { display: flex; align-items: center; gap: 14px; }
 .lp-row1 b { font-family: var(--f-px); font-weight: 600; font-size: 21px; }
@@ -23,6 +40,12 @@
 .lp-meter i { display: block; height: 100%; background: var(--lp-gold); box-shadow: inset 0 -3px 0 #d9a843; transition: width .6s steps(6); }
 .lp-tip { border-top: 2px dotted #d8c8ad; padding-top: 6px; font-family: var(--f-px); font-size: 18px; color: var(--lp-blue); min-height: 1.6em; }
 .lp-tip span { color: var(--lp-orange); }
+.lp-you { display: flex; align-items: center; gap: 8px; border-top: 2px dotted #d8c8ad; padding-top: 6px; font-family: var(--f-px); font-size: 17px; color: var(--lp-ink-soft); }
+.lp-you > span:first-child { margin-right: auto; }
+.lp-you button { font: 700 20px/1 var(--f-px); width: 32px; height: 32px; border: 2px solid var(--lp-line); border-radius: 8px; background: var(--lp-card-bg); color: var(--lp-ink); cursor: pointer; box-shadow: 0 3px 0 var(--lp-shadow); padding: 0; }
+.lp-you button:disabled { opacity: .45; cursor: default; }
+.lp-you button:not(:disabled):active { transform: translateY(2px); box-shadow: 0 1px 0 var(--lp-shadow); }
+.lp-look-box { width: 40px; height: 44px; display: grid; place-items: center; background: var(--lp-paper-2); border: 2px solid var(--lp-line); border-radius: 8px; overflow: hidden; }
 .lp-scene-hint { font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); margin-top: 18px !important; text-align: center; }
 
 /* meet plumi */
@@ -69,7 +92,7 @@
 .lp-feature-list { display: grid; gap: 14px; }
 .lp-feature { padding: 16px 18px; display: grid; grid-template-columns: 52px 1fr; gap: 14px; align-items: center; }
 .lp-ic { width: 52px; height: 52px; border: 2px solid var(--lp-line); border-radius: 12px; display: grid; place-items: center; background: var(--lp-paper-2); overflow: hidden; }
-.lp-ic canvas { width: 40px; height: auto; image-rendering: pixelated; }
+.lp-ic .lp-look { margin-top: 4px; }
 .lp-feature b { font-family: var(--f-px); font-weight: 600; font-size: 19px; display: block; line-height: 1.2; }
 .lp-feature span:not(.lp-soon) { font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
 
@@ -83,8 +106,7 @@
 .lp-flame i.off { background: #e6dccb; }
 .lp-flame i.frz { background: var(--lp-blue-soft); }
 .lp-pomo { font-family: var(--f-px); font-size: 44px; font-weight: 700; color: var(--lp-ink); }
-.lp-outfits { display: flex; gap: 8px; align-items: flex-end; }
-.lp-outfits canvas { height: 84px; width: auto; image-rendering: pixelated; }
+.lp-outfits { display: flex; gap: 14px; align-items: flex-end; }
 
 /* sticky notes */
 .lp-notes-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
@@ -147,4 +169,4 @@
   .lp-squares { grid-template-columns: repeat(12, 1fr); }
   .lp-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
 }
-@media (prefers-reduced-motion: reduce) { .lp-fl, .lp-meter i { animation: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lp-pop, .lp-meter i, .lp-cafe canvas { animation: none; transition: none; } }

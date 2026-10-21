@@ -35,17 +35,22 @@ export const cosyHero = {
   h1em: "marks your work.",
   lead: "Handwrite your answer with Apple Pencil. Plumi marks it line by line against the question’s own mark scheme, picks what to study tonight, and keeps you company while you do it.",
   note: "Free to download, with 10 answers marked free every week. Needs iPadOS 17 or later.",
-  window: "your room · 21:40",
-  sceneLabel: "A pixel study room at night. Plumi sits at the desk, writing, while a cat naps on the rug.",
-  studying: "Studying projectiles",
-  hint: "Tap the floor to walk about.",
-  // Physics true to the worked example below (g = 9.8).
-  tips: [
-    ["Tip:", "tan θ = v", "y", " ÷ v", "x"],
-    ["Tip:", "time of flight is when y = 0 again"],
-    ["Plumi:", "2 more questions, then you’re done"],
-    ["Tip:", "max height is when v", "y", " = 0"],
-  ] as readonly (readonly string[])[],
+  window: "the café · 21:40",
+  sceneLabel: "A pixel café and library at night. Students study at the tables, read on the sofa and by the fire, and queue for coffee. You come in at the door; tap the floor to walk, or a free seat to sit.",
+  hint: "Tap to walk. Tap a free seat to sit.",
+} as const;
+
+/**
+ * The hero café's words (CafeHero in LandingClient.tsx). The labels over people's heads are
+ * in cafeScene.ts and true to the app: focus ink is 1 a minute and 10 a finished chapter
+ * (FocusInk in DeskPlan.swift), and the subjects are the four the app marks.
+ */
+export const cafe = {
+  idle: "Pull up a chair",
+  studying: "Studying",
+  look: "Your look",
+  prev: "Previous look",
+  next: "Next look",
 } as const;
 
 export const moods = [
@@ -99,15 +104,16 @@ export const friends = {
   titleEm: "with your friends.",
   lead: "Make a group and invite your mates with a link or code. Only people you invite can join.",
   window: "chem crew’s study hall",
-  sceneLabel: "A pixel study hall. Maya and Aisha study at a lamp-lit table, Josh gets a hot chocolate, and Sam naps on the sofa.",
+  sceneLabel: "A pixel library. Maya and Aisha study at a lamp-lit table, Sam has the next one, Josh reads by the fire, and the cat sleeps on the rug.",
   dialog: "Maya started a 25-min session",
   dialogTip: ["Aisha joined.", "Pull up a chair to study with them."],
   hint: "Tap someone to send a high five.",
+  // Each friend's look in the café's cast (FRIENDS in cafeScene.ts): Maya, Aisha, Josh, Sam.
   features: [
-    { av: "maya", title: "Invite-only groups", soon: false, line: "Add a friend, or share the group’s link or code." },
-    { av: "aisha", title: "Pull up a chair", soon: false, line: "Tap a friend who’s studying to start your own timer in their subject." },
-    { av: "josh", title: "Fill the jar together", soon: false, line: "Everyone’s study time fills one jar each week." },
-    { av: "sam", title: "High fives", soon: false, line: "Cheer a friend on with a tap while they work." },
+    { look: 1, title: "Invite-only groups", soon: false, line: "Add a friend, or share the group’s link or code." },
+    { look: 10, title: "Pull up a chair", soon: false, line: "Tap a friend who’s studying to start your own timer in their subject." },
+    { look: 3, title: "Fill the jar together", soon: false, line: "Everyone’s study time fills one jar each week." },
+    { look: 6, title: "High fives", soon: false, line: "Cheer a friend on with a tap while they work." },
   ],
 } as const;
 

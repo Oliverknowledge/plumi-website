@@ -5,14 +5,15 @@ import { AppStoreBadge } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
 import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, plans, shelf } from "@/content/cosyHome";
-import { HeroDialog, MeetPlumi, PixelPortrait, RoomScene } from "./LandingClient";
+import { CafeHero, FriendsCafe, Look, MeetPlumi } from "./LandingClient";
 import "@/app/landing.css";
 
 /**
  * The homepage: the founder's cosy notebook design (19 October 2026). The whole page is
  * a sheet of ruled paper; sections are pinned cards, sticky notes and pixel windows on it.
  *
- *   HERO      the promise, the App Store badge, your room at night
+ *   HERO      the promise, the App Store badge, the café: students studying, and you
+ *             walking in to pull up a chair (LimeZu art, see cafeScene.ts)
  *   MEET      Plumi and its moods
  *   MARKING   a handwritten answer marked line by line, the three steps, the topic map
  *   FRIENDS   groups and the study hall
@@ -47,7 +48,7 @@ export function CosyHome({ variant }: { variant?: string }) {
   return (
     <CosyPage home variant={variant} after={<SectionImpressions />}>
       {/* HERO */}
-      <section id="product" className="lp-hero" aria-labelledby="hero-title" data-testid="hero-section">
+      <section id="product" className="lp-hero lp-hero-cafe" aria-labelledby="hero-title" data-testid="hero-section">
         <div className="lp-wrap">
           <div className="lp-hero-copy">
             <span className="lp-eyebrow">{cosyHero.eyebrow}</span>
@@ -61,8 +62,7 @@ export function CosyHome({ variant }: { variant?: string }) {
           <div>
             <div className="lp-card lp-window">
               <Bar label={cosyHero.window} />
-              <RoomScene room="home" label={cosyHero.sceneLabel} />
-              <HeroDialog />
+              <CafeHero label={cosyHero.sceneLabel} />
             </div>
             <p className="lp-scene-hint">{cosyHero.hint}</p>
           </div>
@@ -140,7 +140,7 @@ export function CosyHome({ variant }: { variant?: string }) {
             <div>
               <div className="lp-card lp-window">
                 <Bar label={friends.window} />
-                <RoomScene room="hall" label={friends.sceneLabel} />
+                <FriendsCafe label={friends.sceneLabel} />
                 <div className="lp-dialog"><div className="lp-row1"><b>{friends.dialog}</b></div><div className="lp-tip"><span>{friends.dialogTip[0]}</span> {friends.dialogTip[1]}</div></div>
               </div>
               <p className="lp-scene-hint">{friends.hint}</p>
@@ -148,7 +148,7 @@ export function CosyHome({ variant }: { variant?: string }) {
             <div className="lp-feature-list">
               {friends.features.map(f => (
                 <div key={f.title} className="lp-card lp-feature">
-                  <div className="lp-ic"><PixelPortrait avatar={f.av} /></div>
+                  <div className="lp-ic"><Look look={f.look} scale={2} top={5} rows={24} /></div>
                   <div><b>{f.title}{f.soon && <> <Soon /></>}</b><span>{f.line}</span></div>
                 </div>
               ))}
@@ -172,7 +172,7 @@ export function CosyHome({ variant }: { variant?: string }) {
                 <div className="lp-art" aria-hidden="true">
                   {h.id === "streak" && <div className="lp-flame">{flame.map(([k, height], i) => <i key={i} className={k} style={{ height }} />)}</div>}
                   {h.id === "pomo" && <span className="lp-pomo">25:00</span>}
-                  {h.id === "room" && <div className="lp-outfits">{[0, 1, 2, 3].map(i => <PixelPortrait key={i} outfit={i} />)}</div>}
+                  {h.id === "room" && <div className="lp-outfits">{[4, 7, 11, 2].map(i => <Look key={i} look={i} scale={3} top={4} rows={28} />)}</div>}
                 </div>
                 <h3>{h.title}{h.soon && <> <Soon /></>}</h3>
                 <p>{h.line}</p>

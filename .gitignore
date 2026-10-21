@@ -47,3 +47,7 @@ next-env.d.ts
 # this screen recording is 205 MB and GitHub rejects any single file over 100 MB.
 # It stays local. If it needs to travel, it wants Git LFS, not the object store.
 Alma references/ScreenRecording_09-07-2026 23-49-10_1.mov
+
+# the LimeZu kit used by scripts/cafe-hero (licensed pack: never commit it)
+vendor/
+__pycache__/

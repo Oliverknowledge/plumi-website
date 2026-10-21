@@ -48,7 +48,7 @@ export function CosyFooter() {
           <a href={`mailto:${site.contactEmail}`} data-testid="footer-contact-link">{site.contactEmail}</a>
         </div>
         <p className="lp-entity">{entityDescription}</p>
-        <p className="lp-fineprint">Plumi isn’t affiliated with any exam board. iPad and Apple Pencil are trademarks of Apple Inc. © 2026 Plumi. Made in the UK.</p>
+        <p className="lp-fineprint">Plumi isn’t affiliated with any exam board. iPad and Apple Pencil are trademarks of Apple Inc. © 2026 Plumi. Made in the UK. Pixel art: <a href="https://limezu.itch.io" rel="noopener" data-testid="footer-limezu-link">LimeZu</a>.</p>
       </div>
     </footer>
   );
