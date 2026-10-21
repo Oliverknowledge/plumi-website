@@ -155,6 +155,20 @@ export const routeIntents: readonly RouteIntent[] = [
     changeFrequency: "monthly",
     priority: 0.6,
   },
+  {
+    path: "/parents",
+    primaryQuery: "Plumi for parents",
+    secondaryQueries: ["Plumi price", "is Plumi worth it", "revision app for my child"],
+    intent: "A parent whose child asked for Plumi wants to know what it is and what it costs.",
+    objective: "Answer what, how much and how to buy in four lines, then send them to the App Store.",
+    title: "Plumi for Parents: What It Is and What It Costs",
+    h1: "Plumi, for parents",
+    description:
+      "Your child asked for Plumi. A GCSE and A-Level revision app for iPad that marks handwritten answers. What it does, what it costs and how to buy it.",
+    linksTo: ["/", "/privacy"],
+    changeFrequency: "monthly",
+    priority: 0.5,
+  },
   // The legal pages keep their own hand-written metadata and the " · Plumi"
   // title template; they are listed here so the sitemap includes them.
   {
