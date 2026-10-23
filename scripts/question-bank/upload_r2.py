@@ -1,7 +1,7 @@
 """Upload our papers and question crops to Cloudflare R2.
 
     pip install boto3
-    python3 scripts/question-bank/upload_r2.py [work-dir] [--dry-run]
+    python3 scripts/question-bank/upload_r2.py [work-dir] [--dry-run] [--pdf-prefix=edexcel/]
 
 Reads the bucket and keys from .env.local (never committed):
     R2_ACCOUNT_ID=...            # Cloudflare dashboard > R2 > Account details
@@ -10,7 +10,7 @@ Reads the bucket and keys from .env.local (never committed):
     R2_BUCKET=plumi-papers
     NEXT_PUBLIC_PAPERS_URL=https://papers.tryplumi.app   # the bucket's public domain
 
-Uploads <work-dir>/pdf/*.pdf to aqa/ and <work-dir>/img/*.webp to bank/, each
+Uploads <work-dir>/pdf/*.pdf to aqa/ (or --pdf-prefix) and <work-dir>/img/*.webp to bank/, each
 with its content type and a year-long immutable cache (file names change when
 contents do). Skips anything already there with the same size, so re-runs are cheap.
 """
@@ -22,6 +22,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 WORK = os.path.abspath(args[0]) if args else os.path.join(HERE, ".work")
 DRY = "--dry-run" in sys.argv
+PDF_PREFIX = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--pdf-prefix=")), "aqa/")
 
 
 def env():
@@ -51,7 +52,7 @@ def main():
         for obj in page.get("Contents", []):
             existing[obj["Key"]] = obj["Size"]
     jobs = []
-    for folder, prefix, ctype in (("pdf", "aqa/", "application/pdf"), ("img", "bank/", "image/webp")):
+    for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp")):
         d = os.path.join(WORK, folder)
         for name in sorted(os.listdir(d)):
             path = os.path.join(d, name)

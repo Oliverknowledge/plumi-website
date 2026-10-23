@@ -18,6 +18,21 @@ WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE,
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 260
 TAG = os.path.join(WORK, "tag")
 SUBJECT = {"7401": "biology", "7402": "biology", "7404": "chemistry", "7405": "chemistry", "7407": "physics", "7408": "physics"}
+# Edexcel (work dir .work-edexcel): topics come from edexcel_topics.json, by subject.
+EDEXCEL = os.path.exists(os.path.join(WORK, "manifest.json")) and "edexcel" in os.path.basename(WORK)
+if EDEXCEL:
+    sys.path.insert(0, HERE)
+    from build_bank_edexcel import SUBJECTS as EDX_SUBJECTS  # noqa: E402
+    SUBJECT = {spec: key for _, _, key, specs in EDX_SUBJECTS for spec in specs}
+    EDX_TOPICS = json.load(open(os.path.join(HERE, "edexcel_topics.json")))
+
+
+def topics_for(subject):
+    """[{code, title, level, text}] for a subject key."""
+    if EDEXCEL:
+        return EDX_TOPICS[subject]
+    spec = json.load(open(os.path.join(WORK, "spec.json")))
+    return spec[{"biology": "7402", "chemistry": "7405", "physics": "7408"}[subject]]
 
 
 def clip(s, n):
@@ -28,20 +43,24 @@ def clip(s, n):
 def split():
     os.makedirs(TAG, exist_ok=True)
     parts = json.load(open(os.path.join(WORK, "parts.json")))
-    spec = json.load(open(os.path.join(WORK, "spec.json")))
-    for code, subject in (("7402", "biology"), ("7405", "chemistry"), ("7408", "physics")):
-        lines = [f"{n['code']} {n['title']}" + (f" — {clip(n['text'], 160)}" if n["level"] == 2 else "")
-                 for n in spec[code] if n["level"] <= 2]
+    subjects = sorted(set(SUBJECT.values()))
+    for subject in subjects:
+        lines = [f"{n['code']} {n['title']}" + (f" — {clip(n['text'], 220)}" if n["level"] == 2 else "")
+                 for n in topics_for(subject) if n["level"] <= 2]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
     n = 0
-    for subject in ("biology", "chemistry", "physics"):
+    for subject in subjects:
         mine = [p for p in parts if SUBJECT.get(p["spec"]) == subject and p.get("qp")]
         for i in range(0, len(mine), SIZE):
             n += 1
             with open(os.path.join(TAG, f"batch-{n:02d}-{subject}.jsonl"), "w") as f:
                 for p in mine[i:i + SIZE]:
-                    q, _, part = p["label"].partition(".")
                     own = p["text"]
+                    if EDEXCEL:  # a whole question: give the tagger more of it, and the paper it's from
+                        f.write(json.dumps({"id": p["id"], "paper": p.get("paperTitle", "")[:90], "question": clip(own, 520),
+                                            "scheme": clip(p.get("msText", ""), 200)}, ensure_ascii=False) + "\n")
+                        continue
+                    q, _, part = p["label"].partition(".")
                     m = re.search(r"\s*".join(q) + (r"\s*\.\s*" + r"\s*".join(part) if part else "") + r"\s+(.*)", own)
                     setup = own[: m.start()] if m and part else ""
                     f.write(json.dumps({"id": p["id"], "setup": clip(setup, 160), "question": clip(m.group(1) if m else own, 320),
@@ -50,14 +69,16 @@ def split():
 
 
 def merge():
-    spec = json.load(open(os.path.join(WORK, "spec.json")))
     tags, missing = {}, 0
     for path in sorted(glob.glob(os.path.join(TAG, "batch-*.jsonl"))):
         ids = [json.loads(line)["id"] for line in open(path)]
         out = path.replace(".jsonl", ".tags.json")
         got = json.load(open(out)) if os.path.exists(out) else {}
         for pid in ids:
-            valid = {n["code"] for n in spec[pid[:4]] if n["level"] == 2}
+            spec = pid[:4].upper() if EDEXCEL else pid[:4]
+            if spec not in SUBJECT:  # a spec since dropped from the bank
+                continue
+            valid = {n["code"] for n in topics_for(SUBJECT[spec]) if n["level"] == 2}
             codes = [c for c in got.get(pid, []) if c in valid][:2]
             if codes:
                 tags[pid] = codes

@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { bankTitle, paperName, partImage, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankOwner, bankTitle, paperName, partImage, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -46,7 +46,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   let page = pdf.addPage([A4.w, A4.h]);
   let y = A4.h - MARGIN;
   const footer = (p: typeof page) =>
-    p.drawText(`${bankTitle(subject)} · questions © AQA · tryplumi.app/question-bank`, { x: MARGIN, y: 22, size: 8, font, color: SOFT });
+    p.drawText(`${bankTitle(subject)} · questions © ${bankOwner(subject)} · tryplumi.app/question-bank`, { x: MARGIN, y: 22, size: 8, font, color: SOFT });
   footer(page);
 
   page.drawText(`${bankTitle(subject)}: ${parts.length} ${parts.length === 1 ? "question" : "questions"}`, { x: MARGIN, y: y - 18, size: 18, font: bold, color: INK });
