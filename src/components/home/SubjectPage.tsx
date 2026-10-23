@@ -141,6 +141,8 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
             {others.map(o => <Link key={o.slug} href={o.path}>{o.name} revision</Link>)}
             <Link href="/gcse-maths">GCSE Maths</Link>
             <Link href="/ai-tutor-for-a-level-maths">A-Level Maths</Link>
+            <Link href={`/past-papers/a-level-${content.slug}`}>A-Level {content.name} past papers</Link>
+            <Link href={`/past-papers/gcse-${content.slug}`}>GCSE {content.name} past papers</Link>
           </nav>
         </div>
         <FaqSchema faq={content.faq} />

@@ -53,7 +53,7 @@ export const routeIntents: readonly RouteIntent[] = [
     h1: "The cosy notebook that marks your work.",
     description:
       "Answer GCSE and A-Level questions for AQA, OCR or Edexcel with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
-    linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
+    linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/past-papers", "/about"],
     changeFrequency: "weekly",
     priority: 1,
   },
@@ -124,6 +124,37 @@ export const routeIntents: readonly RouteIntent[] = [
     description:
       "GCSE and A-Level Biology questions in AQA, OCR or Edexcel style. Short answers marked point by point, 6-markers in levels where your board uses them.",
     linksTo: ["/", "/physics-revision", "/chemistry-revision"],
+    changeFrequency: "monthly",
+    priority: 0.9,
+  },
+  {
+    path: "/past-papers",
+    primaryQuery: "GCSE and A-Level past papers",
+    secondaryQueries: ["A-Level past papers", "GCSE past papers", "A-Level Maths past papers", "A-Level Chemistry past papers", "free past papers and mark schemes"],
+    intent: "Find the past papers and mark schemes for my subject and exam board, free.",
+    objective: "Get the student to their board's papers in two clicks, then give them a reason to sit one in Plumi.",
+    title: "Free GCSE & A-Level Past Papers and Mark Schemes | Plumi",
+    h1: "Free GCSE & A-Level past papers",
+    description:
+      "Every Maths, Further Maths, Biology, Chemistry and Physics past paper and mark scheme for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge. Free, no sign-up.",
+    // The subject and board pages under /past-papers are generated from data and
+    // added to the sitemap by src/app/sitemap.ts; their metadata is src/lib/pastPaperMeta.ts.
+    linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths"],
+    changeFrequency: "monthly",
+    priority: 0.9,
+  },
+  {
+    path: "/question-bank",
+    primaryQuery: "A-Level question bank",
+    secondaryQueries: ["AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "past paper questions by topic"],
+    intent: "Practise exam questions on one topic, with the mark scheme to hand.",
+    objective: "Get the student to their subject's bank in one click; the bank does the rest.",
+    title: "A-Level Question Bank: Every AQA Question by Topic | Plumi",
+    h1: "A-Level questions, one at a time",
+    description:
+      "Every AQA A-Level Biology, Chemistry and Physics exam question since 2017, by topic, each with its mark scheme and examiner's report. Free, no sign-up.",
+    // The subject and topic pages under /question-bank come from data; see src/app/sitemap.ts.
+    linksTo: ["/past-papers"],
     changeFrequency: "monthly",
     priority: 0.9,
   },

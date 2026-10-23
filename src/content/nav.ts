@@ -23,6 +23,8 @@ export const footerLinks: readonly (readonly [string, string])[] = [
   ["Biology revision", "/biology-revision"],
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
   ["GCSE Maths", "/gcse-maths"],
+  ["Past papers", "/past-papers"],
+  ["Question bank", "/question-bank"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],
   ["About", "/about"],
   ["For parents", "/parents"],
