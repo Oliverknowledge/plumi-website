@@ -191,9 +191,9 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", sort: f.sort }); setShown(PAGE); };
 
   // Topic groups, as GradeHunt and the specification both arrange them: each section split by year.
-  const years = ([1, 2, 3] as const).map(y => ({
+  const years = ([0, 1, 2, 3] as const).map(y => ({
     year: y,
-    label: y === 1 ? "Year 1 · AS" : y === 2 ? "Year 2 · A‑Level only" : "Paper 3 options",
+    label: y === 0 ? "By area" : y === 1 ? "Year 1 · AS" : y === 2 ? "Year 2 · A‑Level only" : "Paper 3 options",
     groups: subject.sections.map(sec => ({ key: `${sec.code}-${y}`, title: sec.title, code: sec.code, topics: subject.topics.filter(t => t.section === sec.code && t.year === y) }))
       .filter(g => g.topics.length),
   })).filter(y => y.groups.length);
@@ -317,11 +317,11 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                   placeholder={subject.subject === "Chemistry" ? "titration, \"bond angle\"" : subject.subject === "Biology" ? "osmosis, \"active transport\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
-              <div className="qb-field qb-calc" role="group" aria-label="Calculations">
+              {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">
                 <span className="qb-label">Calculations</span>
                 <label><input type="checkbox" checked={f.calc === "only"} onChange={e => update({ calc: e.target.checked ? "only" : "" })} /> Only these</label>
                 <label><input type="checkbox" checked={f.calc === "none"} onChange={e => update({ calc: e.target.checked ? "none" : "" })} /> Leave out</label>
-              </div>
+              </div>}
             </div>
             {isPhone && (
               <button type="button" className="lp-btn qb-show" onClick={showResults}>

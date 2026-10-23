@@ -33,10 +33,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const found = await resolve(params);
   if (!found) return {};
   const { s, t } = found;
-  const title = `${t.title}: AQA A-Level ${s.subject} Exam Questions`;
+  const title = `${t.title}: ${s.board} A-Level ${s.subject} Exam Questions`;
   return pastPaperMetadata(bankTopicPath(s.slug, t.slug), {
     title: title.length + 8 <= 60 ? `${title} | Plumi` : title,
-    description: `All ${t.count} AQA A-Level ${s.subject} exam questions on ${t.code} ${t.title}, ${s.firstYear}–${s.lastYear}, each with its mark scheme and examiner's report. Free.`,
+    description: `All ${t.count} ${s.board} A-Level ${s.subject} exam questions on ${t.title}, ${s.firstYear}–${s.lastYear}, each with its mark scheme and examiner's report. Free.`,
   }, `/og-${s.subject.toLowerCase()}.png`);
 }
 

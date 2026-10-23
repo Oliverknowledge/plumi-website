@@ -15,7 +15,8 @@
  */
 import data from "./pastPapers.json";
 import ownFiles from "./questionBank/files.json";
-import { papersBase } from "./questionBank";
+import ownEdexcelFiles from "./questionBank/files-edexcel.json";
+import { bankSubject, papersBase } from "./questionBank";
 
 /** The file kinds a session can have, in the order they are shown. */
 export const fileKinds = ["qp", "ms", "er", "ins", "ab", "ma", "vs"] as const;
@@ -154,21 +155,68 @@ function ownAqaBoard(subject: string, base: BoardPapers): BoardPapers {
   };
 }
 
+/**
+ * Edexcel A-Level Maths and Further Maths, likewise from our own copies of
+ * Pearson's papers (scripts/question-bank/fetch_edexcel.py): the current
+ * specifications only, A-Level and AS.
+ */
+const ownEdexcel: Record<string, { bank: string; spec: string; as: string }> = {
+  "a-level-maths": { bank: "edexcel-a-level-maths", spec: "9MA0", as: "8MA0" },
+  "a-level-further-maths": { bank: "edexcel-a-level-further-maths", spec: "9FM0", as: "8FM0" },
+};
+
+function ownEdexcelBoard(subject: string, base: BoardPapers): BoardPapers {
+  const { bank, spec, as } = ownEdexcel[subject];
+  const papers = bankSubject(bank)?.papers ?? [];
+  const comps = new Set(papers.map(p => p.id));
+  const files = (ownEdexcelFiles as OwnFile[]).filter(f => comps.has(f.component));
+  const paperFor = (c: string): Paper => {
+    const mine = files.filter(f => f.component === c);
+    const meta = papers.find(p => p.id === c);
+    const series = [...new Set(mine.map(f => f.series))].sort((a, b) => seriesOrder(b) - seriesOrder(a));
+    const name = meta?.name ?? c;
+    return {
+      id: slugify(name), name, title: `Edexcel ${name} (${meta?.title ?? c})`, source: "", extras: [],
+      rows: series.map(s => {
+        const row: PaperRow = { session: seriesName(s), files: {} };
+        for (const f of mine.filter(x => x.series === s)) row.files[f.kind as FileKind] = f.file;
+        return row;
+      }),
+    };
+  };
+  const group = (match: (c: string) => boolean, heading: string): PaperGroup => ({
+    id: slugify(heading), heading, legacy: false, papers: papers.map(p => p.id).filter(match).map(paperFor).filter(p => p.rows.length),
+  });
+  const groups = [
+    group(c => c.startsWith(spec), `A-Level (${spec})`),
+    group(c => c.startsWith(as), `AS (${as})`),
+  ].filter(g => g.papers.length);
+  const years = files.map(f => Number(`20${f.series.slice(3)}`));
+  return {
+    ...base, specCodes: [spec, as], groups,
+    firstYear: Math.min(...years), lastYear: Math.max(...years),
+    fileCount: groups.reduce((n, g) => n + g.papers.reduce((m, p) => m + p.rows.reduce((k, r) => k + Object.keys(r.files).length, 0), 0), 0),
+  };
+}
+
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const library: PastPaperData = {
   ...pmtLibrary,
-  boards: pmtLibrary.boards.map(b => (b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b) : b)),
+  boards: pmtLibrary.boards.map(b =>
+    b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b)
+      : b.slug === "edexcel" && ownEdexcel[b.subject] ? ownEdexcelBoard(b.subject, b)
+        : b),
 };
 
 /** Where PMT keeps the files. Stored hrefs are relative to it unless they are absolute. */
 const fileBase = "https://pmt.physicsandmathstutor.com/download/";
 export const fileUrl = (href: string) =>
   href.startsWith("http") ? href
-    : href.startsWith("aqa/") ? `${papersBase}/${href}`
+    : /^(aqa|edexcel)\//.test(href) ? `${papersBase}/${href}`
       : fileBase + href.split("/").map(encodeURIComponent).join("/");
 /** Whether a board page's files are ours rather than linked from PMT. */
-export const isOwnBoard = (b: BoardPapers) => b.slug === "aqa" && b.subject in ownSubjects;
+export const isOwnBoard = (b: BoardPapers) => (b.slug === "aqa" && b.subject in ownSubjects) || (b.slug === "edexcel" && b.subject in ownEdexcel);
 
 export const pastPaperSource = { name: "Physics & Maths Tutor", url: library.source, generated: library.generated };
 

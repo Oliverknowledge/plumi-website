@@ -54,7 +54,7 @@ export function QuestionRow({ n, part, subject, inSet, onToggleSet, onTopic }: {
     const next = !open[key];
     setOpen(o => ({ ...o, [key]: next }));
     if (next && key !== "stem") track("bank_reveal", { subject: subject.slug, kind: key, part: part.id });
-    if (key === "er" && next && report === null) reportsFor(subject.slug).then(r => setReport(r[reportKey(part.id)] ?? ""));
+    if (key === "er" && next && report === null) reportsFor(subject.slug).then(r => setReport(r[reportKey(subject, part.id)] ?? ""));
   }
 
   return (

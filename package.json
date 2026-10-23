@@ -16,7 +16,10 @@
     "bank:spec": "python3 scripts/question-bank/spec.py",
     "bank:cut": "python3 scripts/question-bank/cut.py",
     "bank:build": "python3 scripts/question-bank/build_bank.py",
-    "bank:upload": "python3 scripts/question-bank/upload_r2.py"
+    "bank:upload": "python3 scripts/question-bank/upload_r2.py",
+    "bank:fetch:edexcel": "python3 scripts/question-bank/fetch_edexcel.py",
+    "bank:cut:edexcel": "python3 scripts/question-bank/cut_edexcel.py",
+    "bank:build:edexcel": "python3 scripts/question-bank/build_bank_edexcel.py"
   },
   "dependencies": {
     "next": "16.3.4",
