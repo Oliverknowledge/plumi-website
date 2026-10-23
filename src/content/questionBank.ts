@@ -1,12 +1,15 @@
 /**
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
- * and Physics papers and Edexcel's A-Level Maths and Further Maths, cut out one part at a time, each with its own mark
- * scheme rows and the examiner's report on its question, tagged to the topic of
- * the specification it tests.
+ * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
+ * and B, Chemistry and Physics, cut out one at a time, each with its own mark scheme
+ * rows and the examiner's report on its question, tagged to the topic of the
+ * specification it tests.
  *
- * Built from AQA's own published papers by scripts/question-bank/ (fetch_aqa.py,
- * spec.py, cut.py, build_bank.py). The images and PDFs are ours, served from our
- * storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production); nothing links out.
+ * Built from the boards' own published papers by scripts/question-bank/ (AQA:
+ * fetch_aqa.py, spec.py, cut.py, build_bank.py; Edexcel maths: the *_edexcel.py
+ * scripts; Edexcel sciences: edexcel_sciences/). The images and PDFs are ours,
+ * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
+ * nothing links out.
  *
  * Each subject is two files: src/content/questionBank/<slug>.json carries the
  * topics, papers and series (read at build time), and public/question-bank/<slug>/
@@ -21,12 +24,19 @@ import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
 import gcseBiology from "./questionBank/aqa-gcse-biology.json";
 import gcseChemistry from "./questionBank/aqa-gcse-chemistry.json";
 import gcsePhysics from "./questionBank/aqa-gcse-physics.json";
+import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
+import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
+import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
+import edexcelPhysics from "./questionBank/edexcel-a-level-physics.json";
 
 /**
  * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE).
  * `short`: a shorter name for a long specification title, for the page title ("Moles and gas volumes").
+ * `ref`: the code as the specification prints it, where that isn't `code` ("6A");
+ * empty where the specification gives the topic no code of its own, as with the
+ * statement groups in Edexcel Biology A and Physics (`points`: "9–15").
  */
-export interface BankTopic { code: string; title: string; short?: string; section: string; slug: string; count: number; year: 0 | 1 | 2 | 3 }
+export interface BankTopic { code: string; ref?: string; points?: string; title: string; short?: string; section: string; slug: string; count: number; year: 0 | 1 | 2 | 3 }
 export interface BankSection { code: string; title: string }
 export interface BankPaper { id: string; name: string; title: string; as: boolean }
 export interface BankSeries { id: string; label: string }
@@ -34,11 +44,11 @@ export interface BankSeries { id: string; label: string }
 /** One question part, as listed. Short keys: the subject's list is fetched whole. */
 export interface BankPart {
   id: string;
-  /** Paper (component code), e.g. "74051". */
+  /** Paper (component code), e.g. "74051", "9ch001". */
   p: string;
   /** Series, e.g. "JUN23". */
   s: string;
-  /** Label as printed, e.g. "01.4". */
+  /** Label as printed, e.g. "01.4", "3(b)(i)". */
   l: string;
   /** Marks, where the paper prints them. */
   m: number | null;
@@ -65,7 +75,9 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel";
   level: "A-Level" | "GCSE";
-  subject: "Biology" | "Chemistry" | "Physics" | "Maths" | "Further Maths";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Physics" | "Maths" | "Further Maths";
+  /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
+  fullName?: string;
   specs: string[];
   sections: BankSection[];
   topics: BankTopic[];
@@ -84,7 +96,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -107,9 +119,14 @@ export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) =
 
 /** Who owns the questions, for credits: "AQA", "Pearson Edexcel". */
 export const bankOwner = (s: Pick<BankSubject, "board">) => (s.board === "Edexcel" ? "Pearson Edexcel" : "AQA");
+/** The subject without its specification letter: "Biology" for "Biology A". */
+export const baseSubject = (s: Pick<BankSubject, "subject">) => s.subject.replace(/ [AB]$/, "");
 /** The whole-paper library page for a bank's subject and board. */
 export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) =>
-  `/past-papers/${s.level.toLowerCase()}-${s.subject.toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase()}`;
+  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase()}`;
+/** The subject's share card, where it has its own. */
+export const bankShareImage = (s: Pick<BankSubject, "subject">) =>
+  ["Biology", "Chemistry", "Physics"].includes(baseSubject(s)) ? `/og-${baseSubject(s).toLowerCase()}.png` : "/og.png";
 
 export function paperName(subject: BankSubject, id: string) {
   const p = subject.papers.find(x => x.id === id);
@@ -121,6 +138,12 @@ export function seriesLabel(subject: BankSubject, id: string) {
 export function topicTitle(subject: BankSubject, code: string) {
   return subject.topics.find(t => t.code === code)?.title ?? code;
 }
+/** The code a student would know the topic by: "3.1.2", "6A", or none. */
+export const topicRef = (t: BankTopic) => t.ref ?? t.code;
+/** "3.1.2 Amount of substance", "6A Introduction to organic chemistry", "Momentum". */
+export const topicName = (t: BankTopic) => (topicRef(t) ? `${topicRef(t)} ${t.title}` : t.title);
+/** The question number a part belongs to: "01" of "01.4", "3" of "3(b)(i)". */
+export const questionOf = (label: string) => label.match(/^\d+/)?.[0] ?? label;
 
 /** "AQA A-Level Chemistry" */
 export const bankTitle = (s: Pick<BankSubject, "board" | "level" | "subject">) => `${s.board} ${s.level} ${s.subject}`;

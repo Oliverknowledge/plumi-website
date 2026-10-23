@@ -167,6 +167,7 @@
 /* ── Hub ─────────────────────────────────────────────────────────────────── */
 .qb-subjects { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 26px; }
 .qb-subjects > li { display: flex; min-width: 0; }
+.lp .qb-board-name { font-size: clamp(24px, 2.8vw, 32px); margin: 0 0 18px; }
 .qb-subject-count { font-weight: 700; }
 .qb-subject-count strong { color: var(--lp-orange); }
 .qb-subject-years { font-weight: 700; color: var(--lp-ink-soft); font-size: 14.5px; }
