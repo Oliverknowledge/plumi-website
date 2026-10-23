@@ -1,4 +1,4 @@
-import { absoluteUrl, appStoreUrl, entityDescription, launchDate, sameAs, site } from "@/config/site";
+import { absoluteUrl, appStoreUrl, entityDescription, sameAs, site } from "@/config/site";
 
 /**
  * JSON-LD, the honest subset.
@@ -13,13 +13,9 @@ import { absoluteUrl, appStoreUrl, entityDescription, launchDate, sameAs, site }
  * inventing them is both a Google structured-data violation and the kind of
  * thing that is very hard to walk back.
  *
- * `offers` **is** here now that the prices are published, and it is three
- * entries rather than one. A single `price: 0` would misrepresent a product with
- * a paid tier, and a single `price: 135.99` would misrepresent one whose notebook
- * is free forever — so the free tier and both Pro plans are each stated, and
- * each carries `availabilityStarts`, because none of them can be bought until
- * the app is on the store. An offer without that date is a claim that a student
- * can pay today, which is not true until 25 September.
+ * There is no `offers` either: no page states a price or a plan (founder,
+ * 23 October 2026), so the graph doesn't, and the App Store link (`installUrl`)
+ * is where a crawler finds what the app costs.
  *
  * Add fields here only when the fact behind them is real and checkable.
  */
@@ -146,39 +142,6 @@ export function SiteStructuredData() {
               "Builds a model of demonstrated strengths and weaknesses",
               "Writes exam-style practice questions on the topic you choose",
               "Handwriting, folders and PDF annotation, free",
-            ],
-            // The same three figures the Free & Pro chapter shows, in the same
-            // order. If one changes, both change: a crawler being told a price
-            // the page contradicts is worse than not telling it one.
-            offers: [
-              {
-                "@type": "Offer",
-                name: "Plumi Free",
-                description:
-                  "Free to start: the notebook, plus a weekly allowance of the marking, tutoring and practice.",
-                price: "0",
-                priceCurrency: "GBP",
-                availabilityStarts: launchDate,
-                ...(appStoreUrl ? { url: appStoreUrl } : {}),
-              },
-              {
-                "@type": "Offer",
-                name: "Plumi Pro, yearly",
-                description: "Seven days free, then £135.99 a year.",
-                price: "135.99",
-                priceCurrency: "GBP",
-                availabilityStarts: launchDate,
-                ...(appStoreUrl ? { url: appStoreUrl } : {}),
-              },
-              {
-                "@type": "Offer",
-                name: "Plumi Pro, monthly",
-                description: "£14.99 a month. No free trial.",
-                price: "14.99",
-                priceCurrency: "GBP",
-                availabilityStarts: launchDate,
-                ...(appStoreUrl ? { url: appStoreUrl } : {}),
-              },
             ],
           },
         ],

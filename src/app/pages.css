@@ -48,15 +48,6 @@
 .lp-sp-cta { margin-top: 32px; }
 
 /* ── Subject pages: free each week ───────────────────────────────────────── */
-.lp-sp-price { max-width: 880px; margin: 0 auto; padding: 38px 30px 34px; display: grid; justify-items: center; gap: 20px; text-align: center; background: #fff4dd; }
-.lp-sp-tiles { list-style: none; margin: 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.lp-sp-tiles li { display: grid; gap: 2px; padding: 14px 10px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
-.lp-sp-tiles strong { font-family: var(--f-px); font-weight: 700; font-size: 44px; line-height: 1; color: var(--lp-orange); }
-.lp-sp-tiles span { font-size: 14.5px; font-weight: 700; color: var(--lp-ink-soft); }
-.lp-sp-pro { font-weight: 600; max-width: 36em; }
-.lp-sp-price .lp-cta-row { justify-content: center; }
-.lp-sp-price .hp-desk-panel { left: 50%; transform: translateX(-50%); }
-.lp-sp-price .lp-fine { font-size: 13.5px; font-weight: 600; color: var(--lp-ink-soft); }
 
 /* ── Subject pages: other subjects ───────────────────────────────────────── */
 .lp-sp-more { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 30px; }
@@ -115,10 +106,8 @@
   .lp-sub-long { display: none; }
   .lp-sub-short { display: inline; }
   .lp-sp-title > .lp-eyebrow { font-size: 15px; }
-  .lp-sp-figs, .lp-sp-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lp-sp-figs { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .lp-sp-figs li:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .lp-sp-price { padding: 30px 18px 28px; }
-  .lp-sp-tiles strong { font-size: 36px; }
   .lp-mk-hero { padding-top: 40px; }
   .lp .lp-mk-sec { padding: 22px 18px 22px; }
   .lp-doc { padding: 30px 20px 34px; font-size: 16.5px; }

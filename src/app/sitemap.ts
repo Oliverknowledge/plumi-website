@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { absoluteUrl } from "@/config/site";
 import { indexableRoutes } from "@/config/routes";
-import { pastPaperPaths } from "@/content/pastPapers";
+import { pastPaperPaths, pastPaperSource } from "@/content/pastPapers";
 import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
 
 /**
@@ -16,11 +16,18 @@ import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
  * Only canonical, indexable, 200-returning URLs belong here. The `/v/*` variant
  * landings are noindex and excluded by construction.
  */
-// No lastModified: a date that is always the build time teaches Google to ignore it.
+/**
+ * lastmod only where it is a real date, never the build time (a date that always moves teaches Google
+ * to ignore it): a page's own `lastModified` in routes.ts, the date the past paper library was
+ * generated, and the date the question bank was last built. Bump BANK_BUILT after `npm run bank:build`.
+ */
+const BANK_BUILT = "2026-10-23";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...indexableRoutes.map((route) => ({
       url: absoluteUrl(route.path),
+      ...(route.lastModified ? { lastModified: route.lastModified } : {}),
       changeFrequency: route.changeFrequency,
       priority: route.priority,
     })),
@@ -28,13 +35,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // src/content/pastPapers.json. New papers arrive once a year, after the summer series.
     ...pastPaperPaths().map((path) => ({
       url: absoluteUrl(path),
+      lastModified: pastPaperSource.generated,
       changeFrequency: "monthly" as const,
       priority: path.split("/").length > 3 ? 0.7 : 0.8,
     })),
     // The question bank: each subject's bank, and a page per topic with questions.
     ...bankSubjects.flatMap((s) => [
-      { url: absoluteUrl(bankPath(s.slug)), changeFrequency: "monthly" as const, priority: 0.9 },
-      ...s.topics.filter((t) => t.count > 0).map((t) => ({ url: absoluteUrl(bankTopicPath(s.slug, t.slug)), changeFrequency: "monthly" as const, priority: 0.7 })),
+      { url: absoluteUrl(bankPath(s.slug)), lastModified: BANK_BUILT, changeFrequency: "monthly" as const, priority: 0.9 },
+      ...s.topics.filter((t) => t.count > 0).map((t) => ({ url: absoluteUrl(bankTopicPath(s.slug, t.slug)), lastModified: BANK_BUILT, changeFrequency: "monthly" as const, priority: 0.7 })),
     ]),
   ];
 }

@@ -27,12 +27,44 @@ if EDEXCEL:
     EDX_TOPICS = json.load(open(os.path.join(HERE, "edexcel_topics.json")))
 
 
+# AQA GCSE (work dir .work-gcse): spec.json is keyed by the GCSE spec codes.
+GCSE = "gcse" in os.path.basename(WORK)
+if GCSE:
+    SUBJECT = {"8461": "biology", "8462": "chemistry", "8463": "physics"}
+
+
 def topics_for(subject):
     """[{code, title, level, text}] for a subject key."""
     if EDEXCEL:
         return EDX_TOPICS[subject]
     spec = json.load(open(os.path.join(WORK, "spec.json")))
+    if GCSE:
+        return spec[{v: k for k, v in SUBJECT.items()}[subject]]
     return spec[{"biology": "7402", "chemistry": "7405", "physics": "7408"}[subject]]
+
+
+def scheme_refs(parts):
+    """GCSE mark schemes print each row's specification reference ("AO1 4.3.1.1"): the
+    board's own tag. {part id: ["4.3.1"]}, read from the part's own row only, since a
+    scheme crop can run into the next one. June 2019's schemes print "1.1" for "01.1"."""
+    labels, valid, out = {}, {}, {}
+    for p in parts:
+        labels.setdefault(p["set"], set()).update({p["label"], p["label"].lstrip("0")})
+    for p in parts:
+        ms, label = p.get("msText", ""), p["label"]
+        at = ms.find(label) if label in ms else ms.find(label.lstrip("0"))
+        if at < 0:
+            continue
+        rest = ms[at + len(label):]
+        ends = [m.start() for m in re.finditer(r"(?<![\d.])(\d{1,2}\.\d{1,2})(?![\d.])", rest)
+                if m.group(1) in labels[p["set"]] and m.group(1) not in (label, label.lstrip("0"))]
+        row = rest[:min(ends)] if ends else rest
+        if p["spec"] not in valid:
+            valid[p["spec"]] = {n["code"] for n in topics_for(SUBJECT[p["spec"]]) if n["level"] == 2}
+        codes = [c for c in dict.fromkeys(re.findall(r"(?<![\d.])(4\.\d{1,2}\.\d{1,2})", row)) if c in valid[p["spec"]]]
+        if codes:
+            out[p["id"]] = codes[:2]
+    return out
 
 
 def clip(s, n):
@@ -49,8 +81,13 @@ def split():
                  for n in topics_for(subject) if n["level"] <= 2]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
     n = 0
+    refs = {}
+    if GCSE:  # parts the scheme already tags need no tagger
+        refs = scheme_refs([p for p in parts if p["spec"] in SUBJECT])
+        json.dump(refs, open(os.path.join(TAG, "refs.json"), "w"), indent=0)
+        print(f"{len(refs)} parts tagged by their scheme's spec reference", file=sys.stderr)
     for subject in subjects:
-        mine = [p for p in parts if SUBJECT.get(p["spec"]) == subject and p.get("qp")]
+        mine = [p for p in parts if SUBJECT.get(p["spec"]) == subject and p.get("qp") and p["id"] not in refs]
         for i in range(0, len(mine), SIZE):
             n += 1
             with open(os.path.join(TAG, f"batch-{n:02d}-{subject}.jsonl"), "w") as f:
@@ -84,6 +121,10 @@ def merge():
                 tags[pid] = codes
             else:
                 missing += 1
+    # GCSE: the scheme's own spec references, from split.
+    refs = os.path.join(TAG, "refs.json")
+    if GCSE and os.path.exists(refs):
+        tags.update(json.load(open(refs)))
     # Hand corrections, applied last: {"<part id>": ["3.6.2"]}.
     overrides = os.path.join(TAG, "overrides.json")
     if os.path.exists(overrides):

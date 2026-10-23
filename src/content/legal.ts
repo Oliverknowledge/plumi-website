@@ -34,8 +34,8 @@ export const privacy: LegalDoc = {
   ],
 };
 export const terms: LegalDoc = {
-  title:"Terms", description:"Using the Plumi marketing website and community links.", updated, updatedIso,
-  intro:"This website introduces Plumi and links to the community. These terms concern the website, not a purchase or subscription to the app.",
+  title:"Terms", description:"The terms for using the Plumi website, its free past papers and question bank, and its links to the Plumi community on Discord.", updated, updatedIso,
+  intro:"This website introduces Plumi and links to the community. These terms concern the website, not the app.",
   sections:[
     {heading:"The product shown",blocks:[{kind:"text",text:"Product images are captures from the Plumi app. Features may change as the app is updated."}]},
     {heading:"Community access",blocks:[{kind:"text",text:"Joining the community does not reserve access, require a purchase or guarantee a particular feature. Discord’s own terms, community guidelines and minimum-age requirements apply. If you are not eligible to use Discord, you can continue to browse this website."}]},

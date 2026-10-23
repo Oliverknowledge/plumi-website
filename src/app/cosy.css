@@ -61,8 +61,40 @@
 .lp-card { background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 20px; box-shadow: 0 7px 0 var(--lp-shadow); position: relative; }
 .lp-soon { display: inline-block; font-family: var(--f-px); font-weight: 600; font-size: 13px; line-height: 1.5; color: #fdf9f1; background: var(--lp-blue); border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 8px; transform: rotate(-3deg); vertical-align: middle; white-space: nowrap; }
 .lp-tape { position: absolute; top: -14px; left: 50%; width: 92px; height: 26px; margin-left: -46px; background: rgba(220, 229, 151, .85); transform: rotate(-4deg); border-left: 2px dashed rgba(91, 71, 65, .25); border-right: 2px dashed rgba(91, 71, 65, .25); }
-.lp-spiral { display: flex; justify-content: space-between; padding: 0 28px; position: absolute; left: 0; right: 0; top: -15px; pointer-events: none; }
-.lp-spiral i { display: block; width: 10px; height: 28px; background: var(--lp-spiral); border-radius: 3px; box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12); }
+/* the wire binding: each coil a loop of wire through a punched hole, drawn with a dark edge and a lit one */
+.lp-spiral { display: flex; justify-content: space-between; padding: 0 34px; position: absolute; left: 0; right: 0; top: -13px; pointer-events: none; }
+.lp-spiral i { position: relative; display: block; width: 9px; height: 25px; }
+.lp-spiral i::before { content: ""; position: absolute; left: 1px; bottom: 1px; width: 7px; height: 7px; border-radius: 50%; background: #5b4741; box-shadow: inset 0 2px 0 #2b2326; }
+.lp-spiral i::after { content: ""; position: absolute; left: 0; top: 0; width: 9px; height: 21px; box-sizing: border-box; border: 3px solid #6f6258; border-bottom-color: transparent; border-radius: 6px 6px 3px 3px; box-shadow: inset 1px 1px 0 #b9ab9e; }
+.lp-spiral i:nth-child(n+13) { display: none; }
+@media (max-width: 620px) { .lp-spiral i:nth-child(n+9) { display: none; } }
+
+/* a subject as a hardback book (Book.tsx): a cover in the subject's colour with a label plate, a spine
+   down the left, a ribbon bookmark, and a body below, as the app draws the subjects on its shelf */
+.lp-book { --bk: #d8c8ad; position: relative; display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; min-width: 0; box-sizing: border-box; padding-left: 16px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 7px 16px 16px 7px; box-shadow: 0 6px 0 var(--lp-shadow); overflow: hidden; }
+.lp-book::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 16px; border-right: 3px solid var(--lp-line); background:
+  linear-gradient(transparent 22px, rgba(43, 35, 38, .32) 22px 26px, transparent 26px 34px, rgba(43, 35, 38, .32) 34px 38px, transparent 38px),
+  linear-gradient(90deg, rgba(255, 255, 255, .28) 0 3px, transparent 3px 9px, rgba(43, 35, 38, .18) 9px),
+  var(--bk); }
+.lp-book-cover { position: relative; display: grid; gap: 6px; padding: 16px 18px 18px; background:
+  repeating-linear-gradient(45deg, rgba(255, 255, 255, .12) 0 2px, transparent 2px 7px), var(--bk); border-bottom: 3px solid var(--lp-line); }
+.lp-book-kicker { font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink); opacity: .82; }
+.lp-book-plate { justify-self: start; max-width: calc(100% - 26px); background: #fffdf6; border: 2px solid var(--lp-line); border-radius: 5px; box-shadow: 0 3px 0 rgba(43, 35, 38, .25); padding: 6px 12px 7px; transform: rotate(-.8deg); }
+.lp .lp-book-plate, .lp .lp-book-plate a { font-family: var(--f-px); font-weight: 700; font-size: 28px; line-height: 1.05; color: var(--lp-ink); text-decoration: none; margin: 0; }
+.lp-book-plate small { display: block; font-family: var(--f-body); font-size: 13px; font-weight: 800; color: var(--lp-ink-soft); margin-top: 2px; }
+.lp-book-rib { position: absolute; right: 22px; bottom: -22px; width: 14px; height: 34px; background: var(--lp-red); border: 2px solid var(--lp-line); border-top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%); z-index: 1; }
+.lp-book-body { flex: 1; display: grid; gap: 8px; align-content: start; padding: 16px 18px 18px; }
+.lp-book-squares { display: flex; flex-wrap: wrap; gap: 3px; max-width: 260px; }
+.lp-book-squares i { width: 10px; height: 10px; border: 2px solid var(--lp-line); border-radius: 3px; background: #fff; }
+.lp-book-squares i.is-1 { background: var(--bk); }
+.lp-book-squares i.is-2 { background: color-mix(in srgb, var(--bk) 55%, #fff); }
+.lp-book-squares i.is-3 { background: color-mix(in srgb, var(--bk) 75%, #2b2326); }
+/* A book that is a link: the link fills its grid cell by stretching (not height: 100%, which Safari resolves differently), and the book fills the link. */
+a.lp-book-link { display: flex; flex: 1 1 auto; width: 100%; min-width: 0; color: var(--lp-ink); text-decoration: none; border-radius: 7px 16px 16px 7px; }
+a.lp-book-link .lp-book { transition: transform .1s, box-shadow .1s; }
+a.lp-book-link:hover .lp-book { transform: translateY(-3px) rotate(-.4deg); box-shadow: 0 9px 0 var(--lp-shadow); }
+a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0 var(--lp-shadow); }
+@media (prefers-reduced-motion: reduce) { a.lp-book-link .lp-book, a.lp-book-link:hover .lp-book { transform: none; transition: none; } }
 
 /* App Store: Apple's badge as-is, and on a phone the send-on (AppStoreBadge.tsx) */
 .lp .hp-badge { display: inline-block; border-radius: 12px; line-height: 0; }
@@ -91,11 +123,12 @@
 .lp-nav nav { display: flex; gap: 4px; margin-left: 12px; }
 .lp .lp-nav nav a { font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-ink); text-decoration: none; padding: 7px 12px; border-radius: 10px; }
 .lp .lp-nav nav a:hover { background: var(--lp-paper-2); }
-/* Six links fit from 1220px; below that the two least-needed section links give way, so
-   the free Question bank and Past papers stay in the bar down to 980px, where it all hides. */
+/* Five links fit from 1100px; below that "Study with friends" gives way, so the free
+   Question bank and Past papers and the Discord stay in the bar down to 980px, where it all hides. */
 .lp .lp-nav nav a { white-space: nowrap; }
-@media (max-width: 1220px) { .lp .lp-nav nav a[href$="#friends"] { display: none; } }
-@media (max-width: 1100px) { .lp .lp-nav nav a[href$="#meet"] { display: none; } }
+@media (max-width: 1100px) { .lp .lp-nav nav a[href$="#friends"] { display: none; } }
+.lp .lp-nav nav a.lp-nav-discord { display: inline-flex; align-items: center; gap: 6px; color: #5865f2; }
+.lp .lp-nav nav a.lp-nav-discord svg { width: 18px; height: 18px; }
 .lp .lp-navbtn { margin-left: auto; padding: 7px 16px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); }
 
 /* hero, pixel windows, steps (the homepage and the subject pages) */

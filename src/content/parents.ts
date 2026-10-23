@@ -1,22 +1,11 @@
-import { prices } from "@/content/home";
-
 /**
- * The /parents page's words (src/app/parents/page.tsx). Students send a parent here from
- * the app to ask for Plumi Pro, so the page answers what a parent asks: what is it, what
- * does it cost, how is it bought, and is it safe.
+ * The /parents page's words (src/app/parents/page.tsx). The page answers what a parent asks:
+ * what is it, why this one, and is it safe. No prices, plans or "Pro" (founder, 23 October 2026).
  *
  * Same rules as every other page: a title, at most one short line, the rest drawn. British
  * English, no em dashes, and nothing the app cannot do today. Where each claim comes from,
  * in the app repo (Sources/PlumiKit/...) unless it says otherwise:
  *
- * - Prices and trial: `PlumiProduct` in Features/Paywall/PaywallView.swift (£14.99 a month,
- *   £135.99 a year, 7 days free on the yearly plan only). The £99.99 launch arm and its end
- *   date: `AnnualPriceArm` in Analytics/Experiments.swift and `PlumiProduct.launchOfferEnds`.
- * - Free allowances: `PremiumFeature.freeAllowance` in Core/Entitlements.swift (practice 3
- *   sessions, marking 10, Tutor Mode 1, AI Pen 12, all weekly) with the row names of
- *   Core/AllowanceUsage.swift. The notebook is never metered (the same file's header).
- * - Ask to Buy: a purchase can come back `.pending` (Core/StoreKitBridge.swift); cancelling
- *   in Settings › your name › Subscriptions is the paywall's own terms line (PaywallCopy.swift).
  * - Marking: each answer is marked against its own question's scheme, and refused rather
  *   than guessed when the scheme does not match (`MarkingRefusal`,
  *   Physics/Generate/QuestionLifecycle.swift; "Fail closed" in the app's CLAUDE.md). "Is this
@@ -44,64 +33,85 @@ import { prices } from "@/content/home";
  *   (Account/Safeguarding.swift). It is the student's confirmation, never described as consent.
  */
 
+/**
+ * The pictures. The `capture` ones are the App Store set's captures of the app (19 October
+ * 2026, `1 App/App Store screenshots/captures`); the `flow` ones are the new-flow prototype
+ * the founder shared on 23 October as the current UI (the Desk's to-do list, Insights,
+ * flashcards, the session panel and the Grand Library), rendered at 2x. Both are 1600 wide.
+ */
+const shot = (name: string, alt: string, h = 1177) => ({ src: `/parents/${name}.webp`, w: 1600, h, alt });
+
 export const parentsHero = {
   eyebrow: "For parents and carers",
-  lead: "Your child writes exam answers by hand on iPad. Plumi marks each line against the question’s own mark scheme.",
-  chips: ["iPad app", "GCSE and A-Level", "Free to start"],
-  image: {
-    src: "/site/shot-mark-hero.webp", w: 2000, h: 1388,
-    alt: "A handwritten A-Level Physics answer in Plumi, marked 3 out of 5: ticks and crosses on the lines of working, and a marking panel listing each mark awarded or not awarded.",
-  },
-  zoom: {
-    src: "/site/zoom-mark.webp", w: 1130, h: 275,
-    alt: "Close up of the handwritten working: M1 ticked on the first line, M2 crossed on the wrong fraction, and A1 crossed on the final value.",
-    caption: "Each mark lands on the line that won or lost it.",
-  },
+  title: "The all‑in‑one revision app,",
+  titleEm: "explained for parents.",
+  lead: "Plumi is where your child revises for GCSEs and A-Levels on iPad: their notes, a to-do list, exam questions marked line by line, flashcards and past papers, in one calm place.",
+  chips: ["iPad app", "GCSE and A-Level", "AQA, OCR, Edexcel", "Free to download"],
+  screen: shot("desk", "Plumi's Desk on iPad: a good-morning greeting, today's to-do list with homework and revision tagged by subject, their subjects as books on a shelf, and four ways to revise.", 1200),
+  marked: { src: "/parents/marked-hand.webp", w: 1000, h: 337, alt: "Handwritten working for a projectiles question, marked by Plumi: red ticks for M1 and A1 beside the speed, and a cross for A0 under the angle line." },
+  markedLabel: "Marked by Plumi",
 } as const;
 
-export const parentsSteps = {
-  eyebrow: "What it does",
-  title: "Question, answer, mark, next.",
-  steps: [
-    { n: "01", title: "Plumi sets a question", line: "In the style of their exam board, with its diagram.", image: "/site/loupe-write.webp", w: 570, h: 370, fit: "contain", alt: "The circuit diagram Plumi drew for an A-Level Physics question: a light-dependent resistor in series with a fixed resistor R." },
-    { n: "02", title: "They answer by hand", line: "With Apple Pencil, and Plumi marks the working.", image: "/site/zoom-mark.webp", w: 1130, h: 275, fit: "cover", pos: "31% 60%", alt: "Handwritten working for a voltage calculation, with the M2 method mark crossed beside the wrong fraction." },
-    { n: "03", title: "They see why", line: "The mark scheme opens beside the answer.", image: "/site/loupe-why.webp", w: 450, h: 320, fit: "cover", pos: "50% 0%", alt: "Plumi's mark scheme for the M2 and A1 marks: use the divider with the 10 kilohm resistance on top, and Vout = 7.8 V." },
-    { n: "04", title: "It shows what’s next", line: "Each topic’s square is coloured by their marks.", image: "/site/zoom-map3.webp", w: 470, h: 270, fit: "contain", alt: "A topic map for Forces and motion: squares marked strong, developing or needs attention." },
+/** What revision usually takes, against what Plumi puts in one place. Every row is a shipped feature. */
+export const parentsStack = {
+  eyebrow: "Why one app",
+  title: "Instead of five apps",
+  titleEm: "and a pile of paper.",
+  beforeLabel: "Revision, usually",
+  before: ["Notes in three notebooks", "A planner nobody opens", "Flashcards in another app", "Past papers in a folder", "A week’s wait for marking", "A phone buzzing beside them"],
+  afterLabel: "Revision, in Plumi",
+  after: [
+    { title: "Notes", line: "Handwritten with Apple Pencil, one notebook a subject, searchable." },
+    { title: "A to-do list", line: "Homework and revision on one list, tagged by subject." },
+    { title: "Exam questions", line: "In their board’s style, marked line by line." },
+    { title: "Flashcards", line: "Made from their own notes." },
+    { title: "Past papers", line: "Their board’s papers and mark schemes." },
+    { title: "Focus timer", line: "Distracting apps stay shut while they work." },
   ],
 } as const;
 
-export const parentsPrice = {
-  eyebrow: "What it costs",
-  title: "Free to start. Pro if they need more.",
-  free: {
-    name: "Free",
-    price: "£0",
-    note: "The notebook is never limited.",
-    tiles: [
-      ["3", "practice sessions"],
-      ["10", "answers marked"],
-      ["1", "tutor session"],
-      ["12", "AI Pen answers"],
-    ],
-    tilesLabel: "Free every week",
+/** The three things Plumi does that nothing else in the pile does, each with its picture. */
+export const parentsFeatures = [
+  {
+    id: "mark",
+    eyebrow: "Marking",
+    title: "It marks their handwriting,",
+    titleEm: "line by line.",
+    line: "They answer with Apple Pencil, like on paper. Each mark lands on the line that won or lost it, and the mark scheme opens beside the answer.",
+    points: ["Against each question’s own mark scheme", "Asks first if a misread could cost a mark", "Won’t mark if it can’t be sure"],
+    image: shot("scheme", "A marked answer in Plumi beside its mark breakdown: 8 out of 9 marks, each mark listed with whether it was awarded, and why the angle mark was lost."),
   },
-  pro: {
-    name: "Plumi Pro",
-    monthly: { price: prices.monthly, period: "a month" },
-    yearly: { price: prices.yearly, period: "a year", tag: `First ${prices.trialDays} days free` },
-    items: ["Unlimited marking", "Unlimited practice", "Unlimited tutor and AI Pen"],
+  {
+    id: "map",
+    eyebrow: "Progress",
+    title: "It knows what they",
+    titleEm: "don’t know yet.",
+    line: "Every topic on their specification gets a square, coloured by their marked answers. The weak spots are plain to see, for them and for you.",
+    points: ["Their exam board’s own specification", "Predicted grade beside their goal", "Weak spots, practised in one tap"],
+    image: shot("map", "Plumi's topic map for A-Level Maths: a square for each of 122 topics, coloured strong, developing, rusty or needs attention, with their weak spots listed beside it."),
   },
-  launch: "Some students are offered the yearly plan at £99.99 until 31 January 2027.",
-} as const;
+  {
+    id: "plan",
+    eyebrow: "Planning",
+    title: "It turns ‘I should revise’",
+    titleEm: "into a plan.",
+    line: "Plumi picks tonight’s topic from the marks they’ve lost, and lays out the week from their marked work.",
+    points: ["Tonight’s topic, picked for them", "10, 25 or 45 minutes", "A plan for the week, from their marked work"],
+    image: shot("tonight", "Plumi's Desk in the evening: tonight's session on projectiles with a choice of 10, 25 or 45 minutes, today's study time, the week by subject, and a plan for each day."),
+  },
+] as const;
 
-export const parentsBuying = {
-  title: "Billed by Apple. Cancel any time.",
-  steps: [
-    { id: "tap", title: "They choose Pro", line: "On the iPad, inside Plumi." },
-    { id: "ask", title: "You approve it", line: "With Ask to Buy on in Family Sharing, the request comes to you." },
-    { id: "cancel", title: "Cancel any time", line: "Settings › your name › Subscriptions." },
+/** The rest of revision, smaller. */
+export const parentsMore = {
+  eyebrow: "And everything else",
+  title: "The rest of revision,",
+  titleEm: "in the same place.",
+  items: [
+    { id: "cards", title: "Flashcards from their notes", line: "Plumi turns what they’ve written into cards, and brings each one back just before they’d forget it.", image: shot("cards", "Plumi's flashcards: a chemistry card asking why the C=O bond is polar, with Again, Hard, Good and Easy buttons, and their decks listed beside it.", 1200) },
+    { id: "focus", title: "Focus sessions that block apps", line: "They choose a topic and a length. Distracting apps stay shut until the timer ends.", image: shot("session", "Plumi's session panel: a 25 minute timer on an alarm clock, the topic they're working on, and who can see them studying.", 1200) },
+    { id: "insights", title: "The effort, in numbers", line: "Time studied, answers marked and cards reviewed, day by day. Ask them to show you.", image: shot("insights", "Plumi's Insights: 18 hours 56 minutes studied over 28 days, time by subject, marks scored, a bar for each day and a calendar of the month.", 1200) },
+    { id: "study", title: "Company, without the chat", line: "A quiet pixel library to study in alongside others. Talking is only with friends they add by private code.", image: shot("study", "Plumi's Grand Library: students studying at tables in a pixel library, a list of rooms, and the student's own seat and timer.", 1200) },
   ],
-  fine: "Subscriptions renew automatically unless cancelled at least 24 hours before renewal, or before the free days end.",
 } as const;
 
 export type ConcernId = "marking" | "boards" | "work" | "friends" | "data" | "ads" | "wellbeing" | "device" | "age";
@@ -129,16 +139,15 @@ export const parentsConcerns = {
     { name: "Shout", detail: "Text SHOUT to 85258" },
   ],
   device: "Another stylus or a finger works with one switch in Settings.",
+  // Drawn on the page (ConcernArt in page.tsx), in the same hand as the hero's marked card.
   tutor: {
-    src: "/product/tutor-2-mobile.webp", w: 1000, h: 727,
-    alt: "Plumi's tutor writing a question back in the margin beside a student's integral: What is the derivative of e to the 2x?",
+    alt: "A student's handwritten working. They integrate e to the 2x as e to the 2x plus C, underlined in red. Plumi writes back, What's the derivative of e to the 2x? They write 2e to the 2x, ticked. Plumi asks, So what undoes that 2? They write a half e to the 2x plus C, ticked.",
   },
 } as const;
 
 /** FAQ structured data: the tiles' questions with fuller answers, every word as true as the tiles. */
 export const parentsFaq = [
   { q: "What is Plumi?", a: "Plumi is a GCSE and A-Level revision app for iPad. Your child answers exam-style questions by hand with Apple Pencil, and Plumi marks the working against each question’s own mark scheme." },
-  { q: "How much does Plumi Pro cost?", a: `Plumi is free to download, with 3 practice sessions, 10 answers marked, 1 tutor session and 12 AI Pen answers each week. Plumi Pro is ${prices.monthly} a month, or ${prices.yearly} a year with the first ${prices.trialDays} days free. It is billed by Apple and can be cancelled any time in Settings, under your name, then Subscriptions.` },
   { q: "Is the marking accurate?", a: "Every answer is marked against the mark scheme written for that question. If Plumi cannot be sure the scheme belongs to that question, it does not mark it, and your child’s work is saved." },
   { q: "Which exam boards does Plumi cover?", a: "AQA, OCR and Edexcel at GCSE and A-Level, and Edexcel International A Level, for Maths, Physics, Chemistry and Biology. Plumi is not affiliated with any exam board." },
   { q: "Who can my child talk to in Plumi?", a: "Friends and groups are off until your child signs in and turns them on. Friends are added only with a private code. Group chat refuses links, contact details and swearing, and anyone can be reported or blocked." },
@@ -146,11 +155,9 @@ export const parentsFaq = [
   { q: "Are there ads in Plumi?", a: "No. The app shows no adverts, never reads the iPad’s advertising identifier and never sells your child’s work." },
 ] as const;
 
-export const parentsContact = {
-  title: "Still have a question?",
-  line: "Write to us.",
-} as const;
-
 export const parentsClose = {
-  title: "See Plumi on the App Store.",
+  title: "Give them a calmer",
+  titleEm: "run-up to exams.",
+  line: "Free to download on the App Store, for iPad.",
+  ask: "Still have a question? Write to us.",
 } as const;

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CosyPage, Spiral } from "@/components/cosy/Chrome";
+import { Book, TopicSquares } from "@/components/cosy/Book";
+import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { display } from "@/content/pastPapers";
 import {
@@ -32,20 +33,20 @@ function Credit({ subject }: { subject?: BankSubject }) {
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={subject ? bankPapersPath(subject) : "/past-papers"}>{subject ? `Every ${subject.board} A-Level ${subject.subject} paper` : "Full past papers"}</Link>.
+      Want whole papers? <Link href={subject ? bankPapersPath(subject) : "/past-papers"}>{subject ? `Every ${subject.board} ${subject.level} ${subject.subject} paper` : "Full past papers"}</Link>.
     </p>
   );
 }
 
 export function BankHub() {
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="A-Level Question Bank: Every Exam Question by Topic" description="Every Edexcel A-Level Maths and Further Maths, and AQA A-Level Biology, Chemistry and Physics exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
-            <h1>{display("A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from Edexcel’s A‑Level Maths and Further Maths papers since 2018, and AQA’s A‑Level Biology, Chemistry and Physics since 2016, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
+            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018 and A‑Level since 2016, and Edexcel’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
@@ -54,13 +55,13 @@ export function BankHub() {
             <ul className="qb-subjects">
               {bankSubjects.map(s => (
                 <li key={s.slug}>
-                  <Link href={bankPath(s.slug)} className="lp-card qb-subject">
-                    <Spiral />
-                    <span className="lp-eyebrow">{s.board} {display(s.level)}</span>
-                    <span className="qb-subject-name">{s.subject}</span>
-                    <span className="qb-subject-count"><strong>{s.count.toLocaleString("en-GB")}</strong> questions · {s.topics.length} topics</span>
-                    <span className="qb-subject-years">{s.firstYear}–{s.lastYear}</span>
-                    <span className="pp-board-go" aria-hidden="true">Open the bank →</span>
+                  <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
+                    <Book subject={s.subject} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>
+                      <span className="qb-subject-count"><strong>{s.count.toLocaleString("en-GB")}</strong> questions · {s.topics.length} topics</span>
+                      <span className="qb-subject-years">{s.firstYear}–{s.lastYear}</span>
+                      <TopicSquares count={s.topics.length} />
+                      <span className="pp-board-go" aria-hidden="true">Open the bank →</span>
+                    </Book>
                   </Link>
                 </li>
               ))}
@@ -94,13 +95,13 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
       </nav>
       <h1>
         {topic
-          ? <>{topic.title}: <em>{display(`${subject.board} A-Level ${subject.subject}`)} questions</em></>
+          ? <>{topic.title}: <em>{display(`${subject.board} ${subject.level} ${subject.subject}`)} questions</em></>
           : <>{display(title)} <em>questions by topic</em></>}
       </h1>
       <p className="lp-lead">
         {topic
-          ? `Every ${subject.board} A-Level ${subject.subject} exam question on ${topic.title}, ${subject.firstYear}–${subject.lastYear}, with its mark scheme and examiner’s report.`
-          : `Every question from every ${subject.board} A-Level ${subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.board === "Edexcel" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topic.title}, ${subject.firstYear}–${subject.lastYear}, with its mark scheme and examiner’s report.`
+          : `Every question from every ${subject.board} ${subject.level} ${subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.board === "Edexcel" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
       </p>
     </header>
   );
@@ -109,7 +110,7 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
 export function BankSubjectPage({ subject }: { subject: BankSubject }) {
   const name = `${bankTitle(subject)} Questions by Topic`;
   return (
-    <CosyPage after={<PageStructuredData path={bankPath(subject.slug)} name={name} description={`Every ${subject.board} A-Level ${subject.subject} exam question by topic, with mark schemes and examiner's reports.`} type="CollectionPage"
+    <CosyPage after={<PageStructuredData path={bankPath(subject.slug)} name={name} description={`Every ${subject.board} ${subject.level} ${subject.subject} exam question by topic, with mark schemes and examiner's reports.`} type="CollectionPage"
       breadcrumb={[{ name: "Question bank", path: "/question-bank" }, { name: bankTitle(subject), path: bankPath(subject.slug) }]} />}>
       <article className="pp qb-page">
         <Hero subject={subject} />
@@ -131,7 +132,7 @@ export function BankTopicPage({ subject, topic, parts, index }: { subject: BankS
   const path = bankTopicPath(subject.slug, topic.slug);
   const siblings = subject.topics.filter(t => t.section === topic.section && t.slug !== topic.slug && t.count > 0);
   return (
-    <CosyPage after={<PageStructuredData path={path} name={`${topic.title}: ${subject.board} A-Level ${subject.subject} Exam Questions`} description={`Every ${subject.board} A-Level ${subject.subject} question on ${topic.title}, with mark schemes.`} type="CollectionPage"
+    <CosyPage after={<PageStructuredData path={path} name={`${topic.title}: ${subject.board} ${subject.level} ${subject.subject} Exam Questions`} description={`Every ${subject.board} ${subject.level} ${subject.subject} question on ${topic.title}, with mark schemes.`} type="CollectionPage"
       breadcrumb={[{ name: "Question bank", path: "/question-bank" }, { name: bankTitle(subject), path: bankPath(subject.slug) }, { name: topic.title, path }]} />}>
       <article className="pp qb-page">
         <Hero subject={subject} topic={topic} />

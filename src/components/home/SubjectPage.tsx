@@ -6,7 +6,7 @@ import { CosyPage, FaqSchema, SectionHead, Tape, WindowBar } from "@/components/
 import { intentFor } from "@/config/routes";
 import { AppStoreBadge } from "./AppStoreBadge";
 import { SpecCard } from "./SpecCard";
-import { hero as homeHero, prices } from "@/content/home";
+import { hero as homeHero } from "@/content/home";
 import { specUnits } from "@/content/specs";
 import { subjectPages, type SubjectPageContent } from "@/content/subjects";
 import "@/app/pages.css";
@@ -114,21 +114,6 @@ export function SubjectPage({ content }: { content: SubjectPageContent }) {
         </div>
       </section>
 
-      <section id="pricing" aria-labelledby="price-title">
-        <div className="lp-wrap">
-          <div className="lp-card lp-sp-price">
-            <h2 id="price-title">What you get free each week.</h2>
-            <ul className="lp-sp-tiles" aria-label="Free every week">
-              {[["10", "answers marked"], ["5", "new practice questions"], ["12", "AI Pen answers"], ["1", "AI tutor session"]].map(([n, l]) => (
-                <li key={l}><strong>{n}</strong><span>{l}</span></li>
-              ))}
-            </ul>
-            <p className="lp-sp-pro">Pro is <strong>{prices.yearlyPerMonth} a month, billed yearly</strong>: {prices.yearly} a year, after {prices.trialDays}{" "}days free. Or {prices.monthly} a month, with no trial.</p>
-            <div className="lp-cta-row"><AppStoreBadge placement={`${content.slug}-pricing`} height={52} /></div>
-            <p className="lp-fine">Cancel any time in Settings. Needs an iPad with iPadOS 17 or later. <Link href="/#pricing">Compare Free and Pro</Link>.</p>
-          </div>
-        </div>
-      </section>
 
       <section id="faq" aria-labelledby="faq-title">
         <div className="lp-wrap">

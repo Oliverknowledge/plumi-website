@@ -2,11 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { CafeHandle, CafeStatus } from "./cafeScene";
-import { cafe, moods } from "@/content/cosyHome";
+import { cafe, friends, moods } from "@/content/cosyHome";
 
 /**
  * The cosy homepage's moving parts. Each is a small island so the rest of the page
- * stays server-rendered: the café (the hero, and the friends' window), and Plumi's moods.
+ * stays server-rendered: the Grand Library (the hero, and the friends' window), and Plumi's moods.
  */
 
 const LOOK_KEY = "plumi-cafe-look";
@@ -58,20 +58,23 @@ function useCafe(mode: "hero" | "friends", onStatus?: (s: CafeStatus) => void) {
   return { canvas, overlay, handle };
 }
 
-/** A person from the café's cast, standing, as a CSS sprite of its frame strip. */
+/** The library's cast as one frame strip (public/library/people.png): 78 frames of 16 x 32 a look, 38 looks. */
+const STRIP = { w: 78 * 16, h: 38 * 32, front: 18 } as const;
+
+/** A person from the library's cast, standing, facing us, as a CSS sprite of its frame strip. */
 export function Look({ look, scale = 2, top = 0, rows = 32 }: { look: number; scale?: number; top?: number; rows?: number }) {
   return (
     <span className="lp-look" aria-hidden="true" style={{
       width: 16 * scale, height: rows * scale,
-      backgroundSize: `${1152 * scale}px ${448 * scale}px`,
-      backgroundPosition: `-${18 * 16 * scale}px -${(look * 32 + top) * scale}px`,
+      backgroundSize: `${STRIP.w * scale}px ${STRIP.h * scale}px`,
+      backgroundPosition: `-${STRIP.front * 16 * scale}px -${(look * 32 + top) * scale}px`,
     }} />
   );
 }
 
-/** The hero: the café, your person in it, and a bar with your timer and your look. */
+/** The hero: the Grand Library, your person in it, and a bar with your timer and your look. */
 export function CafeHero({ label }: { label: string }) {
-  const [st, setSt] = useState<CafeStatus>({ seated: false, seconds: 0, look: 0 });
+  const [st, setSt] = useState<CafeStatus>({ seated: false, seconds: 0, look: 0, subject: null });
   const { canvas, overlay, handle } = useCafe("hero", setSt);
   const ready = handle !== null;
   const turn = (by: number) => {
@@ -89,7 +92,7 @@ export function CafeHero({ label }: { label: string }) {
       </div>
       <div className="lp-dialog">
         <div className="lp-row1">
-          <b>{st.seated ? `${cafe.studying} · ${mm}:${ss}` : cafe.idle}</b>
+          <b>{st.seated ? `${st.subject ?? cafe.studying} · ${mm}:${ss}` : cafe.idle}</b>
           <div className="lp-meter" aria-hidden="true"><i style={{ width: `${st.seated ? (st.seconds % 60) / .6 : 0}%` }} /></div>
         </div>
         <div className="lp-you">
@@ -103,14 +106,61 @@ export function CafeHero({ label }: { label: string }) {
   );
 }
 
-/** The friends' window: the café's library wing, four friends in it, tap one to high-five. */
-export function FriendsCafe({ label }: { label: string }) {
+/** Minutes as the app writes a duration: "48m", "2h 05m". */
+const hm = (m: number) => m < 60 ? `${Math.floor(m)}m` : m % 60 < 1 ? `${Math.floor(m / 60)}h` : `${Math.floor(m / 60)}h ${String(Math.floor(m % 60)).padStart(2, "0")}m`;
+
+/** A second's tick while the window is on screen, from when it first came into view. */
+function useSeconds(box: React.RefObject<HTMLElement | null>) {
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timer = 0;
+    const io = new IntersectionObserver(([e]) => {
+      window.clearInterval(timer);
+      if (e?.isIntersecting && !document.hidden) timer = window.setInterval(() => setSecs(s => s + 1), 1000);
+    });
+    io.observe(el);
+    return () => { io.disconnect(); window.clearInterval(timer); };
+  }, [box]);
+  return secs;
+}
+
+/**
+ * The friends' window: the library's fireside, four friends in it and you across the fire from Josh, in
+ * a session. The chip in the corner is the app's session chip (a ring that empties, the time left, the
+ * subject); under the window is the group's jar, filling with everyone's study time this week.
+ */
+export function FriendsCafe({ label, session, jar }: { label: string; session: typeof friends.session; jar: typeof friends.jar }) {
   const { canvas, overlay, handle } = useCafe("friends");
+  const box = useRef<HTMLDivElement>(null);
+  const secs = useSeconds(box);
+  const total = session.minutes * 60, left = ((session.left - secs) % total + total) % total;
+  const done = 1 - left / total, yours = secs / 60, week = jar.week + yours;
+  const yourLook = handle?.look;
   return (
-    <div className="lp-scene lp-cafe" data-mode="friends" data-ready={handle ? true : undefined}>
-      <canvas ref={canvas} role="img" aria-label={label} width={204} height={150} />
-      <div ref={overlay} className="lp-ov" aria-hidden="true" />
-    </div>
+    <>
+      <div ref={box} className="lp-scene lp-cafe" data-mode="friends" data-ready={handle ? true : undefined}>
+        <canvas ref={canvas} role="img" aria-label={label} width={204} height={150} />
+        <div ref={overlay} className="lp-ov" aria-hidden="true" />
+        <div className="lp-session" aria-hidden="true">
+          <i className="lp-ring" style={{ ["--done" as string]: `${Math.round(done * 360)}deg` }} />
+          <b>{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</b>
+          <span>{session.subject}</span>
+        </div>
+      </div>
+      <div className="lp-dialog lp-jar">
+        <div className="lp-row1">
+          <b>{jar.title}</b>
+          <span className="lp-jar-week">{hm(week)} of {hm(jar.goal)} this week · {jar.fills}</span>
+        </div>
+        <div className="lp-meter lp-jar-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, week / jar.goal * 100)}%` }} /></div>
+        <ul className="lp-jar-who" aria-label="Today">
+          <li className="is-you">{yourLook !== undefined && <Look look={yourLook} scale={2} top={7} rows={11} />}{jar.you} · {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")} today</li>
+          {jar.members.map(m => <li key={m.name}><Look look={m.look} scale={2} top={7} rows={11} />{m.name} · {hm(m.today)}</li>)}
+        </ul>
+      </div>
+    </>
   );
 }
 

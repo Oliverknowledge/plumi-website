@@ -92,12 +92,10 @@
 .pp-board-go { font-family: var(--f-px); font-weight: 600; color: var(--lp-orange); margin-top: 6px; }
 
 /* the hub's subject cards */
-.pp-subjects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px 26px; }
-.lp .pp-subject { padding: 30px 22px 22px; }
-.pp-subject:nth-child(even) { background: #fff4dd; }
-.lp .pp-subject h3 a { color: var(--lp-ink); text-decoration: none; }
+.pp-subjects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 26px; }
+.lp .pp-subject h3 a { color: var(--lp-ink); text-decoration: none; display: block; }
 .lp .pp-subject h3 a:hover { color: var(--lp-orange); }
-.pp-subject .lp-boards { margin-top: 14px; }
+.pp-subject .lp-boards { margin-top: 0; }
 .lp .pp-subject .lp-boards a { color: var(--lp-ink); text-decoration: none; display: inline-flex; min-height: 32px; align-items: center; }
 .lp .pp-subject .lp-boards li:hover { background: var(--lp-gold); }
 

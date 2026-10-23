@@ -148,8 +148,8 @@ export const goodnotesAlternative: LandingContent = {
       image: tutorCapture,
     },
     {
-      heading: "Writing is free",
-      line: "Handwriting, pens, folders and PDFs cost nothing.",
+      heading: "Still a proper notebook",
+      line: "Handwriting, pens, folders and PDFs, like the notebook you know.",
       image: notebookCapture,
     },
   ],

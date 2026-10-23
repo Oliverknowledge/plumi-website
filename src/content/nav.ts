@@ -3,19 +3,17 @@ import { discordUrl } from "@/config/site";
 /**
  * Navigation, the same on every page (src/components/cosy/Chrome.tsx).
  *
- * The header links to the homepage's sections: "#meet" on the homepage itself and
- * "/#meet" everywhere else, so every page leads back into the same story, then to the
- * free practice pages. Below 980px the links hide and the bar carries the logo and the
- * download button only; on a phone the homepage's hero and #free-practice lead to the bank.
+ * The header leads with the free practice pages, then the homepage's sections ("#marking"
+ * on the homepage itself and "/#marking" everywhere else, so every page leads back into the
+ * same story), then the Discord. Below 980px the links hide and the bar carries the logo
+ * and the download button only; on a phone the homepage's hero tickets lead to the bank.
  *
  * The footer holds every indexable page, the community and the legal pair, so every
  * page stays one click from every other page.
  */
 export const sectionLinks: readonly (readonly [string, string])[] = [
-  ["Meet Plumi", "meet"],
   ["How it marks", "marking"],
   ["Study with friends", "friends"],
-  ["Pricing", "pricing"],
 ];
 
 export const pageLinks: readonly (readonly [string, string])[] = [

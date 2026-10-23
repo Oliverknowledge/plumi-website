@@ -38,6 +38,11 @@ export interface RouteIntent {
   linksTo: readonly string[];
   changeFrequency: "weekly" | "monthly" | "yearly";
   priority: number;
+  /**
+   * When the page's words last changed (YYYY-MM-DD), for the sitemap's lastmod. Set it by hand when
+   * you change a page, never to the build time: Google learns to ignore a lastmod that always moves.
+   */
+  lastModified?: string;
 }
 
 export const routeIntents: readonly RouteIntent[] = [
@@ -51,11 +56,13 @@ export const routeIntents: readonly RouteIntent[] = [
     // win "Plumi". The category follows.
     title: "Plumi: GCSE & A-Level Revision That Marks Your Handwriting",
     h1: "The cosy notebook that marks your work.",
+    // The free practice is named too: it is what most visitors from a video came for.
     description:
-      "Answer GCSE and A-Level questions for AQA, OCR or Edexcel with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
-    linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/past-papers", "/about"],
+      "Plumi marks your handwritten GCSE and A-Level answers on iPad, line by line against the mark scheme. Plus free past papers and exam questions by topic.",
+    linksTo: ["/question-bank", "/past-papers", "/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,
+    lastModified: "2026-10-23",
   },
   {
     path: "/ai-tutor-for-a-level-maths",
@@ -98,6 +105,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/", "/chemistry-revision", "/biology-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: "2026-10-23",
   },
   {
     path: "/chemistry-revision",
@@ -112,6 +120,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/", "/physics-revision", "/biology-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: "2026-10-23",
   },
   {
     path: "/biology-revision",
@@ -126,6 +135,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/", "/physics-revision", "/chemistry-revision"],
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: "2026-10-23",
   },
   {
     path: "/past-papers",
@@ -142,21 +152,23 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths"],
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: "2026-10-23",
   },
   {
     path: "/question-bank",
     primaryQuery: "A-Level question bank",
-    secondaryQueries: ["Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "past paper questions by topic"],
+    secondaryQueries: ["GCSE question bank", "AQA GCSE Physics questions by topic", "AQA GCSE Chemistry questions by topic", "AQA GCSE Biology questions by topic", "Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "past paper questions by topic"],
     intent: "Practise exam questions on one topic, with the mark scheme to hand.",
     objective: "Get the student to their subject's bank in one click; the bank does the rest.",
-    title: "A-Level Question Bank: Exam Questions by Topic | Plumi",
-    h1: "A-Level questions, one at a time",
+    title: "GCSE & A-Level Question Bank: Questions by Topic | Plumi",
+    h1: "GCSE and A-Level questions, one at a time",
     description:
-      "Every Edexcel A-Level Maths and Further Maths, and AQA A-Level Biology, Chemistry and Physics exam question, by topic, each with its mark scheme and examiner's report. Free, no sign-up.",
+      "Every AQA GCSE and A-Level science and Edexcel A-Level Maths exam question, sorted by topic, with its mark scheme and examiner's report. Free, no sign-up.",
     // The subject and topic pages under /question-bank come from data; see src/app/sitemap.ts.
     linksTo: ["/past-papers"],
     changeFrequency: "monthly",
     priority: 0.9,
+    lastModified: "2026-10-23",
   },
   {
     path: "/goodnotes-alternative-for-students",
@@ -171,6 +183,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/ai-tutor-for-a-level-maths", "/"],
     changeFrequency: "monthly",
     priority: 0.8,
+    lastModified: "2026-10-23",
   },
   {
     path: "/about",
@@ -189,16 +202,17 @@ export const routeIntents: readonly RouteIntent[] = [
   {
     path: "/parents",
     primaryQuery: "Plumi for parents",
-    secondaryQueries: ["Plumi price", "is Plumi worth it", "revision app for my child"],
-    intent: "A parent whose child asked for Plumi wants to know what it is and what it costs.",
-    objective: "Show the app marking real work, draw the price and how Apple bills it, and answer a parent's concerns as tiles, then send them to the App Store.",
-    title: "Plumi for Parents: What It Is and What It Costs",
+    secondaryQueries: ["is Plumi safe", "is Plumi worth it", "revision app for my child"],
+    intent: "A parent whose child asked for Plumi wants to know what it is and whether it is safe.",
+    objective: "Show the app marking real work and answer a parent's concerns as tiles, then send them to the App Store.",
+    title: "Plumi for Parents: What It Is and Is It Safe",
     h1: "Plumi, explained for parents.",
     description:
-      "Your child asked for Plumi, a GCSE and A-Level revision app for iPad that marks handwritten answers. What it does, what it costs, and is it safe.",
+      "Your child asked for Plumi, a GCSE and A-Level revision app for iPad that marks handwritten answers. What it does, and whether it is safe.",
     linksTo: ["/", "/privacy"],
     changeFrequency: "monthly",
     priority: 0.5,
+    lastModified: "2026-10-23",
   },
   // The legal pages keep their own hand-written metadata and the " · Plumi"
   // title template; they are listed here so the sitemap includes them.
@@ -214,6 +228,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: [],
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: "2026-10-14",
   },
   {
     path: "/terms",
@@ -227,6 +242,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: [],
     changeFrequency: "yearly",
     priority: 0.3,
+    lastModified: "2026-10-23",
   },
 ] as const;
 
