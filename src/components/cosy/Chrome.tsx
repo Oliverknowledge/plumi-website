@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeaderDownload } from "@/components/home/AppStoreBadge";
 import { entityDescription, site } from "@/config/site";
-import { footerLinks, sectionLinks } from "@/content/nav";
+import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
 
 /**
  * The cosy notebook's frame, shared by every page on the site (the founder, 19 October
@@ -26,6 +26,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
           {sectionLinks.map(([label, id]) => home
             ? <a key={id} href={`#${id}`}>{label}</a>
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
+          {pageLinks.map(([label, href]) => <Link key={href} href={href} className="lp-nav-page" data-testid={`header-${href.slice(1)}-link`}>{label}</Link>)}
         </nav>
         <HeaderDownload download="Get it free" className="lp-btn lp-navbtn" />
       </div>

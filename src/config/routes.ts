@@ -146,13 +146,13 @@ export const routeIntents: readonly RouteIntent[] = [
   {
     path: "/question-bank",
     primaryQuery: "A-Level question bank",
-    secondaryQueries: ["AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "past paper questions by topic"],
+    secondaryQueries: ["Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "past paper questions by topic"],
     intent: "Practise exam questions on one topic, with the mark scheme to hand.",
     objective: "Get the student to their subject's bank in one click; the bank does the rest.",
-    title: "A-Level Question Bank: Every AQA Question by Topic | Plumi",
+    title: "A-Level Question Bank: Exam Questions by Topic | Plumi",
     h1: "A-Level questions, one at a time",
     description:
-      "Every AQA A-Level Biology, Chemistry and Physics exam question since 2017, by topic, each with its mark scheme and examiner's report. Free, no sign-up.",
+      "Every Edexcel A-Level Maths and Further Maths, and AQA A-Level Biology, Chemistry and Physics exam question, by topic, each with its mark scheme and examiner's report. Free, no sign-up.",
     // The subject and topic pages under /question-bank come from data; see src/app/sitemap.ts.
     linksTo: ["/past-papers"],
     changeFrequency: "monthly",
