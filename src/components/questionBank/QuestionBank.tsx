@@ -221,9 +221,11 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     setRangeNote("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      await buildSetPdf(subject, picks, { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.length, mark_schemes: true, via: "range" });
-      setRangeNote(`Saved ✓ ${picks.length} ${picks.length === 1 ? "question" : "questions"}, mark schemes at the back`);
+      const skipped = await buildSetPdf(subject, picks, { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.length, mark_schemes: true, via: "range", skipped });
+      setRangeNote(skipped
+        ? `Saved, but ${skipped} of ${picks.length * 2} pages couldn’t be added. Try again in a moment.`
+        : `Saved ✓ ${picks.length} ${picks.length === 1 ? "question" : "questions"}, mark schemes at the back`);
     } catch {
       setRangeNote("Couldn’t build it. Try again?");
     }

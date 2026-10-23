@@ -108,6 +108,8 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     }
   }
 
+  // Nothing could be fetched (offline, or the file host refusing): don't hand over an empty PDF.
+  if (skipped >= total) throw new Error("No pages could be added");
   const bytes = await pdf.save();
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/pdf" }));
   const a = document.createElement("a");
