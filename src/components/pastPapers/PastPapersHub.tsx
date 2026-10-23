@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CosyPage, Spiral } from "@/components/cosy/Chrome";
+import { Book } from "@/components/cosy/Book";
+import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { intentFor } from "@/config/routes";
 import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
@@ -10,7 +11,7 @@ import "@/app/past-papers.css";
 
 /**
  * /past-papers: the library's front door, for "GCSE and A-Level past papers".
- * Every subject at each level as a notebook card, with each board one tap away,
+ * Every subject at each level as a book (Book.tsx), with each board one tap away,
  * so a student is two clicks from any paper and a crawler reaches every page.
  */
 export function PastPapersHub() {
@@ -40,15 +41,15 @@ export function PastPapersHub() {
               <h2 id={`${level}-title`} className="pp-group-title">{level === "GCSE" ? "GCSE & IGCSE" : "A-Level & International A-Level"}</h2>
               <div className="pp-subjects">
                 {pastPaperSubjects.filter(s => s.level === level).map(s => (
-                  <section key={s.slug} className="lp-card pp-subject" aria-labelledby={`${s.slug}-title`}>
-                    <Spiral />
-                    <h3 id={`${s.slug}-title`}><Link href={subjectPath(s.slug)}>{subjectTitle(s)} past papers</Link></h3>
+                  <Book key={s.slug} as="article" className="pp-subject" subject={s.name} aria-labelledby={`${s.slug}-title`}
+                    kicker={display(level === "GCSE" ? "GCSE & IGCSE" : "A-Level")}
+                    plate={<h3 id={`${s.slug}-title`}><Link href={subjectPath(s.slug)}>{s.name}{" "}<small>{display(subjectTitle(s))} past papers</small></Link></h3>}>
                     <ul className="lp-boards">
                       {boardsFor(s.slug).map(b => (
                         <li key={b.slug}><Link href={boardPath(s.slug, b.slug)} aria-label={`${b.board} ${b.qualification} ${s.name} past papers`}>{b.label}</Link></li>
                       ))}
                     </ul>
-                  </section>
+                  </Book>
                 ))}
               </div>
             </div>

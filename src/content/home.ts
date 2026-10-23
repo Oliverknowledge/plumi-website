@@ -4,12 +4,9 @@
  * Rules (the app's own): a title, at most one short line, the rest shown. No em
  * dashes anywhere a student reads. Every sentence is true of the shipped app today:
  *
- * - Prices and the trial are `PlumiProduct` in the app (PaywallView.swift): £14.99 a
- *   month, £135.99 a year, 7 days free on the yearly plan only. The £99.99 launch
- *   price is an A/B arm shown to half of new students until 31 January 2027, so the
- *   site states the standard price and never promises the launch one.
- * - The free allowances are weekly, from `PremiumFeature.freeAllowance` in
- *   Entitlements.swift: AI Pen 12, marking 10, practice 5, Tutor Mode 1.
+ * - No prices, plans, trials, allowances or "Pro" on any page (founder, 23 October 2026):
+ *   the site says Plumi is free to download, and the App Store says the rest. So a
+ *   sentence that only holds on a paid plan is left out, never reworded to sound free.
  * - Boards and subjects are the courses the app ships: AQA, OCR and Edexcel, GCSE and
  *   A-Level Physics, Maths, Chemistry and Biology.
  * - Every product image on the page is a real capture from the app.
@@ -17,20 +14,13 @@
 
 export const appStoreId = "6811389052";
 
-export const prices = {
-  monthly: "£14.99",
-  yearly: "£135.99",
-  yearlyPerMonth: "£11.33",
-  trialDays: 7,
-} as const;
-
 export const hero = {
   eyebrow: "GCSE & A-Level revision app for iPad",
   h1a: "Handwrite your answer.",
   h1b: "See the line that cost you marks.",
   sub: "Answer AQA, OCR or Edexcel style questions with Apple Pencil. Plumi writes each one with its own mark scheme, then marks your working against it.",
   subShort: "Answer with Apple Pencil. Plumi marks your working against the question’s own mark scheme.",
-  note: "Free to download, with 10 answers marked free every week.",
+  note: "Free to download on the App Store.",
   device: "Runs on iPad with iPadOS 17 or later. A finger works too, if your Pencil’s gone missing.",
   qr: "Scan with your iPad camera",
   zoom: { image: "/site/loupe-mark4.webp", w: 885, h: 148, alt: "Close up of the handwritten working: Vout = 1500 over 1500 plus 10000, times 9, with M2 crossed, and the final value 1.73 crossed for A1.", caption: "The 10 kΩ belongs on top of the fraction. That cost a method mark and the answer mark." },
@@ -154,10 +144,8 @@ export const bento = {
   // student. Desktop rows (home.css): notes 4 + streak 2, focus 2 + papers 4, stats 3 + friends 3.
   tiles: [
     { id: "notes", title: "Handwritten notes become flashcards.", line: "Write them once and Plumi quizzes you on them.", image: "/site/tile-notes.webp", w: 1400, h: 685, alt: "Handwritten astrophysics notes in Plumi with highlighted key terms and a drawn diagram of an elliptical orbit." },
-    // Freezes come only from a whole A-Level paper with Pro, are spent automatically, capped at two.
-    { id: "streak", title: "A missed day doesn’t have to end your streak.", line: "Sit a whole A‑Level paper with Pro to earn a streak freeze. Miss a day and it’s spent for you. You can hold two.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
-    // The timer is free; only app blocking is metered (Entitlements.swift: 3 free sessions).
-    { id: "focus", title: "Pomodoros that block apps.", line: "Plumi stops distracting apps opening while you work. The timer is free, and so is app blocking for your first 3 sessions.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
+    { id: "streak", title: "A missed day doesn’t have to end your streak.", line: "Miss a day and a streak freeze is spent for you. You can hold two.", image: "/site/tile-streak2.webp", w: 535, h: 585, alt: "Plumi's streak screen showing an 8 day streak and a calendar of days worked." },
+    { id: "focus", title: "Pomodoros that block apps.", line: "Plumi stops distracting apps opening while you work.", image: "/site/pomo-card.webp", w: 1088, h: 942, alt: "Plumi's pomodoro planner set to three 25 minute blocks." },
     { id: "papers", title: "Your board’s A‑Level past papers are in the Papers tab.", line: "Their mark schemes and grade boundaries are there too. A PDF from school, GCSE or A‑Level, can go in your notebook to write on like any page.", image: "/site/tile-papers2.webp", w: 1442, h: 550, alt: "Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." },
     { id: "stats", title: "An hour open isn’t an hour studied.", line: "Set a daily goal. Leaving the app open on your desk doesn’t count towards it.", image: "/site/tile-stats3.webp", w: 1430, h: 610, alt: "Plumi's study time statistics: 1 hour 44 minutes studied today, with the daily goal reached." },
     { id: "friends", title: "Only people you invite can join your group.", line: "Add a friend, or send your mates the group’s link or code.", image: "/site/tile-groups3.webp", w: 1432, h: 640, alt: "Plumi's study groups screen with an Add a friend button and a four member group." },
@@ -170,14 +158,14 @@ export const identity = {
   line: "Put your predicted grade next to your target, say a 6 aiming for a 7, or an A aiming for an A*.",
   // The app's order and authorship (SubjectStanding.swift): Predicted is the school's,
   // Plumi's own marking never fills Current (SubjectStanding.swift), so the word is not
-  // used here; what Pro gives is a grade on each A-Level paper it marks, from that
-  // year's boundaries where Plumi has them, an indicative ladder otherwise (PaperChart.swift).
+  // used here. A marked A-Level paper's grade (PaperChart.swift) is a paid feature, so the
+  // caption doesn't promise it.
   grades: [
     { label: "Predicted", value: "A", tone: "" },
     { label: "Last paper", value: "B", tone: "" },
     { label: "Goal", value: "A*", tone: "is-goal" },
   ],
-  caption: "With Pro, each A‑Level past paper Plumi marks gets a grade, from that year’s boundaries where Plumi has them.",
+  caption: "Your predicted grade and your target, side by side.",
 } as const;
 
 export const subjects = {
@@ -195,41 +183,6 @@ export const subjects = {
   tones: { Physics: "#e8892b", Maths: "#2158d4", Chemistry: "#22a35a", Biology: "#0f9e95" } as Record<string, string>,
 } as const;
 
-export const pricing = {
-  eyebrow: "Pricing",
-  title: "10 answers a week free. Pro if you need more.",
-  free: {
-    name: "Free",
-    price: "£0",
-    period: "forever",
-    lead: "The notebook is free for good. Write as much as you like.",
-    items: [
-      "Handwriting, folders, PDFs, search and export",
-      "10 answers marked a week",
-      "3 practice sessions a week",
-      "12 AI Pen answers a week, to ask about anything you’ve written",
-      "1 AI tutor session a week, worked through on your page",
-    ],
-  },
-  pro: {
-    name: "Pro",
-    // The founder's call (14 October): the monthly equivalent leads. The sum actually
-    // charged sits directly under it, in the first line, never further away.
-    price: prices.yearlyPerMonth,
-    period: "a month, billed yearly",
-    billing: `Billed ${prices.yearly} a year, after ${prices.trialDays}\u00a0days free.`,
-    billing2: `Or ${prices.monthly} a month, with no trial.`,
-    lead: "For the run‑up to mocks, when 10 answers a week runs out by Tuesday.",
-    items: [
-      "Unlimited marking",
-      "Unlimited practice questions",
-      "Unlimited AI Pen and AI tutor sessions",
-      "Whole A‑Level past papers marked and graded",
-      "App blocking in all your Focus sessions",
-    ],
-  },
-  small: "Cancel any time in Settings. Subscriptions renew automatically unless you cancel at least 24 hours before renewal. Needs an iPad with iPadOS 17 or later.",
-} as const;
 
 /**
  * Written as replies to a message. Spending, as the app does it: a first mark, a re-mark
@@ -248,7 +201,7 @@ export const faq = [
   },
   {
     q: "What if I think Plumi got a mark wrong?",
-    a: "Tap \"I disagree\" on any mark you didn’t get in full. You’ll see the scheme’s line for that mark, the line you wrote and Plumi’s reason, and seeing them is free. Tap \"Check again\" and Plumi looks again, then either corrects the mark or keeps it and tells you why. On the free plan, that check uses one of your 10 marks a week. If you’re still sure, you can give yourself the mark, and it’s labelled self-marked, never counted as Plumi’s.",
+    a: "Tap \"I disagree\" on any mark you didn’t get in full. You’ll see the scheme’s line for that mark, the line you wrote and Plumi’s reason, and seeing them is free. Tap \"Check again\" and Plumi looks again, then either corrects the mark or keeps it and tells you why. If you’re still sure, you can give yourself the mark, and it’s labelled self-marked, never counted as Plumi’s.",
   },
   {
     q: "Which exam boards and subjects does Plumi cover?",
@@ -256,11 +209,7 @@ export const faq = [
   },
   {
     q: "Are these real past paper questions?",
-    a: "No. Plumi writes its own in your board’s style, and the mark scheme for each. The Papers tab links to your board’s real A‑Level past papers, mark schemes and grade boundaries. With Pro, Plumi marks a whole A‑Level paper you sit and gives it a grade. A GCSE paper from school can go in your notebook as a PDF to write on. Plumi isn’t affiliated with any exam board.",
-  },
-  {
-    q: "Is Plumi free?",
-    a: `Yes to download, and the notebook stays free. Each week you also get 10 answers marked, 3 practice sessions, 12 AI Pen answers and 1 AI tutor session. Seeing the scheme’s line for a mark is free. A re-mark after a fix, or asking Plumi to check a mark again, uses one of the 10. Pro makes them unlimited for ${prices.yearlyPerMonth} a month, billed as ${prices.yearly} a year after a ${prices.trialDays}-day free trial. Paying monthly instead is ${prices.monthly}, and that has no trial. Cancel any time in Settings.`,
+    a: "No. Plumi writes its own in your board’s style, and the mark scheme for each. The Papers tab links to your board’s real A‑Level past papers, mark schemes and grade boundaries. A GCSE paper from school can go in your notebook as a PDF to write on. Plumi isn’t affiliated with any exam board.",
   },
   {
     q: "Is it on iPhone or Android?",

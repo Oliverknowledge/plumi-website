@@ -23,25 +23,35 @@
  *   the room was not out then; it is now (19 October).
  * - The study-with-friends line said you "study side by side", which is the unreleased
  *   study hall. Groups, invites by link or code and invite-only are released.
- * - Prices, the trial and the weekly allowances are home.ts's, which are the app's
- *   (PaywallView.swift, Entitlements.swift). The auto-renewal line is restored.
- * - FAQ answers are home.ts's vetted answers in full.
+ * - FAQ answers are home.ts's vetted answers in full, except the ones in `homeAnswers`
+ *   below, which say why they differ.
+ *
+ * No prices, plans, trials or weekly allowances (founder, 23 October 2026: "students are
+ * allergic to that before value is sufficiently presented"). The homepage says the app is
+ * free to download and the website's practice is free; the plans are on the App Store, the
+ * parents page and the subject pages. So nothing here says "with Pro" either: a line that
+ * only holds on Pro is rewritten to what holds for everyone, or left out.
+ *
+ * The page leads with the free practice on this website (the question bank and past
+ * papers), because most visitors arrive from a short video on a phone, where the app can't
+ * be installed but the practice works. The iPad download stays the first button.
  */
-import { faq as vettedFaq, prices } from "@/content/home";
+import { faq as vettedFaq } from "@/content/home";
 
 export const cosyHero = {
-  eyebrow: "GCSE & A-Level revision · for iPad",
+  eyebrow: "GCSE & A-Level revision · free on iPad",
   h1: "The cosy notebook that",
   h1em: "marks your work.",
-  lead: "Handwrite your answer with Apple Pencil. Plumi marks it line by line against the question’s own mark scheme, picks what to study tonight, and keeps you company while you do it.",
-  note: "Free to download, with 10 answers marked free every week. Needs iPadOS 17 or later.",
-  window: "the café · 21:40",
-  sceneLabel: "A pixel café and library at night. Students study at the tables, read on the sofa and by the fire, and queue for coffee. You come in at the door; tap the floor to walk, or a free seat to sit.",
-  hint: "Tap to walk. Tap a free seat to sit.",
+  lead: "Handwrite your answer with Apple Pencil. Plumi marks it line by line against the mark scheme and picks what to revise tonight.",
+  note: "Free on the App Store. Needs iPadOS 17 or later.",
+  freeLabel: "Free on this website, no sign-up:",
+  window: "the grand library · 21:40",
+  sceneLabel: "A pixel library at night, with a gallery upstairs. Students study at long tables, in glass pods and by the fire. You come in at the entrance; tap the floor to walk, a free seat to sit, or anyone to see what they're studying.",
+  hint: "Tap to walk. Tap anyone to see what they’re studying.",
 } as const;
 
 /**
- * The hero café's words (CafeHero in LandingClient.tsx). The labels over people's heads are
+ * The hero library's words (CafeHero in LandingClient.tsx). The labels over people's heads are
  * in cafeScene.ts and true to the app: focus ink is 1 a minute and 10 a finished chapter
  * (FocusInk in DeskPlan.swift), and the subjects are the four the app marks.
  */
@@ -105,10 +115,27 @@ export const friends = {
   lead: "Make a group and invite your mates with a link or code. Only people you invite can join.",
   window: "chem crew’s study hall",
   sceneLabel: "A pixel library. Maya and Aisha study at a lamp-lit table, Sam has the next one, Josh reads by the fire, and the cat sleeps on the rug.",
-  dialog: "Maya started a 25-min session",
-  dialogTip: ["Aisha joined.", "Pull up a chair to study with them."],
+  /**
+   * The window's chip and jar, drawn after the app's (the new flow's session chip and the group's jar):
+   * your 25-minute session counting down, and the week's study time filling the group's jar.
+   * The friends' times are an illustration, as their names are; yours counts up while you watch.
+   */
+  session: { subject: "Chemistry", minutes: 25, left: 18 * 60 + 42 },
+  jar: {
+    title: "The jar",
+    goal: 30 * 60,
+    week: 10 * 60 + 9,
+    fills: "fills Sunday",
+    you: "You",
+    members: [
+      { name: "Maya", look: 1, today: 72 },
+      { name: "Aisha", look: 10, today: 48 },
+      { name: "Josh", look: 3, today: 125 },
+      { name: "Sam", look: 6, today: 31 },
+    ],
+  },
   hint: "Tap someone to send a high five.",
-  // Each friend's look in the café's cast (FRIENDS in cafeScene.ts): Maya, Aisha, Josh, Sam.
+  // Each friend's look in the library's cast (FRIENDS in cafeScene.ts): Maya, Aisha, Josh, Sam.
   features: [
     { look: 1, title: "Invite-only groups", soon: false, line: "Add a friend, or share the group’s link or code." },
     { look: 10, title: "Pull up a chair", soon: false, line: "Tap a friend who’s studying to start your own timer in their subject." },
@@ -123,7 +150,7 @@ export const habit = {
   titleEm: "add up.",
   lead: "A daily goal, a streak to protect, and a room of your own to fill.",
   cards: [
-    { id: "streak", title: "Keep your streak", soon: false, line: "Sit a whole A-Level paper with Pro to earn a streak freeze. Miss a day and it’s spent for you." },
+    { id: "streak", title: "Keep your streak", soon: false, line: "Study a little every day. Miss one and a streak freeze can keep it alive." },
     { id: "pomo", title: "Pomodoros that block apps", soon: false, line: "Distracting apps stay shut while you work. An hour open isn’t an hour studied, so only real study counts towards your goal." },
     { id: "room", title: "Earn your room", soon: false, line: "Marked answers earn ink. Spend it on lamps, plants, outfits and a cat called Biscuit." },
   ],
@@ -137,7 +164,7 @@ export const more = {
     { title: "Questions on your gaps", line: "Pick the topic that keeps catching you out and Plumi writes a question on it, with the diagram the paper would give you." },
     { title: "Notes into flashcards", line: "Write your notes once. Plumi turns them into flashcards and quizzes you on them." },
     { title: "Past papers, one tap away", line: "Your board’s A-Level past papers, mark schemes and grade boundaries are in the Papers tab." },
-    { title: "Your predicted grade", line: "Put your predicted grade next to your target. With Pro, each A-Level paper Plumi marks gets a grade." },
+    { title: "Your predicted grade", line: "Put your predicted grade next to your target, so you always know the gap you’re closing." },
     { title: "Bring your school PDFs", line: "Drop in a worksheet or a GCSE paper and write on it like any other page." },
     { title: "Your work stays yours", line: "Notes and marks live on your iPad. Nothing you write is used to train AI, and there are no ads." },
   ],
@@ -160,52 +187,67 @@ export const shelf = {
 /**
  * The free practice on the website itself: the question bank (/question-bank) and the past
  * paper library (/past-papers). Both are free and need no account; the question count is
- * read from the bank's data in CosyHome, so it stays true as subjects are added.
+ * read from the bank's data in CosyHome, so it stays true as subjects are added. It comes
+ * straight after the hero (23 October 2026), and each card's chips go straight to a subject,
+ * so a student from a video is one tap from their own paper.
+ *
+ * `discord` is the community's daily question (1 App/discord-bot: a real past-paper question
+ * from the bank every morning, marked yourself, with streaks and a Sunday leaderboard).
  */
 export const practice = {
   eyebrow: "Free exam practice",
   title: "Real exam questions,",
   titleEm: "sorted by topic.",
-  lead: "On this website, free, with no sign-up. Practise from the boards’ own papers tonight, iPad or not.",
-  heroLink: "Free past papers and a question bank",
+  lead: "Free on this website, with no sign-up. Works on your phone, laptop or iPad.",
   bank: {
     name: "Question bank",
+    hero: "real exam questions by topic",
     line: "Pick a topic and get every exam question on it, each with its mark scheme and the examiner’s report beside it. Build a set and download it as a PDF.",
-    covers: ["AQA Biology", "AQA Chemistry", "AQA Physics", "Edexcel Maths", "Edexcel Further Maths"],
     cta: "Open the question bank",
   },
   papers: {
     name: "Past papers",
+    hero: "GCSE & A-Level, every board",
     line: "Every past paper and mark scheme for GCSE and A-Level Maths, Further Maths, Biology, Chemistry and Physics, sorted by board and year.",
-    covers: ["AQA", "Edexcel", "OCR", "WJEC and Eduqas", "Cambridge"],
+    // The libraries students ask for most, straight to the subject's page.
+    links: [
+      ["GCSE Maths", "/past-papers/gcse-maths"],
+      ["GCSE Physics", "/past-papers/gcse-physics"],
+      ["GCSE Chemistry", "/past-papers/gcse-chemistry"],
+      ["GCSE Biology", "/past-papers/gcse-biology"],
+      ["A-Level Maths", "/past-papers/a-level-maths"],
+      ["A-Level Physics", "/past-papers/a-level-physics"],
+      ["A-Level Chemistry", "/past-papers/a-level-chemistry"],
+      ["A-Level Biology", "/past-papers/a-level-biology"],
+    ],
     cta: "Browse past papers",
   },
+  discord: {
+    title: "A past-paper question every morning",
+    line: "Our Discord posts a real exam question each day. Mark it yourself, keep your streak, and see the examiner’s comments the next morning.",
+  },
+  bridge: "Doing them on paper? On iPad, Plumi marks your handwriting for you.",
+  bridgeLink: "See how it marks",
 } as const;
 
-export const plans = {
-  eyebrow: "Pricing",
-  title: "Start free.",
-  titleEm: "Pro if you need more.",
-  free: {
-    name: "Free",
-    price: "£0",
-    period: "to start",
-    lead: "Start with the notebook and a weekly allowance of marking.",
-    items: ["Handwriting, folders, PDFs, search and export", "10 answers marked a week", "3 practice sessions a week", "12 AI Pen answers a week", "1 AI tutor session a week"],
-  },
-  pro: {
-    tag: `${prices.trialDays} days free`,
-    name: "Pro",
-    price: prices.yearlyPerMonth,
-    period: "a month, billed yearly",
-    lead: "For the run-up to mocks, when 10 answers a week runs out by Tuesday.",
-    items: ["Unlimited marking and practice questions", "Unlimited AI Pen and AI tutor sessions", "Whole A-Level past papers marked and graded", "App blocking in all your focus sessions"],
-    fine: `Billed ${prices.yearly} a year after ${prices.trialDays} days free, or ${prices.monthly} a month with no trial. Cancel any time in Settings. Subscriptions renew automatically unless you cancel at least 24 hours before renewal. Needs an iPad with iPadOS 17 or later.`,
-  },
-} as const;
+/**
+ * Answers the homepage gives in its own words. home.ts's answer to "a mark wrong" ends on
+ * the free plan's allowance, and its "real past paper questions" answer predates the
+ * question bank, so "No" would now contradict the section above it. The iPad question is
+ * new: it is the first thing a student on a phone wants to know.
+ */
+const homeAnswers: Record<string, string> = {
+  "Do I need an iPad for the question bank and past papers?":
+    "No. The question bank and past papers on this website are free, need no account, and work on any phone, laptop or tablet. The Plumi app, which marks your handwritten answers, is for iPad.",
+  "What if I think Plumi got a mark wrong?":
+    "Tap \"I disagree\" on any mark you didn’t get in full. You’ll see the scheme’s line for that mark, the line you wrote and Plumi’s reason. Tap \"Check again\" and Plumi looks again, then either corrects the mark or keeps it and tells you why. If you’re still sure, you can give yourself the mark, and it’s labelled self-marked, never counted as Plumi’s.",
+  "Are these real past paper questions?":
+    "On this website, yes. The question bank is cut from AQA’s and Edexcel’s own published papers, each part with its mark scheme, and the past paper library has the whole papers. In the app, Plumi also writes new questions in your board’s style, each with its own mark scheme, and the Papers tab links to your board’s A‑Level past papers and grade boundaries. Plumi isn’t affiliated with any exam board.",
+};
 
-/** The design's seven questions, answered with the vetted answers from home.ts. */
+/** The design's questions, answered with the vetted answers from home.ts (or `homeAnswers`). */
 const questions = [
+  "Do I need an iPad for the question bank and past papers?",
   "Isn’t this just ChatGPT?",
   "Can it read my handwriting?",
   "What if I think Plumi got a mark wrong?",
@@ -217,6 +259,7 @@ const questions = [
 export const faqEyebrow = "Before you download";
 export const faqTitle = "Questions";
 export const cosyFaq = questions.map(q => {
+  if (homeAnswers[q]) return { q, a: homeAnswers[q] };
   const found = vettedFaq.find(f => f.q === q);
   if (!found) throw new Error(`No vetted answer for "${q}" in src/content/home.ts`);
   return found;

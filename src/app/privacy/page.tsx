@@ -10,17 +10,18 @@ import { site } from "@/config/site";
  * addresses should want its privacy page findable.
  */
 export const metadata: Metadata = {
-  title: privacy.title,
+  title: "Privacy Notice",
   description: privacy.description,
   alternates: { canonical: "/privacy" },
   openGraph: {
-    title: `${privacy.title} · Plumi`,
+    title: "Privacy Notice · Plumi",
     description: privacy.description,
     url: "/privacy",
     // Repeated from the root layout deliberately: metadata merges shallowly, so
     // defining `openGraph` here replaces the parent's object entirely.
     siteName: site.name,
     locale: site.locale,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Plumi, the GCSE and A-Level revision app for iPad." }],
   },
 };
 

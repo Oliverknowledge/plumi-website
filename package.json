@@ -19,7 +19,11 @@
     "bank:upload": "python3 scripts/question-bank/upload_r2.py",
     "bank:fetch:edexcel": "python3 scripts/question-bank/fetch_edexcel.py",
     "bank:cut:edexcel": "python3 scripts/question-bank/cut_edexcel.py",
-    "bank:build:edexcel": "python3 scripts/question-bank/build_bank_edexcel.py"
+    "bank:build:edexcel": "python3 scripts/question-bank/build_bank_edexcel.py",
+    "bank:fetch:gcse": "python3 scripts/question-bank/aqa_gcse/fetch_gcse.py",
+    "bank:spec:gcse": "python3 scripts/question-bank/aqa_gcse/spec_gcse.py",
+    "bank:cut:gcse": "python3 scripts/question-bank/cut.py scripts/question-bank/.work-gcse",
+    "bank:build:gcse": "python3 scripts/question-bank/aqa_gcse/build_gcse.py"
   },
   "dependencies": {
     "next": "16.3.4",

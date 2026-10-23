@@ -82,3 +82,43 @@ python3 scripts/question-bank/tag_batches.py merge scripts/question-bank/.work-e
 npm run bank:build:edexcel
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work-edexcel --pdf-prefix=edexcel/
 ```
+
+## AQA GCSE Biology, Chemistry and Physics
+
+`/question-bank/aqa-gcse-biology`, `-chemistry` and `-physics`, for "AQA GCSE
+Physics questions by topic": every question from AQA's GCSE Biology (8461),
+Chemistry (8462) and Physics (8463) papers, Foundation and Higher, June 2018 to
+June 2025 plus the specimen papers. That is 4,902 question parts from 95 papers
+(1,505 Biology, 1,744 Chemistry, 1,653 Physics), cut part by part exactly like the
+A-Level ones, with their mark scheme rows and examiner's reports. Topics are the
+specification's 86 numbered topics (4.1.1 Cell structure), with no year split.
+
+- **Pipeline:** `scripts/question-bank/aqa_gcse/` runs the A-Level scripts over
+  the GCSE specifications: `fetch_gcse.py` (fetch_aqa.py with GCSE pages and
+  components), `spec_gcse.py` (spec.py for the `4.x` numbering), `cut.py` itself,
+  and `build_gcse.py`, which also holds the short topic names used in page titles
+  and addresses (`short` in the JSON) so every `<title>` stays under 60 characters.
+- **Tags:** GCSE mark schemes print each row's specification reference, so 91% of
+  parts are tagged from AQA's own references (`tag_batches.py split` writes them
+  to `.work-gcse/tag/refs.json`); the other 444 were tagged by Claude following
+  `tag.md`, one by hand (`overrides.json`).
+- **Gaps:** AQA no longer publishes twelve of the June 2018 and 2019 papers
+  (Biology 1F and both Paper 2 tiers in 2018, all four Biology papers in 2019,
+  Chemistry Paper 2 in 2019, Physics Paper 1 in 2018 and 1H in 2019), and withdrew Biology Paper 1H June 2018 Question 6. Chemistry Paper 2F June 2018 is
+  a scan, so it isn't in the bank. AQA published no examiner's reports for most
+  November Foundation papers. 141 parts (3%) link to the whole mark scheme
+  instead of a cropped row. Foundation and Higher papers share some questions, so
+  those appear twice, once per tier.
+- **Maths** (8300) isn't in yet: its papers number questions "6 (a)" rather than
+  "0 6 . 1", its files are listed by number, and its specification is coded (N1,
+  A1), so it needs its own fetch, cut and topic list.
+
+```bash
+npm run bank:fetch:gcse
+npm run bank:spec:gcse
+npm run bank:cut:gcse
+python3 scripts/question-bank/tag_batches.py split scripts/question-bank/.work-gcse   # then tag the batches
+python3 scripts/question-bank/tag_batches.py merge scripts/question-bank/.work-gcse
+npm run bank:build:gcse
+npm run bank:upload -- scripts/question-bank/.work-gcse
+```

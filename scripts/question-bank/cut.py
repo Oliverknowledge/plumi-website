@@ -26,7 +26,8 @@ os.makedirs(IMG, exist_ok=True)
 SCALE = 2.2  # ~160 dpi: sharp on a retina phone, small as WebP
 
 QLABEL = re.compile(r"^(\d{2})(?:\.(\d{1,2}))?$")
-NOT_QUESTIONS = re.compile(r"no questions printed on this page|do not write on this page|^\s*extra space\s*$", re.I | re.M)
+NOT_QUESTIONS = re.compile(r"no questions printed on this page|do not write on this page", re.I)
+EXTRA_SPACE = re.compile(r"^\s*extra space\s*$", re.I | re.M)
 
 
 def norm(text):
@@ -60,15 +61,26 @@ def left_labels(page, max_x, bold_only):
         if row[0]["bbox"][0] >= max_x:
             continue
         # Read boxes left to right, stopping at the first span that isn't digits or a point.
-        label = ""
+        # A wide gap ends the label too: a scheme's answer can open with digits on its line ("132").
+        label, x1 = "", row[0]["bbox"][0]
         for s in row:
-            if not re.fullmatch(r"[\d.\s]+", s["text"]):
+            if not re.fullmatch(r"[\d.\s]+", s["text"]) or s["bbox"][0] - x1 > 25:
                 break
             label += s["text"]
+            x1 = s["bbox"][2]
         m = QLABEL.match(norm(label))
         if m:
             out.append((y, m.group(1), m.group(2)))
+        elif not bold_only and row[0]["bbox"][0] < 90 and (m := re.fullmatch(r"(\d)\.(\d{1,2})", norm(label))) and table_page(page):
+            out.append((y, "0" + m.group(1), m.group(2)))  # a scheme that prints "1.1" for "01.1" (GCSE, June 2019)
     return out
+
+
+def table_page(page):
+    """A mark scheme page with its table on it, headed "Question", unlike the marking
+    guidance at the front, whose numbered paragraphs ("2.1") would pass for labels."""
+    return any(s["text"].strip() == "Question" and "Bold" in s["font"]
+               for block in page.get_text("dict")["blocks"] for line in block.get("lines", []) for s in line["spans"])
 
 
 def frame(page, portrait=True):
@@ -170,8 +182,8 @@ def move_setups(doc, out):
         if marks_y is None and len(pieces) == 1:
             continue  # the marks haven't been printed yet: everything here is this part's
         margin = min((x for y, x, t in lines if x > rect.x0 + 30), default=None)
-        if margin is None:
-            continue
+        if margin is None or any(re.match(r"Tick\b", t) for y, x, t in lines):
+            continue  # a tick-box part's options are full sentences at the margin too
         after = marks_y if marks_y is not None else rect.y0
         # Paragraphs at the margin after the marks: lines no more than ~1.5 lines apart.
         paras, last_y = [], None
@@ -188,6 +200,8 @@ def move_setups(doc, out):
         if split is None:
             continue
         cut_y = split - 6
+        if cut_y <= rect.y0 + 8 and len(pieces) == 1:
+            continue  # the whole part would move: it is its own setup
         moved = pymupdf.Rect(rect.x0, cut_y, rect.x1, rect.y1)
         moved_text = doc[pg].get_text("text", clip=moved)
         out[n] = [key, pieces[:-1] + ([(pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, cut_y))] if cut_y > rect.y0 + 8 else []), text.replace(moved_text, "")]
@@ -199,11 +213,18 @@ def move_setups(doc, out):
             out[n + 1] = [nkey, [(pg, moved)] + npieces, moved_text + "\n" + ntext]
 
 
+def skip_page(page, max_x, bold_only):
+    """A page with no questions on it. An "Extra space" line alone doesn't make one:
+    newer papers print it under a long answer on a page that goes on to the next part."""
+    text = page.get_text()
+    return bool(NOT_QUESTIONS.search(text) or (EXTRA_SPACE.search(text) and not left_labels(page, max_x, bold_only)))
+
+
 def regions(doc, max_x, bold_only, portrait):
     """Walk a document's labels in order: [(key, [(page, rect)], text)]. key = ('01', '1') or ('01', None) for a stem."""
     marks = []  # (page index, y, q, part)
     for i, page in enumerate(doc):
-        if NOT_QUESTIONS.search(page.get_text()):
+        if skip_page(page, max_x, bold_only):
             continue
         prev = 0
         for y, q, p in left_labels(page, max_x, bold_only):
@@ -225,7 +246,7 @@ def regions(doc, max_x, bold_only, portrait):
             pg += 1
             if nxt and pg > nxt[0]:
                 break
-            if NOT_QUESTIONS.search(doc[pg].get_text()):
+            if skip_page(doc[pg], max_x, bold_only):
                 break
         text = "\n".join(doc[pg].get_text("text", clip=r) for pg, r in pieces)
         out.append([(q, p), pieces, text])
@@ -240,15 +261,24 @@ def examiner_report(path):
     doc = pymupdf.open(path)
     text = "\n".join(p.get_text() for p in doc)
     text = re.sub(r"REPORT ON THE EXAMINATION[^\n]*\n|\n\s*\d+ of \d+\s*\n", "\n", text)
-    parts = re.split(r"\n\s*Question (\d{1,2})\s*\n", text)
+    # GCSE reports add the demand: "Question 1 (Standard demand)".
+    parts = re.split(r"\n\s*Question (\d{1,2})(?:\s*\([^)\n]*\))?\s*\n", text)
+    sections = [(parts[k], parts[k + 1]) for k in range(1, len(parts) - 1, 2)]
+    if not sections:
+        # Some go straight to the parts, each label on its own line ("01.3"): a question runs from its first part to the next question's.
+        starts = {}
+        for m in re.finditer(r"\n\s*(\d{1,2})\.\d{1,2}\s*\n", text):  # "01.3", or "1.3" (June 2025)
+            starts.setdefault(f"{int(m.group(1)):02d}", m.start())
+        bounds = sorted(starts.items(), key=lambda qs: qs[1]) + [("", len(text))]
+        sections = [(q, text[at:bounds[n + 1][1]]) for n, (q, at) in enumerate(bounds[:-1])]
     out = {}
-    for k in range(1, len(parts) - 1, 2):
-        body = re.split(r"\n\s*(?:Mark Ranges and Award of Grades|Use of statistics|Further support)", parts[k + 1])[0]
+    for q, raw in sections:
+        body = re.split(r"\n\s*(?:Mark Ranges and Award of Grades|Use of statistics|Further support)", raw)[0]
         body = re.sub(r"[ \t]+\n", "\n", body)
         body = re.sub(r"(?<!\n)\n(?!\n)", " ", body).strip()
         body = re.sub(r"\n{2,}", "\n\n", body)
         if body:
-            out[f"{int(parts[k]):02d}"] = body
+            out[f"{int(q):02d}"] = body
     return out
 
 

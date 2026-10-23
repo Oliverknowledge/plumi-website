@@ -165,11 +165,8 @@
 .lp .qb-backpill { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 80px); left: 50%; transform: translateX(-50%); z-index: 15; appearance: none; cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; padding: 7px 16px; box-shadow: 0 3px 0 var(--lp-shadow); white-space: nowrap; }
 
 /* ── Hub ─────────────────────────────────────────────────────────────────── */
-.qb-subjects { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
-.lp .qb-subject { display: grid; gap: 6px; padding: 34px 22px 22px; text-decoration: none; color: var(--lp-ink); height: 100%; transition: transform .08s, box-shadow .08s; }
-.lp .qb-subject:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
-.qb-subjects li:nth-child(2) .qb-subject { background: #fff4dd; }
-.qb-subject-name { font-family: var(--f-px); font-weight: 700; font-size: 38px; line-height: 1.05; }
+.qb-subjects { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 26px; }
+.qb-subjects > li { display: flex; min-width: 0; }
 .qb-subject-count { font-weight: 700; }
 .qb-subject-count strong { color: var(--lp-orange); }
 .qb-subject-years { font-weight: 700; color: var(--lp-ink-soft); font-size: 14.5px; }

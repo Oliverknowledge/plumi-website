@@ -56,3 +56,4 @@ scripts/question-bank/.work/
 # local copies of our papers and crops, served at /papers-local in development (R2 in production)
 public/papers-local
 scripts/question-bank/.work-edexcel/
+scripts/question-bank/.work-gcse/

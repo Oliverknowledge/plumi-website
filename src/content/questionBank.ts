@@ -1,6 +1,6 @@
 /**
- * The question bank: every question from AQA's A-Level Biology, Chemistry and
- * Physics papers since 2017, cut out one part at a time, each with its own mark
+ * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
+ * and Physics papers and Edexcel's A-Level Maths and Further Maths, cut out one part at a time, each with its own mark
  * scheme rows and the examiner's report on its question, tagged to the topic of
  * the specification it tests.
  *
@@ -18,9 +18,15 @@ import chemistry from "./questionBank/aqa-a-level-chemistry.json";
 import physics from "./questionBank/aqa-a-level-physics.json";
 import maths from "./questionBank/edexcel-a-level-maths.json";
 import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
+import gcseBiology from "./questionBank/aqa-gcse-biology.json";
+import gcseChemistry from "./questionBank/aqa-gcse-chemistry.json";
+import gcsePhysics from "./questionBank/aqa-gcse-physics.json";
 
-/** `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths). */
-export interface BankTopic { code: string; title: string; section: string; slug: string; count: number; year: 0 | 1 | 2 | 3 }
+/**
+ * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE).
+ * `short`: a shorter name for a long specification title, for the page title ("Moles and gas volumes").
+ */
+export interface BankTopic { code: string; title: string; short?: string; section: string; slug: string; count: number; year: 0 | 1 | 2 | 3 }
 export interface BankSection { code: string; title: string }
 export interface BankPaper { id: string; name: string; title: string; as: boolean }
 export interface BankSeries { id: string; label: string }
@@ -58,7 +64,7 @@ export interface BankPart {
 export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel";
-  level: "A-Level";
+  level: "A-Level" | "GCSE";
   subject: "Biology" | "Chemistry" | "Physics" | "Maths" | "Further Maths";
   specs: string[];
   sections: BankSection[];
@@ -78,7 +84,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -102,8 +108,8 @@ export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) =
 /** Who owns the questions, for credits: "AQA", "Pearson Edexcel". */
 export const bankOwner = (s: Pick<BankSubject, "board">) => (s.board === "Edexcel" ? "Pearson Edexcel" : "AQA");
 /** The whole-paper library page for a bank's subject and board. */
-export const bankPapersPath = (s: Pick<BankSubject, "board" | "subject">) =>
-  `/past-papers/a-level-${s.subject.toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase()}`;
+export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) =>
+  `/past-papers/${s.level.toLowerCase()}-${s.subject.toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase()}`;
 
 export function paperName(subject: BankSubject, id: string) {
   const p = subject.papers.find(x => x.id === id);

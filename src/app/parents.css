@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    FOR PARENTS (src/app/parents/page.tsx)
 
-   The hero reuses the subject pages' stage (pages.css). This file adds the
-   page's own pieces: the facts row, the four steps, the two plans, the buying
-   flow, the nine question tiles and the contact card. Scoped under .lp.
+   Rebuilt 23 October 2026: an iPad in the hero, the usual pile against one
+   app, three feature rows and a grid of four, each with a real screen in a drawn
+   iPad, the nine question tiles, and the close. Scoped under .lp.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.lp .lp-pa-hero h1 { font-size: clamp(40px, 5.4vw, 68px); }
+.lp .lp-pa-hero h1 { font-size: clamp(38px, 4.4vw, 56px); }
 .lp-pa-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
 .lp-pa-facts li { font-family: var(--f-px); font-weight: 600; font-size: 17px; border: 2px solid var(--lp-line); border-radius: 10px; padding: 3px 12px; background: var(--lp-card-bg); box-shadow: 0 3px 0 var(--lp-shadow); }
 .lp-pa-facts li:nth-child(3) { background: var(--lp-gold); }
@@ -15,48 +15,60 @@
 .lp-pa-mk { font-family: var(--f-body); font-weight: 800; font-size: 12.5px; padding: 1px 8px; border-radius: 7px; border: 2px solid var(--lp-line); color: var(--lp-ink); background: #9fd7a8; white-space: nowrap; }
 .lp-pa-mk.is-no { background: var(--lp-needs); }
 
-/* ── Four steps ──────────────────────────────────────────────────────────── */
-.lp .lp-pa-steps img, .lp .lp-pa-shot img { image-rendering: auto; width: 100%; height: auto; display: block; }
-.lp-pa-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
-.lp-pa-step { padding: 14px 14px 18px; display: grid; gap: 6px; align-content: start; }
-.lp-pa-step:nth-child(odd) { transform: rotate(-.6deg); }
-.lp-pa-step:nth-child(even) { transform: rotate(.6deg); }
-.lp-pa-step-img { aspect-ratio: 4 / 3; background: #fcfcf9; border: 2px solid #e2d6c2; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
-.lp .lp-pa-step-img img { width: 100%; height: 100%; }
-.lp .lp-pa-step h3 { font-size: 21px; }
-.lp-pa-step p { font-weight: 600; color: var(--lp-ink-soft); font-size: 15.5px; }
+/* ── The iPad: a dark bezel round a real screen ─────────────────────────── */
+.lp-pa-ipad { position: relative; background: #1b2338; border: 3px solid var(--lp-line); border-radius: 30px; padding: 13px; box-shadow: 0 8px 0 var(--lp-shadow); }
+.lp-pa-ipad::before { content: ""; position: absolute; top: 50%; left: 5px; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: #3b4766; }
+.lp .lp-pa-ipad img { display: block; width: 100%; height: auto; border-radius: 16px; image-rendering: auto; }
+.lp-pa-ipad.is-small { border-radius: 20px; padding: 8px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.lp .lp-pa-ipad.is-small img { border-radius: 11px; }
 
-/* ── Plans ───────────────────────────────────────────────────────────────── */
-.lp-pa-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
-.lp-pa-plan { padding: 28px 26px 24px; display: grid; gap: 16px; align-content: start; }
-.lp-pa-plan.is-pro { background: #fff4dd; }
-.lp .lp-pa-plan h3 { font-size: 26px; }
-.lp-pa-price { font-family: var(--f-px); font-weight: 700; font-size: 52px; line-height: 1; color: var(--lp-ink); }
-.lp-pa-price small { font-family: var(--f-body); font-size: 16px; font-weight: 700; color: var(--lp-ink-soft); margin-left: 6px; }
-.lp-pa-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.lp-pa-tiles strong { font-size: 40px; }
-.lp-pa-plan-note { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
-.lp-pa-options { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
-.lp-pa-option { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
-.lp-pa-option .lp-pa-price { font-size: 40px; }
-.lp-pa-or { font-family: var(--f-hand); font-size: 26px; font-weight: 700; color: var(--lp-ink-soft); }
-.lp-pa-ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-weight: 700; }
-.lp-pa-ticks li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
-.lp-pa-ticks li::before { content: "✓"; font-weight: 800; color: var(--lp-blue); }
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.lp-pa-hero .lp-wrap { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+.lp-pa-hero-art { position: relative; padding-bottom: 56px; }
+.lp-pa-marked { position: absolute; left: -34px; bottom: 0; width: 50%; padding: 10px 10px 8px; transform: rotate(-3deg); background: #fffdf8; }
+.lp-pa-marked-crop { overflow: hidden; border: 2px solid #e2d6c2; border-radius: 8px; background: #fff; }
+.lp .lp-pa-marked-crop img { display: block; width: 100%; height: auto; image-rendering: auto; }
+.lp-pa-marked figcaption { margin-top: 6px; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); }
 
-/* ── How buying works ────────────────────────────────────────────────────── */
-.lp-pa-buy { margin-top: 34px; padding: 26px 26px 22px; display: grid; gap: 18px; }
-.lp .lp-pa-buy h3 { font-size: 26px; }
-.lp-pa-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; counter-reset: none; }
-.lp-pa-flow li { position: relative; display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: start; padding: 14px; background: var(--lp-card-bg); border: 2px dashed #cdbb9f; border-radius: 14px; }
-.lp-pa-flow li > .lp-pa-flow-ico { grid-row: 1 / span 2; }
-.lp-pa-flow li b { font-family: var(--f-px); font-weight: 600; font-size: 19px; line-height: 1.2; }
-.lp-pa-flow li b .lp-num { font-size: 16px; margin-right: 2px; }
-.lp-pa-flow li > span:last-child { font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
-.lp-pa-flow li:not(:last-child)::after { content: "→"; position: absolute; right: -16px; top: 50%; transform: translateY(-50%); font-family: var(--f-px); font-size: 22px; color: var(--lp-orange); z-index: 1; }
+/* ── Why one app ─────────────────────────────────────────────────────────── */
+.lp-pa-stack { display: grid; grid-template-columns: minmax(0, .85fr) auto minmax(0, 1.15fr); gap: 26px; align-items: center; }
+.lp-pa-label { display: block; font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-ink-soft); margin-bottom: 14px; }
+.lp-pa-pile ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.lp-pa-pile li { padding: 10px 14px; font-weight: 700; font-size: 15px; color: var(--lp-ink-soft); background: #fff1c2; border: 2px solid var(--lp-line); border-radius: 4px; box-shadow: 0 3px 0 rgba(91, 71, 65, .35); text-decoration: line-through; text-decoration-color: rgba(224, 96, 90, .75); text-decoration-thickness: 2px; }
+.lp-pa-pile li:nth-child(3n+1) { transform: rotate(-2deg); }
+.lp-pa-pile li:nth-child(3n+2) { transform: rotate(1.5deg); background: #dff0ee; }
+.lp-pa-pile li:nth-child(3n) { transform: rotate(-.6deg); background: #f9dcd5; }
+.lp-pa-arrow { font-family: var(--f-px); font-size: 44px; color: var(--lp-orange); }
+.lp-pa-one { padding: 22px 24px; }
+.lp-pa-one ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 22px; }
+.lp-pa-one li { display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; }
+.lp-pa-one li::before { content: "✓"; grid-row: 1 / span 2; display: grid; place-items: center; width: 24px; height: 24px; border: 2px solid var(--lp-line); border-radius: 7px; background: #9fd7a8; font-weight: 900; font-size: 13px; color: var(--lp-ink); }
+.lp-pa-one b { font-family: var(--f-px); font-weight: 600; font-size: 18px; line-height: 1.2; }
+.lp-pa-one span { font-size: 14.5px; font-weight: 600; color: var(--lp-ink-soft); }
+
+/* ── Feature rows ────────────────────────────────────────────────────────── */
+.lp .lp-pa-features { padding-block: 24px; }
+.lp-pa-feature { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; align-items: center; padding-block: 48px; }
+.lp-pa-feature.is-flip { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); }
+.lp-pa-feature.is-flip .lp-pa-feature-copy { order: 2; }
+.lp-pa-feature-copy { display: grid; gap: 14px; align-content: center; }
+.lp-pa-points { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
+.lp-pa-points li { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.lp-pa-points li::before { content: ""; flex: none; width: 12px; height: 12px; border: 2px solid var(--lp-line); border-radius: 4px; background: var(--lp-gold); }
+.lp-pa-feature:nth-child(2) .lp-pa-points li::before { background: var(--lp-blue-soft); }
+.lp-pa-feature:nth-child(3) .lp-pa-points li::before { background: #9fd7a8; }
+
+/* ── The rest, in a grid ─────────────────────────────────────────────────── */
+.lp-pa-more-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.lp-pa-more-card { padding: 18px 18px 22px; display: grid; gap: 8px; align-content: start; }
+.lp-pa-more-card:nth-child(4n+2), .lp-pa-more-card:nth-child(4n+3) { background: #fff4dd; }
+.lp-pa-more-card .lp-pa-ipad { margin-bottom: 10px; }
+.lp .lp-pa-more-card h3 { font-size: 22px; }
+.lp-pa-more-card p { font-weight: 600; color: var(--lp-ink-soft); }
+
+/* ── Icons ───────────────────────────────────────────────────────────────── */
 .lp-pa-flow-ico { width: 56px; height: 56px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 14px; background: var(--lp-paper-2); color: var(--lp-line); }
 .lp-pa-ico { width: 30px; height: 30px; display: block; }
-.lp-pa-flow li:nth-child(2) .lp-pa-flow-ico { background: var(--lp-gold); }
 
 /* ── The nine questions ──────────────────────────────────────────────────── */
 .lp-pa-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
@@ -80,9 +92,28 @@
 .lp-pa-chips.is-ticks li::before { content: "✓ "; color: var(--lp-blue); }
 .lp .lp-pa-more { display: inline-block; margin-top: 10px; font-weight: 700; font-size: 14.5px; }
 .lp-pa-code { display: inline-block; margin-bottom: 10px; font-family: var(--f-px); font-weight: 700; font-size: 22px; letter-spacing: .08em; padding: 4px 14px; background: #fff; border: 2px dashed var(--lp-line); border-radius: 10px; }
-/* The tutor capture, cut to the student's line and the tutor's question back. */
-.lp-pa-shot { background: #fcfcf9; border: 2px solid #e2d6c2; border-radius: 10px; overflow: hidden; aspect-ratio: 2.2 / 1; }
-.lp .lp-pa-shot img { width: 170%; max-width: none; height: auto; margin-left: -2%; }
+/* Plumi's mark: the mascot at a tilt on the corner of the marked work and of the tutor's page (PlumiMark) */
+.lp .lp-pa-plumi { position: absolute; width: 64px; height: 64px; image-rendering: pixelated; pointer-events: none; filter: drop-shadow(0 3px 0 rgba(43, 35, 38, .25)); z-index: 2; }
+.lp .lp-pa-marked .lp-pa-plumi { top: -30px; right: -26px; transform: rotate(16deg); }
+.lp-pa-signed { position: relative; }
+.lp .lp-pa-signed .lp-pa-plumi { top: -26px; right: -18px; width: 58px; height: 58px; transform: rotate(-14deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .lp .lp-pa-plumi { transition: transform .2s; }
+  .lp-pa-marked:hover .lp-pa-plumi { transform: rotate(6deg) translateY(-3px); }
+  .lp-pa-tile:hover .lp-pa-plumi { transform: rotate(-4deg) translateY(-3px); }
+}
+
+/* The tutor's ladder on a sheet of ruled paper: the student in blue ink, Plumi in red pen (the hero's marked card's
+   colours), each line on a rule. */
+.lp-pa-sheet { --rule: 34px; padding: 6px 14px 8px 40px; background: #fffdf8; border: 2px solid #e2d6c2; border-radius: 10px; font-family: var(--f-hand); line-height: var(--rule);
+  background-image: linear-gradient(90deg, transparent 26px, #f1b8ab 26px, #f1b8ab 28px, transparent 28px), repeating-linear-gradient(transparent 0 calc(var(--rule) - 1px), #dfe6ee calc(var(--rule) - 1px) var(--rule));
+  background-position: 0 6px; }
+.lp .lp-pa-sheet p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+.lp-pa-sheet .is-you { color: #1f3d8a; font-size: 25px; font-weight: 600; }
+.lp-pa-sheet .is-plumi { color: #d33a2f; font-size: 23px; font-weight: 700; padding-left: 18px; }
+.lp-pa-sheet .is-wrong { text-decoration: underline wavy #d33a2f 2px; text-underline-offset: 6px; }
+.lp-pa-sheet sup { font-size: .62em; line-height: 0; vertical-align: baseline; position: relative; top: -.6em; margin-left: 1px; }
+.lp-pa-tick { display: inline-block; width: 24px; height: 20px; margin-left: 8px; vertical-align: -3px; }
 .lp-pa-zero { display: flex; align-items: baseline; gap: 10px; }
 .lp-pa-zero strong { font-family: var(--f-px); font-weight: 700; font-size: 56px; line-height: 1; color: var(--lp-orange); }
 .lp-pa-zero span { font-family: var(--f-px); font-weight: 600; font-size: 20px; }
@@ -97,29 +128,28 @@
 .lp-pa-age span { display: grid; place-items: center; min-height: 48px; font-family: var(--f-px); font-weight: 600; font-size: 16px; border: 2px solid var(--lp-line); border-radius: 12px; background: #fff; box-shadow: 0 3px 0 var(--lp-shadow); }
 .lp-pa-age span:first-child { background: var(--lp-gold); }
 
-/* ── Contact ─────────────────────────────────────────────────────────────── */
-.lp .lp-pa-contact-sec { padding-block: 24px 8px; }
-.lp-pa-contact { padding: 24px 26px; display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; background: #dff0ee; transform: rotate(-.4deg); }
-.lp .lp-pa-contact h2 { font-size: clamp(26px, 3vw, 34px); }
-.lp .lp-pa-contact .lp-lead { font-size: 18px; }
+/* ── Close ───────────────────────────────────────────────────────────────── */
+.lp-pa-close .lp-card { background: #fdf9f1; }
+.lp-pa-close img { width: 130px; height: 130px; }
+.lp-pa-write { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px !important; padding-top: 18px; border-top: 2px dashed #d8c8ad; width: 100%; font-weight: 700; color: var(--lp-ink-soft); }
+.lp-pa-write .lp-pa-flow-ico { width: 40px; height: 40px; border-radius: 10px; }
+.lp-pa-write .lp-pa-ico { width: 24px; height: 24px; }
+.lp .lp-pa-write a { font-weight: 800; word-break: break-all; }
 
 @media (max-width: 980px) {
-  .lp-pa-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-pa-hero .lp-wrap { grid-template-columns: minmax(0, 1fr); }
+  .lp-pa-marked { left: -6px; width: 52%; }
+  .lp-pa-stack { grid-template-columns: minmax(0, 1fr); }
+  .lp-pa-arrow { transform: rotate(90deg); justify-self: center; }
+  .lp-pa-feature, .lp-pa-feature.is-flip { grid-template-columns: minmax(0, 1fr); gap: 26px; padding-block: 36px; }
+  .lp-pa-feature.is-flip .lp-pa-feature-copy { order: 0; }
   .lp-pa-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .lp-pa-plans { grid-template-columns: minmax(0, 1fr); }
-  .lp-pa-flow { grid-template-columns: minmax(0, 1fr); gap: 22px; }
-  .lp-pa-flow li:not(:last-child)::after { content: "↓"; right: auto; left: 34px; top: auto; bottom: -24px; transform: none; }
-  .lp-pa-contact { grid-template-columns: 56px 1fr; }
-  .lp-pa-contact .lp-btn { grid-column: 1 / -1; justify-self: start; }
 }
 @media (max-width: 620px) {
   .lp-pa-facts li { font-size: 15px; }
-  .lp-pa-steps, .lp-pa-grid { grid-template-columns: minmax(0, 1fr); }
-  .lp-pa-plan { padding: 22px 18px 20px; }
-  .lp-pa-price { font-size: 44px; }
-  .lp-pa-option .lp-pa-price { font-size: 34px; }
-  .lp-pa-buy { padding: 22px 18px 18px; }
-  .lp-pa-contact { padding: 20px 18px; }
-  .lp .lp-pa-contact .lp-btn { white-space: normal; word-break: break-all; font-size: 17px; }
+  .lp-pa-ipad { border-radius: 20px; padding: 8px; }
+  .lp .lp-pa-ipad img { border-radius: 11px; }
+  .lp-pa-marked { width: 64%; }
+  .lp-pa-one ul, .lp-pa-more-grid, .lp-pa-grid { grid-template-columns: minmax(0, 1fr); }
 }
-@media (prefers-reduced-motion: reduce) { .lp-pa-step, .lp-pa-contact { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lp-pa-pile li, .lp-pa-marked { transform: none; } }

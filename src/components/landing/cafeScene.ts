@@ -1,11 +1,12 @@
 /**
- * The homepage's living café: the co-founder's Café & Library (LimeZu Modern Interiors, full
- * licence) drawn on a <canvas>, with simulated students studying in it and the visitor's own
- * person to walk about and sit down.
+ * The homepage's living library: the co-founder's Grand Library (LimeZu Modern Interiors, full
+ * licence), Plumi's launch room, drawn on a <canvas>, with simulated students studying on both
+ * floors and the visitor's own person to walk about and sit down. The window shows part of the
+ * room and follows the visitor; point at (or tap) anyone to see who they are and what they're on.
  *
- * Only derived art is served (public/cafe, made by scripts/cafe-hero/export_cafe.py): the empty
- * room as one picture, the pieces people can be behind cut from it, the animation as the pixels
- * that change, and a fixed cast of looks as composed frame strips. Credit: limezu.itch.io.
+ * Only derived art is served (public/library, made by scripts/cafe-hero/export_library.py): the
+ * empty room as one picture, the pieces people can be behind cut from it, the animation as the
+ * pixels that change, and a cast of looks as composed frame strips. Credit: limezu.itch.io.
  *
  * Drawing follows the kit: the room, then everything that stands on the floor in order of the y
  * it stands on (pieces, moving things, people), then the lamplight over all of it, as the kit
@@ -19,7 +20,8 @@ const DIRS: readonly Dir[] = ["right", "back", "left", "front"];
 
 interface Spot {
   role: "seat" | "sofa" | "queue" | "browse" | "barista";
-  pose: "sit" | "idle" | "read" | "phone";
+  pose: "sit" | "idle" | "read" | "phone" | "stool";
+  staff?: "librarian" | "butler";
   face: Dir;
   x: number; y: number; sort: number;
   tile: [number, number];
@@ -32,11 +34,11 @@ interface Layout {
   w: number; h: number; tile: number; cols: number; rows: number; wallH: number; fps: number; loop: number;
   door: { x: number; y: number; tile: [number, number] };
   walk: string[]; spots: Spot[]; pieces: Piece[]; anims: Anim[]; lights: Light[];
-  people: { looks: number; choose: number; frames: number; rows: Record<"idle" | "walk" | "sit" | "phone" | "read", number>; phones: boolean[] };
+  people: { looks: number; choose: number; staff: Record<"librarian" | "butler", number>; frames: number; rows: Record<"idle" | "walk" | "sit" | "phone" | "read" | "stool", number>; phones: boolean[] };
 }
 interface Assets { L: Layout; bg: HTMLImageElement; pieces: HTMLImageElement; anims: HTMLImageElement; people: HTMLImageElement }
 
-const BASE = "/cafe/";
+const BASE = "/library/";
 let loading: Promise<Assets> | null = null;
 
 function image(name: string): Promise<HTMLImageElement> {
@@ -51,8 +53,8 @@ function image(name: string): Promise<HTMLImageElement> {
 
 function loadAssets(): Promise<Assets> {
   loading ??= Promise.all([
-    fetch(BASE + "cafe.json").then(r => { if (!r.ok) throw new Error("cafe.json"); return r.json() as Promise<Layout>; }),
-    image("cafe-bg.png"), image("cafe-pieces.png"), image("cafe-anims.png"), image("cafe-people.png"),
+    fetch(BASE + "layout.json").then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
+    image("bg.png"), image("pieces.png"), image("anims.png"), image("people.png"),
   ]).then(([L, bg, pieces, anims, people]) => ({ L, bg, pieces, anims, people }));
   loading.catch(() => { loading = null; });
   return loading;
@@ -100,19 +102,27 @@ interface Person {
   phase: number;
   alpha: number;
   you?: boolean;
-  name?: string;
+  name?: string;                  // a friend in the friends' window: always labelled, never leaves
+  who: string;                    // what the card calls them
+  staff?: "librarian" | "butler";
   subject: string; mins: number; since: number;  // what their focus timer says, from when
   speed: number;
 }
 
 const SUBJECTS = ["Physics", "Maths", "Chemistry", "Biology"];
+/** Each subject's colour, as on the homepage's shelf of books. */
+const SUBJECT_COLOURS: Record<string, string> = { Physics: "#f2c96b", Maths: "#6a9bd0", Chemistry: "#8fd0a0", Biology: "#eaa99a" };
+const NAMES = ["Priya", "Oliver", "Amara", "Leo", "Zara", "Ethan", "Chloe", "Hamza", "Freya", "Kai", "Ruby", "Isaac", "Noor",
+  "Theo", "Ellie", "Yusuf", "Grace", "Arjun", "Mia", "Reuben", "Sofia", "Imani", "Finn", "Hannah", "Omar", "Lily", "Jamal",
+  "Evie", "Rohan", "Ava", "Tomás", "Layla", "Ben", "Niamh", "Kofi", "Ines", "Callum", "Mei", "Adam", "Tara", "Felix", "Hana"];
+const STAFF = { librarian: { name: "Mrs Okafor", line: "The librarian" }, butler: { name: "Jeeves", line: "The butler. Ask me anything!" } } as const;
 const POPS = ["✓ 3/3", "+1 ink", "✓ 5/6", "+1 ink", "✓ 4/4", "+10 ink", "✓ 2/2"];
 const NOTE = [[1, 0], [2, 0], [2, 1], [2, 2], [0, 3], [1, 3], [2, 3], [0, 4], [1, 4]];
 const NOTE_COLS = ["rgb(244,170,160)", "rgb(169,203,235)", "rgb(242,201,107)", "rgb(178,224,200)"];
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length)];
 
-export interface CafeStatus { seated: boolean; seconds: number; look: number }
+export interface CafeStatus { seated: boolean; seconds: number; look: number; subject: string | null }
 export interface CafeOptions {
   mode: "hero" | "friends";
   reduced: boolean;
@@ -125,6 +135,11 @@ export interface CafeHandle {
   readonly looks: number;
   readonly look: number;
 }
+
+/** The friends' window: the fire under the gallery, its armchairs, and a table for two either side (art pixels,
+ * the window's shape). Where each friend sits, by the seat nearest each point. */
+const FIRESIDE = { x: 316, y: 210, w: 300, h: 220 };
+const FRIEND_SEATS = { maya: [329, 286], aisha: [376, 286], josh: [422, 265], sam: [579, 286], you: [511, 265] } as const;
 
 /** The four friends of the "Study with friends" window, as they appear in its words. */
 const FRIENDS = [
@@ -169,6 +184,12 @@ class Cafe implements CafeHandle {
   private seatedAt = 0;
   private lastStatus = "";
   private held: Dir | null = null;
+  private hover: Person | null = null;          // under the mouse
+  private picked: Person | null = null;         // tapped: their card stays until you tap elsewhere
+  private card: HTMLElement | null = null;
+  private cardFor: Person | null = null;
+  private yourSubject: string | null = null;    // set when you pull up a chair beside someone
+  private ghost = document.createElement("canvas");
   private cleanup: (() => void)[] = [];
   looks: number;
   look = 0;
@@ -184,7 +205,7 @@ class Cafe implements CafeHandle {
     this.lamp = lightLayer(this.L, this.L.lights.filter(l => !l.fire));
     const fires = this.L.lights.filter(l => l.fire);
     this.fire = fires.length ? lightLayer(this.L, fires, .08) : null;
-    this.region = o.mode === "friends" ? { x: 212, y: 30, w: 204, h: 150 } : { x: 0, y: 0, w: this.L.w, h: this.L.h };
+    this.region = o.mode === "friends" ? FIRESIDE : { x: 0, y: 0, w: this.L.w, h: this.L.h };
     this.populate();
     this.resize();
     this.bind();
@@ -196,8 +217,10 @@ class Cafe implements CafeHandle {
 
   /* ---------- the cast ---------- */
   private person(look: number, x: number, y: number, dir: Dir = "front"): Person {
+    const taken = new Set(this.people.map(p => p.who));
     return { look, x, y, dir, doing: "idle", path: [], spot: null, at: false, until: 0, next: null, phase: Math.floor(Math.random() * 6),
-      alpha: 1, subject: pick(SUBJECTS), mins: Math.floor(rand(4, 48)), since: this.t, speed: rand(22, 28) };
+      alpha: 1, who: pick(NAMES.filter(n => !taken.has(n))) ?? pick(NAMES), subject: pick(SUBJECTS), mins: Math.floor(rand(4, 48)),
+      since: this.t - rand(0, 59), speed: rand(22, 28) };
   }
 
   private seatAt(p: Person, s: Spot, until: number) {
@@ -217,25 +240,41 @@ class Cafe implements CafeHandle {
 
   private populate() {
     const L = this.L, n = L.people.looks;
-    const baristas = this.spots.filter(s => s.role === "barista");
-    baristas.forEach((s, i) => { const p = this.person(n - 2 + i, 0, 0, s.face); this.seatAt(p, s, Infinity); this.people.push(p); });
+    for (const s of this.spots.filter(x => x.role === "barista")) {
+      const p = this.person(s.staff ? L.people.staff[s.staff] : n - 1, 0, 0, s.face);
+      p.staff = s.staff;
+      if (s.staff) p.who = STAFF[s.staff].name;
+      this.seatAt(p, s, Infinity);
+      this.people.push(p);
+    }
     if (this.o.mode === "friends") {
-      const seats = this.free("seat", true).sort((a, b) => a.y - b.y || a.x - b.x);
-      const plan: [typeof FRIENDS[number], Spot | undefined][] = [
-        [FRIENDS[0], seats.find(s => s.face === "right")],
-        [FRIENDS[1], seats.find(s => s.face === "left")],
-        [FRIENDS[2], this.free("browse", true)[0]],
-        [FRIENDS[3], seats.filter(s => s.face === "right" && s.x > 300)[0] ?? seats[3]],
-      ];
+      // Maya and Aisha across a table from each other, Josh in the armchair by the fire, Sam at the next table
+      const seats = this.free("seat", true);
+      const near = ([x, y]: readonly [number, number]) => [...seats].sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
+      const F = FRIEND_SEATS;
+      const plan: [typeof FRIENDS[number], Spot | undefined][] = [[FRIENDS[0], near(F.maya)], [FRIENDS[1], near(F.aisha)], [FRIENDS[2], near(F.josh)], [FRIENDS[3], near(F.sam)]];
       for (const [f, s] of plan) {
         if (!s) continue;
         const p = this.person(f.look, 0, 0);
-        p.name = f.name;
+        p.name = f.name; p.who = f.name;
         this.seatAt(p, s, Infinity);
         this.people.push(p);
       }
+      // and you, in the other armchair across the fire from Josh, in your session (the window's chip)
+      const yours = near(F.you), friendLooks: number[] = FRIENDS.map(f => f.look);
+      const look = this.o.look !== undefined && this.o.look >= 0 && this.o.look < L.people.choose && !friendLooks.includes(this.o.look)
+        ? this.o.look : [...Array(L.people.choose).keys()].find(l => !friendLooks.includes(l))!;
+      this.look = look;
+      if (yours && !yours.who) {
+        const you = this.person(look, 0, 0);
+        you.you = true; you.who = "You";
+        this.seatAt(you, yours, Infinity);
+        this.people.push(you);
+        this.you = you;
+        this.label(you, "You", "lp-nm is-you");
+      }
       const used = new Set(this.people.map(p => p.look));
-      for (const s of this.free("seat", true).slice(0, 2)) {
+      for (const s of this.free("seat", true).slice(0, 6)) {
         const look = [...Array(L.people.choose).keys()].find(l => !used.has(l));
         if (look === undefined) break;
         used.add(look);
@@ -245,39 +284,47 @@ class Cafe implements CafeHandle {
       }
       return;
     }
-    // the visitor's look, then ten students from the rest of the cast
+    // the visitor's look, then a full room: most seats taken, a few browsing the shelves
     const choose = L.people.choose;
     this.look = this.o.look !== undefined && this.o.look >= 0 && this.o.look < choose ? this.o.look : Math.floor(Math.random() * choose);
-    const looks = [...Array(choose).keys()].filter(l => l !== this.look).sort(() => Math.random() - .5);
-    const seats = this.free().sort(() => Math.random() - .5);
-    // a spread: never two neighbours at every table, so there are seats for the visitor
-    const taken = seats.slice(0, 8);
-    for (const s of taken) {
-      const p = this.person(looks.pop()!, 0, 0);
-      this.seatAt(p, s, this.t + rand(8, 60));
+    for (const s of this.free().sort(() => Math.random() - .5).slice(0, this.crowd)) {
+      const p = this.person(this.anyLook(), 0, 0);
+      this.seatAt(p, s, this.t + rand(8, 90));
       this.people.push(p);
     }
-    const queue = this.free("queue")[0], browse = pick(this.free("browse"));
-    for (const s of [queue, browse]) {
-      if (!s || !looks.length) continue;
-      const p = this.person(looks.pop()!, 0, 0);
-      this.seatAt(p, s, this.t + rand(3, 9));
+    for (const s of this.free("browse").sort(() => Math.random() - .5).slice(0, 3)) {
+      const p = this.person(this.anyLook(), 0, 0);
+      this.seatAt(p, s, this.t + rand(3, 12));
       p.next = "seat";
       this.people.push(p);
     }
-    // the visitor comes in at the door
-    const d = L.door, you = this.person(this.look, d.x, d.y, "front");
-    you.you = true; you.speed = 36;
+    // the visitor comes in at the entrance and walks up the runner into the reading hall's middle aisle
+    const d = L.door, you = this.person(this.look, d.x, d.y, "back");
+    you.you = true; you.speed = 36; you.who = "You";
     this.you = you;
     this.people.push(you);
+    const inside = this.nearest(d.tile, d.x - 8, d.y - 150) ?? d.tile;
     if (this.o.reduced) {
-      const [tx, ty] = d.tile;
-      you.x = tx * L.tile + 8; you.y = ty * L.tile + 12;
+      [you.x, you.y] = this.feet(inside);
     } else {
       you.doing = "enter"; you.alpha = 0;
-      you.path = [this.feet(d.tile)];
+      you.path = [this.feet(d.tile), ...(this.route(d.tile, inside) ?? []).map(t => this.feet(t))];
     }
     this.label(you, "You", "lp-nm is-you");
+  }
+
+  /** How many students the room holds: most of its seats, a few left for the visitor. */
+  private get crowd() {
+    const seats = this.spots.filter(s => s.role === "seat" || s.role === "sofa").length;
+    return Math.max(8, Math.round(seats * .6));
+  }
+
+  /** A look for a student: one nobody is wearing if there is one, never the visitor's. */
+  private anyLook() {
+    const n = this.L.people.looks - 2, used = new Set(this.people.map(p => p.look));
+    const all = [...Array(n).keys()].filter(l => l !== this.look);
+    const fresh = all.filter(l => !used.has(l));
+    return pick(fresh.length ? fresh : all);
   }
 
   /* ---------- the floor ---------- */
@@ -375,8 +422,8 @@ class Cafe implements CafeHandle {
       } else if (!p.you && !p.name && p.at && t >= p.until) this.decide(p);
     }
     if (this.o.mode === "hero") {
-      const students = this.people.filter(p => !p.you && p.spot?.role !== "barista").length;
-      if (students < 10 && t >= this.nextArrival) this.arrival();
+      const students = this.people.filter(p => !p.you && !p.staff).length;
+      if (students < this.crowd + 2 && t >= this.nextArrival) this.arrival();
       if (this.you?.at && (this.you.spot?.role === "seat" || this.you.spot?.role === "sofa")) {
         const minutes = Math.floor((t - this.seatedAt) / 60);
         if (minutes > this.inkPaid) { this.inkPaid = minutes; this.pop(this.you, "+1 ink"); }
@@ -404,13 +451,16 @@ class Cafe implements CafeHandle {
   }
 
   private arrive(p: Person) {
-    if (p.doing === "enter" && !p.spot) { p.doing = "idle"; if (p.you) return; }
+    if (p.doing === "enter" && !p.spot) {
+      p.doing = "idle";
+      if (p.you) { this.nextTimers = Math.min(this.nextTimers, this.t + .5); return; }   // in view now: pick who to label
+    }
     const s = p.spot;
     if (!s) { p.doing = "idle"; return; }
     const sit = s.role === "seat" || s.role === "sofa";
     p.at = true; p.doing = sit ? "sit" : "stand"; p.dir = s.face;
     p.x = s.x + 8; p.y = s.y + 31;
-    if (p.you) { this.seatedAt = this.t; this.inkPaid = 0; return; }
+    if (p.you) { this.seatedAt = this.t; this.inkPaid = 0; this.nextTimers = Math.min(this.nextTimers, this.t + .5); return; }
     p.until = this.t + (sit ? rand(25, 70) : rand(5, 10));
     if (sit) { p.mins = Math.floor(rand(1, 20)); p.since = this.t; }
     if (sit) p.next = null;
@@ -424,8 +474,8 @@ class Cafe implements CafeHandle {
       this.leave(p);
       return;
     }
-    const r = Math.random(), crowd = this.people.filter(q => !q.you && q.spot?.role !== "barista").length;
-    if (r < .35 && crowd >= 8) { this.leave(p); return; }
+    const r = Math.random(), crowd = this.people.filter(q => !q.you && !q.staff).length;
+    if (r < .35 && crowd >= this.crowd - 4) { this.leave(p); return; }
     if (r < .75) {
       const s = pick([...this.free("queue"), ...this.free("browse")]);
       if (s && this.sendTo(p, s)) { p.next = "seat"; return; }
@@ -442,6 +492,8 @@ class Cafe implements CafeHandle {
   }
 
   private remove(p: Person) {
+    if (this.picked === p) this.picked = null;
+    if (this.hover === p) this.hover = null;
     this.release(p);
     this.people = this.people.filter(q => q !== p);
     this.labels.get(p)?.remove();
@@ -452,11 +504,8 @@ class Cafe implements CafeHandle {
 
   /** "leave" shares its last leg with walking out: a leaver fades once they are through the door. */
   private arrival() {
-    this.nextArrival = this.t + rand(8, 20);
-    const used = new Set(this.people.map(p => p.look));
-    const looks = [...Array(this.L.people.choose).keys()].filter(l => !used.has(l));
-    if (!looks.length) return;
-    const d = this.L.door, p = this.person(pick(looks), d.x, d.y, "front");
+    this.nextArrival = this.t + rand(4, 10);
+    const d = this.L.door, p = this.person(this.anyLook(), d.x, d.y, "back");
     p.doing = "enter"; p.alpha = 0;
     const first = Math.random() < .5 ? this.free("queue")[0] : undefined;
     const s = first ?? pick(this.free());
@@ -488,22 +537,26 @@ class Cafe implements CafeHandle {
     if (s) this.sendTo(you, s);
   }
 
+  /** The person drawn at an art pixel, the frontmost first. */
+  private hit(ax: number, ay: number): Person | null {
+    return [...this.people].sort((a, b) => this.z(b) - this.z(a)).find(p => {
+      const [x, y] = this.spriteAt(p), tall = p.at && p.spot?.pose === "stool" ? 20 : 32;
+      return ax >= x + 2 && ax < x + 14 && ay >= y + 4 && ay < y + tall && p.alpha > .5;
+    }) ?? null;
+  }
+
   private tap(ax: number, ay: number) {
-    // someone there? (the frontmost first)
-    const hit = [...this.people].sort((a, b) => this.z(b) - this.z(a)).find(p => {
-      const [x, y] = this.spriteAt(p);
-      return ax >= x + 2 && ax < x + 14 && ay >= y + 6 && ay < y + 32 && p.alpha > .5;
-    });
+    const hit = this.hit(ax, ay);
     if (hit && !hit.you) {
+      this.picked = this.picked === hit ? null : hit;
       if (this.o.mode === "friends") this.pop(hit, "High five!");
-      else if (hit.spot?.role === "barista") this.pop(hit, "Flat white?");
-      else if (hit.doing === "sit") this.show(hit);
-      else this.pop(hit, "Hi!");
-      if (this.o.reduced) this.draw();
+      this.draw();
       return;
     }
+    this.picked = null;
     const you = this.you;
-    if (!you || this.o.mode !== "hero") return;
+    if (!you || this.o.mode !== "hero") { this.draw(); return; }
+    this.yourSubject = null;
     // a free seat?
     const seat = this.spots.find(s => (s.role === "seat" || s.role === "sofa") && ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36);
     if (seat && (!seat.who || seat.who === you)) {
@@ -525,6 +578,60 @@ class Cafe implements CafeHandle {
     this.go(you, to);
   }
 
+  /** Sit at the free seat nearest someone and study what they're studying (the app's "Pull up a chair"). */
+  private joinPerson(p: Person) {
+    const you = this.you;
+    if (!you) return;
+    const [px, py] = this.spriteAt(p);
+    const seat = this.free().filter(s => !s.who || s.who === you)
+      .sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py))[0];
+    if (!seat) return;
+    this.picked = null;
+    this.yourSubject = p.subject;
+    if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); return; }
+    if (!this.sendTo(you, seat)) this.yourSubject = null;
+  }
+
+  /** The card over whoever is pointed at or tapped: their name, their subject and how long they've been at it. */
+  private cardText(p: Person): { title: string; subject: string | null; line: string; join: boolean } {
+    if (p.staff) return { title: p.who, subject: null, line: STAFF[p.staff].line, join: false };
+    const sitting = p.at && (p.spot?.role === "seat" || p.spot?.role === "sofa");
+    if (sitting) {
+      const secs = Math.max(0, Math.floor(p.mins * 60 + this.t - p.since)), m = Math.floor(secs / 60);
+      const time = m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min` : `${m}:${String(secs % 60).padStart(2, "0")}`;
+      return { title: p.who, subject: p.subject, line: `⏱ ${time} focused`, join: this.o.mode === "hero" };
+    }
+    const line = p.doing === "leave" ? "Heading home" : p.at && p.spot?.role === "browse" ? "Browsing the shelves"
+      : p.doing === "enter" ? "Just arrived" : "Finding a seat";
+    return { title: p.who, subject: null, line, join: false };
+  }
+
+  private showCard() {
+    const p = this.picked ?? this.hover;
+    if (!p || p.you || p.alpha <= .5) {
+      if (this.card) { this.card.remove(); this.card = null; this.cardFor = null; }
+      return;
+    }
+    let el = this.card;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "lp-who";
+      el.innerHTML = '<b></b><span class="lp-who-sub"></span><span class="lp-who-line"></span><button type="button" class="lp-who-join">Pull up a chair ›</button>';
+      el.querySelector("button")!.addEventListener("click", e => { e.stopPropagation(); if (this.cardFor) this.joinPerson(this.cardFor); });
+      this.overlay.appendChild(el);
+      this.card = el;
+    }
+    const c = this.cardText(p);
+    const [b, sub, line, join] = [el.querySelector("b")!, el.querySelector<HTMLElement>(".lp-who-sub")!, el.querySelector<HTMLElement>(".lp-who-line")!, el.querySelector<HTMLElement>("button")!];
+    if (b.textContent !== c.title) b.textContent = c.title;
+    sub.hidden = !c.subject;
+    if (c.subject && sub.textContent !== c.subject) { sub.textContent = c.subject; sub.style.background = SUBJECT_COLOURS[c.subject] ?? "#fff"; }
+    if (line.textContent !== c.line) line.textContent = c.line;
+    join.hidden = !c.join || this.picked !== p;
+    el.classList.toggle("is-picked", this.picked === p);
+    if (this.cardFor !== p) { this.cardFor = p; this.widths.set(el, el.offsetWidth); }
+  }
+
   setLook(look: number) {
     if (!this.you || look < 0 || look >= this.L.people.choose) return;
     const other = this.people.find(p => p !== this.you && p.look === look);
@@ -538,8 +645,8 @@ class Cafe implements CafeHandle {
     const you = this.you;
     if (!you || !this.o.onStatus) return;
     const seated = you.at && !!you.spot;
-    const s: CafeStatus = { seated, seconds: seated ? Math.floor(this.t - this.seatedAt) : 0, look: you.look };
-    const key = `${s.seated}|${s.seconds}|${s.look}`;
+    const s: CafeStatus = { seated, seconds: seated ? Math.floor(this.t - this.seatedAt) : 0, look: you.look, subject: seated ? this.yourSubject : null };
+    const key = `${s.seated}|${s.seconds}|${s.look}|${s.subject}`;
     if (key !== this.lastStatus || force) { this.lastStatus = key; this.o.onStatus(s); }
   }
 
@@ -628,12 +735,23 @@ class Cafe implements CafeHandle {
       py = Math.max(py, 24);
       return `translate(${Math.round(px)}px, ${Math.round(py)}px) translate(-50%, -100%)`;
     };
+    this.showCard();
     for (const [p, el] of this.labels) {
       const [x, y] = this.spriteAt(p);
       el.style.transform = at(x + 8, y + 5, el);
-      el.style.opacity = String(p.alpha);
+      el.style.opacity = String(this.card && this.cardFor === p ? 0 : p.alpha);
     }
     for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
+    if (this.card && this.cardFor) {
+      // over their head, or under their feet when there isn't room above
+      const [x, y] = this.spriteAt(this.cardFor), el = this.card, half = el.offsetWidth / 2;
+      const px = Math.min(Math.max((x + 8 - this.camX) * s + this.offX / this.dpr, half + 4), ow - half - 4);
+      const above = (y + 3 - this.camY) * s + this.offY / this.dpr;
+      const below = (y + 32 - this.camY) * s + this.offY / this.dpr + 10;
+      el.style.transform = above - el.offsetHeight >= 4
+        ? `translate(${Math.round(px)}px, ${Math.round(above)}px) translate(-50%, -100%)`
+        : `translate(${Math.round(px)}px, ${Math.round(below)}px) translate(-50%, 0)`;
+    }
   }
 
   /* ---------- drawing ---------- */
@@ -664,16 +782,23 @@ class Cafe implements CafeHandle {
     sc.drawImage(a.bg, 0, 0);
     type Item = { z: number; draw: () => void };
     const items: Item[] = [];
+    // only what is near the window: the library is several windows wide
+    const m = 64, vx0 = this.camX - m, vy0 = this.camY - m, vx1 = this.camX + this.viewW + m, vy1 = this.camY + this.viewH + m;
+    const near = (x: number, y: number, w: number, h: number) => x < vx1 && x + w > vx0 && y < vy1 && y + h > vy0;
     for (const an of L.anims) {
+      if (!near(an.x, an.y, an.w, an.h)) continue;
       const [fx, fy] = an.frames[an.seq[tick % an.seq.length]];
       const draw = () => sc.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h);
       if (an.z === 0) draw(); else items.push({ z: an.z, draw });
     }
-    for (const pc of L.pieces) items.push({ z: pc.z, draw: () => sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h) });
+    for (const pc of L.pieces) if (near(pc.x, pc.y, pc.w, pc.h)) items.push({ z: pc.z, draw: () => sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h) });
+    const lit = this.picked ?? this.hover;
     for (const p of this.people) {
       if (p.alpha <= 0) continue;
       const [x, y] = this.spriteAt(p), f = this.frame(p, tick);
+      if (!near(x, y, 16, 32)) continue;
       items.push({ z: this.z(p) + .01, draw: () => {
+        if (p === lit && !p.you) this.outline(f, p.look, x, y);
         sc.globalAlpha = p.alpha;
         sc.drawImage(a.people, f * 16, p.look * 32, 16, 32, x, y, 16, 32);
         sc.globalAlpha = 1;
@@ -692,6 +817,19 @@ class Cafe implements CafeHandle {
     this.follow(this.o.reduced);
     ctx.drawImage(this.scene, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, this.viewW * this.k, this.viewH * this.k);
     this.place();
+  }
+
+  /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
+  private outline(f: number, look: number, x: number, y: number) {
+    const g = this.ghost, gc = g.getContext("2d")!;
+    if (g.width !== 16) { g.width = 16; g.height = 32; }
+    gc.globalCompositeOperation = "source-over";
+    gc.clearRect(0, 0, 16, 32);
+    gc.drawImage(this.a.people, f * 16, look * 32, 16, 32, 0, 0, 16, 32);
+    gc.globalCompositeOperation = "source-in";
+    gc.fillStyle = "#fff";
+    gc.fillRect(0, 0, 16, 32);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) this.sc.drawImage(g, x + dx, y + dy);
   }
 
   /** The kit's music notes, rising from the headphones of a few who are sitting. */
@@ -720,8 +858,8 @@ class Cafe implements CafeHandle {
     const W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
     if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
     const r = this.region;
-    // on a phone the hero shows a little over half the room, bigger, and follows you about
-    const want = this.o.mode === "hero" && box.width < 560 ? 300 : r.w;
+    // the hero is a window onto part of the library, at the size the café was drawn at, that follows you about
+    const want = this.o.mode === "hero" ? (box.width < 560 ? 240 : 400) : r.w;
     const exact = W / want;
     let k = Math.max(1, Math.round(exact));
     if (W / k > r.w * 1.04 || H / k > (this.o.mode === "hero" ? this.L.h : r.h) * 1.04) k = Math.ceil(exact);
@@ -737,8 +875,9 @@ class Cafe implements CafeHandle {
   private follow(snap = false) {
     let cx: number, cy: number;
     if (this.o.mode === "hero" && this.you && this.viewW < this.L.w - 1) {
+      // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
       const [x, y] = this.spriteAt(this.you);
-      cx = x + 8; cy = y + 18;
+      cx = x + 8; cy = y + 18 - this.viewH * .2;
     } else {
       cx = this.region.x + this.region.w / 2; cy = this.region.y + this.region.h / 2;
     }
@@ -773,13 +912,22 @@ class Cafe implements CafeHandle {
       this.cleanup.push(() => el.removeEventListener(ev, fn));
     };
     on(this.canvas, "click", ev => {
-      const e = ev as MouseEvent;
-      const r = this.canvas.getBoundingClientRect();
-      const x = ((e.clientX - r.left) * this.dpr - this.offX) / this.k + this.camX;
-      const y = ((e.clientY - r.top) * this.dpr - this.offY) / this.k + this.camY;
-      this.tap(x, y);
+      this.tap(...at(ev as MouseEvent));
       if (this.o.mode === "hero") this.canvas.focus({ preventScroll: true });
     });
+    const at = (e: MouseEvent): [number, number] => {
+      const r = this.canvas.getBoundingClientRect();
+      return [((e.clientX - r.left) * this.dpr - this.offX) / this.k + this.camX, ((e.clientY - r.top) * this.dpr - this.offY) / this.k + this.camY];
+    };
+    on(this.canvas, "pointermove", ev => {
+      const e = ev as PointerEvent;
+      if (e.pointerType !== "mouse") return;
+      const p = this.hit(...at(e));
+      const h = p && !p.you ? p : null;
+      this.canvas.style.cursor = h ? "pointer" : "";
+      if (h !== this.hover) { this.hover = h; if (this.o.reduced) this.draw(); }
+    });
+    on(this.canvas, "pointerleave", () => { this.hover = null; this.canvas.style.cursor = ""; if (this.o.reduced) this.draw(); });
     const KEYS: Record<string, Dir> = { ArrowRight: "right", ArrowLeft: "left", ArrowUp: "back", ArrowDown: "front" };
     on(this.canvas, "keydown", ev => {
       const e = ev as KeyboardEvent;
@@ -822,5 +970,6 @@ class Cafe implements CafeHandle {
     for (const f of this.cleanup) f();
     for (const el of this.labels.values()) el.remove();
     for (const q of this.pops) q.el.remove();
+    this.card?.remove();
   }
 }

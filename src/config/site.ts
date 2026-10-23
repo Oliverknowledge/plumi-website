@@ -9,7 +9,7 @@ export type LaunchMode = "community" | "waitlist" | "appStore";
  */
 export const appStoreUrl: string | null = "https://apps.apple.com/gb/app/plumi/id6811389052";
 export const launchMode: LaunchMode = appStoreUrl ? "appStore" : "community";
-export const discordUrl = "https://discord.gg/GAU43cBzW";
+export const discordUrl = "https://discord.gg/Rk2mB2qxtM";
 // Midnight in Britain on the confirmed launch date (BST, UTC+1).
 export const launchDate = "2026-09-25T00:00:00+01:00";
 

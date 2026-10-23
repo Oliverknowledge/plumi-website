@@ -4,8 +4,8 @@ import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
-import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, plans, practice, shelf } from "@/content/cosyHome";
-import { bankSubjects } from "@/content/questionBank";
+import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, practice, shelf } from "@/content/cosyHome";
+import { bankPath, bankSubjects } from "@/content/questionBank";
 import { CafeHero, FriendsCafe, Look, MeetPlumi } from "./LandingClient";
 import "@/app/landing.css";
 
@@ -13,18 +13,21 @@ import "@/app/landing.css";
  * The homepage: the founder's cosy notebook design (19 October 2026). The whole page is
  * a sheet of ruled paper; sections are pinned cards, sticky notes and pixel windows on it.
  *
- *   HERO      the promise, the App Store badge, the café: students studying, and you
- *             walking in to pull up a chair (LimeZu art, see cafeScene.ts)
- *   MEET      Plumi and its moods
+ *   HERO      the promise, the App Store badge, the two free tickets (question bank, past
+ *             papers), the café: students studying, and you walking in to pull up a chair
+ *             (LimeZu art, see cafeScene.ts)
+ *   PRACTICE  the free question bank and past paper library on this site, each subject one
+ *             tap away, and the Discord's daily question
  *   MARKING   a handwritten answer marked line by line, the three steps, the topic map
+ *   MEET      Plumi and its moods
  *   FRIENDS   groups and the study hall
  *   HABIT     streaks, Pomodoros that block apps, the room you earn
  *   MORE      six sticky notes
  *   SUBJECTS  four books on a shelf, linking to their pages
- *   PRACTICE  the free question bank and past paper library on this site
- *   PRICING   Free and Pro
  *   FAQ       the vetted answers
- *   CLOSE     the badge again
+ *   CLOSE     the badge again, and the Discord
+ *
+ * No pricing (founder, 23 October 2026): see the note at the top of cosyHome.ts.
  *
  * The header, footer and paper are shared with every other page (src/components/cosy).
  * Every word is in src/content/cosyHome.ts, which says where each claim comes from.
@@ -46,6 +49,13 @@ function squares(): string[] {
 /** Every question in the bank, across its subjects. */
 const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
 
+/** "AQA Physics", "Edexcel Further Maths": a bank subject as its chip says it. */
+const bankChip = (s: (typeof bankSubjects)[number]) => `${s.board} ${s.subject}`;
+
+/** Pixel icons for the hero's tickets, drawn on a 16px grid like the Discord key's. */
+const QuestionIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h8l3 3v11H3zm1 1v12h9V5h-3V2zm2 5h5v1H6zm0 2h5v1H6zm0 2h3v1H6z" /></svg>;
+const PapersIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M2 3h5l1 1 1-1h5v10H9l-1 1-1-1H2zm1 1v8h4l1 1V5L7 4zm6 1v8l1-1h4V4h-4z" /></svg>;
+
 /** Five steps of a flame, one frozen and one missed: a week of streak. */
 const flame = [["", 34], ["", 48], ["frz", 40], ["", 58], ["", 66], ["", 74], ["off", 30]] as const;
 
@@ -63,7 +73,17 @@ export function CosyHome({ variant }: { variant?: string }) {
               <AppStoreBadge placement="hero" height={56} showLine />
               <p className="lp-cta-note">{cosyHero.note}</p>
             </div>
-            <Link href="/question-bank" className="lp-hero-free" data-testid="hero-question-bank-link">{practice.heroLink} ›</Link>
+            <div className="lp-tickets">
+              <p>{cosyHero.freeLabel}</p>
+              <Link href="/question-bank" className="lp-ticket" data-testid="hero-question-bank-link">
+                <i aria-hidden="true"><QuestionIcon /></i>
+                <span><b>{practice.bank.name}</b><small>{bankQuestions.toLocaleString("en-GB")} {practice.bank.hero}</small></span>
+              </Link>
+              <Link href="/past-papers" className="lp-ticket" data-testid="hero-past-papers-link">
+                <i aria-hidden="true"><PapersIcon /></i>
+                <span><b>{practice.papers.name}</b><small>{practice.papers.hero}</small></span>
+              </Link>
+            </div>
           </div>
           <div>
             <div className="lp-card lp-window">
@@ -75,21 +95,41 @@ export function CosyHome({ variant }: { variant?: string }) {
         </div>
       </section>
 
-      {/* MEET PLUMI */}
-      <section id="meet" aria-labelledby="meet-title">
+      {/* FREE PRACTICE */}
+      <section id="free-practice" className="lp-free" aria-labelledby="practice-title">
         <div className="lp-wrap">
-          <div className="lp-card lp-meet">
-            <Spiral />
-            <MeetPlumi />
-            <div className="lp-meet-copy">
-              <span className="lp-eyebrow">{meet.eyebrow}</span>
-              <h2 id="meet-title">{meet.title} <em>{meet.titleEm}</em></h2>
-              <p className="lp-lead">{meet.lead}</p>
-              <ul className="lp-traits">
-                {meet.traits.map(t => <li key={t.text}><i style={{ background: t.tone }} aria-hidden="true">{t.glyph}</i><span>{t.text}</span></li>)}
-              </ul>
-            </div>
+          <div className="lp-sec-head">
+            <span className="lp-eyebrow">{practice.eyebrow}</span>
+            <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
+            <p className="lp-lead">{practice.lead}</p>
           </div>
+          <div className="lp-practice">
+            <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
+              <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
+              <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
+              <p>{practice.bank.line}</p>
+              <ul aria-label="Question bank subjects">
+                {bankSubjects.map(s => <li key={s.slug}><Link href={bankPath(s.slug)}>{bankChip(s)}</Link></li>)}
+              </ul>
+              <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
+            </article>
+            <article className="lp-card lp-practice-card" data-testid="practice-past-papers">
+              <span className="lp-tag">GCSE and A-Level</span>
+              <h3><Link href="/past-papers" data-testid="practice-past-papers-link">{practice.papers.name}</Link></h3>
+              <p>{practice.papers.line}</p>
+              <ul aria-label="Past papers by subject">
+                {practice.papers.links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}
+              </ul>
+              <Link href="/past-papers" className="lp-btn">{practice.papers.cta} ›</Link>
+            </article>
+            <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
+              <div className="lp-tape" aria-hidden="true" />
+              <h3 id="daily-title">{practice.discord.title}</h3>
+              <p>{practice.discord.line}</p>
+              <DiscordButton placement="practice" />
+            </aside>
+          </div>
+          <p className="lp-bridge">{practice.bridge} <a href="#marking">{practice.bridgeLink} ›</a></p>
         </div>
       </section>
 
@@ -134,6 +174,24 @@ export function CosyHome({ variant }: { variant?: string }) {
         </div>
       </section>
 
+      {/* MEET PLUMI */}
+      <section id="meet" aria-labelledby="meet-title">
+        <div className="lp-wrap">
+          <div className="lp-card lp-meet">
+            <Spiral />
+            <MeetPlumi />
+            <div className="lp-meet-copy">
+              <span className="lp-eyebrow">{meet.eyebrow}</span>
+              <h2 id="meet-title">{meet.title} <em>{meet.titleEm}</em></h2>
+              <p className="lp-lead">{meet.lead}</p>
+              <ul className="lp-traits">
+                {meet.traits.map(t => <li key={t.text}><i style={{ background: t.tone }} aria-hidden="true">{t.glyph}</i><span>{t.text}</span></li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* STUDY WITH FRIENDS */}
       <section id="friends" className="lp-friends" aria-labelledby="friends-title">
         <div className="lp-wrap">
@@ -146,8 +204,7 @@ export function CosyHome({ variant }: { variant?: string }) {
             <div>
               <div className="lp-card lp-window">
                 <Bar label={friends.window} />
-                <FriendsCafe label={friends.sceneLabel} />
-                <div className="lp-dialog"><div className="lp-row1"><b>{friends.dialog}</b></div><div className="lp-tip"><span>{friends.dialogTip[0]}</span> {friends.dialogTip[1]}</div></div>
+                <FriendsCafe label={friends.sceneLabel} session={friends.session} jar={friends.jar} />
               </div>
               <p className="lp-scene-hint">{friends.hint}</p>
             </div>
@@ -211,63 +268,12 @@ export function CosyHome({ variant }: { variant?: string }) {
           </div>
           <ul className="lp-shelf">
             {shelf.books.map(b => (
-              <li key={b.name} className="lp-book" style={{ background: b.colour, ["--book-h" as string]: `${b.height}px` }}>
+              <li key={b.name} className="lp-shelf-book" style={{ background: b.colour, ["--book-h" as string]: `${b.height}px` }}>
                 <Link href={b.href} className="lp-label" data-testid={`subject-${b.href.slice(1)}-link`}><b>{b.name}</b><small>{b.detail}</small><span className="lp-open" aria-hidden="true">Open ›</span></Link>
               </li>
             ))}
           </ul>
           <ul className="lp-boards" aria-label="Exam boards">{shelf.boards.map(b => <li key={b}>{b}</li>)}</ul>
-        </div>
-      </section>
-
-      {/* FREE PRACTICE */}
-      <section id="free-practice" aria-labelledby="practice-title">
-        <div className="lp-wrap">
-          <div className="lp-sec-head">
-            <span className="lp-eyebrow">{practice.eyebrow}</span>
-            <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
-            <p className="lp-lead">{practice.lead}</p>
-          </div>
-          <div className="lp-practice">
-            {[
-              { ...practice.bank, href: "/question-bank", tag: `${bankQuestions.toLocaleString("en-GB")} questions`, id: "question-bank" },
-              { ...practice.papers, href: "/past-papers", tag: "GCSE and A-Level", id: "past-papers" },
-            ].map(c => (
-              <Link key={c.id} href={c.href} className="lp-card lp-practice-card" data-testid={`practice-${c.id}-link`}>
-                <span className="lp-tag">{c.tag}</span>
-                <h3>{c.name}</h3>
-                <p>{c.line}</p>
-                <ul aria-label="Covers">{c.covers.map(b => <li key={b}>{b}</li>)}</ul>
-                <span className="lp-btn">{c.cta} ›</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="pricing" aria-labelledby="pricing-title">
-        <div className="lp-wrap">
-          <div className="lp-sec-head">
-            <span className="lp-eyebrow">{plans.eyebrow}</span>
-            <h2 id="pricing-title">{plans.title} <em>{plans.titleEm}</em></h2>
-          </div>
-          <div className="lp-plans">
-            <article className="lp-card lp-plan">
-              <h3>{plans.free.name}</h3>
-              <p className="lp-price">{plans.free.price}<small>{plans.free.period}</small></p>
-              <p className="lp-plan-lead">{plans.free.lead}</p>
-              <ul>{plans.free.items.map(i => <li key={i}>{i}</li>)}</ul>
-            </article>
-            <article className="lp-card lp-plan is-pro">
-              <span className="lp-tag">{plans.pro.tag}</span>
-              <h3>{plans.pro.name}</h3>
-              <p className="lp-price">{plans.pro.price}<small>{plans.pro.period}</small></p>
-              <p className="lp-plan-lead">{plans.pro.lead}</p>
-              <ul>{plans.pro.items.map(i => <li key={i}>{i}</li>)}</ul>
-              <p className="lp-fine">{plans.pro.fine}</p>
-            </article>
-          </div>
         </div>
       </section>
 

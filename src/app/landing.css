@@ -2,7 +2,7 @@
    THE COSY HOMEPAGE (src/components/landing/CosyHome.tsx)
 
    The homepage's own sections: the pixel rooms, Plumi's moods, the marked
-   page, friends, habits, sticky notes, the subject shelf and pricing. The
+   page, friends, habits, sticky notes, the subject shelf and the free practice. The
    paper, type, keys, cards, header and footer are in cosy.css, shared with
    every page. Scoped under .lp like everything else.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -32,7 +32,33 @@
 .lp-pop.is-tick { color: #d33a2f; }
 .lp-pop.is-ink { color: #fdf9f1; background: var(--lp-blue); }
 @keyframes lp-pop { 0% { margin-top: 4px; opacity: 0; } 15% { margin-top: 0; opacity: 1; } 70% { opacity: 1; } 100% { margin-top: -22px; opacity: 0; } }
-.lp-look { display: inline-block; background: url(/cafe/cafe-people.png) no-repeat; image-rendering: pixelated; flex: none; }
+/* the card over whoever you point at or tap: their name, subject and focus time (cafeScene.ts showCard) */
+.lp-who { position: absolute; left: 0; top: 0; z-index: 2; display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px 8px; padding: 6px 10px 7px; background: #fdf9f1; border: 2px solid var(--lp-line); border-radius: 9px; box-shadow: 0 3px 0 var(--lp-shadow); white-space: nowrap; pointer-events: none; margin-top: -6px; }
+.lp-who.is-picked { pointer-events: auto; }
+.lp-who b { font: 600 15px/1.2 var(--f-px); color: var(--lp-ink); }
+.lp-who-sub { justify-self: start; font: 700 11px/1.5 var(--f-body); color: var(--lp-ink); border: 2px solid var(--lp-line); border-radius: 6px; padding: 0 6px; }
+.lp-who-line { grid-column: 1 / -1; font: 700 12.5px/1.35 var(--f-body); color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; }
+.lp-who-join { grid-column: 1 / -1; justify-self: start; margin-top: 4px; font: 600 13px/1 var(--f-px); color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 7px; box-shadow: 0 2px 0 var(--lp-shadow); padding: 5px 9px; cursor: pointer; }
+.lp-who-join:active { transform: translateY(2px); box-shadow: none; }
+.lp-who [hidden] { display: none; }
+@media (max-width: 620px) { .lp-who b { font-size: 14px; } }
+/* the friends' window: the app's session chip in its corner, and the group's jar under it (FriendsCafe) */
+.lp-session { position: absolute; top: 10px; right: 10px; z-index: 3; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 6px; background: #fdf9f1; border: 3px solid var(--lp-line); border-radius: 20px; box-shadow: 0 3px 0 var(--lp-shadow); pointer-events: none; }
+.lp-session b { font: 700 20px/1 var(--f-px); color: var(--lp-ink); font-variant-numeric: tabular-nums; min-width: 3.1em; }
+.lp-session span { font: 800 12.5px/1 var(--f-body); color: var(--lp-ink-soft); }
+.lp-ring { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--lp-line); background: conic-gradient(#e9dccb var(--done, 0deg), var(--lp-gold) 0); position: relative; flex: none; }
+.lp-ring::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fdf9f1; border: 2px solid var(--lp-line); }
+.lp-jar { gap: 8px; }
+.lp-jar .lp-row1 { justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+.lp-jar-week { font-size: 14px; font-weight: 800; color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; }
+.lp-jar-bar { flex: none; height: 16px; }
+.lp-jar .lp-jar-bar i { background: var(--lp-teal); box-shadow: inset 0 -3px 0 #5aa8a4; transition: width .6s; }
+.lp-jar-who { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.lp-jar-who li { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 2px; overflow: hidden; border: 2px solid var(--lp-line); border-radius: 9px; background: #fff; font-size: 13px; font-weight: 800; color: var(--lp-ink); font-variant-numeric: tabular-nums; }
+.lp-jar-who li.is-you { background: #fff1c2; }
+.lp-jar-who .lp-look { border-radius: 6px; background-color: var(--lp-paper-2); margin-left: -2px; }
+@media (max-width: 620px) { .lp-session { height: 34px; top: auto; bottom: 8px; right: 8px; } .lp-session b { font-size: 17px; } .lp-session span { display: none; } }
+.lp-look { display: inline-block; background: url(/library/people.png) no-repeat; image-rendering: pixelated; flex: none; }
 .lp-dialog { margin: 12px -14px 0; background: var(--lp-card-bg); border-top: 3px solid var(--lp-line); padding: 12px 18px 14px; display: grid; gap: 6px; border-radius: 0 0 17px 17px; }
 .lp-row1 { display: flex; align-items: center; gap: 14px; }
 .lp-row1 b { font-family: var(--f-px); font-weight: 600; font-size: 21px; }
@@ -119,60 +145,78 @@
 
 /* shelf */
 .lp-shelf { list-style: none; margin: 0; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; padding: 0 12px; border-bottom: 14px solid #b07a52; box-shadow: 0 3px 0 var(--lp-line); }
-.lp-book { width: 150px; height: var(--book-h, 190px); border: 3px solid var(--lp-line); border-bottom: 0; border-radius: 10px 10px 2px 2px; position: relative; display: grid; align-content: start; justify-items: center; padding-top: 22px; }
-.lp-book::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 5px; background: rgba(91, 71, 65, .22); }
+.lp-shelf-book { width: 150px; height: var(--book-h, 190px); border: 3px solid var(--lp-line); border-bottom: 0; border-radius: 10px 10px 2px 2px; position: relative; display: grid; align-content: start; justify-items: center; padding-top: 22px; }
+.lp-shelf-book::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 5px; background: rgba(91, 71, 65, .22); }
 .lp .lp-label { display: block; background: #fffdf8; border: 2px solid var(--lp-line); border-radius: 4px; padding: 6px 10px; text-align: center; width: 78%; color: var(--lp-ink); text-decoration: none; position: relative; }
 .lp .lp-label:hover { background: #fff; }
 /* A book you point at or tap comes off the shelf: it lifts and tilts, its label turns ink and
    says where it goes, so choosing Maths or Physics reads as choosing (the founder, 19 October). */
-.lp-book { transition: transform .16s cubic-bezier(.2, .9, .3, 1.3), box-shadow .16s; cursor: pointer; }
-.lp-book:hover, .lp-book:focus-within { transform: translateY(-18px) rotate(-2.5deg); box-shadow: 0 12px 0 rgba(43, 35, 38, .2); z-index: 2; }
-.lp-book:active { transform: translateY(-8px) rotate(-1deg); }
-.lp-book:hover .lp-label, .lp-book:focus-within .lp-label { background: var(--lp-ink); color: #fdf9f1; border-color: var(--lp-ink); }
-.lp-book:hover .lp-label small, .lp-book:focus-within .lp-label small { color: #f2e6d2; }
+.lp-shelf-book { transition: transform .16s cubic-bezier(.2, .9, .3, 1.3), box-shadow .16s; cursor: pointer; }
+.lp-shelf-book:hover, .lp-shelf-book:focus-within { transform: translateY(-18px) rotate(-2.5deg); box-shadow: 0 12px 0 rgba(43, 35, 38, .2); z-index: 2; }
+.lp-shelf-book:active { transform: translateY(-8px) rotate(-1deg); }
+.lp-shelf-book:hover .lp-label, .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #fdf9f1; border-color: var(--lp-ink); }
+.lp-shelf-book:hover .lp-label small, .lp-shelf-book:focus-within .lp-label small { color: #f2e6d2; }
 .lp-label .lp-open { display: block; margin-top: 6px; font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-gold); max-height: 0; opacity: 0; overflow: hidden; transition: max-height .16s, opacity .16s; }
-.lp-book:hover .lp-open, .lp-book:focus-within .lp-open { max-height: 24px; opacity: 1; }
+.lp-shelf-book:hover .lp-open, .lp-shelf-book:focus-within .lp-open { max-height: 24px; opacity: 1; }
 .lp .lp-label:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 3px; }
 @media (hover: none) { .lp-label .lp-open { max-height: 24px; opacity: 1; color: var(--lp-blue); } }
-@media (prefers-reduced-motion: reduce) { .lp-book, .lp-book:hover, .lp-book:focus-within, .lp-book:active { transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lp-shelf-book, .lp-shelf-book:hover, .lp-shelf-book:focus-within, .lp-shelf-book:active { transform: none; transition: none; } }
 .lp .lp-label::after { content: ""; position: absolute; inset: -22px -16px -200px; }
 .lp-label b { font-family: var(--f-px); font-weight: 600; font-size: 18px; display: block; }
 .lp-label small { display: block; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }
-.lp-book { overflow: hidden; }
+.lp-shelf-book { overflow: hidden; }
 
-/* pricing */
-.lp-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; max-width: 920px; }
-.lp-plan { padding: 30px 28px; display: grid; gap: 14px; align-content: start; }
-.lp-plan.is-pro { background: #fff4dd; }
-.lp-price { font-family: var(--f-px); font-weight: 700; font-size: 54px; line-height: 1; }
-.lp-price small { font-family: var(--f-body); font-size: 16px; font-weight: 700; color: var(--lp-ink-soft); margin-left: 6px; }
-.lp-plan-lead { font-weight: 600; color: var(--lp-ink-soft); }
-.lp-plan ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-weight: 600; }
-.lp-plan li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; }
-.lp-plan li::before { content: "✓"; font-weight: 800; color: var(--lp-blue); }
-.lp-fine { font-size: 13.5px; color: var(--lp-ink-soft); font-weight: 600; }
+/* tags on cards */
 .lp-tag { justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 14px; background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 10px; }
 
-/* free practice: the question bank and past papers */
-.lp .lp-hero-free { display: inline-block; margin-top: 14px; font-weight: 700; color: var(--lp-blue); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
-.lp-practice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; max-width: 920px; }
-.lp .lp-practice-card { padding: 28px 26px; display: grid; gap: 12px; align-content: start; color: var(--lp-ink); text-decoration: none; transition: transform .08s, box-shadow .08s; }
-.lp .lp-practice-card:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
-.lp .lp-practice-card:active { transform: translateY(4px); box-shadow: 0 3px 0 var(--lp-shadow); }
-.lp-practice-card h3 { margin: 0; font-family: var(--f-px); font-size: 28px; }
+/* the hero's two tickets to the free practice: big enough to hit with a thumb, quieter than the download */
+.lp-tickets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-top: 18px; border-top: 2px dashed #d8c8ad; }
+.lp-tickets > p { grid-column: 1 / -1; font-size: 15px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .lp-ticket { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); color: var(--lp-ink); text-decoration: none; transition: transform .08s, box-shadow .08s, background .08s; }
+.lp .lp-ticket:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 5px 0 var(--lp-shadow); }
+.lp .lp-ticket:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--lp-shadow); }
+.lp-ticket i { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 10px; background: var(--lp-gold); }
+.lp-ticket + .lp-ticket i { background: var(--lp-blue-soft); }
+.lp-ticket svg { width: 24px; height: 24px; }
+.lp-ticket b { display: block; font-family: var(--f-px); font-weight: 600; font-size: 18px; line-height: 1.2; }
+.lp-ticket small { display: block; font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }
+
+/* free practice: the question bank, past papers, and the Discord's daily question */
+.lp .lp-free { padding-top: 24px; }
+.lp-practice { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 28px; align-items: start; }
+.lp-practice-card { padding: 28px 26px; display: grid; gap: 12px; align-content: start; }
+.lp .lp-practice-card h3 { margin: 0; font-family: var(--f-px); font-size: 28px; }
+.lp .lp-practice-card h3 a { color: inherit; text-decoration: none; }
+.lp .lp-practice-card h3 a:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 4px; }
 .lp-practice-card p { margin: 0; font-weight: 600; color: var(--lp-ink-soft); }
 .lp-practice-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
-.lp-practice-card li { font-size: 13px; font-weight: 700; border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 8px; background: #fff; }
-.lp-practice-card .lp-btn { justify-self: start; margin-top: 6px; font-size: 17px; padding: 8px 16px; background: var(--lp-gold); }
-@media (prefers-reduced-motion: reduce) { .lp .lp-practice-card, .lp .lp-practice-card:hover, .lp .lp-practice-card:active { transform: none; transition: none; } }
+.lp .lp-practice-card li a { display: block; font-size: 13.5px; font-weight: 700; border: 2px solid var(--lp-line); border-radius: 8px; padding: 2px 9px; background: #fff; color: var(--lp-ink); text-decoration: none; }
+.lp .lp-practice-card li a:hover { background: var(--lp-gold); }
+.lp .lp-practice-card .lp-btn { justify-self: start; margin-top: 6px; font-size: 17px; padding: 8px 16px; background: var(--lp-gold); }
+.lp .lp-daily { background: #dff0ee; transform: rotate(1.2deg); margin-top: 10px; gap: 12px; }
+.lp .lp-daily .lp-discord { justify-self: start; font-size: 16px; padding: 8px 14px; }
+.lp-bridge { margin-top: 30px !important; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .lp-bridge a { font-weight: 800; white-space: nowrap; }
+/* On a phone the send-on already says it's free and iPad only, so the hero drops the note and
+   starts higher, which brings both tickets up to the first screen. */
+@media (pointer: coarse) and (max-width: 640px) {
+  .lp-hero-cafe .lp-cta-note { display: none; }
+  .lp .lp-hero-cafe { padding-top: 28px; }
+  .lp-hero-cafe .lp-hero-copy { gap: 18px; }
+}
+.lp-hero-cafe .lp-cta-note { max-width: none; }
+@media (prefers-reduced-motion: reduce) { .lp .lp-daily { transform: none; } }
 
 @media (max-width: 980px) {
   .lp-mark-grid, .lp-friends-grid, .lp-meet { grid-template-columns: minmax(0, 1fr); }
   .lp-meet-art { border-right: 0; border-bottom: 3px dashed #d8c8ad; border-radius: 17px 17px 0 0; }
   .lp-habits, .lp-notes-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lp-practice { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lp .lp-daily { grid-column: 1 / -1; transform: rotate(-.4deg); }
 }
 @media (max-width: 620px) {
-  .lp-habits, .lp-notes-grid, .lp-plans, .lp-practice { grid-template-columns: minmax(0, 1fr); }
+  .lp-habits, .lp-notes-grid, .lp-practice { grid-template-columns: minmax(0, 1fr); }
+  .lp-tickets { grid-template-columns: minmax(0, 1fr); }
   .lp-practice-card .lp-btn { white-space: normal; }
   .lp-meet-copy { padding: 30px 22px; }
   .lp-page { padding: 48px 18px 24px 36px; background-image: linear-gradient(90deg, transparent 22px, #f1b8ab 22px, #f1b8ab 24px, transparent 24px); }
@@ -181,6 +225,6 @@
   .lp-hwl { font-size: 25px; }
   .lp-topicmap { grid-template-columns: minmax(0, 1fr); }
   .lp-squares { grid-template-columns: repeat(12, 1fr); }
-  .lp-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
+  .lp-shelf-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-pop, .lp-meter i, .lp-cafe canvas { animation: none; transition: none; } }

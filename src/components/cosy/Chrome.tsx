@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { HeaderDownload } from "@/components/home/AppStoreBadge";
+import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { entityDescription, site } from "@/config/site";
 import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
 
@@ -14,7 +15,7 @@ import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
  * landing.css (the homepage's sections) and pages.css (subject, intent and legal pages).
  */
 
-/** The header: logo, the homepage's sections, and the download key. */
+/** The header: logo, the free practice, the homepage's sections, the Discord, and the download key. */
 export function CosyHeader({ home = false }: { home?: boolean }) {
   return (
     <header className="lp-nav">
@@ -23,10 +24,11 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
           <Image src="/landing/plumi-mood-happy.svg" alt="" width={40} height={40} unoptimized priority />plumi
         </Link>
         <nav aria-label="Sections">
+          {pageLinks.map(([label, href]) => <Link key={href} href={href} className="lp-nav-page" data-testid={`header-${href.slice(1)}-link`}>{label}</Link>)}
           {sectionLinks.map(([label, id]) => home
             ? <a key={id} href={`#${id}`}>{label}</a>
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
-          {pageLinks.map(([label, href]) => <Link key={href} href={href} className="lp-nav-page" data-testid={`header-${href.slice(1)}-link`}>{label}</Link>)}
+          <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
         <HeaderDownload download="Get it free" className="lp-btn lp-navbtn" />
       </div>

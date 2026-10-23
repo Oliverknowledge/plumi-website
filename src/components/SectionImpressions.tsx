@@ -28,7 +28,6 @@ const ARCS: Record<string, string> = {
   more: "4-replaces-stack",
   subjects: "4-replaces-stack",
   "free-practice": "4-replaces-stack",
-  pricing: "5-the-deal",
   "on-page": "1-reads-you",
   "the-mark": "1-reads-you",
   trust: "2-trust-it",

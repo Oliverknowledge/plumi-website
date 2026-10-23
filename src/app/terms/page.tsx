@@ -6,17 +6,18 @@ import { site } from "@/config/site";
 
 /** Indexable, for the same reason as the privacy page. */
 export const metadata: Metadata = {
-  title: terms.title,
+  title: "Website Terms",
   description: terms.description,
   alternates: { canonical: "/terms" },
   openGraph: {
-    title: `${terms.title} · Plumi`,
+    title: "Website Terms · Plumi",
     description: terms.description,
     url: "/terms",
     // Repeated from the root layout deliberately: metadata merges shallowly, so
     // defining `openGraph` here replaces the parent's object entirely.
     siteName: site.name,
     locale: site.locale,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Plumi, the GCSE and A-Level revision app for iPad." }],
   },
 };
 

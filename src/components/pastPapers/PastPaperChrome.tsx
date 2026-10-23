@@ -9,8 +9,8 @@ import { pastPaperSource, type Level } from "@/content/pastPapers";
  * The pieces every past paper page shares: the "now get it marked" card that turns
  * a paper download into a reason to open Plumi, the three-step way to use a paper,
  * and the credit line. Copy follows the homepage's truth rules (src/content/home.ts):
- * A-Level papers are in the app's Papers tab and Pro marks a whole paper; a GCSE
- * paper goes in as a PDF to write on. Nothing here claims more than that.
+ * A-Level papers are in the app's Papers tab and Plumi marks handwritten answers; a GCSE
+ * paper goes in as a PDF to write on. No plans or prices (founder, 23 October 2026).
  */
 export function MarkItCard({ level, placement }: { level: Level; placement: string }) {
   return (
@@ -21,14 +21,14 @@ export function MarkItCard({ level, placement }: { level: Level; placement: stri
         <h2 id={`${placement}-title`}>Sit it on iPad, and <em>get it marked.</em></h2>
         <p className="lp-lead">
           {level === "A-Level"
-            ? "Your board’s A‑Level papers are already in Plumi’s Papers tab, with their mark schemes. Write your answers with Apple Pencil, and with Pro Plumi marks the whole paper and gives it a grade."
+            ? "Your board’s A‑Level papers are already in Plumi’s Papers tab, with their mark schemes. Write your answers with Apple Pencil, and Plumi marks your working against the mark scheme."
             : "Put the PDF in your Plumi notebook and write on it like any page. Then practise the questions you dropped: Plumi writes new ones in your board’s style and marks your handwritten working."}
         </p>
         <div className="lp-cta-row">
           <AppStoreBadge placement={placement} height={52} />
           <DiscordButton placement={`${placement}-discord`} />
         </div>
-        <p className="lp-cta-note">Free to download, with 10 answers marked free every week. The Discord is a study room for revising together.</p>
+        <p className="lp-cta-note">Free to download on the App Store. The Discord is a study room for revising together.</p>
       </div>
       <figure className="pp-mark-shot">
         <Image src="/site/tile-papers2.webp" width={1442} height={550} sizes="(max-width: 980px) 90vw, 520px"
