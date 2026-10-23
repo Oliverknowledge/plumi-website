@@ -157,6 +157,31 @@ export const shelf = {
   boards: ["AQA", "OCR", "Edexcel"],
 } as const;
 
+/**
+ * The free practice on the website itself: the question bank (/question-bank) and the past
+ * paper library (/past-papers). Both are free and need no account; the question count is
+ * read from the bank's data in CosyHome, so it stays true as subjects are added.
+ */
+export const practice = {
+  eyebrow: "Free exam practice",
+  title: "Real exam questions,",
+  titleEm: "sorted by topic.",
+  lead: "On this website, free, with no sign-up. Practise from the boards’ own papers tonight, iPad or not.",
+  heroLink: "Free past papers and a question bank",
+  bank: {
+    name: "Question bank",
+    line: "Pick a topic and get every exam question on it, each with its mark scheme and the examiner’s report beside it. Build a set and download it as a PDF.",
+    covers: ["AQA Biology", "AQA Chemistry", "AQA Physics", "Edexcel Maths", "Edexcel Further Maths"],
+    cta: "Open the question bank",
+  },
+  papers: {
+    name: "Past papers",
+    line: "Every past paper and mark scheme for GCSE and A-Level Maths, Further Maths, Biology, Chemistry and Physics, sorted by board and year.",
+    covers: ["AQA", "Edexcel", "OCR", "WJEC and Eduqas", "Cambridge"],
+    cta: "Browse past papers",
+  },
+} as const;
+
 export const plans = {
   eyebrow: "Pricing",
   title: "Start free.",

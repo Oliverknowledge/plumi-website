@@ -4,7 +4,8 @@ import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
-import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, plans, shelf } from "@/content/cosyHome";
+import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, plans, practice, shelf } from "@/content/cosyHome";
+import { bankSubjects } from "@/content/questionBank";
 import { CafeHero, FriendsCafe, Look, MeetPlumi } from "./LandingClient";
 import "@/app/landing.css";
 
@@ -20,6 +21,7 @@ import "@/app/landing.css";
  *   HABIT     streaks, Pomodoros that block apps, the room you earn
  *   MORE      six sticky notes
  *   SUBJECTS  four books on a shelf, linking to their pages
+ *   PRACTICE  the free question bank and past paper library on this site
  *   PRICING   Free and Pro
  *   FAQ       the vetted answers
  *   CLOSE     the badge again
@@ -41,6 +43,9 @@ function squares(): string[] {
   return Array.from({ length: 72 }, () => { const r = rnd(); return fills[r < .1 ? 0 : r < .34 ? 1 : r < .48 ? 2 : r < .84 ? 3 : 4]; });
 }
 
+/** Every question in the bank, across its subjects. */
+const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
+
 /** Five steps of a flame, one frozen and one missed: a week of streak. */
 const flame = [["", 34], ["", 48], ["frz", 40], ["", 58], ["", 66], ["", 74], ["off", 30]] as const;
 
@@ -58,6 +63,7 @@ export function CosyHome({ variant }: { variant?: string }) {
               <AppStoreBadge placement="hero" height={56} showLine />
               <p className="lp-cta-note">{cosyHero.note}</p>
             </div>
+            <Link href="/question-bank" className="lp-hero-free" data-testid="hero-question-bank-link">{practice.heroLink} ›</Link>
           </div>
           <div>
             <div className="lp-card lp-window">
@@ -211,6 +217,31 @@ export function CosyHome({ variant }: { variant?: string }) {
             ))}
           </ul>
           <ul className="lp-boards" aria-label="Exam boards">{shelf.boards.map(b => <li key={b}>{b}</li>)}</ul>
+        </div>
+      </section>
+
+      {/* FREE PRACTICE */}
+      <section id="free-practice" aria-labelledby="practice-title">
+        <div className="lp-wrap">
+          <div className="lp-sec-head">
+            <span className="lp-eyebrow">{practice.eyebrow}</span>
+            <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
+            <p className="lp-lead">{practice.lead}</p>
+          </div>
+          <div className="lp-practice">
+            {[
+              { ...practice.bank, href: "/question-bank", tag: `${bankQuestions.toLocaleString("en-GB")} questions`, id: "question-bank" },
+              { ...practice.papers, href: "/past-papers", tag: "GCSE and A-Level", id: "past-papers" },
+            ].map(c => (
+              <Link key={c.id} href={c.href} className="lp-card lp-practice-card" data-testid={`practice-${c.id}-link`}>
+                <span className="lp-tag">{c.tag}</span>
+                <h3>{c.name}</h3>
+                <p>{c.line}</p>
+                <ul aria-label="Covers">{c.covers.map(b => <li key={b}>{b}</li>)}</ul>
+                <span className="lp-btn">{c.cta} ›</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

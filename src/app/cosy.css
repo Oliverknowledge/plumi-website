@@ -91,6 +91,11 @@
 .lp-nav nav { display: flex; gap: 4px; margin-left: 12px; }
 .lp .lp-nav nav a { font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-ink); text-decoration: none; padding: 7px 12px; border-radius: 10px; }
 .lp .lp-nav nav a:hover { background: var(--lp-paper-2); }
+/* Six links fit from 1220px; below that the two least-needed section links give way, so
+   the free Question bank and Past papers stay in the bar down to 980px, where it all hides. */
+.lp .lp-nav nav a { white-space: nowrap; }
+@media (max-width: 1220px) { .lp .lp-nav nav a[href$="#friends"] { display: none; } }
+@media (max-width: 1100px) { .lp .lp-nav nav a[href$="#meet"] { display: none; } }
 .lp .lp-navbtn { margin-left: auto; padding: 7px 16px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); }
 
 /* hero, pixel windows, steps (the homepage and the subject pages) */
