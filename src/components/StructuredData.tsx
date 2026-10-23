@@ -200,7 +200,10 @@ export function PageStructuredData({
   description,
   breadcrumb,
   image = "/og.png",
+  type = "WebPage",
 }: {
+  /** CollectionPage for the past paper library, whose pages are lists of documents. */
+  type?: "WebPage" | "CollectionPage";
   /** The page's own share image, if it has one. */
   image?: string;
   path: string;
@@ -217,7 +220,7 @@ export function PageStructuredData({
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "WebPage",
+            "@type": type,
             "@id": absoluteUrl(path),
             url: absoluteUrl(path),
             name,

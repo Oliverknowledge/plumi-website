@@ -51,3 +51,7 @@ Alma references/ScreenRecording_09-07-2026 23-49-10_1.mov
 # the LimeZu kit used by scripts/cafe-hero (licensed pack: never commit it)
 vendor/
 __pycache__/
+scripts/past-papers/.cache/
+scripts/question-bank/.work/
+# local copies of our papers and crops, served at /papers-local in development (R2 in production)
+public/papers-local

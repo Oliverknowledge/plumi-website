@@ -105,7 +105,7 @@
 .lp-bar span { margin-left: auto; color: #e9dccb; font-family: var(--f-px); font-size: 14px; }
 .lp-m { font-family: var(--f-body); font-weight: 800; font-size: 12.5px; padding: 1px 8px; border-radius: 7px; border: 2px solid var(--lp-line); color: var(--lp-ink); }
 .lp-m.is-needs { background: var(--lp-needs); }
-.lp-step { padding: 18px 20px; display: grid; gap: 6px; }
+.lp-step { padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
 .lp-num { font-family: var(--f-px); font-weight: 700; color: var(--lp-orange); font-size: 18px; }
 .lp-step p { font-weight: 600; color: var(--lp-ink-soft); font-size: 16px; }
 

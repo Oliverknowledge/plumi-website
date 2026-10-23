@@ -1,0 +1,70 @@
+import Image from "next/image";
+import Link from "next/link";
+import { CosyPage, Spiral } from "@/components/cosy/Chrome";
+import { PageStructuredData } from "@/components/StructuredData";
+import { intentFor } from "@/config/routes";
+import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
+import { boardPath, boardsFor, display, pastPaperSubjects, subjectPath, subjectTitle, type Level } from "@/content/pastPapers";
+import "@/app/pages.css";
+import "@/app/past-papers.css";
+
+/**
+ * /past-papers: the library's front door, for "GCSE and A-Level past papers".
+ * Every subject at each level as a notebook card, with each board one tap away,
+ * so a student is two clicks from any paper and a crawler reaches every page.
+ */
+export function PastPapersHub() {
+  const intent = intentFor("/past-papers");
+  const levels: Level[] = ["A-Level", "GCSE"];
+  return (
+    <CosyPage after={
+      <PageStructuredData path="/past-papers" name={intent.title} description={intent.description} type="CollectionPage"
+        breadcrumb={[{ name: "Past papers", path: "/past-papers" }]} />
+    }>
+      <article className="pp">
+        <header className="lp-wrap pp-hero pp-hub-hero">
+          <div>
+            <span className="lp-eyebrow">Free · no sign‑up</span>
+            <h1>{display(intent.h1.replace(/ past papers$/, ""))} <em>past papers</em></h1>
+            <p className="lp-lead">
+              Maths, Further Maths, Biology, Chemistry and Physics, for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge.
+              Every question paper with its mark scheme, a whole board on one page.
+            </p>
+          </div>
+          <Image className="pp-hub-mascot" src="/landing/plumi-mood-thinking.svg" alt="" width={150} height={150} unoptimized priority />
+        </header>
+
+        {levels.map(level => (
+          <section key={level} aria-labelledby={`${level}-title`} className="pp-group">
+            <div className="lp-wrap">
+              <h2 id={`${level}-title`} className="pp-group-title">{level === "GCSE" ? "GCSE & IGCSE" : "A-Level & International A-Level"}</h2>
+              <div className="pp-subjects">
+                {pastPaperSubjects.filter(s => s.level === level).map(s => (
+                  <section key={s.slug} className="lp-card pp-subject" aria-labelledby={`${s.slug}-title`}>
+                    <Spiral />
+                    <h3 id={`${s.slug}-title`}><Link href={subjectPath(s.slug)}>{subjectTitle(s)} past papers</Link></h3>
+                    <ul className="lp-boards">
+                      {boardsFor(s.slug).map(b => (
+                        <li key={b.slug}><Link href={boardPath(s.slug, b.slug)} aria-label={`${b.board} ${b.qualification} ${s.name} past papers`}>{b.label}</Link></li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            </div>
+          </section>
+        ))}
+
+        <section className="pp-mark-wrap" aria-label="Get your paper marked">
+          <div className="lp-wrap"><MarkItCard level="A-Level" placement="papers-hub" /></div>
+        </section>
+
+        <HowToUse subject="GCSE and A-Level" />
+
+        <section className="pp-more">
+          <div className="lp-wrap"><SourceCredit /></div>
+        </section>
+      </article>
+    </CosyPage>
+  );
+}

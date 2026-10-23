@@ -9,10 +9,18 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "og": "tsx scripts/build-og-image.ts",
-    "seo:map": "tsx scripts/build-keyword-map.ts"
+    "seo:map": "tsx scripts/build-keyword-map.ts",
+    "papers:crawl": "python3 scripts/past-papers/crawl.py",
+    "papers:build": "python3 scripts/past-papers/build.py",
+    "bank:fetch": "python3 scripts/question-bank/fetch_aqa.py",
+    "bank:spec": "python3 scripts/question-bank/spec.py",
+    "bank:cut": "python3 scripts/question-bank/cut.py",
+    "bank:build": "python3 scripts/question-bank/build_bank.py",
+    "bank:upload": "python3 scripts/question-bank/upload_r2.py"
   },
   "dependencies": {
     "next": "16.3.4",
+    "pdf-lib": "1.17.1",
     "perfect-freehand": "^1.2.3",
     "posthog-js": "^1.429.3",
     "qrcode": "^1.5.4",

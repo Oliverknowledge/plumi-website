@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE PAST PAPER LIBRARY, IN THE COSY NOTEBOOK
+
+   /past-papers, its subject pages and its board pages
+   (src/components/pastPapers/). The paper, type, keys and cards are cosy.css's;
+   this adds the paper cards, the session tables and the board picker. Each
+   paper is a pinned pixel window, each file a small key, so a page of two
+   hundred links still reads as the same notebook as the homepage.
+   Scoped under .lp like everything else.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lp .pp section { padding-block: 44px; }
+.lp .pp-hero { display: grid; gap: 18px; padding-top: 48px; padding-bottom: 20px; }
+.lp .pp-hero h1 { font-size: clamp(34px, 5vw, 62px); line-height: 1.05; max-width: 16em; }
+.lp .pp-hero .lp-lead { max-width: 40em; }
+.pp-hub-hero { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.pp-hub-hero > div { display: grid; gap: 18px; }
+.lp .pp-hub-mascot { width: 150px; height: 150px; }
+
+/* breadcrumb */
+.pp-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink-soft); }
+.lp .pp-crumbs a { color: var(--lp-blue); text-decoration: none; }
+.lp .pp-crumbs a:hover { text-decoration: underline; }
+
+/* at a glance */
+.pp-facts { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.pp-facts li { display: grid; gap: 0; padding: 8px 14px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); min-width: 96px; }
+.pp-facts strong { font-family: var(--f-px); font-weight: 700; font-size: 22px; line-height: 1.2; color: var(--lp-orange); }
+.pp-facts span { font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); }
+
+/* jump to a paper */
+.pp-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.lp .pp-jump a { font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); text-decoration: none; border: 2px solid var(--lp-line); border-radius: 10px; padding: 4px 10px; background: var(--lp-paper-2); min-height: 36px; display: inline-flex; align-items: center; }
+.lp .pp-jump a:hover { background: var(--lp-gold); }
+
+/* a specification's papers */
+.lp .pp-group-title { font-size: clamp(26px, 3.2vw, 38px); margin-bottom: 22px; }
+.pp-papers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; align-items: start; }
+/* .pp .pp-paper beats ".pp section"'s padding: the paper card is a <section>. */
+.lp .pp .pp-paper { padding: 12px 12px 0; background: #3a2e33; scroll-margin-top: 90px; }
+.pp-paper:nth-child(4n+1) { transform: rotate(-.35deg); }
+.pp-paper:nth-child(4n+3) { transform: rotate(.35deg); }
+.pp-paper-body { background: var(--lp-card-bg); border-radius: 10px 10px 16px 16px; margin: 0 -12px; padding: 16px 18px 18px; border-top: 3px solid var(--lp-line); }
+.lp .pp-paper h3 { font-size: 20px; line-height: 1.2; }
+.pp-extras { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px !important; font-size: 14.5px; font-weight: 700; }
+
+/* the session table */
+.pp-table-wrap { margin-top: 12px; overflow-x: auto; }
+.pp-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pp-table th, .pp-table td { padding: 5px 4px; text-align: left; border-bottom: 2px dashed #e2d6c2; vertical-align: middle; }
+.pp-table thead th { font-family: var(--f-px); font-weight: 600; font-size: 13.5px; color: var(--lp-ink-soft); border-bottom: 3px solid var(--lp-line); }
+.pp-table abbr { text-decoration: none; }
+.pp-table tbody th { font-weight: 700; white-space: nowrap; }
+.pp-table tbody tr:last-child > * { border-bottom: 0; }
+.lp .pp-file { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 32px; padding: 0 8px; font-family: var(--f-px); font-weight: 600; font-size: 14px; text-decoration: none; color: var(--lp-ink); border: 2px solid var(--lp-line); border-radius: 9px; box-shadow: 0 3px 0 var(--lp-shadow); background: var(--lp-card-bg); transition: transform .08s, box-shadow .08s; }
+.lp .pp-file:hover { transform: translateY(-1px); }
+.lp .pp-file:active { transform: translateY(3px); box-shadow: 0 0 0 var(--lp-shadow); }
+.lp .pp-file.is-qp { background: var(--lp-blue-soft); }
+.lp .pp-file.is-ms { background: var(--lp-gold); }
+.lp .pp-file.is-ma, .lp .pp-file.is-vs { background: #cfe8d0; }
+.pp-more-files { display: flex; flex-wrap: wrap; gap: 4px; }
+.pp-none { color: #c5b59c; font-weight: 800; padding-left: 18px; }
+.pp-older { margin-top: 8px; }
+.pp-older summary { cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-blue); padding: 6px 0; }
+
+/* folded legacy specifications */
+.pp-legacy .lp-lead { margin-bottom: 22px; }
+.lp .pp-old { padding: 0; margin-bottom: 18px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.pp-old summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 14px 18px; font-family: var(--f-px); font-weight: 600; font-size: 20px; }
+.pp-old summary::-webkit-details-marker { display: none; }
+.pp-old summary::after { content: "+"; font-size: 22px; }
+.pp-old[open] summary::after { content: "−"; }
+.pp-count { margin-left: auto; font-size: 14px; color: var(--lp-ink-soft); border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; background: var(--lp-paper-2); }
+.pp-old .pp-papers { padding: 18px; border-top: 2px dashed #d8c8ad; background: var(--lp-paper); border-radius: 0 0 18px 18px; }
+
+/* the get-it-marked card */
+.lp .pp-mark { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 30px; align-items: center; padding: 34px 32px; background: #fff4dd; transform: rotate(-.3deg); }
+.pp-mark-copy { display: grid; gap: 16px; }
+.lp .pp-mark h2 { font-size: clamp(28px, 3.4vw, 42px); }
+.pp-mark .lp-lead { font-size: 18px; }
+.pp-mark-shot { margin: 0; }
+.lp .pp-mark-shot img { width: 100%; height: auto; display: block; image-rendering: auto; border-radius: 10px; border: 2px solid #e2d6c2; background: #fff; }
+
+/* board picker (subject pages) */
+.pp-boards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.lp .pp-board { display: grid; gap: 4px; padding: 18px 20px; text-decoration: none; color: var(--lp-ink); height: 100%; transition: transform .08s, box-shadow .08s; }
+.lp .pp-board:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
+.pp-board-name { font-family: var(--f-px); font-weight: 700; font-size: 28px; line-height: 1.1; }
+.pp-board-qual { font-weight: 700; color: var(--lp-ink-soft); }
+.pp-board-spec { justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 14px; border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; background: var(--lp-paper-2); margin-top: 4px; }
+.pp-board-meta { font-size: 14.5px; font-weight: 700; color: var(--lp-ink-soft); margin-top: 6px; }
+.pp-board-go { font-family: var(--f-px); font-weight: 600; color: var(--lp-orange); margin-top: 6px; }
+
+/* the hub's subject cards */
+.pp-subjects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px 26px; }
+.lp .pp-subject { padding: 30px 22px 22px; }
+.pp-subject:nth-child(even) { background: #fff4dd; }
+.lp .pp-subject h3 a { color: var(--lp-ink); text-decoration: none; }
+.lp .pp-subject h3 a:hover { color: var(--lp-orange); }
+.pp-subject .lp-boards { margin-top: 14px; }
+.lp .pp-subject .lp-boards a { color: var(--lp-ink); text-decoration: none; display: inline-flex; min-height: 32px; align-items: center; }
+.lp .pp-subject .lp-boards li:hover { background: var(--lp-gold); }
+
+/* more, credit */
+.pp-more .lp-sp-more { margin-top: 12px; }
+.lp .pp-credit { margin-top: 30px; max-width: 60em; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
+.lp .pp-use .lp-sec-head h2 { font-size: clamp(26px, 3.2vw, 38px); }
+
+@media (max-width: 980px) {
+  .pp-papers { grid-template-columns: minmax(0, 1fr); }
+  .lp .pp-mark { grid-template-columns: minmax(0, 1fr); }
+  .pp-boards, .pp-subjects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pp .lp-sp-steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .lp .pp section { padding-block: 32px; }
+  .pp-boards, .pp-subjects { grid-template-columns: minmax(0, 1fr); }
+  .pp-hub-hero { grid-template-columns: minmax(0, 1fr); }
+  .lp .pp-hub-mascot { display: none; }
+  .lp .pp-mark { padding: 26px 18px; }
+  .pp-paper-body { padding: 14px 12px 16px; }
+  .pp-table { font-size: 14px; }
+  .pp-table th, .pp-table td { padding: 4px 2px; }
+  .lp .pp-file { min-width: 40px; padding: 0 6px; font-size: 13px; }
+  .pp-old .pp-papers { padding: 12px 8px; }
+}

@@ -8,6 +8,7 @@ is generated — run `npm run seo:map` after editing `src/config/routes.ts`.
 - [Content plan — ten articles, ranked](./content-plan.md)
 - [Authority and entity plan](./authority-plan.md)
 - [30 / 60 / 90 day roadmap](./roadmap.md)
+- [The past paper library](./past-papers.md)
 
 ---
 

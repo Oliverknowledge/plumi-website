@@ -35,6 +35,15 @@ export type PlumiEvent =
   | "pricing_viewed"
   | "faq_opened"
   | "app_store_clicked"
+  /** A question paper, mark scheme or examiner report opened from /past-papers.
+   *  Carries `page`, `paper`, `kind` and `session`. */
+  | "paper_opened"
+  /** The question bank: filters settled on (`results`), a mark scheme or report
+   *  opened (`kind`), a question added to a set (`size`), a set downloaded. */
+  | "bank_filtered"
+  | "bank_reveal"
+  | "bank_set_added"
+  | "bank_pdf_downloaded"
   /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
    *  The first two are also the Google Ads `sendToIpad` conversion. */
   | "send_to_ipad_result";

@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 
 import { absoluteUrl } from "@/config/site";
 import { indexableRoutes } from "@/config/routes";
+import { pastPaperPaths } from "@/content/pastPapers";
+import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
 
 /**
  * Generated from the route registry rather than hand-listed.
@@ -16,9 +18,23 @@ import { indexableRoutes } from "@/config/routes";
  */
 // No lastModified: a date that is always the build time teaches Google to ignore it.
 export default function sitemap(): MetadataRoute.Sitemap {
-  return indexableRoutes.map((route) => ({
-    url: absoluteUrl(route.path),
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }));
+  return [
+    ...indexableRoutes.map((route) => ({
+      url: absoluteUrl(route.path),
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+    })),
+    // The past paper library's subject and board pages, generated from
+    // src/content/pastPapers.json. New papers arrive once a year, after the summer series.
+    ...pastPaperPaths().map((path) => ({
+      url: absoluteUrl(path),
+      changeFrequency: "monthly" as const,
+      priority: path.split("/").length > 3 ? 0.7 : 0.8,
+    })),
+    // The question bank: each subject's bank, and a page per topic with questions.
+    ...bankSubjects.flatMap((s) => [
+      { url: absoluteUrl(bankPath(s.slug)), changeFrequency: "monthly" as const, priority: 0.9 },
+      ...s.topics.filter((t) => t.count > 0).map((t) => ({ url: absoluteUrl(bankTopicPath(s.slug, t.slug)), changeFrequency: "monthly" as const, priority: 0.7 })),
+    ]),
+  ];
 }
