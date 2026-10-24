@@ -216,9 +216,11 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     if (!results || !raw.trim()) return;
     const picks: BankPart[] = [];
     for (const bit of raw.split(/[,\s]+/).filter(Boolean)) {
-      const [a, b] = bit.split(/[-–]/).map(x => parseInt(x, 10));
+      // "7" has no second number at all (undefined, not NaN); "5–2" counts as 2 to 5.
+      const [a, b = a] = bit.split(/[-–]/).map(x => parseInt(x, 10));
       if (Number.isNaN(a)) continue;
-      for (let i = a; i <= (Number.isNaN(b) ? a : b) && picks.length < 40; i++) if (results[i - 1]) picks.push(results[i - 1]);
+      const end = Number.isNaN(b) ? a : b;
+      for (let i = Math.min(a, end); i <= Math.max(a, end) && picks.length < 40; i++) if (results[i - 1]) picks.push(results[i - 1]);
     }
     if (!picks.length) { setRangeNote("Those numbers aren’t in this list."); return; }
     setRangeNote("Building…");

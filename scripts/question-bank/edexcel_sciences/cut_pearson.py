@@ -321,7 +321,8 @@ def bold(span):
 
 # "3(b)(i)", "3 (b)(i)", or with the brackets left off: "1 a i".
 # "3(b)(i)", "3 (b)(i)", "1 a i", "1ai", "12(ai)"; and, carrying on from the row above, "(b)i".
-MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?((?:\s*\(?[a-z]{1,5}\)?)*)$")
+# Extended-response questions carry a star, before or after the number: "*5", "5*", "5(b)*".
+MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?\*?((?:\s*\(?[a-z]{1,5}\)?)*)\s*\*?$")
 HEAD = re.compile(r"Question( Number)?")
 
 
