@@ -7,15 +7,18 @@
  * physicsandmathstutor.com and `scripts/past-papers/build.py` writes
  * src/content/pastPapers.json. Re-run both after each summer series.
  *
- * AQA A-Level Biology, Chemistry and Physics are served from our own copies of
- * AQA's papers (see ownAqaBoard below). Every other board's files are the copies
- * PMT hosts, linked, and those pages credit and link PMT.
+ * AQA A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths, Further
+ * Maths, Biology, Chemistry and Physics, are served from our own copies of the
+ * boards' papers (see ownAqaBoard, ownEdexcelBoard and ownEdexcelScienceBoard
+ * below). Every other board's files are the copies PMT hosts, linked, and those
+ * pages credit and link PMT.
  * What these pages add is the arrangement: a whole board on one page, every
  * session on one row, question paper and mark scheme side by side.
  */
 import data from "./pastPapers.json";
 import ownFiles from "./questionBank/files.json";
 import ownEdexcelFiles from "./questionBank/files-edexcel.json";
+import ownEdexcelScienceFiles from "./questionBank/files-edexcel-sciences.json";
 import { bankSubject, papersBase } from "./questionBank";
 
 /** The file kinds a session can have, in the order they are shown. */
@@ -114,10 +117,10 @@ const ownSubjects: Record<string, { spec: string; as: string }> = {
   "a-level-chemistry": { spec: "7405", as: "7404" },
   "a-level-physics": { spec: "7408", as: "7407" },
 };
-const MONTHS: Record<string, string> = { JUN: "June", NOV: "November" };
+const MONTHS: Record<string, string> = { JUN: "June", OCT: "October", NOV: "November" };
 const OPTION_NAMES: Record<string, string> = { A: "Paper 3 Section A", BA: "Paper 3 Option A: Astrophysics", BB: "Paper 3 Option B: Medical physics", BC: "Paper 3 Option C: Engineering physics", BD: "Paper 3 Option D: Turning points", BE: "Paper 3 Option E: Electronics" };
 const seriesName = (s: string) => (s === "SPEC" ? "Specimen" : `${MONTHS[s.slice(0, 3)]} 20${s.slice(3)}`);
-const seriesOrder = (s: string) => (s === "SPEC" ? 0 : Number(`20${s.slice(3)}`) * 100 + (s.startsWith("NOV") ? 11 : 6));
+const seriesOrder = (s: string) => (s === "SPEC" ? 0 : Number(`20${s.slice(3)}`) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6));
 
 function ownAqaBoard(subject: string, base: BoardPapers): BoardPapers {
   const { spec, as } = ownSubjects[subject];
@@ -199,6 +202,62 @@ function ownEdexcelBoard(subject: string, base: BoardPapers): BoardPapers {
   };
 }
 
+/**
+ * Edexcel A-Level Biology A and B, Chemistry and Physics, likewise from our own
+ * copies of Pearson's papers (scripts/question-bank/edexcel_sciences/): every
+ * series of the 2015 specifications, with Pearson's examiner's reports and, for
+ * Biology Paper 3, the pre-release scientific article. Biology's two
+ * specifications share one board page.
+ */
+const ownEdexcelSciences: Record<string, { name: string; spec: string; as: string; titles: Record<string, string> }[]> = {
+  "a-level-biology": [
+    { name: "Biology A (Salters-Nuffield)", spec: "9BN0", as: "8BN0", titles: { "9bn001": "The Natural Environment and Species Survival", "9bn002": "Energy, Exercise and Co-ordination", "9bn003": "General and Practical Applications in Biology", "8bn001": "Lifestyle, Transport, Genes and Health", "8bn002": "Development, Plants and the Environment" } },
+    { name: "Biology B", spec: "9BI0", as: "8BI0", titles: { "9bi001": "Advanced Biochemistry, Microbiology and Genetics", "9bi002": "Advanced Physiology, Evolution and Ecology", "9bi003": "General and Practical Principles in Biology", "8bi001": "Core Cellular Biology and Microbiology", "8bi002": "Core Physiology and Ecology" } },
+  ],
+  "a-level-chemistry": [
+    { name: "", spec: "9CH0", as: "8CH0", titles: { "9ch001": "Advanced Inorganic and Physical Chemistry", "9ch002": "Advanced Organic and Physical Chemistry", "9ch003": "General and Practical Principles in Chemistry", "8ch001": "Core Inorganic and Physical Chemistry", "8ch002": "Core Organic and Physical Chemistry" } },
+  ],
+  "a-level-physics": [
+    { name: "", spec: "9PH0", as: "8PH0", titles: { "9ph001": "Advanced Physics I", "9ph002": "Advanced Physics II", "9ph003": "General and Practical Principles in Physics", "8ph001": "Core Physics I", "8ph002": "Core Physics II" } },
+  ],
+};
+
+function ownEdexcelScienceBoard(subject: string, base: BoardPapers): BoardPapers {
+  const files = ownEdexcelScienceFiles as OwnFile[];
+  const specs = ownEdexcelSciences[subject];
+  const group = (code: string, heading: string, titles: Record<string, string>): PaperGroup => {
+    const comps = [...new Set(files.filter(f => f.component.startsWith(code.toLowerCase())).map(f => f.component))].sort();
+    return {
+      id: slugify(heading), heading, legacy: false,
+      papers: comps.map(c => {
+        const mine = files.filter(f => f.component === c);
+        const name = `${code.startsWith("8") ? "AS " : ""}Paper ${Number(c.slice(4))}`;
+        const series = [...new Set(mine.map(f => f.series))].sort((a, b) => seriesOrder(b) - seriesOrder(a));
+        return {
+          id: slugify(`${heading} ${name}`), name, title: `Edexcel ${name}${titles[c] ? `: ${titles[c]}` : ""} (${code}/${c.slice(4)})`,
+          source: "", extras: [],
+          rows: series.map(s => {
+            const row: PaperRow = { session: seriesName(s), files: {} };
+            for (const f of mine.filter(x => x.series === s)) row.files[f.kind as FileKind] = f.file;
+            return row;
+          }),
+        };
+      }),
+    };
+  };
+  const groups = [
+    ...specs.map(sp => group(sp.spec, sp.name ? `${sp.name} · A-Level (${sp.spec})` : `A-Level (${sp.spec})`, sp.titles)),
+    ...specs.map(sp => group(sp.as, sp.name ? `${sp.name} · AS (${sp.as})` : `AS (${sp.as})`, sp.titles)),
+  ].filter(g => g.papers.length);
+  const mine = files.filter(f => specs.some(sp => [sp.spec, sp.as].some(c => f.component.startsWith(c.toLowerCase()))));
+  const years = mine.map(f => Number(`20${f.series.slice(3)}`));
+  return {
+    ...base, specCodes: specs.flatMap(sp => [sp.spec, sp.as]), groups,
+    firstYear: Math.min(...years), lastYear: Math.max(...years),
+    fileCount: groups.reduce((n, g) => n + g.papers.reduce((m, p) => m + p.rows.reduce((k, r) => k + Object.keys(r.files).length, 0), 0), 0),
+  };
+}
+
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const library: PastPaperData = {
@@ -206,6 +265,7 @@ const library: PastPaperData = {
   boards: pmtLibrary.boards.map(b =>
     b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b)
       : b.slug === "edexcel" && ownEdexcel[b.subject] ? ownEdexcelBoard(b.subject, b)
+        : b.slug === "edexcel" && ownEdexcelSciences[b.subject] ? ownEdexcelScienceBoard(b.subject, b)
         : b),
 };
 
@@ -216,7 +276,7 @@ export const fileUrl = (href: string) =>
     : /^(aqa|edexcel)\//.test(href) ? `${papersBase}/${href}`
       : fileBase + href.split("/").map(encodeURIComponent).join("/");
 /** Whether a board page's files are ours rather than linked from PMT. */
-export const isOwnBoard = (b: BoardPapers) => (b.slug === "aqa" && b.subject in ownSubjects) || (b.slug === "edexcel" && b.subject in ownEdexcel);
+export const isOwnBoard = (b: BoardPapers) => (b.slug === "aqa" && b.subject in ownSubjects) || (b.slug === "edexcel" && (b.subject in ownEdexcel || b.subject in ownEdexcelSciences));
 
 export const pastPaperSource = { name: "Physics & Maths Tutor", url: library.source, generated: library.generated };
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import { bankDataPath, papersBase, paperName, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { baseSubject, bankDataPath, papersBase, paperName, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { QuestionRow } from "./QuestionRow";
 import { SetTray, useQuestionSet } from "./SetTray";
 
@@ -56,7 +56,7 @@ function write(f: Filters) {
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 const yearOf = (s: string) => (/\d\d$/.test(s) ? 2000 + Number(s.slice(-2)) : 0);
-const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("JUN") ? 6 : 0);
+const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
 const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
@@ -122,14 +122,17 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typed]);
 
+  // A topic's section from the data, not its code: "3.1.2" is in "3.1", but Edexcel's "6.A" is in Topic "6".
+  const sectionOf = useMemo(() => new Map(subject.topics.map(t => [t.code, t.section])), [subject.topics]);
+
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
-    return (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || t.startsWith(sel + ".")))) &&
+    return (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
       (skip === "papers" || !f.papers.length || f.papers.includes(p.p)) &&
       (skip === "series" || !f.series.length || f.series.includes(p.s)) &&
       (skip === "calc" || ((f.calc !== "only" || !!p.calc) && (f.calc !== "none" || !p.calc))) &&
       (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
-  }, [f.topics, f.papers, f.series, f.calc, f.q, text]);
+  }, [f.topics, f.papers, f.series, f.calc, f.q, text, sectionOf]);
 
   const results = useMemo(() => {
     if (!parts) return null;
@@ -150,13 +153,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     const c = { topics: new Map<string, number>(), papers: new Map<string, number>(), series: new Map<string, number>(), calc: new Map<string, number>() };
     const bump = (m: Map<string, number>, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
     for (const p of parts) {
-      if (matches(p, "topics")) for (const t of p.t) { bump(c.topics, t); bump(c.topics, t.split(".").slice(0, 2).join(".")); }
+      if (matches(p, "topics")) for (const t of p.t) { bump(c.topics, t); const sec = sectionOf.get(t); if (sec && sec !== t) bump(c.topics, sec); }
       if (matches(p, "papers")) bump(c.papers, p.p);
       if (matches(p, "series")) bump(c.series, p.s);
       if (matches(p, "calc")) { bump(c.calc, ""); bump(c.calc, p.calc ? "only" : "none"); }
     }
     return c;
-  }, [parts, matches]);
+  }, [parts, matches, sectionOf]);
   const n = (dim: keyof NonNullable<typeof counts>, k: string) => counts?.[dim].get(k);
 
   const list = results ?? initial;
@@ -276,7 +279,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                             className={`qb-check qb-sub${f.topics.includes(t.code) ? " is-on" : ""}${!f.topics.includes(t.code) && n("topics", t.code) === 0 ? " is-empty" : ""}`}
                             onClick={() => update({ topics: toggle(f.topics, t.code) })}>
                             <span className="qb-box" aria-hidden="true">{f.topics.includes(t.code) ? "✓" : ""}</span>
-                            <span><span className="qb-code">{t.code}</span> {t.title}{counts && <span className="qb-n"> {n("topics", t.code) ?? 0}</span>}</span>
+                            <span>{topicRef(t) && <><span className="qb-code">{topicRef(t)}</span> </>}{t.title}{counts && <span className="qb-n"> {n("topics", t.code) ?? 0}</span>}</span>
                           </button>
                         ))}
                       </div>
@@ -314,7 +317,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={subject.subject === "Chemistry" ? "titration, \"bond angle\"" : subject.subject === "Biology" ? "osmosis, \"active transport\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">

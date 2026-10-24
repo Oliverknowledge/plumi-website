@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { BankSubjectPage } from "@/components/questionBank/BankPages";
-import { bankPath, bankSubject, bankSubjects, bankTitle } from "@/content/questionBank";
+import { bankPath, bankShareImage, bankSubject, bankSubjects, bankTitle } from "@/content/questionBank";
 import { pastPaperMetadata } from "@/lib/pastPaperMeta";
 
 type Params = Promise<{ subject: string }>;
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return pastPaperMetadata(bankPath(s.slug), {
     title: `${bankTitle(s)} Exam Questions by Topic | Plumi`,
     description: `Every ${s.board} ${s.level} ${s.subject} question since ${s.firstYear}, by topic, with its mark scheme and examiner's report. Free, no sign-up. Download any set as a PDF.`,
-  }, `/og-${s.subject.toLowerCase()}.png`);
+  }, bankShareImage(s));
 }
 
 export default async function Page({ params }: { params: Params }) {

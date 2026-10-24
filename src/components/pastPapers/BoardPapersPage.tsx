@@ -118,7 +118,9 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
               <Link href="/past-papers">Every subject</Link>
             </nav>
             {isOwnBoard(board)
-              ? <p className="pp-credit">Past papers, mark schemes and examiner’s reports are © {board.slug === "edexcel" ? "Pearson Edexcel" : "AQA"}, from their published papers. Plumi isn’t affiliated with any exam board. Want single questions by topic? <Link href={`/question-bank/${board.slug}-${hub.slug}`}>The {hub.name} question bank</Link>.</p>
+              ? <p className="pp-credit">Past papers, mark schemes and examiner’s reports are © {board.slug === "edexcel" ? "Pearson Edexcel" : "AQA"}, from their published papers. Plumi isn’t affiliated with any exam board. Want single questions by topic? {board.slug === "edexcel" && hub.slug === "a-level-biology"
+                ? <><Link href="/question-bank/edexcel-a-level-biology-a">The Biology A question bank</Link> or <Link href="/question-bank/edexcel-a-level-biology-b">the Biology B one</Link>.</>
+                : <><Link href={`/question-bank/${board.slug}-${hub.slug}`}>The {hub.name} question bank</Link>.</>}</p>
               : <SourceCredit source={board.groups[0]?.papers[0]?.source} />}
           </div>
         </section>

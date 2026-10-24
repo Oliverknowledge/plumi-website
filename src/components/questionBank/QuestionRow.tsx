@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { track } from "@/lib/analytics";
 import {
-  bankDataPath, bankTopicPath, paperName, papersBase, partImage, reportKey, seriesLabel,
+  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
 
@@ -18,12 +18,26 @@ function reportsFor(slug: string) {
 /**
  * An examiner's report covers a whole question. Put the paragraphs that name this
  * part ("01.4", "In 01.4…") first, and the rest under a quieter label; turn the
- * report's typed bullets into a list.
+ * report's typed bullets into a list. Pearson's science reports head each part's
+ * comments ("Question 3(b)(i)"): everything under this part's heading is its own.
  */
 function splitReport(report: string, label: string) {
   const paras = report.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
-  const mine = label.includes(".") ? paras.filter(p => p.includes(label)) : [];
-  return { mine, rest: paras.filter(p => !mine.includes(p)) };
+  if (label === questionOf(label)) return { mine: [], rest: paras.filter(p => !/^Question \d\S*$/.test(p)) };
+  const names = (p: string) => new RegExp(`(^|[^\\d])${label.replace(/[.()]/g, m => `\\${m}`)}(?![\\d(])`).test(p);
+  const mine: string[] = [];
+  const rest: string[] = [];
+  let under: boolean | null = null;
+  for (const p of paras) {
+    const head = p.match(/^Question (\S+)$/);
+    if (head) {
+      under = head[1] === label;
+      if (!under) rest.push(p); // the other parts keep their headings
+      continue;
+    }
+    (under ?? names(p) ? mine : rest).push(p);
+  }
+  return { mine, rest };
 }
 
 function ReportText({ paras }: { paras: string[] }) {
@@ -46,7 +60,7 @@ export function QuestionRow({ n, part, subject, inSet, onToggleSet, onTopic }: {
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
-  const q = part.l.split(".")[0];
+  const q = questionOf(part.l);
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${part.l}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
 
@@ -70,8 +84,8 @@ export function QuestionRow({ n, part, subject, inSet, onToggleSet, onTopic }: {
             if (!topic) return null;
             // In the bank a topic filters in place, keeping your place; elsewhere it's the topic's page.
             return onTopic
-              ? <button key={code} type="button" className="qb-topic" title={`Only ${code} ${topic.title}`} onClick={() => onTopic(code)}>{code} {topic.title}</button>
-              : <Link key={code} className="qb-topic" href={bankTopicPath(subject.slug, topic.slug)}>{code} {topic.title}</Link>;
+              ? <button key={code} type="button" className="qb-topic" title={`Only ${topicName(topic)}`} onClick={() => onTopic(code)}>{topicName(topic)}</button>
+              : <Link key={code} className="qb-topic" href={bankTopicPath(subject.slug, topic.slug)}>{topicName(topic)}</Link>;
           })}
         </div>
         <div className="qb-keys">
