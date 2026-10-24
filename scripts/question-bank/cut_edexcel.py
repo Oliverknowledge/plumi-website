@@ -117,6 +117,16 @@ def qp_marks(doc, labels):
     return marks
 
 
+def below_header(page):
+    """Where a scheme page's own content starts: under the "Question | Scheme | Marks"
+    header Edexcel repeats at the top of every page, or 30pt down if there isn't one."""
+    for s in spans(page):
+        if s["text"].strip() == "Scheme" and s["bbox"][1] < 150:
+            mid = (s["bbox"][1] + s["bbox"][3]) / 2
+            return max(t["bbox"][3] for t in spans(page) if abs((t["bbox"][1] + t["bbox"][3]) / 2 - mid) < 6) + 4
+    return 30
+
+
 def ms_regions(doc, questions):
     """Each question's rows: from its first label to the next question's first label.
 
@@ -156,7 +166,8 @@ def ms_regions(doc, questions):
             if end > top + 8:
                 pieces.append((pg, pymupdf.Rect(28, max(top, 30), w - 28, end)))
             pg += 1
-            top = 30
+            if pg <= last:
+                top = below_header(doc[pg])  # a continuation page: skip its repeated table header
         out[q] = (pieces, "\n".join(doc[p].get_text("text", clip=r) for p, r in pieces))
     return out
 
