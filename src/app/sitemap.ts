@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { absoluteUrl } from "@/config/site";
 import { indexableRoutes } from "@/config/routes";
-import { pastPaperPaths, pastPaperSource } from "@/content/pastPapers";
+import { pastPaperPaths, pastPapersGenerated } from "@/content/pastPapers";
 import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
 
 /**
@@ -35,7 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // src/content/pastPapers.json. New papers arrive once a year, after the summer series.
     ...pastPaperPaths().map((path) => ({
       url: absoluteUrl(path),
-      lastModified: pastPaperSource.generated,
+      lastModified: pastPapersGenerated,
       changeFrequency: "monthly" as const,
       priority: path.split("/").length > 3 ? 0.7 : 0.8,
     })),

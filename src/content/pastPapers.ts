@@ -1,17 +1,18 @@
 /**
- * The past paper library: every Maths, Further Maths, Biology, Chemistry and Physics
- * paper Physics & Maths Tutor lists, at GCSE, IGCSE and A-Level, grouped the way
- * students search for them — level, subject, then board.
+ * The past paper library: Maths, Further Maths, Biology, Chemistry and Physics papers
+ * at GCSE, IGCSE and A-Level, grouped the way students search for them — level,
+ * subject, then board.
  *
- * The data is generated, never hand-edited: `scripts/past-papers/crawl.py` reads
- * physicsandmathstutor.com and `scripts/past-papers/build.py` writes
- * src/content/pastPapers.json. Re-run both after each summer series.
+ * Every file is our own copy of the board's published paper, fetched from the board's
+ * own website and served from our storage (papersBase); nothing links to another site.
+ * The data is generated, never hand-edited: scripts/past-papers/boards/<board>.py
+ * fetches each board's papers and scripts/past-papers/build.py writes
+ * src/content/pastPapers.json (see scripts/past-papers/boards/README.md). Re-run them
+ * after each series.
  *
  * AQA A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths, Further
- * Maths, Biology, Chemistry and Physics, are served from our own copies of the
- * boards' papers (see ownAqaBoard, ownEdexcelBoard and ownEdexcelScienceBoard
- * below). Every other board's files are the copies PMT hosts, linked, and those
- * pages credit and link PMT.
+ * Maths, Biology, Chemistry and Physics, come from the question bank's own file lists
+ * instead (ownAqaBoard, ownEdexcelBoard and ownEdexcelScienceBoard below).
  * What these pages add is the arrangement: a whole board on one page, every
  * session on one row, question paper and mark scheme side by side.
  */
@@ -22,7 +23,7 @@ import ownEdexcelScienceFiles from "./questionBank/files-edexcel-sciences.json";
 import { bankSubject, papersBase } from "./questionBank";
 
 /** The file kinds a session can have, in the order they are shown. */
-export const fileKinds = ["qp", "ms", "er", "ins", "ab", "ma", "vs"] as const;
+export const fileKinds = ["qp", "ms", "er", "ins", "gt"] as const;
 export type FileKind = (typeof fileKinds)[number];
 
 export const fileKindLabel: Record<FileKind, { short: string; long: string }> = {
@@ -30,9 +31,7 @@ export const fileKindLabel: Record<FileKind, { short: string; long: string }> = 
   ms: { short: "MS", long: "Mark scheme" },
   er: { short: "ER", long: "Examiner’s report" },
   ins: { short: "Insert", long: "Insert" },
-  ab: { short: "Booklet", long: "Answer booklet" },
-  ma: { short: "Model", long: "Model answers" },
-  vs: { short: "Video", long: "Video solutions" },
+  gt: { short: "GT", long: "Grade thresholds" },
 };
 
 export interface PaperLink { label: string; href: string }
@@ -51,9 +50,9 @@ export interface Paper {
   id: string;
   /** "Paper 1", "Unit 2", "Pure 1". */
   name: string;
-  /** The full name PMT gives it, which usually carries the component code. */
+  /** The full name, with the board's title and component code. */
   title: string;
-  /** The PMT page the files are listed on. */
+  /** Unused: every file is ours. Kept so older data still type-checks. */
   source: string;
   /** Files that belong to the paper rather than a session: data sheets, formula booklets. */
   extras: PaperLink[];
@@ -95,20 +94,21 @@ export interface BoardPapers {
   firstYear: number;
   lastYear: number;
   fileCount: number;
+  /** What the board keeps from the public, said plainly (scripts/past-papers/build.py). */
+  note?: string;
 }
 
 interface PastPaperData {
   generated: string;
-  source: string;
   subjects: SubjectHub[];
   boards: BoardPapers[];
 }
 
-const pmtLibrary = data as PastPaperData;
+const ownLibrary = data as PastPaperData;
 
 /**
  * AQA A-Level Biology, Chemistry and Physics come from our own copies of AQA's
- * papers (scripts/question-bank/fetch_aqa.py), not from PMT: current
+ * papers (scripts/question-bank/fetch_aqa.py): current
  * specifications only, with AQA's examiner's reports alongside.
  */
 interface OwnFile { component: string; series: string; kind: string; file: string; title: string }
@@ -261,24 +261,33 @@ function ownEdexcelScienceBoard(subject: string, base: BoardPapers): BoardPapers
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const library: PastPaperData = {
-  ...pmtLibrary,
-  boards: pmtLibrary.boards.map(b =>
+  ...ownLibrary,
+  boards: ownLibrary.boards.map(b =>
     b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b)
       : b.slug === "edexcel" && ownEdexcel[b.subject] ? ownEdexcelBoard(b.subject, b)
         : b.slug === "edexcel" && ownEdexcelSciences[b.subject] ? ownEdexcelScienceBoard(b.subject, b)
         : b),
 };
 
-/** Where PMT keeps the files. Stored hrefs are relative to it unless they are absolute. */
-const fileBase = "https://pmt.physicsandmathstutor.com/download/";
-export const fileUrl = (href: string) =>
-  href.startsWith("http") ? href
-    : /^(aqa|edexcel)\//.test(href) ? `${papersBase}/${href}`
-      : fileBase + href.split("/").map(encodeURIComponent).join("/");
-/** Whether a board page's files are ours rather than linked from PMT. */
-export const isOwnBoard = (b: BoardPapers) => (b.slug === "aqa" && b.subject in ownSubjects) || (b.slug === "edexcel" && (b.subject in ownEdexcel || b.subject in ownEdexcelSciences));
+/** Every stored href is a key in our bucket ("ocr/OCR-H240-01-QP-JUN23.pdf"). */
+export const fileUrl = (href: string) => `${papersBase}/${href.split("/").map(encodeURIComponent).join("/")}`;
 
-export const pastPaperSource = { name: "Physics & Maths Tutor", url: library.source, generated: library.generated };
+/** Whose papers they are, for the credit line. */
+const OWNERS: Record<string, string> = {
+  aqa: "AQA", edexcel: "Pearson Edexcel", "edexcel-ial": "Pearson Edexcel", "edexcel-igcse": "Pearson Edexcel",
+  ocr: "OCR", "ocr-mei": "OCR and MEI", wjec: "WJEC", eduqas: "WJEC Eduqas", cie: "Cambridge University Press & Assessment", "cie-igcse": "Cambridge University Press & Assessment",
+};
+export const boardOwner = (b: BoardPapers) => OWNERS[b.slug] ?? b.board;
+
+/** The question bank(s) for a board page's subject, where we have them. */
+export function bankFor(b: BoardPapers): { slug: string; name: string }[] {
+  const exact = bankSubject(`${b.slug}-${b.subject}`);
+  if (exact) return [{ slug: exact.slug, name: exact.subject }];
+  return ["a", "b"].map(v => bankSubject(`${b.slug}-${b.subject}-${v}`)).filter(s => s !== undefined).map(s => ({ slug: s.slug, name: s.subject }));
+}
+
+/** When the library was last built, for the sitemap. */
+export const pastPapersGenerated = library.generated;
 
 export const pastPaperSubjects: readonly SubjectHub[] = library.subjects;
 

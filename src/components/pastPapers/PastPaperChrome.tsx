@@ -3,7 +3,7 @@ import { AppStoreBadge } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { Tape } from "@/components/cosy/Chrome";
 import { site } from "@/config/site";
-import { pastPaperSource, type Level } from "@/content/pastPapers";
+import type { Level } from "@/content/pastPapers";
 
 /**
  * The pieces every past paper page shares: the "now get it marked" card that turns
@@ -66,12 +66,11 @@ export function HowToUse({ subject }: { subject: string }) {
   );
 }
 
-/** Who holds the files, and whose papers they are. */
-export function SourceCredit({ source }: { source?: string }) {
+/** Whose papers they are. Every file is our copy of the board's published paper. */
+export function SourceCredit() {
   return (
     <p className="pp-credit">
-      Past papers and mark schemes are © their exam boards. The files open from{" "}
-      <a href={source ?? pastPaperSource.url} rel="noopener" target="_blank">{pastPaperSource.name}</a>, who host them.
+      Past papers, mark schemes and examiner’s reports are © their exam boards, from the papers each board publishes.
       Plumi isn’t affiliated with any exam board. Something missing or broken? <a href={`mailto:${site.contactEmail}`}>Tell us</a>.
     </p>
   );
