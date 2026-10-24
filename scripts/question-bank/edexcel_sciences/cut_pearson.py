@@ -489,6 +489,8 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
         if hit:
             mpieces, ms_text, answer = hit
             msimg = stack([trim(ms_doc.crop(pg, r), 10, sides=True) for pg, r in mpieces])
+        if qp.scanned and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
+            continue  # read by OCR: its own scheme row must be found and carry its question number
         parts.append({
             "id": pid, "set": set_id, **meta, "question": f"{q:02d}", "part": f"{letter or ''}{roman or ''}" or None, "label": label,
             "marks": marks,
