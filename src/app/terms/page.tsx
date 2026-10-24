@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     // defining `openGraph` here replaces the parent's object entirely.
     siteName: site.name,
     locale: site.locale,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Plumi, the GCSE and A-Level revision app for iPad." }],
+    images: [{ url: "/og-lofi.png", width: 1200, height: 630, alt: "Plumi, the GCSE and A-Level revision app for iPad." }],
   },
 };
 

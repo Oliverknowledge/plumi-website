@@ -120,7 +120,7 @@ export function SiteStructuredData() {
             applicationCategory: "EducationalApplication",
             applicationSubCategory: "GCSE and A-Level revision app with handwritten answer marking",
             ...(appStoreUrl ? { installUrl: appStoreUrl, downloadUrl: appStoreUrl } : {}),
-            image: absoluteUrl("/og.png"),
+            image: absoluteUrl("/og-lofi.png"),
             screenshot: [
               { "@type": "ImageObject", url: absoluteUrl("/site/shot-mark.webp"), caption: "A handwritten A-Level Physics answer marked line by line against the mark scheme" },
               { "@type": "ImageObject", url: absoluteUrl("/site/shot-map.webp"), caption: "Every topic on the specification, coloured by how well it is known" },
@@ -162,7 +162,7 @@ export function PageStructuredData({
   name,
   description,
   breadcrumb,
-  image = "/og.png",
+  image = "/og-lofi.png",
   type = "WebPage",
 }: {
   /** CollectionPage for the past paper library, whose pages are lists of documents. */

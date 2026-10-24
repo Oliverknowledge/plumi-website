@@ -10,7 +10,8 @@ npm run dev          # http://localhost:3000
 npm run build        # production build; also typechecks
 npm run lint
 npm run typecheck
-npm run og           # regenerate public/og.png from the current headline
+npm run og           # regenerate public/og.png and the subject cards from the old headline
+npm run og:lofi      # regenerate public/og-lofi.png, the share card every page but the subject pages uses
 ```
 
 ---
