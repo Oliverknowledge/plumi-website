@@ -39,7 +39,17 @@ function Credit({ subject }: { subject?: BankSubject }) {
   );
 }
 
+/** The hub's shelves: by level, GCSE first, so a GCSE student isn't scrolling past nine A-Level banks. */
+const LEVELS = [
+  { id: "gcse", name: "GCSE", match: (s: BankSubject) => s.level === "GCSE" },
+  { id: "a-level", name: "A-Level and AS", match: (s: BankSubject) => s.level !== "GCSE" },
+];
+
 export function BankHub() {
+  // Within a level, a subject's boards sit together: Maths, Further Maths, then the sciences.
+  const order = ["Maths", "Further Maths", "Biology", "Chemistry", "Physics"];
+  const rank = (s: BankSubject) => order.findIndex(o => s.subject === o || s.subject.startsWith(`${o} `));
+  const shelves = LEVELS.map(l => ({ ...l, banks: bankSubjects.filter(l.match).sort((a, b) => rank(a) - rank(b)) })).filter(l => l.banks.length);
   return (
     <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level and Edexcel A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
@@ -48,16 +58,19 @@ export function BankHub() {
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
             <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s and Edexcel’s A‑Level and AS Biology, Chemistry and Physics since 2016, and Edexcel’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <nav className="qb-levels" aria-label="Jump to a level">
+              {shelves.map(l => <a key={l.id} href={`#${l.id}`}>{display(l.name)} <span>{l.banks.length} {l.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
+            </nav>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
         <section className="pp-group">
           <div className="lp-wrap">
-            {(["Edexcel", "AQA"] as const).map(board => (
-            <div key={board} className="qb-board">
-            <h2 className="qb-board-name">{board}</h2>
+            {shelves.map(level => (
+            <div key={level.id} id={level.id} className="qb-board">
+            <h2 className="qb-board-name">{display(level.name)}</h2>
             <ul className="qb-subjects">
-              {bankSubjects.filter(s => s.board === board).map(s => (
+              {level.banks.map(s => (
                 <li key={s.slug}>
                   <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
                     <Book subject={baseSubject(s)} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>
