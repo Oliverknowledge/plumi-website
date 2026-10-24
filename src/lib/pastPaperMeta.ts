@@ -36,7 +36,7 @@ export function subjectPageMeta(hub: SubjectHub) {
 }
 
 /** Same shape as src/lib/metadata.ts, for a page that is not in the route registry. */
-export function pastPaperMetadata(path: string, meta: { title: string; description: string }, image = "/og.png"): Metadata {
+export function pastPaperMetadata(path: string, meta: { title: string; description: string }, image = "/og-lofi.png"): Metadata {
   const img = { url: image, width: 1200, height: 630, alt: meta.title };
   return {
     title: { absolute: meta.title },

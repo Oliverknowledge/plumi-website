@@ -9,6 +9,7 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "og": "tsx scripts/build-og-image.ts",
+    "og:lofi": "tsx scripts/build-og-lofi.ts",
     "seo:map": "tsx scripts/build-keyword-map.ts",
     "papers:crawl": "python3 scripts/past-papers/crawl.py",
     "papers:build": "python3 scripts/past-papers/build.py",

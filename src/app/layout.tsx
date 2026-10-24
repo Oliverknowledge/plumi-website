@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     locale: site.locale,
     title: home.title,
     description: home.description,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Handwrite it. Plumi marks it. A GCSE and A-Level revision app for iPad, with a handwritten physics answer marked line by line." }],
+    images: [{ url: "/og-lofi.png", width: 1200, height: 630, alt: "The cosy notebook that marks your work. Plumi, the GCSE and A-Level revision app for iPad, with its pixel library by the fire." }],
   },
-  twitter: { card: "summary_large_image", title: home.title, description: home.description, images: ["/og.png"] },
+  twitter: { card: "summary_large_image", title: home.title, description: home.description, images: ["/og-lofi.png"] },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   other: {
     // Read by nothing that ranks, but it is the fastest way for a human — or an

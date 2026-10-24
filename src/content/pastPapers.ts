@@ -262,7 +262,7 @@ export function revisionPage(hub: SubjectHub): { label: string; path: string } |
 
 /** The subject's share card, where it has its own. */
 export function shareImage(hub: SubjectHub): string {
-  return hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology" ? `/og-${hub.name.toLowerCase()}.png` : "/og.png";
+  return hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology" ? `/og-${hub.name.toLowerCase()}.png` : "/og-lofi.png";
 }
 
 /** Every generated page, for the sitemap. */
