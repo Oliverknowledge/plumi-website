@@ -32,6 +32,7 @@ TITLES = {
     "9PH0": ["Advanced Physics I", "Advanced Physics II", "General and Practical Principles in Physics"],
     "8PH0": ["Core Physics I", "Core Physics II"],
 }
+FILES_JSON = "files-edexcel-sciences.json"  # every whole paper we host, for the past paper library; None to skip
 MONTH = {"JUN": "June", "OCT": "October", "NOV": "November"}
 CALC = re.compile(r"\bcalculate\b|\bshow your working\b|\bgive your answer to \d|\bsignificant figures\b|\bdetermine the value\b", re.I)
 BOILERPLATE = re.compile(r"DO NOT WRITE IN THIS AREA|Turn over|\(Total for Question \d+ = \d+ marks?\)|TOTAL FOR SECTION [A-C] = \d+ MARKS", re.I)
@@ -99,7 +100,8 @@ def main():
              for f in manifest]
     out_dir = os.path.join(ROOT, "src", "content", "questionBank")
     os.makedirs(out_dir, exist_ok=True)
-    json.dump(files, open(os.path.join(out_dir, "files-edexcel-sciences.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    if FILES_JSON:
+        json.dump(files, open(os.path.join(out_dir, FILES_JSON), "w"), ensure_ascii=False, separators=(",", ":"))
 
     wholes, whole_ms = {}, {}
     for f in files:
