@@ -6,6 +6,7 @@ import { PageStructuredData } from "@/components/StructuredData";
 import { intentFor } from "@/config/routes";
 import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
 import { boardPath, boardsFor, display, pastPaperSubjects, subjectPath, subjectTitle, type Level } from "@/content/pastPapers";
+import { PacksCallout } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -55,6 +56,10 @@ export function PastPapersHub() {
             </div>
           </section>
         ))}
+
+        <section className="pp-mark-wrap" aria-label="Plumi practice packs">
+          <div className="lp-wrap"><PacksCallout /></div>
+        </section>
 
         <section className="pp-mark-wrap" aria-label="Get your paper marked">
           <div className="lp-wrap"><MarkItCard level="A-Level" placement="papers-hub" /></div>

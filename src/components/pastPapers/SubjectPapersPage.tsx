@@ -7,6 +7,8 @@ import {
   type SubjectHub,
 } from "@/content/pastPapers";
 import { subjectPageMeta } from "@/lib/pastPaperMeta";
+import { packFor } from "@/content/practicePacks";
+import { PackPromo } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -22,6 +24,7 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
   const path = subjectPath(hub.slug);
   const other = otherLevel(hub);
   const revision = revisionPage(hub);
+  const pack = packFor(path);
   const sameLevel = pastPaperSubjects.filter(s => s.level === hub.level && s.slug !== hub.slug);
 
   return (
@@ -57,6 +60,12 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
             </ul>
           </div>
         </section>
+
+        {pack && (
+          <section className="pp-mark-wrap" aria-label="Plumi practice pack">
+            <div className="lp-wrap"><PackPromo pack={pack} placement={`papers-${hub.slug}`} /></div>
+          </section>
+        )}
 
         <section className="pp-mark-wrap" aria-label="Get your paper marked">
           <div className="lp-wrap"><MarkItCard level={hub.level} placement={`papers-${hub.slug}`} /></div>

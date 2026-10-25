@@ -17,6 +17,7 @@ export const sectionLinks: readonly (readonly [string, string])[] = [
 ];
 
 export const pageLinks: readonly (readonly [string, string])[] = [
+  ["Practice packs", "/practice-packs"],
   ["Question bank", "/question-bank"],
   ["Past papers", "/past-papers"],
 ];
@@ -27,6 +28,7 @@ export const footerLinks: readonly (readonly [string, string])[] = [
   ["Biology revision", "/biology-revision"],
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
   ["GCSE Maths", "/gcse-maths"],
+  ["Practice packs", "/practice-packs"],
   ["Past papers", "/past-papers"],
   ["Question bank", "/question-bank"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],

@@ -9,6 +9,8 @@ import {
   type BoardPapers, type Paper, type SubjectHub,
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
+import { packFor, packPath } from "@/content/practicePacks";
+import { PackPromo } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -27,6 +29,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   const heading = boardHeading(hub, board);
   const meta = boardPageMeta(hub, board);
   const path = boardPath(hub.slug, board.slug);
+  const pack = packFor(path);
   const current = board.groups.filter(g => !g.legacy);
   const legacy = board.groups.filter(g => g.legacy);
   const jumpGroups = current.length > 0 ? current : legacy;
@@ -82,6 +85,12 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
           </section>
         ))}
 
+        {pack && (
+          <section className="pp-mark-wrap" aria-label="Plumi practice pack">
+            <div className="lp-wrap"><PackPromo pack={pack} placement={`papers-${hub.slug}-${board.slug}`} /></div>
+          </section>
+        )}
+
         <section className="pp-mark-wrap" aria-label="Get your paper marked">
           <div className="lp-wrap"><MarkItCard level={hub.level} placement={`papers-${hub.slug}-${board.slug}`} /></div>
         </section>
@@ -113,6 +122,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
               <Link href={subjectPath(hub.slug)}>All {subjectTitle(hub)} boards</Link>
             </nav>
             <nav className="lp-sp-more" aria-label="Related">
+              {pack && <Link href={packPath(pack.slug)}>Plumi’s {pack.board}-style practice pack</Link>}
               {other && <Link href={subjectPath(other.slug)}>{subjectTitle(other)} past papers</Link>}
               {revision && <Link href={revision.path}>{revision.label} on Plumi</Link>}
               <Link href="/past-papers">Every subject</Link>

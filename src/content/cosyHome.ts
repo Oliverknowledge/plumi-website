@@ -196,9 +196,22 @@ export const shelf = {
  */
 export const practice = {
   eyebrow: "Free exam practice",
-  title: "Real exam questions,",
-  titleEm: "sorted by topic.",
-  lead: "Free on this website, with no sign-up. Works on your phone, laptop or iPad.",
+  title: "Exam practice,",
+  titleEm: "free, with no sign-up.",
+  lead: "Our own practice packs, and every real exam question sorted by topic. Works on your phone, laptop or iPad.",
+  // Plumi's own practice packs come first in free practice (founder, 25 October 2026:
+  // "a really important aspect of our website"). The packs and their facts are
+  // src/content/practicePacks.ts; the proof points are that file's packCopy.proof.
+  packs: {
+    tag: "Made by Plumi · new",
+    title: "Practice packs,",
+    titleEm: "written by us.",
+    line: "Ran out of past papers? Each pack is 30 new exam-style questions in your board’s style, easy to super hard, with a mark scheme as thorough as the real one.",
+    ticket: "Practice packs",
+    ticketHero: "whole papers written by Plumi",
+    all: "See every pack",
+    inside: "What’s inside",
+  },
   bank: {
     name: "Question bank",
     hero: "real exam questions by topic",
