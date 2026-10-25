@@ -31,6 +31,7 @@ import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
 import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
 import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
 import edexcelPhysics from "./questionBank/edexcel-a-level-physics.json";
+import edexcelEconomics from "./questionBank/edexcel-a-level-economics-a.json";
 import ocrBiology from "./questionBank/ocr-a-level-biology-a.json";
 import ocrChemistry from "./questionBank/ocr-a-level-chemistry-a.json";
 import ocrPhysics from "./questionBank/ocr-a-level-physics-a.json";
@@ -95,7 +96,7 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
   level: "A-Level" | "GCSE" | "IGCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics A";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
   fullName?: string;
   specs: string[];
@@ -121,7 +122,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -133,7 +134,12 @@ export function bankTopic(subject: BankSubject, slug: string): BankTopic | undef
 
 export const bankPath = (slug: string) => `/question-bank/${slug}`;
 export const bankTopicPath = (slug: string, topic: string) => `/question-bank/${slug}/${topic}`;
-export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+/**
+ * The sciences have a practicals.json beside their data: the ids of the parts about
+ * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
+ */
+export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
@@ -179,6 +185,8 @@ export const topicRef = (t: BankTopic) => t.ref ?? t.code;
 export const topicName = (t: BankTopic) => (topicRef(t) ? `${topicRef(t)} ${t.title}` : t.title);
 /** The question number a part belongs to: "01" of "01.4", "3" of "3(b)(i)". */
 export const questionOf = (label: string) => label.match(/^\d+/)?.[0] ?? label;
+/** The whole question a part belongs to, across the bank: "74051-JUN23-01". */
+export const questionKey = (p: Pick<BankPart, "p" | "s" | "l">) => `${p.p}-${p.s}-${questionOf(p.l)}`;
 
 /** "AQA A-Level Chemistry" */
 export const bankTitle = (s: Pick<BankSubject, "board" | "level" | "subject">) => `${s.board} ${s.level} ${s.subject}`;

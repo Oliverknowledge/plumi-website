@@ -102,6 +102,33 @@ them. The brief is the one at the top, with these differences:
   biological approach is `4.2.1`; one on the nervous system, neurons, hormones, the
   brain or biological rhythms is `4.2.2`.
 
+## Edexcel Economics A
+
+`edexcel_economics/tag_economics.py split` writes batches of Pearson Edexcel A-Level
+(9EC0) and AS (8EC0) Economics A parts to `.work/edexcel-economics/tag/`, and `merge`
+collects them. The brief is the one at the top, with these differences:
+
+- `economics-topics.txt` lists the specification's sub-topics: `code | topic | title
+  [AS] or [A-Level only] — what the specification says under it`. Codes have three
+  numbers (`1.2.3`, `3.4.4`); choose from these, never a topic like `3.4`.
+- Each line has its `paper` ("AS 1", "A-Level 3"). AS papers only test [AS] topics
+  (themes 1 and 2). A-Level Paper 1 is mostly themes 1 and 3, Paper 2 themes 2 and 4,
+  and Paper 3 can test anything.
+- The `setup` is often the start of the extracts the question is set on; judge by
+  what the question asks and its scheme, not by the extract's subject (a question on
+  the gas industry's price elasticity is `1.2.3`, not an energy topic).
+- Multiple-choice questions: `question` holds the stem and options A–D; tag by the
+  concept tested (a PED calculation is `1.2.3`).
+- Essays and the 15–25 mark questions often span several sub-topics: give the main
+  one first and a second only when the scheme's indicative content genuinely needs it
+  (an essay on the effects of a minimum wage: `3.6.2` then `3.5.3`).
+- Common confusions: externalities `1.3.2` vs government intervention `1.4.1` (a tax
+  or regulation to correct an externality is `1.4.1` unless the question is about the
+  externality itself); balance of payments in theme 2 (`2.1.4`) for AS and theme 4
+  (`4.1.7`) for A-Level questions on causes and correction of imbalances; demand-side
+  policy `2.6.2` vs central banks `4.4.3` (the Bank of England's tools and role are
+  `4.4.3` on A-Level papers when the question is about the central bank itself).
+
 ## Cambridge International (CAIE)
 
 `caie/tag_caie.py split` writes batches for CAIE AS & A Level Biology 9700,
@@ -126,6 +153,42 @@ collects them. The brief is the one at the top, with these differences:
   The syllabus is set out by paper, and each line's `only` says which codes it may
   take: a Paper 3 question only `3.x` codes, even where Paper 1 has a topic of the
   same name.
+
+## Practical questions
+
+`practicals.py split` writes the science banks' likely practical questions (any
+part whose question or scheme mentions apparatus, a method, variables, uncertainty,
+safety or a lab technique) to `.work/practicals/batch-NN.jsonl`. A reader judges every
+line and writes `batch-NN.answers.json`, `{"<id>": true or false}` for every id;
+`practicals.py merge` turns the yeses into each bank's `practicals.json`, which the
+bank's "Practicals" filter reads.
+
+Each line has the `course`, the `paper`, the part's `question` (the start of its
+whole question, then the part's own words) and the start of its `scheme`. Answer
+**true** when answering the part draws on doing practical work:
+
+- planning or describing a method or procedure, or what to do and in what order;
+- choosing or using apparatus, instruments or a lab technique (titration,
+  chromatography, aseptic technique, quadrats, a colorimeter, a data logger…);
+- variables: identifying the independent, dependent or control variables, keeping
+  something constant, or why a control is used;
+- taking measurements and their quality: readings, resolution, precision, accuracy,
+  repeatability, uncertainty and percentage error, anomalies, systematic and random
+  errors, zero errors, parallax;
+- evaluating or improving an experiment, or explaining why a step is done;
+- safety: hazards, risks and precautions in an experiment;
+- processing or interpreting the results of an experiment the question describes,
+  when it is a required, core or PAG practical (an AQA GCSE scheme's "RPA" reference
+  says so), or when the part asks about the experiment's results as an experiment
+  (drawing its graph, finding a gradient from its readings, a conclusion and how
+  far its data supports it).
+
+Answer **false** when the practical words are incidental: a reagent and conditions
+for a synthesis step, a calculation from data that merely came from an experiment,
+recall of theory, "error carried forward" in a scheme, a mass spectrometer or an
+instrument as a topic of theory rather than something the student uses, or a
+multiple-choice option that happens to name apparatus. Judge by what a student must
+do to earn the marks; when it is genuinely half and half, answer true.
 
 ### Cambridge IGCSE
 

@@ -19,9 +19,10 @@ export const privacy: LegalDoc = {
      * section changes in the same commit.
      */
     { heading: "Measuring the website", blocks: [
-      {kind:"text",text:"Two measurement services run here and they do different things."},
+      {kind:"text",text:"Three measurement services run here and they do different things."},
       {kind:"list",items:[
         "Our own analytics records which sections of a page were read and which buttons were pressed, so we can tell whether the site explains Plumi well. It is hosted in the EU, it never creates a profile of you, it does not record your screen, and it never receives anything you type. Email addresses are stripped before any event leaves your browser.",
+        "Vercel Web Analytics, from our hosting provider, counts page views and visitors so we can see how many people the site reaches. It sets no cookies and builds no profile: a visitor is recognised for one day by an anonymised value that is then discarded.",
         "Google Ads conversion tracking tells us which advert brought someone to the site, and whether they then went to the App Store or sent the link to their iPad. This one sets an advertising cookie and shares data with Google for advertising purposes. It is the only thing on this website that does.",
       ]},
       {kind:"text",text:"Our hosting provider processes request information to deliver and secure the website."},
