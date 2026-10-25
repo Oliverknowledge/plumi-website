@@ -32,6 +32,7 @@ SUBJECTS = [("ocr-a-level-biology-b", "Biology B", ("H022", "H422"), "Biology B 
             ("ocr-a-level-physics-a", "Physics A", ("H156", "H556"), None)]
 AS = {specs[0] for _, _, specs, _ in SUBJECTS}
 MONTH = {"JUN": "June", "NOV": "November"}
+CROP_VERSION = 2  # 2: re-cut 26 October 2026 (schemes no longer run on to the back pages); see questionBank.ts partImage
 OCR_BOILER = re.compile(r"© OCR \d{4}|Turn over|\.{6,}", re.I)
 # The examiners' reports' running header: "A Level Chemistry A - H432/01 - Summer 2025 Examiners’ report".
 REPORT_HEADER = re.compile(r"(?:OCR Level \d Advanced (?:Subsidiary )?GCE in |A Level |AS Level )[^\n]{0,90}?Examiners[’']? report|© OCR \d{4}")
@@ -117,7 +118,7 @@ def main():
         years = [int("20" + s[3:]) for s in series]
         manifest_comp = {f["component"].replace("-", ""): f["component"] for f in manifest}
         meta = {
-            "slug": subj_slug, "board": "OCR", "level": "A-Level", "subject": name, **({"fullName": long_name} if long_name else {}), "specs": list(specs),
+            "slug": subj_slug, "board": "OCR", "level": "A-Level", "subject": name, **({"fullName": long_name} if long_name else {}), "specs": list(specs), "cropVersion": CROP_VERSION,
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics,
             "papers": [paper_for(manifest_comp[c], titles) for c in comps],
             "series": [{"id": s, "label": series_label(s)} for s in series],
