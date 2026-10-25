@@ -214,6 +214,7 @@ export const practice = {
     eyebrow: "Every subject in the question bank",
     title: "Find your",
     titleEm: "exam board.",
+    lead: "Every question comes with its mark scheme and the examiner’s report. Tap your subject to start.",
   },
   papers: {
     name: "Past papers",

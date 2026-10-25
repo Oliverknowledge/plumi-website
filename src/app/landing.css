@@ -209,15 +209,38 @@
 .lp-hero-cafe .lp-cta-note { max-width: none; }
 @media (prefers-reduced-motion: reduce) { .lp .lp-daily { transform: none; } }
 
-/* every subject in the question bank: an index at the foot of the page, one column per board */
-.lp-bank-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 18px; }
-.lp-bank-board { background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); padding: 16px 18px 18px; display: grid; gap: 10px; align-content: start; scroll-margin-top: 96px; }
-.lp-bank-board:target { background: #fff1c2; }
-.lp .lp-bank-board h3 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 20px; padding-bottom: 8px; border-bottom: 2px dashed #d8c8ad; }
-.lp .lp-bank-board h4 { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--lp-ink-soft); }
-.lp-bank-board ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-.lp .lp-bank-board li a { display: block; font-size: 15px; font-weight: 700; color: var(--lp-ink); text-decoration: none; padding: 3px 0; }
-.lp .lp-bank-board li a:hover { color: var(--lp-blue); text-decoration: underline; text-underline-offset: 3px; }
+/* every subject in the question bank: an index at the foot of the page, one pinned index card
+   per board, its header in the board's colour (the same colour as the dot on its chip above) */
+.lp-bank-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 26px 20px; align-items: start; padding-top: 10px; }
+.lp-bank-board { position: relative; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); overflow: visible; scroll-margin-top: 110px; transition: transform .16s cubic-bezier(.2, .9, .3, 1.3); }
+.lp-bank-board:nth-child(odd) { transform: rotate(-.7deg); }
+.lp-bank-board:nth-child(even) { transform: rotate(.6deg); }
+.lp-bank-board:nth-child(3n) { transform: rotate(-.3deg); }
+.lp-bank-board:hover, .lp-bank-board:target { transform: rotate(0) translateY(-3px); }
+.lp-bank-board:target { box-shadow: 0 0 0 5px var(--board), 0 5px 0 var(--lp-shadow); }
+.lp-bank-board .lp-tape { top: -13px; width: 64px; margin-left: -32px; height: 22px; z-index: 1; }
+.lp-bank-board:nth-child(even) .lp-tape { transform: rotate(3deg); background: rgba(249, 220, 213, .9); }
+.lp-bank-board header { background: var(--board); border-bottom: 3px solid var(--lp-line); border-radius: 13px 13px 0 0; padding: 18px 16px 12px; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .16) 0 6px, transparent 6px 12px); }
+.lp .lp-bank-board h3 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 21px; line-height: 1.15; color: var(--lp-ink); }
+.lp-bank-board header small { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 800; color: var(--lp-ink); opacity: .72; font-variant-numeric: tabular-nums; }
+.lp-bank-level { padding: 12px 12px 0; }
+.lp-bank-level:last-child { padding-bottom: 12px; }
+.lp-bank-level + .lp-bank-level { border-top: 2px dashed #e2d5bf; margin-top: 10px; }
+.lp .lp-bank-board h4 { display: inline-block; margin: 0 0 6px 4px; font-family: var(--f-px); font-size: 12.5px; font-weight: 600; color: var(--lp-ink); background: #fff; border: 2px solid var(--lp-line); border-radius: 7px; padding: 0 7px; }
+.lp-bank-board ul { margin: 0; padding: 0; list-style: none; display: grid; }
+.lp .lp-bank-board li a { display: flex; align-items: baseline; gap: 6px; padding: 5px 6px; border-radius: 8px; font-size: 15px; font-weight: 700; color: var(--lp-ink); text-decoration: none; transition: background .1s; }
+.lp-bank-board li a > span { white-space: nowrap; }
+.lp-bank-board li a i { flex: 1; min-width: 10px; border-bottom: 2px dotted #cdbda3; transform: translateY(-4px); }
+.lp-bank-board li a small { font-size: 12.5px; font-weight: 800; color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; }
+.lp .lp-bank-board li a:hover, .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, #fff); }
+.lp .lp-bank-board li a:hover i { border-bottom-color: var(--lp-line); }
+.lp .lp-bank-board li a:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .lp-bank-board, .lp-bank-board:hover, .lp-bank-board:target { transform: none; transition: none; } }
+
+/* the card's board chips: each carries its board's colour as a dot */
+.lp .lp-practice-card .lp-bank-chips li a { display: flex; align-items: center; gap: 6px; }
+.lp .lp-practice-card .lp-bank-chips li a::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--board); border: 2px solid var(--lp-line); flex: none; }
+.lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 55%, #fff); }
 
 @media (max-width: 980px) {
   .lp-mark-grid, .lp-friends-grid, .lp-meet { grid-template-columns: minmax(0, 1fr); }
@@ -237,8 +260,7 @@
   .lp-hwl { font-size: 25px; }
   .lp-topicmap { grid-template-columns: minmax(0, 1fr); }
   .lp-squares { grid-template-columns: repeat(12, 1fr); }
-  .lp-bank-boards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  .lp-bank-board { padding: 12px 14px 14px; }
+  .lp-bank-boards { grid-template-columns: minmax(0, 1fr); gap: 26px; }
   .lp-shelf-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-pop, .lp-meter i, .lp-cafe canvas { animation: none; transition: none; } }

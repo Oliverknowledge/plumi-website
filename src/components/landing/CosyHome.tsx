@@ -56,6 +56,9 @@ const boardOrder = ["AQA", "Edexcel", "OCR", "OCR MEI", "CAIE"];
 const levelOrder = ["A-Level", "GCSE", "IGCSE"];
 const byOrder = (order: string[]) => (a: string, b: string) => ((order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
 const boardName: Record<string, string> = { CAIE: "Cambridge (CAIE)" };
+/** Each board's colour: its column's header in the index, and the dot on its chip in the card. */
+const boardColour: Record<string, string> = { AQA: "#a9cbeb", Edexcel: "#8fd0a0", OCR: "#eaa99a", "OCR MEI": "#f2c96b", CAIE: "#7cc6c2" };
+const boardStyle = (board: string) => ({ ["--board" as string]: boardColour[board] ?? "#d9c8ec" });
 const boardId = (board: string) => `bank-${board.toLowerCase().replace(/\s+/g, "-")}`;
 
 /**
@@ -66,6 +69,7 @@ const bankBoards = [...new Set(bankSubjects.map(s => s.board))].sort(byOrder(boa
   const subjects = bankSubjects.filter(s => s.board === board);
   return {
     board,
+    count: subjects.reduce((n, s) => n + s.count, 0),
     levels: [...new Set(subjects.map(s => s.level))].sort(byOrder(levelOrder)).map(level => ({
       level,
       subjects: subjects.filter(s => s.level === level).sort((a, b) => a.subject.localeCompare(b.subject)),
@@ -130,8 +134,8 @@ export function CosyHome({ variant }: { variant?: string }) {
               <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
               <p>{practice.bank.line}</p>
               <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
-              <ul aria-label="Question bank exam boards">
-                {bankBoards.map(b => <li key={b.board}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
+              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
+                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
               </ul>
               <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
             </article>
@@ -332,15 +336,26 @@ export function CosyHome({ variant }: { variant?: string }) {
           <div className="lp-sec-head">
             <span className="lp-eyebrow">{practice.bankIndex.eyebrow}</span>
             <h2 id="bank-index-title">{practice.bankIndex.title} <em>{practice.bankIndex.titleEm}</em></h2>
+            <p className="lp-lead">{practice.bankIndex.lead}</p>
           </div>
           <div className="lp-bank-boards">
             {bankBoards.map(b => (
-              <div key={b.board} id={boardId(b.board)} className="lp-bank-board">
-                <h3>{boardName[b.board] ?? b.board}</h3>
+              <div key={b.board} id={boardId(b.board)} className="lp-bank-board" style={boardStyle(b.board)}>
+                <div className="lp-tape" aria-hidden="true" />
+                <header>
+                  <h3>{b.board === "CAIE" ? "Cambridge" : b.board}</h3>
+                  <small>{b.board === "CAIE" && "CAIE · "}{b.count.toLocaleString("en-GB")} questions</small>
+                </header>
                 {b.levels.map(l => (
-                  <div key={l.level}>
+                  <div key={l.level} className="lp-bank-level">
                     <h4>{l.level}</h4>
-                    <ul>{l.subjects.map(s => <li key={s.slug}><Link href={bankPath(s.slug)}>{s.subject}</Link></li>)}</ul>
+                    <ul>
+                      {l.subjects.map(s => (
+                        <li key={s.slug}>
+                          <Link href={bankPath(s.slug)}><span>{s.subject}</span><i aria-hidden="true" /><small>{s.count.toLocaleString("en-GB")}<span className="sr-only"> questions</span></small></Link>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
