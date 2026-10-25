@@ -8,6 +8,7 @@ import {
   baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
+import { packFor, packPath } from "@/content/practicePacks";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -34,10 +35,14 @@ function Credit({ subject }: { subject?: BankSubject }) {
   // Not every bank subject has a library page yet (Psychology): then the library's front door.
   const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
   const library = subject && boardPapers(hub, board) ? subject : undefined;
+  // Plumi's own pack for this subject, where there is one: still the same one line.
+  const pack = subject ? packFor(bankPath(subject.slug)) : undefined;
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>.
+      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>{pack
+        ? <>, or <Link href={packPath(pack.slug)}>our free {pack.board}-style practice pack</Link>.</>
+        : "."}
     </p>
   );
 }

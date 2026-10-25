@@ -6,6 +6,10 @@ import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
 import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, practice, shelf } from "@/content/cosyHome";
 import { bankPath, bankSubjects } from "@/content/questionBank";
+import { packCopy, packPath, practicePacks } from "@/content/practicePacks";
+import { PackCover, PackDownloads, PackLadder, PackLegend } from "@/components/practicePacks/Pack";
+import { PackClickTracker } from "@/components/practicePacks/PackClickTracker";
+import { PastPapersCard } from "@/components/practicePacks/PastPapersCard";
 import { CafeHero, FriendsCafe, Look, MeetPlumi } from "./LandingClient";
 import "@/app/landing.css";
 
@@ -79,14 +83,14 @@ const bankBoards = [...new Set(bankSubjects.map(s => s.board))].sort(byOrder(boa
 
 /** Pixel icons for the hero's tickets, drawn on a 16px grid like the Discord key's. */
 const QuestionIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h8l3 3v11H3zm1 1v12h9V5h-3V2zm2 5h5v1H6zm0 2h5v1H6zm0 2h3v1H6z" /></svg>;
-const PapersIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M2 3h5l1 1 1-1h5v10H9l-1 1-1-1H2zm1 1v8h4l1 1V5L7 4zm6 1v8l1-1h4V4h-4z" /></svg>;
+const PackIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h10v14H3zm1 1v12h1V2zm2 0v12h6V2zm1 2h4v1H7zm0 2h4v1H7zm0 2h2v1H7z" /></svg>;
 
 /** Five steps of a flame, one frozen and one missed: a week of streak. */
 const flame = [["", 34], ["", 48], ["frz", 40], ["", 58], ["", 66], ["", 74], ["off", 30]] as const;
 
 export function CosyHome({ variant }: { variant?: string }) {
   return (
-    <CosyPage home variant={variant} after={<SectionImpressions />}>
+    <CosyPage home variant={variant} after={<><SectionImpressions /><PackClickTracker /></>}>
       {/* HERO */}
       <section id="product" className="lp-hero lp-hero-cafe" aria-labelledby="hero-title" data-testid="hero-section">
         <div className="lp-wrap">
@@ -100,13 +104,14 @@ export function CosyHome({ variant }: { variant?: string }) {
             </div>
             <div className="lp-tickets">
               <p>{cosyHero.freeLabel}</p>
+              <a href="#practice-papers" className="lp-ticket pk-ticket" data-testid="hero-practice-papers-link">
+                <i aria-hidden="true"><PackIcon /></i>
+                <span><b>{practice.packs.ticket}</b><small>{practice.packs.ticketHero}</small></span>
+                <span className="pk-new">New</span>
+              </a>
               <Link href="/question-bank" className="lp-ticket" data-testid="hero-question-bank-link">
                 <i aria-hidden="true"><QuestionIcon /></i>
                 <span><b>{practice.bank.name}</b><small>{bankQuestions.toLocaleString("en-GB")} {practice.bank.hero}</small></span>
-              </Link>
-              <Link href="/past-papers" className="lp-ticket" data-testid="hero-past-papers-link">
-                <i aria-hidden="true"><PapersIcon /></i>
-                <span><b>{practice.papers.name}</b><small>{practice.papers.hero}</small></span>
               </Link>
             </div>
           </div>
@@ -128,6 +133,30 @@ export function CosyHome({ variant }: { variant?: string }) {
             <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
             <p className="lp-lead">{practice.lead}</p>
           </div>
+          <div id="practice-papers" className="lp-card pk-feature" data-testid="practice-papers">
+            <div className="lp-tape" aria-hidden="true" />
+            <div className="pk-feature-copy">
+              <span className="lp-tag">{practice.packs.tag}</span>
+              <h3><Link href="/practice-papers" data-testid="practice-papers-link">{practice.packs.title} <em>{practice.packs.titleEm}</em></Link></h3>
+              <p>{practice.packs.line}</p>
+              <ul className="pk-proof">{packCopy.proof.map(p => <li key={p.title}>{tick}<span><b>{p.title}.</b> <span className="pk-proof-line">{p.line}</span></span></li>)}</ul>
+              <Link href="/practice-papers" className="lp-btn pk-all">{practice.packs.all} ›</Link>
+            </div>
+            <div className="pk-feature-right">
+              <ul className="pk-feature-packs">
+                {practicePacks.map(p => (
+                  <li key={p.slug} className="pk-feature-pack">
+                    <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} /></Link>
+                    <PackLadder pack={p} />
+                    <PackDownloads pack={p} placement="home" />
+                    <p className="pk-disclaimer">{p.disclaimer}</p>
+                  </li>
+                ))}
+              </ul>
+              <PackLegend />
+            </div>
+            <PastPapersCard placement="home" strip />
+          </div>
           <div className="lp-practice">
             <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
               <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
@@ -138,15 +167,6 @@ export function CosyHome({ variant }: { variant?: string }) {
                 {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
               </ul>
               <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
-            </article>
-            <article className="lp-card lp-practice-card" data-testid="practice-past-papers">
-              <span className="lp-tag">GCSE and A-Level</span>
-              <h3><Link href="/past-papers" data-testid="practice-past-papers-link">{practice.papers.name}</Link></h3>
-              <p>{practice.papers.line}</p>
-              <ul aria-label="Past papers by subject">
-                {practice.papers.links.map(([label, href]) => <li key={href}><Link href={href}>{label}</Link></li>)}
-              </ul>
-              <Link href="/past-papers" className="lp-btn">{practice.papers.cta} ›</Link>
             </article>
             <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
               <div className="lp-tape" aria-hidden="true" />
