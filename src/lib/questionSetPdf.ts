@@ -120,7 +120,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const msCrops = new Map<BankPart, Crop>();
   const run = limited(6);
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
-  const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(partImage(c.part.id, c.kind)).catch(() => null))); return c; };
+  const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(partImage(c.part.id, c.kind, subject.cropVersion)).catch(() => null))); return c; };
 
   async function place({ kind, label }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind !== "stem") {

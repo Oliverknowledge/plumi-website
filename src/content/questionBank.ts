@@ -113,6 +113,8 @@ export interface BankSubject {
   noCalc?: boolean;
   /** Edexcel reports are keyed by question id; AQA's by the question its parts share. */
   reportsBy?: "question";
+  /** Bumped when the bank's crops are cut again under the same names, so browsers fetch the new ones (partImage). */
+  cropVersion?: number;
   /**
    * What the bank covers, where a range of years would mislead: Cambridge publishes only
    * one series (June 2024) and its specimen papers, so CAIE banks say so instead of "2024–2024".
@@ -146,8 +148,12 @@ export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology
 
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
-export const partImage = (id: string, kind: "qp" | "ms" | "stem") =>
-  kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`;
+/**
+ * A part's crop. Crops are cached as unchanging, so a bank whose crops were cut again
+ * under the same names carries a `cropVersion`, and its URLs ask for that version.
+ */
+export const partImage = (id: string, kind: "qp" | "ms" | "stem", version?: number) =>
+  (kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`) + (version ? `?v=${version}` : "");
 /** The examiner's report covers a whole question: "74051-jun23-01" (AQA parts share it); an Edexcel question is its own key. */
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 

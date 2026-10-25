@@ -288,6 +288,15 @@ python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-b-sciences --crops-only
 ```
 
+**Re-cut 26 October 2026 (crop version 2).** A paper's last scheme crop ran on to OCR's back
+pages ("Need to get in touch?", the company notice, blank pages, and in older schemes a
+contact block under the last answer). `cut_pearson.py` now stops at them (`BACK_PAGE`,
+`BACK_BLOCK`). All ten OCR banks were re-cut from their work folders and rebuilt: no part,
+tag or mark lost; 444 OCR A multiple-choice parts gained their answer; scheme crops lost
+OCR's running heads and footers. Crops are cached as immutable, so a re-cut bank carries
+`cropVersion` (set in `ocr/build_ocr.py`, `CROP_VERSION`) and its crop URLs ask for
+`?v=<version>`: bump it whenever a bank's crops are re-uploaded under the same names.
+
 ## AQA A-Level Psychology
 
 Added 25 October 2026, after a student asked for it: `/question-bank/aqa-a-level-psychology`,

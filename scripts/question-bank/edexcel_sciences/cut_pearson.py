@@ -445,6 +445,10 @@ def bold(span):
 # "3(b)(i)", "3 (b)(i)", "1 a i", "1ai", "12(ai)"; and, carrying on from the row above, "(b)i".
 # Extended-response questions carry a star, before or after the number: "*5", "5*", "5(b)*".
 MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?\*?((?:\s*\(?[a-z]{1,5}\)?)*)\s*\*?$")
+# A scheme's back pages, which no answer runs on to: OCR's "Need to get in touch?" and company notice, and blank pages.
+BACK_PAGE = re.compile(r"^\s*BLANK PAGE\s*$|Need to get in touch\?|Oxford Cambridge and RSA Examinations is a Company Limited", re.I | re.M)
+# Older OCR schemes print the contact block under the last answer, on the same page.
+BACK_BLOCK = re.compile(r"^(OCR \(Oxford Cambridge and RSA Examinations\)|Oxford Cambridge and RSA Examinations|Need to get in touch\?)")
 HEAD = re.compile(r"Question( Number| Key)?|Q|No\.( AO)?")  # OCR Chemistry B's multiple-choice keys head theirs "Question Key", "Q" or "No."
 def is_head(l, lines):
     """A "Question" header; a bare "Q" only beside "Key", and "No." beside "Key" or "AO", as in Chemistry B's
@@ -637,6 +641,9 @@ def ms_tables(doc):
                     b = rest[head]["y0"] - 4
             # (a multiple-choice row can be a single 13pt line; Cambridge's rows start at their rule, so the
             # strip above a table carried over to the next page holds no text, only that rule)
+            block = [l["y0"] for l in doc.lines(p) if t < l["y0"] < b and BACK_BLOCK.match(l["text"])]
+            if block:
+                b = min(block) - 6
             if b > t + 6 and not (doc.cambridge and not doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip()):
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
@@ -645,7 +652,7 @@ def ms_tables(doc):
             # Economics' long answers run on over pages of empty table borders, then the levels grids: step over the blanks.
             while EXTRACTS and p + 1 < len(doc) and not doc.lines(p) and not (nxt and nxt[0] <= p):
                 p += 1
-            if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()):
+            if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()) or BACK_PAGE.search(doc.text(p)):
                 break
         text = " ".join(doc.text(p, r) for p, r in pieces)
         if key not in out or (pieces and not out[key][0]):  # a label read twice: the copy with a row under it

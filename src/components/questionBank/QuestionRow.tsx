@@ -126,13 +126,13 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem")} alt={`The start of question ${q}`} loading="lazy" />}
+            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
           </div>
         )}
         <div className="qb-paper">
           {parts.map(p => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} className="qb-img" src={partImage(p.id, "qp")} width={p.w} height={p.h} loading="lazy" decoding="async"
+            <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
               alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />
           ))}
         </div>
@@ -144,7 +144,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               <span className="lp-tape" aria-hidden="true" />
               <p className="qb-note-label">Mark scheme for {p.l}</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms")} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
+              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
             </div>
           ))}
       </div>
