@@ -22,6 +22,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 WORK = os.path.abspath(args[0]) if args else os.path.join(HERE, ".work")
 DRY = "--dry-run" in sys.argv
+CROPS_ONLY = "--crops-only" in sys.argv  # the PDFs are already there under another name (OCR: the library's copies)
 PDF_PREFIX = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--pdf-prefix=")), "aqa/")
 
 
@@ -52,7 +53,7 @@ def main():
         for obj in page.get("Contents", []):
             existing[obj["Key"]] = obj["Size"]
     jobs = []
-    for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp")):
+    for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp"))[1 if CROPS_ONLY else 0:]:
         d = os.path.join(WORK, folder)
         for name in sorted(os.listdir(d)):
             path = os.path.join(d, name)

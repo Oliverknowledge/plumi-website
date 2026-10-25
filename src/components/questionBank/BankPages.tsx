@@ -30,7 +30,7 @@ function QuietPlumi() {
 }
 
 function Credit({ subject }: { subject?: BankSubject }) {
-  const owner = subject ? bankOwner(subject) : "AQA and Pearson Edexcel";
+  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel and OCR";
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
@@ -41,23 +41,23 @@ function Credit({ subject }: { subject?: BankSubject }) {
 
 export function BankHub() {
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level and Edexcel A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s and Edexcel’s A‑Level and AS Biology, Chemistry and Physics since 2016, and Edexcel’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, and Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
         <section className="pp-group">
           <div className="lp-wrap">
-            {(["Edexcel", "AQA"] as const).map(board => (
+            {(["Edexcel", "AQA", "OCR"] as const).map(board => (
             <div key={board} className="qb-board">
             <h2 className="qb-board-name">{board}</h2>
             <ul className="qb-subjects">
-              {bankSubjects.filter(s => s.board === board).map(s => (
+              {bankSubjects.filter(s => s.board.split(" ")[0] === board).map(s => (
                 <li key={s.slug}>
                   <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
                     <Book subject={baseSubject(s)} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>

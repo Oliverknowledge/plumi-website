@@ -29,7 +29,9 @@ import pymupdf
 from PIL import Image, ImageChops
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ARGS = [a for a in sys.argv[1:] if not a.startswith("--only=")]
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+# --whole: cut a whole question at a time, with all its scheme rows (maths, where a later part builds on an earlier one).
+WHOLE = "--whole" in sys.argv
 ONLY = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--only=")), None)
 WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "edexcel-sciences")
 IMG = os.path.join(WORK, "img")
@@ -39,7 +41,7 @@ SCALE = 2.2  # ~160 dpi, as cut.py
 LETTERS = "abcdefghijklmn"
 ROMANS = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"]
 LEAD = re.compile(r"^\*?\s*\(([a-z]{1,4})\)\s*")
-STOP = re.compile(r"^(TOTAL FOR (SECTION|PAPER)|SECTION [A-C]\b|BLANK PAGE|END\s*$)", re.I)
+STOP = re.compile(r"^(TOTAL FOR (SECTION|PAPER)|SECTION [A-C]\b|BLANK PAGE|END\s*$|END OF QUESTION PAPER|(?-i:ADDITIONAL ANSWER SPACE)\s*$)", re.I)  # the extra pages' heading, not "Additional answer space if required" inside a question
 BOILER = re.compile(r"DO NOT WRITE IN THIS AREA|Turn over|\.{6,}|P\d{5}[A-Z]{1,2}\d*", re.I)
 
 
@@ -126,7 +128,12 @@ class Doc:
 
     def frame(self, i):
         if i not in self._frame:
-            self._frame[i] = frame(self.doc[i])
+            f = frame(self.doc[i])
+            # OCR prints "© OCR 2024" at the foot of each page, inside the margin.
+            foot = [l["y0"] for l in self.lines(i) if l["text"].startswith("©") and l["y0"] > f.y1 - 90]
+            if foot:
+                f = pymupdf.Rect(f.x0, f.y0, f.x1, min(f.y1, min(foot) - 4))
+            self._frame[i] = f
         return self._frame[i]
 
     def lines(self, i):
@@ -202,7 +209,9 @@ def frame(page):
     best = None
     for d in drawings(page):
         r = d["rect"] * page.rotation_matrix
-        if r.width > w * 0.7 and r.height > h * 0.6 and (best is None or r.get_area() > best.get_area()):
+        # A frame runs margin to margin; a big figure in the middle of a page isn't one (OCR draws no frame).
+        if r.width > w * 0.7 and r.height > h * 0.6 and r.x0 < 70 and r.x1 > w - 70 and r.y0 < 90 \
+                and (best is None or r.get_area() > best.get_area()):
             best = r
     if best is not None:
         return pymupdf.Rect(best.x0 + 3, best.y0 + 3, best.x1 - 3, best.y1 - 3)
@@ -217,22 +226,26 @@ def qp_labels(doc):
     for i in range(1, len(doc)):
         if doc.blank(i):
             continue
+        # OCR's maths papers open with a formulae sheet; its numbers aren't questions.
+        if q == 0 and len(set(re.findall(r"Arithmetic series|Geometric series|Binomial series|Differentiation from first principles|"
+                                         r"Standard deviation|Kinematics|Formulae", doc.text(i)))) >= 2:
+            continue
         f = doc.frame(i)
         stop = False
         for l in doc.lines(i):
             if l["y0"] > f.y1 or l["y0"] < f.y0 - 4:
                 continue
-            if re.match(r"TOTAL FOR PAPER", l["text"], re.I):
+            if re.match(r"TOTAL FOR PAPER|END OF QUESTION PAPER", l["text"], re.I):
                 stop = True
                 break
             rest = l["text"]
             first = l["spans"][0]
             # A question number: at the frame's left edge, the next one expected, set apart from
             # the question (in its own span, or followed by a capital or a part label).
-            m = re.match(r"^\*?(\d{1,2})\b\s*(.*)$", rest)
+            m = re.match(r"^\*?(\d{1,2})\b\*?\s*(.*)$", rest)
             lead = first["text"].strip() + (l["spans"][1]["text"].strip() if first["text"].strip() == "*" and len(l["spans"]) > 1 else "")
             # Numbered answer spaces ("1 ........", "2 ........") are not questions.
-            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2)))
+            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}\*?", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2)))
             # OCR can miss a small number entirely, so a scanned paper may skip one.
             if m and apart and l["x0"] < f.x0 + 16 \
                     and (int(m.group(1)) == q + 1 or doc.scanned and int(m.group(1)) == q + 2):
@@ -308,7 +321,10 @@ def marks_in(doc, pieces):
             if not inside(l, rect):
                 continue
             m = re.fullmatch(r"\((\d{1,2})\)", l["text"])
-            if m and l["x0"] > rect.x1 - 140 and rect.y0 <= l["y0"] <= rect.y1:
+            if m and not (l["x0"] > rect.x1 - 140):
+                m = None
+            m = m or re.search(r"\[(\d{1,2})\]$", l["text"])  # OCR: "........ [2]" at the end of the answer line
+            if m and rect.y0 <= l["y0"] <= rect.y1:
                 total += int(m.group(1))
                 found = True
     return total if found else None
@@ -334,7 +350,7 @@ def ms_tables(doc):
     # label-shaped under the span of its column's header.
     all_heads = [l for i in range(len(doc)) for l in doc.lines(i) if HEAD.fullmatch(l["text"])]
     typical = sorted(all_heads, key=lambda h: h["x0"])[len(all_heads) // 2] if all_heads else None
-    q_now = None
+    q_now, letter_now = None, None
     for i in range(len(doc)):
         lines = doc.lines(i)
         heads = [l for l in lines if HEAD.fullmatch(l["text"])]
@@ -345,12 +361,53 @@ def ms_tables(doc):
             return h is None and bold(l["spans"][0]) or h is not None and h["x0"] - 40 < l["x0"] < h["x1"] + 10
 
         cands = [l for l in lines if l["x0"] < 200 and not HEAD.fullmatch(l["text"]) and column(l)]
+        # OCR splits a label across columns of one row: "16", "(a)", "(i)". Join pieces that are each label-shaped.
+        label_piece = re.compile(r"\*?\s*(\d{1,2}\*?)?(\s*\(?[a-z]{1,5}\)?)*\s*")
+        piece = type("P", (), {"fullmatch": staticmethod(lambda t: len(t) <= 16 and label_piece.fullmatch(t))})  # short first: a long line would backtrack
+        bare = lambda t: t.strip().strip("()") in LETTERS or t.strip().strip("()") in ROMANS  # noqa: E731
+        # A two-digit number can wrap in a narrow column: "1" with "8" under it.
+        stacked, skip = [], set()
+        for k, l in enumerate(cands):
+            if k in skip:
+                continue
+            # (Only where a part label sits beside the first digit: a multiple-choice table's "1", "2"
+            # rows are as close together, but have nothing beside them.)
+            beside = any(abs(o["y0"] - l["y0"]) < 3 and o["x0"] > l["x0"] and re.match(r"\s*\([a-z]", o["text"]) for o in cands)
+            below = next((j for j, o in enumerate(cands) if beside and j != k and j not in skip and re.fullmatch(r"\d", l["text"])
+                          and re.fullmatch(r"\d\*?", o["text"]) and abs(o["x0"] - l["x0"]) < 5 and 0 < o["y0"] - l["y0"] < 16), None)
+            if below is not None:
+                skip.add(below)
+                l = {**l, "text": l["text"] + cands[below]["text"]}
+            stacked.append(l)
+        cands = stacked
+        rows = []
+        for l in sorted(cands, key=lambda l: (round(l["y0"]), l["x0"])):
+            if rows and abs(rows[-1]["y0"] - l["y0"]) < 3 and piece.fullmatch(rows[-1]["text"]) and piece.fullmatch(l["text"]) \
+                    and (re.match(r"\s*\(", l["text"]) or bare(l["text"]) and bold(l["spans"][0])) and l["x0"] > rows[-1]["x0"]:
+                rows[-1] = {**rows[-1], "text": rows[-1]["text"] + " " + l["text"], "x1": l["x1"]}
+            else:
+                rows.append(l)
+        cands = rows
         for k, l in enumerate(cands):
             label = l["text"].strip()
             # A label can wrap: "1(a)" then "(ii)" on the next line of its cell.
             if k + 1 < len(cands) and re.fullmatch(r"(\([a-z]{1,4}\))+", re.sub(r"\s+", "", cands[k + 1]["text"])) \
                     and abs(cands[k + 1]["x0"] - l["x0"]) < 12 and 0 < cands[k + 1]["y0"] - l["y0"] < 16:
                 label += cands[k + 1]["text"]
+            # OCR can set a label and the start of its answer as one line: "(iii) path difference…".
+            # Read label pieces off the front while they are one ("(b) (i)" stays whole); the answer
+            # can start with a bracket of its own ("(iii) (cells) divide").
+            if not (len(label) <= 16 and MS_LABEL.match(label)):
+                num = re.match(r"\*?\s*(\d{1,2})?\*?", label)
+                pos, n = num.end(), 0
+                while n < 2:
+                    # bracketed, or bare in its bold label column: "iii idea of comparing…"
+                    t = re.match(r"\s*\(([a-z]{1,5})\)", label[pos:]) or (bold(l["spans"][0]) and re.match(r"\s*([a-z]{1,4})(?=\s)", label[pos:]))
+                    if not (t and (t.group(1) in LETTERS or t.group(1) in ROMANS)):
+                        break
+                    pos, n = pos + t.end(), n + 1
+                if n and label[pos:].strip():
+                    label = label[:pos]
             if not label or len(label) > 16:
                 continue  # labels are short; a long line would only make the pattern backtrack
             m = MS_LABEL.match(label)
@@ -362,12 +419,19 @@ def ms_tables(doc):
             if len(subs) > 2 or any(x not in LETTERS and x not in ROMANS for x in subs):
                 continue
             if m.group(1):
-                q_now = int(m.group(1))
-            elif not subs or q_now is None or "(" not in label:
-                continue  # a bare word, not "(b)i"
+                q_now, letter_now = int(m.group(1)), None
+            elif not subs or q_now is None or ("(" not in label and not bold(l["spans"][0])):
+                continue  # a bare word, not "(b)i" (or a bold "b" in its own column)
             letter = subs[0] if subs and subs[0] in LETTERS and (subs[0] != "i" or len(subs) == 2) else None
             roman = subs[1] if len(subs) > 1 else (subs[0] if subs and subs[0] in ROMANS and not letter else None)
-            above = [h for h in heads if h["y0"] < l["y0"] and l["y0"] - h["y0"] < 60]
+            if letter:
+                letter_now = letter
+            elif roman and not m.group(1) and letter_now:
+                letter = letter_now  # a row of its own for "(ii)" carries on "16 (a) (i)" above
+            # A header heads only the first label under it: in a multiple-choice table one header
+            # sits over fifteen rows.
+            above = [h for h in heads if h["y0"] < l["y0"] and l["y0"] - h["y0"] < 60
+                     and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
             top = (above[-1]["y0"] if above else l["y0"]) - 6
             found.append((i, top, (q_now, letter, roman), l["y0"]))
     found.sort(key=lambda f: (f[0], f[1]))
@@ -380,7 +444,7 @@ def ms_tables(doc):
             w, h = page.rect.width, page.rect.height
             t = top if p == pg else 20
             b = nxt[1] - 2 if nxt and nxt[0] == p else h - 30
-            if b > t + 12:
+            if b > t + 6:  # a multiple-choice row can be a single 13pt line
                 pieces.append((p, pymupdf.Rect(20, t, w - 20, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
@@ -390,6 +454,8 @@ def ms_tables(doc):
         text = " ".join(doc.text(p, r) for p, r in pieces)
         if key not in out:
             ans = re.search(r"(?:only )?correct answer is\s*\(?([A-D])\b", text)
+            if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓"
+                ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])", text)
             out[key] = (pieces, re.sub(r"\s+", " ", text), ans.group(1) if ans else None)
     return out
 
@@ -442,6 +508,16 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     for n, (pg, y, q, letter, roman) in enumerate(labels):
         nxt = labels[n + 1] if n + 1 < len(labels) else None
         regions.append(((q, letter, roman), region(qp, (pg, y), (nxt[0], nxt[1]) if nxt else None, end_page)))
+    if WHOLE:
+        starts = [(pg, y, q) for pg, y, q, letter, _ in labels if letter is None]
+        regions = [((q, None, None), region(qp, (pg, y), (starts[n + 1][0], starts[n + 1][1]) if n + 1 < len(starts) else None, end_page))
+                   for n, (pg, y, q) in enumerate(starts)]
+        whole_ms = {}
+        for k in sorted(ms, key=lambda k: (ms[k][0][0][0], ms[k][0][0][1].y0) if ms[k][0] else (0, 0)):
+            pieces, text, ans = ms[k]
+            got = whole_ms.setdefault((k[0], None, None), ([], "", None))
+            whole_ms[(k[0], None, None)] = (got[0] + pieces, (got[1] + " " + text).strip(), got[2] or ans)
+        ms = whole_ms
     keys = [k for k, _ in regions]
     # A question with parts, or a part with sub-parts, isn't itself a question to show.
     has_children = lambda k: any(o[0] == k[0] and ((k[1] is None and o[1]) or (k[1] and not k[2] and o[1] == k[1] and o[2])) for o in keys)  # noqa: E731
@@ -477,7 +553,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                     save(stack([trim(qp.crop(pg, r), 14) for pg, r in stem_pieces]), stem_name)
         stem_text = " ".join(qp.text(pg, r) for pg, r in by_key.get((q, None, None), [])) if letter else ""
         text = " ".join(qp.text(pg, r) for pg, r in keep)
-        marks = marks_in(qp, keep)
+        marks = marks_in(qp, pieces)  # all of it: a long answer's "[6]" can sit on a page of answer lines we don't show
         if marks is None and not letter:  # a one-part question, e.g. multiple choice: "(Total for Question 1 = 1 mark)"
             m = re.search(r"Total for Question \d+ = (\d+) marks?", text)
             marks = int(m.group(1)) if m else None

@@ -28,6 +28,13 @@ import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
 import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
 import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
 import edexcelPhysics from "./questionBank/edexcel-a-level-physics.json";
+import ocrBiology from "./questionBank/ocr-a-level-biology-a.json";
+import ocrChemistry from "./questionBank/ocr-a-level-chemistry-a.json";
+import ocrPhysics from "./questionBank/ocr-a-level-physics-a.json";
+import ocrMaths from "./questionBank/ocr-a-level-maths.json";
+import ocrFurtherMaths from "./questionBank/ocr-a-level-further-maths.json";
+import meiMaths from "./questionBank/ocr-mei-a-level-maths.json";
+import meiFurtherMaths from "./questionBank/ocr-mei-a-level-further-maths.json";
 
 /**
  * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE).
@@ -73,9 +80,9 @@ export interface BankPart {
 
 export interface BankSubject {
   slug: string;
-  board: "AQA" | "Edexcel";
+  board: "AQA" | "Edexcel" | "OCR" | "OCR MEI";
   level: "A-Level" | "GCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Physics" | "Maths" | "Further Maths";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
   fullName?: string;
   specs: string[];
@@ -96,7 +103,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -118,12 +125,12 @@ export const partImage = (id: string, kind: "qp" | "ms" | "stem") =>
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 
 /** Who owns the questions, for credits: "AQA", "Pearson Edexcel". */
-export const bankOwner = (s: Pick<BankSubject, "board">) => (s.board === "Edexcel" ? "Pearson Edexcel" : "AQA");
+export const bankOwner = (s: Pick<BankSubject, "board">) => (s.board === "Edexcel" ? "Pearson Edexcel" : s.board === "OCR MEI" ? "OCR" : s.board);
 /** The subject without its specification letter: "Biology" for "Biology A". */
 export const baseSubject = (s: Pick<BankSubject, "subject">) => s.subject.replace(/ [AB]$/, "");
 /** The whole-paper library page for a bank's subject and board. */
 export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) =>
-  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase()}`;
+  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase().replace(/\s+/g, "-")}`;
 /** The subject's share card, where it has its own. */
 export const bankShareImage = (s: Pick<BankSubject, "subject">) =>
   ["Biology", "Chemistry", "Physics"].includes(baseSubject(s)) ? `/og-${baseSubject(s).toLowerCase()}.png` : "/og.png";

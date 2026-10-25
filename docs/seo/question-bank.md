@@ -172,3 +172,53 @@ python3 scripts/question-bank/tag_batches.py merge scripts/question-bank/.work-g
 npm run bank:build:gcse
 npm run bank:upload -- scripts/question-bank/.work-gcse
 ```
+
+## OCR and OCR MEI
+
+Added 25 October 2026, after the bank's video went viral and students asked for OCR:
+
+| Bank | Specifications | Unit |
+| --- | --- | --- |
+| `/question-bank/ocr-a-level-biology-a` | H420, AS H020 | part |
+| `/question-bank/ocr-a-level-chemistry-a` | H432, AS H032 | part |
+| `/question-bank/ocr-a-level-physics-a` | H556, AS H156 | part |
+| `/question-bank/ocr-a-level-maths` | H240, AS H230 | whole question |
+| `/question-bank/ocr-a-level-further-maths` | H245 (Y540-Y545), AS H235 | whole question |
+| `/question-bank/ocr-mei-a-level-maths` | H640, AS H630 | whole question |
+| `/question-bank/ocr-mei-a-level-further-maths` | H645 (Y420-Y436), AS H635 | whole question |
+
+Sciences run June 2016 (AS) / 2017 (A-Level) to June 2025; maths June 2018 to June
+2025 (A-Level Further Maths from June 2019). OCR keeps the newest series on Teach
+Cambridge, for teachers, so June 2026 arrives a year late.
+
+- **Papers:** the past paper library's OCR fetcher (`scripts/past-papers/boards/ocr.py`)
+  already downloads every OCR paper. `ocr/fetch_ocr.py` (and `--maths`) copies the
+  ones the bank needs from its work folder, and the bank's "whole paper" links are the
+  library's own R2 keys (`ocr/OCR-H432-01-QP-JUN24.pdf`), so nothing is stored twice.
+- **Topics:** sciences from OCR's specifications (`ocr/spec_ocr.py`): sections ("3.1
+  The periodic table") as tiles and numbered topics ("3.1.2 Group 2") under them, Year
+  1 = Modules 2-4. Maths uses the Edexcel maths bank's topics (`edexcel_topics.json`):
+  A-Level Maths content is the same for every board.
+- **Cutting:** `edexcel_sciences/cut_pearson.py` reads OCR's layout too: marks printed
+  "[3]", scheme labels split across columns ("16" | "(a)" | "(i)", or bare "a" | "i"),
+  "(ii)" rows carrying on the part above, a multiple-choice table under one header.
+  Maths is cut with `--whole`: a question at a time with all its scheme rows.
+- **Tagging:** `ocr/tag_ocr.py` (sciences) and `ocr/maths_ocr.py split|merge` (maths),
+  briefed by tag.md's OCR section.
+- **Building:** `ocr/build_ocr.py` and `ocr/maths_ocr.py build`.
+
+Gaps: OCR's November 2020 Biology A AS Paper 2 mark scheme link serves another
+paper's scheme, so those 30 parts link no scheme. Two November 2020 Biology A papers
+are scans; only the parts OCR's text reading and their scheme confirm are in.
+
+```bash
+python3 scripts/question-bank/ocr/fetch_ocr.py [--maths]
+python3 scripts/question-bank/ocr/spec_ocr.py
+python3 scripts/question-bank/edexcel_sciences/cut_pearson.py scripts/question-bank/.work/ocr-sciences
+python3 scripts/question-bank/edexcel_sciences/cut_pearson.py scripts/question-bank/.work/ocr-maths --whole
+python3 scripts/question-bank/ocr/tag_ocr.py split    # tag, then: tag_ocr.py merge
+python3 scripts/question-bank/ocr/maths_ocr.py split  # tag, then: maths_ocr.py merge
+python3 scripts/question-bank/ocr/build_ocr.py && python3 scripts/question-bank/ocr/maths_ocr.py build
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-sciences --crops-only   # the PDFs are the library's
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-maths --crops-only
+```
