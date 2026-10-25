@@ -31,6 +31,7 @@ import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
 import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
 import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
 import edexcelPhysics from "./questionBank/edexcel-a-level-physics.json";
+import edexcelEconomics from "./questionBank/edexcel-a-level-economics-a.json";
 import ocrBiology from "./questionBank/ocr-a-level-biology-a.json";
 import ocrChemistry from "./questionBank/ocr-a-level-chemistry-a.json";
 import ocrPhysics from "./questionBank/ocr-a-level-physics-a.json";
@@ -90,7 +91,7 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
   level: "A-Level" | "GCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Psychology";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Psychology" | "Economics A";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
   fullName?: string;
   specs: string[];
@@ -116,7 +117,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);

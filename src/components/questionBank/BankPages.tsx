@@ -59,13 +59,13 @@ const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject)
 export function BankHub() {
   const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, and every question from the CAIE (Cambridge International) AS & A Level papers Cambridge publishes, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, AQA A-Level Psychology and Edexcel A-Level Economics A exam questions, and every question from the CAIE (Cambridge International) AS & A Level papers Cambridge publishes, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, AQA’s A‑Level and AS Psychology since 2020, and Cambridge International’s (CAIE) AS & A Level Maths, Further Maths and sciences from the papers Cambridge publishes, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, AQA’s A‑Level and AS Psychology since 2020, Edexcel’s A‑Level and AS Economics A since 2016, and Cambridge International’s (CAIE) AS & A Level Maths, Further Maths and sciences from the papers Cambridge publishes, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
             <nav className="qb-levels" aria-label="Jump to a shelf">
               {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
             </nav>
