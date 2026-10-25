@@ -204,6 +204,17 @@ export const practice = {
     hero: "real exam questions by topic",
     line: "Pick a topic and get every exam question on it, each with its mark scheme and the examiner’s report beside it. Build a set and download it as a PDF.",
     cta: "Open the question bank",
+    // The card names the boards; every subject is listed once, at the foot of the page, so
+    // the card stays short as subjects are added (founder, 25 October 2026).
+    boardsLabel: "Pick your exam board",
+    allSubjects: "See every subject",
+  },
+  /** The question bank's subjects at the foot of the page, one column per board. */
+  bankIndex: {
+    eyebrow: "Every subject in the question bank",
+    title: "Find your",
+    titleEm: "exam board.",
+    lead: "Every question comes with its mark scheme and the examiner’s report. Tap your subject to start.",
   },
   papers: {
     name: "Past papers",

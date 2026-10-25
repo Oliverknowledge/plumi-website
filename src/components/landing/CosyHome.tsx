@@ -26,6 +26,8 @@ import "@/app/landing.css";
  *   SUBJECTS  four books on a shelf, linking to their pages
  *   FAQ       the vetted answers
  *   CLOSE     the badge again, and the Discord
+ *   BANK      every question bank subject, one column per exam board (the practice card
+ *             names only the boards, so it stays short as subjects are added)
  *
  * No pricing (founder, 23 October 2026): see the note at the top of cosyHome.ts.
  *
@@ -49,8 +51,31 @@ function squares(): string[] {
 /** Every question in the bank, across its subjects. */
 const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
 
-/** "AQA Physics", "AQA GCSE Physics", "CAIE IGCSE Maths": a bank subject as its chip says it. A-Level is the default, so only GCSE and IGCSE say their level. */
-const bankChip = (s: (typeof bankSubjects)[number]) => `${s.board} ${s.level !== "A-Level" ? `${s.level} ` : ""}${s.subject}`;
+/** Boards and levels in the order students look for them; one added to the bank later goes at the end. */
+const boardOrder = ["AQA", "Edexcel", "OCR", "OCR MEI", "CAIE"];
+const levelOrder = ["A-Level", "GCSE", "IGCSE"];
+const byOrder = (order: string[]) => (a: string, b: string) => ((order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+const boardName: Record<string, string> = { CAIE: "Cambridge (CAIE)" };
+/** Each board's colour: its column's header in the index, and the dot on its chip in the card. */
+const boardColour: Record<string, string> = { AQA: "#a9cbeb", Edexcel: "#8fd0a0", OCR: "#eaa99a", "OCR MEI": "#f2c96b", CAIE: "#7cc6c2" };
+const boardStyle = (board: string) => ({ ["--board" as string]: boardColour[board] ?? "#d9c8ec" });
+const boardId = (board: string) => `bank-${board.toLowerCase().replace(/\s+/g, "-")}`;
+
+/**
+ * The bank's subjects by board, then level: the card's board chips and the index at the foot
+ * of the page. Read from the bank, so a subject added there shows up here with no edit.
+ */
+const bankBoards = [...new Set(bankSubjects.map(s => s.board))].sort(byOrder(boardOrder)).map(board => {
+  const subjects = bankSubjects.filter(s => s.board === board);
+  return {
+    board,
+    count: subjects.reduce((n, s) => n + s.count, 0),
+    levels: [...new Set(subjects.map(s => s.level))].sort(byOrder(levelOrder)).map(level => ({
+      level,
+      subjects: subjects.filter(s => s.level === level).sort((a, b) => a.subject.localeCompare(b.subject)),
+    })),
+  };
+});
 
 /** Pixel icons for the hero's tickets, drawn on a 16px grid like the Discord key's. */
 const QuestionIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h8l3 3v11H3zm1 1v12h9V5h-3V2zm2 5h5v1H6zm0 2h5v1H6zm0 2h3v1H6z" /></svg>;
@@ -108,8 +133,9 @@ export function CosyHome({ variant }: { variant?: string }) {
               <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
               <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
               <p>{practice.bank.line}</p>
-              <ul aria-label="Question bank subjects">
-                {bankSubjects.map(s => <li key={s.slug}><Link href={bankPath(s.slug)}>{bankChip(s)}</Link></li>)}
+              <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
+              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
+                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
               </ul>
               <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
             </article>
@@ -300,6 +326,40 @@ export function CosyHome({ variant }: { variant?: string }) {
               <AppStoreBadge placement="close" height={56} />
               <DiscordButton placement="close" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* EVERY SUBJECT IN THE QUESTION BANK */}
+      <section id="bank-subjects" className="lp-bank-index" aria-labelledby="bank-index-title" data-testid="bank-index">
+        <div className="lp-wrap">
+          <div className="lp-sec-head">
+            <span className="lp-eyebrow">{practice.bankIndex.eyebrow}</span>
+            <h2 id="bank-index-title">{practice.bankIndex.title} <em>{practice.bankIndex.titleEm}</em></h2>
+            <p className="lp-lead">{practice.bankIndex.lead}</p>
+          </div>
+          <div className="lp-bank-boards">
+            {bankBoards.map(b => (
+              <div key={b.board} id={boardId(b.board)} className="lp-bank-board" style={boardStyle(b.board)}>
+                <div className="lp-tape" aria-hidden="true" />
+                <header>
+                  <h3>{b.board === "CAIE" ? "Cambridge" : b.board}</h3>
+                  <small>{b.board === "CAIE" && "CAIE · "}{b.count.toLocaleString("en-GB")} questions</small>
+                </header>
+                {b.levels.map(l => (
+                  <div key={l.level} className="lp-bank-level">
+                    <h4>{l.level}</h4>
+                    <ul>
+                      {l.subjects.map(s => (
+                        <li key={s.slug}>
+                          <Link href={bankPath(s.slug)}><span>{s.subject}</span><i aria-hidden="true" /><small>{s.count.toLocaleString("en-GB")}<span className="sr-only"> questions</span></small></Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </section>
