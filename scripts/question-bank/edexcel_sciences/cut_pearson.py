@@ -455,9 +455,12 @@ def ms_page_box(doc, p):
     if not doc.cambridge:
         # OCR runs "H422/01  Mark Scheme  June 2018" and the page number along the top or foot of every page.
         lines = doc.lines(p)
-        running = re.compile(r"[A-Z]\d{3}/\d\d|Mark Scheme|(January|June|October|November) \d{4}|\d{1,3}")
-        head = [l["y1"] for l in lines if l["y1"] < 70 and running.fullmatch(l["text"])]
-        foot = [l["y0"] for l in lines if l["y0"] > h - 70 and running.fullmatch(l["text"])]
+        running = re.compile(r"[A-Z]\d{3}/\d\d|Mark Scheme|(January|June|October|November) \d{4}")
+        # The page number is centred and alone on its line: a lone "0" or "2" elsewhere is a levels grid's row or a question's label.
+        page_no = lambda l: re.fullmatch(r"\d{1,3}", l["text"]) and abs((l["x0"] + l["x1"]) / 2 - w / 2) < 40 \
+            and not any(o is not l and abs(o["y0"] - l["y0"]) < 6 for o in lines)  # noqa: E731
+        head = [l["y1"] for l in lines if l["y1"] < 70 and (running.fullmatch(l["text"]) or page_no(l))]
+        foot = [l["y0"] for l in lines if l["y0"] > h - 70 and (running.fullmatch(l["text"]) or page_no(l))]
         return pymupdf.Rect(20, max(head) + 4 if head else 20, w - 20, min(foot) - 4 if foot else h - 30)
     lines = doc.lines(p)
     head = [l["y1"] for l in lines if l["y0"] < 90 and re.search(r"Mark Scheme|PUBLISHED|SPECIMEN|^\d{4}/\d{2}|May/June|For examination|from 20\d\d", l["text"])]
