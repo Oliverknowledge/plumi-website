@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import type { BankPart, BankSubject } from "@/content/questionBank";
 
-/** The most a set can hold: enough for a long practice paper, small enough to build in a browser. */
-export const SET_MAX = 40;
+/** The most one set (or one download by number) holds: a long practice session's worth, picked by hand. */
+export const SET_MAX = 150;
 
 /**
  * "My set": the questions someone has picked, kept in this browser between visits.
@@ -17,11 +17,13 @@ export function useQuestionSet(slug: string) {
   const raw = useSyncExternalStore(subscribeStorage, () => readStorage(key), () => "[]");
   const ids = useMemo<string[]>(() => { try { return JSON.parse(raw); } catch { return []; } }, [raw]);
   const save = useCallback((next: string[]) => writeStorage(key, JSON.stringify(next)), [key]);
+  const inSet = useMemo(() => new Set(ids), [ids]);
   return {
     ids,
-    has: (id: string) => ids.includes(id),
+    has: (id: string) => inSet.has(id),
+    full: ids.length >= SET_MAX,
     toggle: (id: string) => {
-      if (ids.includes(id)) return save(ids.filter(x => x !== id));
+      if (inSet.has(id)) return save(ids.filter(x => x !== id));
       if (ids.length >= SET_MAX) return;
       track("bank_set_added", { subject: slug, size: ids.length + 1 });
       save([...ids, id]);
@@ -110,6 +112,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
         </button>
         <button type="button" className="lp-btn qb-tray-go" onClick={download} disabled={!!busy || !parts}>{busy ?? (parts ? "Download PDF" : "Loading…")}</button>
         {note && <p className="qb-tray-note" role="status">{note}</p>}
+        {count >= SET_MAX && !note && <p className="qb-tray-note" role="status">That’s {SET_MAX}, the most one set holds. Download it, then clear it for the next.</p>}
         {listOpen && (
           <div className="qb-tray-list">
             <label className="qb-tray-ms"><input type="checkbox" checked={withMs} onChange={e => setWithMs(e.target.checked)} /> Mark schemes at the back</label>
@@ -122,7 +125,6 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
               ))}
             </ol>
             <button type="button" className="qb-link" onClick={clear} disabled={!!busy}>Clear the set</button>
-            {count >= SET_MAX && <p className="qb-tray-note">That’s the most one set holds.</p>}
           </div>
         )}
       </div>

@@ -7,7 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
  * paper library's front doors in place of the spiral notebook cards. The look is in cosy.css (.lp-book).
  */
 
-/** Each subject's colour: the homepage shelf's four, and the app's lilac for Further Maths (and IGCSE Additional Maths). */
+/** Each subject's colour: the homepage shelf's four, the app's lilac for Further Maths (and IGCSE Additional Maths), and a rose for Psychology. */
 export const subjectColours: Record<string, string> = {
   Physics: "#f2c96b",
   Maths: "#6a9bd0",
@@ -15,6 +15,7 @@ export const subjectColours: Record<string, string> = {
   "Additional Maths": "#b9a3e3",
   Chemistry: "#8fd0a0",
   Biology: "#eaa99a",
+  Psychology: "#e3a6c8",
 };
 
 /** A row of little squares, one a topic, filling in like the app's topic map: a fixed pattern, the same on every render. */

@@ -2,7 +2,8 @@
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
  * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
- * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, cut out one at a time, each with its own mark scheme
+ * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, and AQA's A-Level
+ * Psychology, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
@@ -20,6 +21,7 @@
 import biology from "./questionBank/aqa-a-level-biology.json";
 import chemistry from "./questionBank/aqa-a-level-chemistry.json";
 import physics from "./questionBank/aqa-a-level-physics.json";
+import psychology from "./questionBank/aqa-a-level-psychology.json";
 import maths from "./questionBank/edexcel-a-level-maths.json";
 import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
 import gcseBiology from "./questionBank/aqa-gcse-biology.json";
@@ -48,7 +50,7 @@ import caieIgcseMaths from "./questionBank/caie-igcse-maths.json";
 import caieIgcseAdditionalMaths from "./questionBank/caie-igcse-additional-maths.json";
 
 /**
- * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE, IGCSE).
+ * `year`: 1 for AS content, 2 for A-Level only, 3 for a Paper 3 option (Physics, Psychology), 0 where the bank doesn't split by year (maths, GCSE, IGCSE, the rest of Psychology).
  * `short`: a shorter name for a long specification title, for the page title ("Moles and gas volumes").
  * `ref`: the code as the specification prints it, where that isn't `code` ("6A");
  * empty where the specification gives the topic no code of its own, as with the
@@ -93,7 +95,7 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
   level: "A-Level" | "GCSE" | "IGCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Additional Maths";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
   fullName?: string;
   specs: string[];
@@ -119,7 +121,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);

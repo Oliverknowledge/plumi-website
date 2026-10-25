@@ -13,8 +13,12 @@ const SOFT = rgb(0.48, 0.4, 0.36);
  * Fetched with no-store: the page has usually shown the crop already through an <img>,
  * which the file host answers without CORS headers (and without Vary: Origin), and the
  * browser would hand that cached copy to fetch() and block it. One retry for a blip.
+ *
+ * Encoded with toDataURL, which pdf-lib takes as is: toBlob is throttled to about a
+ * second a call while the tab is in the background, so a big set built while someone
+ * looks at another tab would crawl.
  */
-async function asJpeg(url: string): Promise<{ bytes: ArrayBuffer; w: number; h: number } | null> {
+async function asJpeg(url: string): Promise<{ bytes: string; w: number; h: number } | null> {
   let res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
   if (!res?.ok) res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
   if (!res?.ok) return null;
@@ -27,8 +31,22 @@ async function asJpeg(url: string): Promise<{ bytes: ArrayBuffer; w: number; h: 
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, 0, 0);
-  const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, "image/jpeg", 0.88));
-  return blob ? { bytes: await blob.arrayBuffer(), w: bitmap.width, h: bitmap.height } : null;
+  bitmap.close();
+  return { bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height };
+}
+
+/**
+ * Runs jobs a few at a time, in the order they were handed over. Used to fetch crops
+ * ahead of where the PDF has got to, so a set of hundreds doesn't wait on each in turn.
+ */
+function limited(width: number) {
+  let active = 0;
+  const waiting: (() => void)[] = [];
+  return async <T>(job: () => Promise<T>): Promise<T> => {
+    if (active >= width) await new Promise<void>(r => waiting.push(r));
+    active += 1;
+    try { return await job(); } finally { active -= 1; waiting.shift()?.(); }
+  };
 }
 
 /**
@@ -68,8 +86,15 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const marks = parts.reduce((n, p) => n + (p.m ?? 0), 0);
   pending = { title: `${bankTitle(subject)}: ${parts.length} ${parts.length === 1 ? "question" : "questions"}`, sub: marks ? `${marks} marks` : undefined };
 
-  async function place(part: BankPart, kind: "qp" | "ms" | "stem", label: string) {
-    const img = await asJpeg(partImage(part.id, kind)).catch(() => null);
+  // Every crop the PDF needs, in the order it's drawn, fetched six at a time from the start.
+  type Crop = { part: BankPart; kind: "qp" | "ms" | "stem"; label: string };
+  const crops: Crop[] = [];
+  const msCrops = new Map<BankPart, Crop>();
+  const run = limited(6);
+  const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
+  const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(partImage(c.part.id, c.kind)).catch(() => null))); return c; };
+
+  async function place({ kind, label }: Crop, img: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind !== "stem") {
       done += 1;
       opts.onProgress?.(done, total);
@@ -103,10 +128,14 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     const q = `${p.p}-${p.s}-${p.l.split(".")[0]}`;
     if (p.st && !stemsDone.has(q)) {
       stemsDone.add(q);
-      await place(p, "stem", `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${p.l.split(".")[0]}`);
+      crops.push(want({ part: p, kind: "stem", label: `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${p.l.split(".")[0]}` }));
     }
-    await place(p, "qp", labelFor(p));
+    crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
+  if (opts.markSchemes) for (const p of parts) if (p.ms) msCrops.set(p, want({ part: p, kind: "ms", label: `Mark scheme · ${labelFor(p)}` }));
+  const drawn = async (c: Crop) => place(c, await fetched.get(c)!);
+
+  for (const c of crops) await drawn(c);
 
   if (opts.markSchemes) {
     // The schemes start on a fresh page, their heading drawn with the first one.
@@ -117,7 +146,8 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     }
     pending = { title: "Mark schemes" };
     for (const p of parts) {
-      if (p.ms) await place(p, "ms", `Mark scheme · ${labelFor(p)}`);
+      const c = msCrops.get(p);
+      if (c) await drawn(c);
       else if (p.k) {
         if (y - 20 < MARGIN + 10) { page = pdf.addPage([A4.w, A4.h]); footer(page); y = A4.h - MARGIN; }
         if (pending) { drawHeading(pending); pending = null; }

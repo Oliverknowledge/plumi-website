@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { track } from "@/lib/analytics";
 import { baseSubject, bankDataPath, papersBase, paperName, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { QuestionRow } from "./QuestionRow";
-import { SetTray, useQuestionSet } from "./SetTray";
+import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -215,23 +215,28 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     e.preventDefault();
     const raw = String(new FormData(e.currentTarget).get("range") ?? "");
     if (!results || !raw.trim()) return;
-    const picks: BankPart[] = [];
+    // Up to SET_MAX, as a set holds. A number typed twice ("1–5, 3") goes in once.
+    const picks = new Set<BankPart>();
+    let capped = false;
     for (const bit of raw.split(/[,\s]+/).filter(Boolean)) {
       // "7" has no second number at all (undefined, not NaN); "5–2" counts as 2 to 5.
       const [a, b = a] = bit.split(/[-–]/).map(x => parseInt(x, 10));
       if (Number.isNaN(a)) continue;
       const end = Number.isNaN(b) ? a : b;
-      for (let i = Math.min(a, end); i <= Math.max(a, end) && picks.length < 40; i++) if (results[i - 1]) picks.push(results[i - 1]);
+      for (let i = Math.max(1, Math.min(a, end)); i <= Math.min(results.length, Math.max(a, end)); i++) {
+        if (picks.size >= SET_MAX && !picks.has(results[i - 1])) { capped = true; break; }
+        picks.add(results[i - 1]);
+      }
     }
-    if (!picks.length) { setRangeNote("Those numbers aren’t in this list."); return; }
+    if (!picks.size) { setRangeNote("Those numbers aren’t in this list."); return; }
     setRangeNote("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      const skipped = await buildSetPdf(subject, picks, { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.length, mark_schemes: true, via: "range", skipped });
+      const skipped = await buildSetPdf(subject, [...picks], { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, via: "range", skipped });
       setRangeNote(skipped
-        ? `Saved, but ${skipped} of ${picks.length * 2} pages couldn’t be added. Try again in a moment.`
-        : `Saved ✓ ${picks.length} ${picks.length === 1 ? "question" : "questions"}, mark schemes at the back`);
+        ? `Saved, but ${skipped} of ${picks.size * 2} pages couldn’t be added. Try again in a moment.`
+        : `Saved ✓ ${picks.size} ${picks.size === 1 ? "question" : "questions"}, mark schemes at the back${capped ? ` (${SET_MAX} is the most in one go)` : ""}`);
     } catch {
       setRangeNote("Couldn’t build it. Try again?");
     }
@@ -320,7 +325,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">
@@ -378,7 +383,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
         ) : (
           <ol className="qb-rows">
             {list.slice(0, shown).map((p, i) => (
-              <QuestionRow key={p.id} n={i + 1} part={p} subject={subject} inSet={set.has(p.id)} onToggleSet={() => set.toggle(p.id)}
+              <QuestionRow key={p.id} n={i + 1} part={p} subject={subject} inSet={set.has(p.id)} setFull={set.full} onToggleSet={() => set.toggle(p.id)}
                 onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
             ))}
           </ol>

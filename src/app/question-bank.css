@@ -168,6 +168,11 @@
 .qb-subjects { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 26px; }
 .qb-subjects > li { display: flex; min-width: 0; }
 .lp .qb-board-name { font-size: clamp(24px, 2.8vw, 32px); margin: 0 0 18px; }
+.qb-board { scroll-margin-top: 90px; }
+.qb-levels { display: flex; flex-wrap: wrap; gap: 10px; }
+.lp .qb-levels a { font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-ink); text-decoration: none; border: 2px solid var(--lp-line); border-radius: 12px; padding: 6px 14px; background: var(--lp-card-bg); box-shadow: 0 3px 0 var(--lp-shadow); min-height: 40px; display: inline-flex; align-items: center; gap: 8px; }
+.lp .qb-levels a:hover { background: var(--lp-gold); }
+.lp .qb-levels a span { font-family: var(--f-body); font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
 .qb-subject-count { font-weight: 700; }
 .qb-subject-count strong { color: var(--lp-orange); }
 .qb-subject-years { font-weight: 700; color: var(--lp-ink-soft); font-size: 14.5px; }
