@@ -234,3 +234,13 @@
   .qb-hub-hero { grid-template-columns: minmax(0, 1fr); }
   .lp .qb-hub-mascot { display: none; }
 }
+
+/* ── Show each part or whole questions; practicals ───────────────────────── */
+.qb-row-toggles { display: flex; flex-wrap: wrap; align-items: end; gap: 14px 28px; padding-top: 14px; }
+.qb-row-toggles:empty { display: none; }
+.qb-seg { display: inline-flex; border: 2px solid var(--lp-line); border-radius: 11px; overflow: hidden; box-shadow: 0 3px 0 var(--lp-shadow); background: #fff; }
+.lp .qb-seg button { min-height: 38px; padding: 6px 14px; font-family: var(--f-body); font-weight: 700; font-size: 14.5px; color: var(--lp-ink); background: transparent; border: 0; cursor: pointer; }
+.lp .qb-seg button + button { border-left: 2px solid var(--lp-line); }
+.lp .qb-seg button.is-on { background: var(--lp-gold); }
+.lp .qb-seg button:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: -3px; }
+.qb-paper .qb-img + .qb-img { margin-top: 10px; }
