@@ -147,6 +147,8 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               : byNew);
   }, [parts, matches, f.sort, subject.papers]);
 
+  const allInSet = !!results?.length && results.every(p => set.has(p.id));
+
   /** How many questions each chip would give, with every other filter kept. */
   const counts = useMemo(() => {
     if (!parts) return null;
@@ -340,9 +342,15 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
 
       <section className="qb-results" aria-labelledby="qb-results-title">
         <div className="qb-bar">
-          <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
-            <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
-          </h2>
+          <div className="qb-bar-count">
+            <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
+              <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
+            </h2>
+            {/* Every question these filters give, into the set at once: for printing in big chunks. */}
+            {results && results.length > 0 && (allInSet
+              ? <button type="button" className="qb-link" onClick={() => set.removeAll(results.map(p => p.id))}>✓ All in your set · Take them out</button>
+              : <button type="button" className="qb-link" onClick={() => set.addAll(results.map(p => p.id))}>+ Add all {results.length === 1 ? "" : `${results.length.toLocaleString("en-GB")} `}to set</button>)}
+          </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
             <div>

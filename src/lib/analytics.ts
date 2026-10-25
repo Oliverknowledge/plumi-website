@@ -43,6 +43,7 @@ export type PlumiEvent =
   | "bank_filtered"
   | "bank_reveal"
   | "bank_set_added"
+  | "bank_set_added_all"
   | "bank_pdf_downloaded"
   /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
    *  The first two are also the Google Ads `sendToIpad` conversion. */
