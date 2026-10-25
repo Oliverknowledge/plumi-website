@@ -81,6 +81,8 @@ export interface BankPart {
   /** Image size, so the card reserves its space. */
   w: number;
   h: number;
+  /** An alternative to the part before it, "EITHER (d) OR (e)": a whole question's marks count one of them. */
+  or?: 1;
   /** Has a setup (the question's stem), a mark scheme crop, an examiner's report. */
   st?: 1;
   ms?: 1;

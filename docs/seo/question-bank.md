@@ -330,6 +330,13 @@ python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-b-sciences --crops-only
 ```
 
+**Crop version 3 (26 October 2026).** The OCR banks were re-cut again with the merged cutter:
+#28's rule-based scheme rows (whole rows, no slivers of the row above), and no labels before
+a scheme's first table (MEI's numbered marking instructions had been read as question 5's
+scheme). Where the new cut found no scheme but the live data had a real one, the live crop
+was kept; four live crops that were only slivers ("Question Answer Marks Guidance") now
+link the whole scheme instead.
+
 **Re-cut 26 October 2026 (crop version 2).** A paper's last scheme crop ran on to OCR's back
 pages ("Need to get in touch?", the company notice, blank pages, and in older schemes a
 contact block under the last answer). `cut_pearson.py` now stops at them (`BACK_PAGE`,
