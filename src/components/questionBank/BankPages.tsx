@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Book, TopicSquares } from "@/components/cosy/Book";
 import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
-import { display } from "@/content/pastPapers";
+import { boardPapers, display } from "@/content/pastPapers";
 import {
   baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
@@ -31,10 +31,13 @@ function QuietPlumi() {
 
 function Credit({ subject }: { subject?: BankSubject }) {
   const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel and OCR";
+  // Not every bank subject has a library page yet (Psychology): then the library's front door.
+  const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
+  const library = subject && boardPapers(hub, board) ? subject : undefined;
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={subject ? bankPapersPath(subject) : "/past-papers"}>{subject ? `Every ${subject.board} ${subject.level} ${subject.subject} paper` : "Full past papers"}</Link>.
+      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>.
     </p>
   );
 }
@@ -47,7 +50,7 @@ export function BankHub() {
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, and Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, and AQA’s A‑Level and AS Psychology since 2020, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
