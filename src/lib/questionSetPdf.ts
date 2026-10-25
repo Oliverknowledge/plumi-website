@@ -39,8 +39,8 @@ async function asJpeg(url: string): Promise<{ bytes: ArrayBuffer; w: number; h: 
  */
 export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: { markSchemes: boolean; onProgress?: (done: number, total: number) => void }): Promise<number> {
   // Paper order, not the order they were tapped: series (newest first), paper, question.
-  const seriesRank = (s: string) => (/\d\d$/.test(s) ? Number(s.slice(-2)) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6) : 0);
-  const parts = [...picked].sort((a, b) => seriesRank(b.s) - seriesRank(a.s) || a.p.localeCompare(b.p) || a.l.localeCompare(b.l, undefined, { numeric: true }));
+  const seriesRank = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? Number(y[1]) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6) : 0; };
+  const parts = [...picked].sort((a, b) => seriesRank(b.s) - seriesRank(a.s) || a.p.localeCompare(b.p) || a.s.localeCompare(b.s) || a.l.localeCompare(b.l, undefined, { numeric: true }));
   let skipped = 0;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);

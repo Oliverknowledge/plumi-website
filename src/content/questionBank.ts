@@ -2,7 +2,7 @@
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
  * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
-Cambridge International's (CAIE's) AS & A Level sciences and maths, cut out one at a time, each with its own mark scheme
+ * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
@@ -41,9 +41,14 @@ import caieChemistry from "./questionBank/caie-a-level-chemistry.json";
 import caiePhysics from "./questionBank/caie-a-level-physics.json";
 import caieMaths from "./questionBank/caie-a-level-maths.json";
 import caieFurtherMaths from "./questionBank/caie-a-level-further-maths.json";
+import caieIgcseBiology from "./questionBank/caie-igcse-biology.json";
+import caieIgcseChemistry from "./questionBank/caie-igcse-chemistry.json";
+import caieIgcsePhysics from "./questionBank/caie-igcse-physics.json";
+import caieIgcseMaths from "./questionBank/caie-igcse-maths.json";
+import caieIgcseAdditionalMaths from "./questionBank/caie-igcse-additional-maths.json";
 
 /**
- * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE).
+ * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE, IGCSE).
  * `short`: a shorter name for a long specification title, for the page title ("Moles and gas volumes").
  * `ref`: the code as the specification prints it, where that isn't `code` ("6A");
  * empty where the specification gives the topic no code of its own, as with the
@@ -87,8 +92,8 @@ export interface BankPart {
 export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
-  level: "A-Level" | "GCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths";
+  level: "A-Level" | "GCSE" | "IGCSE";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths" | "Additional Maths";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
   fullName?: string;
   specs: string[];
@@ -114,7 +119,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -142,9 +147,10 @@ export const bankOwner = (s: Pick<BankSubject, "board">) =>
 export const bankYears = (s: Pick<BankSubject, "scope" | "firstYear" | "lastYear">) => s.scope ?? `${s.firstYear}–${s.lastYear}`;
 /** The subject without its specification letter: "Biology" for "Biology A". */
 export const baseSubject = (s: Pick<BankSubject, "subject">) => s.subject.replace(/ [AB]$/, "");
-/** The whole-paper library page for a bank's subject and board. */
-export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) =>
-  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board === "CAIE" ? "cie" : s.board.toLowerCase().replace(/\s+/g, "-")}`;
+/** The whole-paper library page for a bank's subject and board. The library shelves Cambridge IGCSE (Additional Maths too) with GCSE. */
+export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) => s.level === "IGCSE"
+  ? `/past-papers/gcse-${baseSubject(s).replace(/^Additional /, "").toLowerCase()}/cie-igcse`
+  : `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board === "CAIE" ? "cie" : s.board.toLowerCase().replace(/\s+/g, "-")}`;
 /** The subject's share card, where it has its own. */
 export const bankShareImage = (s: Pick<BankSubject, "subject">) =>
   ["Biology", "Chemistry", "Physics"].includes(baseSubject(s)) ? `/og-${baseSubject(s).toLowerCase()}.png` : "/og.png";
