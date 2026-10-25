@@ -410,7 +410,9 @@ def marks_in(doc, pieces):
     total, found = 0, False
     for pg, rect in pieces:
         for l in doc.lines(pg):
-            if not inside(l, rect):
+            # A "[1]" at the very foot of a page, just above OCR's footer, can have its middle below the part's crop: its top counts.
+            if not inside(l, rect) and not (rect.x0 <= l["x0"] <= rect.x1 and rect.y0 <= l["y0"] <= rect.y1 and l["y0"] > doc.frame(pg).y1 - 24
+                                            and re.search(r"\[\d{1,2}\]$", l["text"])):
                 continue
             m = re.fullmatch(r"\((\d{1,2})\)", l["text"])
             if m and (l["x0"] <= rect.x1 - 140 or doc.cambridge):  # Cambridge's "(n)" are only ever in tables and diagrams
@@ -573,6 +575,17 @@ def ms_tables(doc):
                 letter_now = prev[1]
             found.append((i, top, key, l["y0"]))
     found.sort(key=lambda f: (f[0], f[1]))
+    # OCR's misread labels, put right from the row above: "16 (ii)" lost its letter after 16(d)(i),
+    # and "16(b)(k)" or "1(a)(x)" is a roman the font garbled, where the next one belongs.
+    for n in range(1, len(found)):
+        q, letter, roman = found[n][2]
+        pq, pletter, proman = found[n - 1][2]
+        if q != pq or not pletter or proman not in ROMANS or ROMANS.index(proman) + 1 >= len(ROMANS):
+            continue
+        after = ROMANS[ROMANS.index(proman) + 1]
+        garbled = roman and (roman not in ROMANS or ROMANS.index(roman) > ROMANS.index(after) + 2)  # "(x)" straight after "(i)"
+        if (letter is None and roman == after) or (letter == pletter and garbled):
+            found[n] = (found[n][0], found[n][1], (q, pletter, after), found[n][3])
     out = {}
     for n, (pg, top, key, _) in enumerate(found):
         nxt = found[n + 1] if n + 1 < len(found) else None
@@ -600,7 +613,7 @@ def ms_tables(doc):
             if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()):
                 break
         text = " ".join(doc.text(p, r) for p, r in pieces)
-        if key not in out:
+        if key not in out or (pieces and not out[key][0]):  # a label read twice: the copy with a row under it
             ans = re.search(r"(?:only )?correct answer is\s*\(?([A-D])\b", text)
             if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓"
                 ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])", text)
@@ -667,10 +680,27 @@ def examiner_report(path, section=None):
 
 # ---------- one paper ----------
 
+def hand_labels(set_id):
+    """A scanned paper whose labels OCR misreads can have them set by hand, read off the
+    paper page by page, and any paper its marks where the cutter can't read them:
+    scripts/question-bank/labels/<set>.json, {"end_page": 25,
+    "labels": [[page, y, q, letter, roman], ...], "ms_alias": [[[19, "c", "ii"], [19, "c", "a"]]],
+    "keys": {"1": "A", ...}, "marks": {"17(b)(i)": 2, ...}}: a scheme row the scheme itself
+    misprints, as [the part, what the scheme calls it]; the multiple-choice answers, read off the
+    scheme's table; and marks that can't be read, read off the paper or its scheme. Only
+    "labels" makes a scan's parts trusted without the checks below."""
+    path = os.path.join(HERE, "..", "labels", f"{set_id}.json")
+    return json.load(open(path)) if os.path.exists(path) else None
+
+
 def cut_set(qp_path, ms_path, er_path, set_id, meta):
     qp = Doc(qp_path)
-    labels, end_page = qp_labels(qp)
+    hand = hand_labels(set_id)
+    labels, end_page = ([tuple(x) for x in hand["labels"]], hand["end_page"]) if hand and "labels" in hand else qp_labels(qp)
     ms = ms_tables(Doc(ms_path)) if ms_path and os.path.exists(ms_path) else {}
+    for good, bad in (hand or {}).get("ms_alias", []):
+        if tuple(bad) in ms:
+            ms[tuple(good)] = ms.pop(tuple(bad))
     ms_doc = Doc(ms_path) if ms else None
     er = examiner_report(er_path, meta.pop("erSection", None))
     relabels = []  # (page, y, q, letter) of each part printed a second time
@@ -725,7 +755,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     has_children = lambda k: any(o[0] == k[0] and ((k[1] is None and o[1]) or (k[1] and not k[2] and o[1] == k[1] and o[2])) for o in keys)  # noqa: E731
     leaves = [k for k in keys if not has_children(k)]
     by_key = dict(regions)
-    if qp.scanned and ms:
+    if qp.scanned and ms and not (hand and "labels" in hand):
         # OCR can miss a label; the part before it then runs on into it. The mark scheme
         # lists every part, so leave out any part whose next one was missed.
         order = sorted(ms, key=lambda k: (k[0], k[1] or "", ROMANS.index(k[2]) + 1 if k[2] in ROMANS else 0))
@@ -794,7 +824,11 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
             marks = int(m.group(1)) if m else None
         hit = ms.get(key) or (ms.get((q, letter, None)) if roman else None) or (ms.get((q, None, None)) if not letter else None) \
             or (ms.get((q, None, "i")) if letter == "i" and not roman else None)  # a scheme reads part "(i)" as a sub-part
-        if qp.scanned and not (hit and (marks is None or marks <= 9) and len(keep) <= 2):
+        if hand and not letter and str(q) in hand.get("keys", {}):
+            hit, marks = ([], "", hand["keys"][str(q)]), marks or 1  # multiple choice: its letter, not a crop of the table
+        if hand:
+            marks = hand.get("marks", {}).get(label, marks)
+        if qp.scanned and not (hand and "labels" in hand) and not (hit and (marks is None or marks <= 9) and len(keep) <= 2):
             continue  # read by OCR: keep only parts its mark scheme confirms, of a believable size
         msimg, ms_text, answer = None, "", None
         if hit:
@@ -804,7 +838,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                 msimg = squash(msimg)
             if answer and marks is None and qp.cambridge:
                 marks = 1  # Cambridge prints no mark against a multiple-choice question
-        if qp.scanned and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
+        if qp.scanned and not (hand and "labels" in hand) and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
             continue  # read by OCR: its own scheme row must be found and carry its question number
         parts.append({
             "id": pid, "set": set_id, **meta, "question": f"{q:02d}", "part": f"{letter or ''}{roman or ''}" or None, "label": label,

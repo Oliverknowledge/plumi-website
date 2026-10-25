@@ -207,9 +207,31 @@ Cambridge, for teachers, so June 2026 arrives a year late.
   briefed by tag.md's OCR section.
 - **Building:** `ocr/build_ocr.py` and `ocr/maths_ocr.py build`.
 
-Gaps: OCR's November 2020 Biology A AS Paper 2 mark scheme link serves another
-paper's scheme, so those 30 parts link no scheme. Two November 2020 Biology A papers
-are scans; only the parts OCR's text reading and their scheme confirm are in.
+Gaps, after the fixes of 25 October 2026 (below): every OCR science paper's marks
+add up exactly, and every Maths paper's too. OCR publishes no mark scheme for Maths
+H240/01 June 2018 or MEI Further Maths Y433/01 June 2023, so those 19 questions link
+none. 38 science parts and 2 maths questions still link the whole scheme instead of a
+cropped row, where the scheme's table is set in a way the cutter can't read.
+
+Fixed on 25 October 2026:
+- **Biology A Paper 2, November 2020** is a scan whose labels OCR's text reading
+  misread, so only 6 of its parts got in. Its labels are now set by hand, read off
+  the paper page by page (`labels/h42002-nov20.json`; `cut_pearson.py` reads a set's
+  labels from `scripts/question-bank/labels/<set>.json` when there is one). All 54 parts
+  (100 marks) are in, each with its own scheme rows, multiple-choice answers from the
+  scheme's table.
+- **Biology A AS Paper 2, November 2020**: OCR's listed mark scheme is another paper's.
+  The right one is published at `643848-mark-scheme-depth-in-biology.pdf` (its running
+  header wrongly says H420/02); 29 of the 30 parts now have their scheme rows, and the
+  PDF is on R2 at the library's key, `ocr/OCR-H020-02-MS-NOV20.pdf`.
+- **Marks that weren't read:** a "[1]" at the very foot of a page, just above OCR's
+  footer, now counts for its part. That completed seven science papers. MEI Maths
+  Paper 3 June 2018's Q2 prints its mark above its own label, so it is set in
+  `labels/h64003-jun18.json`.
+- **Scheme rows:** a row the scheme labels "16 (ii)" (its letter dropped) or "16(b)(k)" (a
+  roman the font garbled) is now read as the part after the row above. A label read twice
+  keeps the copy with a row under it. Physics A Paper 3 June 2017's scheme prints "(a)"
+  without its letter, so its five rows are mapped in `labels/h55603-jun17.json`.
 
 ```bash
 python3 scripts/question-bank/ocr/fetch_ocr.py [--maths]
