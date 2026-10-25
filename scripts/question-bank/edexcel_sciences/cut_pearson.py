@@ -637,8 +637,8 @@ def ms_tables(doc):
         text = " ".join(doc.text(p, r) for p, r in pieces)
         if key not in out:
             ans = re.search(r"(?:only )?correct answer is\s*\(?([A-D])\b", text)
-            if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓" (not a sentence, "5 A suitable method…")
-                ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])(?!\s+[a-z])", text)
+            if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓"
+                ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])", text)
                 if not ans and len(text) < 80:  # "4  1  C", "7  1  1.1  C": mark and AO before the letter (not "5 A suitable method…")
                     row = re.sub(r"^(?:\s*(?:Question|Q|No\.|KEY|Key|AO( element)?|Answer|Marks?)(?![\w.]))+", "", text)  # the table's header ("Q KEY AO", "AO element"), on its first row
                     ans = re.match(rf"\s*{key[0]}\s+(?:[\d.]+\s+){{0,2}}([A-D])(?![\w.])(?!\s+[a-z])", row)
