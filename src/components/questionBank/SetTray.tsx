@@ -4,9 +4,6 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import type { BankPart, BankSubject } from "@/content/questionBank";
 
-/** The most a set can hold: enough for a long practice paper, small enough to build in a browser. */
-export const SET_MAX = 40;
-
 /**
  * "My set": the questions someone has picked, kept in this browser between visits.
  * No account: storage can be missing (private windows), so every access is guarded
@@ -22,7 +19,6 @@ export function useQuestionSet(slug: string) {
     has: (id: string) => ids.includes(id),
     toggle: (id: string) => {
       if (ids.includes(id)) return save(ids.filter(x => x !== id));
-      if (ids.length >= SET_MAX) return;
       track("bank_set_added", { subject: slug, size: ids.length + 1 });
       save([...ids, id]);
     },
@@ -122,7 +118,6 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
               ))}
             </ol>
             <button type="button" className="qb-link" onClick={clear} disabled={!!busy}>Clear the set</button>
-            {count >= SET_MAX && <p className="qb-tray-note">That’s the most one set holds.</p>}
           </div>
         )}
       </div>
