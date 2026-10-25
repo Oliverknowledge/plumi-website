@@ -32,6 +32,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 # --whole: cut a whole question at a time, with all its scheme rows (maths, where a later part builds on an earlier one).
 WHOLE = "--whole" in sys.argv
+# --extracts: a question set on extracts and figures printed before it ("Read the following extracts (A to D)
+# before answering Question 6") carries them in its stem (economics).
+EXTRACTS = "--extracts" in sys.argv
+READ = re.compile(r"^Read (the following |Figures? |Figure \d)", re.I)
+# Economics lists a question's parts together, then prints each again above its answer space: "6 (a) With reference…".
+RELABEL = re.compile(r"^\*?(\d{1,2})?\s*\(([a-n])\)\s")
 ONLY = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--only=")), None)
 WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "edexcel-sciences")
 IMG = os.path.join(WORK, "img")
@@ -49,8 +55,9 @@ BOILER = re.compile(r"DO NOT WRITE IN THIS AREA|Turn over|\.{6,}|P\d{5}[A-Z]{1,2
 
 # ---------- reading pages in their displayed orientation ----------
 
-def lines_of(page, clip=None):
-    """Horizontal lines of text as displayed: [{x0, y0, x1, y1, text, spans}] top to bottom."""
+def lines_of(page, clip=None, visible=False):
+    """Horizontal lines of text as displayed: [{x0, y0, x1, y1, text, spans}] top to bottom.
+    `visible`: leave out white text (Cambridge's 2025 specimens hide a second "[2]" under an answer line)."""
     m = page.rotation_matrix
     o = pymupdf.Point(0, 0) * m
     out = []
@@ -59,7 +66,7 @@ def lines_of(page, clip=None):
             d = pymupdf.Point(*line["dir"]) * m - o
             if abs(d.x - 1) > 0.05:
                 continue  # vertical margin text
-            spans = [s for s in line["spans"] if s["text"].strip()]
+            spans = [s for s in line["spans"] if s["text"].strip() and not (visible and s["color"] == 0xFFFFFF)]
             if not spans:
                 continue
             r = pymupdf.Rect(line["bbox"]) * m
@@ -119,7 +126,9 @@ class Doc:
         self.doc = pymupdf.open(path)
         self._img, self._lines, self._frame = {}, {}, {}
         self.scanned = sum(len(self.doc[i].get_text().strip()) for i in range(min(6, len(self.doc)))) < 200
-        self.cambridge = bool(re.search(r"© UCLES|Cambridge International", "".join(self.doc[i].get_text() for i in range(min(2, len(self.doc))))))
+        # (IGCSE's newer specimens say neither, only "Cambridge IGCSE™" and "© Cambridge University Press & Assessment",
+        # which OCR's papers also name: the qualification is what marks them.)
+        self.cambridge = bool(re.search(r"© UCLES|Cambridge International|Cambridge IGCSE", "".join(self.doc[i].get_text() for i in range(min(2, len(self.doc))))))
         # Cambridge's specimen schemes set a landscape table on a portrait page, its text running
         # upwards, without marking the page rotated: turn such a page so it reads across.
         for page in self.doc if self.cambridge else []:
@@ -147,7 +156,7 @@ class Doc:
 
     def lines(self, i):
         if i not in self._lines:
-            self._lines[i] = lines_of(self.doc[i])
+            self._lines[i] = lines_of(self.doc[i], visible=self.cambridge)
             if self.cambridge:
                 # A question number sits a fraction lower than its "(a)" (61.5 against 61.4): read a line's
                 # pieces left to right when they start within 2pt of each other, not by rounded height.
@@ -188,6 +197,37 @@ def trim(img, keep=30, sides=False):
     if sides:
         return img.crop((max(0, box[0] - 8), max(0, box[1] - 8), min(img.width, box[2] + 8), min(img.height, box[3] + keep)))
     return img.crop((0, 0, img.width, min(img.height, box[3] + keep)))
+
+
+def squash(img, run=60, keep=20):
+    """Close up long stretches with nothing but a table's side rules in them: economics' answer
+    rows run on over empty cells."""
+    if img is None:
+        return None
+    g = img.convert("L").point(lambda v: 255 if v < 160 else 0)
+    w = g.width
+    dark = [sum(1 for v in g.crop((0, y, w, y + 1)).getdata() if v) for y in range(g.height)]
+    rows, start = [], None
+    for y, d in enumerate(dark + [w]):
+        if d <= 12:  # only the vertical rules cross this row
+            start = y if start is None else start
+            continue
+        if start is not None and y - start > run:
+            rows.append((start + keep // 2, y - keep // 2))
+        start = None
+    if not rows:
+        return img
+    parts, y0 = [], 0
+    for a, b in rows:
+        parts.append(img.crop((0, y0, img.width, a)))
+        y0 = b
+    parts.append(img.crop((0, y0, img.width, img.height)))
+    out = Image.new("RGB", (img.width, sum(p.height for p in parts)), (255, 255, 255))
+    y = 0
+    for p in parts:
+        out.paste(p, (0, y))
+        y += p.height
+    return out
 
 
 def stack(images):
@@ -242,6 +282,7 @@ def qp_labels(doc):
     Also the page index where the paper's questions end."""
     out, q, letter, roman, letter_x = [], 0, None, None, 0
     end_page = len(doc) - 1
+    after_read = False  # past an extracts block's "Read the following…", with no question number since
     for i in range(1, len(doc)):
         if doc.blank(i):
             continue
@@ -254,6 +295,8 @@ def qp_labels(doc):
         for l in doc.lines(i):
             if l["y0"] > f.y1 or l["y0"] < f.y0 - 4:
                 continue
+            if EXTRACTS and l["text"].strip() == str(i + 1) and l["spans"][0].get("size", 12) < 11:
+                continue  # the page number, which Pearson's economics papers print bold at the left of even pages
             if re.match(r"TOTAL FOR PAPER|END OF QUESTION PAPER", l["text"], re.I) or doc.cambridge and CAMBRIDGE_END.match(l["text"]):
                 stop = True
                 break
@@ -264,13 +307,24 @@ def qp_labels(doc):
             m = re.match(r"^\*?(\d{1,2})\b\*?\s*(.*)$", rest)
             lead = first["text"].strip() + (l["spans"][1]["text"].strip() if first["text"].strip() == "*" and len(l["spans"]) > 1 else "")
             # Numbered answer spaces ("1 ........", "2 ........") are not questions.
-            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}\*?", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2)))
+            # (Cambridge sets its number in bold, sometimes in one span with algebra after it: "10 a = 5/7".)
+            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}\*?", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2))
+                                                               or doc.cambridge and bold(first))
+            if EXTRACTS and after_read and m and not (re.fullmatch(r"\*?\d{1,2}\*?", lead) or m.group(2).startswith("(")):
+                apart = False  # inside the extracts, a date: "6 April 2023. It is…"
+            if EXTRACTS and READ.match(l["text"]):
+                after_read = True
             # OCR can miss a small number entirely, so a scanned paper may skip one.
             if m and apart and l["x0"] < f.x0 + 16 \
                     and (int(m.group(1)) == q + 1 or doc.scanned and int(m.group(1)) == q + 2):
                 q, letter, roman = int(m.group(1)), None, None
                 out.append((i, l["y0"], q, None, None))
                 rest = m.group(2)
+                after_read = False
+            elif EXTRACTS and after_read and letter and l["x0"] < f.x0 + 30 and re.match(r"\(a\)\s", rest):
+                # The question's number is a glyph with no text (June 2017): its "(a)", straight after the extracts, starts it.
+                q, letter, roman, after_read = q + 1, None, None, False
+                out.append((i, l["y0"], q, None, None))
             elif q == 0:
                 continue
             # Then a part and a sub-part, either of which can share the line: "(a) (i) Which…".
@@ -323,6 +377,25 @@ def region(doc, start, end, end_page):
         if nxt and pg > nxt[0]:
             break
     return pieces
+
+
+def source_booklet(doc, end_page):
+    """{"B": [(page, rect)], ...}: each "Sources for use with SECTION B" block of a source booklet
+    bound in after the questions, to the next block or the booklet's end, blank pages left out."""
+    found = [(i, l["y0"], re.match(r"Sources for use with SECTION ([A-C])", l["text"]).group(1))
+             for i in range(end_page + 1, len(doc)) for l in doc.lines(i) if re.match(r"Sources for use with SECTION [A-C]", l["text"])]
+    out = {}
+    for n, (pg, y, sec) in enumerate(found):
+        stop = found[n + 1][:2] if n + 1 < len(found) else (len(doc), 0)
+        pieces = []
+        for i in range(pg, min(stop[0] + 1, len(doc))):
+            f = doc.frame(i)
+            top = y - 4 if i == pg else f.y0
+            bottom = stop[1] - 4 if i == stop[0] else f.y1
+            if bottom > top + 10 and not re.search(r"BLANK PAGE", doc.text(i)) and has_content(doc, i, pymupdf.Rect(f.x0, top, f.x1, bottom)):
+                pieces.append((i, pymupdf.Rect(f.x0, top, f.x1, bottom)))
+        out[sec] = pieces
+    return out
 
 
 def has_content(doc, pg, rect):
@@ -378,9 +451,20 @@ def ms_page_box(doc, p):
     return pymupdf.Rect(max(4, x0), max(head) + 4 if head else 20, min(w - 4, x1), min(foot) - 4 if foot else h - 30)
 
 
+def table_rules(page):
+    """The heights of a page's horizontal rules and cell edges, as displayed."""
+    ys = set()
+    for d in drawings(page):
+        r = d["rect"] * page.rotation_matrix
+        if r.width > 30:
+            ys.update((r.y0, r.y1))
+    return sorted(ys)
+
+
 def ms_tables(doc):
     """{(q, letter, roman): [(page, rect)], ...} plus each one's text and any MCQ answer letter."""
     found = []  # (page, top, key, label_y)
+    rules = {}  # page: table_rules(page), for Cambridge
     # Labels sit in the "Question Number" column. Not every scheme sets them in bold, and
     # the header can be centred over them or set to one side, so a label is anything
     # label-shaped under the span of its column's header.
@@ -472,7 +556,15 @@ def ms_tables(doc):
             # sits over fifteen rows.
             above = [h for h in heads if h["y0"] < l["y0"] and l["y0"] - h["y0"] < 60
                      and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
-            top = (above[-1]["y0"] if above else l["y0"]) - 6
+            ref = above[-1]["y0"] if above else l["y0"]
+            top = ref - 6
+            if doc.cambridge:
+                # Cambridge rules every row, and a one-line row sits only a few points under the one
+                # above: start at the row's rule, so the row above keeps the foot of its last line.
+                if i not in rules:
+                    rules[i] = table_rules(doc[i])
+                edge = [y for y in rules[i] if ref - 12 <= y <= ref + 1]
+                top = edge[-1] - 0.5 if edge else top
             key = (q_now, letter, roman)
             prev = found[-1][2] if found else None
             if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
@@ -488,13 +580,24 @@ def ms_tables(doc):
         while True:
             box = ms_page_box(doc, p)
             t = top if p == pg else box.y0
-            b = nxt[1] - 2 if nxt and nxt[0] == p else box.y1
-            if b > t + 6:  # a multiple-choice row can be a single 13pt line
+            b = nxt[1] - (0 if doc.cambridge else 2) if nxt and nxt[0] == p else box.y1
+            if EXTRACTS and not (nxt and nxt[0] == p):
+                # The next table's header can close a page, its first row overleaf: leave it to that table.
+                rest = [l for l in doc.lines(p) if l["y0"] > t + 6]
+                head = next((k for k, l in enumerate(rest) if re.match(r"Questio", l["text"]) and l["x0"] < 200), None)
+                if head is not None and all(re.fullmatch(r"(n|Number|Answer|Indicative content|Mark|Question|Questio)", l["text"].strip()) for l in rest[head:]):
+                    b = rest[head]["y0"] - 4
+            # (a multiple-choice row can be a single 13pt line; Cambridge's rows start at their rule, so the
+            # strip above a table carried over to the next page holds no text, only that rule)
+            if b > t + 6 and not (doc.cambridge and not doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip()):
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
             p += 1
-            if not doc.lines(p):
+            # Economics' long answers run on over pages of empty table borders, then the levels grids: step over the blanks.
+            while EXTRACTS and p + 1 < len(doc) and not doc.lines(p) and not (nxt and nxt[0] <= p):
+                p += 1
+            if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()):
                 break
         text = " ".join(doc.text(p, r) for p, r in pieces)
         if key not in out:
@@ -530,6 +633,13 @@ def examiner_report(path, section=None):
         # Its maths comes out a symbol a line ("−", "1", "2", "y"): keep those pieces in their sentence,
         # where a lone number would otherwise read as a page number and break the paragraph.
         text = re.sub(r"\n[ \t]*([^\s(][^\n]{0,2}?)[ \t]*(?=\n)", r" \1", text)
+    if EXTRACTS:
+        # Economics reports also head a part "Question 1 (a):" or just "1a" on its own line.
+        text = re.sub(r"\n(\s*Question\s+\d{1,2}\s*(?:\(\s*[a-z]{1,4}\s*\)\s*)*):[ \t]*\n", r"\n\1\n", text)
+        text = re.sub(r"\n[ \t]*(\d{1,2})\(?([a-e])\)?[ \t]*\n", r"\nQuestion \1 (\2)\n", text)
+        # …or open a paragraph with it, "Question 6a asked candidates…": a heading goes above, the sentence stays.
+        text = re.sub(r"\n[ \t]*Question (\d{1,2})([a-e])?(?=[ \t]+[a-z])",
+                      lambda m: f"\nQuestion {m.group(1)}{f' ({m.group(2)})' if m.group(2) else ''}\n\nQuestion {m.group(1)}{m.group(2) or ''}", text)
     chunks = re.split(r"\n\s*(Question\s+(\d{1,2})\s*((?:\(\s*[a-z]{1,4}(?:\s*[–-]\s*[a-z]{1,4})?\s*\)\s*)*))\s*\n", text)
     out = {}
     for k in range(1, len(chunks) - 3, 4):
@@ -563,10 +673,24 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     ms = ms_tables(Doc(ms_path)) if ms_path and os.path.exists(ms_path) else {}
     ms_doc = Doc(ms_path) if ms else None
     er = examiner_report(er_path, meta.pop("erSection", None))
+    relabels = []  # (page, y, q, letter) of each part printed a second time
+    if EXTRACTS:
+        at = {(pg, round(y)) for pg, y, *_ in labels}
+        for i in range(1, end_page + 1):
+            f = qp.frame(i)
+            for l in qp.lines(i):
+                m = RELABEL.match(l["text"])
+                if m and l["x0"] < f.x0 + 30 and f.y0 - 4 <= l["y0"] <= f.y1 and (i, round(l["y0"])) not in at:
+                    q_now = next((q for pg, y, q, letter, _ in reversed(labels) if letter is None and (pg, y) < (i, l["y0"])), None)
+                    if q_now:
+                        relabels.append((i, l["y0"], int(m.group(1) or q_now), m.group(2)))
     regions = []
     for n, (pg, y, q, letter, roman) in enumerate(labels):
         nxt = labels[n + 1] if n + 1 < len(labels) else None
-        regions.append(((q, letter, roman), region(qp, (pg, y), (nxt[0], nxt[1]) if nxt else None, end_page)))
+        # A part's region also ends where the parts start being printed again.
+        again = next(((rp, ry) for rp, ry, *_ in relabels if (rp, ry) > (pg, y)), None)
+        end = min(x for x in [(nxt[0], nxt[1]) if nxt else None, again] if x) if nxt or again else None
+        regions.append(((q, letter, roman), region(qp, (pg, y), end, end_page)))
     if WHOLE:
         starts = [(pg, y, q) for pg, y, q, letter, _ in labels if letter is None]
         regions = [((q, None, None), region(qp, (pg, y), (starts[n + 1][0], starts[n + 1][1]) if n + 1 < len(starts) else None, end_page))
@@ -578,6 +702,25 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
             whole_ms[(k[0], None, None)] = (got[0] + pieces, (got[1] + " " + text).strip(), got[2] or ans)
         ms = whole_ms
     keys = [k for k, _ in regions]
+    extracts = {}
+    if EXTRACTS:
+        starts = [(pg, y, q) for pg, y, q, letter, _ in labels if letter is None]
+        booklet = source_booklet(qp, end_page)
+        section = None
+        for i in range(1, end_page + 1):
+            lines = qp.lines(i)
+            for k, l in enumerate(lines):
+                m = re.match(r"SECTION ([A-C])\b", l["text"])
+                section = m.group(1) if m else section
+                if READ.match(l["text"]):
+                    nxt = next(((pg, y, q) for pg, y, q in starts if (pg, y) > (i, l["y0"])), None)
+                    if nxt:
+                        pieces = [p for p in region(qp, (i, l["y0"]), (nxt[0], nxt[1]), end_page) if has_content(qp, *p)]
+                        # From June 2025 the extracts are in a source booklet bound in at the back.
+                        said = " ".join(x["text"] for x in lines[k:k + 2])
+                        if "Source Booklet" in said and section in booklet:
+                            pieces += booklet[section]
+                        extracts[nxt[2]] = pieces
     # A question with parts, or a part with sub-parts, isn't itself a question to show.
     has_children = lambda k: any(o[0] == k[0] and ((k[1] is None and o[1]) or (k[1] and not k[2] and o[1] == k[1] and o[2])) for o in keys)  # noqa: E731
     leaves = [k for k in keys if not has_children(k)]
@@ -596,23 +739,56 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     for key in leaves:
         q, letter, roman = key
         pieces = list(by_key[key])
+        lead_n = 0  # pieces of the part's opening words, set in front
         # The first sub-part of a part carries the part's opening words: "(b) Chemists can test…".
         if roman == "i" and (q, letter, None) in by_key:
-            pieces = [p for p in by_key[(q, letter, None)] if has_content(qp, *p)] + pieces
-        keep = pieces[:1] + [p for p in pieces[1:] if has_content(qp, *p)]
+            lead = [p for p in by_key[(q, letter, None)] if has_content(qp, *p)]
+            pieces, lead_n = lead + pieces, len(lead)
+        first = lead_n + 1 if EXTRACTS else 1  # a sub-part's own start stays, even "(i) 2015"
+        keep = pieces[:first] + [p for p in pieces[first:] if has_content(qp, *p)]
+        if EXTRACTS:
+            # Long answers: show the question, not its pages of answer lines. End just under its marks
+            # ("(8)", unless a multiple choice's options follow them) or its "(Total for Question 8 = 25 marks)",
+            # or above the "OR" that brings in the other essay choice.
+            for n, (pg, r) in enumerate(keep):
+                if n < lead_n:
+                    continue  # "(b) … calculate the index number for (2)": the marks for the sub-parts below
+                inner = [l for l in qp.lines(pg) if inside(l, r) and l["y0"] > r.y0 + 2]
+                end = None
+                for k, l in enumerate(inner):
+                    if re.fullmatch(r"\(\d{1,2}\)", l["text"]) and l["x0"] > r.x1 - 140 \
+                            and not any(re.match(r"[A-D](\s|$)", o["text"].strip()) for o in inner[k + 1:]):
+                        end = l["y1"] + 6
+                    elif re.match(r"\(Total for Question \d+ = \d+ marks?\)", l["text"]):
+                        end = l["y1"] + 6
+                    elif l["text"].strip() in ("OR", "EITHER"):
+                        end = l["y0"] - 4
+                    if end:
+                        break
+                if end:
+                    keep = keep[:n] + [(pg, pymupdf.Rect(r.x0, r.y0, r.x1, end))]
+                    break
         label = f"{q}" + (f"({letter})" if letter else "") + (f"({roman})" if roman else "")
         pid = f"{set_id}-{q:02d}" + (f"-{letter or ''}{roman or ''}" if letter or roman else "")
         qimg = stack([trim(qp.crop(pg, r)) for pg, r in keep])
         stem_name = None
-        if letter and (q, None, None) in by_key:
-            stem_pieces = [p for p in by_key[(q, None, None)] if has_content(qp, *p)]
+        if letter and ((q, None, None) in by_key or q in extracts):
+            stem_pieces = extracts.get(q, []) + [p for p in by_key.get((q, None, None), []) if has_content(qp, *p)]
             if stem_pieces:
                 stem_name = f"{set_id}-{q:02d}-stem.webp"
                 if not os.path.exists(os.path.join(IMG, stem_name)):
                     save(stack([trim(qp.crop(pg, r), 14) for pg, r in stem_pieces]), stem_name)
-        stem_text = " ".join(qp.text(pg, r) for pg, r in by_key.get((q, None, None), [])) if letter else ""
+        stem_text = " ".join(qp.text(pg, r) for pg, r in extracts.get(q, []) + by_key.get((q, None, None), [])) if letter else ""
         text = " ".join(qp.text(pg, r) for pg, r in keep)
         marks = marks_in(qp, pieces)  # all of it: a long answer's "[6]" can sit on a page of answer lines we don't show
+        if marks is None and letter and not roman:
+            # Listed without its marks: they're beside the part where it's printed again, above its answer space.
+            for n, (rp, ry, rq, rl) in enumerate(relabels):
+                if (rq, rl) == (q, letter):
+                    nxt_l = next(((pg, y) for pg, y, *_ in labels if (pg, y) > (rp, ry)), None)
+                    stops = [x for x in [nxt_l, (relabels[n + 1][0], relabels[n + 1][1]) if n + 1 < len(relabels) else None] if x]
+                    marks = marks_in(qp, region(qp, (rp, ry), min(stops) if stops else None, end_page))
+                    break
         if marks is None and not letter:  # a one-part question, e.g. multiple choice: "(Total for Question 1 = 1 mark)"
             m = re.search(r"Total for Question \d+ = (\d+) marks?", text)
             marks = int(m.group(1)) if m else None
@@ -624,6 +800,8 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
         if hit:
             mpieces, ms_text, answer = hit
             msimg = stack([trim(ms_doc.crop(pg, r), 10, sides=True) for pg, r in mpieces])
+            if EXTRACTS:
+                msimg = squash(msimg)
             if answer and marks is None and qp.cambridge:
                 marks = 1  # Cambridge prints no mark against a multiple-choice question
         if qp.scanned and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
@@ -633,7 +811,8 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
             "marks": marks,
             "qp": save(qimg, f"{pid}-qp.webp"), "ms": save(msimg, f"{pid}-ms.webp"), "stem": stem_name,
             "w": qimg.width if qimg else 0, "h": qimg.height if qimg else 0,
-            "text": re.sub(r"\s+", " ", BOILER.sub(" ", stem_text + " " + text)).strip()[:1500],
+            # The part's own words first where its stem is pages of extracts, so they aren't cut off.
+            "text": re.sub(r"\s+", " ", BOILER.sub(" ", text + " " + stem_text if EXTRACTS else stem_text + " " + text)).strip()[:3000 if EXTRACTS else 1500],
             "msText": ms_text[:800],
             "er": er.get(f"{q:02d}"),
             **({"key": answer} if answer else {}),

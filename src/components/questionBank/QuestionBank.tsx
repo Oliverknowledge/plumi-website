@@ -62,7 +62,8 @@ function write(f: Filters) {
 }
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
-const yearOf = (s: string) => (/\d\d$/.test(s) ? 2000 + Number(s.slice(-2)) : 0);
+// (Cambridge's "JUN24V2" is a second June 2024 sitting, another variant of the same papers.)
+const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
 const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
 const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
@@ -169,7 +170,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     if (!parts) return null;
     // Within a series: the full A-Level papers before AS, then paper order, then question order.
     const paperRank = (p: string) => (subject.papers.find(x => x.id === p)?.as ? 1 : 0);
-    const byNew = (a: BankPart, b: BankPart) => seriesRank(b.s) - seriesRank(a.s) || paperRank(a.p) - paperRank(b.p) || a.p.localeCompare(b.p) || a.l.localeCompare(b.l, undefined, { numeric: true });
+    const byNew = (a: BankPart, b: BankPart) => seriesRank(b.s) - seriesRank(a.s) || paperRank(a.p) - paperRank(b.p) || a.p.localeCompare(b.p) || a.s.localeCompare(b.s) || a.l.localeCompare(b.l, undefined, { numeric: true });
     const sorted = parts.filter(p => matches(p)).sort(
       f.sort === "old" ? (a, b) => -byNew(a, b)
         : f.sort === "spec" ? (a, b) => specRank(a.t[0] ?? "9").localeCompare(specRank(b.t[0] ?? "9")) || byNew(a, b)
@@ -385,7 +386,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">

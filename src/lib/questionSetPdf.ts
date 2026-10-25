@@ -18,7 +18,16 @@ const SOFT = rgb(0.48, 0.4, 0.36);
  * second a call while the tab is in the background, so a big set built while someone
  * looks at another tab would crawl.
  */
-async function asJpeg(url: string): Promise<{ bytes: string; w: number; h: number } | null> {
+type Slice = { bytes: string; w: number; h: number };
+const PRINT_W = A4.w - MARGIN * 2;
+const PRINT_H = A4.h - MARGIN * 2 - 40;
+
+/**
+ * A crop taller than a page at full width (economics' extracts run to three pages) is cut
+ * into page-sized slices rather than shrunk to fit, each cut made at a blank row nearby so
+ * no line of text is split.
+ */
+async function asJpeg(url: string): Promise<Slice[] | null> {
   let res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
   if (!res?.ok) res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
   if (!res?.ok) return null;
@@ -32,7 +41,26 @@ async function asJpeg(url: string): Promise<{ bytes: string; w: number; h: numbe
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
-  return { bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height };
+  const pageRows = Math.floor((canvas.width * PRINT_H) / PRINT_W);
+  if (canvas.height <= pageRows * 1.15) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height }];
+  const blank = (row: number) => ctx.getImageData(0, row, canvas.width, 1).data.every((v, i) => i % 4 === 3 || v > 235);
+  const slices: Slice[] = [];
+  for (let top = 0; top < canvas.height;) {
+    let cut = Math.min(canvas.height, top + pageRows);
+    if (cut < canvas.height) {
+      const floor = cut - Math.floor(pageRows * 0.2);
+      let r = cut;
+      while (r > floor && !blank(r)) r -= 2;
+      if (r > floor) cut = r;
+    }
+    const piece = document.createElement("canvas");
+    piece.width = canvas.width;
+    piece.height = cut - top;
+    piece.getContext("2d")?.drawImage(canvas, 0, top, canvas.width, cut - top, 0, 0, canvas.width, cut - top);
+    slices.push({ bytes: piece.toDataURL("image/jpeg", 0.88), w: piece.width, h: piece.height });
+    top = cut;
+  }
+  return slices;
 }
 
 /**
@@ -57,8 +85,8 @@ function limited(width: number) {
  */
 export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: { markSchemes: boolean; onProgress?: (done: number, total: number) => void }): Promise<number> {
   // Paper order, not the order they were tapped: series (newest first), paper, question.
-  const seriesRank = (s: string) => (/\d\d$/.test(s) ? Number(s.slice(-2)) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6) : 0);
-  const parts = [...picked].sort((a, b) => seriesRank(b.s) - seriesRank(a.s) || a.p.localeCompare(b.p) || a.l.localeCompare(b.l, undefined, { numeric: true }));
+  const seriesRank = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? Number(y[1]) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6) : 0; };
+  const parts = [...picked].sort((a, b) => seriesRank(b.s) - seriesRank(a.s) || a.p.localeCompare(b.p) || a.s.localeCompare(b.s) || a.l.localeCompare(b.l, undefined, { numeric: true }));
   let skipped = 0;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);
@@ -94,31 +122,31 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
   const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(partImage(c.part.id, c.kind)).catch(() => null))); return c; };
 
-  async function place({ kind, label }: Crop, img: Awaited<ReturnType<typeof asJpeg>>) {
+  async function place({ kind, label }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind !== "stem") {
       done += 1;
       opts.onProgress?.(done, total);
     }
-    if (!img) {
+    if (!slices) {
       if (kind !== "stem") skipped += 1;
       return;
     }
-    const jpg = await pdf.embedJpg(img.bytes);
-    const maxW = A4.w - MARGIN * 2;
-    const maxH = A4.h - MARGIN * 2 - 40;
-    let w = maxW;
-    let h = (img.h / img.w) * w;
-    if (h > maxH) { h = maxH; w = (img.w / img.h) * h; }
-    const above = pending ? headingHeight(pending) : 0;
-    if (y - above - h - 16 < MARGIN + 10 && y < A4.h - MARGIN) {
-      page = pdf.addPage([A4.w, A4.h]);
-      footer(page);
-      y = A4.h - MARGIN;
+    for (const [n, img] of slices.entries()) {
+      const jpg = await pdf.embedJpg(img.bytes);
+      let w = PRINT_W;
+      let h = (img.h / img.w) * w;
+      if (h > PRINT_H) { h = PRINT_H; w = (img.w / img.h) * h; }
+      const above = pending ? headingHeight(pending) : 0;
+      if (y - above - h - 16 < MARGIN + 10 && y < A4.h - MARGIN) {
+        page = pdf.addPage([A4.w, A4.h]);
+        footer(page);
+        y = A4.h - MARGIN;
+      }
+      if (pending) { drawHeading(pending); pending = null; }
+      page.drawText(n ? `${label} (continued)` : label, { x: MARGIN, y: y - 10, size: 9.5, font: bold, color: INK });
+      page.drawImage(jpg, { x: MARGIN, y: y - 16 - h, width: w, height: h });
+      y -= 16 + h + GAP;
     }
-    if (pending) { drawHeading(pending); pending = null; }
-    page.drawText(label, { x: MARGIN, y: y - 10, size: 9.5, font: bold, color: INK });
-    page.drawImage(jpg, { x: MARGIN, y: y - 16 - h, width: w, height: h });
-    y -= 16 + h + GAP;
   }
 
   const labelFor = (p: BankPart) => `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
