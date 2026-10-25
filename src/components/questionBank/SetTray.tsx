@@ -14,13 +14,25 @@ export function useQuestionSet(slug: string) {
   const raw = useSyncExternalStore(subscribeStorage, () => readStorage(key), () => "[]");
   const ids = useMemo<string[]>(() => { try { return JSON.parse(raw); } catch { return []; } }, [raw]);
   const save = useCallback((next: string[]) => writeStorage(key, JSON.stringify(next)), [key]);
+  // A set can hold a whole bank now ("Add all to set"), so membership is a lookup, not a scan.
+  const inSet = useMemo(() => new Set(ids), [ids]);
   return {
     ids,
-    has: (id: string) => ids.includes(id),
+    has: (id: string) => inSet.has(id),
     toggle: (id: string) => {
-      if (ids.includes(id)) return save(ids.filter(x => x !== id));
+      if (inSet.has(id)) return save(ids.filter(x => x !== id));
       track("bank_set_added", { subject: slug, size: ids.length + 1 });
       save([...ids, id]);
+    },
+    /** Every question on screen in one go ("Add all to set"), keeping the ones already in. */
+    addAll: (more: string[]) => {
+      const next = [...new Set([...ids, ...more])];
+      track("bank_set_added_all", { subject: slug, added: next.length - ids.length, size: next.length });
+      save(next);
+    },
+    removeAll: (gone: string[]) => {
+      const out = new Set(gone);
+      save(ids.filter(x => !out.has(x)));
     },
     clear: () => save([]),
     restore: (next: string[]) => save(next),
