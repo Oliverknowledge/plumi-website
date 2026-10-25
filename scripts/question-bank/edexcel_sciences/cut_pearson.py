@@ -444,6 +444,14 @@ def bold(span):
 # Extended-response questions carry a star, before or after the number: "*5", "5*", "5(b)*".
 MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?\*?((?:\s*\(?[a-z]{1,5}\)?)*)\s*\*?$")
 HEAD = re.compile(r"Question( Number| Key)?|Q|No\.( AO)?")  # OCR Chemistry B's multiple-choice keys head theirs "Question Key", "Q" or "No."
+def is_head(l, lines):
+    """A "Question" header; a bare "Q" only beside "Key", and "No." beside "Key" or "AO", as in Chemistry B's
+    multiple-choice keys. Alone, "Q" is a point Q in a maths answer; beside "Marks", MEI's ordinary header."""
+    if not HEAD.fullmatch(l["text"]):
+        return False
+    beside = [o["text"].lower() for o in lines if o is not l and abs(o["y0"] - l["y0"]) < 4]  # "Key" or "KEY"
+    return l["text"].startswith("Question") or l["text"].startswith("No.") and (l["text"] == "No. AO" or any(t in ("key", "ao") for t in beside)) \
+        or l["text"] == "Q" and "key" in beside
 
 
 def ms_page_box(doc, p):
@@ -487,12 +495,12 @@ def ms_tables(doc):
     # Labels sit in the "Question Number" column. Not every scheme sets them in bold, and
     # the header can be centred over them or set to one side, so a label is anything
     # label-shaped under the span of its column's header.
-    all_heads = [l for i in range(len(doc)) for l in doc.lines(i) if HEAD.fullmatch(l["text"])]
+    all_heads = [l for i in range(len(doc)) for l in doc.lines(i) if is_head(l, doc.lines(i))]
     typical = sorted(all_heads, key=lambda h: h["x0"])[len(all_heads) // 2] if all_heads else None
     q_now, letter_now = None, None
     for i in range(len(doc)):
         lines = doc.lines(i)
-        heads = [l for l in lines if HEAD.fullmatch(l["text"])]
+        heads = [l for l in lines if is_head(l, lines)]
 
         def column(l):
             above = [h for h in heads if h["y0"] <= l["y0"]]
@@ -504,7 +512,7 @@ def ms_tables(doc):
         # (OCR Chemistry B centres its multiple-choice key, "Question | Key | AO", mid-page: a bare
         # number under a header there is a label too.)
         centred = lambda l: re.fullmatch(r"\d{1,2}", l["text"]) and any(h["x0"] >= 200 and h["y0"] < l["y0"] for h in heads)  # noqa: E731
-        cands = [l for l in lines if (l["x0"] < 200 or centred(l)) and not HEAD.fullmatch(l["text"]) and column(l)
+        cands = [l for l in lines if (l["x0"] < 200 or centred(l)) and not is_head(l, lines) and column(l)
                  # Cambridge's schemes open with numbered marking instructions: a label is only ever under a header.
                  and (not doc.cambridge or any(h["y0"] < l["y0"] for h in heads))]
         # OCR splits a label across columns of one row: "16", "(a)", "(i)". Join pieces that are each label-shaped.
@@ -629,11 +637,11 @@ def ms_tables(doc):
         text = " ".join(doc.text(p, r) for p, r in pieces)
         if key not in out:
             ans = re.search(r"(?:only )?correct answer is\s*\(?([A-D])\b", text)
-            if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓"
-                ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])", text)
-                lone = re.findall(r"(?<![\w.])[A-D](?![\w.])", text)
-                if not ans and len(text) < 80 and len(lone) == 1:  # "7  1  1.1  C": marks and AO before the letter
-                    ans = re.search(r"(?<![\w.])([A-D])(?![\w.])", text)
+            if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓" (not a sentence, "5 A suitable method…")
+                ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])(?!\s+[a-z])", text)
+                if not ans and len(text) < 80:  # "4  1  C", "7  1  1.1  C": mark and AO before the letter (not "5 A suitable method…")
+                    row = re.sub(r"^(?:\s*(?:Question|Q|No\.|KEY|Key|AO( element)?|Answer|Marks?)(?![\w.]))+", "", text)  # the table's header ("Q KEY AO", "AO element"), on its first row
+                    ans = re.match(rf"\s*{key[0]}\s+(?:[\d.]+\s+){{0,2}}([A-D])(?![\w.])(?!\s+[a-z])", row)
             out[key] = (pieces, re.sub(r"\s+", " ", text), ans.group(1) if ans else None)
     return out
 
