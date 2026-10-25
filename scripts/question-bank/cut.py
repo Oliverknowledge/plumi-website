@@ -34,8 +34,8 @@ def norm(text):
     return re.sub(r"\s+", "", text)
 
 
-def left_labels(page, max_x, bold_only):
-    """Question labels in the left margin: [(y0, '01', '1' or None)].
+def left_labels(page, max_x, bold_only, with_x=False):
+    """Question labels in the left margin: [(y0, '01', '1' or None)], with each one's x0 last when `with_x`.
 
     A label's boxes ("0", "1", ".", "1") can be separate lines or even blocks, so
     spans are gathered page-wide and joined by baseline before matching."""
@@ -68,11 +68,12 @@ def left_labels(page, max_x, bold_only):
                 break
             label += s["text"]
             x1 = s["bbox"][2]
+        x = (row[0]["bbox"][0],) if with_x else ()
         m = QLABEL.match(norm(label))
         if m:
-            out.append((y, m.group(1), m.group(2)))
+            out.append((y, m.group(1), m.group(2), *x))
         elif not bold_only and row[0]["bbox"][0] < 90 and (m := re.fullmatch(r"(\d)\.(\d{1,2})", norm(label))) and table_page(page):
-            out.append((y, "0" + m.group(1), m.group(2)))  # a scheme that prints "1.1" for "01.1" (GCSE, June 2019)
+            out.append((y, "0" + m.group(1), m.group(2), *x))  # a scheme that prints "1.1" for "01.1" (GCSE, June 2019)
     return out
 
 
@@ -99,6 +100,24 @@ def frame(page, portrait=True):
         # Inside the answer frame's border lines, so trailing white space can be trimmed.
         return pymupdf.Rect(44, top, min(right, 537), bottom - 5)
     return pymupdf.Rect(38, top, right, bottom)
+
+
+def ms_frame(page):
+    """A mark scheme page's rows: inside its table where it draws one. frame()'s fixed margins
+    cut the table's right-hand column off a portrait GCSE scheme (the table runs to 557pt, the
+    frame to 541pt) and dropped rows below 766pt, and its top ran through the running header
+    ("MARK SCHEME – A-LEVEL PHYSICS – 7408/1 – JUNE 2023", 34-50pt)."""
+    w, h = page.rect.width, page.rect.height
+    lines = [l["bbox"] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) if "".join(s["text"] for s in l["spans"]).strip()]
+    head = [y1 for x0, y0, x1, y1 in lines if y0 < 60]
+    top = max(head) + 2 if head else 46
+    rules = [d["rect"] for d in page.get_drawings() if d["rect"].width > 30 and d["rect"].width < w - 10]
+    if len(rules) >= 2 and max(r.y1 for r in rules) - min(r.y0 for r in rules) >= h / 3:
+        y0, y1 = min(r.y0 for r in rules), max(r.y1 for r in rules)
+        cells = [d["rect"] for d in page.get_drawings() if d["rect"].y1 >= y0 and d["rect"].y0 <= y1 and d["rect"].width < w - 10]
+        return pymupdf.Rect(max(20, min(r.x0 for r in cells) - 2), max(top, y0 - 2), min(w - 20, max(r.x1 for r in cells) + 2), min(h - 20, y1 + 2))
+    foot = [y0 for x0, y0, x1, y1 in lines if y0 > h - 60]
+    return pymupdf.Rect(38, top, w - 38, min(foot) - 2 if foot else h - 76)
 
 
 def render(page, rect):
@@ -227,7 +246,13 @@ def regions(doc, max_x, bold_only, portrait):
         if skip_page(page, max_x, bold_only):
             continue
         prev = 0
-        for y, q, p in left_labels(page, max_x, bold_only):
+        labels = left_labels(page, max_x, bold_only, with_x=True)
+        # A scheme's answer can open with a bare number at the answer column's edge ("24 × 3", x 109,
+        # where the labels are at 63): a label with no part must start in the labels' column.
+        col = min((x for _, _, p, x in labels if p), default=None)
+        for y, q, p, x in labels:
+            if not portrait and p is None and col is not None and x > col + 20:
+                continue
             marks.append((i, y if portrait else max(prev + 8, row_start(page, y, prev)) + 6, q, p))
             prev = y
     out = []
@@ -236,7 +261,7 @@ def regions(doc, max_x, bold_only, portrait):
         pieces, pg = [], i
         while True:
             page = doc[pg]
-            f = frame(page, portrait)
+            f = frame(page, portrait) if portrait else ms_frame(page)
             top = y - 6 if pg == i else f.y0
             end = nxt[1] - 6 if nxt and nxt[0] == pg else f.y1
             if end > top + 24 or (end > top + 8 and page.get_text("text", clip=pymupdf.Rect(f.x0, top, f.x1, end)).strip()):

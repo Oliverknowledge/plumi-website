@@ -149,11 +149,15 @@ export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
 /**
- * A part's crop. Crops are cached as unchanging, so a bank whose crops were cut again
- * under the same names carries a `cropVersion`, and its URLs ask for that version.
+ * A part's crop. Crops are cached for a year as immutable, so a re-cut that replaces them under
+ * the same names asks for a new version: every bank's scheme crops for the scheme re-cut of
+ * 25 October 2026 (MS_VERSION), and a bank re-cut as a whole for its own `cropVersion`.
  */
-export const partImage = (id: string, kind: "qp" | "ms" | "stem", version?: number) =>
-  (kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`) + (version ? `?v=${version}` : "");
+const MS_VERSION = 2;
+export const partImage = (id: string, kind: "qp" | "ms" | "stem", version?: number) => {
+  const v = kind === "ms" ? Math.max(MS_VERSION, version ?? 0) : version;
+  return (kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`) + (v ? `?v=${v}` : "");
+};
 /** The examiner's report covers a whole question: "74051-jun23-01" (AQA parts share it); an Edexcel question is its own key. */
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 
