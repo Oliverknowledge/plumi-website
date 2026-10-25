@@ -28,6 +28,14 @@ export function useQuestionSet(slug: string) {
       track("bank_set_added", { subject: slug, size: ids.length + 1 });
       save([...ids, id]);
     },
+    /** A whole question's parts: all of them go in, or none if they wouldn't fit. */
+    add: (more: string[]) => {
+      const missing = more.filter(id => !inSet.has(id));
+      if (!missing.length || ids.length + missing.length > SET_MAX) return;
+      track("bank_set_added", { subject: slug, size: ids.length + missing.length, parts: missing.length });
+      save([...ids, ...missing]);
+    },
+    remove: (gone: string[]) => save(ids.filter(x => !gone.includes(x))),
     clear: () => save([]),
     restore: (next: string[]) => save(next),
   };

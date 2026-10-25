@@ -128,7 +128,12 @@ export function bankTopic(subject: BankSubject, slug: string): BankTopic | undef
 
 export const bankPath = (slug: string) => `/question-bank/${slug}`;
 export const bankTopicPath = (slug: string, topic: string) => `/question-bank/${slug}/${topic}`;
-export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+/**
+ * The sciences have a practicals.json beside their data: the ids of the parts about
+ * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
+ */
+export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
@@ -167,6 +172,8 @@ export const topicRef = (t: BankTopic) => t.ref ?? t.code;
 export const topicName = (t: BankTopic) => (topicRef(t) ? `${topicRef(t)} ${t.title}` : t.title);
 /** The question number a part belongs to: "01" of "01.4", "3" of "3(b)(i)". */
 export const questionOf = (label: string) => label.match(/^\d+/)?.[0] ?? label;
+/** The whole question a part belongs to, across the bank: "74051-JUN23-01". */
+export const questionKey = (p: Pick<BankPart, "p" | "s" | "l">) => `${p.p}-${p.s}-${questionOf(p.l)}`;
 
 /** "AQA A-Level Chemistry" */
 export const bankTitle = (s: Pick<BankSubject, "board" | "level" | "subject">) => `${s.board} ${s.level} ${s.subject}`;

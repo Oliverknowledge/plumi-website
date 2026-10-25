@@ -338,3 +338,30 @@ python3 scripts/question-bank/caie/build_caie.py [scripts/question-bank/.work/ca
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-sciences --crops-only   # the PDFs are the library's
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-maths --crops-only
 ```
+
+## Practicals and whole questions
+
+Added 25 October 2026, from a student's feedback ("a filter for questions based on
+practicals, and whole questions rather than the relevant parts only"):
+
+- **Practicals filter** (`?practical=only` or `none`), on every Biology, Chemistry and
+  Physics bank: the parts about doing an experiment, such as methods, apparatus and
+  techniques, variables, measurements and uncertainty, safety, improving an
+  experiment, and the required, core and PAG practicals. That is 2,947 of 24,894 science
+  parts. `scripts/question-bank/practicals.py split` casts a wide net over each bank's
+  text (4,651 candidates), Claude subagents read and judged every candidate against
+  tag.md's "Practical questions" brief, and `merge` writes each bank's
+  `public/question-bank/<slug>/practicals.json`. That file sits beside the bank's data
+  rather than in it, so rebuilding a bank never drops it; a bank without one (maths,
+  Psychology, a newly added science bank) simply shows no filter. To add a new bank or
+  series, run `practicals.py split --parts=<its cut parts.json> --only=<slug>`, judge
+  the batches, then `merge`.
+- **Whole questions** (`?view=whole`): one card per question with its start and
+  every part in order, its total marks, every part's mark scheme, and the examiner's
+  report for the whole question. A question is listed when any of its parts matches
+  the filters, and "+ Add to set" and download by number take the whole question.
+  Banks cut a whole question at a time already (maths) don't show the switch.
+
+Judging was done in parallel and the readers differed on one borderline case: a
+calculation from a titration or calorimetry experiment's results. Some readers counted
+it as practical, others didn't.

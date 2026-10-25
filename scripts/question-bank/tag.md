@@ -126,3 +126,39 @@ collects them. The brief is the one at the top, with these differences:
   The syllabus is set out by paper, and each line's `only` says which codes it may
   take: a Paper 3 question only `3.x` codes, even where Paper 1 has a topic of the
   same name.
+
+## Practical questions
+
+`practicals.py split` writes the science banks' likely practical questions (any
+part whose question or scheme mentions apparatus, a method, variables, uncertainty,
+safety or a lab technique) to `.work/practicals/batch-NN.jsonl`. A reader judges every
+line and writes `batch-NN.answers.json`, `{"<id>": true or false}` for every id;
+`practicals.py merge` turns the yeses into each bank's `practicals.json`, which the
+bank's "Practicals" filter reads.
+
+Each line has the `course`, the `paper`, the part's `question` (the start of its
+whole question, then the part's own words) and the start of its `scheme`. Answer
+**true** when answering the part draws on doing practical work:
+
+- planning or describing a method or procedure, or what to do and in what order;
+- choosing or using apparatus, instruments or a lab technique (titration,
+  chromatography, aseptic technique, quadrats, a colorimeter, a data logger…);
+- variables: identifying the independent, dependent or control variables, keeping
+  something constant, or why a control is used;
+- taking measurements and their quality: readings, resolution, precision, accuracy,
+  repeatability, uncertainty and percentage error, anomalies, systematic and random
+  errors, zero errors, parallax;
+- evaluating or improving an experiment, or explaining why a step is done;
+- safety: hazards, risks and precautions in an experiment;
+- processing or interpreting the results of an experiment the question describes,
+  when it is a required, core or PAG practical (an AQA GCSE scheme's "RPA" reference
+  says so), or when the part asks about the experiment's results as an experiment
+  (drawing its graph, finding a gradient from its readings, a conclusion and how
+  far its data supports it).
+
+Answer **false** when the practical words are incidental: a reagent and conditions
+for a synthesis step, a calculation from data that merely came from an experiment,
+recall of theory, "error carried forward" in a scheme, a mass spectrometer or an
+instrument as a topic of theory rather than something the student uses, or a
+multiple-choice option that happens to name apparatus. Judge by what a student must
+do to earn the marks; when it is genuinely half and half, answer true.
