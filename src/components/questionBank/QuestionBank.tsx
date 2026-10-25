@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { track } from "@/lib/analytics";
 import { baseSubject, bankDataPath, papersBase, paperName, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { QuestionRow } from "./QuestionRow";
-import { SetTray, useQuestionSet } from "./SetTray";
+import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -147,8 +147,6 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               : byNew);
   }, [parts, matches, f.sort, subject.papers]);
 
-  const allInSet = !!results?.length && results.every(p => set.has(p.id));
-
   /** How many questions each chip would give, with every other filter kept. */
   const counts = useMemo(() => {
     if (!parts) return null;
@@ -216,14 +214,18 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     e.preventDefault();
     const raw = String(new FormData(e.currentTarget).get("range") ?? "");
     if (!results || !raw.trim()) return;
-    // No cap: people print in big chunks. A number typed twice ("1–5, 3") goes in once.
+    // Up to SET_MAX, as a set holds. A number typed twice ("1–5, 3") goes in once.
     const picks = new Set<BankPart>();
+    let capped = false;
     for (const bit of raw.split(/[,\s]+/).filter(Boolean)) {
       // "7" has no second number at all (undefined, not NaN); "5–2" counts as 2 to 5.
       const [a, b = a] = bit.split(/[-–]/).map(x => parseInt(x, 10));
       if (Number.isNaN(a)) continue;
       const end = Number.isNaN(b) ? a : b;
-      for (let i = Math.max(1, Math.min(a, end)); i <= Math.min(results.length, Math.max(a, end)); i++) picks.add(results[i - 1]);
+      for (let i = Math.max(1, Math.min(a, end)); i <= Math.min(results.length, Math.max(a, end)); i++) {
+        if (picks.size >= SET_MAX && !picks.has(results[i - 1])) { capped = true; break; }
+        picks.add(results[i - 1]);
+      }
     }
     if (!picks.size) { setRangeNote("Those numbers aren’t in this list."); return; }
     setRangeNote("Building…");
@@ -233,7 +235,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, via: "range", skipped });
       setRangeNote(skipped
         ? `Saved, but ${skipped} of ${picks.size * 2} pages couldn’t be added. Try again in a moment.`
-        : `Saved ✓ ${picks.size} ${picks.size === 1 ? "question" : "questions"}, mark schemes at the back`);
+        : `Saved ✓ ${picks.size} ${picks.size === 1 ? "question" : "questions"}, mark schemes at the back${capped ? ` (${SET_MAX} is the most in one go)` : ""}`);
     } catch {
       setRangeNote("Couldn’t build it. Try again?");
     }
@@ -342,19 +344,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
 
       <section className="qb-results" aria-labelledby="qb-results-title">
         <div className="qb-bar">
-          <div className="qb-bar-count">
-            <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
-              <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
-            </h2>
-            {/* Every question these filters give, into the set at once: for printing in big chunks. */}
-            {results && results.length > 0 && (allInSet
-              ? <button type="button" className="qb-link" onClick={() => set.removeAll(results.map(p => p.id))}>✓ All in your set · Take them out</button>
-              : <button type="button" className="qb-link" onClick={() => set.addAll(results.map(p => p.id))}>+ Add all {results.length === 1 ? "" : `${results.length.toLocaleString("en-GB")} `}to set</button>)}
-          </div>
+          <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
+            <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
+          </h2>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
             <div>
-              <input id="qb-range-input" name="range" placeholder="e.g. 1–100 or 2–4, 7" inputMode="numeric" autoComplete="off" />
+              <input id="qb-range-input" name="range" placeholder="e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
               <button type="submit" className="lp-btn" disabled={!results}>Download PDF</button>
             </div>
             {rangeNote && <span className="qb-range-note" role="status">{rangeNote}</span>}
@@ -386,7 +382,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
         ) : (
           <ol className="qb-rows">
             {list.slice(0, shown).map((p, i) => (
-              <QuestionRow key={p.id} n={i + 1} part={p} subject={subject} inSet={set.has(p.id)} onToggleSet={() => set.toggle(p.id)}
+              <QuestionRow key={p.id} n={i + 1} part={p} subject={subject} inSet={set.has(p.id)} setFull={set.full} onToggleSet={() => set.toggle(p.id)}
                 onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
             ))}
           </ol>

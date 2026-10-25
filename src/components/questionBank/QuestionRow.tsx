@@ -55,8 +55,8 @@ function ReportText({ paras }: { paras: string[] }) {
  * examiner's report as a note in the right margin. The mark scheme unfolds on the
  * paper, under the question. On a phone the margins fold above and below.
  */
-export function QuestionRow({ n, part, subject, inSet, onToggleSet, onTopic }: {
-  n: number; part: BankPart; subject: BankSubject; inSet: boolean; onToggleSet: () => void; onTopic?: (code: string) => void;
+export function QuestionRow({ n, part, subject, inSet, setFull, onToggleSet, onTopic }: {
+  n: number; part: BankPart; subject: BankSubject; inSet: boolean; setFull?: boolean; onToggleSet: () => void; onTopic?: (code: string) => void;
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
@@ -95,8 +95,8 @@ export function QuestionRow({ n, part, subject, inSet, onToggleSet, onTopic }: {
           {part.msf && !part.ms && !part.k && (
             <a className="qb-key" href={`${papersBase}/${part.msf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
           )}
-          <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet}>
-            {inSet ? "✓ In your set" : "+ Add to set"}
+          <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
+            {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
           </button>
         </div>
         {whole?.qp && <a className="qb-wholelink" href={`${papersBase}/${whole.qp}`} target="_blank" rel="noopener">The whole paper ↗</a>}
