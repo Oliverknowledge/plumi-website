@@ -1,7 +1,7 @@
 """Upload our papers and question crops to Cloudflare R2.
 
     pip install boto3
-    python3 scripts/question-bank/upload_r2.py [work-dir] [--dry-run] [--pdf-prefix=edexcel/]
+    python3 scripts/question-bank/upload_r2.py [work-dir] [--dry-run] [--pdf-prefix=edexcel/] [--crops-only] [--checksum]
 
 Reads the bucket and keys from .env.local (never committed):
     R2_ACCOUNT_ID=...            # Cloudflare dashboard > R2 > Account details
@@ -13,8 +13,10 @@ Reads the bucket and keys from .env.local (never committed):
 Uploads <work-dir>/pdf/*.pdf to aqa/ (or --pdf-prefix) and <work-dir>/img/*.webp to bank/, each
 with its content type and a year-long immutable cache (file names change when
 contents do). Skips anything already there with the same size, so re-runs are cheap.
+--checksum skips only what is already there byte for byte (its ETag, an MD5 for these
+single-part uploads), for a re-cut whose changed crops can keep their size.
 """
-import os, sys
+import hashlib, os, sys
 from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +25,7 @@ args = [a for a in sys.argv[1:] if not a.startswith("--")]
 WORK = os.path.abspath(args[0]) if args else os.path.join(HERE, ".work")
 DRY = "--dry-run" in sys.argv
 CROPS_ONLY = "--crops-only" in sys.argv  # the PDFs are already there under another name (OCR: the library's copies)
+CHECKSUM = "--checksum" in sys.argv
 PDF_PREFIX = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--pdf-prefix=")), "aqa/")
 
 
@@ -51,13 +54,13 @@ def main():
     existing = {}
     for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket):
         for obj in page.get("Contents", []):
-            existing[obj["Key"]] = obj["Size"]
+            existing[obj["Key"]] = obj["ETag"].strip('"') if CHECKSUM else obj["Size"]
     jobs = []
     for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp"))[1 if CROPS_ONLY else 0:]:
         d = os.path.join(WORK, folder)
         for name in sorted(os.listdir(d)):
             path = os.path.join(d, name)
-            if existing.get(prefix + name) == os.path.getsize(path):
+            if existing.get(prefix + name) == (hashlib.md5(open(path, "rb").read()).hexdigest() if CHECKSUM else os.path.getsize(path)):
                 continue
             jobs.append((path, prefix + name, ctype))
     print(f"{len(existing)} already in {bucket}; {len(jobs)} to upload", file=sys.stderr)

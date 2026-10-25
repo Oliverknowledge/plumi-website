@@ -49,8 +49,8 @@ function squares(): string[] {
 /** Every question in the bank, across its subjects. */
 const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
 
-/** "AQA Physics", "AQA GCSE Physics", "Edexcel Further Maths": a bank subject as its chip says it. A-Level is the default, so only GCSE says its level. */
-const bankChip = (s: (typeof bankSubjects)[number]) => `${s.board} ${s.level === "GCSE" ? "GCSE " : ""}${s.subject}`;
+/** "AQA Physics", "AQA GCSE Physics", "CAIE IGCSE Maths": a bank subject as its chip says it. A-Level is the default, so only GCSE and IGCSE say their level. */
+const bankChip = (s: (typeof bankSubjects)[number]) => `${s.board} ${s.level !== "A-Level" ? `${s.level} ` : ""}${s.subject}`;
 
 /** Pixel icons for the hero's tickets, drawn on a 16px grid like the Discord key's. */
 const QuestionIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h8l3 3v11H3zm1 1v12h9V5h-3V2zm2 5h5v1H6zm0 2h5v1H6zm0 2h3v1H6z" /></svg>;
