@@ -71,7 +71,7 @@ export function BankHub() {
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, AQA’s A‑Level and AS Psychology since 2020, Edexcel’s A‑Level and AS Economics A since 2016, and Cambridge International’s (CAIE) AS & A Level and IGCSE Maths, Further and Additional Maths and sciences from the papers Cambridge publishes, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA, Edexcel, OCR and Cambridge (CAIE) past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
             <nav className="qb-levels" aria-label="Jump to a shelf">
               {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
             </nav>

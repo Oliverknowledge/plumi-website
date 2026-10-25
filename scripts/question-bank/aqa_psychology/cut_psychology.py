@@ -187,6 +187,7 @@ def examiner_report(path):
 
 
 cut.frame = frame
+cut.ms_frame = lambda page: frame(page, False)  # its schemes are read as text, not tables: keep its own frame
 cut.examiner_report = examiner_report
 
 

@@ -55,6 +55,48 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Mark scheme crops (every board), fixed 25 October 2026
+
+A student testing OCR found a multiple-choice question whose mark scheme was a
+blank sliver. The same fault, in different forms, was in every board's crops:
+
+- **Rows started 6pt above their label** (`cut_pearson.py`). OCR's and Cambridge's
+  one-line rows sit 13pt apart, so a crop took the foot of the row above and lost its
+  own: OCR's multiple-choice keys were slivers mixing two rows (and 424 answer letters
+  went unread), and on a few Edexcel papers each question showed the row above's
+  answer (9PH0/02 November 2021 Q4 said A; its answer is C). Rows now start at the
+  table rule above their label (up to 60pt above, for a label centred in a tall cell;
+  wide rules only, never one with text through it), or, with no rule, at the tallest
+  text beside the label but never above the foot of the line before.
+- **Crops ran to the page margins**, so they picked up the running header ("H020/01
+  Mark Scheme June 2019"), the page number, the next table's header or the board's
+  logo. A scheme page's box is now its table (`cut_pearson.ms_page_box`,
+  `cut.ms_frame`), or inside the header and footer where nothing is ruled.
+- **AQA's fixed frame** (`cut.frame`) cut the right-hand "AO / Spec Ref." column off
+  nearly every GCSE scheme crop (the table runs to 557pt, the frame stopped at 541pt)
+  and dropped rows below 766pt. Schemes now use `cut.ms_frame`. A bare number at the
+  edge of the answer column ("24 × 3") is no longer read as a label.
+- **Edexcel maths** (`cut_edexcel.py`): widened to the AOs column, and stops above
+  the "Pearson Education Limited" footer.
+
+Measured on the same PDFs, old cutter against new (scheme pieces whose edge runs
+through a line of text): OCR sciences 2,471 to about 30, OCR maths 4,838 to 173,
+Edexcel sciences 987 to 115, Cambridge 777 to 0, AQA GCSE 174 to 22 (and 3,309
+cut off at the right to 1), AQA A-Level 247 to 42 (2,233 through a header to 7),
+Edexcel Economics A (`--extracts`) 40 to 1. Psychology reads its schemes as text and
+keeps its own frame.
+
+Scheme images carry `?v=2` (`MS_VERSION` in questionBank.ts): the crops are cached for a
+year as immutable and kept their names, so browsers that had the old ones refetch.
+
+The fix was applied as a scheme-only update: each bank's question crops, sizes, text,
+tags and marks are the live ones (re-cutting with a newer PyMuPDF moves some question
+crops by a pixel or two), and only the scheme crop, scheme text and multiple-choice
+key come from the re-cut, where it found the scheme. 176 parts gained a cropped row
+(they used to link the whole scheme PDF) and 532 multiple-choice parts their answer
+letter; no part lost a scheme. Parts the re-cut found that weren't in the banks (19,
+mostly from scanned OCR papers) were left out: they'd need tagging.
+
 ## Edexcel Maths and Further Maths
 
 `/question-bank/edexcel-a-level-maths` and `/question-bank/edexcel-a-level-further-maths`:
@@ -287,6 +329,22 @@ python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/
   --only=ocr-a-level-biology-b,ocr-a-level-chemistry-b,ocr-a-level-physics-b   # judge, then: practicals.py merge
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-b-sciences --crops-only
 ```
+
+**Crop version 3 (26 October 2026).** The OCR banks were re-cut again with the merged cutter:
+#28's rule-based scheme rows (whole rows, no slivers of the row above), and no labels before
+a scheme's first table (MEI's numbered marking instructions had been read as question 5's
+scheme). Where the new cut found no scheme but the live data had a real one, the live crop
+was kept; four live crops that were only slivers ("Question Answer Marks Guidance") now
+link the whole scheme instead.
+
+**Re-cut 26 October 2026 (crop version 2).** A paper's last scheme crop ran on to OCR's back
+pages ("Need to get in touch?", the company notice, blank pages, and in older schemes a
+contact block under the last answer). `cut_pearson.py` now stops at them (`BACK_PAGE`,
+`BACK_BLOCK`). All ten OCR banks were re-cut from their work folders and rebuilt: no part,
+tag or mark lost; 444 OCR A multiple-choice parts gained their answer; scheme crops lost
+OCR's running heads and footers. Crops are cached as immutable, so a re-cut bank carries
+`cropVersion` (set in `ocr/build_ocr.py`, `CROP_VERSION`) and its crop URLs ask for
+`?v=<version>`: bump it whenever a bank's crops are re-uploaded under the same names.
 
 ## AQA A-Level Psychology
 

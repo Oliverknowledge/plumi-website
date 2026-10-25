@@ -127,6 +127,17 @@ def below_header(page):
     return 30
 
 
+def page_box(page):
+    """Where a scheme page's rows can be: the page's margins, widened to its table where that
+    runs past them (the AOs column), and above its footer ("Pearson Education Limited.
+    Registered company number 872828"), which a question's last piece used to take in."""
+    w, h = page.rect.width, page.rect.height
+    table = cut.ms_frame(page)
+    foot = [s["bbox"][1] for s in spans(page) if s["bbox"][1] > h - 90
+            and not table.contains(pymupdf.Point((s["bbox"][0] + s["bbox"][2]) / 2, (s["bbox"][1] + s["bbox"][3]) / 2))]
+    return pymupdf.Rect(28, 30, min(w - 4, max(w - 28, table.x1)), min([h - 40] + [y - 2 for y in foot]))
+
+
 def ms_regions(doc, questions):
     """Each question's rows: from its first label to the next question's first label.
 
@@ -158,13 +169,16 @@ def ms_regions(doc, questions):
         nxt = firsts[n + 1] if n + 1 < len(firsts) else None
         pieces, pg = [], pg0
         top = cut.row_start(doc[pg0], y0)
+        head = below_header(doc[pg0])
+        if 30 < head < y0:
+            top = max(top, head - 3)  # never part way through the column headings over the row
         last = nxt[0] if nxt else min(len(doc) - 1, pg0 + 2)
         while pg <= last:
             page = doc[pg]
-            h, w = page.rect.height, page.rect.width
-            end = cut.row_start(page, nxt[1]) if nxt and nxt[0] == pg else h - 40
+            box = page_box(page)
+            end = cut.row_start(page, nxt[1]) if nxt and nxt[0] == pg else box.y1
             if end > top + 8:
-                pieces.append((pg, pymupdf.Rect(28, max(top, 30), w - 28, end)))
+                pieces.append((pg, pymupdf.Rect(box.x0, max(top, box.y0), box.x1, end)))
             pg += 1
             if pg <= last:
                 top = below_header(doc[pg])  # a continuation page: skip its repeated table header

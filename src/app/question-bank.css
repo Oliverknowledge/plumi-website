@@ -244,3 +244,5 @@
 .lp .qb-seg button.is-on { background: var(--lp-gold); }
 .lp .qb-seg button:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: -3px; }
 .qb-paper .qb-img + .qb-img { margin-top: 10px; }
+.qb-noms { align-self: center; font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .qb-or { margin: 14px 0; text-align: center; font-family: var(--f-px); font-weight: 700; font-size: 15px; letter-spacing: .12em; color: var(--lp-ink-soft); }
