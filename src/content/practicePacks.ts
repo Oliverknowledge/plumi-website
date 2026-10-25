@@ -4,7 +4,7 @@ import { papersBase } from "./questionBank";
  * Plumi Practice Packs: whole practice papers written by Plumi, each a question paper and
  * a full mark scheme, free to download with no sign-up (founder, 25 October 2026: "a really
  * important aspect of our website"). Shown on the homepage's free practice section, at
- * /practice-packs and /practice-packs/<slug>, and beside the matching past papers.
+ * /practice-papers and /practice-papers/<slug>, and beside the matching past papers.
  *
  * Every fact here is printed in the pack itself: the totals and sections on the question
  * paper's cover, the question table on the mark scheme's first page, and the checking
@@ -12,7 +12,7 @@ import { papersBase } from "./questionBank";
  * board's own: the disclaimer goes wherever a pack is shown.
  *
  * Adding a pack: scripts/practice-packs/build.sh renders its cover and two sample pages
- * into public/practice-packs/<slug>/ and copies the PDFs for R2 (packs/<slug>-v<n>-*.pdf);
+ * into public/practice-papers/<slug>/ and copies the PDFs for R2 (packs/<slug>-v<n>-*.pdf);
  * then add its entry below. A corrected pack gets a new `version`, since R2 serves the
  * files with a year-long immutable cache.
  */
@@ -178,7 +178,7 @@ export const practicePacks: PracticePack[] = [
 ];
 
 export const packLevels: PackLevel[] = ["Easy", "Medium", "Hard", "Super hard"];
-export const packPath = (slug: string) => `/practice-packs/${slug}`;
+export const packPath = (slug: string) => `/practice-papers/${slug}`;
 export const practicePack = (slug: string) => practicePacks.find(p => p.slug === slug);
 /** The pack's PDFs on R2: packs/a-level-physics-ocr-v1-questions.pdf. */
 export const packFile = (p: PracticePack, file: "questions" | "mark-scheme") => `${papersBase}/packs/${p.slug}-v${p.version}-${file}.pdf`;
@@ -206,8 +206,9 @@ export const packTotals = {
  */
 export const packCopy = {
   eyebrow: "Made by Plumi · free",
-  hubTitle: "Plumi practice packs:",
-  hubTitleEm: "whole papers, written by us.",
+  section: "Practice papers",
+  hubTitle: "Practice papers,",
+  hubTitleEm: "written by us.",
   hubLead: "Each pack is 30 exam-style questions in your board’s style, climbing from easy to super hard, with a full mark scheme written the way examiners write them. Print it, sit it, mark it. Free, with no sign-up.",
   download: { questions: "Questions PDF", scheme: "Mark scheme PDF" },
   proof: [
@@ -227,6 +228,14 @@ export const packCopy = {
       ["Answers checked by computer", "Every numerical answer", "Rarely"],
       ["Difficulty", "Labelled Easy to Super hard, question by question", "Rarely labelled"],
     ] as [string, string, string][],
+  },
+  // The card after the packs, into the boards' own papers (founder, 25 October 2026: past
+  // papers sit inside practice papers, "at the bottom have a card saying: want to do past papers?").
+  pastPapers: {
+    eyebrow: "Past papers",
+    title: "Want to sit the real thing too?",
+    line: "Every past paper and mark scheme from the exam boards, sorted by board and year, free.",
+    cta: "Browse past papers",
   },
   faq: [
     { q: "Are these real past papers?", a: "No. Plumi wrote every question in the style of the board’s papers, to its specification, with a mark scheme in the board’s style. They are not produced or endorsed by the exam board. For the board’s own papers, see our past papers pages." },

@@ -21,11 +21,15 @@ export function PastPapersHub() {
   return (
     <CosyPage after={
       <PageStructuredData path="/past-papers" name={intent.title} description={intent.description} type="CollectionPage"
-        breadcrumb={[{ name: "Past papers", path: "/past-papers" }]} />
+        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }]} />
     }>
       <article className="pp">
         <header className="lp-wrap pp-hero pp-hub-hero">
           <div>
+            <nav className="pp-crumbs" aria-label="Breadcrumb">
+              <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
+              <span aria-current="page">Past papers</span>
+            </nav>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display(intent.h1.replace(/ past papers$/, ""))} <em>past papers</em></h1>
             <p className="lp-lead">

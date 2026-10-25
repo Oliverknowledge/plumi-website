@@ -44,12 +44,13 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   return (
     <CosyPage after={<>
       <PageStructuredData path={path} name={meta.title} description={meta.description} image={shareImage(hub)} type="CollectionPage"
-        breadcrumb={[{ name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
+        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
       <PaperClickTracker page={path} />
     </>}>
       <article className="pp">
         <header className="lp-wrap pp-hero">
           <nav className="pp-crumbs" aria-label="Breadcrumb">
+            <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
             <Link href="/past-papers">Past papers</Link><span aria-hidden="true">›</span>
             <Link href={subjectPath(hub.slug)}>{subjectTitle(hub)}</Link><span aria-hidden="true">›</span>
             <span aria-current="page">{board.label}</span>

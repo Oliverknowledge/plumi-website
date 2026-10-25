@@ -10,11 +10,12 @@ import {
 } from "@/content/practicePacks";
 import { levelClass, PackCover, PackDownloads, PackLadder } from "./Pack";
 import { PackClickTracker } from "./PackClickTracker";
+import { PastPapersCard } from "./PastPapersCard";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
 /**
- * /practice-packs and /practice-packs/<slug>: Plumi's own practice papers. The hub is a
+ * /practice-papers and /practice-papers/<slug>: Plumi's own practice papers. The hub is a
  * pack per card; a pack's page shows everything in it before the download (its sections,
  * all thirty questions with their difficulty, a page of the paper and of the scheme), then
  * how it compares and the way to get it marked. Words: src/content/practicePacks.ts.
@@ -66,15 +67,15 @@ function Faq() {
 }
 
 export function PackHub() {
-  const intent = intentFor("/practice-packs");
+  const intent = intentFor("/practice-papers");
   return (
     <CosyPage after={<>
-      <PageStructuredData path="/practice-packs" name={intent.title} description={intent.description} type="CollectionPage" breadcrumb={[{ name: "Practice packs", path: "/practice-packs" }]} />
+      <PageStructuredData path="/practice-papers" name={intent.title} description={intent.description} type="CollectionPage" breadcrumb={[{ name: packCopy.section, path: "/practice-papers" }]} />
       <PackClickTracker />
     </>}>
       <article className="pp">
         <header className="lp-wrap pp-hero">
-          <span className="lp-eyebrow">{packCopy.eyebrow}</span>
+          <span className="lp-eyebrow">{packCopy.section} · free, no sign-up</span>
           <h1>{packCopy.hubTitle} <em>{packCopy.hubTitleEm}</em></h1>
           <p className="lp-lead">{packCopy.hubLead}</p>
           <ul className="pp-facts" aria-label="At a glance">
@@ -105,6 +106,10 @@ export function PackHub() {
           </div>
         </section>
 
+        <section className="pp-mark-wrap" aria-label="Past papers">
+          <div className="lp-wrap"><PastPapersCard placement="packs-hub" /></div>
+        </section>
+
         <Compare />
 
         <section className="pp-mark-wrap" aria-label="Get your answers marked">
@@ -125,14 +130,14 @@ export function PackPage({ pack }: { pack: PracticePack }) {
   return (
     <CosyPage after={<>
       <PageStructuredData path={path} name={meta.title} description={meta.description} image={packShareImage(pack)}
-        breadcrumb={[{ name: "Practice packs", path: "/practice-packs" }, { name: packName(pack), path }]} />
+        breadcrumb={[{ name: packCopy.section, path: "/practice-papers" }, { name: packName(pack), path }]} />
       <PackClickTracker />
     </>}>
       <article className="pp">
         <header className="lp-wrap pk-hero">
           <div className="pk-hero-copy">
             <nav className="pp-crumbs" aria-label="Breadcrumb">
-              <Link href="/practice-packs">Practice packs</Link><span aria-hidden="true">›</span>
+              <Link href="/practice-papers">{packCopy.section}</Link><span aria-hidden="true">›</span>
               <span aria-current="page">{display(`${pack.board}-style ${pack.title}`)}</span>
             </nav>
             <span className="lp-eyebrow">{packCopy.eyebrow}</span>
@@ -230,7 +235,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
               {others.map(p => <Link key={p.slug} href={packPath(p.slug)}>{display(`${p.board}-style ${p.title}`)} pack</Link>)}
               <Link href={pack.pastPapers}>{pack.board} {display(pack.title.replace(/ [AB]$/, ""))} past papers</Link>
               <Link href={pack.bank}>{pack.board} {display(pack.title)} question bank</Link>
-              <Link href="/practice-packs">Every practice pack</Link>
+              <Link href="/practice-papers">All practice papers</Link>
             </nav>
           </div>
         </section>

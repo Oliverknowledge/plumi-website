@@ -16,10 +16,12 @@ export const sectionLinks: readonly (readonly [string, string])[] = [
   ["Study with friends", "friends"],
 ];
 
+// Past papers sit inside Practice papers (founder, 25 October 2026): Plumi's own packs first,
+// then the board's papers at the foot of that page. Their addresses stay /past-papers/..., which
+// search engines already know, and the footer still links them directly.
 export const pageLinks: readonly (readonly [string, string])[] = [
-  ["Practice packs", "/practice-packs"],
+  ["Practice papers", "/practice-papers"],
   ["Question bank", "/question-bank"],
-  ["Past papers", "/past-papers"],
 ];
 
 export const footerLinks: readonly (readonly [string, string])[] = [
@@ -28,7 +30,7 @@ export const footerLinks: readonly (readonly [string, string])[] = [
   ["Biology revision", "/biology-revision"],
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
   ["GCSE Maths", "/gcse-maths"],
-  ["Practice packs", "/practice-packs"],
+  ["Practice papers", "/practice-papers"],
   ["Past papers", "/past-papers"],
   ["Question bank", "/question-bank"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],

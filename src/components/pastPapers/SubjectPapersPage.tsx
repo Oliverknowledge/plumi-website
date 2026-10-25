@@ -30,11 +30,12 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
   return (
     <CosyPage after={
       <PageStructuredData path={path} name={meta.title} description={meta.description} image={shareImage(hub)} type="CollectionPage"
-        breadcrumb={[{ name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path }]} />
+        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path }]} />
     }>
       <article className="pp">
         <header className="lp-wrap pp-hero">
           <nav className="pp-crumbs" aria-label="Breadcrumb">
+            <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
             <Link href="/past-papers">Past papers</Link><span aria-hidden="true">›</span>
             <span aria-current="page">{subjectTitle(hub)}</span>
           </nav>

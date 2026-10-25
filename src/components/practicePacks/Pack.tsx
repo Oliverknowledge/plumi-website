@@ -95,7 +95,7 @@ export function PacksCallout() {
         <span className="lp-eyebrow">{packCopy.eyebrow}</span>
         <h2 id="packs-callout-title">Run out of past papers? <em>Try ours.</em></h2>
         <p>Whole practice packs written by Plumi: 30 new exam-style questions each, easy to super hard, with a full mark scheme. Free, no sign-up.</p>
-        <Link href="/practice-packs" className="lp-btn pk-dl pk-dl-main">See the practice packs ›</Link>
+        <Link href="/practice-papers" className="lp-btn pk-dl pk-dl-main">See the practice packs ›</Link>
       </div>
     </aside>
   );

@@ -5,7 +5,7 @@ import { PackPage, packPageMeta } from "@/components/practicePacks/PackPages";
 import { packPath, packShareImage, practicePack, practicePacks } from "@/content/practicePacks";
 import { pastPaperMetadata } from "@/lib/pastPaperMeta";
 
-/** /practice-packs/a-level-physics-ocr and friends: one per pack, prerendered. */
+/** /practice-papers/a-level-physics-ocr and friends: one per pack, prerendered. */
 export function generateStaticParams(): Array<{ pack: string }> {
   return practicePacks.map(p => ({ pack: p.slug }));
 }

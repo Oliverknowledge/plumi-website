@@ -59,7 +59,7 @@ export const routeIntents: readonly RouteIntent[] = [
     // The free practice is named too: it is what most visitors from a video came for.
     description:
       "Plumi marks your handwritten GCSE and A-Level answers on iPad, line by line against the mark scheme. Plus free past papers and exam questions by topic.",
-    linksTo: ["/practice-packs", "/question-bank", "/past-papers", "/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
+    linksTo: ["/practice-papers", "/question-bank", "/past-papers", "/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,
     lastModified: "2026-10-23",
@@ -138,16 +138,16 @@ export const routeIntents: readonly RouteIntent[] = [
     lastModified: "2026-10-23",
   },
   {
-    path: "/practice-packs",
+    path: "/practice-papers",
     primaryQuery: "free A-Level practice papers",
     secondaryQueries: ["A-Level Maths practice paper with mark scheme", "OCR A-Level Physics practice questions", "Edexcel A-Level Maths practice paper", "A-Level Physics practice paper free", "A-Level exam practice questions with answers"],
     intent: "Find more full papers to practise on once the past papers run out, with a mark scheme to check them.",
-    objective: "Get the student to download a Plumi pack in one tap, then show them Plumi can mark questions like these.",
+    objective: "Get the student to download a Plumi pack in one tap, then on to the boards' past papers, which sit inside this section.",
     title: "Free A-Level Practice Papers With Mark Schemes | Plumi",
-    h1: "Plumi practice packs",
+    h1: "Practice papers, written by us.",
     description:
       "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. No sign-up.",
-    // Each pack's own page (/practice-packs/<slug>) is generated from src/content/practicePacks.ts
+    // Each pack's own page (/practice-papers/<slug>) is generated from src/content/practicePacks.ts
     // and added to the sitemap by src/app/sitemap.ts.
     linksTo: ["/past-papers", "/question-bank", "/physics-revision", "/ai-tutor-for-a-level-maths"],
     changeFrequency: "monthly",

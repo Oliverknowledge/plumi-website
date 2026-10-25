@@ -81,10 +81,29 @@
 .lp .pk-feature-pack .pk-dl { font-size: 14px; padding: 6px 10px; }
 .pk-disclaimer { margin: 0; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); font-style: italic; }
 
-/* the hero's third ticket: across both columns, with a NEW tag */
-.lp .lp-ticket.pk-ticket { grid-column: 1 / -1; background: #fff4dd; }
+/* the hero's Practice papers ticket, first, with a NEW tag */
+.lp .lp-ticket.pk-ticket { position: relative; background: #fff4dd; }
 .lp .lp-tickets .pk-ticket i { background: #f9dcd5; }
-.pk-ticket .pk-new { margin-left: auto; flex: none; font-family: var(--f-px); font-weight: 600; font-size: 13px; color: #fdf9f1; background: var(--lp-orange); border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 8px; transform: rotate(3deg); }
+.pk-ticket .pk-new { position: absolute; top: -11px; right: -8px; font-family: var(--f-px); font-weight: 600; font-size: 12px; line-height: 1.4; color: #fdf9f1; background: var(--lp-orange); border: 2px solid var(--lp-line); border-radius: 7px; padding: 0 6px; transform: rotate(3deg); }
+
+/* the way on to the boards' past papers: a strip along the foot of the homepage card, and
+   a card of its own at the foot of /practice-papers */
+.pk-past { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto; gap: 18px 28px; align-items: center; }
+.lp .pk-past.lp-card { padding: 26px 28px; background: var(--lp-card-bg); }
+.pk-past-strip { grid-column: 1 / -1; margin: 4px -34px -32px; padding: 22px 34px 24px; border-top: 3px dashed #d8c8ad; background: rgba(255, 253, 248, .7); border-radius: 0 0 17px 17px; }
+.pk-past-copy { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 14px; align-items: start; }
+.pk-past-icon { width: 46px; height: 46px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 12px; background: var(--lp-blue-soft); box-shadow: 0 3px 0 var(--lp-shadow); }
+.pk-past-icon svg { width: 26px; height: 26px; }
+.pk-past-copy > div { display: grid; gap: 4px; }
+.lp .pk-past .lp-eyebrow { font-size: 14px; }
+.lp .pk-past h4, .lp .pk-past h2 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 22px; line-height: 1.15; color: var(--lp-ink); }
+.lp .pk-past.lp-card h2 { font-size: clamp(24px, 2.8vw, 30px); }
+.pk-past-copy p { margin: 0; font-size: 14.5px; font-weight: 600; color: var(--lp-ink-soft); }
+.pk-past-subjects { display: grid; gap: 6px; }
+.pk-past-subjects ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.lp .pk-past-subjects a { display: block; font-size: 13.5px; font-weight: 700; border: 2px solid var(--lp-line); border-radius: 8px; padding: 2px 9px; background: #fff; color: var(--lp-ink); text-decoration: none; }
+.lp .pk-past-subjects a:hover { background: var(--lp-blue-soft); }
+.lp .pk-past-go { font-size: 16px; padding: 9px 16px; background: var(--lp-blue-soft); }
 
 /* ── the card beside the past papers ── */
 .lp .pk-promo { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 30px; align-items: center; padding: 30px 32px; background: #fdf9f1; transform: rotate(.25deg); }
@@ -155,6 +174,10 @@
 .pk-soon { display: grid; place-items: center; text-align: center; padding: 24px; border: 3px dashed #cdbda3; border-radius: 20px; font-weight: 700; color: var(--lp-ink-soft); }
 .pk-soon b { display: block; font-family: var(--f-px); font-weight: 600; font-size: 19px; color: var(--lp-ink); margin-bottom: 4px; }
 
+@media (max-width: 1100px) {
+  .pk-past { grid-template-columns: minmax(0, 1fr) auto; }
+  .pk-past-subjects { grid-column: 1 / -1; grid-row: 2; }
+}
 @media (max-width: 980px) {
   .lp .pk-feature { grid-template-columns: minmax(0, 1fr); }
   .lp .pk-hero { grid-template-columns: minmax(0, 1fr); }
@@ -164,6 +187,11 @@
 }
 @media (max-width: 620px) {
   .lp .pk-feature { padding: 26px 18px 24px; gap: 26px; }
+  .pk-past { grid-template-columns: minmax(0, 1fr); }
+  .pk-past-subjects { grid-row: auto; }
+  .pk-past-strip { margin: 0 -18px -24px; padding: 20px 18px 22px; }
+  .lp .pk-past.lp-card { padding: 22px 18px; }
+  .lp .pk-past-go { justify-self: start; }
   .pk-feature-packs { gap: 22px 16px; }
   .pk-feature-pack .pk-dls { flex-direction: column; }
   .lp .pk-feature-pack .pk-dl { justify-content: center; font-size: 14px; }

@@ -185,9 +185,10 @@ export const shelf = {
 } as const;
 
 /**
- * The free practice on the website itself: the question bank (/question-bank) and the past
- * paper library (/past-papers). Both are free and need no account; the question count is
- * read from the bank's data in CosyHome, so it stays true as subjects are added. It comes
+ * The free practice on the website itself: Practice papers (Plumi's packs, /practice-papers,
+ * with the past paper library, /past-papers, inside it) and the question bank (/question-bank).
+ * Both are free and need no account; the question count is read from the bank's data in
+ * CosyHome, so it stays true as subjects are added. It comes
  * straight after the hero (23 October 2026), and each card's chips go straight to a subject,
  * so a student from a video is one tap from their own paper.
  *
@@ -198,17 +199,17 @@ export const practice = {
   eyebrow: "Free exam practice",
   title: "Exam practice,",
   titleEm: "free, with no sign-up.",
-  lead: "Our own practice packs, and every real exam question sorted by topic. Works on your phone, laptop or iPad.",
+  lead: "Whole practice papers, ours and the boards’, and every real exam question sorted by topic. Works on your phone, laptop or iPad.",
   // Plumi's own practice packs come first in free practice (founder, 25 October 2026:
   // "a really important aspect of our website"). The packs and their facts are
   // src/content/practicePacks.ts; the proof points are that file's packCopy.proof.
   packs: {
-    tag: "Made by Plumi · new",
+    tag: "Practice papers · new",
     title: "Practice packs,",
     titleEm: "written by us.",
     line: "Ran out of past papers? Each pack is 30 new exam-style questions in your board’s style, easy to super hard, with a mark scheme as thorough as the real one.",
-    ticket: "Practice packs",
-    ticketHero: "whole papers written by Plumi",
+    ticket: "Practice papers",
+    ticketHero: "our own packs, and every past paper",
     all: "See every pack",
     inside: "What’s inside",
   },
@@ -228,23 +229,6 @@ export const practice = {
     title: "Find your",
     titleEm: "exam board.",
     lead: "Every question comes with its mark scheme and the examiner’s report. Tap your subject to start.",
-  },
-  papers: {
-    name: "Past papers",
-    hero: "GCSE & A-Level, every board",
-    line: "Every past paper and mark scheme for GCSE and A-Level Maths, Further Maths, Biology, Chemistry and Physics, sorted by board and year.",
-    // The libraries students ask for most, straight to the subject's page.
-    links: [
-      ["GCSE Maths", "/past-papers/gcse-maths"],
-      ["GCSE Physics", "/past-papers/gcse-physics"],
-      ["GCSE Chemistry", "/past-papers/gcse-chemistry"],
-      ["GCSE Biology", "/past-papers/gcse-biology"],
-      ["A-Level Maths", "/past-papers/a-level-maths"],
-      ["A-Level Physics", "/past-papers/a-level-physics"],
-      ["A-Level Chemistry", "/past-papers/a-level-chemistry"],
-      ["A-Level Biology", "/past-papers/a-level-biology"],
-    ],
-    cta: "Browse past papers",
   },
   discord: {
     title: "A past-paper question every morning",
