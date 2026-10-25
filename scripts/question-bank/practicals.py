@@ -1,6 +1,6 @@
 """Mark the science banks' practical questions, for the bank's "Practicals" filter.
 
-    python3 scripts/question-bank/practicals.py split [--parts=<cut parts.json> ...] [--only=<bank slug>]
+    python3 scripts/question-bank/practicals.py split [--parts=<cut parts.json> ...] [--only=<bank slug>[,<bank slug>...]]
     python3 scripts/question-bank/practicals.py merge
 
 A practical question is one about doing an experiment: planning or describing a
@@ -31,7 +31,7 @@ WORK = os.path.join(HERE, ".work", "practicals")
 SIZE = 300
 mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 PARTS = [a.split("=", 1)[1] for a in sys.argv[2:] if a.startswith("--parts=")]
-ONLY = next((a.split("=", 1)[1] for a in sys.argv[2:] if a.startswith("--only=")), None)
+ONLY = next((a.split("=", 1)[1].split(",") for a in sys.argv[2:] if a.startswith("--only=")), None)
 
 PRACTICAL = re.compile(
     r"required practical|core practical|\brpa ?\d|\bpractical\b|apparatus|equipment|procedure|"
@@ -50,7 +50,7 @@ def banks():
     out = []
     for path in sorted(glob.glob(os.path.join(ROOT, "src", "content", "questionBank", "*.json"))):
         meta = json.load(open(path))
-        if isinstance(meta, dict) and re.match(r"(Biology|Chemistry|Physics)\b", meta.get("subject", "")) and (not ONLY or meta["slug"] == ONLY):
+        if isinstance(meta, dict) and re.match(r"(Biology|Chemistry|Physics)\b", meta.get("subject", "")) and (not ONLY or meta["slug"] in ONLY):
             out.append(meta)
     return out
 

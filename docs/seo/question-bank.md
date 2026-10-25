@@ -182,6 +182,9 @@ Added 25 October 2026, after the bank's video went viral and students asked for 
 | `/question-bank/ocr-a-level-biology-a` | H420, AS H020 | part |
 | `/question-bank/ocr-a-level-chemistry-a` | H432, AS H032 | part |
 | `/question-bank/ocr-a-level-physics-a` | H556, AS H156 | part |
+| `/question-bank/ocr-a-level-biology-b` | Biology B (Advancing Biology) H422, AS H022 | part |
+| `/question-bank/ocr-a-level-chemistry-b` | Chemistry B (Salters) H433, AS H033 | part |
+| `/question-bank/ocr-a-level-physics-b` | Physics B (Advancing Physics) H557, AS H157 | part |
 | `/question-bank/ocr-a-level-maths` | H240, AS H230 | whole question |
 | `/question-bank/ocr-a-level-further-maths` | H245 (Y540-Y545), AS H235 | whole question |
 | `/question-bank/ocr-mei-a-level-maths` | H640, AS H630 | whole question |
@@ -207,9 +210,31 @@ Cambridge, for teachers, so June 2026 arrives a year late.
   briefed by tag.md's OCR section.
 - **Building:** `ocr/build_ocr.py` and `ocr/maths_ocr.py build`.
 
-Gaps: OCR's November 2020 Biology A AS Paper 2 mark scheme link serves another
-paper's scheme, so those 30 parts link no scheme. Two November 2020 Biology A papers
-are scans; only the parts OCR's text reading and their scheme confirm are in.
+Gaps, after the fixes of 25 October 2026 (below): every OCR science paper's marks
+add up exactly, and every Maths paper's too. OCR publishes no mark scheme for Maths
+H240/01 June 2018 or MEI Further Maths Y433/01 June 2023, so those 19 questions link
+none. 38 science parts and 2 maths questions still link the whole scheme instead of a
+cropped row, where the scheme's table is set in a way the cutter can't read.
+
+Fixed on 25 October 2026:
+- **Biology A Paper 2, November 2020** is a scan whose labels OCR's text reading
+  misread, so only 6 of its parts got in. Its labels are now set by hand, read off
+  the paper page by page (`labels/h42002-nov20.json`; `cut_pearson.py` reads a set's
+  labels from `scripts/question-bank/labels/<set>.json` when there is one). All 54 parts
+  (100 marks) are in, each with its own scheme rows, multiple-choice answers from the
+  scheme's table.
+- **Biology A AS Paper 2, November 2020**: OCR's listed mark scheme is another paper's.
+  The right one is published at `643848-mark-scheme-depth-in-biology.pdf` (its running
+  header wrongly says H420/02); 29 of the 30 parts now have their scheme rows, and the
+  PDF is on R2 at the library's key, `ocr/OCR-H020-02-MS-NOV20.pdf`.
+- **Marks that weren't read:** a "[1]" at the very foot of a page, just above OCR's
+  footer, now counts for its part. That completed seven science papers. MEI Maths
+  Paper 3 June 2018's Q2 prints its mark above its own label, so it is set in
+  `labels/h64003-jun18.json`.
+- **Scheme rows:** a row the scheme labels "16 (ii)" (its letter dropped) or "16(b)(k)" (a
+  roman the font garbled) is now read as the part after the row above. A label read twice
+  keeps the copy with a row under it. Physics A Paper 3 June 2017's scheme prints "(a)"
+  without its letter, so its five rows are mapped in `labels/h55603-jun17.json`.
 
 ```bash
 python3 scripts/question-bank/ocr/fetch_ocr.py [--maths]
@@ -221,6 +246,46 @@ python3 scripts/question-bank/ocr/maths_ocr.py split  # tag, then: maths_ocr.py 
 python3 scripts/question-bank/ocr/build_ocr.py && python3 scripts/question-bank/ocr/maths_ocr.py build
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-sciences --crops-only   # the PDFs are the library's
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-maths --crops-only
+```
+
+### OCR B sciences
+
+Added 25 October 2026, when a student asked for them: Biology B, Chemistry B (Salters)
+and Physics B, June 2016 (AS) / 2017 (A-Level) to June 2025, 5,819 parts from 139
+papers: Biology B 1,889, Chemistry B 2,049, Physics B 1,881, every one tagged, and 708
+marked practical (206, 215, 287). The same pipeline with `--b`, in `.work/ocr-b-sciences`:
+
+- **Topics** (`ocr/spec_ocr_b.py`): Biology B as Biology A (sections as tiles, numbered
+  topics, Year 1 = Modules 2-3). Chemistry B's ten storylines are the tiles (the first
+  five are AS), and the chemical ideas each one's learning outcomes are grouped under
+  are its topics, shown with the storyline's code ("EL Atomic structure",
+  specification points EL(e)–(h)). Physics B's modules are the tiles and its numbered
+  units the topics (3.1.2 Sensing, 4.2 Space, time and motion, plus Module 2's
+  Fundamental data analysis); Year 1 = Modules 2-4.
+- **Cutting:** Chemistry B's multiple-choice keys are a narrow table of their own
+  ("Question | Key | AO", "Q | Key", "No. AO | Key"), sometimes mid-page; the cutter
+  reads those rows a line at a time. A few typeset papers carry a page or six as
+  pictures with no text: those pages alone are read by OCR at ~290 dpi. OCR B's schemes
+  print their running head along the foot of the page; scheme crops stop above it.
+- **Tagging:** `tag_ocr.py split --b` / `merge --b`, briefed by tag.md's "OCR B sciences".
+
+Gaps: OCR doesn't publish June 2023 for Biology B AS. Two mark scheme links on OCR's
+site serve another paper's scheme (Biology B November 2020 Paper 1, AS June 2025
+Paper 2), so those 96 parts link no scheme; the June 2017 Biology B examiners' report
+covers every paper at once and isn't split by question. H157/01 June 2025's scheme
+leaves out questions 4 and 8. Marks add up exactly for 137 of 139 papers; Biology B
+June 2019 Paper 1 and June 2017 Paper 3 are each one mark short, where a "[1]" sits on
+a page's last line.
+
+```bash
+python3 scripts/question-bank/ocr/fetch_ocr.py --b --from=<the library's .work/ocr>
+python3 scripts/question-bank/ocr/spec_ocr_b.py
+python3 scripts/question-bank/edexcel_sciences/cut_pearson.py scripts/question-bank/.work/ocr-b-sciences
+python3 scripts/question-bank/ocr/tag_ocr.py split --b    # tag, then: tag_ocr.py merge --b
+python3 scripts/question-bank/ocr/build_ocr.py --b
+python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/.work/ocr-b-sciences/parts.json \
+  --only=ocr-a-level-biology-b,ocr-a-level-chemistry-b,ocr-a-level-physics-b   # judge, then: practicals.py merge
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-b-sciences --crops-only
 ```
 
 ## AQA A-Level Psychology
