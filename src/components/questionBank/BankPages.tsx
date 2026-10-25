@@ -5,7 +5,7 @@ import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { boardPapers, display } from "@/content/pastPapers";
 import {
-  baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, paperName, seriesLabel, topicName,
+  baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
 import { QuestionBank } from "./QuestionBank";
@@ -30,7 +30,7 @@ function QuietPlumi() {
 }
 
 function Credit({ subject }: { subject?: BankSubject }) {
-  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel and OCR";
+  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR and Cambridge University Press & Assessment";
   // Not every bank subject has a library page yet (Psychology): then the library's front door.
   const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
   const library = subject && boardPapers(hub, board) ? subject : undefined;
@@ -44,28 +44,28 @@ function Credit({ subject }: { subject?: BankSubject }) {
 
 export function BankHub() {
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, and every question from the CAIE (Cambridge International) AS & A Level papers Cambridge publishes, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, and AQA’s A‑Level and AS Psychology since 2020, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, AQA’s A‑Level and AS Psychology since 2020, and Cambridge International’s (CAIE) AS & A Level Maths, Further Maths and sciences from the papers Cambridge publishes, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
         <section className="pp-group">
           <div className="lp-wrap">
-            {(["Edexcel", "AQA", "OCR"] as const).map(board => (
+            {(["Edexcel", "AQA", "OCR", "CAIE"] as const).map(board => (
             <div key={board} className="qb-board">
-            <h2 className="qb-board-name">{board}</h2>
+            <h2 className="qb-board-name">{board === "CAIE" ? "Cambridge International (CAIE)" : board}</h2>
             <ul className="qb-subjects">
               {bankSubjects.filter(s => s.board.split(" ")[0] === board).map(s => (
                 <li key={s.slug}>
                   <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
                     <Book subject={baseSubject(s)} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>
                       <span className="qb-subject-count"><strong>{s.count.toLocaleString("en-GB")}</strong> questions · {s.topics.length} topics</span>
-                      <span className="qb-subject-years">{s.firstYear}–{s.lastYear}</span>
+                      <span className="qb-subject-years">{s.scope ? s.series.map(x => x.label).join(" · ") : bankYears(s)}</span>
                       <TopicSquares count={s.topics.length} />
                       <span className="pp-board-go" aria-hidden="true">Open the bank →</span>
                     </Book>
@@ -109,8 +109,11 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
       </h1>
       <p className="lp-lead">
         {topic
-          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${subject.firstYear}–${subject.lastYear}, with its mark scheme and examiner’s report.`
-          : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${bankYears(subject)}, with its mark scheme and examiner’s report.`
+          : subject.scope
+            // Cambridge (CAIE) keeps its archive for schools: say plainly what's public, and so here.
+            ? `Every question from the ${subject.board} AS & A Level ${subject.fullName ?? subject.subject} papers Cambridge International publishes, ${subject.scope}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Cambridge keeps its other papers on its School Support Hub, for schools. Filter by topic or paper, open the mark scheme under any question, and download a set as a PDF.`
+            : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
       </p>
     </header>
   );
