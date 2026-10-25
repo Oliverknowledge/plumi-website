@@ -82,8 +82,12 @@ blank sliver. The same fault, in different forms, was in every board's crops:
 Measured on the same PDFs, old cutter against new (scheme pieces whose edge runs
 through a line of text): OCR sciences 2,471 to about 30, OCR maths 4,838 to 173,
 Edexcel sciences 987 to 115, Cambridge 777 to 0, AQA GCSE 174 to 22 (and 3,309
-cut off at the right to 1), AQA A-Level 247 to 42 (2,233 through a header to 7).
-Psychology reads its schemes as text and keeps its own frame.
+cut off at the right to 1), AQA A-Level 247 to 42 (2,233 through a header to 7),
+Edexcel Economics A (`--extracts`) 40 to 1. Psychology reads its schemes as text and
+keeps its own frame.
+
+Scheme images carry `?v=2` (`MS_VERSION` in questionBank.ts): the crops are cached for a
+year as immutable and kept their names, so browsers that had the old ones refetch.
 
 The fix was applied as a scheme-only update: each bank's question crops, sizes, text,
 tags and marks are the live ones (re-cutting with a newer PyMuPDF moves some question
