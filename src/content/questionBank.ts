@@ -1,13 +1,14 @@
 /**
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
  * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
- * and B, Chemistry and Physics, cut out one at a time, each with its own mark scheme
+ * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
+Cambridge International's (CAIE's) AS & A Level sciences and maths, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; Edexcel maths: the *_edexcel.py
- * scripts; Edexcel sciences: edexcel_sciences/). The images and PDFs are ours,
+ * scripts; Edexcel sciences: edexcel_sciences/; OCR: ocr/; CAIE: caie/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
@@ -35,6 +36,11 @@ import ocrMaths from "./questionBank/ocr-a-level-maths.json";
 import ocrFurtherMaths from "./questionBank/ocr-a-level-further-maths.json";
 import meiMaths from "./questionBank/ocr-mei-a-level-maths.json";
 import meiFurtherMaths from "./questionBank/ocr-mei-a-level-further-maths.json";
+import caieBiology from "./questionBank/caie-a-level-biology.json";
+import caieChemistry from "./questionBank/caie-a-level-chemistry.json";
+import caiePhysics from "./questionBank/caie-a-level-physics.json";
+import caieMaths from "./questionBank/caie-a-level-maths.json";
+import caieFurtherMaths from "./questionBank/caie-a-level-further-maths.json";
 
 /**
  * `year`: 1 for AS content, 2 for A-Level only, 3 for a Physics Paper 3 option, 0 where the bank doesn't split by year (maths, GCSE).
@@ -80,7 +86,7 @@ export interface BankPart {
 
 export interface BankSubject {
   slug: string;
-  board: "AQA" | "Edexcel" | "OCR" | "OCR MEI";
+  board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
   level: "A-Level" | "GCSE";
   subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Physics" | "Physics A" | "Maths" | "Further Maths";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)". */
@@ -96,6 +102,11 @@ export interface BankSubject {
   noCalc?: boolean;
   /** Edexcel reports are keyed by question id; AQA's by the question its parts share. */
   reportsBy?: "question";
+  /**
+   * What the bank covers, where a range of years would mislead: Cambridge publishes only
+   * one series (June 2024) and its specimen papers, so CAIE banks say so instead of "2024–2024".
+   */
+  scope?: string;
   count: number;
   firstYear: number;
   lastYear: number;
@@ -103,7 +114,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, ocrBiology, ocrChemistry, ocrPhysics, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -125,12 +136,15 @@ export const partImage = (id: string, kind: "qp" | "ms" | "stem") =>
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 
 /** Who owns the questions, for credits: "AQA", "Pearson Edexcel". */
-export const bankOwner = (s: Pick<BankSubject, "board">) => (s.board === "Edexcel" ? "Pearson Edexcel" : s.board === "OCR MEI" ? "OCR" : s.board);
+export const bankOwner = (s: Pick<BankSubject, "board">) =>
+  s.board === "Edexcel" ? "Pearson Edexcel" : s.board === "OCR MEI" ? "OCR" : s.board === "CAIE" ? "Cambridge University Press & Assessment" : s.board;
+/** The years a bank's questions come from, or what it covers where that says more: "2016–2025", "June 2024 and the specimen papers". */
+export const bankYears = (s: Pick<BankSubject, "scope" | "firstYear" | "lastYear">) => s.scope ?? `${s.firstYear}–${s.lastYear}`;
 /** The subject without its specification letter: "Biology" for "Biology A". */
 export const baseSubject = (s: Pick<BankSubject, "subject">) => s.subject.replace(/ [AB]$/, "");
 /** The whole-paper library page for a bank's subject and board. */
 export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) =>
-  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board.toLowerCase().replace(/\s+/g, "-")}`;
+  `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board === "CAIE" ? "cie" : s.board.toLowerCase().replace(/\s+/g, "-")}`;
 /** The subject's share card, where it has its own. */
 export const bankShareImage = (s: Pick<BankSubject, "subject">) =>
   ["Biology", "Chemistry", "Physics"].includes(baseSubject(s)) ? `/og-${baseSubject(s).toLowerCase()}.png` : "/og.png";

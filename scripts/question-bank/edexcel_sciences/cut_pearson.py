@@ -42,6 +42,8 @@ LETTERS = "abcdefghijklmn"
 ROMANS = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"]
 LEAD = re.compile(r"^\*?\s*\(([a-z]{1,4})\)\s*")
 STOP = re.compile(r"^(TOTAL FOR (SECTION|PAPER)|SECTION [A-C]\b|BLANK PAGE|END\s*$|END OF QUESTION PAPER|(?-i:ADDITIONAL ANSWER SPACE)\s*$)", re.I)  # the extra pages' heading, not "Additional answer space if required" inside a question
+# Cambridge's papers end on a data sheet, the periodic table or the copyright notice, not "END OF QUESTION PAPER".
+CAMBRIDGE_END = re.compile(r"^(Important values, constants and standards|The Periodic Table of Elements|Permission to reproduce items)")
 BOILER = re.compile(r"DO NOT WRITE IN THIS AREA|Turn over|\.{6,}|P\d{5}[A-Z]{1,2}\d*", re.I)
 
 
@@ -117,6 +119,13 @@ class Doc:
         self.doc = pymupdf.open(path)
         self._img, self._lines, self._frame = {}, {}, {}
         self.scanned = sum(len(self.doc[i].get_text().strip()) for i in range(min(6, len(self.doc)))) < 200
+        self.cambridge = bool(re.search(r"© UCLES|Cambridge International", "".join(self.doc[i].get_text() for i in range(min(2, len(self.doc))))))
+        # Cambridge's specimen schemes set a landscape table on a portrait page, its text running
+        # upwards, without marking the page rotated: turn such a page so it reads across.
+        for page in self.doc if self.cambridge else []:
+            dirs = [tuple(round(v) for v in l["dir"]) for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])] if page.rotation == 0 else []
+            if dirs.count((0, -1)) > len(dirs) / 2:
+                page.set_rotation(90)
         if self.scanned:
             self._lines = ocr_lines(self.doc, path)
 
@@ -139,6 +148,16 @@ class Doc:
     def lines(self, i):
         if i not in self._lines:
             self._lines[i] = lines_of(self.doc[i])
+            if self.cambridge:
+                # A question number sits a fraction lower than its "(a)" (61.5 against 61.4): read a line's
+                # pieces left to right when they start within 2pt of each other, not by rounded height.
+                row, last, keyed = 0, None, []
+                for l in self._lines[i]:
+                    if last is not None and l["y0"] - last > 2:
+                        row += 1
+                    last = l["y0"]
+                    keyed.append((row, l["x0"], l))
+                self._lines[i] = [l for _, _, l in sorted(keyed, key=lambda k: k[:2])]
         return self._lines[i]
 
     def text(self, i, rect=None):
@@ -235,7 +254,7 @@ def qp_labels(doc):
         for l in doc.lines(i):
             if l["y0"] > f.y1 or l["y0"] < f.y0 - 4:
                 continue
-            if re.match(r"TOTAL FOR PAPER|END OF QUESTION PAPER", l["text"], re.I):
+            if re.match(r"TOTAL FOR PAPER|END OF QUESTION PAPER", l["text"], re.I) or doc.cambridge and CAMBRIDGE_END.match(l["text"]):
                 stop = True
                 break
             rest = l["text"]
@@ -291,7 +310,7 @@ def region(doc, start, end, end_page):
         top = y - 5 if (pg, y) == start else f.y0
         bottom = nxt[1] - 5 if nxt and nxt[0] == pg else f.y1
         for l in doc.lines(pg):
-            if l["y0"] > top + 2 and l["y0"] < bottom and STOP.match(l["text"]):
+            if l["y0"] > top + 2 and l["y0"] < bottom and (STOP.match(l["text"]) or doc.cambridge and CAMBRIDGE_END.match(l["text"])):
                 bottom = l["y0"] - 4
                 break
         if bottom > top + 10:
@@ -321,10 +340,11 @@ def marks_in(doc, pieces):
             if not inside(l, rect):
                 continue
             m = re.fullmatch(r"\((\d{1,2})\)", l["text"])
-            if m and not (l["x0"] > rect.x1 - 140):
+            if m and (l["x0"] <= rect.x1 - 140 or doc.cambridge):  # Cambridge's "(n)" are only ever in tables and diagrams
                 m = None
             m = m or re.search(r"\[(\d{1,2})\]$", l["text"])  # OCR: "........ [2]" at the end of the answer line
-            if m and rect.y0 <= l["y0"] <= rect.y1:
+            # (a "[3]" beside a tall fraction's bracket starts above its line: Cambridge's are read by their middle)
+            if m and (rect.y0 <= (l["y0"] + l["y1"]) / 2 if doc.cambridge else rect.y0 <= l["y0"] <= rect.y1):
                 total += int(m.group(1))
                 found = True
     return total if found else None
@@ -340,6 +360,22 @@ def bold(span):
 # Extended-response questions carry a star, before or after the number: "*5", "5*", "5(b)*".
 MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?\*?((?:\s*\(?[a-z]{1,5}\)?)*)\s*\*?$")
 HEAD = re.compile(r"Question( Number)?")
+
+
+def ms_page_box(doc, p):
+    """Where a scheme page's rows can be. Cambridge's pages run a header and footer across
+    every page ("9709/11 … Mark Scheme … PUBLISHED", "© Cambridge … Page 7 of 18"), and its
+    specimen schemes print them down the margins: keep to the table, inside them."""
+    page = doc[p]
+    w, h = page.rect.width, page.rect.height
+    if not doc.cambridge:
+        return pymupdf.Rect(20, 20, w - 20, h - 30)
+    lines = doc.lines(p)
+    head = [l["y1"] for l in lines if l["y0"] < 90 and re.search(r"Mark Scheme|PUBLISHED|SPECIMEN|^\d{4}/\d{2}|May/June|For examination|from 20\d\d", l["text"])]
+    foot = [l["y0"] for l in lines if l["y0"] > h - 70 and re.match(r"©|Page \d+ of \d+", l["text"])]
+    rules = [r for r in (d["rect"] * page.rotation_matrix for d in drawings(page)) if r.width > 30]  # the table's cells and rules
+    x0, x1 = (min(r.x0 for r in rules) - 2, max(r.x1 for r in rules) + 2) if rules else (20, w - 20)
+    return pymupdf.Rect(max(4, x0), max(head) + 4 if head else 20, min(w - 4, x1), min(foot) - 4 if foot else h - 30)
 
 
 def ms_tables(doc):
@@ -358,9 +394,13 @@ def ms_tables(doc):
         def column(l):
             above = [h for h in heads if h["y0"] <= l["y0"]]
             h = above[-1] if above else (heads[0] if heads else typical)
-            return h is None and bold(l["spans"][0]) or h is not None and h["x0"] - 40 < l["x0"] < h["x1"] + 10
+            # (Cambridge numbers the points of an answer, "1 oxygen is the final electron acceptor", just
+            # right of its narrow Question column: keep strictly to the column there.)
+            return h is None and bold(l["spans"][0]) or h is not None and h["x0"] - 40 < l["x0"] < h["x1"] + (-4 if doc.cambridge else 10)
 
-        cands = [l for l in lines if l["x0"] < 200 and not HEAD.fullmatch(l["text"]) and column(l)]
+        cands = [l for l in lines if l["x0"] < 200 and not HEAD.fullmatch(l["text"]) and column(l)
+                 # Cambridge's schemes open with numbered marking instructions: a label is only ever under a header.
+                 and (not doc.cambridge or any(h["y0"] < l["y0"] for h in heads))]
         # OCR splits a label across columns of one row: "16", "(a)", "(i)". Join pieces that are each label-shaped.
         label_piece = re.compile(r"\*?\s*(\d{1,2}\*?)?(\s*\(?[a-z]{1,5}\)?)*\s*")
         piece = type("P", (), {"fullmatch": staticmethod(lambda t: len(t) <= 16 and label_piece.fullmatch(t))})  # short first: a long line would backtrack
@@ -433,19 +473,24 @@ def ms_tables(doc):
             above = [h for h in heads if h["y0"] < l["y0"] and l["y0"] - h["y0"] < 60
                      and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
             top = (above[-1]["y0"] if above else l["y0"]) - 6
-            found.append((i, top, (q_now, letter, roman), l["y0"]))
+            key = (q_now, letter, roman)
+            prev = found[-1][2] if found else None
+            if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
+                    and roman == ROMANS[ROMANS.index(prev[2]) + 1]:
+                key = (q_now, prev[1], roman)  # a misprint, "1(b)(ii)" for the 1(c)(ii) after 1(c)(i)
+                letter_now = prev[1]
+            found.append((i, top, key, l["y0"]))
     found.sort(key=lambda f: (f[0], f[1]))
     out = {}
     for n, (pg, top, key, _) in enumerate(found):
         nxt = found[n + 1] if n + 1 < len(found) else None
         pieces, p = [], pg
         while True:
-            page = doc[p]
-            w, h = page.rect.width, page.rect.height
-            t = top if p == pg else 20
-            b = nxt[1] - 2 if nxt and nxt[0] == p else h - 30
+            box = ms_page_box(doc, p)
+            t = top if p == pg else box.y0
+            b = nxt[1] - 2 if nxt and nxt[0] == p else box.y1
             if b > t + 6:  # a multiple-choice row can be a single 13pt line
-                pieces.append((p, pymupdf.Rect(20, t, w - 20, b)))
+                pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
             p += 1
@@ -465,12 +510,26 @@ def ms_tables(doc):
 DROP = re.compile(r"^(Examiner Comments?|Examiner Tips?|GCE [A-Z][\w ]+ \w{4} \w{2}|\d+|Grade boundaries.*)$", re.I)
 
 
-def examiner_report(path):
-    """{"03": "Question 3(b)(i)\\n\\n<paragraphs>…"} — every heading kept, so the page can lead with a part's own."""
+def examiner_report(path, section=None):
+    """{"03": "Question 3(b)(i)\\n\\n<paragraphs>…"} — every heading kept, so the page can lead with a part's own.
+    `section`: Cambridge writes one report per syllabus, a section per component ("Paper 9709/11"); read only that one."""
     if not path or not os.path.exists(path):
         return {}
     doc = pymupdf.open(path)
     text = "\n".join(p.get_text() for p in doc)
+    if section:
+        spec = section.split("/")[0]
+        m = re.search(rf"\n\s*Paper {re.escape(section)}\s*\n", text)
+        if not m:
+            return {}
+        text = re.split(rf"\n\s*Paper {spec}/\d\d\s*\n", text[m.end():])[0]
+        # The running header: "Cambridge International … 9709 Mathematics June 2024 Principal Examiner Report for Teachers © 2024".
+        text = re.sub(r"\n\s*Cambridge International[^\n]*\n[^\n]*\n\s*Principal Examiner Report for Teachers\s*\n(?:\s*\n)*\s*© (?:UCLES )?\d{4}\s*\n", "\n", text)
+        # Its parts are headings of their own, "(a)" on a line: each starts the paragraph under it.
+        text = re.sub(r"\n[ \t]*(\([a-z]{1,4}\)(?:[ \t]*\([ivx]{1,4}\))?)[ \t]*\n(?:[ \t]*\n)*", r"\n\n\1 ", text)
+        # Its maths comes out a symbol a line ("−", "1", "2", "y"): keep those pieces in their sentence,
+        # where a lone number would otherwise read as a page number and break the paragraph.
+        text = re.sub(r"\n[ \t]*([^\s(][^\n]{0,2}?)[ \t]*(?=\n)", r" \1", text)
     chunks = re.split(r"\n\s*(Question\s+(\d{1,2})\s*((?:\(\s*[a-z]{1,4}(?:\s*[–-]\s*[a-z]{1,4})?\s*\)\s*)*))\s*\n", text)
     out = {}
     for k in range(1, len(chunks) - 3, 4):
@@ -503,7 +562,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     labels, end_page = qp_labels(qp)
     ms = ms_tables(Doc(ms_path)) if ms_path and os.path.exists(ms_path) else {}
     ms_doc = Doc(ms_path) if ms else None
-    er = examiner_report(er_path)
+    er = examiner_report(er_path, meta.pop("erSection", None))
     regions = []
     for n, (pg, y, q, letter, roman) in enumerate(labels):
         nxt = labels[n + 1] if n + 1 < len(labels) else None
@@ -565,6 +624,8 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
         if hit:
             mpieces, ms_text, answer = hit
             msimg = stack([trim(ms_doc.crop(pg, r), 10, sides=True) for pg, r in mpieces])
+            if answer and marks is None and qp.cambridge:
+                marks = 1  # Cambridge prints no mark against a multiple-choice question
         if qp.scanned and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
             continue  # read by OCR: its own scheme row must be found and carry its question number
         parts.append({
@@ -584,6 +645,7 @@ def run_set(job):
     set_id, files, meta = job
     pdf = lambda k: os.path.join(WORK, "pdf", files[k]["file"]) if k in files else None  # noqa: E731
     try:
+        meta = {**meta, "erSection": files.get("er", {}).get("section")}
         return set_id, cut_set(pdf("qp"), pdf("ms"), pdf("er"), set_id, meta), None
     except Exception as e:  # noqa: BLE001
         import traceback  # noqa: PLC0415

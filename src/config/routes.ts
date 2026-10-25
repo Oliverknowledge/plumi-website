@@ -157,13 +157,13 @@ export const routeIntents: readonly RouteIntent[] = [
   {
     path: "/question-bank",
     primaryQuery: "A-Level question bank",
-    secondaryQueries: ["GCSE question bank", "AQA GCSE Physics questions by topic", "AQA GCSE Chemistry questions by topic", "AQA GCSE Biology questions by topic", "Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "Edexcel A-Level Chemistry questions by topic", "Edexcel A-Level Biology questions by topic", "Edexcel A-Level Physics questions by topic", "OCR A-Level Chemistry questions by topic", "OCR A-Level Biology questions by topic", "OCR A-Level Physics questions by topic", "OCR MEI A-Level Maths questions by topic", "OCR MEI Further Maths questions by topic", "OCR A-Level Maths questions by topic", "past paper questions by topic"],
+    secondaryQueries: ["GCSE question bank", "AQA GCSE Physics questions by topic", "AQA GCSE Chemistry questions by topic", "AQA GCSE Biology questions by topic", "Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "Edexcel A-Level Chemistry questions by topic", "Edexcel A-Level Biology questions by topic", "Edexcel A-Level Physics questions by topic", "OCR A-Level Chemistry questions by topic", "OCR A-Level Biology questions by topic", "OCR A-Level Physics questions by topic", "OCR MEI A-Level Maths questions by topic", "OCR MEI Further Maths questions by topic", "OCR A-Level Maths questions by topic", "CAIE A Level Maths questions by topic", "CAIE A Level Chemistry questions by topic", "CAIE A Level Biology questions by topic", "CAIE A Level Physics questions by topic", "Cambridge International AS & A Level Further Maths questions by topic", "past paper questions by topic"],
     intent: "Practise exam questions on one topic, with the mark scheme to hand.",
     objective: "Get the student to their subject's bank in one click; the bank does the rest.",
     title: "GCSE & A-Level Question Bank: Questions by Topic | Plumi",
     h1: "GCSE and A-Level questions, one at a time",
     description:
-      "Every AQA GCSE and A-Level science, Edexcel and OCR A-Level science, and Edexcel, OCR and OCR MEI A-Level Maths exam question, sorted by topic, with its mark scheme and examiner's report. Free, no sign-up.",
+      "Every AQA GCSE and A-Level science, Edexcel, OCR and CAIE A-Level science, and Edexcel, OCR, OCR MEI and CAIE A-Level Maths exam question, sorted by topic, with its mark scheme and examiner's report. Free, no sign-up.",
     // The subject and topic pages under /question-bank come from data; see src/app/sitemap.ts.
     linksTo: ["/past-papers"],
     changeFrequency: "monthly",
