@@ -137,8 +137,14 @@ export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | 
 
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
+/**
+ * The crops are cached for a year as immutable. A re-cut that replaces them under the same
+ * names bumps this, so browsers fetch the new ones: 2 is the mark scheme re-cut of 25 October 2026.
+ */
+const MS_VERSION = 2;
 export const partImage = (id: string, kind: "qp" | "ms" | "stem") =>
-  kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`;
+  kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp`
+    : kind === "ms" ? `${papersBase}/bank/${id}-ms.webp?v=${MS_VERSION}` : `${papersBase}/bank/${id}-${kind}.webp`;
 /** The examiner's report covers a whole question: "74051-jun23-01" (AQA parts share it); an Edexcel question is its own key. */
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 

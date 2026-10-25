@@ -368,13 +368,26 @@ HEAD = re.compile(r"Question( Number)?")
 
 
 def ms_page_box(doc, p):
-    """Where a scheme page's rows can be. Cambridge's pages run a header and footer across
-    every page ("9709/11 … Mark Scheme … PUBLISHED", "© Cambridge … Page 7 of 18"), and its
-    specimen schemes print them down the margins: keep to the table, inside them."""
+    """Where a scheme page's rows can be: inside its table where it draws one, so a row carried
+    to the foot of a page stops at the table's last rule, not at the next table's header, the
+    running header or the board's logo. Cambridge's pages run a header and footer across every
+    page ("9709/11 … Mark Scheme … PUBLISHED", "© Cambridge … Page 7 of 18"), and its specimen
+    schemes print them down the margins: keep inside them too."""
     page = doc[p]
     w, h = page.rect.width, page.rect.height
     if not doc.cambridge:
-        return pymupdf.Rect(20, 20, w - 20, h - 30)
+        rules = [r for r in (d["rect"] * page.rotation_matrix for d in drawings(page)) if r.width > 30]
+        # (some pages rule only their header: then the rules say nothing about where the rows end)
+        if len(rules) < 2 or max(r.y1 for r in rules) - min(r.y0 for r in rules) < h / 3:
+            # then stay inside the running header ("H020/01 Mark Scheme June 2019") and the page number
+            lines = doc.lines(p)
+            head = [l["y1"] for l in lines if l["y0"] < 56]
+            foot = [l["y0"] for l in lines if l["y0"] > h - 60]
+            return pymupdf.Rect(20, max(head) + 2 if head else 20, w - 20, min(foot) - 2 if foot else h - 30)
+        # (across, every line of the table counts: a narrow first column's rules are under 30pt)
+        y0, y1 = min(r.y0 for r in rules), max(r.y1 for r in rules)
+        cells = [r for r in (d["rect"] * page.rotation_matrix for d in drawings(page)) if r.y1 >= y0 and r.y0 <= y1]
+        return pymupdf.Rect(max(4, min(r.x0 for r in cells) - 2), max(4, y0 - 2), min(w - 4, max(r.x1 for r in cells) + 2), min(h - 4, y1 + 2))
     lines = doc.lines(p)
     head = [l["y1"] for l in lines if l["y0"] < 90 and re.search(r"Mark Scheme|PUBLISHED|SPECIMEN|^\d{4}/\d{2}|May/June|For examination|from 20\d\d", l["text"])]
     foot = [l["y0"] for l in lines if l["y0"] > h - 70 and re.match(r"©|Page \d+ of \d+", l["text"])]
@@ -384,19 +397,21 @@ def ms_page_box(doc, p):
 
 
 def table_rules(page):
-    """The heights of a page's horizontal rules and cell edges, as displayed."""
-    ys = set()
+    """The heights of a page's horizontal rules and cell edges, as displayed: {y: the widest run at it}."""
+    ys = {}
     for d in drawings(page):
         r = d["rect"] * page.rotation_matrix
         if r.width > 30:
-            ys.update((r.y0, r.y1))
-    return sorted(ys)
+            for y in (r.y0, r.y1):
+                ys[y] = max(ys.get(y, 0), r.width)
+    return dict(sorted(ys.items()))
 
 
 def ms_tables(doc):
     """{(q, letter, roman): [(page, rect)], ...} plus each one's text and any MCQ answer letter."""
     found = []  # (page, top, key, label_y)
-    rules = {}  # page: table_rules(page), for Cambridge
+    rules = {}  # page: table_rules(page)
+    ruled = set()  # (page, top) of the rows that start at their table's rule
     # Labels sit in the "Question Number" column. Not every scheme sets them in bold, and
     # the header can be centred over them or set to one side, so a label is anything
     # label-shaped under the span of its column's header.
@@ -490,19 +505,41 @@ def ms_tables(doc):
                      and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
             ref = above[-1]["y0"] if above else l["y0"]
             top = ref - 6
-            if doc.cambridge:
-                # Cambridge rules every row, and a one-line row sits only a few points under the one
-                # above: start at the row's rule, so the row above keeps the foot of its last line.
-                if i not in rules:
-                    rules[i] = table_rules(doc[i])
-                edge = [y for y in rules[i] if ref - 12 <= y <= ref + 1]
-                top = edge[-1] - 0.5 if edge else top
+            # Where the scheme rules its rows, start at the row's rule: a one-line row (a multiple-
+            # choice key, say) sits only a few points under the one above, so 6pt above its label
+            # cut the foot off the row above and put a sliver of it on this one.
+            if i not in rules:
+                rules[i] = table_rules(doc[i])
+            # (a rule can run up to 2pt into the top of its label's text box, which reserves room for accents;
+            # a label centred in a tall cell sits well below its rule, so look up to 60pt above it, at row
+            # borders only: wide, and with no line of text running through them, as an underline would)
+            edge = [y for y, wide in rules[i].items() if ref - 60 <= y <= ref + 3
+                    and (wide > 120 or y >= ref - 12) and not any(m["y0"] + 2 < y < m["y1"] - 2 for m in lines)]
+            # (a row with no rule of its own, a "(ii)" sharing its "(i)"'s cell, would find the rule above the row
+            # before; OCR's pieces of one label, "21 (a)" then "(ii)", are one row and share its rule)
+            if edge and found and found[-1][0] == i and found[-1][3] < l["y0"] - 2 and edge[-1] - 0.5 <= found[-1][1] + 4:
+                edge = []
+            if edge:
+                top = edge[-1] - 0.5
+                ruled.add((i, top))
+            elif not above:
+                # No rule: take in the tallest text beside the label (a built-up fraction starts higher),
+                # but never the foot of the line above it. (A fraction's own box can be three lines tall,
+                # well past its glyphs: such boxes are left out.)
+                mid = (l["y0"] + l["y1"]) / 2
+                flat = [m for m in lines if m["y1"] - m["y0"] < 20]
+                row = min([m["y0"] for m in flat if m["y0"] < mid < m["y1"]] + [l["y0"]])
+                over = [m["y1"] for m in flat if m["y1"] <= row + 2 and m["y0"] < row - 2]
+                top = max(min(top, row - 1), max(over) - 1.5 if over else top)
             key = (q_now, letter, roman)
             prev = found[-1][2] if found else None
             if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
                     and roman == ROMANS[ROMANS.index(prev[2]) + 1]:
                 key = (q_now, prev[1], roman)  # a misprint, "1(b)(ii)" for the 1(c)(ii) after 1(c)(i)
                 letter_now = prev[1]
+            last = found[-1] if found else None
+            if last and last[0] == i and roman and last[2] == (key[0], key[1], None) and 2 < l["y0"] - last[3] < 20:
+                top = last[1]  # "(b)" on its line, its answer beside it, "(i)" set a line lower: one row
             found.append((i, top, key, l["y0"]))
     found.sort(key=lambda f: (f[0], f[1]))
     out = {}
@@ -512,10 +549,10 @@ def ms_tables(doc):
         while True:
             box = ms_page_box(doc, p)
             t = top if p == pg else box.y0
-            b = nxt[1] - (0 if doc.cambridge else 2) if nxt and nxt[0] == p else box.y1
-            # (a multiple-choice row can be a single 13pt line; Cambridge's rows start at their rule, so the
-            # strip above a table carried over to the next page holds no text, only that rule)
-            if b > t + 6 and not (doc.cambridge and not doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip()):
+            b = nxt[1] - (0 if (nxt[0], nxt[1]) in ruled else 2) if nxt and nxt[0] == p else box.y1
+            # (a multiple-choice row can be a single 13pt line; a strip with no text, as above a table
+            # carried over to the next page, is only rules)
+            if b > t + 6 and doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip():
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
