@@ -27,6 +27,7 @@
     "bank:build:gcse": "python3 scripts/question-bank/aqa_gcse/build_gcse.py"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "next": "16.3.4",
     "pdf-lib": "1.17.1",
     "perfect-freehand": "^1.2.3",
