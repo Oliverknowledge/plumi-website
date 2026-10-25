@@ -192,6 +192,8 @@
 .lp-practice-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .lp .lp-practice-card li a { display: block; font-size: 13.5px; font-weight: 700; border: 2px solid var(--lp-line); border-radius: 8px; padding: 2px 9px; background: #fff; color: var(--lp-ink); text-decoration: none; }
 .lp .lp-practice-card li a:hover { background: var(--lp-gold); }
+.lp .lp-practice-card .lp-bank-boards-label { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); margin-top: 2px; }
+.lp .lp-bank-boards-label a { font-weight: 800; white-space: nowrap; margin-left: 4px; }
 .lp .lp-practice-card .lp-btn { justify-self: start; margin-top: 6px; font-size: 17px; padding: 8px 16px; background: var(--lp-gold); }
 .lp .lp-daily { background: #dff0ee; transform: rotate(1.2deg); margin-top: 10px; gap: 12px; }
 .lp .lp-daily .lp-discord { justify-self: start; font-size: 16px; padding: 8px 14px; }
@@ -206,6 +208,16 @@
 }
 .lp-hero-cafe .lp-cta-note { max-width: none; }
 @media (prefers-reduced-motion: reduce) { .lp .lp-daily { transform: none; } }
+
+/* every subject in the question bank: an index at the foot of the page, one column per board */
+.lp-bank-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 18px; }
+.lp-bank-board { background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); padding: 16px 18px 18px; display: grid; gap: 10px; align-content: start; scroll-margin-top: 96px; }
+.lp-bank-board:target { background: #fff1c2; }
+.lp .lp-bank-board h3 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 20px; padding-bottom: 8px; border-bottom: 2px dashed #d8c8ad; }
+.lp .lp-bank-board h4 { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--lp-ink-soft); }
+.lp-bank-board ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.lp .lp-bank-board li a { display: block; font-size: 15px; font-weight: 700; color: var(--lp-ink); text-decoration: none; padding: 3px 0; }
+.lp .lp-bank-board li a:hover { color: var(--lp-blue); text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 980px) {
   .lp-mark-grid, .lp-friends-grid, .lp-meet { grid-template-columns: minmax(0, 1fr); }
@@ -225,6 +237,8 @@
   .lp-hwl { font-size: 25px; }
   .lp-topicmap { grid-template-columns: minmax(0, 1fr); }
   .lp-squares { grid-template-columns: repeat(12, 1fr); }
+  .lp-bank-boards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .lp-bank-board { padding: 12px 14px 14px; }
   .lp-shelf-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-pop, .lp-meter i, .lp-cafe canvas { animation: none; transition: none; } }
