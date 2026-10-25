@@ -55,8 +55,9 @@ BOILER = re.compile(r"DO NOT WRITE IN THIS AREA|Turn over|\.{6,}|P\d{5}[A-Z]{1,2
 
 # ---------- reading pages in their displayed orientation ----------
 
-def lines_of(page, clip=None):
-    """Horizontal lines of text as displayed: [{x0, y0, x1, y1, text, spans}] top to bottom."""
+def lines_of(page, clip=None, visible=False):
+    """Horizontal lines of text as displayed: [{x0, y0, x1, y1, text, spans}] top to bottom.
+    `visible`: leave out white text (Cambridge's 2025 specimens hide a second "[2]" under an answer line)."""
     m = page.rotation_matrix
     o = pymupdf.Point(0, 0) * m
     out = []
@@ -65,7 +66,7 @@ def lines_of(page, clip=None):
             d = pymupdf.Point(*line["dir"]) * m - o
             if abs(d.x - 1) > 0.05:
                 continue  # vertical margin text
-            spans = [s for s in line["spans"] if s["text"].strip()]
+            spans = [s for s in line["spans"] if s["text"].strip() and not (visible and s["color"] == 0xFFFFFF)]
             if not spans:
                 continue
             r = pymupdf.Rect(line["bbox"]) * m
@@ -125,7 +126,9 @@ class Doc:
         self.doc = pymupdf.open(path)
         self._img, self._lines, self._frame = {}, {}, {}
         self.scanned = sum(len(self.doc[i].get_text().strip()) for i in range(min(6, len(self.doc)))) < 200
-        self.cambridge = bool(re.search(r"© UCLES|Cambridge International", "".join(self.doc[i].get_text() for i in range(min(2, len(self.doc))))))
+        # (IGCSE's newer specimens say neither, only "Cambridge IGCSE™" and "© Cambridge University Press & Assessment",
+        # which OCR's papers also name: the qualification is what marks them.)
+        self.cambridge = bool(re.search(r"© UCLES|Cambridge International|Cambridge IGCSE", "".join(self.doc[i].get_text() for i in range(min(2, len(self.doc))))))
         # Cambridge's specimen schemes set a landscape table on a portrait page, its text running
         # upwards, without marking the page rotated: turn such a page so it reads across.
         for page in self.doc if self.cambridge else []:
@@ -153,7 +156,7 @@ class Doc:
 
     def lines(self, i):
         if i not in self._lines:
-            self._lines[i] = lines_of(self.doc[i])
+            self._lines[i] = lines_of(self.doc[i], visible=self.cambridge)
             if self.cambridge:
                 # A question number sits a fraction lower than its "(a)" (61.5 against 61.4): read a line's
                 # pieces left to right when they start within 2pt of each other, not by rounded height.
@@ -304,7 +307,9 @@ def qp_labels(doc):
             m = re.match(r"^\*?(\d{1,2})\b\*?\s*(.*)$", rest)
             lead = first["text"].strip() + (l["spans"][1]["text"].strip() if first["text"].strip() == "*" and len(l["spans"]) > 1 else "")
             # Numbered answer spaces ("1 ........", "2 ........") are not questions.
-            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}\*?", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2)))
+            # (Cambridge sets its number in bold, sometimes in one span with algebra after it: "10 a = 5/7".)
+            apart = m and not re.match(r"[.…_]", m.group(2)) and (re.fullmatch(r"\*?\d{1,2}\*?", lead) or not m.group(2) or re.match(r"[A-Z(]", m.group(2))
+                                                               or doc.cambridge and bold(first))
             if EXTRACTS and after_read and m and not (re.fullmatch(r"\*?\d{1,2}\*?", lead) or m.group(2).startswith("(")):
                 apart = False  # inside the extracts, a date: "6 April 2023. It is…"
             if EXTRACTS and READ.match(l["text"]):
@@ -446,9 +451,20 @@ def ms_page_box(doc, p):
     return pymupdf.Rect(max(4, x0), max(head) + 4 if head else 20, min(w - 4, x1), min(foot) - 4 if foot else h - 30)
 
 
+def table_rules(page):
+    """The heights of a page's horizontal rules and cell edges, as displayed."""
+    ys = set()
+    for d in drawings(page):
+        r = d["rect"] * page.rotation_matrix
+        if r.width > 30:
+            ys.update((r.y0, r.y1))
+    return sorted(ys)
+
+
 def ms_tables(doc):
     """{(q, letter, roman): [(page, rect)], ...} plus each one's text and any MCQ answer letter."""
     found = []  # (page, top, key, label_y)
+    rules = {}  # page: table_rules(page), for Cambridge
     # Labels sit in the "Question Number" column. Not every scheme sets them in bold, and
     # the header can be centred over them or set to one side, so a label is anything
     # label-shaped under the span of its column's header.
@@ -540,7 +556,15 @@ def ms_tables(doc):
             # sits over fifteen rows.
             above = [h for h in heads if h["y0"] < l["y0"] and l["y0"] - h["y0"] < 60
                      and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
-            top = (above[-1]["y0"] if above else l["y0"]) - 6
+            ref = above[-1]["y0"] if above else l["y0"]
+            top = ref - 6
+            if doc.cambridge:
+                # Cambridge rules every row, and a one-line row sits only a few points under the one
+                # above: start at the row's rule, so the row above keeps the foot of its last line.
+                if i not in rules:
+                    rules[i] = table_rules(doc[i])
+                edge = [y for y in rules[i] if ref - 12 <= y <= ref + 1]
+                top = edge[-1] - 0.5 if edge else top
             key = (q_now, letter, roman)
             prev = found[-1][2] if found else None
             if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
@@ -556,14 +580,16 @@ def ms_tables(doc):
         while True:
             box = ms_page_box(doc, p)
             t = top if p == pg else box.y0
-            b = nxt[1] - 2 if nxt and nxt[0] == p else box.y1
+            b = nxt[1] - (0 if doc.cambridge else 2) if nxt and nxt[0] == p else box.y1
             if EXTRACTS and not (nxt and nxt[0] == p):
                 # The next table's header can close a page, its first row overleaf: leave it to that table.
                 rest = [l for l in doc.lines(p) if l["y0"] > t + 6]
                 head = next((k for k, l in enumerate(rest) if re.match(r"Questio", l["text"]) and l["x0"] < 200), None)
                 if head is not None and all(re.fullmatch(r"(n|Number|Answer|Indicative content|Mark|Question|Questio)", l["text"].strip()) for l in rest[head:]):
                     b = rest[head]["y0"] - 4
-            if b > t + 6:  # a multiple-choice row can be a single 13pt line
+            # (a multiple-choice row can be a single 13pt line; Cambridge's rows start at their rule, so the
+            # strip above a table carried over to the next page holds no text, only that rule)
+            if b > t + 6 and not (doc.cambridge and not doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip()):
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
