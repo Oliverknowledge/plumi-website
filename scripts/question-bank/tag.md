@@ -54,3 +54,17 @@ above, with these differences:
   marked [AS]; A-Level Paper 3 can test anything.
 - Biology A Paper 3 questions about the pre-release scientific article still get
   the content topic they test.
+
+## OCR sciences
+
+`ocr/tag_ocr.py split` writes batches for OCR's A-Level Biology A, Chemistry A
+and Physics A to `.work/ocr-sciences/tag/`, and `merge` collects them. The brief is
+the one at the top, with these differences:
+
+- `<subject>-topics.txt` lists one topic per line: `code | section | title [AS or
+  A-Level only] — what the specification says under it`. Codes have three numbers
+  (`3.1.2`); choose from these, never a section like `3.1`.
+- Each line has a `paper` ("AS 1", "A-Level 3"). AS papers only test topics marked
+  [AS] (Modules 2-4); A-Level Paper 3 is synoptic and can test anything.
+- Module 1 (practical skills) has no codes here: practical questions get the content
+  topic they sit in.
