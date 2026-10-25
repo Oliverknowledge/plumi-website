@@ -2,6 +2,7 @@
 
     python3 scripts/question-bank/ocr/tag_ocr.py split [work-dir] [batch-size]
     python3 scripts/question-bank/ocr/tag_ocr.py merge [work-dir]
+    # --b: OCR's Biology B, Chemistry B (Salters) and Physics B, in .work/ocr-b-sciences
 
 tag_pearson.py's sibling for OCR's specifications; the brief is tag.md's, with its
 OCR section. split writes <work-dir>/tag/<subject>-topics.txt and
@@ -11,11 +12,15 @@ and merge collects them into <work-dir>/tags.json for build_ocr.py.
 import glob, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-mode = sys.argv[1] if len(sys.argv) > 1 else "split"
-WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work", "ocr-sciences")
-SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 260
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+B = "--b" in sys.argv
+mode = ARGS[0] if ARGS else "split"
+WORK = os.path.abspath(ARGS[1]) if len(ARGS) > 1 else os.path.join(HERE, "..", ".work", "ocr-b-sciences" if B else "ocr-sciences")
+SIZE = int(ARGS[2]) if len(ARGS) > 2 else 260
 TAG = os.path.join(WORK, "tag")
-SUBJECTS = {"biology": ("H020", "H420"), "chemistry": ("H032", "H432"), "physics": ("H156", "H556")}
+SUBJECTS = {"biology": ("H022", "H422"), "chemistry": ("H033", "H433"), "physics": ("H157", "H557")} if B else \
+    {"biology": ("H020", "H420"), "chemistry": ("H032", "H432"), "physics": ("H156", "H556")}
+AS = {specs[0] for specs in SUBJECTS.values()}
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from tag_pearson import clip, own  # noqa: E402
 
@@ -28,7 +33,8 @@ def split():
     for subject, specs in SUBJECTS.items():
         tree = spec[specs[1]]
         sections = {s["code"]: s["title"] for s in tree["sections"]}
-        lines = [f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']}" + (" [AS]" if t["year"] == 1 else " [A-Level only]")
+        lines = [f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']}" + (f" ({t['points']})" if t.get("points") else "")
+                 + (" [AS]" if t["year"] == 1 else " [A-Level only]")
                  + f" — {clip(t['text'].split('Learners should be able to demonstrate and apply their knowledge and understanding of:')[-1], 420)}"
                  for t in tree["topics"]]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
@@ -38,7 +44,7 @@ def split():
             with open(os.path.join(TAG, f"batch-{n:02d}-{subject}.jsonl"), "w") as f:
                 for p in mine[i:i + SIZE]:
                     setup, question = own(re.sub(r"© OCR \d{4}|\.{6,}", " ", p["text"]), p["label"])
-                    f.write(json.dumps({"id": p["id"], "paper": ("AS " if p["spec"] in ("H020", "H032", "H156") else "A-Level ") + p["component"][-1],
+                    f.write(json.dumps({"id": p["id"], "paper": ("AS " if p["spec"] in AS else "A-Level ") + p["component"][-1],
                                         "setup": clip(setup, 200), "question": clip(question, 360),
                                         "scheme": clip(p.get("msText", ""), 200)}, ensure_ascii=False) + "\n")
     print(f"{n} batches in {TAG}", file=sys.stderr)

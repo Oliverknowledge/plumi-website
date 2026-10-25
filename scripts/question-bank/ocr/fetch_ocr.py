@@ -2,13 +2,15 @@
 
     python3 scripts/question-bank/ocr/fetch_ocr.py [--from=<past-papers ocr work dir>] [work-dir]
     python3 scripts/question-bank/ocr/fetch_ocr.py --maths [...]
-    # default work dir: scripts/question-bank/.work/ocr-sciences (with --maths, .work/ocr-maths)
+    python3 scripts/question-bank/ocr/fetch_ocr.py --b [...]
+    # default work dir: scripts/question-bank/.work/ocr-sciences (with --maths, .work/ocr-maths; with --b, .work/ocr-b-sciences)
     # default --from:   scripts/past-papers/.work/ocr (written by scripts/past-papers/boards/ocr.py)
 
 The past paper library's OCR fetcher already downloads every OCR paper from
 ocr.org.uk, unmodified, with a manifest. This reads that manifest, keeps the
 question papers, mark schemes, examiner's reports and inserts of the three A science
-specifications, or with --maths of OCR A and OCR MEI Maths and Further Maths (and
+specifications (with --b, the three B ones: Biology B, Chemistry B (Salters),
+Physics B), or with --maths of OCR A and OCR MEI Maths and Further Maths (and
 their AS papers), and copies each PDF to
 <work-dir>/pdf/<component>-<kind>-<series>.pdf. A file the library hasn't got
 locally is downloaded from the same ocr.org.uk address.
@@ -24,10 +26,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 MATHS = "--maths" in sys.argv
+B = "--b" in sys.argv
 SOURCE = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--from=")), os.path.join(ROOT, "scripts", "past-papers", ".work", "ocr"))
-WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "ocr-maths" if MATHS else "ocr-sciences")
+WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "ocr-maths" if MATHS else "ocr-b-sciences" if B else "ocr-sciences")
 PDF = os.path.join(WORK, "pdf")
-SPECS = ("H420", "H020", "H432", "H032", "H556", "H156")
+SPECS = ("H422", "H022", "H433", "H033", "H557", "H157") if B else ("H420", "H020", "H432", "H032", "H556", "H156")
 # The library's group for each maths specification, and the bank its papers go in.
 MATHS_BANKS = {"A-Level (H240)": "ocr-a-level-maths", "AS (H230)": "ocr-a-level-maths",
                "A-Level (H245)": "ocr-a-level-further-maths", "AS (H235)": "ocr-a-level-further-maths",
