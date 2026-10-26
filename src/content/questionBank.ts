@@ -3,13 +3,14 @@
  * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
  * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, Eduqas's A-Level
- * sciences, WJEC's AS/A Level sciences and maths, and AQA's A-Level Maths and Psychology, cut out one at a time, each with its own mark scheme
+ * sciences, WJEC's AS/A Level sciences and maths, AQA's A-Level Maths and Psychology, and OCR's and AQA's
+ * A-Level Computer Science, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; Edexcel maths: the *_edexcel.py
- * scripts; Edexcel sciences: edexcel_sciences/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; WJEC: wjec/). The images and PDFs are ours,
+ * scripts; Edexcel sciences: edexcel_sciences/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; WJEC: wjec/; Computer Science: computer_science/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
@@ -23,6 +24,7 @@ import chemistry from "./questionBank/aqa-a-level-chemistry.json";
 import physics from "./questionBank/aqa-a-level-physics.json";
 import psychology from "./questionBank/aqa-a-level-psychology.json";
 import aqaMaths from "./questionBank/aqa-a-level-maths.json";
+import aqaComputerScience from "./questionBank/aqa-a-level-computer-science.json";
 import maths from "./questionBank/edexcel-a-level-maths.json";
 import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
 import gcseBiology from "./questionBank/aqa-gcse-biology.json";
@@ -41,6 +43,7 @@ import ocrChemistryB from "./questionBank/ocr-a-level-chemistry-b.json";
 import ocrPhysicsB from "./questionBank/ocr-a-level-physics-b.json";
 import ocrMaths from "./questionBank/ocr-a-level-maths.json";
 import ocrFurtherMaths from "./questionBank/ocr-a-level-further-maths.json";
+import ocrComputerScience from "./questionBank/ocr-a-level-computer-science.json";
 import meiMaths from "./questionBank/ocr-mei-a-level-maths.json";
 import meiFurtherMaths from "./questionBank/ocr-mei-a-level-further-maths.json";
 import caieBiology from "./questionBank/caie-a-level-biology.json";
@@ -109,7 +112,7 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE" | "Eduqas" | "WJEC";
   level: "A-Level" | "GCSE" | "IGCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics A";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics A" | "Computer Science";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)", "Chemistry B (Salters)". */
   fullName?: string;
   specs: string[];
@@ -130,6 +133,8 @@ export interface BankSubject {
    * one series (June 2024) and its specimen papers, so CAIE banks say so instead of "2024–2024".
    */
   scope?: string;
+  /** What the bank leaves out and why, said after the bank page's opening line (AQA Computer Science's Skeleton Program questions). */
+  note?: string;
   count: number;
   firstYear: number;
   lastYear: number;
@@ -137,7 +142,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaComputerScience, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);

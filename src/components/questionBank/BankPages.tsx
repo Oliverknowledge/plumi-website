@@ -65,7 +65,7 @@ const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject)
 export function BankHub() {
   const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology and Edexcel A-Level Economics A exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, Edexcel A-Level Economics A and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
@@ -138,6 +138,7 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
             // Cambridge (CAIE) keeps its archive for schools: say plainly what's public, and so here.
             ? `Every question from the ${subject.board} ${subject.level === "IGCSE" ? "IGCSE" : "AS & A Level"} ${subject.fullName ?? subject.subject} papers Cambridge International publishes, ${subject.scope}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Cambridge keeps its other papers on its School Support Hub, for schools. Filter by topic or paper, open the mark scheme under any question, and download a set as a PDF.`
             : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+        {!topic && subject.note ? ` ${subject.note}` : null}
       </p>
     </header>
   );
