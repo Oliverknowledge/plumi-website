@@ -87,7 +87,7 @@
      booklets"); each opens its own page, where the downloads are. */
   .lp .pk-feature { grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); }
   .pk-feature-packs { gap: 26px; }
-  .pk-feature-pack .pk-cover { aspect-ratio: 1 / .62; padding-bottom: 14px; }
+  .pk-feature-pack .pk-cover { aspect-ratio: 1 / 1.12; padding-bottom: 14px; }
   .pk-feature-pack .pk-cover-title { font-size: 28px; }
   .pk-feature-note { text-align: center; }
 }
