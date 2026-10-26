@@ -129,6 +129,9 @@
 .pk-callout-covers li:nth-child(even) .pk-cover { transform: rotate(2.5deg); }
 .lp .pk-callout .pk-dl { justify-self: start; }
 
+/* the get-it-marked card's topic map: the screenshot carries its own frame */
+.lp .pk-topics .pp-mark-shot img { border: 0; border-radius: 16px; background: transparent; }
+
 /* ── /practice-packs and a pack's page ── */
 .lp .pk-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 44px; align-items: center; padding-top: 44px; padding-bottom: 24px; }
 .pk-hero-copy { display: grid; gap: 18px; }

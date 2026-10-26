@@ -358,6 +358,17 @@ export const packCopy = {
     line: "Every past paper and mark scheme from the exam boards, sorted by board and year, free.",
     cta: "Browse past papers",
   },
+  // The get-it-marked card on the Practice papers pages shows the topic map, not the
+  // Papers tab the past paper pages show (founder, 26 October 2026). Its words are
+  // home.ts's vetted topic map lines: a square per topic, coloured as answers are marked.
+  markIt: {
+    eyebrow: "Done a pack?",
+    title: "Sit it on iPad, and",
+    titleEm: "watch your topic map fill in.",
+    lead: "Write your answers with Apple Pencil and Plumi marks them against the mark scheme. Every topic on your spec gets a square, and your marked answers colour it in, so you can see which topics are costing you marks.",
+    note: "Free to download on the App Store. The Discord is a study room for revising together.",
+    image: { src: "/site/shot-topics.webp", w: 1082, h: 796, alt: "Plumi's topic map for A-Level Chemistry: 129 topics in physical, inorganic and organic chemistry, one square each, coloured needs attention, rusty, developing or strong." },
+  },
   faq: [
     { q: "Are these real past papers?", a: "No. Plumi wrote every question in the style of the board’s papers, to its specification, with a mark scheme in the board’s style. They are not produced or endorsed by the exam board. For the board’s own papers, see our past papers pages." },
     { q: "Are they really free?", a: "Yes. Download the questions and the mark scheme, print them or write on them on a tablet. There is nothing to sign up for." },
