@@ -7,7 +7,7 @@ import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/component
 import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, practice, shelf } from "@/content/cosyHome";
 import { bankPath, bankSubjects } from "@/content/questionBank";
 import { packCopy, packPath, practicePacks } from "@/content/practicePacks";
-import { PackCover, PackDownloads, PackLadder, PackLegend } from "@/components/practicePacks/Pack";
+import { PackCover } from "@/components/practicePacks/Pack";
 import { PackClickTracker } from "@/components/practicePacks/PackClickTracker";
 import { PastPapersCard } from "@/components/practicePacks/PastPapersCard";
 import { CafeHero, FriendsCafe, Look, MeetPlumi } from "./LandingClient";
@@ -147,13 +147,10 @@ export function CosyHome({ variant }: { variant?: string }) {
                 {practicePacks.map(p => (
                   <li key={p.slug} className="pk-feature-pack">
                     <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} small /></Link>
-                    <PackLadder pack={p} />
-                    <PackDownloads pack={p} placement="home" />
-                    <p className="pk-disclaimer">{p.disclaimer}</p>
                   </li>
                 ))}
               </ul>
-              <PackLegend />
+              <p className="pk-disclaimer pk-feature-note">{practice.packs.note}</p>
             </div>
             <PastPapersCard placement="home" strip />
           </div>

@@ -211,6 +211,8 @@ export const practice = {
     ticket: "Practice papers",
     ticketHero: "our own packs, and every past paper",
     all: "See every pack",
+    // The downloads and each pack's own wording are on its page; the covers here just open it.
+    note: "Written by Plumi in each board’s style. Not produced or endorsed by Pearson Edexcel or OCR.",
     inside: "What’s inside",
   },
   bank: {
