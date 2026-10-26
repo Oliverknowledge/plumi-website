@@ -81,7 +81,7 @@ export function PackHub() {
           <ul className="pp-facts" aria-label="At a glance">
             <li><strong>{practicePacks.length}</strong><span>packs</span></li>
             <li><strong>{packTotals.questions}</strong><span>questions</span></li>
-            <li><strong>{packTotals.marks}</strong><span>marks</span></li>
+            <li><strong>{packTotals.marks.toLocaleString("en-GB")}</strong><span>marks</span></li>
             <li><strong>£0</strong><span>no sign-up</span></li>
           </ul>
         </header>

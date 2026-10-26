@@ -15,7 +15,11 @@ tmp=$(mktemp -d)
 swift "$here/render_pages.swift" "$qp" "$tmp" cover:1 question:$qpage --width=900
 swift "$here/render_pages.swift" "$ms" "$tmp" scheme:$mspage --width=900
 mkdir -p "$root/public/practice-packs/$slug" "$here/.work/pdf"
-for n in cover question scheme; do cwebp -quiet -q 82 "$tmp/$n.png" -o "$root/public/practice-packs/$slug/$n.webp"; done
+for n in cover question scheme; do
+  if command -v cwebp >/dev/null; then cwebp -quiet -q 82 "$tmp/$n.png" -o "$root/public/practice-packs/$slug/$n.webp"
+  else python3 -c "from PIL import Image; import sys; Image.open(sys.argv[1]).save(sys.argv[2], 'WEBP', quality=82)" "$tmp/$n.png" "$root/public/practice-packs/$slug/$n.webp"  # no cwebp: Pillow writes the same WebP
+  fi
+done
 cp "$qp" "$here/.work/pdf/$slug-v$version-questions.pdf"
 cp "$ms" "$here/.work/pdf/$slug-v$version-mark-scheme.pdf"
 rm -rf "$tmp"
