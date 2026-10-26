@@ -5,6 +5,8 @@
 cut.py, with these differences for Computer Science:
   - The mark schemes set a question's number and its part in two columns, "Qu" and
     "Pt" ("01" | "1"), which cut.py would read as one number, "011": read them as "01.1".
+    Many set each row in a table of its own under its own headings: a row's crop ends at
+    its table's bottom border, not at the next row's headings.
   - Paper 1 is taken on screen, around a Skeleton Program and Preliminary Material that
     AQA releases to centres beforehand. Its first section (theory) and its programming
     task written from a new, empty program stand on their own; the section that opens
@@ -98,12 +100,47 @@ def examiner_report(path):
 
 
 _regions = cut.regions
+# A scheme table's column headings.
+HEADINGS = re.compile(r"\b(Qu|Pt|Question|Part|Marking [Gg]uidance|Total marks|Marks?|Guidance|AO)\b")
+
+
+def table_end(page, rect):
+    """The bottom border of the table a scheme piece starts in: where the first columns' borders,
+    drawn a cell at a time, stop running on. Below it come the next row's own table, headed again
+    "Qu | Pt | Marking Guidance | Marks", or a page's double rule. None where no borders are drawn."""
+    edges = sorted((d["rect"].y0, d["rect"].y1) for d in page.get_drawings()
+                   if d["rect"].width < 2 and d["rect"].height > 2 and d["rect"].x0 < 75 and d["rect"].y1 > rect.y0 + 4 and d["rect"].y0 < rect.y1)
+    if not edges:
+        return None
+    end = edges[0][1]
+    for y0, y1 in edges[1:]:
+        if y0 > end + 1:
+            break
+        end = max(end, y1)
+    return end
 
 
 def regions(doc, max_x, bold_only, portrait):
     """cut.regions, without the questions that need the Skeleton Program (only Paper 1 has any),
-    and each ending above a section's heading ("Section B", then its instructions)."""
+    and each ending above a section's heading ("Section B", then its instructions). A scheme's
+    row ends at its table's bottom border."""
     out = _regions(doc, max_x, bold_only, portrait)
+    for r in [] if portrait else out:
+        pieces = []
+        for pg, rect in r[1]:
+            end = table_end(doc[pg], rect)
+            pieces.append((pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, min(rect.y1, end + 2)) if end and end + 2 > rect.y0 + 8 else rect))
+        # A row that ends at a page's foot runs on to the next page's top: only the next row's
+        # column headings, the running header's rule, or the heading of what follows ("Section B",
+        # the next language's answers: "Python 3") when nothing of it is there. Its table is gone.
+        for n in range(1, len(pieces)):
+            pg, c = pieces[n]
+            if table_end(doc[pg], c) is None or not re.search(r"\S", HEADINGS.sub("", doc[pg].get_text("text", clip=c))):
+                pieces = pieces[:n]
+                break
+        if pieces != r[1]:
+            r[1] = pieces
+            r[2] = "\n".join(doc[p].get_text("text", clip=c) for p, c in pieces)
     stop = skeleton_from(doc) if portrait else None
     out = [r for r in out if not stop or r[0][0] < stop]
     for r in out if portrait else []:

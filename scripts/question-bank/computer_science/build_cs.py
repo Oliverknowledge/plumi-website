@@ -36,9 +36,12 @@ PAPERS = {
 }
 AQA_NOTE = ("Paper 1 is sat on screen around a Skeleton Program AQA gives schools before the exam: its written questions and its "
             "programming task are here; the questions on the Skeleton Program, which can’t be answered without it, are left out.")
+# AQA's scheme crops were cut again under the same names, ending at their own row (26 October 2026):
+# above questionBank.ts's MS_VERSION (2), so browsers fetch them anew. See partImage.
+AQA_CROP_VERSION = 3
 BANKS = [
     dict(work="ocr-cs", slug="ocr-a-level-computer-science", board="OCR", spec="H446", specs=["H046", "H446"], as_prefix="h046"),
-    dict(work="aqa-cs", slug="aqa-a-level-computer-science", board="AQA", spec="7517", specs=["7516", "7517"], as_prefix="7516", note=AQA_NOTE),
+    dict(work="aqa-cs", slug="aqa-a-level-computer-science", board="AQA", spec="7517", specs=["7516", "7517"], as_prefix="7516", note=AQA_NOTE, crop_version=AQA_CROP_VERSION),
 ]
 
 
@@ -119,6 +122,7 @@ def build(bank):
     years = [int("20" + s[3:]) for s in series]
     meta = {
         "slug": bank["slug"], "board": bank["board"], "level": "A-Level", "subject": "Computer Science", "specs": bank["specs"],
+        **({"cropVersion": bank["crop_version"]} if bank.get("crop_version") else {}),
         **({"note": bank["note"]} if bank.get("note") else {}),
         "sections": tree["sections"], "topics": topics,
         "papers": [{"id": c, "name": PAPERS[c][0], "title": PAPERS[c][1], "as": is_as(c)} for c in comps],
