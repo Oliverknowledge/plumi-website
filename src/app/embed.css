@@ -1,0 +1,72 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE PARTNER EMBED: /embed/question-bank/<subject>/<topic>
+
+   The topic page's question rows (question-bank.css) in an iframe on someone
+   else's page. Same notebook, minus the ruled sheet and the site around it, and it
+   follows the viewer's light or dark setting (the rest of the site is light-only).
+
+   Everything is under .embed, so nothing here can reach another page. The
+   tokens are cosy.css's (--lp-*); the dark palette redefines them, then the few
+   colours question-bank.css hard-codes for paper are redrawn below.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html:has(.embed) { color-scheme: light dark; scroll-behavior: auto; }
+body:has(.embed) { background-color: #f6efe1; }
+
+.lp.embed { min-height: 0; background-image: none; font-size: 16px; }
+.embed .embed-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 2px dashed #d8c8ad; font-family: var(--f-px); font-weight: 600; font-size: 16px; color: var(--lp-ink-soft); }
+.embed .embed-head img { flex: none; }
+.embed .embed-main { padding: 18px 16px 8px; display: grid; gap: 22px; }
+.embed .embed-title { display: grid; gap: 6px; }
+.lp.embed h1 { font-size: clamp(24px, 4vw, 34px); line-height: 1.1; letter-spacing: 0; max-width: 22em; }
+.embed .embed-title p { font-size: 15px; font-weight: 700; color: var(--lp-ink-soft); }
+
+.embed .qb-rows { padding-top: 14px; }
+
+/* The handoff, under the paper of every question. */
+.embed .embed-cta { display: flex; align-items: center; justify-content: center; text-align: center; gap: 6px; min-height: 44px; padding: 8px 14px; font-family: var(--f-px); font-weight: 600; font-size: 15.5px; line-height: 1.25; color: var(--lp-ink); text-decoration: none; background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 11px; box-shadow: 0 3px 0 var(--lp-shadow); transition: transform .06s, box-shadow .06s; }
+.embed .embed-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--lp-shadow); }
+.embed .embed-cta:active { transform: translateY(3px); box-shadow: 0 0 0 var(--lp-shadow); }
+
+.embed .embed-more { display: flex; justify-content: center; padding-top: 6px; }
+.lp.embed .embed-more .lp-btn { background: var(--lp-gold); padding: 8px 18px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp.embed .embed-more .lp-btn:disabled { cursor: progress; opacity: .8; }
+
+.embed .embed-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; padding: 14px 16px 18px; margin-top: 8px; border-top: 2px dashed #d8c8ad; font-size: 13px; font-weight: 600; color: var(--lp-ink-soft); }
+.embed .embed-foot p { flex: 1 1 320px; }
+.lp.embed .embed-foot a { font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-blue); text-underline-offset: 3px; white-space: nowrap; }
+
+/* A topic chip here is a label, not a link. */
+.embed span.qb-topic { cursor: default; }
+.embed span.qb-topic:hover { background: var(--lp-paper-2); }
+
+/* ── Dark ────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  body:has(.embed) { background-color: #1f1a18; }
+  .lp.embed {
+    --lp-paper: #1f1a18; --lp-paper-2: #2c2522; --lp-ink: #f3e9d9; --lp-ink-soft: #bcab9b; --lp-line: #8a7365; --lp-shadow: #0c0a09;
+    --lp-card-bg: #2c2522; --lp-blue: #8fb8e8; --lp-blue-soft: #36506b; --lp-orange: #f09a5a; --lp-gold: #7a5d1f;
+    color-scheme: dark;
+  }
+  .embed .embed-head, .embed .embed-foot { border-color: #4a3f39; }
+  /* The paper stays paper: the scans are black on white, so each sits on a white card. */
+  .embed .qb-sheet { background: #272120; border-color: #4a3f39; box-shadow: 4px 0 0 rgba(0, 0, 0, .3); }
+  .embed .qb-row + .qb-row .qb-sheet { border-top-color: #4a3f39; }
+  .embed .qb-row:first-child .qb-sheet { border-top-color: #4a3f39; }
+  .embed .qb-row:last-child .qb-sheet { border-bottom-color: #4a3f39; }
+  .embed .qb-img { background: #fff; border-radius: 6px; }
+  .embed .qb-stem img, .embed .qb-reveal-ms img { border-color: #4a3f39; }
+  .embed .qb-note { background: #342b25; }
+  .embed .qb-marks { color: var(--lp-ink); }
+  .embed .qb-key.is-open { background: var(--lp-gold); }
+  .embed .embed-cta, .lp.embed .embed-more .lp-btn { color: #fff7e8; }
+  .embed .qb-reveal-er li::before { background: var(--lp-gold); }
+}
+@media (prefers-color-scheme: dark) and (max-width: 980px) {
+  .embed .qb-sheet, .embed .qb-row + .qb-row .qb-sheet, .embed .qb-row:first-child .qb-sheet, .embed .qb-row:last-child .qb-sheet { border: 2px solid #4a3f39; }
+}
+
+@media (max-width: 620px) {
+  .embed .embed-main { padding-inline: 12px; }
+  .embed .embed-head, .embed .embed-foot { padding-inline: 12px; }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
@@ -58,9 +58,13 @@ function ReportText({ paras }: { paras: string[] }) {
  * `parts` is one part, or, in the whole-question view, every part of a question in
  * order: then its start is shown open above them, the marks are the question's, and
  * the scheme unfolds part by part.
+ *
+ * `embed` is the partner iframe's version of the same row (EmbedQuestionList): no
+ * set, nothing that navigates inside the frame, and `embed.cta` under the paper.
  */
-export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic }: {
+export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic, embed }: {
   n: number; parts: BankPart[]; subject: BankSubject; inSet: boolean; setFull?: boolean; onToggleSet: () => void; onTopic?: (code: string) => void;
+  embed?: { cta: ReactNode };
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
@@ -97,6 +101,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             const topic = subject.topics.find(t => t.code === code);
             if (!topic) return null;
             // In the bank a topic filters in place, keeping your place; elsewhere it's the topic's page.
+            if (embed) return <span key={code} className="qb-topic">{topicName(topic)}</span>;
             return onTopic
               ? <button key={code} type="button" className="qb-topic" title={`Only ${topicName(topic)}`} onClick={() => onTopic(code)}>{topicName(topic)}</button>
               : <Link key={code} className="qb-topic" href={bankTopicPath(subject.slug, topic.slug)}>{topicName(topic)}</Link>;
@@ -109,11 +114,13 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           {schemePdf && (
             <a className="qb-key" href={`${papersBase}/${schemePdf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
           )}
-          <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
-            {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
-          </button>
+          {!embed && (
+            <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
+              {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
+            </button>
+          )}
         </div>
-        {whole?.qp && <a className="qb-wholelink" href={`${papersBase}/${whole.qp}`} target="_blank" rel="noopener">The whole paper ↗</a>}
+        {!embed && whole?.qp && <a className="qb-wholelink" href={`${papersBase}/${whole.qp}`} target="_blank" rel="noopener">The whole paper ↗</a>}
       </div>
 
       <div className="qb-sheet">
@@ -137,6 +144,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           ))}
         </div>
         <p className="qb-swipe" aria-hidden="true">Swipe the paper sideways to read it all.</p>
+        {embed?.cta}
         {open.ms && withScheme.map(p => p.k
           ? <p key={p.id} className="qb-note qb-answer">{many ? <>{p.l}: the answer is </> : "The answer is "}<strong>{p.k}</strong></p>
           : (

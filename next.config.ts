@@ -38,13 +38,24 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "X-Frame-Options", value: "DENY" },
           // Nothing here needs a camera, a microphone or a location.
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
         ],
+      },
+      /**
+       * No page may be framed, except the partner embed under /embed/. That one
+       * answers with a Content-Security-Policy `frame-ancestors` built from the
+       * partner allowlist (src/proxy.ts, src/config/embedPartners.ts), so it is
+       * left out of this rule rather than overridden: a DENY here would win in
+       * browsers that read X-Frame-Options first. Every other path, including
+       * /embed.js and all of /question-bank, is still DENY.
+       */
+      {
+        source: "/((?!embed/).*)",
+        headers: [{ key: "X-Frame-Options", value: "DENY" }],
       },
     ];
   },

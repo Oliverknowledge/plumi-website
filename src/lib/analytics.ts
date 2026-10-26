@@ -44,6 +44,10 @@ export type PlumiEvent =
   | "bank_reveal"
   | "bank_set_added"
   | "bank_pdf_downloaded"
+  /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
+   *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */
+  | "embed_view"
+  | "embed_cta_click"
   /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
    *  The first two are also the Google Ads `sendToIpad` conversion. */
   | "send_to_ipad_result";
@@ -77,6 +81,18 @@ type PostHogLike = {
   capture: (event: string, properties?: Record<string, unknown>) => void;
   register: (properties: Record<string, unknown>) => void;
 };
+
+/**
+ * Set by the partner embed. A third-party iframe must not write cookies or
+ * storage on the partner's visitors, and has no first-touch attribution to read,
+ * so in embed mode PostHog keeps its state in memory, sends no page-leave event,
+ * and every event carries these properties (partner, subject, topic) instead of
+ * the site's attribution. Never set on the site itself.
+ */
+let embedContext: EventProperties | null = null;
+export function enterEmbedMode(context: EventProperties): void {
+  embedContext = context;
+}
 
 let client: PostHogLike | null = null;
 let loading: Promise<PostHogLike | null> | null = null;
@@ -137,15 +153,15 @@ async function load(): Promise<PostHogLike | null> {
         // person profile we have no use for and no consent for.
         person_profiles: "never",
         capture_pageview: false,
-        capture_pageleave: true,
+        capture_pageleave: !embedContext,
         autocapture: false,
         // Never record what a student types — the only input on the site is an
         // email field.
         disable_session_recording: true,
-        persistence: "localStorage+cookie",
+        persistence: embedContext ? "memory" : "localStorage+cookie",
       });
 
-      posthog.register({ site: "marketing", launch_mode: launchMode });
+      posthog.register({ site: embedContext ? "embed" : "marketing", launch_mode: launchMode });
 
       client = posthog as unknown as PostHogLike;
 
@@ -170,7 +186,7 @@ async function load(): Promise<PostHogLike | null> {
 export function track(event: PlumiEvent, properties: EventProperties = {}): void {
   if (typeof window === "undefined" || !apiKey()) return;
 
-  const payload = scrub({ ...attributionProperties(), ...properties });
+  const payload = scrub(embedContext ? { ...embedContext, ...properties } : { ...attributionProperties(), ...properties });
 
   if (client) {
     client.capture(event, payload);
