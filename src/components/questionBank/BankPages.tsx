@@ -8,6 +8,7 @@ import {
   baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
+import { packFor, packPath } from "@/content/practicePacks";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -30,14 +31,18 @@ function QuietPlumi() {
 }
 
 function Credit({ subject }: { subject?: BankSubject }) {
-  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR and Cambridge University Press & Assessment";
+  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR, WJEC Eduqas, Cambridge University Press & Assessment and WJEC CBAC Ltd";
   // Not every bank subject has a library page yet (Psychology): then the library's front door.
   const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
   const library = subject && boardPapers(hub, board) ? subject : undefined;
+  // Plumi's own pack for this subject, where there is one: still the same one line.
+  const pack = subject ? packFor(bankPath(subject.slug)) : undefined;
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>.
+      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>{pack
+        ? <>, or <Link href={packPath(pack.slug)}>our free {pack.board}-style practice pack</Link>.</>
+        : "."}
     </p>
   );
 }
@@ -49,9 +54,9 @@ function Credit({ subject }: { subject?: BankSubject }) {
 const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject) => boolean }[] = [
   { id: "gcse", name: "GCSE", jump: "GCSE", match: s => s.level === "GCSE" },
   { id: "igcse", name: "Cambridge International (CAIE) IGCSE", jump: "CAIE IGCSE", match: s => s.level === "IGCSE" },
-  ...(["Edexcel", "AQA", "OCR", "CAIE"] as const).map(board => ({
+  ...(["Edexcel", "AQA", "OCR", "Eduqas", "CAIE", "WJEC"] as const).map(board => ({
     id: `a-level-${board.toLowerCase()}`,
-    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : `${board} A-Level`,
+    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : board === "WJEC" ? "WJEC AS & A Level (Wales)" : `${board} A-Level`,
     jump: board === "CAIE" ? "CAIE A Level" : `${board} A-Level`,
     match: (s: BankSubject) => s.level === "A-Level" && s.board.split(" ")[0] === board,
   })),
@@ -60,13 +65,13 @@ const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject)
 export function BankHub() {
   const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and Edexcel, OCR and OCR MEI A-Level Maths and Further Maths exam question, AQA A-Level Psychology and Edexcel A-Level Economics A exam questions, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA A-Level Economics, Edexcel A-Level Economics A and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s, Edexcel’s and OCR’s A‑Level and AS Biology, Chemistry and Physics since 2016, Edexcel’s, OCR’s and OCR MEI’s A‑Level Maths and Further Maths since 2018, AQA’s A‑Level and AS Psychology since 2020, Edexcel’s A‑Level and AS Economics A since 2016, and Cambridge International’s (CAIE) AS & A Level and IGCSE Maths, Further and Additional Maths and sciences from the papers Cambridge publishes, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
             <nav className="qb-levels" aria-label="Jump to a shelf">
               {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
             </nav>
@@ -133,6 +138,7 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
             // Cambridge (CAIE) keeps its archive for schools: say plainly what's public, and so here.
             ? `Every question from the ${subject.board} ${subject.level === "IGCSE" ? "IGCSE" : "AS & A Level"} ${subject.fullName ?? subject.subject} papers Cambridge International publishes, ${subject.scope}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Cambridge keeps its other papers on its School Support Hub, for schools. Filter by topic or paper, open the mark scheme under any question, and download a set as a PDF.`
             : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+        {!topic && subject.note ? ` ${subject.note}` : null}
       </p>
     </header>
   );

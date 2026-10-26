@@ -87,28 +87,30 @@ def inside(l, rect):
     return rect.contains(pymupdf.Point((l["x0"] + l["x1"]) / 2, (l["y0"] + l["y1"]) / 2))
 
 
-def ocr_lines(doc, path):
+def ocr_lines(doc, path, scale=SCALE, pages=None):
     """For a scanned paper with no text layer: each page's lines read by Apple's Vision
     framework (ocr.swift), cached in <work-dir>/ocr/. The leading question number is
-    split into its own span, as it would be in a typeset paper."""
-    cache = os.path.join(WORK, "ocr", os.path.basename(path) + ".json")
+    split into its own span, as it would be in a typeset paper. `pages`: only those."""
+    name = os.path.basename(path) + ("" if scale == SCALE and pages is None else f"-{scale}-{'-'.join(map(str, sorted(pages or [])))}")
+    cache = os.path.join(WORK, "ocr", name + ".json")
     if not os.path.exists(cache):
-        tmp = os.path.join(WORK, "ocr", os.path.basename(path))
+        tmp = os.path.join(WORK, "ocr", name)
         os.makedirs(tmp, exist_ok=True)
         pngs = []
         for i, page in enumerate(doc):
+            if pages is not None and i not in pages:
+                continue
             png = os.path.join(tmp, f"{i:03d}.png")
-            page.get_pixmap(matrix=pymupdf.Matrix(SCALE, SCALE), alpha=False).save(png)
+            page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False).save(png)
             pngs.append(png)
         out = subprocess.run(["swift", os.path.join(HERE, "ocr.swift"), *pngs], capture_output=True, text=True, check=True).stdout
-        pages = {os.path.basename(json.loads(l)["file"]): json.loads(l)["lines"] for l in out.splitlines() if l.strip()}
-        json.dump({str(i): pages.get(f"{i:03d}.png", []) for i in range(len(doc))}, open(cache, "w"))
-    pages = json.load(open(cache))
+        read = {os.path.basename(json.loads(l)["file"]): json.loads(l)["lines"] for l in out.splitlines() if l.strip()}
+        json.dump({str(i): read.get(f"{i:03d}.png", []) for i in range(len(doc))}, open(cache, "w"))
     result = {}
-    for i, raw in pages.items():
+    for i, raw in json.load(open(cache)).items():
         lines = []
         for l in raw:
-            x0, y0, x1, y1 = (l[k] / SCALE for k in ("x0", "y0", "x1", "y1"))
+            x0, y0, x1, y1 = (l[k] / scale for k in ("x0", "y0", "x1", "y1"))
             text = l["text"].strip()
             m = re.match(r"^(\*?\d{1,2})\s+(.+)$", text)
             texts = [m.group(1), m.group(2)] if m else [text]
@@ -137,6 +139,13 @@ class Doc:
                 page.set_rotation(90)
         if self.scanned:
             self._lines = ocr_lines(self.doc, path)
+        # A typeset paper can still carry the odd page as a picture with no text (OCR's November 2021
+        # Biology B AS Paper 1 has six): read just those pages by OCR.
+        self.pictures = set() if self.scanned or self.cambridge else \
+            {i for i in range(1, len(self.doc)) if len(self.doc[i].get_text().strip()) < 20 and self.doc[i].get_images()}
+        if self.pictures:
+            read = ocr_lines(self.doc, path, 4, self.pictures)  # at ~290 dpi: small labels come out garbled at the usual 160
+            self._lines.update({i: read[i] for i in self.pictures})
 
     def __len__(self):
         return len(self.doc)
@@ -410,12 +419,16 @@ def marks_in(doc, pieces):
     total, found = 0, False
     for pg, rect in pieces:
         for l in doc.lines(pg):
-            if not inside(l, rect):
+            # A "[1]" at the very foot of a page, just above OCR's footer, can have its middle below the part's crop: its top counts.
+            if not inside(l, rect) and not (rect.x0 <= l["x0"] <= rect.x1 and rect.y0 <= l["y0"] <= rect.y1 and l["y0"] > doc.frame(pg).y1 - 24
+                                            and re.search(r"\[\d{1,2}\]$", l["text"])):
                 continue
             m = re.fullmatch(r"\((\d{1,2})\)", l["text"])
             if m and (l["x0"] <= rect.x1 - 140 or doc.cambridge):  # Cambridge's "(n)" are only ever in tables and diagrams
                 m = None
             m = m or re.search(r"\[(\d{1,2})\]$", l["text"])  # OCR: "........ [2]" at the end of the answer line
+            if not m and pg in doc.pictures:
+                m = re.search(r"(?:^|\s)[1l|(]?(\d)\]$", l["text"])  # read off a picture, "[2]" can come out "12]"
             # (a "[3]" beside a tall fraction's bracket starts above its line: Cambridge's are read by their middle)
             if m and (rect.y0 <= (l["y0"] + l["y1"]) / 2 if doc.cambridge else rect.y0 <= l["y0"] <= rect.y1):
                 total += int(m.group(1))
@@ -432,17 +445,46 @@ def bold(span):
 # "3(b)(i)", "3 (b)(i)", "1 a i", "1ai", "12(ai)"; and, carrying on from the row above, "(b)i".
 # Extended-response questions carry a star, before or after the number: "*5", "5*", "5(b)*".
 MS_LABEL = re.compile(r"^\*?\s*(\d{1,2})?\*?((?:\s*\(?[a-z]{1,5}\)?)*)\s*\*?$")
-HEAD = re.compile(r"Question( Number)?")
+# A scheme's back pages, which no answer runs on to: OCR's "Need to get in touch?" and company notice, and blank pages.
+BACK_PAGE = re.compile(r"^\s*BLANK PAGE\s*$|Need to get in touch\?|Oxford Cambridge and RSA Examinations is a Company Limited", re.I | re.M)
+# Older OCR schemes print the contact block under the last answer, on the same page.
+BACK_BLOCK = re.compile(r"^(OCR \(Oxford Cambridge and RSA Examinations\)|Oxford Cambridge and RSA Examinations|Need to get in touch\?)")
+HEAD = re.compile(r"Question( Number| Key)?|Q|No\.( AO)?")  # OCR Chemistry B's multiple-choice keys head theirs "Question Key", "Q" or "No."
+def is_head(l, lines):
+    """A "Question" header; a bare "Q" only beside "Key", and "No." beside "Key" or "AO", as in Chemistry B's
+    multiple-choice keys. Alone, "Q" is a point Q in a maths answer; beside "Marks", MEI's ordinary header."""
+    if not HEAD.fullmatch(l["text"]):
+        return False
+    beside = [o["text"].lower() for o in lines if o is not l and abs(o["y0"] - l["y0"]) < 4]  # "Key" or "KEY"
+    return l["text"].startswith("Question") or l["text"].startswith("No.") and (l["text"] == "No. AO" or any(t in ("key", "ao") for t in beside)) \
+        or l["text"] == "Q" and "key" in beside
 
 
 def ms_page_box(doc, p):
-    """Where a scheme page's rows can be. Cambridge's pages run a header and footer across
-    every page ("9709/11 … Mark Scheme … PUBLISHED", "© Cambridge … Page 7 of 18"), and its
-    specimen schemes print them down the margins: keep to the table, inside them."""
+    """Where a scheme page's rows can be: inside its table where it draws one, so a row carried
+    to the foot of a page stops at the table's last rule, not at the next table's header, the
+    running header or the board's logo. Cambridge's pages run a header and footer across every
+    page ("9709/11 … Mark Scheme … PUBLISHED", "© Cambridge … Page 7 of 18"), and its specimen
+    schemes print them down the margins: keep inside them too."""
     page = doc[p]
     w, h = page.rect.width, page.rect.height
     if not doc.cambridge:
-        return pymupdf.Rect(20, 20, w - 20, h - 30)
+        rules = [r for r in (d["rect"] * page.rotation_matrix for d in drawings(page)) if r.width > 30]
+        # (some pages rule only their header: then the rules say nothing about where the rows end)
+        if len(rules) < 2 or max(r.y1 for r in rules) - min(r.y0 for r in rules) < h / 3:
+            # then stay inside the running header ("H422/01  Mark Scheme  June 2018") and the page number
+            lines = doc.lines(p)
+            running = re.compile(r"[A-Z]\d{3}/\d\d|Mark Scheme|(January|June|October|November) \d{4}")
+            # The page number is centred and alone on its line: a lone "0" or "2" elsewhere is a levels grid's row or a question's label.
+            page_no = lambda l: re.fullmatch(r"\d{1,3}", l["text"]) and abs((l["x0"] + l["x1"]) / 2 - w / 2) < 40 \
+                and not any(o is not l and abs(o["y0"] - l["y0"]) < 6 for o in lines)  # noqa: E731
+            head = [l["y1"] for l in lines if l["y1"] < 70 and (running.fullmatch(l["text"]) or page_no(l))]
+            foot = [l["y0"] for l in lines if l["y0"] > h - 70 and (running.fullmatch(l["text"]) or page_no(l))]
+            return pymupdf.Rect(20, max(head) + 4 if head else 20, w - 20, min(foot) - 4 if foot else h - 30)
+        # (across, every line of the table counts: a narrow first column's rules are under 30pt)
+        y0, y1 = min(r.y0 for r in rules), max(r.y1 for r in rules)
+        cells = [r for r in (d["rect"] * page.rotation_matrix for d in drawings(page)) if r.y1 >= y0 and r.y0 <= y1]
+        return pymupdf.Rect(max(4, min(r.x0 for r in cells) - 2), max(4, y0 - 2), min(w - 4, max(r.x1 for r in cells) + 2), min(h - 4, y1 + 2))
     lines = doc.lines(p)
     head = [l["y1"] for l in lines if l["y0"] < 90 and re.search(r"Mark Scheme|PUBLISHED|SPECIMEN|^\d{4}/\d{2}|May/June|For examination|from 20\d\d", l["text"])]
     foot = [l["y0"] for l in lines if l["y0"] > h - 70 and re.match(r"©|Page \d+ of \d+", l["text"])]
@@ -452,28 +494,33 @@ def ms_page_box(doc, p):
 
 
 def table_rules(page):
-    """The heights of a page's horizontal rules and cell edges, as displayed."""
-    ys = set()
+    """The heights of a page's horizontal rules and cell edges, as displayed: {y: the widest run at it}."""
+    ys = {}
     for d in drawings(page):
         r = d["rect"] * page.rotation_matrix
         if r.width > 30:
-            ys.update((r.y0, r.y1))
-    return sorted(ys)
+            for y in (r.y0, r.y1):
+                ys[y] = max(ys.get(y, 0), r.width)
+    return dict(sorted(ys.items()))
 
 
 def ms_tables(doc):
     """{(q, letter, roman): [(page, rect)], ...} plus each one's text and any MCQ answer letter."""
     found = []  # (page, top, key, label_y)
-    rules = {}  # page: table_rules(page), for Cambridge
+    rules = {}  # page: table_rules(page)
+    ruled = set()  # (page, top) of the rows that start at their table's rule
     # Labels sit in the "Question Number" column. Not every scheme sets them in bold, and
     # the header can be centred over them or set to one side, so a label is anything
     # label-shaped under the span of its column's header.
-    all_heads = [l for i in range(len(doc)) for l in doc.lines(i) if HEAD.fullmatch(l["text"])]
+    all_heads = [l for i in range(len(doc)) for l in doc.lines(i) if is_head(l, doc.lines(i))]
     typical = sorted(all_heads, key=lambda h: h["x0"])[len(all_heads) // 2] if all_heads else None
     q_now, letter_now = None, None
-    for i in range(len(doc)):
+    # Schemes open with numbered marking instructions ("5 A suitable method has been selected…"): no label
+    # comes before the first table's header. (Cambridge also keeps strictly under a header on each page.)
+    first_table = next((i for i in range(len(doc)) if any(is_head(l, doc.lines(i)) for l in doc.lines(i))), 0)
+    for i in range(first_table, len(doc)):
         lines = doc.lines(i)
-        heads = [l for l in lines if HEAD.fullmatch(l["text"])]
+        heads = [l for l in lines if is_head(l, lines)]
 
         def column(l):
             above = [h for h in heads if h["y0"] <= l["y0"]]
@@ -482,7 +529,10 @@ def ms_tables(doc):
             # right of its narrow Question column: keep strictly to the column there.)
             return h is None and bold(l["spans"][0]) or h is not None and h["x0"] - 40 < l["x0"] < h["x1"] + (-4 if doc.cambridge else 10)
 
-        cands = [l for l in lines if l["x0"] < 200 and not HEAD.fullmatch(l["text"]) and column(l)
+        # (OCR Chemistry B centres its multiple-choice key, "Question | Key | AO", mid-page: a bare
+        # number under a header there is a label too.)
+        centred = lambda l: re.fullmatch(r"\d{1,2}", l["text"]) and any(h["x0"] >= 200 and h["y0"] < l["y0"] for h in heads)  # noqa: E731
+        cands = [l for l in lines if (l["x0"] < 200 or centred(l)) and not is_head(l, lines) and column(l)
                  # Cambridge's schemes open with numbered marking instructions: a label is only ever under a header.
                  and (not doc.cambridge or any(h["y0"] < l["y0"] for h in heads))]
         # OCR splits a label across columns of one row: "16", "(a)", "(i)". Join pieces that are each label-shaped.
@@ -558,38 +608,80 @@ def ms_tables(doc):
                      and not any(fi == i and h["y0"] < fy < l["y0"] for fi, _, _, fy in found)]
             ref = above[-1]["y0"] if above else l["y0"]
             top = ref - 6
-            if doc.cambridge:
-                # Cambridge rules every row, and a one-line row sits only a few points under the one
-                # above: start at the row's rule, so the row above keeps the foot of its last line.
-                if i not in rules:
-                    rules[i] = table_rules(doc[i])
-                edge = [y for y in rules[i] if ref - 12 <= y <= ref + 1]
-                top = edge[-1] - 0.5 if edge else top
+            # Where the scheme rules its rows, start at the row's rule: a one-line row (a multiple-
+            # choice key, say) sits only a few points under the one above, so 6pt above its label
+            # cut the foot off the row above and put a sliver of it on this one.
+            if i not in rules:
+                rules[i] = table_rules(doc[i])
+            # (a rule can run up to 2pt into the top of its label's text box, which reserves room for accents;
+            # a label centred in a tall cell sits well below its rule, so look up to 60pt above it, at row
+            # borders only: wide, and with no line of text running through them, as an underline would)
+            edge = [y for y, wide in rules[i].items() if ref - 60 <= y <= ref + 3
+                    and (wide > 120 or y >= ref - 12) and not any(m["y0"] + 2 < y < m["y1"] - 2 for m in lines)]
+            # (a row with no rule of its own, a "(ii)" sharing its "(i)"'s cell, would find the rule above the row
+            # before; OCR's pieces of one label, "21 (a)" then "(ii)", are one row and share its rule)
+            if edge and found and found[-1][0] == i and found[-1][3] < l["y0"] - 2 and edge[-1] - 0.5 <= found[-1][1] + 4:
+                edge = []
+            if edge:
+                top = edge[-1] - 0.5
+                ruled.add((i, top))
+            elif not above:
+                # No rule: take in the tallest text beside the label (a built-up fraction starts higher),
+                # but never the foot of the line above it. (A fraction's own box can be three lines tall,
+                # well past its glyphs: such boxes are left out.)
+                mid = (l["y0"] + l["y1"]) / 2
+                flat = [m for m in lines if m["y1"] - m["y0"] < 20]
+                row = min([m["y0"] for m in flat if m["y0"] < mid < m["y1"]] + [l["y0"]])
+                over = [m["y1"] for m in flat if m["y1"] <= row + 2 and m["y0"] < row - 2]
+                top = max(min(top, row - 1), max(over) - 1.5 if over else top)
             key = (q_now, letter, roman)
             prev = found[-1][2] if found else None
             if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
                     and roman == ROMANS[ROMANS.index(prev[2]) + 1]:
                 key = (q_now, prev[1], roman)  # a misprint, "1(b)(ii)" for the 1(c)(ii) after 1(c)(i)
                 letter_now = prev[1]
+            last = found[-1] if found else None
+            if last and last[0] == i and roman and last[2] == (key[0], key[1], None) and 2 < l["y0"] - last[3] < 20:
+                top = last[1]  # "(b)" on its line, its answer beside it, "(i)" set a line lower: one row
             found.append((i, top, key, l["y0"]))
     found.sort(key=lambda f: (f[0], f[1]))
+    # OCR's misread labels, put right from the row above: "16 (ii)" lost its letter after 16(d)(i),
+    # and "16(b)(k)" or "1(a)(x)" is a roman the font garbled, where the next one belongs.
+    for n in range(1, len(found)):
+        q, letter, roman = found[n][2]
+        pq, pletter, proman = found[n - 1][2]
+        if q != pq or not pletter or proman not in ROMANS or ROMANS.index(proman) + 1 >= len(ROMANS):
+            continue
+        after = ROMANS[ROMANS.index(proman) + 1]
+        garbled = roman and (roman not in ROMANS or ROMANS.index(roman) > ROMANS.index(after) + 2)  # "(x)" straight after "(i)"
+        if (letter is None and roman == after) or (letter == pletter and garbled):
+            found[n] = (found[n][0], found[n][1], (q, pletter, after), found[n][3])
     out = {}
-    for n, (pg, top, key, _) in enumerate(found):
+    # A multiple-choice key's rows can be a single line each, "7  C  1": such a row runs from its own
+    # line to the next, where a taller row starts a little above its label.
+    line_row = lambda a, b: a and b and a[0] == b[0] and a[2][1] is None and b[2][1] is None and 0 < b[3] - a[3] < 20  # noqa: E731
+    for n, (pg, top, key, fy) in enumerate(found):
         nxt = found[n + 1] if n + 1 < len(found) else None
+        if line_row(found[n - 1] if n else None, found[n]) and top > fy - 7 and (pg, top) not in ruled:
+            top = fy - 2
         pieces, p = [], pg
         while True:
             box = ms_page_box(doc, p)
             t = top if p == pg else box.y0
-            b = nxt[1] - (0 if doc.cambridge else 2) if nxt and nxt[0] == p else box.y1
+            # (the next row's rule where it has one; a multiple-choice key's single-line row, to its next label)
+            b = (nxt[1] if (nxt[0], nxt[1]) in ruled else nxt[3] if line_row(found[n], nxt) else nxt[1] - 2) if nxt and nxt[0] == p else box.y1
             if EXTRACTS and not (nxt and nxt[0] == p):
                 # The next table's header can close a page, its first row overleaf: leave it to that table.
                 rest = [l for l in doc.lines(p) if l["y0"] > t + 6]
                 head = next((k for k, l in enumerate(rest) if re.match(r"Questio", l["text"]) and l["x0"] < 200), None)
                 if head is not None and all(re.fullmatch(r"(n|Number|Answer|Indicative content|Mark|Question|Questio)", l["text"].strip()) for l in rest[head:]):
                     b = rest[head]["y0"] - 4
-            # (a multiple-choice row can be a single 13pt line; Cambridge's rows start at their rule, so the
-            # strip above a table carried over to the next page holds no text, only that rule)
-            if b > t + 6 and not (doc.cambridge and not doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip()):
+            block = [l["y0"] for l in doc.lines(p) if t < l["y0"] < b and BACK_BLOCK.match(l["text"])]
+            if block:
+                b = min(block) - 6
+            # (a multiple-choice row can be a single 13pt line; a strip with no text, as above a table
+            # carried over to the next page, is only rules)
+            if b > t + 6 and doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip():
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
             if (nxt and nxt[0] <= p) or p + 1 >= len(doc):
                 break
@@ -597,13 +689,16 @@ def ms_tables(doc):
             # Economics' long answers run on over pages of empty table borders, then the levels grids: step over the blanks.
             while EXTRACTS and p + 1 < len(doc) and not doc.lines(p) and not (nxt and nxt[0] <= p):
                 p += 1
-            if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()):
+            if not doc.lines(p) or re.match(r"Pearson Education Limited", doc.text(p).strip()) or BACK_PAGE.search(doc.text(p)):
                 break
         text = " ".join(doc.text(p, r) for p, r in pieces)
-        if key not in out:
+        if key not in out or (pieces and not out[key][0]):  # a label read twice: the copy with a row under it
             ans = re.search(r"(?:only )?correct answer is\s*\(?([A-D])\b", text)
             if not ans and key[1] is None:  # OCR's multiple-choice rows: "7   C ✓"
                 ans = re.search(rf"(?<![\d.]){key[0]}\s+([A-D])(?![\w])", text)
+                if not ans and len(text) < 80:  # "4  1  C", "7  1  1.1  C": mark and AO before the letter (not "5 A suitable method…")
+                    row = re.sub(r"^(?:\s*(?:Question|Q|No\.|KEY|Key|AO( element)?|Answer|Marks?)(?![\w.]))+", "", text)  # the table's header ("Q KEY AO", "AO element"), on its first row
+                    ans = re.match(rf"\s*{key[0]}\s+(?:[\d.]+\s+){{0,2}}([A-D])(?![\w.])(?!\s+[a-z])", row)
             out[key] = (pieces, re.sub(r"\s+", " ", text), ans.group(1) if ans else None)
     return out
 
@@ -667,10 +762,27 @@ def examiner_report(path, section=None):
 
 # ---------- one paper ----------
 
+def hand_labels(set_id):
+    """A scanned paper whose labels OCR misreads can have them set by hand, read off the
+    paper page by page, and any paper its marks where the cutter can't read them:
+    scripts/question-bank/labels/<set>.json, {"end_page": 25,
+    "labels": [[page, y, q, letter, roman], ...], "ms_alias": [[[19, "c", "ii"], [19, "c", "a"]]],
+    "keys": {"1": "A", ...}, "marks": {"17(b)(i)": 2, ...}}: a scheme row the scheme itself
+    misprints, as [the part, what the scheme calls it]; the multiple-choice answers, read off the
+    scheme's table; and marks that can't be read, read off the paper or its scheme. Only
+    "labels" makes a scan's parts trusted without the checks below."""
+    path = os.path.join(HERE, "..", "labels", f"{set_id}.json")
+    return json.load(open(path)) if os.path.exists(path) else None
+
+
 def cut_set(qp_path, ms_path, er_path, set_id, meta):
     qp = Doc(qp_path)
-    labels, end_page = qp_labels(qp)
+    hand = hand_labels(set_id)
+    labels, end_page = ([tuple(x) for x in hand["labels"]], hand["end_page"]) if hand and "labels" in hand else qp_labels(qp)
     ms = ms_tables(Doc(ms_path)) if ms_path and os.path.exists(ms_path) else {}
+    for good, bad in (hand or {}).get("ms_alias", []):
+        if tuple(bad) in ms:
+            ms[tuple(good)] = ms.pop(tuple(bad))
     ms_doc = Doc(ms_path) if ms else None
     er = examiner_report(er_path, meta.pop("erSection", None))
     relabels = []  # (page, y, q, letter) of each part printed a second time
@@ -725,7 +837,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     has_children = lambda k: any(o[0] == k[0] and ((k[1] is None and o[1]) or (k[1] and not k[2] and o[1] == k[1] and o[2])) for o in keys)  # noqa: E731
     leaves = [k for k in keys if not has_children(k)]
     by_key = dict(regions)
-    if qp.scanned and ms:
+    if qp.scanned and ms and not (hand and "labels" in hand):
         # OCR can miss a label; the part before it then runs on into it. The mark scheme
         # lists every part, so leave out any part whose next one was missed.
         order = sorted(ms, key=lambda k: (k[0], k[1] or "", ROMANS.index(k[2]) + 1 if k[2] in ROMANS else 0))
@@ -794,7 +906,11 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
             marks = int(m.group(1)) if m else None
         hit = ms.get(key) or (ms.get((q, letter, None)) if roman else None) or (ms.get((q, None, None)) if not letter else None) \
             or (ms.get((q, None, "i")) if letter == "i" and not roman else None)  # a scheme reads part "(i)" as a sub-part
-        if qp.scanned and not (hit and (marks is None or marks <= 9) and len(keep) <= 2):
+        if hand and not letter and str(q) in hand.get("keys", {}):
+            hit, marks = ([], "", hand["keys"][str(q)]), marks or 1  # multiple choice: its letter, not a crop of the table
+        if hand:
+            marks = hand.get("marks", {}).get(label, marks)
+        if qp.scanned and not (hand and "labels" in hand) and not (hit and (marks is None or marks <= 9) and len(keep) <= 2):
             continue  # read by OCR: keep only parts its mark scheme confirms, of a believable size
         msimg, ms_text, answer = None, "", None
         if hit:
@@ -804,7 +920,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                 msimg = squash(msimg)
             if answer and marks is None and qp.cambridge:
                 marks = 1  # Cambridge prints no mark against a multiple-choice question
-        if qp.scanned and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
+        if qp.scanned and not (hand and "labels" in hand) and not (msimg and re.search(rf"(?<!\d){q}(?!\d)", ms_text[:120])):
             continue  # read by OCR: its own scheme row must be found and carry its question number
         parts.append({
             "id": pid, "set": set_id, **meta, "question": f"{q:02d}", "part": f"{letter or ''}{roman or ''}" or None, "label": label,

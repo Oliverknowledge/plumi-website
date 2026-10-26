@@ -85,6 +85,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
+  const [withReports, setWithReports] = useState(false);
   const [typed, setTyped] = useState<string | null>(null); // null: the box shows the URL's search
   const query = typed ?? f.q;
   const set = useQuestionSet(subject.slug);
@@ -267,10 +268,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   }
   const [openGroup, setOpenGroup] = useState<string | null>(null);
 
+  const hasReports = useMemo(() => !!parts?.some(p => p.er), [parts]);
   async function downloadRange(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const raw = String(new FormData(e.currentTarget).get("range") ?? "");
-    if (!results || !raw.trim()) return;
+    // Left blank, it's the whole list as filtered ("Bonding", say), up to what one PDF holds.
+    const typed = String(new FormData(e.currentTarget).get("range") ?? "").trim();
+    if (!results?.length) return;
+    const raw = typed || `1-${results.length}`;
     // Up to SET_MAX parts, as a set holds. A number typed twice ("1–5, 3") goes in once; a whole question goes in whole or not at all.
     const picks = new Set<BankPart>();
     const numbers = new Set<number>();
@@ -289,15 +293,21 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       }
     }
     if (!picks.size) { setRangeNote("Those numbers aren’t in this list."); return; }
+    // The PDF reads as the list does: in number order ("7, 2–4" gives 2, 3, 4, 7), each question labelled with its number.
+    const order = [...numbers].sort((a, b) => a - b);
+    const numbered = new Map<string, number>();
+    for (const i of order) for (const p of results[i - 1]) numbered.set(p.id, i);
+    const ordered = order.flatMap(i => results[i - 1].filter(p => picks.has(p)));
     setRangeNote("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      const skipped = await buildSetPdf(subject, [...picks], { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, via: "range", skipped, whole: whole ? 1 : 0 });
+      const reports = withReports && hasReports;
+      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, reports: reports ? 1 : 0, via: "range", skipped, whole: whole ? 1 : 0 });
       const what = whole ? `${numbers.size} whole ${numbers.size === 1 ? "question" : "questions"}` : `${picks.size} ${picks.size === 1 ? "question" : "questions"}`;
       setRangeNote(skipped
         ? `Saved, but ${skipped} of ${picks.size * 2} pages couldn’t be added. Try again in a moment.`
-        : `Saved ✓ ${what}, mark schemes at the back${capped ? ` (${SET_MAX} parts is the most in one go)` : ""}`);
+        : `Saved ✓ ${what}, mark schemes${reports ? " and examiner’s reports" : ""} at the back${capped ? ` (${SET_MAX} parts is the most in one go)` : ""}`);
     } catch {
       setRangeNote("Couldn’t build it. Try again?");
     }
@@ -386,7 +396,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">
@@ -428,9 +438,10 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
             <div>
-              <input id="qb-range-input" name="range" placeholder="e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
+              <input id="qb-range-input" name="range" placeholder="All, or e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
               <button type="submit" className="lp-btn" disabled={!results}>Download PDF</button>
             </div>
+            {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports with the mark schemes</label>}
             {rangeNote && <span className="qb-range-note" role="status">{rangeNote}</span>}
           </form>
         </div>

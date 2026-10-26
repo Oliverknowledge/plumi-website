@@ -55,6 +55,48 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Mark scheme crops (every board), fixed 25 October 2026
+
+A student testing OCR found a multiple-choice question whose mark scheme was a
+blank sliver. The same fault, in different forms, was in every board's crops:
+
+- **Rows started 6pt above their label** (`cut_pearson.py`). OCR's and Cambridge's
+  one-line rows sit 13pt apart, so a crop took the foot of the row above and lost its
+  own: OCR's multiple-choice keys were slivers mixing two rows (and 424 answer letters
+  went unread), and on a few Edexcel papers each question showed the row above's
+  answer (9PH0/02 November 2021 Q4 said A; its answer is C). Rows now start at the
+  table rule above their label (up to 60pt above, for a label centred in a tall cell;
+  wide rules only, never one with text through it), or, with no rule, at the tallest
+  text beside the label but never above the foot of the line before.
+- **Crops ran to the page margins**, so they picked up the running header ("H020/01
+  Mark Scheme June 2019"), the page number, the next table's header or the board's
+  logo. A scheme page's box is now its table (`cut_pearson.ms_page_box`,
+  `cut.ms_frame`), or inside the header and footer where nothing is ruled.
+- **AQA's fixed frame** (`cut.frame`) cut the right-hand "AO / Spec Ref." column off
+  nearly every GCSE scheme crop (the table runs to 557pt, the frame stopped at 541pt)
+  and dropped rows below 766pt. Schemes now use `cut.ms_frame`. A bare number at the
+  edge of the answer column ("24 × 3") is no longer read as a label.
+- **Edexcel maths** (`cut_edexcel.py`): widened to the AOs column, and stops above
+  the "Pearson Education Limited" footer.
+
+Measured on the same PDFs, old cutter against new (scheme pieces whose edge runs
+through a line of text): OCR sciences 2,471 to about 30, OCR maths 4,838 to 173,
+Edexcel sciences 987 to 115, Cambridge 777 to 0, AQA GCSE 174 to 22 (and 3,309
+cut off at the right to 1), AQA A-Level 247 to 42 (2,233 through a header to 7),
+Edexcel Economics A (`--extracts`) 40 to 1. Psychology reads its schemes as text and
+keeps its own frame.
+
+Scheme images carry `?v=2` (`MS_VERSION` in questionBank.ts): the crops are cached for a
+year as immutable and kept their names, so browsers that had the old ones refetch.
+
+The fix was applied as a scheme-only update: each bank's question crops, sizes, text,
+tags and marks are the live ones (re-cutting with a newer PyMuPDF moves some question
+crops by a pixel or two), and only the scheme crop, scheme text and multiple-choice
+key come from the re-cut, where it found the scheme. 176 parts gained a cropped row
+(they used to link the whole scheme PDF) and 532 multiple-choice parts their answer
+letter; no part lost a scheme. Parts the re-cut found that weren't in the banks (19,
+mostly from scanned OCR papers) were left out: they'd need tagging.
+
 ## Edexcel Maths and Further Maths
 
 `/question-bank/edexcel-a-level-maths` and `/question-bank/edexcel-a-level-further-maths`:
@@ -182,6 +224,9 @@ Added 25 October 2026, after the bank's video went viral and students asked for 
 | `/question-bank/ocr-a-level-biology-a` | H420, AS H020 | part |
 | `/question-bank/ocr-a-level-chemistry-a` | H432, AS H032 | part |
 | `/question-bank/ocr-a-level-physics-a` | H556, AS H156 | part |
+| `/question-bank/ocr-a-level-biology-b` | Biology B (Advancing Biology) H422, AS H022 | part |
+| `/question-bank/ocr-a-level-chemistry-b` | Chemistry B (Salters) H433, AS H033 | part |
+| `/question-bank/ocr-a-level-physics-b` | Physics B (Advancing Physics) H557, AS H157 | part |
 | `/question-bank/ocr-a-level-maths` | H240, AS H230 | whole question |
 | `/question-bank/ocr-a-level-further-maths` | H245 (Y540-Y545), AS H235 | whole question |
 | `/question-bank/ocr-mei-a-level-maths` | H640, AS H630 | whole question |
@@ -207,9 +252,31 @@ Cambridge, for teachers, so June 2026 arrives a year late.
   briefed by tag.md's OCR section.
 - **Building:** `ocr/build_ocr.py` and `ocr/maths_ocr.py build`.
 
-Gaps: OCR's November 2020 Biology A AS Paper 2 mark scheme link serves another
-paper's scheme, so those 30 parts link no scheme. Two November 2020 Biology A papers
-are scans; only the parts OCR's text reading and their scheme confirm are in.
+Gaps, after the fixes of 25 October 2026 (below): every OCR science paper's marks
+add up exactly, and every Maths paper's too. OCR publishes no mark scheme for Maths
+H240/01 June 2018 or MEI Further Maths Y433/01 June 2023, so those 19 questions link
+none. 38 science parts and 2 maths questions still link the whole scheme instead of a
+cropped row, where the scheme's table is set in a way the cutter can't read.
+
+Fixed on 25 October 2026:
+- **Biology A Paper 2, November 2020** is a scan whose labels OCR's text reading
+  misread, so only 6 of its parts got in. Its labels are now set by hand, read off
+  the paper page by page (`labels/h42002-nov20.json`; `cut_pearson.py` reads a set's
+  labels from `scripts/question-bank/labels/<set>.json` when there is one). All 54 parts
+  (100 marks) are in, each with its own scheme rows, multiple-choice answers from the
+  scheme's table.
+- **Biology A AS Paper 2, November 2020**: OCR's listed mark scheme is another paper's.
+  The right one is published at `643848-mark-scheme-depth-in-biology.pdf` (its running
+  header wrongly says H420/02); 29 of the 30 parts now have their scheme rows, and the
+  PDF is on R2 at the library's key, `ocr/OCR-H020-02-MS-NOV20.pdf`.
+- **Marks that weren't read:** a "[1]" at the very foot of a page, just above OCR's
+  footer, now counts for its part. That completed seven science papers. MEI Maths
+  Paper 3 June 2018's Q2 prints its mark above its own label, so it is set in
+  `labels/h64003-jun18.json`.
+- **Scheme rows:** a row the scheme labels "16 (ii)" (its letter dropped) or "16(b)(k)" (a
+  roman the font garbled) is now read as the part after the row above. A label read twice
+  keeps the copy with a row under it. Physics A Paper 3 June 2017's scheme prints "(a)"
+  without its letter, so its five rows are mapped in `labels/h55603-jun17.json`.
 
 ```bash
 python3 scripts/question-bank/ocr/fetch_ocr.py [--maths]
@@ -222,6 +289,62 @@ python3 scripts/question-bank/ocr/build_ocr.py && python3 scripts/question-bank/
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-sciences --crops-only   # the PDFs are the library's
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-maths --crops-only
 ```
+
+### OCR B sciences
+
+Added 25 October 2026, when a student asked for them: Biology B, Chemistry B (Salters)
+and Physics B, June 2016 (AS) / 2017 (A-Level) to June 2025, 5,819 parts from 139
+papers: Biology B 1,889, Chemistry B 2,049, Physics B 1,881, every one tagged, and 708
+marked practical (206, 215, 287). The same pipeline with `--b`, in `.work/ocr-b-sciences`:
+
+- **Topics** (`ocr/spec_ocr_b.py`): Biology B as Biology A (sections as tiles, numbered
+  topics, Year 1 = Modules 2-3). Chemistry B's ten storylines are the tiles (the first
+  five are AS), and the chemical ideas each one's learning outcomes are grouped under
+  are its topics, shown with the storyline's code ("EL Atomic structure",
+  specification points EL(e)–(h)). Physics B's modules are the tiles and its numbered
+  units the topics (3.1.2 Sensing, 4.2 Space, time and motion, plus Module 2's
+  Fundamental data analysis); Year 1 = Modules 2-4.
+- **Cutting:** Chemistry B's multiple-choice keys are a narrow table of their own
+  ("Question | Key | AO", "Q | Key", "No. AO | Key"), sometimes mid-page; the cutter
+  reads those rows a line at a time. A few typeset papers carry a page or six as
+  pictures with no text: those pages alone are read by OCR at ~290 dpi. OCR B's schemes
+  print their running head along the foot of the page; scheme crops stop above it.
+- **Tagging:** `tag_ocr.py split --b` / `merge --b`, briefed by tag.md's "OCR B sciences".
+
+Gaps: OCR doesn't publish June 2023 for Biology B AS. Two mark scheme links on OCR's
+site serve another paper's scheme (Biology B November 2020 Paper 1, AS June 2025
+Paper 2), so those 96 parts link no scheme; the June 2017 Biology B examiners' report
+covers every paper at once and isn't split by question. H157/01 June 2025's scheme
+leaves out questions 4 and 8. Marks add up exactly for 137 of 139 papers; Biology B
+June 2019 Paper 1 and June 2017 Paper 3 are each one mark short, where a "[1]" sits on
+a page's last line.
+
+```bash
+python3 scripts/question-bank/ocr/fetch_ocr.py --b --from=<the library's .work/ocr>
+python3 scripts/question-bank/ocr/spec_ocr_b.py
+python3 scripts/question-bank/edexcel_sciences/cut_pearson.py scripts/question-bank/.work/ocr-b-sciences
+python3 scripts/question-bank/ocr/tag_ocr.py split --b    # tag, then: tag_ocr.py merge --b
+python3 scripts/question-bank/ocr/build_ocr.py --b
+python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/.work/ocr-b-sciences/parts.json \
+  --only=ocr-a-level-biology-b,ocr-a-level-chemistry-b,ocr-a-level-physics-b   # judge, then: practicals.py merge
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-b-sciences --crops-only
+```
+
+**Crop version 3 (26 October 2026).** The OCR banks were re-cut again with the merged cutter:
+#28's rule-based scheme rows (whole rows, no slivers of the row above), and no labels before
+a scheme's first table (MEI's numbered marking instructions had been read as question 5's
+scheme). Where the new cut found no scheme but the live data had a real one, the live crop
+was kept; four live crops that were only slivers ("Question Answer Marks Guidance") now
+link the whole scheme instead.
+
+**Re-cut 26 October 2026 (crop version 2).** A paper's last scheme crop ran on to OCR's back
+pages ("Need to get in touch?", the company notice, blank pages, and in older schemes a
+contact block under the last answer). `cut_pearson.py` now stops at them (`BACK_PAGE`,
+`BACK_BLOCK`). All ten OCR banks were re-cut from their work folders and rebuilt: no part,
+tag or mark lost; 444 OCR A multiple-choice parts gained their answer; scheme crops lost
+OCR's running heads and footers. Crops are cached as immutable, so a re-cut bank carries
+`cropVersion` (set in `ocr/build_ocr.py`, `CROP_VERSION`) and its crop URLs ask for
+`?v=<version>`: bump it whenever a bank's crops are re-uploaded under the same names.
 
 ## AQA A-Level Psychology
 
@@ -259,6 +382,50 @@ python3 scripts/question-bank/aqa_psychology/tag_psychology.py split   # tag the
 python3 scripts/question-bank/aqa_psychology/tag_psychology.py merge
 python3 scripts/question-bank/aqa_psychology/build_psychology.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-psychology
+```
+
+## AQA A-Level Maths
+
+Added 26 October 2026, after students asked for it (AQA had no maths in the bank):
+`/question-bank/aqa-a-level-maths`, every question from AQA's A-Level Mathematics (7357)
+Papers 1–3, every series AQA has sat: June 2018 and 2019, November 2020 and 2021, June
+2022 to June 2025. That is 426 questions from 24 papers, each paper's questions adding up
+to its 100 marks, every one with its mark scheme rows cropped, and all but two with the
+examiner's comments.
+
+- **Cut a whole question at a time, like the other maths banks:** a question's words,
+  label by label ("9", "9 (a)", "9 (a) (ii)"), each stopping where its answer lines
+  start, stacked into one crop without the space to write in. Its scheme crop is the
+  table's rows from its first label to the next question's (June 2018 prints "(b)"
+  without its number), with the column headings where the scheme prints them over it.
+- **Topics:** the specification's 19 lettered sections, A Proof to S Moments (there is
+  no T), under Pure (A–J), Statistics (K–O) and Mechanics (P–S), shown with their
+  letters ("G Differentiation"), as the other maths banks show Pure 1–10. Section codes
+  are `Pure`, `Stats` and `Mech`, not letters: the topic filter takes section and topic
+  codes alike, and M, P and S are topics. No question's marks are mainly for P
+  (Quantities and units), so it has no page.
+- **Text:** the papers' maths fonts put symbols at odd codes in the text layer ("y ¼ 2x þ 1"),
+  a different set per font; `cut_maths.py` reads them back per font for search, tagging
+  and the opening words.
+- **Pipeline:** `scripts/question-bank/aqa_maths/`: `fetch_maths.py` (fetch_aqa.py over
+  7357), `spec_maths.py` (the topics from AQA's specification PDF), `cut_maths.py`,
+  `tag_maths.py` (briefed by tag.md's AQA Maths section) and `build_maths.py`. AQA's
+  own papers were already on R2 under `aqa/` (the library's copies, byte for byte the
+  same); crops are under `bank/7357*`. The bank was first cut part by part, so R2 also
+  holds part and stem crops (`bank/73571-jun23-09-aii-qp.webp`, `-09-stem.webp`) nothing links to;
+  a single-part question's crops are the same file both ways.
+- **Gaps:** none in the papers: AQA publishes every series, scheme and report. Its
+  reports say nothing on June 2018 Paper 1 question 14 or November 2020 Paper 2
+  question 11. The specimen papers are left out, as for the other AQA banks.
+
+```bash
+python3 scripts/question-bank/aqa_maths/fetch_maths.py
+python3 scripts/question-bank/aqa_maths/spec_maths.py <AQA's 7357 specification PDF>
+python3 scripts/question-bank/aqa_maths/cut_maths.py
+python3 scripts/question-bank/aqa_maths/tag_maths.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_maths/tag_maths.py merge
+python3 scripts/question-bank/aqa_maths/build_maths.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-maths --crops-only
 ```
 
 ## Edexcel A-Level Economics A
@@ -306,6 +473,65 @@ python3 scripts/question-bank/edexcel_economics/tag_economics.py split   # tag t
 python3 scripts/question-bank/edexcel_economics/tag_economics.py merge
 python3 scripts/question-bank/edexcel_economics/build_economics.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-economics --pdf-prefix=edexcel/
+```
+
+## AQA A-Level Economics
+
+Added 26 October 2026, after a student asked for it: `/question-bank/aqa-a-level-economics`,
+every question from AQA's A-Level (7136, Papers 1–3) and AS (7135, Papers 1–2) Economics
+papers that AQA still publishes, November 2020 to June 2025. That is 686 questions from 28
+papers, every one with its mark scheme cropped or its multiple-choice answer, and 274 with
+the examiner's comments.
+
+- **Whole questions, grouped by choice.** AQA numbers whole questions (`04`), so each is
+  one crop, ending at its marks (the answer book's lines and pages are left out). The
+  papers are choices: A-Level Papers 1 and 2 are EITHER Context 1 (01–04) OR Context 2
+  (05–08), then one essay of three (09–10, 11–12, 13–14); AS Papers 1 and 2 are 20
+  multiple-choice questions, then EITHER Context 1 (21–26) OR Context 2 (27–32); Paper 3
+  is 30 multiple-choice questions and an investigation (31–33). A question's id names
+  its group (`71361-jun24-c1-04`, `-e2-11`, `-a-05`, `-b-31`), and the group's stem is
+  shared: a context's extracts (from the insert, for AS), an essay's opening passage,
+  or the investigation's scenario and the insert's extracts. The site finds the stem by
+  dropping the id's last part, so "Show how question 04 starts" opens Context 1's
+  extracts, and a downloaded set prints each stem once, above the first question that
+  uses it (`questionSetPdf.ts` now skips a stem it has already drawn, by image).
+- **Either/or.** Context 2's questions and Essays 2 and 3 carry `or`, so a paper's marks
+  count one context and one essay, as a candidate answers it: every paper adds up to its
+  80 (A-Level) or 70 (AS) marks. The stems begin with "Context 2", "Essay 3", so the
+  choice is on the page.
+- **Mark schemes:** each question's guidance, from its label to "MAXIMUM FOR QUESTION 04".
+  Most 15- and 25-mark questions use a levels-of-response grid printed once per section
+  ("Use the level mark scheme on page 4"): it is cut once and stacked under each of
+  those questions, so no essay scheme is shown without its levels. (AQA's page
+  references are sometimes a page out; the grid is matched by its marks.) Paper 3 and
+  the 9- and 10-mark questions print their own grid. Multiple-choice answers are read
+  from the scheme's KEY LIST (`k`); November 2021 Paper 3 question 20 accepts "A or C".
+- **Topics:** the specification's numbered A-Level topics as tiles ("4.1.5 Perfect
+  competition, imperfectly competitive markets and monopoly") and their sub-topics under
+  them ("4.1.5.7 Price discrimination"); a sub-topic the AS content also has is Year 1 ·
+  AS (`aqa_economics/spec_economics.py`). AS questions are tagged with AS sub-topics only.
+- **Pipeline:** `scripts/question-bank/aqa_economics/`: `fetch_economics.py` (fetch_aqa.py
+  over 7135/7136, inserts included), `spec_economics.py`, `cut_economics.py` (its own
+  layout around cut.py's label finder and image helpers; cut.py is unchanged),
+  `tag_economics.py` (tag_pearson.py, briefed by tag.md's AQA Economics section) and
+  `build_economics.py`. Papers are on R2 under `aqa/`, crops under `bank/71351*`–`bank/71363*`.
+- **Gaps:** AQA no longer publishes June 2017–2019 (its file store has none of them), and
+  sat no AS papers in November 2021, so the bank starts at November 2020. The specimen
+  papers are left out, as for the other AQA banks. AQA published no reports for November
+  2021, AS November 2020 or Paper 3 June 2024, and its Paper 3 reports comment on a few
+  multiple-choice questions only. Some extracts are withheld for copyright in AQA's own
+  copies: June 2022 Paper 2's Figures 3 and 4, June 2023 Paper 3's Figure 6 and November
+  2020 Paper 3's Figure 4. There's no past paper library page for AQA Economics yet, so
+  the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/aqa_economics/fetch_economics.py
+python3 scripts/question-bank/aqa_economics/spec_economics.py
+python3 scripts/question-bank/aqa_economics/cut_economics.py
+python3 scripts/question-bank/aqa_economics/tag_economics.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_economics/tag_economics.py merge
+python3 scripts/question-bank/aqa_economics/build_economics.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-economics
 ```
 
 ## Cambridge International (CAIE)
@@ -382,6 +608,73 @@ python3 scripts/question-bank/caie/tag_caie.py split [scripts/question-bank/.wor
 python3 scripts/question-bank/caie/build_caie.py [scripts/question-bank/.work/caie-maths]
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-sciences --crops-only   # the PDFs are the library's
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-maths --crops-only
+```
+
+## WJEC (Wales)
+
+Added 26 October 2026, after students asked for WJEC:
+
+| Bank | Units | Unit of the bank | Questions |
+| --- | --- | --- | --- |
+| `/question-bank/wjec-a-level-biology` | 2400U10, 2400U20 (AS), 1400U30, 1400U40 | part | 1,223 |
+| `/question-bank/wjec-a-level-chemistry` | 2410U10, 2410U20 (AS), 1410U30, 1410U40 | part | 1,204 |
+| `/question-bank/wjec-a-level-physics` | 2420U10, 2420U20 (AS), 1420U30, 1420U40 | part | 1,173 |
+| `/question-bank/wjec-a-level-maths` | 2300U10, 2300U20 (AS), 1300U30, 1300U40 | whole question | 314 |
+
+Series: every summer WJEC publishes, Summer 2016 (the sciences' AS units; their A2
+units start in 2017) to Summer 2025, without 2020 and 2021 (no exams); Maths from
+Summer 2018. Every paper there is has its scheme; examiners' reports from 2017
+(Biology from 2016). WJEC calls its series "Summer 2023", so the banks do; the ids
+stay `JUN23`. Students in Wales say "WJEC A Level", so the shelf is "WJEC AS & A Level
+(Wales)" and papers are units: "AS Unit 1", "Unit 3".
+
+- **Source: WJEC's own site only.** Each qualification page loads its "Past Papers /
+  Mark Schemes" tab from `/umbraco/surface/TabSurface/GetpastpapersTab`, a JSON list
+  linking to `pastpapers.download.wjec.co.uk`, and its key documents (the specification
+  and the examiners' reports) from `GetkeydocumentsTab`; `wjec/fetch_wjec.py` reads
+  both. Never Physics & Maths Tutor, which the past paper library's WJEC links point at.
+  English-medium papers only. Left out: the practical exam (Unit 5), modified
+  large-print papers (one, 2018 Maths Unit 1, is listed as the "Past Paper" itself, so
+  `-mlp` files are dropped by name), inserts and data booklets. The list's labels
+  aren't trusted: 2019 lists every scheme twice, 2016's Physics "Past Paper" rows are
+  its schemes, and two Chemistry scheme covers misprint their unit code, so each file is
+  read for what it is. Whole papers are `wjec/WJEC-2420U10-1-QP-JUN23.pdf` in R2 (the
+  bucket already held the papers and schemes under these names, byte for byte; the
+  reports, `wjec/WJEC-physics-ER-JUN23.pdf`, one per subject a summer, are new).
+- **Cutting:** `wjec/cut_wjec.py` uses `edexcel_sciences/cut_pearson.py` as a library,
+  unchanged (so no other board's crops move), and sets WJEC's differences in its place
+  for its own run: question numbers with a full stop ("1."), papers ending at "END OF
+  PAPER", Unit 4's options headed "Option A – Alternating Currents" with no number
+  (numbered on from the last question, as the schemes do), the "[6 QER]" marks of the
+  extended response question, maths's boxed numbers ("0" "1") and whole questions, the
+  schemes' "Summary of marks allocated" grid and "Question 1 total" rows (left off),
+  their "1." labels, their three label columns read a point apart, and maths's "Q"/"Qu."
+  header and mechanics tables closed by "Total for Question 7". Check: every paper's
+  marks per question match its cover's mark grid, except where a question's marks are
+  the options' (all four options are in, so Physics Unit 4 sums to 160).
+- **Topics:** `wjec/spec_wjec.py` reads the specifications: a tile per unit, its topics
+  under it ("1.2 Kinematics"), Unit 4's options as their own topics (`4.A`). Maths uses
+  the Edexcel maths topics, as the OCR and CAIE maths banks do.
+- **Tagging:** `wjec/tag_wjec.py split|merge`, tag.md's WJEC section; every part of an
+  option takes its option's code without a reader.
+- **Practicals:** 295 parts (Biology 74, Chemistry 106, Physics 115), judged as below.
+
+Gaps: no 2016 reports for Physics or Chemistry (WJEC publishes none). A few report
+sections are written by theme, not question (Chemistry Unit 4 and Biology Unit 2 in
+2025), and the maths reports comment only on some questions, so those have none;
+3,440 of 3,914 have one. 20 science parts have no scheme crop
+and link the whole scheme. Not built yet: Further Maths (on the same WJEC page) and
+the GCSEs (legacy Wales sciences and maths, being replaced by the Made-for-Wales GCSEs).
+
+```bash
+python3 scripts/question-bank/wjec/fetch_wjec.py            # --only=physics for one subject
+python3 scripts/question-bank/wjec/spec_wjec.py
+python3 scripts/question-bank/wjec/cut_wjec.py               # the sciences; --only=2420u10-jun23 for one paper
+python3 scripts/question-bank/wjec/cut_wjec.py --whole       # maths
+python3 scripts/question-bank/wjec/tag_wjec.py split         # tag, then: merge
+python3 scripts/question-bank/wjec/build_wjec.py
+python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/.work/wjec/parts.json --only=wjec-a-level-biology,wjec-a-level-chemistry,wjec-a-level-physics   # judge, then merge --only=…
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec --pdf-prefix=wjec/
 ```
 
 ## Practicals and whole questions
@@ -473,4 +766,144 @@ python3 scripts/question-bank/caie/tag_caie.py split scripts/question-bank/.work
 python3 scripts/question-bank/caie/build_caie.py scripts/question-bank/.work/caie-igcse-sciences   # and caie-igcse-maths
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-igcse-sciences --crops-only
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/caie-igcse-maths --crops-only   # after a re-cut: --checksum
+```
+
+## Eduqas A-Level sciences
+
+Added 26 October 2026, after students asked for Eduqas Physics:
+
+| Bank | Specification | Components | Series | Questions |
+| --- | --- | --- | --- | --- |
+| `/question-bank/eduqas-a-level-physics` | A420 (AS B420) | 1-3 (AS 1-2) | June 2016–2025, Autumn 2020–21 | 1,592 |
+| `/question-bank/eduqas-a-level-chemistry` | A410 (AS B410) | 1-3 (AS 1-2) | June 2016–19 and 2024–25, Autumn 2020–21 | 1,513 |
+| `/question-bank/eduqas-a-level-biology` | A400 (AS B400) | 1-3 (AS 1-2) | June 2016–2025, Autumn 2020–21 | 2,061 |
+
+June 2016 is AS only: the A-Level was first sat in 2017. Eduqas is WJEC's brand for England; the papers are © WJEC CBAC Ltd., credited as "WJEC
+Eduqas". The board is "Eduqas" in titles, with its own hub shelf ("Eduqas A-Level").
+Papers are called components, as Eduqas does ("Component 1: Newtonian Physics", "AS
+Component 2"), and the October–November 2020 and 2021 sittings are "Autumn" (`OCT20`).
+
+- **Papers:** only eduqas.co.uk. `eduqas/fetch_eduqas.py` reads each qualification
+  page's tabs from `/umbraco/surface/TabSurface/Get<tab>Tab?qualificationId=…` (the
+  page loads them by script): "pastpapers" lists question papers, mark schemes, data
+  booklets and large-print papers on pastpapers.download.wjec.co.uk, "keydocuments" the
+  specifications and examiner's reports (one per level and series, a section per
+  component). Large-print papers are left out. Eduqas files AS Physics June 2018's two
+  mark schemes under each other's names: the fetcher files a paper or scheme under the
+  component its cover names. Whole papers are in R2 under `eduqas/a420u10-qp-jun24.pdf`
+  (the library's own Eduqas copies, `eduqas/EDUQAS-…`, are a different set of names).
+- **Cutting:** `eduqas/cut_eduqas.py`, self-contained (cut_pearson.py is untouched).
+  WJEC typesets Eduqas's and its own papers the same way, so it should cut WJEC banks
+  too. Question papers: labels down the left inside the drawn frame, a bold "3." then
+  "(a)" and "(i)" each set with a tab; a label only counts as the next one expected,
+  so paragraph numbers in a comprehension stay out; a sub-part label set right of a
+  figure still counts by its tab; questions set straight in "(i)", "(ii)" are read as
+  such. Trailing answer lines (dotted rules) are left off each crop and pages of nothing
+  but answer lines dropped; a full-page graph grid isn't mistaken for the frame. Physics
+  Component 1's comprehension article is its question's stem, and a part ends above
+  Component 3's option headings ("Option B – Medical Physics"). Schemes: the "Question |
+  Marking details | … | Prac" table, its header repeated on most pages (2018's continue
+  without it); label pieces sit in the columns left of "Marking details", and a row
+  only counts when its label is one the paper has, in order, so a levels table's "4"
+  or a numbered answer point never starts a row. The crop is the page's header with the
+  part's rows under it, stopping at "Question 3 total" and before the summary of marks.
+  It copes with "1." and "5 (a)" labels, "iii" without brackets, "(i) (ii)" sharing one
+  cell, "6 (ii)" for 6(d)(ii), "5 (a) (i)" where the paper's (a) has no sub-parts, and
+  rows a page leaves unruled at its foot. `scripts/question-bank/labels/a400u20-oct20.json`
+  maps one misnumbered scheme ((v), (vi) for the paper's (iv), (v)). Every part has its
+  scheme crop except two essays whose scheme rows Eduqas left unlabelled
+  (Biology A400U20 Autumn 2020 Q7, AS B400U10 June 2025 Q6): they link the whole scheme.
+- **Topics:** `eduqas/spec_eduqas.py`, from the A-Level specifications. Physics and
+  Biology number topics within components ("1.2 Kinematics", "3.10 Electromagnetic
+  induction"), with the Component 3 options as `3.A`-`3.D` (Year · options); Biology's
+  Core Concepts, examined in every component, are `C.1`-`C.5`. Chemistry prints its own
+  codes (`C1.3`, `PI2.2`, `OA3.1`; `PI3` and `OA4` have no sub-topics). A topic is AS
+  (Year 1) when the AS specification has it, matched by title. AS papers are tagged
+  only to AS topics (merge enforces it).
+- **Tagging:** `eduqas/tag_eduqas.py split|merge`, briefed by tag.md's Eduqas section.
+  Moments, equilibrium and centre of gravity are Physics 1.1 (Basic physics) in this
+  specification; `tag/overrides.json` puts 16 parts one reader had under Dynamics there.
+- **Practicals:** Eduqas's schemes give each part's practical-skills marks in a "Prac"
+  column (`prac` in parts.json). `eduqas/practical_candidates.py` adds those the usual
+  net misses to practicals.py's batches; every candidate (1,691) was judged by the usual
+  brief, since the column is broader than it (Chemistry credits a reagent for a synthesis
+  step). 933 are practical: Physics 219, Chemistry 357, Biology 357.
+- **Gaps:** Eduqas puts papers up a year after the exam (June 2026 next autumn) and
+  doesn't publish some: no A-Level Physics question papers for June 2022 (only
+  large-print copies of two components), no Chemistry question papers for June 2022 or
+  2023 (A-Level or AS), and no AS Physics or AS Chemistry autumn sittings. Examiner's
+  reports: none for Autumn 2021, AS Physics June 2019, 2022 or 2025, or AS Biology Autumn
+  2021, and the June 2025 Chemistry and Biology reports are a summary with no comments on
+  questions.
+
+```bash
+python3 scripts/question-bank/eduqas/fetch_eduqas.py              # --only=physics; prints the gaps
+python3 scripts/question-bank/eduqas/spec_eduqas.py
+python3 scripts/question-bank/eduqas/cut_eduqas.py                # --only=a420u10-jun24; --debug prints scheme labels
+python3 scripts/question-bank/eduqas/tag_eduqas.py split          # tag, then: merge
+python3 scripts/question-bank/eduqas/build_eduqas.py
+python3 scripts/question-bank/practicals.py split --only=eduqas-a-level-physics,eduqas-a-level-chemistry,eduqas-a-level-biology --parts=scripts/question-bank/.work/eduqas-sciences/parts.json
+python3 scripts/question-bank/eduqas/practical_candidates.py      # judge, then: practicals.py merge
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/eduqas-sciences --pdf-prefix=eduqas/
+```
+
+## Computer Science (OCR and AQA)
+
+Added 26 October 2026, the bank's first Computer Science: `/question-bank/ocr-a-level-computer-science`
+(A-Level H446 and AS H046) and `/question-bank/aqa-a-level-computer-science` (A-Level 7517
+and AS 7516), on the existing OCR and AQA A-Level shelves. Every paper is the board's own
+file from ocr.org.uk or aqa.org.uk (AQA's newest files sit on its CDN, linked from its
+pages); the whole papers are on R2 under `ocr/OCR-H446-01-QP-JUN24.pdf` (the library's
+naming) and `aqa/AQA-75171-QP-JUN24.pdf`, the crops under `bank/h446*`, `bank/h046*`,
+`bank/7516*` and `bank/7517*`.
+
+- **OCR: 593 parts** from 18 papers: A-Level Papers 1 and 2 for November 2021 and June
+  2022 to 2025, AS Papers 1 and 2 for June 2022 to 2025. Every paper's parts add up to its
+  140 (AS 70) marks, every part has its own mark scheme rows, and 500 (all but a few of the
+  June parts) have the examiner's comments on their question. Topics: the A-Level's 24 numbered topics (1.1.1
+  Structure and function of the processor … 2.3.1 Algorithms) in 8 sections; AS papers
+  are tagged with the same codes. All but 1.3.1 and 2.1.5 are AS content.
+- **AQA: 561 parts** from 22 papers: A-Level and AS Papers 1 and 2 for November 2020 and
+  June 2022 to 2025, and A-Level Papers 1 and 2 for November 2021 (AQA sat no AS then).
+  Every Paper 2 adds up to its 100 (AS 75) marks, every part has its own mark scheme rows,
+  and 435 have the examiner's comments on their question. Topics: the A-Level's 51 three-number topics (4.2.6
+  Hash tables, 4.10.4 SQL) in 13 sections, the project (4.14) left out; 24 are AS content.
+- **AQA Paper 1 is sat on screen**, around a Skeleton Program and Preliminary Material
+  AQA sends schools beforehand. Its first section (theory) and its programming task
+  ("write a program…", starting from an empty project) stand on their own and are here,
+  their marks adding up to what the paper prints before the Skeleton Program section
+  (A-Level 38–50 of 100, AS 18–25 of 75). The section headed "These questions refer to the
+  Preliminary Material and the Skeleton Program", and the one after it (changing the
+  program), are left out: they can't be answered without the program. The paper filter
+  says so ("On-screen: theory and programming task"), and so does the bank page.
+- **Code is cropped whole:** listings, trace tables, SQL and LMC programs come with the
+  part that asks about them. OCR prints a part's code once, above its first sub-part:
+  every sub-part carries it here (1(c)(ii) shows the quick sort that 1(c)(i) did).
+- **Pipeline:** `scripts/question-bank/computer_science/`: `fetch_ocr_cs.py` (OCR's
+  assessment page), `fetch_aqa_cs.py` (fetch_aqa.py over 7516/7517, plus the preliminary
+  material, fetched only to read), `spec_cs.py`, `cut_ocr_cs.py` (cut_pearson.py as a
+  library, unchanged), `cut_aqa_cs.py` (cut.py, patched for this run only),
+  `tag_cs.py` (briefed by tag.md's Computer Science section) and `build_cs.py`.
+  Seven scheme rows the schemes number differently from the papers (OCR prints "4(a)(i)"
+  for a paper's 4(a)) are put right in `scripts/question-bank/labels/<set>.json`.
+- **Gaps:** OCR publishes A-Level from November 2021 and AS from June 2022 only; June
+  2017 to November 2020 (A-Level) and June 2016 to 2021 (AS) are on Teach Cambridge, its
+  teacher login. OCR's November 2021 reports comment on the paper as a whole, not
+  question by question (OCR says so), and its H446/01 November 2021 question 7(c)(ii)
+  had an error (a corrected paper went to centres only), so that part is left out. AQA
+  publishes November 2020 on; its file store has nothing earlier for 7516/7517. AQA has no
+  reports for November 2020 (except A-Level Paper 2) or November 2021, nor for AS Paper 1
+  June 2025. AQA's A-Level Paper 1 June 2025 report is headed "7516/2" on its pages; its
+  content is 7517/1's.
+
+```bash
+python3 scripts/question-bank/computer_science/fetch_ocr_cs.py
+python3 scripts/question-bank/computer_science/fetch_aqa_cs.py
+python3 scripts/question-bank/computer_science/spec_cs.py
+python3 scripts/question-bank/computer_science/cut_ocr_cs.py      # --only=h44602-jun25
+python3 scripts/question-bank/computer_science/cut_aqa_cs.py      # --only=75172
+python3 scripts/question-bank/computer_science/tag_cs.py split    # tag, then: merge
+python3 scripts/question-bank/computer_science/build_cs.py        # also stages the whole papers in <work>/r2/pdf
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-cs/r2 --pdf-prefix=ocr/   # r2/img -> ../img
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-cs/r2 --pdf-prefix=aqa/
 ```

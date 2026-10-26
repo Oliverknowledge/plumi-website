@@ -70,6 +70,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [withMs, setWithMs] = useState(true);
+  const [withReports, setWithReports] = useState(false);
   const [undo, setUndo] = useState<string[] | null>(null);
   const [listOpen, setListOpen] = useState(false);
   if (!set.ids.length && !undo) return null;
@@ -86,6 +87,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   }
 
   const chosen = parts ? set.ids.map(id => parts.find(p => p.id === id)).filter((p): p is BankPart => !!p) : [];
+  const hasReports = chosen.some(p => p.er);
   const marks = chosen.reduce((n, p) => n + (p.m ?? 0), 0);
   const count = set.ids.length;
 
@@ -94,8 +96,11 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
     setBusy("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs });
+      // Numbered as the list below is, in the order they were added.
+      const numbers = new Map(chosen.map((p, i) => [p.id, i + 1]));
+      const reports = withReports && hasReports;
+      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0 });
       setNote(skipped ? `Saved ✓ (${skipped} couldn’t be added)` : "Saved ✓");
     } catch {
       setNote("Couldn’t build it. Try again?");
@@ -124,6 +129,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
         {listOpen && (
           <div className="qb-tray-list">
             <label className="qb-tray-ms"><input type="checkbox" checked={withMs} onChange={e => setWithMs(e.target.checked)} /> Mark schemes at the back</label>
+            {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports at the back</label>}
             <ol>
               {chosen.map(p => (
                 <li key={p.id}>

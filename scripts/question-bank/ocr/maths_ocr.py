@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from build_pearson import BOILERPLATE, slug  # noqa: E402
 from tag_pearson import clip  # noqa: E402
 sys.path.insert(0, HERE)
-from build_ocr import ocr_report  # noqa: E402
+from build_ocr import CROP_VERSION, ocr_report  # noqa: E402
 
 BANKS = {  # slug: (board, subject, topic list)
     "ocr-a-level-maths": ("OCR", "Maths", "maths"),
@@ -187,7 +187,7 @@ def build():
         series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
         years = [int("20" + s[3:]) for s in series]
         meta = {
-            "slug": bank, "board": board, "level": "A-Level", "subject": subject, "specs": sorted({banks[c]["spec"] for c in comps}),
+            "slug": bank, "board": board, "level": "A-Level", "subject": subject, "specs": sorted({banks[c]["spec"] for c in comps}), "cropVersion": CROP_VERSION,
             "sections": tree["sections"], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": f"{MONTH[s[:3]]} 20{s[3:]}"} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},

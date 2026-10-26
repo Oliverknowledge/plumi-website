@@ -74,7 +74,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
-  const marked = parts.filter(p => p.m != null);
+  // An essay choice, "EITHER (d) OR (e)", counts once.
+  const marked = parts.filter(p => p.m != null && !p.or);
   const marks = marked.length ? marked.reduce((sum, p) => sum + (p.m ?? 0), 0) : null;
   const topics = [...new Set(parts.flatMap(p => p.t))].slice(0, many ? 3 : 2);
   const withScheme = parts.filter(p => p.ms || p.k);
@@ -114,6 +115,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           {schemePdf && (
             <a className="qb-key" href={`${papersBase}/${schemePdf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
           )}
+          {!withScheme.length && !schemePdf && <span className="qb-noms">No published mark scheme</span>}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
               {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
@@ -133,15 +135,16 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem")} alt={`The start of question ${q}`} loading="lazy" />}
+            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
           </div>
         )}
         <div className="qb-paper">
-          {parts.map(p => (
+          {parts.map(p => [
+            many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} className="qb-img" src={partImage(p.id, "qp")} width={p.w} height={p.h} loading="lazy" decoding="async"
-              alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />
-          ))}
+            <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+              alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />,
+          ])}
         </div>
         <p className="qb-swipe" aria-hidden="true">Swipe the paper sideways to read it all.</p>
         {embed?.cta}
@@ -152,7 +155,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               <span className="lp-tape" aria-hidden="true" />
               <p className="qb-note-label">Mark scheme for {p.l}</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms")} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
+              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
             </div>
           ))}
       </div>

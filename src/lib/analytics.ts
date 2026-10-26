@@ -48,6 +48,9 @@ export type PlumiEvent =
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */
   | "embed_view"
   | "embed_cta_click"
+  /** A Plumi practice pack's questions or mark scheme opened. Carries `pack`,
+   *  `file` (questions or mark-scheme) and `placement`. */
+  | "pack_downloaded"
   /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
    *  The first two are also the Google Ads `sendToIpad` conversion. */
   | "send_to_ipad_result";
