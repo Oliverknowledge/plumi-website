@@ -49,6 +49,12 @@ export interface PracticePack {
   /** How the mark scheme's answers were checked, from the foot of its first page. */
   checked: string;
   colour: string;
+  /**
+   * Where the PDFs are served from. Unset: R2 (`packs/`), the normal place. "site": from this
+   * site's own `public/practice-packs/<slug>/`, for a pack published before its PDFs were on R2;
+   * move them to R2 and delete this line, and nothing else changes.
+   */
+  hosted?: "site";
   /** Bumped when the PDFs change, with `updated`: R2 keeps a version's files forever. */
   version: number;
   updated: string;
@@ -177,6 +183,7 @@ export const practicePacks: PracticePack[] = [
   },
   {
     slug: "a-level-chemistry-ocr",
+    hosted: "site",
     title: "A-Level Chemistry A",
     subject: "Chemistry",
     level: "A-Level",
@@ -233,6 +240,7 @@ export const practicePacks: PracticePack[] = [
   },
   {
     slug: "a-level-biology-ocr",
+    hosted: "site",
     title: "A-Level Biology A",
     subject: "Biology",
     level: "A-Level",
@@ -293,7 +301,8 @@ export const packLevels: PackLevel[] = ["Easy", "Medium", "Hard", "Super hard"];
 export const packPath = (slug: string) => `/practice-papers/${slug}`;
 export const practicePack = (slug: string) => practicePacks.find(p => p.slug === slug);
 /** The pack's PDFs on R2: packs/a-level-physics-ocr-v1-questions.pdf. */
-export const packFile = (p: PracticePack, file: "questions" | "mark-scheme") => `${papersBase}/packs/${p.slug}-v${p.version}-${file}.pdf`;
+export const packFile = (p: PracticePack, file: "questions" | "mark-scheme") =>
+  `${p.hosted === "site" ? `/practice-packs/${p.slug}` : `${papersBase}/packs`}/${p.slug}-v${p.version}-${file}.pdf`;
 /** What the browser saves it as: "Plumi Practice Pack - A-Level Physics A (OCR-style) - Mark scheme.pdf". */
 export const packFileName = (p: PracticePack, file: "questions" | "mark-scheme") =>
   `Plumi Practice Pack - ${p.title} (${p.board}-style) - ${file === "questions" ? "Questions" : "Mark scheme"}.pdf`;
