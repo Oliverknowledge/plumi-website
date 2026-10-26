@@ -243,3 +243,22 @@ above, with these differences:
 - Additional Mathematics 0606 has one code per topic (`6` for logarithmic and
   exponential functions, the topic's learning statements after the dash): one to three
   codes per question.
+
+## AQA A-Level Maths
+
+`aqa_maths/tag_maths.py split` writes batches for AQA A-Level Mathematics 7357 to
+`.work/aqa-maths/tag/`, and `merge` collects them. The brief is the one at the top,
+tagging a part at a time (as the AQA sciences are cut), with these differences:
+
+- `maths-topics.txt` lists one topic per line: `code | section | title — the
+  specification's statements (B1, B2, ...)`. Codes are the specification's letters,
+  `A` (Proof) to `S` (Moments); choose from these, never a statement like `B3`.
+- Each line has a `paper`: Paper 1 is all pure (A-J); Papers 2 and 3 are pure in
+  Section A, then Mechanics (P-S) in Paper 2's Section B and Statistics (K-O) in
+  Paper 3's. A Section B part takes a pure code only when its marks are for pure
+  maths (solving the differential equation in a kinematics question takes `H`
+  alongside `Q`).
+- `question` starts with the question's opening when the part has one; `label`
+  says which part it is ("9(a)(ii)"). Tag by what this part's marks are for.
+- One code, or two when the part needs two topics in equal measure (a tangent to a
+  parametric curve is `C` and `G`).
