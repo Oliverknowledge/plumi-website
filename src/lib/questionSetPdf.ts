@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionKey, questionOf, reportKey, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -159,12 +159,13 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
 
   const num = (p: BankPart) => (opts.numbers?.has(p.id) ? `${opts.numbers.get(p.id)} · ` : "");
   const labelFor = (p: BankPart) => `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
-  // Each question's start (its setup, before part .1) goes in once, above its first part.
+  // Each question's start (its setup, before part .1) goes in once, above its first part. A start several
+  // questions share (AQA Economics: a context's extracts, for questions 01–04) goes in once for them all.
   const stemsDone = new Set<string>();
   for (const p of parts) {
-    const q = questionKey(p); // "12" for 12(a) as well as 01 for 01.4
-    if (p.st && !stemsDone.has(q)) {
-      stemsDone.add(q);
+    const stem = partImage(p.id, "stem");
+    if (p.st && !stemsDone.has(stem)) {
+      stemsDone.add(stem);
       crops.push(want({ part: p, kind: "stem", label: `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
