@@ -184,6 +184,29 @@ collects them. The brief is the one at the top, with these differences:
   take: a Paper 3 question only `3.x` codes, even where Paper 1 has a topic of the
   same name.
 
+## WJEC
+
+`wjec/tag_wjec.py split` writes batches for WJEC's AS/A Level Biology, Chemistry and
+Physics (part by part) and Mathematics (a whole question at a time) to
+`.work/wjec/tag/`, and `merge` collects them. The brief is the one at the top, with
+these differences:
+
+- `<subject>-topics.txt` lists one topic per line: `code | unit | title [AS], [A2] or
+  [A2 option] — the specification's learning outcomes`. WJEC sets its content out by
+  unit, and the codes are the unit and the topic's number in it (`1.2 Kinematics`,
+  `3.5 Nuclear decay`); choose from these.
+- Each line has a `paper` ("AS Unit 1", "A2 Unit 4"). An AS unit's paper only tests its
+  own unit's topics (a Unit 2 part takes a `2.x` code); the A2 papers (Units 3 and 4)
+  mostly test their own unit, but can draw on the AS units (a Unit 3 question on
+  energy may need `1.4`).
+- Unit 4's options (Physics A–D, Biology A–C) aren't in the batches: merge tags every
+  part of an option to that option's code (`4.B`).
+- Practical skills and maths skills questions get the content topic they sit in.
+- Maths uses the Edexcel maths topics (`maths-topics.txt`, as the OCR maths banks do):
+  one to three codes per question, the main one first. AS Unit 1 and A2 Unit 3 are
+  pure maths; AS Unit 2 and A2 Unit 4 are statistics (Section A) and mechanics
+  (Section B).
+
 ## Practical questions
 
 `practicals.py split` writes the science banks' likely practical questions (any

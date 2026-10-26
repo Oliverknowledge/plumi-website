@@ -56,12 +56,12 @@ function squares(): string[] {
 const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
 
 /** Boards and levels in the order students look for them; one added to the bank later goes at the end. */
-const boardOrder = ["AQA", "Edexcel", "OCR", "OCR MEI", "CAIE"];
+const boardOrder = ["AQA", "Edexcel", "OCR", "OCR MEI", "CAIE", "WJEC"];
 const levelOrder = ["A-Level", "GCSE", "IGCSE"];
 const byOrder = (order: string[]) => (a: string, b: string) => ((order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
 const boardName: Record<string, string> = { CAIE: "Cambridge (CAIE)" };
 /** Each board's colour: its column's header in the index, and the dot on its chip in the card. */
-const boardColour: Record<string, string> = { AQA: "#a9cbeb", Edexcel: "#8fd0a0", OCR: "#eaa99a", "OCR MEI": "#f2c96b", CAIE: "#7cc6c2" };
+const boardColour: Record<string, string> = { AQA: "#a9cbeb", Edexcel: "#8fd0a0", OCR: "#eaa99a", "OCR MEI": "#f2c96b", CAIE: "#7cc6c2", WJEC: "#b9b3e8" };
 const boardStyle = (board: string) => ({ ["--board" as string]: boardColour[board] ?? "#d9c8ec" });
 const boardId = (board: string) => `bank-${board.toLowerCase().replace(/\s+/g, "-")}`;
 

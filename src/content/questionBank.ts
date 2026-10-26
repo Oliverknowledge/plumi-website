@@ -2,14 +2,14 @@
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
  * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
- * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, and AQA's A-Level
- * Psychology, cut out one at a time, each with its own mark scheme
+ * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, WJEC's AS/A Level
+ * sciences and maths, and AQA's A-Level Psychology, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; Edexcel maths: the *_edexcel.py
- * scripts; Edexcel sciences: edexcel_sciences/; OCR: ocr/; CAIE: caie/). The images and PDFs are ours,
+ * scripts; Edexcel sciences: edexcel_sciences/; OCR: ocr/; CAIE: caie/; WJEC: wjec/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
@@ -52,6 +52,10 @@ import caieIgcseChemistry from "./questionBank/caie-igcse-chemistry.json";
 import caieIgcsePhysics from "./questionBank/caie-igcse-physics.json";
 import caieIgcseMaths from "./questionBank/caie-igcse-maths.json";
 import caieIgcseAdditionalMaths from "./questionBank/caie-igcse-additional-maths.json";
+import wjecBiology from "./questionBank/wjec-a-level-biology.json";
+import wjecChemistry from "./questionBank/wjec-a-level-chemistry.json";
+import wjecPhysics from "./questionBank/wjec-a-level-physics.json";
+import wjecMaths from "./questionBank/wjec-a-level-maths.json";
 
 /**
  * `year`: 1 for AS content, 2 for A-Level only, 3 for a Paper 3 option (Physics, Psychology), 0 where the bank doesn't split by year (maths, GCSE, IGCSE, the rest of Psychology).
@@ -99,7 +103,7 @@ export interface BankPart {
 
 export interface BankSubject {
   slug: string;
-  board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE";
+  board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE" | "WJEC";
   level: "A-Level" | "GCSE" | "IGCSE";
   subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics A";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)", "Chemistry B (Salters)". */
@@ -129,7 +133,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, biology, chemistry, physics, psychology, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -165,7 +169,7 @@ export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) =
 
 /** Who owns the questions, for credits: "AQA", "Pearson Edexcel". */
 export const bankOwner = (s: Pick<BankSubject, "board">) =>
-  s.board === "Edexcel" ? "Pearson Edexcel" : s.board === "OCR MEI" ? "OCR" : s.board === "CAIE" ? "Cambridge University Press & Assessment" : s.board;
+  s.board === "Edexcel" ? "Pearson Edexcel" : s.board === "OCR MEI" ? "OCR" : s.board === "CAIE" ? "Cambridge University Press & Assessment" : s.board === "WJEC" ? "WJEC CBAC Ltd" : s.board;
 /** The years a bank's questions come from, or what it covers where that says more: "2016–2025", "June 2024 and the specimen papers". */
 export const bankYears = (s: Pick<BankSubject, "scope" | "firstYear" | "lastYear">) => s.scope ?? `${s.firstYear}–${s.lastYear}`;
 /** The subject without its specification letter: "Biology" for "Biology A". */
