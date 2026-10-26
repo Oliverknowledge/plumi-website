@@ -1,12 +1,13 @@
-"""Write the AQA A-Level Maths bank's data files from the cut parts and their tags.
+"""Write the AQA A-Level Maths bank's data files from the cut questions and their tags.
 
     python3 scripts/question-bank/aqa_maths/build_maths.py [work-dir]   # default scripts/question-bank/.work/aqa-maths
 
 build_bank.py for Maths: the same rows and files (src/content/questionBank/aqa-a-level-maths.json
 and public/question-bank/aqa-a-level-maths/{parts,text,reports}.json). What differs: the
 topics are spec_maths.py's (the specification's lettered sections, A Proof to S Moments,
-under Pure, Statistics and Mechanics), labels are printed "9(a)(ii)", and, as in the
-other maths banks, every part is a calculation (`noCalc`).
+under Pure, Statistics and Mechanics), and, as in the other maths banks, each row is a
+whole question, its report keyed by the question (`reportsBy`), and every question is
+a calculation (`noCalc`).
 """
 import json, os, re, sys
 
@@ -18,23 +19,11 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "..", ".work", "aqa-maths")
 SLUG = "aqa-a-level-maths"
 PAPERS = {"73571": "Pure mathematics", "73572": "Pure mathematics and mechanics", "73573": "Pure mathematics and statistics"}
-ROMAN = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6}
-
-
-def label_order(label):
-    """'9(a)(ii)' -> (9, 'a', 2), so 10 follows 9 and (ii) follows (i)."""
-    q, a, r = re.fullmatch(r"(\d+)(?:\(([a-h])\))?(?:\(([ivx]+)\))?", label).groups()
-    return int(q), a or "", ROMAN.get(r or "", 0)
 
 
 def own_text(p):
-    """The part's own words: after its label ("9 (a) (ii)"), past any opening carried above it."""
-    text = p["text"]
-    q, a, r = label_order(p["label"])
-    pat = rf"\b{q}\s*" + (rf"\(\s*{a}\s*\)\s*" if a else "") + (rf"\(\s*{p['label'].rsplit('(', 1)[1].rstrip(')')}\s*\)\s*" if r else "")
-    hits = list(re.finditer(pat, text)) if a else []
-    words = text[hits[-1].end():] if hits else re.sub(rf"^{q}\s+", "", text)
-    return re.sub(r"\s+", " ", BOILERPLATE.sub(" ", words)).strip()
+    """The question's words, after its number."""
+    return re.sub(r"\s+", " ", BOILERPLATE.sub(" ", re.sub(rf"^{int(p['question'])}\s+", "", p["text"]))).strip()
 
 
 def main():
@@ -59,18 +48,16 @@ def main():
             continue
         row = {"id": p["id"], "p": p["component"], "s": p["series"], "l": p["label"], "m": p["marks"],
                "t": [c for c in tags.get(p["id"], []) if c in valid], "w": p["w"], "h": p["h"], "x": own_text(p)[:160]}
-        if p.get("stem"):
-            row["st"] = 1
         if p.get("ms"):
             row["ms"] = 1
         elif wholes.get(f"{p['component']}-{p['series']}", {}).get("ms"):
             row["msf"] = wholes[f"{p['component']}-{p['series']}"]["ms"]  # no crop: link the whole scheme
         if p.get("er"):
             row["er"] = 1
-            reports.setdefault(f"{p['set']}-{p['question']}", p["er"])
+            reports[p["id"]] = p["er"]
         rows.append(row)
         text[p["id"]] = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", p["text"] + " " + p.get("msText", "")).lower())
-    rows.sort(key=lambda r: (-series_rank(r["s"]), r["p"], label_order(r["l"])))
+    rows.sort(key=lambda r: (-series_rank(r["s"]), r["p"], int(r["l"])))
     counts = {}
     for r in rows:
         for c in r["t"]:
@@ -88,7 +75,7 @@ def main():
         "papers": [{"id": c, "name": f"Paper {c[-1]}", "title": PAPERS[c], "as": False} for c in comps],
         "series": [{"id": s, "label": series_label(s)} for s in series],
         "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},
-        "noCalc": True,
+        "noCalc": True, "reportsBy": "question",
         "count": len(rows), "firstYear": min(years), "lastYear": max(years),
         "sample": rows[:20],
     }
@@ -97,8 +84,8 @@ def main():
     os.makedirs(pub, exist_ok=True)
     for fname, data in (("parts", rows), ("text", text), ("reports", reports)):
         json.dump(data, open(os.path.join(pub, f"{fname}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
-    print(f"{SLUG}: {len(rows)} parts, {sum(1 for r in rows if r['t'])} tagged, {len(reports)} reports, "
-          f"{sum(1 for r in rows if r.get('ms'))} scheme crops, {sum(1 for r in rows if r.get('st'))} with a stem, papers {comps}", file=sys.stderr)
+    print(f"{SLUG}: {len(rows)} questions, {sum(1 for r in rows if r['t'])} tagged, {len(reports)} reports, "
+          f"{sum(1 for r in rows if r.get('ms'))} scheme crops, papers {comps}", file=sys.stderr)
 
 
 if __name__ == "__main__":

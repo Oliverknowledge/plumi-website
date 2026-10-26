@@ -1,29 +1,25 @@
-"""Cut AQA's A-Level Maths papers into question parts, each with its mark scheme rows.
+"""Cut AQA's A-Level Maths papers into questions, each with its mark scheme rows.
 
     python3 scripts/question-bank/aqa_maths/cut_maths.py [work-dir] [--only=73571-jun23]   # default scripts/question-bank/.work/aqa-maths
 
-cut.py's shape (a crop per part, the question's opening as its stem, the
-scheme's rows for that part, the report's paragraph for the whole question),
-read off the maths papers' own layout:
+As in the other maths banks (cut_edexcel.py), the unit is the whole question: in
+maths a later part builds on an earlier one. Read off AQA's maths layout:
   - Every part prints its whole label in bold in the left margin: "9", "9 (a)",
-    "9 (a) (ii)". A bare "9" followed by labelled parts is the question's stem; a
-    "10 (a)" followed by "10 (a) (i)" is the opening of (a), so it goes on top of (a)(i)
-    and of (a)(ii).
-  - A part's crop ends where its answer lines begin (rows of underscores): the
-    rest of the page, and any page after it, is space to write in. Parts with no
-    answer lines (multiple choice, a sketch on printed axes) run to the next label.
+    "9 (a) (ii)". Each label's words run from it to where its answer lines begin
+    (rows of underscores): the rest of the page, and any page after it, is space to
+    write in. Labels with no answer lines (an opening, multiple choice, a sketch on
+    printed axes) run to the next label. A question is its labels' words stacked in
+    order, with the space to write in left out.
   - "Section B" and its instructions, between the Pure and the Mechanics or
     Statistics questions, are left out.
   - The scheme is a table, "Q | Marking instructions | AO | Marks | Typical
-    solution", one row group per part ("9(a)(ii)", or "4a" in June 2018). A part's
-    rows run from its label to the next label, across pages, with the column
-    headings over its first row and below them on a continuation page. A part the
-    scheme marks together with its siblings ("5(a)" for "5(a)(i)" and "5(a)(ii)")
-    shares that crop; one it splits further takes all of its rows.
+    solution", one row group per part ("9(a)(ii)", or "4a" and then "(b)" in June
+    2018). A question's rows run from its first label to the next question's, across
+    pages, with the column headings over its first row and below them on a
+    continuation page.
   - The reports head each question "Question 4" (November 2020 Paper 1: "Q4").
-Writes <work-dir>/img/<id>-qp.webp, -ms.webp, <set>-<q>-stem.webp and
-<work-dir>/parts.json in cut.py's shape. Ids: "73571-jun23-09-aii" (one segment
-after the question, so partImage finds the stem "73571-jun23-09-stem").
+Writes <work-dir>/img/<id>-qp.webp and -ms.webp, and <work-dir>/parts.json in
+cut_edexcel.py's shape (one entry per question, id "73571-jun23-09").
 """
 import json, os, re, sys
 from concurrent.futures import ProcessPoolExecutor
@@ -84,12 +80,8 @@ def spans(page):
 
 
 def key_of(q, a, r):
-    """('09', 'a', 'ii') -> '09aii': the part's key on both sides, and its id suffix."""
+    """('09', 'a', 'ii') -> '09aii': a label's key in the paper and in the scheme."""
     return f"{int(q):02d}{a or ''}{r or ''}"
-
-
-def label_of(q, a, r):
-    return f"{int(q)}" + (f"({a})" if a else "") + (f"({r})" if r else "")
 
 
 def qp_labels(doc):
@@ -260,34 +252,13 @@ def ms_regions(doc):
     return out
 
 
-def scheme_for(key, ms_map):
-    """The part's own rows; or all its sub-parts' rows; or the rows of the part it sits in."""
-    if key in ms_map:
-        return ms_map[key]
-    q, a, r = split_key(key)
-    kids = [k for k in ms_map if k != key and split_key(k)[0] == q and (not a or (split_key(k)[1] == a and not r))]
-    if kids:
-        pieces = [pc for k in kids for pc in ms_map[k][0]]
-        return pieces, "\n".join(ms_map[k][1] for k in kids)
-    for up in (q + a, q):
-        if up in ms_map:
-            return ms_map[up]
-    return None
-
-
 def split_key(key):
     """'09aii' -> ('09', 'a', 'ii')."""
     return re.fullmatch(r"(\d\d)([a-h]?)([ivx]*)", key).groups()
 
 
-def opens(later, label):
-    """Is `later` a sub-part of `label`: "9 (a)" after "9", "10 (a) (i)" after "10 (a)"?"""
-    (q, a, r), (lq, la, lr) = label, later
-    return lq is not None and int(lq) == int(q) and not r and ((not a and la) or (a and la == a and lr))
-
-
 def merge_pieces(pieces):
-    """Join a stem and the piece under it on the same page, so a moved opening reads as one crop."""
+    """Join pieces that touch on the same page (one label's words and the next's), so they read as one crop."""
     out = []
     for pg, r in pieces:
         if out and out[-1][0] == pg and abs(out[-1][1].y1 - r.y0) < 12:
@@ -298,12 +269,17 @@ def merge_pieces(pieces):
 
 
 def examiner_report(path):
-    """{question: its comments}: cut.py's reading, with November 2020 Paper 1's "Q4" headings read as "Question 4"."""
+    """{question: its comments}: cut.py's reading, with November 2020 Paper 1's "Q4" headings read as "Question 4"
+    and the pages' running headers and footers taken out wherever they fall."""
     if not path or not os.path.exists(path):
         return {}
     text = "\n".join(p.get_text() for p in pymupdf.open(path))
     text = re.sub(r"\n\s*Q(\d{1,2})\s*\n", r"\nQuestion \1\n", text)
-    text = re.sub(r"REPORT ON THE EXAMINATION[^\n]*\n|\n\s*\d+ of \d+\s*\n", "\n", text)
+    # Each page's running header and footer, in capitals or not (June 2025): "Report on the examination
+    # – A-level - Mathematics – 7357/1 – June 2025", "© 2025 AQA and its licensors. All rights reserved.", "9 of 9".
+    # The block and the blank lines round it go as one, so a sentence carried over the page reads on.
+    page_break = r"[ \t]*(?:report on the examination\b.*|©\s*\d{4} AQA\b.*|\d+ of \d+)[ \t]*"
+    text = re.sub(rf"(?:\n[ \t]*)*\n{page_break}(?:\n(?:{page_break}|[ \t]*))*(?=\n)", "", text, flags=re.I)
     parts = re.split(r"\n\s*Question (\d{1,2})(?:\s*\([^)\n]*\))?\s*\n", text)
     out = {}
     for k in range(1, len(parts) - 1, 2):
@@ -322,45 +298,26 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     ms = pymupdf.open(ms_path) if ms_path and os.path.exists(ms_path) else None
     ms_map = ms_regions(ms) if ms else {}
     er = examiner_report(er_path)
-    # Openings: a bare question number with labelled parts after it is the stem; a part
-    # label with sub-parts after it ("10 (a)" before "10 (a) (i)") goes on top of each of them.
-    labels = [lab for _, lab, *_ in regions]
-    stems, carry = {}, {}
+    questions = {}
+    for _, (q, _, _), pieces, full in regions:
+        questions.setdefault(f"{int(q):02d}", []).append((pieces, full))
     parts = []
-    for n, (key, (q, a, r), pieces, full) in enumerate(regions):
-        q = f"{int(q):02d}"
-        later = labels[n + 1] if n + 1 < len(labels) else (None, None, None)
-        if opens(later, (q, a, r)):
-            if not a:
-                stems[q] = (pieces, full)
-            else:
-                carry[(q, a)] = (pieces, full)
-            continue
-        if r and (q, a) in carry:
-            pieces = merge_pieces(carry[(q, a)][0] + pieces)
-            full = carry[(q, a)][1] + "\n" + full
-        whole = not a and q not in stems
-        pid = f"{set_id}-{q}" if whole else f"{set_id}-{q}-{key[2:]}"
+    for q, labels in questions.items():
+        pieces = merge_pieces([pc for pcs, _ in labels for pc in pcs])
+        pid = f"{set_id}-{q}"
         qimg = cut.stack([cut.trim_bottom(cut.render(qp[pg], rc)) for pg, rc in pieces])
-        found = scheme_for(key, ms_map)
-        msimg, ms_text = None, ""
-        if found and found[0]:
-            msimg = cut.stack([cut.trim_bottom(cut.render(ms[pg], rc), 12) for pg, rc in found[0]])
-            ms_text = found[1]
-        stem_name = None
-        if not whole and q in stems:
-            stem_name = f"{set_id}-{q}-stem.webp"
-            if not os.path.exists(os.path.join(IMG, stem_name)):
-                cut.save(cut.stack([cut.trim_bottom(cut.render(qp[pg], rc), 16) for pg, rc in stems[q][0]]), stem_name)
-        m = re.findall(r"\[(\d+) marks?\]", full)
+        rows = [ms_map[k] for k in ms_map if split_key(k)[0] == q]
+        mpieces = merge_pieces([pc for pcs, _ in rows for pc in pcs])
+        msimg = cut.stack([cut.trim_bottom(cut.render(ms[pg], rc), 12) for pg, rc in mpieces]) if mpieces else None
+        m = [int(x) for _, full in labels for x in re.findall(r"\[(\d+) marks?\]", full)]
         own = "\n".join(clip_text(qp[pg], rc) for pg, rc in pieces)
         parts.append({
-            "id": pid, "set": set_id, **meta, "question": q, "part": None if whole else key[2:], "label": label_of(q, a, r),
-            "marks": sum(int(x) for x in m) if m else None,
-            "qp": cut.save(qimg, f"{pid}-qp.webp"), "ms": cut.save(msimg, f"{pid}-ms.webp"), "stem": stem_name,
+            "id": pid, "set": set_id, **meta, "question": q, "part": None, "label": str(int(q)),
+            "marks": sum(m) if m else None,
+            "qp": cut.save(qimg, f"{pid}-qp.webp"), "ms": cut.save(msimg, f"{pid}-ms.webp"), "stem": None,
             "w": qimg.width if qimg else 0, "h": qimg.height if qimg else 0,
-            "text": re.sub(r"\s+", " ", (stems.get(q, ("", ""))[1] if not whole else "") + " " + own).strip()[:1500],
-            "msText": re.sub(r"\s+", " ", ms_text).strip()[:800],
+            "text": re.sub(r"\s+", " ", own).strip()[:1500],
+            "msText": re.sub(r"\s+", " ", "\n".join(t for _, t in rows)).strip()[:800],
             "er": er.get(q),
         })
     return parts
@@ -392,12 +349,12 @@ def main():
                 continue
             no_ms = sum(1 for p in parts if not p["ms"])
             no_marks = sum(1 for p in parts if p["marks"] is None)
-            print(f"{set_id}: {len(parts)} parts, {no_ms} without scheme, {no_marks} without marks, {sum(1 for p in parts if p['er'])} with report", file=sys.stderr, flush=True)
+            print(f"{set_id}: {len(parts)} questions, {no_ms} without scheme, {no_marks} without marks, {sum(1 for p in parts if p['er'])} with report", file=sys.stderr, flush=True)
             if not parts or no_ms > len(parts) / 4:
                 problems.append(f"{set_id}: {len(parts)} parts, {no_ms} without scheme")
             all_parts += parts
     json.dump(all_parts, open(os.path.join(WORK, "parts.json"), "w"), ensure_ascii=False)
-    print(f"{len(all_parts)} parts; problems: {len(problems)}", file=sys.stderr)
+    print(f"{len(all_parts)} questions; problems: {len(problems)}", file=sys.stderr)
     for p in problems:
         print("  ", p, file=sys.stderr)
 
