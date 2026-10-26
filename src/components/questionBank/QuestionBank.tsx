@@ -85,6 +85,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
+  const [withReports, setWithReports] = useState(false);
   const [typed, setTyped] = useState<string | null>(null); // null: the box shows the URL's search
   const query = typed ?? f.q;
   const set = useQuestionSet(subject.slug);
@@ -267,6 +268,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   }
   const [openGroup, setOpenGroup] = useState<string | null>(null);
 
+  const hasReports = useMemo(() => !!parts?.some(p => p.er), [parts]);
   async function downloadRange(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const raw = String(new FormData(e.currentTarget).get("range") ?? "");
@@ -289,15 +291,21 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       }
     }
     if (!picks.size) { setRangeNote("Those numbers aren’t in this list."); return; }
+    // The PDF reads as the list does: in number order ("7, 2–4" gives 2, 3, 4, 7), each question labelled with its number.
+    const order = [...numbers].sort((a, b) => a - b);
+    const numbered = new Map<string, number>();
+    for (const i of order) for (const p of results[i - 1]) numbered.set(p.id, i);
+    const ordered = order.flatMap(i => results[i - 1].filter(p => picks.has(p)));
     setRangeNote("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      const skipped = await buildSetPdf(subject, [...picks], { markSchemes: true, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, via: "range", skipped, whole: whole ? 1 : 0 });
+      const reports = withReports && hasReports;
+      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, reports: reports ? 1 : 0, via: "range", skipped, whole: whole ? 1 : 0 });
       const what = whole ? `${numbers.size} whole ${numbers.size === 1 ? "question" : "questions"}` : `${picks.size} ${picks.size === 1 ? "question" : "questions"}`;
       setRangeNote(skipped
         ? `Saved, but ${skipped} of ${picks.size * 2} pages couldn’t be added. Try again in a moment.`
-        : `Saved ✓ ${what}, mark schemes at the back${capped ? ` (${SET_MAX} parts is the most in one go)` : ""}`);
+        : `Saved ✓ ${what}, mark schemes${reports ? " and examiner’s reports" : ""} at the back${capped ? ` (${SET_MAX} parts is the most in one go)` : ""}`);
     } catch {
       setRangeNote("Couldn’t build it. Try again?");
     }
@@ -431,6 +439,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <input id="qb-range-input" name="range" placeholder="e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
               <button type="submit" className="lp-btn" disabled={!results}>Download PDF</button>
             </div>
+            {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports with the mark schemes</label>}
             {rangeNote && <span className="qb-range-note" role="status">{rangeNote}</span>}
           </form>
         </div>
