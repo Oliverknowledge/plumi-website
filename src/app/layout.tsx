@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { appStoreCampaignToken, appStoreProviderToken, assertLaunchConfig, entityDescription, site } from "@/config/site";
 import { intentFor } from "@/config/routes";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { GoogleAds } from "@/components/GoogleAds";
 import { ConsentBanner } from "@/components/ConsentBanner";
@@ -51,5 +52,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: "#f6efe1", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en-GB" className={cosyFonts}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/>{children}<ConsentBanner/><Analytics/></body></html>;
+  return <html lang="en-GB" className={cosyFonts}><body className="antialiased"><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/>{children}<ConsentBanner/><Analytics/><SpeedInsights/></body></html>;
 }
