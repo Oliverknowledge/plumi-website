@@ -31,7 +31,7 @@ function QuietPlumi() {
 }
 
 function Credit({ subject }: { subject?: BankSubject }) {
-  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR, WJEC Eduqas and Cambridge University Press & Assessment";
+  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR, WJEC Eduqas, Cambridge University Press & Assessment and WJEC CBAC Ltd";
   // Not every bank subject has a library page yet (Psychology): then the library's front door.
   const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
   const library = subject && boardPapers(hub, board) ? subject : undefined;
@@ -54,9 +54,9 @@ function Credit({ subject }: { subject?: BankSubject }) {
 const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject) => boolean }[] = [
   { id: "gcse", name: "GCSE", jump: "GCSE", match: s => s.level === "GCSE" },
   { id: "igcse", name: "Cambridge International (CAIE) IGCSE", jump: "CAIE IGCSE", match: s => s.level === "IGCSE" },
-  ...(["Edexcel", "AQA", "OCR", "Eduqas", "CAIE"] as const).map(board => ({
+  ...(["Edexcel", "AQA", "OCR", "Eduqas", "CAIE", "WJEC"] as const).map(board => ({
     id: `a-level-${board.toLowerCase()}`,
-    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : `${board} A-Level`,
+    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : board === "WJEC" ? "WJEC AS & A Level (Wales)" : `${board} A-Level`,
     jump: board === "CAIE" ? "CAIE A Level" : `${board} A-Level`,
     match: (s: BankSubject) => s.level === "A-Level" && s.board.split(" ")[0] === board,
   })),
@@ -65,13 +65,13 @@ const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject)
 export function BankHub() {
   const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology and Edexcel A-Level Economics A exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level, and Edexcel and OCR A-Level, Biology, Chemistry and Physics, and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology and Edexcel A-Level Economics A exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas and Cambridge (CAIE) past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
             <nav className="qb-levels" aria-label="Jump to a shelf">
               {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
             </nav>
