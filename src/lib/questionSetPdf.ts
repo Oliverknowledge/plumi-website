@@ -12,7 +12,7 @@ const SOFT = rgb(0.48, 0.4, 0.36);
  *
  * Fetched with no-store: the page has usually shown the crop already through an <img>,
  * which the file host answers without CORS headers (and without Vary: Origin), and the
- * browser would hand that cached copy to fetch() and block it. One retry for a blip.
+ * browser would hand that cached copy to fetch() and block it.
  *
  * Encoded with toDataURL, which pdf-lib takes as is: toBlob is throttled to about a
  * second a call while the tab is in the background, so a big set built while someone
@@ -28,9 +28,8 @@ const PRINT_H = A4.h - MARGIN * 2 - 40;
  * no line of text is split.
  */
 async function asJpeg(url: string): Promise<Slice[] | null> {
-  let res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
-  if (!res?.ok) res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
-  if (!res?.ok) return null;
+  const res = await paced(url);
+  if (!res) return null;
   const bitmap = await createImageBitmap(await res.blob());
   const canvas = document.createElement("canvas");
   canvas.width = bitmap.width;
@@ -61,6 +60,29 @@ async function asJpeg(url: string): Promise<Slice[] | null> {
     top = cut;
   }
   return slices;
+}
+
+/**
+ * The file host (R2's public r2.dev address) turns a burst of a couple of hundred requests
+ * away for a few seconds, without CORS headers, so fetch() sees only a failure: a big set
+ * lost a third of its pages. So requests start at most one every PACE ms, and after a
+ * failure every request waits, longer each time (1, 2, 4, 8, 16 s), before trying again.
+ */
+const PACE = 70;
+let nextStart = 0;
+let coolOff = 0;
+async function paced(url: string): Promise<Response | null> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const now = Date.now();
+    const at = Math.max(nextStart, coolOff, now);
+    nextStart = at + PACE;
+    if (at > now) await new Promise(r => setTimeout(r, at - now));
+    const res = await fetch(url, { mode: "cors", cache: "no-store" }).catch(() => null);
+    if (res?.ok) return res;
+    if (res?.status === 404) return null; // not there: waiting won't help
+    coolOff = Math.max(coolOff, Date.now() + 1000 * 2 ** attempt);
+  }
+  return null;
 }
 
 /**
