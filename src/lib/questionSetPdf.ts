@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { bankOwner, bankTitle, paperName, partImage, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionKey, questionOf, reportKey, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -78,15 +78,23 @@ function limited(width: number) {
 }
 
 /**
- * The set as one A4 PDF: a title, each question with a one-line label ("June 2023 ·
- * Paper 1 · Q01.4 · 1 mark") and its crop at print size, then, if asked, the mark
- * schemes in the same order. Crops never split across pages; a tall one is scaled
- * to fit. The last line of each page says where it came from, quietly.
+ * Helvetica draws WinAnsi only: anything else in a report (≥, →, Greek) becomes its
+ * nearest plain form, or goes.
  */
-export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: { markSchemes: boolean; onProgress?: (done: number, total: number) => void }): Promise<number> {
-  // Paper order, not the order they were tapped: series (newest first), paper, question.
-  const seriesRank = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? Number(y[1]) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : 6) : 0; };
-  const parts = [...picked].sort((a, b) => seriesRank(b.s) - seriesRank(a.s) || a.p.localeCompare(b.p) || a.s.localeCompare(b.s) || a.l.localeCompare(b.l, undefined, { numeric: true }));
+const PLAIN: Record<string, string> = { "≥": ">=", "≤": "<=", "≠": "!=", "→": "->", "←": "<-", "−": "-", "‐": "-", "‑": "-", "√": "sqrt", "≈": "~", "∆": "delta", "Δ": "delta", "θ": "theta", "λ": "lambda", "μ": "u", "π": "pi", "Ω": "ohm", "\u00a0": " " };
+
+/**
+ * The set as one A4 PDF: a title, each question with a one-line label ("3 · June 2023 ·
+ * Paper 1 · Q01.4 · 1 mark", numbered as on the page it came from) and its crop at
+ * print size, then, if asked, the mark schemes and the examiner's reports in the same
+ * order: each question's report once, after its last part's scheme. Questions keep the
+ * order they were picked in, so the PDF reads as the list on screen did.
+ */
+export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: {
+  markSchemes: boolean; reports?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
+}): Promise<number> {
+  const parts = [...picked];
+  const reports: Record<string, string> = opts.reports ? await fetch(bankDataPath(subject.slug, "reports")).then(r => r.json()).catch(() => ({})) : {};
   let skipped = 0;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);
@@ -149,14 +157,15 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     }
   }
 
-  const labelFor = (p: BankPart) => `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
+  const num = (p: BankPart) => (opts.numbers?.has(p.id) ? `${opts.numbers.get(p.id)} · ` : "");
+  const labelFor = (p: BankPart) => `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
   // Each question's start (its setup, before part .1) goes in once, above its first part.
   const stemsDone = new Set<string>();
   for (const p of parts) {
-    const q = `${p.p}-${p.s}-${p.l.split(".")[0]}`;
+    const q = questionKey(p); // "12" for 12(a) as well as 01 for 01.4
     if (p.st && !stemsDone.has(q)) {
       stemsDone.add(q);
-      crops.push(want({ part: p, kind: "stem", label: `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${p.l.split(".")[0]}` }));
+      crops.push(want({ part: p, kind: "stem", label: `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
@@ -165,23 +174,80 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
 
   for (const c of crops) await drawn(c);
 
-  if (opts.markSchemes) {
-    // The schemes start on a fresh page, their heading drawn with the first one.
-    if (y < A4.h - MARGIN) {
-      page = pdf.addPage([A4.w, A4.h]);
-      footer(page);
-      y = A4.h - MARGIN;
+  // An examiner's report covers a whole question (in some banks, each item has its own): each goes in once,
+  // after the last of its parts here. A word Helvetica can't draw is put plainly.
+  const reportAfter = new Map<string, BankPart>();
+  const reportNums = new Map<string, number[]>(); // the list numbers a report covers: "1–3 · Examiner's report"
+  const reportLabels = new Map<string, Set<string>>(); // the parts of it picked: "11(b)"
+  for (const p of parts) {
+    const key = reportKey(subject, p.id);
+    if (!reports[key]) continue;
+    reportAfter.set(key, p);
+    reportLabels.set(key, (reportLabels.get(key) ?? new Set()).add(p.l));
+    const n = opts.numbers?.get(p.id);
+    if (n != null) reportNums.set(key, [...(reportNums.get(key) ?? []), n]);
+  }
+  const plain = (text: string) => [...text].map(ch => {
+    if (PLAIN[ch] !== undefined) return PLAIN[ch];
+    try { font.widthOfTextAtSize(ch, 10); return ch; } catch { return ""; }
+  }).join("");
+  const newPage = () => { page = pdf.addPage([A4.w, A4.h]); footer(page); y = A4.h - MARGIN; };
+  function drawReport(p: BankPart) {
+    const key = reportKey(subject, p.id);
+    if (reportAfter.get(key) !== p) return;
+    const size = 9.5, lead = 13, width = A4.w - MARGIN * 2;
+    const lines: { text: string; head: boolean }[] = [];
+    // A report headed part by part ("Question 11(a)", Pearson's) keeps only the parts picked, and what comes before the first heading.
+    let paras = reports[key].split(/\n{2,}/).map(t => plain(t.trim())).filter(Boolean);
+    const picked = reportLabels.get(key)!;
+    let under: string | null = null;
+    const ours = (h: string) => [...picked].some(l => l === h || l.startsWith(`${h}(`) || h.startsWith(`${l}(`)); // "11(b)" under "11", "11(b)(i)" under "11(b)"
+    const mine = paras.filter(t => { const h = t.match(/^Question (\S+)$/); if (h) under = h[1]; return under === null || ours(under); });
+    if (mine.some(t => /^Question \S+$/.test(t))) paras = mine;
+    for (const para of paras) {
+      const head = /^Question \S+$/.test(para);
+      let line = "";
+      for (const word of para.split(/\s+/)) {
+        const next = line ? `${line} ${word}` : word;
+        if (line && (head ? bold : font).widthOfTextAtSize(next, size) > width) { lines.push({ text: line, head }); line = word; } else line = next;
+      }
+      if (line) lines.push({ text: line, head });
+      lines.push({ text: "", head: false });
     }
-    pending = { title: "Mark schemes" };
+    if (y - 40 < MARGIN + 10) newPage();
+    if (pending) { drawHeading(pending); pending = null; }
+    const q = key === p.id ? `Q${p.l}` : `question ${questionOf(p.l)}`;
+    // Runs of numbers as ranges: "1–3", "1, 3", "2–4, 7".
+    const runs: number[][] = [];
+    for (const n of [...new Set(reportNums.get(key))].sort((x, y) => x - y)) {
+      const last = runs.at(-1);
+      if (last && n === last[last.length - 1] + 1) last.push(n); else runs.push([n]);
+    }
+    const covers = runs.length ? `${runs.map(r => (r.length > 1 ? `${r[0]}–${r[r.length - 1]}` : `${r[0]}`)).join(", ")} · ` : "";
+    page.drawText(`${covers}Examiner's report · ${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · ${q}`, { x: MARGIN, y: y - 10, size: 9.5, font: bold, color: INK });
+    y -= 22;
+    for (const l of lines) {
+      if (y - lead < MARGIN + 10) newPage();
+      if (l.text) page.drawText(l.text, { x: MARGIN, y: y - size, size, font: l.head ? bold : font, color: l.head ? INK : SOFT });
+      y -= l.text ? lead : lead / 2;
+    }
+    y -= GAP / 2;
+  }
+
+  if (opts.markSchemes || opts.reports) {
+    // The schemes (and reports) start on a fresh page, their heading drawn with the first one.
+    if (y < A4.h - MARGIN) newPage();
+    pending = { title: opts.markSchemes && opts.reports ? "Mark schemes and examiner's reports" : opts.markSchemes ? "Mark schemes" : "Examiner's reports" };
     for (const p of parts) {
-      const c = msCrops.get(p);
+      const c = opts.markSchemes ? msCrops.get(p) : undefined;
       if (c) await drawn(c);
-      else if (p.k) {
-        if (y - 20 < MARGIN + 10) { page = pdf.addPage([A4.w, A4.h]); footer(page); y = A4.h - MARGIN; }
+      else if (opts.markSchemes && p.k) {
+        if (y - 20 < MARGIN + 10) newPage();
         if (pending) { drawHeading(pending); pending = null; }
         page.drawText(`${labelFor(p)}: answer ${p.k}`, { x: MARGIN, y: y - 12, size: 10.5, font: bold, color: INK });
         y -= 24;
       }
+      if (opts.reports) drawReport(p);
     }
   }
 
