@@ -146,7 +146,7 @@ export function CosyHome({ variant }: { variant?: string }) {
               <ul className="pk-feature-packs">
                 {practicePacks.map(p => (
                   <li key={p.slug} className="pk-feature-pack">
-                    <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} /></Link>
+                    <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} small /></Link>
                     <PackLadder pack={p} />
                     <PackDownloads pack={p} placement="home" />
                     <p className="pk-disclaimer">{p.disclaimer}</p>

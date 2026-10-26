@@ -80,6 +80,20 @@
 .pk-feature-pack .pk-dls { gap: 8px; }
 .lp .pk-feature-pack .pk-dl { font-size: 14px; padding: 6px 10px; }
 .pk-disclaimer { margin: 0; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); font-style: italic; }
+/* With four packs the feature was taller than the page it sat in (founder, 26 October: "a bit too tall"):
+   each pack is a small card, its cover beside its downloads and disclaimer, not a column. */
+@media (min-width: 621px) {
+  .pk-feature-packs { gap: 22px 30px; }
+  .pk-feature-pack { grid-template-columns: 132px minmax(0, 1fr); column-gap: 14px; row-gap: 8px; align-items: center; }
+  .lp .pk-feature-pack > a.pk-cover-link { grid-row: 1 / span 2; }
+  .pk-feature-pack > .pk-dls, .pk-feature-pack > .pk-disclaimer { grid-column: 2; }
+  /* the ladder and its key are on every pack's own page and the hub; here they only made it taller */
+  .pk-feature-pack > .pk-ladder, .pk-feature-right > .pk-legend { display: none; }
+  .pk-feature-pack > .pk-dls { flex-direction: column; align-items: flex-start; gap: 6px; align-self: end; }
+  .pk-feature-pack .pk-pdf { display: none; }
+  .pk-feature-pack > .pk-disclaimer { font-size: 11px; line-height: 1.35; align-self: start; }
+  .pk-feature-pack .pk-stamp { width: 46px; height: 46px; font-size: 18px; right: -12px; bottom: -6px; }
+}
 
 /* the hero's Practice papers ticket, first, with a NEW tag */
 .lp .lp-ticket.pk-ticket { position: relative; background: #fff4dd; }
