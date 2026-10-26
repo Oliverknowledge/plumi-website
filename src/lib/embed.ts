@@ -30,19 +30,20 @@ export function withEmbedParams(href: string, partner: string | null, topic: str
   return relative ? `${url.pathname}${url.search}${url.hash}` : url.toString();
 }
 
-/** The App Store listing for an embed visitor on iPhone or iPad, or null if the site has none. */
+/** The App Store listing for an embed visitor on iPad, or null if the site has none. */
 export function embedAppStoreHref(partner: string | null, topic: string): string | null {
   const store = appStoreLink("embed");
   return store ? withEmbedParams(store, partner, topic) : null;
 }
 
 /**
- * iPhone, iPod or iPad. iPadOS 13+ Safari reports itself as a Mac, so a "Mac" with a
- * touch screen is an iPad. Browser only.
+ * An iPad, the only device Plumi installs on (iPhone visitors go to the topic page, as
+ * the site's own App Store badge treats them). iPadOS 13+ Safari reports itself as a
+ * Mac, so a "Mac" with a touch screen is an iPad. Browser only.
  */
 export function isAppleTouchDevice(): boolean {
   if (typeof navigator === "undefined") return false;
-  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return true;
+  if (/iPad/.test(navigator.userAgent)) return true;
   return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
 }
 
