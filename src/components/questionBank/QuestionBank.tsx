@@ -271,8 +271,10 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const hasReports = useMemo(() => !!parts?.some(p => p.er), [parts]);
   async function downloadRange(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const raw = String(new FormData(e.currentTarget).get("range") ?? "");
-    if (!results || !raw.trim()) return;
+    // Left blank, it's the whole list as filtered ("Bonding", say), up to what one PDF holds.
+    const typed = String(new FormData(e.currentTarget).get("range") ?? "").trim();
+    if (!results?.length) return;
+    const raw = typed || `1-${results.length}`;
     // Up to SET_MAX parts, as a set holds. A number typed twice ("1–5, 3") goes in once; a whole question goes in whole or not at all.
     const picks = new Set<BankPart>();
     const numbers = new Set<number>();
@@ -436,7 +438,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
             <div>
-              <input id="qb-range-input" name="range" placeholder="e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
+              <input id="qb-range-input" name="range" placeholder="All, or e.g. 1–20 or 2–4, 7" inputMode="numeric" autoComplete="off" />
               <button type="submit" className="lp-btn" disabled={!results}>Download PDF</button>
             </div>
             {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports with the mark schemes</label>}
