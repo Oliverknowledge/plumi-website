@@ -46,11 +46,11 @@ PRACTICAL = re.compile(
 
 
 def banks():
-    """The science banks: every subject whose name is Biology, Chemistry or Physics (any board, any letter)."""
+    """The science banks: every subject whose name is Biology, Chemistry or Physics (any board, any letter), and Combined Science."""
     out = []
     for path in sorted(glob.glob(os.path.join(ROOT, "src", "content", "questionBank", "*.json"))):
         meta = json.load(open(path))
-        if isinstance(meta, dict) and re.match(r"(Biology|Chemistry|Physics)\b", meta.get("subject", "")) and (not ONLY or meta["slug"] in ONLY):
+        if isinstance(meta, dict) and re.match(r"(Biology|Chemistry|Physics|Combined Science)\b", meta.get("subject", "")) and (not ONLY or meta["slug"] in ONLY):
             out.append(meta)
     return out
 
