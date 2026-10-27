@@ -215,6 +215,44 @@ npm run bank:build:gcse
 npm run bank:upload -- scripts/question-bank/.work-gcse
 ```
 
+## AQA GCSE Combined Science: Trilogy
+
+`/question-bank/aqa-gcse-combined-science`, for "AQA GCSE Combined Science questions by
+topic": every question from AQA's Combined Science: Trilogy (8464) papers, Foundation and
+Higher, June 2018 to June 2025. That is 3,069 question parts from 86 papers, one bank for
+all three sciences: Biology Paper 1 and 2, Chemistry Paper 1 and 2, Physics Paper 1 and 2,
+each in two tiers. Every paper's parts add up to its 70 marks. Topics are the
+specification's 61 numbered topics, by science: Biology 4.x, Chemistry 5.x, Physics 6.x.
+
+- **Pipeline:** `scripts/question-bank/aqa_trilogy/`, the AQA GCSE scripts again.
+  `fetch_trilogy.py` is fetch_aqa.py with Trilogy's file names (`8464B1F` for Biology
+  Paper 1 Foundation, specimen papers as `84641B1F`). `spec_trilogy.py` reads the 4/5/6
+  numbering. `cut_trilogy.py` is cut.py with two fixes kept to this bank, so no other
+  bank's crops move: a question running over onto a page with an "Extra space" box (and
+  its "[6 marks]") is no longer cut short, and a label whose point isn't bold ("0 3 . 1",
+  Chemistry 2H November 2021) is read. `tag_trilogy.py` and `build_trilogy.py` follow.
+- **Tags:** 2,744 parts (89%) are tagged from the scheme's own specification references.
+  The other 325 were tagged by Claude following `tag.md`.
+- **Practicals:** 526 parts. `practicals.py` and `bankHasPracticals` now count Combined
+  Science as a science.
+- **Gaps:** AQA no longer publishes ten June 2018 and 2019 papers: Biology 1F and 2F,
+  Chemistry 2F and Physics 2F in both years, Physics 1F June 2018 and Physics 2H June 2019. The specimen papers are left out: their
+  text runs past the cutter's right margin, which clips each question's marks. The
+  same two cut.py fixes would likely help the other AQA banks: worth a re-cut there,
+  with new crop versions.
+- **Synergy** (8465) isn't in: few schools take it.
+
+```bash
+python3 scripts/question-bank/aqa_trilogy/fetch_trilogy.py
+python3 scripts/question-bank/aqa_trilogy/spec_trilogy.py
+python3 scripts/question-bank/aqa_trilogy/cut_trilogy.py
+python3 scripts/question-bank/aqa_trilogy/tag_trilogy.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_trilogy/tag_trilogy.py merge
+python3 scripts/question-bank/aqa_trilogy/build_trilogy.py
+python3 scripts/question-bank/practicals.py split --only=aqa-gcse-combined-science --parts=scripts/question-bank/.work-gcse-trilogy/parts.json   # judge, then merge
+npm run bank:upload -- scripts/question-bank/.work-gcse-trilogy
+```
+
 ## OCR and OCR MEI
 
 Added 25 October 2026, after the bank's video went viral and students asked for OCR:
@@ -596,6 +634,199 @@ python3 scripts/question-bank/aqa_economics/tag_economics.py split   # tag the b
 python3 scripts/question-bank/aqa_economics/tag_economics.py merge
 python3 scripts/question-bank/aqa_economics/build_economics.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-economics
+```
+
+## AQA A-Level Philosophy
+
+Added 27 October 2026, after a student asked for it: `/question-bank/aqa-a-level-philosophy`,
+every question from AQA's A-Level Philosophy (7172, Papers 1 and 2) papers that AQA still
+publishes, November 2020 to June 2025. That is 120 questions from 12 papers, every one
+with its mark scheme cropped whole (the levels-of-response grid and the indicative
+content, across pages) and 70 with the examiner's comments. Every paper's marks add up
+to its 100.
+
+- **Whole questions.** Each paper is two areas of five questions: 3, 5, 5, 12 and 25
+  marks (Paper 1: Epistemology 01–05, Moral philosophy 06–10; Paper 2: Metaphysics of
+  God 01–05, Metaphysics of mind 06–10). A question is one crop, ending at its marks:
+  the answer lines under it are left out, so a 25-mark essay is a one-line crop.
+  Ids are `71721-jun24-05`; reports are keyed by question (`reportsBy` "question").
+  No question is a calculation, so the filter is off (`noCalc`).
+- **Topics:** the four areas as tiles, and under them the specification's own headings
+  (`aqa_philosophy/spec_philosophy.py`): 28 topics, numbered on from the topic they sit
+  under (3.1.2.1 Direct realism, 3.3.2.4 The problem of evil, 3.4.3.1 Philosophical
+  behaviourism). "What is knowledge?" stays whole; Meta-ethics' opening (cognitivism and
+  non-cognitivism) is a topic of its own, 3.2.3. All are year 0.
+- **Pipeline:** `scripts/question-bank/aqa_philosophy/`: `fetch_philosophy.py` (fetch_aqa.py
+  over 7171/7172), `spec_philosophy.py`, `cut_philosophy.py` (cut_psychology.py, whose
+  layout Philosophy shares, with questions ending at their marks, the scheme frame
+  widened to the text's 560pt, the areas' names in a section heading left out, and its
+  own report reader for "Question 4:" / "04:" headings; cut.py and cut_psychology.py are
+  unchanged), `tag_philosophy.py` (briefed by tag.md's AQA Philosophy section) and
+  `build_philosophy.py`. Papers are on R2 under `aqa/AQA-7172*`, crops under `bank/7172*`.
+- **Gaps:** AQA no longer publishes June 2019 (the A-Level's first series) and has no AS
+  Philosophy (7171) papers on its site or file store, so the bank is A-Level only from
+  November 2020. The specimen papers are left out, as for the other AQA banks. AQA
+  published no reports for November 2020 or 2021, or for Paper 2 June 2024, so 50
+  questions have no examiner's report. There's no past paper library page for
+  Philosophy, so the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/aqa_philosophy/fetch_philosophy.py
+python3 scripts/question-bank/aqa_philosophy/spec_philosophy.py
+python3 scripts/question-bank/aqa_philosophy/cut_philosophy.py
+python3 scripts/question-bank/aqa_philosophy/tag_philosophy.py split   # tag the batch, then:
+python3 scripts/question-bank/aqa_philosophy/tag_philosophy.py merge
+python3 scripts/question-bank/aqa_philosophy/build_philosophy.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-philosophy
+```
+
+## AQA GCSE English Literature
+
+Added 27 October 2026, the bank's first essay-on-set-texts subject:
+`/question-bank/aqa-gcse-english-literature`, every question from AQA's GCSE English
+Literature (8702) papers that AQA still publishes, November 2020 to June 2025. That is 247
+questions from 16 papers, every one with its mark scheme cropped and 233 with the
+examiner's comments.
+
+- **Topics are the set texts.** A paper asks a question (two, for a modern text) on every
+  set text, and a student answers only on the texts they studied, so the bank's topics
+  are the texts ("Macbeth", "An Inspector Calls", "Power and conflict", "Unseen poetry")
+  under the specification's sections (Shakespeare, the 19th-century novel, modern prose or
+  drama, the poetry anthology, unseen poetry). Each question is tagged from its heading in
+  the mark scheme or the paper (`aqa_english_lit/texts.py`), so there is no tagging pass.
+  Only texts AQA has set a question on since 2020 are listed (the 2025 texts Princess &
+  The Hustler, Leave Taking, My Name Is Leon and the Worlds and lives cluster included).
+- **Whole questions, extract included.** Answers go in a separate answer book, so a
+  question runs from its label to the next "or", heading or label: the extract printed
+  under a Shakespeare or novel question's label, the question printed again under it, the
+  named poem printed after an anthology question. An unseen question's poem comes before
+  its label, so 27.1 runs from the section's start and 27.2 from the end of 27.1; the two
+  show as one question. No stems. Ids are `87021-jun24-01`, `87022-jun24-27-1`.
+- **Either/or.** In each section every question after the first carries `or`, so a
+  paper's marks count the one question a student answers (both unseen questions count).
+  A question's marks include its AO4 marks (30 + 4), so every paper adds up to its front
+  cover's maximum: 64 for Paper 1, 96 for Paper 2.
+- **2021–22.** In November 2021 and June 2022 Paper 1 was sat as three 30-mark papers, one
+  a section (1M modern prose or drama, 1N the novel, 1P the anthology: components
+  `87021M`, `87021N`, `87021P`), and Paper 2 (70 marks) was Shakespeare and unseen poetry.
+  They are separate papers in the filter; the June 2024 Paper 2 is AQA's "8702/2R".
+- **Mark schemes:** each question's own page (the question and its indicative content),
+  then the section's levels grid (landscape, printed once per section) and, for an AO4
+  question, the AO4 descriptors, stacked into one crop. The 8-mark unseen comparison has
+  its own grid on its page and takes no other.
+- **Reports** go section by section, a paragraph or two a text: a question gets its
+  section's paragraphs that name its text, else the section's general paragraphs; the
+  2021–22 1P report heads each question, and is used as is. The November 2021 1M report
+  names only some texts, so 14 of its questions have no report.
+- **Search** covers the whole extract, so searching a quotation finds its question.
+- **Pipeline:** `scripts/question-bank/aqa_english_lit/`: `fetch_english_lit.py` (fetch_aqa.py
+  over 8702), `texts.py`, `cut_english_lit.py` (its own layout around cut.py's label finder
+  and image helpers; cut.py is unchanged) and `build_english_lit.py`. Papers are on R2
+  under `aqa/AQA-8702*`, crops under `bank/8702*`.
+- **Gaps:** AQA no longer publishes June 2017–2019 (its file store has none), so the bank
+  starts at November 2020; the specimen papers are left out. AQA's own copies withhold some
+  poems for copyright, and those crops show AQA's note in place of the poem: the unseen
+  poems of June 2023 (both), June 2025 (the first, 'Table') and November 2020 (the second), and June
+  2022 1P's 'Bayonet Charge'. The questions are all there.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py gcse
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-gcse
+```
+
+### AQA A-Level English Literature A
+
+`/question-bank/aqa-a-level-english-literature-a`: every question from AQA's A-Level (7712:
+Paper 1 Love through the ages, Paper 2A WW1 and its aftermath, Paper 2B Modern times) and AS
+(7711, Papers 1 and 2) English Literature A papers AQA still publishes, November 2020 to June
+2025: 303 questions from 28 papers, every one with its mark scheme cropped and 199 with the
+examiner's comments. The same scripts with `--level=a`; topics are the set texts again, under
+Love through the ages, WW1 and its aftermath and Modern times, with unseen poetry, unseen prose,
+comparing texts and each Paper 2's contextual linking as topics of their own.
+
+- **Options.** Paper 2A and 2B offer three options (a poetry, drama or prose set text), each
+  a Section A on the set text and a Section B of two questions on an unseen prose extract
+  printed in the insert. A student answers one option, so options 2 and 3 carry `or` whole,
+  and every paper adds up to 75 (AS: 50). The three options print the same Section B, so its
+  two questions appear three times (05/06, 11/12, 17/18), each tagged to that paper's
+  contextual linking topic. Section B's ids are `77122a-jun24-b-05`, and their stem is the
+  section's introduction and the insert's extract (`77122a-jun24-b-stem.webp`).
+- **Questions** print the question before the extract (Shakespeare) or the poems (unseen
+  poetry, the AS anthology), and the crop carries both.
+- **Mark schemes:** each question's indicative content, starting at its "Question" line,
+  then the one levels grid printed for every question. Section B's scheme serves all three
+  options ("Questions 05, 11 and 17").
+- **Reports** head each question ("Question 1 Othello", "Questions 5, 11, 17"), and each
+  question gets its own; questions a report covers only under its text's heading get that.
+- **Gaps:** AQA no longer publishes 2017–2019 (or AS 2016–2019). There are no reports for
+  November 2020 and 2021, or for AS Paper 2 June 2024, and the June 2025 Paper 2B report
+  skips 6 questions. AQA's copies withhold some extracts for copyright, and the crops show
+  AQA's note: the Paper 2 insert for November 2021 (2A and 2B), June 2022 (2B: Peyton
+  Place, with page references) and June 2025 (2B), and one unseen poem each in Paper 1 June
+  2023 and November 2021. Specification B (7717) is not here yet.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=a
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=a
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-a
+```
+
+## AQA A-Level Sociology
+
+Added 27 October 2026: `/question-bank/aqa-a-level-sociology`, every question from AQA's
+A-Level (7192, Papers 1–3) and AS (7191, Papers 1–2) Sociology papers that AQA still
+publishes, November 2020 to June 2025. That is 356 questions from 28 papers, every one
+with its mark scheme cropped and tagged to a topic, 286 with the examiner's comments.
+
+- **Whole questions, each Item its stem.** AQA numbers whole questions (`05`), so each is
+  one crop, from its label to its marks (the answer lines are left out). The longer
+  questions are set on an Item, a boxed passage printed between "Read Item C below…" and
+  the question's own words: the box is cut out as the question's stem, and the question's
+  crop is its label line stacked on its own words. Each Item serves one question, so the
+  id names the Item (`71922-jun24-ic-05`, stem `71922-jun24-ic-stem.webp`); a question
+  without one names its option or `q` (`71922-jun24-a2-04`, `71921-jun24-q-01`).
+- **Options.** A-Level Paper 2 is Topics A1–A4 (Culture and Identity, Families and
+  Households, Health, Work, Poverty and Welfare), one answered, then Topics B1–B4 (Beliefs
+  in Society, Global Development, The Media, Stratification and Differentiation), one
+  answered. AS Paper 2 is research methods (Section A) and one of four topics (B1–B4, the
+  A-Level's A1–A4). Topics A2–A4 and B2–B4 carry `or`, so each paper's marks count one
+  topic per section: every paper adds up to its 80 (A-Level) or 60 (AS) marks. Papers 1
+  and 3 have no options. `QuestionRow` used to hide the marks of a question that is itself
+  an alternative (no part in its row to be the alternative to); it now hides them only
+  when the row holds both, which also puts the marks back on AQA Economics' Context 2.
+- **Mark schemes:** one table per question ("Qu | Marking guidance | Total marks"), cut
+  from its heading to the next question's, so the Item, the whole levels-of-response grid,
+  the indicative content and the sources come with it. The cutter checks every 10-mark
+  or longer scheme has its levels.
+- **Topics:** the specification's areas as tiles (`4.1.1 Education` … `4.3.1 Crime and
+  Deviance`; Theory and Methods, which Papers 1 and 3 share, is one area with Methods in
+  Context in it), and each area's bullet points as its topics. The specification doesn't
+  number its bullets, so the codes number them in order (`4.2.2.4`) and are not shown:
+  a topic shows its short name ("Childhood and the status of children",
+  `aqa_sociology/spec_sociology.py`). An option question is always tagged to its option.
+- **Pipeline:** `scripts/question-bank/aqa_sociology/`: `fetch_sociology.py` (fetch_aqa.py
+  over 7191/7192), `spec_sociology.py`, `cut_sociology.py` (its own layout around cut.py's
+  label finder and image helpers; cut.py is unchanged), `tag_sociology.py` (briefed by
+  tag.md's AQA Sociology section; merge rejects a first tag outside the question's area)
+  and `build_sociology.py`. Papers are on R2 under `aqa/`, crops under `bank/7191*`, `bank/7192*`.
+- **Gaps:** AQA no longer publishes June 2017–2019, and sat no AS papers in November 2021,
+  so the bank starts at November 2020. The specimen papers are left out, as for the other
+  AQA banks. AQA published no reports for AS November 2020 or Paper 1 June 2025, and its
+  November 2020 and 2021 Paper 2 reports cover only Families and Households and Beliefs in
+  Society (6 of 24 questions). There's no past paper library page for AQA Sociology yet,
+  so the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/aqa_sociology/fetch_sociology.py
+python3 scripts/question-bank/aqa_sociology/spec_sociology.py
+python3 scripts/question-bank/aqa_sociology/cut_sociology.py
+python3 scripts/question-bank/aqa_sociology/tag_sociology.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_sociology/tag_sociology.py merge
+python3 scripts/question-bank/aqa_sociology/build_sociology.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-sociology
 ```
 
 ## Cambridge International (CAIE)

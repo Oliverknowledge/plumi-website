@@ -214,6 +214,33 @@ The brief is the one at the top, with these differences:
   fiscal policy `4.2.5.1`; the balance of payments `4.2.6.3`; exchange rates `4.2.6.4`;
   inequality and poverty `4.1.7.x`; labour markets `4.1.6.x`.
 
+## AQA Philosophy
+
+`aqa_philosophy/tag_philosophy.py split` writes the AQA A-Level Philosophy (7172)
+questions to `.work/aqa-philosophy/tag/` (one batch: 120 questions), and `merge` collects
+them. The brief is the one at the top, with these differences:
+
+- `philosophy-topics.txt` lists one topic per line: `code | area | title — what the
+  specification says under it`. Codes have three or four numbers (`3.1.4`, `3.3.2.1`);
+  choose from these, never an area like `3.3`.
+- Each line is a whole question with its `area` (questions 01–05 are the paper's first
+  area, 06–10 its second: Paper 1 Epistemology then Moral philosophy, Paper 2 Metaphysics
+  of God then Metaphysics of mind), its `marks`, its words and the start of its scheme's
+  indicative content. Tag within the line's area.
+- Tag the theory or argument the question is about: "Explain Hume's design argument" is
+  `3.3.2.2`; a question on a criticism of a theory is that theory's topic ("the
+  asymmetry of self-knowledge is a problem for behaviourism" is `3.4.3.1`). Interactionist
+  and epiphenomenalist dualism and their issues (the problem of other minds, interaction,
+  self-knowledge, evolution) are `3.4.2.3` Issues facing dualism.
+- Terms from the course's opening (analytic/synthetic, a priori/a posteriori,
+  necessary/contingent) are `3.1.3.2`, the intuition and deduction thesis, as is Hume's
+  Fork; necessary and sufficient conditions are `3.1.1`. Ayer's verification principle on
+  Paper 1 is moral anti-realism (`3.2.3.2`), on Paper 2 religious language (`3.3.3`).
+  Applying a theory to stealing, simulated killing, eating animals or lying is `3.2.2`
+  then the theory's code.
+- An essay weighing two theories against each other in equal measure (moral realism
+  against anti-realism, substance against property dualism) gets both; otherwise one.
+
 ## Cambridge International (CAIE)
 
 `caie/tag_caie.py split` writes batches for CAIE AS & A Level Biology 9700,
@@ -389,3 +416,49 @@ these differences:
 - AQA Paper 1's programming task ("Write a program that…", with its program source
   code and screen capture parts) is `4.1.1`, with a second code only where the task is
   plainly about one algorithm or structure.
+
+## AQA Sociology
+
+`aqa_sociology/tag_sociology.py split` writes batches of AQA A-Level (7192) and AS
+(7191) Sociology questions to `.work/aqa-sociology/tag/`, and `merge` collects them.
+The brief is the one at the top, with these differences:
+
+- `sociology-topics.txt` lists one topic per line: `code | area | title — the
+  specification's bullet point`. The specification doesn't number its bullet points:
+  the codes number them in order under their area (`4.2.2.4` is Families and
+  Households' fourth, childhood). Choose from these codes, never an area like `4.2.2`;
+  `4.1.2` (Methods in context) is the one topic that is its area's only one.
+- Each line is a whole question with its `paper`, its `area`, its `marks`, its own
+  words, its `item` (the passage it is set on, where it has one) and the start of
+  its `scheme`. Judge by what the question asks and what the scheme credits, not by
+  the Item's subject.
+- **The first code must be in the line's `area`**: the area is the option or section
+  the question is printed in (an option question in "4.2.2 Families and Households"
+  is always tagged to a Families topic, whatever it touches on). The merge rejects a
+  first code from another area. A second code, only when the question genuinely needs
+  two topics, must be in the same area, with one exception below.
+- **Methods in Context** (area `4.1.2`, A-Level Paper 1 question 05 and AS Paper 1
+  question 06, "evaluate the strengths and limitations of using <method> to
+  investigate <issue in education>"): first `4.1.2`, then the Theory and Methods topic
+  the method turns on, usually `4.1.3.2` (sources of data), or the Education topic
+  the issue is, whichever is more useful to a student revising it. Prefer the method.
+- **Theory and Methods** (area `4.1.3`: A-Level Paper 1 question 06, Paper 3 questions
+  05-06, AS Paper 2 Section A): `4.1.3.1` research design and quantitative/qualitative
+  methods; `4.1.3.2` a particular source of data (questionnaires, interviews,
+  observation, experiments, documents, official statistics); `4.1.3.3` primary vs
+  secondary data; `4.1.3.4` positivism and interpretivism; `4.1.3.5` theoretical,
+  practical and ethical factors in choosing a topic or method; `4.1.3.6`
+  functionalism, Marxism, feminism, interactionism, structure and action; `4.1.3.7`
+  modernity and postmodernity, globalisation in theory; `4.1.3.8` is sociology a
+  science; `4.1.3.9` how theory shapes methods; `4.1.3.10` values, objectivity;
+  `4.1.3.11` sociology and social policy.
+- Common calls: in Education, social class, gender or ethnic differences in
+  achievement are `4.1.1.2` even when the cause named is inside school (labelling,
+  subcultures), unless the question is about the school process itself ("pupil
+  subcultures", "the hidden curriculum": `4.1.1.3`); marketisation, selection,
+  academies and globalisation's effect on policy are `4.1.1.4`; Marxist or functionalist
+  views of the role of education are `4.1.1.1`. In Crime and Deviance, a theory of why
+  crime happens (functionalist, Marxist, labelling, realist) or of social control is
+  `4.3.1.1`; patterns by class, gender or ethnicity `4.3.1.2`; globalisation, the
+  media, green and state crime `4.3.1.3`; punishment, policing, surveillance, victims
+  and prevention `4.3.1.4`.

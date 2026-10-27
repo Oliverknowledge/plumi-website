@@ -1,16 +1,19 @@
 /**
  * The question bank: every question from AQA's GCSE and A-Level Biology, Chemistry
- * and Physics papers and Pearson Edexcel's A-Level Maths, Further Maths, Biology A
+ * and Physics papers and GCSE Combined Science: Trilogy, Pearson Edexcel's A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
  * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, Eduqas's A-Level
- * sciences, WJEC's AS/A Level sciences and maths, AQA's A-Level Maths, Psychology and Economics, OCR's and AQA's
- * A-Level Computer Science, and Pearson Edexcel's A-Level Economics A and Geography, cut out one at a time, each with its own mark scheme
+ * sciences, WJEC's AS/A Level sciences and maths, AQA's A-Level Maths, Psychology, Economics, Philosophy and Sociology,
+ * AQA's GCSE English Literature and A-Level English Literature A, Pearson Edexcel's A-Level Economics A and
+ * Geography, and OCR's and AQA's A-Level Computer Science, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
- * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; AQA economics: aqa_economics/; Edexcel maths: the *_edexcel.py
- * scripts; Edexcel sciences: edexcel_sciences/; Edexcel geography: edexcel_geography/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; WJEC: wjec/; Computer Science: computer_science/). The images and PDFs are ours,
+ * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; AQA economics: aqa_economics/; AQA philosophy: aqa_philosophy/;
+ * AQA sociology: aqa_sociology/; AQA English Literature: aqa_english_lit/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
+ * scripts; Edexcel sciences: edexcel_sciences/; Edexcel geography: edexcel_geography/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; WJEC: wjec/;
+ * Computer Science: computer_science/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
@@ -24,13 +27,18 @@ import chemistry from "./questionBank/aqa-a-level-chemistry.json";
 import physics from "./questionBank/aqa-a-level-physics.json";
 import psychology from "./questionBank/aqa-a-level-psychology.json";
 import aqaEconomics from "./questionBank/aqa-a-level-economics.json";
+import aqaPhilosophy from "./questionBank/aqa-a-level-philosophy.json";
+import aqaSociology from "./questionBank/aqa-a-level-sociology.json";
 import aqaMaths from "./questionBank/aqa-a-level-maths.json";
 import aqaComputerScience from "./questionBank/aqa-a-level-computer-science.json";
+import aqaEnglishLiteratureA from "./questionBank/aqa-a-level-english-literature-a.json";
 import maths from "./questionBank/edexcel-a-level-maths.json";
 import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
 import gcseBiology from "./questionBank/aqa-gcse-biology.json";
 import gcseChemistry from "./questionBank/aqa-gcse-chemistry.json";
 import gcsePhysics from "./questionBank/aqa-gcse-physics.json";
+import gcseCombinedScience from "./questionBank/aqa-gcse-combined-science.json";
+import gcseEnglishLiterature from "./questionBank/aqa-gcse-english-literature.json";
 import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
 import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
 import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
@@ -67,7 +75,7 @@ import wjecPhysics from "./questionBank/wjec-a-level-physics.json";
 import wjecMaths from "./questionBank/wjec-a-level-maths.json";
 
 /**
- * `year`: 1 for AS content, 2 for A-Level only, 3 for a Paper 3 option (Physics, Psychology), 0 where the bank doesn't split by year (maths, GCSE, IGCSE, the rest of Psychology).
+ * `year`: 1 for AS content, 2 for A-Level only, 3 for a Paper 3 option (Physics, Psychology), 0 where the bank doesn't split by year (maths, GCSE, IGCSE, the rest of Psychology, English Literature's set texts).
  * `short`: a shorter name for a long specification title, for the page title ("Moles and gas volumes").
  * `ref`: the code as the specification prints it, where that isn't `code` ("6A");
  * empty where the specification gives the topic no code of its own, as with the
@@ -114,7 +122,7 @@ export interface BankSubject {
   slug: string;
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE" | "Eduqas" | "WJEC";
   level: "A-Level" | "GCSE" | "IGCSE";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Computer Science" | "Geography";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Computer Science" | "Combined Science" | "Philosophy" | "Sociology" | "English Literature" | "English Literature A" | "Geography";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)", "Chemistry B (Salters)". */
   fullName?: string;
   specs: string[];
@@ -144,7 +152,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaComputerScience, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelGeography, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, gcseBiology, gcseChemistry, gcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaPhilosophy, aqaComputerScience, aqaEnglishLiteratureA, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelGeography, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -161,7 +169,7 @@ export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | 
  * The sciences have a practicals.json beside their data: the ids of the parts about
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
  */
-export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics)\b/.test(s.subject);
+export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */
 export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? "/papers-local").replace(/\/$/, "");
