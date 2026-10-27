@@ -56,6 +56,48 @@ GCSE = [
 ]
 
 
+# A-Level 7712 and AS 7711 (Specification A). Paper 1 (and AS) is Love through the ages; Paper 2A
+# and 2B each offer three options, a poetry, drama or prose set text, and a Section B that links an
+# unseen prose extract to two other texts. That section's heading names no text ("Drama and Prose
+# Contextual Linking"), so it is read as WW1's, and as Modern times' on Paper 2B (for_component).
+A_LEVEL = [
+    ("love", "Love through the ages", [
+        ("othello", "Othello", r"\bOthello\b"),
+        ("the-taming-of-the-shrew", "The Taming of the Shrew", r"Taming of the Shrew"),
+        ("measure-for-measure", "Measure for Measure", r"Measure for Measure"),
+        ("the-winters-tale", "The Winter’s Tale", r"Winter.s Tale"),
+        ("love-poetry-pre-1900", "AQA Anthology of love poetry: pre-1900 (AS)", r"love poetry through the ages pre-1900"),
+        ("love-poetry-post-1900", "AQA Anthology of love poetry: post-1900 (AS)", r"love poetry through the ages post-1900"),
+        ("unseen-poetry", "Unseen poetry", r"Unseen Poetry"),
+        ("unseen-prose", "Unseen prose (AS)", r"Unseen prose"),
+        ("comparing-texts", "Comparing texts", r"Comparing (prose )?texts"),
+    ]),
+    ("ww1", "WW1 and its aftermath (Paper 2A)", [
+        ("up-the-line-to-death", "Up the Line to Death", r"Up the Line to Death"),
+        ("scars-upon-my-heart", "Scars Upon My Heart", r"Scars Upon My Heart"),
+        ("oh-what-a-lovely-war", "Oh! What a Lovely War", r"Lovely War"),
+        ("journeys-end", "Journey’s End", r"Journey.s End"),
+        ("regeneration", "Regeneration", r"\bRegeneration\b"),
+        ("birdsong", "Birdsong", r"\bBirdsong\b"),
+        ("ww1-contextual-linking", "WW1: unseen prose and contextual linking", r"Contextual Linking"),
+    ]),
+    ("modern", "Modern times: literature from 1945 to the present (Paper 2B)", [
+        ("feminine-gospels", "Feminine Gospels", r"Feminine Gospels"),
+        ("skirrid-hill", "Skirrid Hill", r"Skirrid Hill"),
+        ("a-streetcar-named-desire", "A Streetcar Named Desire", r"Streetcar"),
+        ("top-girls", "Top Girls", r"Top Girls"),
+        ("waterland", "Waterland", r"\bWaterland\b"),
+        ("the-handmaids-tale", "The Handmaid’s Tale", r"Handmaid"),
+        ("modern-contextual-linking", "Modern times: unseen prose and contextual linking", r"^$"),
+    ]),
+]
+
+
+def for_component(code, component):
+    """Paper 2B's contextual linking is Modern times', though its heading reads like WW1's."""
+    return "modern-contextual-linking" if code == "ww1-contextual-linking" and component.startswith("77122B") else code
+
+
 def flat(spec):
     return [(sec, code, title, re.compile(pat, re.I)) for sec, _, texts in spec for code, title, pat in texts]
 
