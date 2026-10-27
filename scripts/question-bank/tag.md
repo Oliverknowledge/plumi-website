@@ -649,3 +649,31 @@ with calculus), Newton's laws in one dimension, connected particles and pulleys.
 The rest of the A-Level Maths banks need no reader: every AS paper question is 12, and
 WJEC's A2 units (Units 3 and 4) and Cambridge's Papers 3 and 6 test only second-year
 content, so all theirs are 13.
+
+## Year 12 or Year 13 (A-Level Further Maths)
+
+`maths_years.py split-further` writes every question from the full A-Level Further Maths
+papers (Pearson 9FM0, OCR Y540-Y545, OCR MEI Y420-Y436) to
+`.work/fm-years/batch-NN.jsonl`, one board per batch, each line with its `course`,
+`paper`, `text` (the question, then its mark scheme) and `as_spec`, that board's AS
+Further Maths specification as text. A reader writes `batch-NN.answers.json`,
+`{"<id>": 12 or 13}`; `merge-further` turns the 13s into each bank's `year13.json`.
+
+A Further Maths student in Year 12 has studied the **AS Further Maths** content of their
+board (its AS core pure, and the AS version of the options) alongside **Year 12 Maths**
+(the AS Maths content; see "Year 12 or Year 13 (A-Level Maths)" above).
+
+Answer **12** when that student could answer **every part**: the question uses only
+content in the board's AS Further Maths specification (core pure, plus the AS paper of
+the same option: a Further Statistics question against AS Further Statistics / Statistics,
+a Mechanics question against AS Mechanics, a Decision / Discrete / Modelling with
+Algorithms question against its AS version, Additional or Extra Pure against its AS
+version), and only Year 12 Maths beyond it. Answer **13** when any part needs content
+the AS specification doesn't have (in core pure, typically: de Moivre's theorem and the
+exponential form beyond what the AS covers, roots of unity, the method of differences,
+Maclaurin series, improper integrals, polar coordinates, hyperbolic functions, differential
+equations, the mean value of a function, integration with partial fractions or inverse
+trig/hyperbolic results), or Year 2 Maths (the chain, product or quotient rule, integration
+by parts or substitution, radians in calculus, and the rest of that list above). Check the
+`as_spec` file for what the AS covers: boards differ, and an option's AS paper covers less
+than its A-Level paper at OCR and MEI. When it's a real toss-up, answer 13.

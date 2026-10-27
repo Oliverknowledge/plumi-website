@@ -252,6 +252,9 @@
 /* ── Show each part or whole questions; practicals ───────────────────────── */
 .qb-row-toggles { display: flex; flex-wrap: wrap; align-items: end; gap: 14px 28px; padding-top: 14px; }
 .qb-row-toggles:empty { display: none; }
+/* A maths bank's School year switch, above the topics. */
+.qb-yearswitch { margin-bottom: 16px; justify-items: start; }
+.lp .qb-yearswitch .qb-seg button .qb-n { font-weight: 600; }
 .qb-seg { display: inline-flex; border: 2px solid var(--lp-line); border-radius: 11px; overflow: hidden; box-shadow: 0 3px 0 var(--lp-shadow); background: #fff; }
 .lp .qb-seg button { min-height: 38px; padding: 6px 14px; font-family: var(--f-body); font-weight: 700; font-size: 14.5px; color: var(--lp-ink); background: transparent; border: 0; cursor: pointer; }
 .lp .qb-seg button + button { border-left: 2px solid var(--lp-line); }

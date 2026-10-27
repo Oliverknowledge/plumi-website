@@ -119,7 +119,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     if (bankHasPracticals(subject)) {
       fetch(bankDataPath(subject.slug, "practicals")).then(r => (r.ok ? r.json() : [])).then((ids: string[]) => setPracticals(new Set(ids))).catch(() => setPracticals(new Set()));
     }
-    // The questions that need second-year content, for A-Level Maths: no file and the filter stays hidden.
+    // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
       fetch(bankDataPath(subject.slug, "year13")).then(r => (r.ok ? r.json() : null)).then((ids: string[] | null) => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
@@ -352,6 +352,22 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     }
   }
 
+  // Maths topics run through both years, so the split is by question, and it comes first: a Year 12
+  // student picks it before anything else. On a phone it sits above the folded filters, not inside them
+  // (a student on Edexcel Maths couldn't find it, 27 October 2026).
+  const yearSwitch = (
+    <div className="qb-field qb-yearswitch" role="radiogroup" aria-label="School year">
+      <span className="qb-label">School year</span>
+      <div className="qb-seg">
+        {([["", "Both years", null], ["12", "Year 12", "Only what the first year (AS) covers"], ["13", "Year 13", "Needs second-year content"]] as const).map(([v, label, title]) => (
+          <button key={v} type="button" role="radio" aria-checked={f.yr === v} className={f.yr === v ? "is-on" : ""} title={title ?? undefined} onClick={() => update({ yr: v })}>
+            {label}{counts && v && <span className="qb-n"> {n("yr", v) ?? 0}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="qb">
       {isPhone && panelGone && (
@@ -361,12 +377,14 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       )}
 
       <section className="qb-filters" aria-label="Filter questions" ref={panelRef}>
+        {hasYears && isPhone && yearSwitch}
         <details className="lp-card qb-desk" open={panelOpen} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== panelOpen) setUserOpen(o); }}>
           <summary className="qb-desk-head">
             <span>{isPhone ? "Filter and search" : "Find questions"}</span>
             <span className="qb-count-pill" aria-live="polite">{active > 0 ? `${active} on · ` : ""}{total.toLocaleString("en-GB")}</span>
           </summary>
           <div className="qb-desk-body">
+            {hasYears && !isPhone && yearSwitch}
             {!lockedTopic && (
               <fieldset className="qb-topics">
                 <legend><span className="qb-label">Topics</span> <span className="qb-hint">Pick as many as you like. Open one to choose its sub-topics.</span></legend>
@@ -470,11 +488,6 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                 <span className="qb-label">Practicals</span>
                 <label><input type="checkbox" checked={f.prac === "only"} onChange={e => update({ prac: e.target.checked ? "only" : "" })} /> Only these{counts && <span className="qb-n"> {n("prac", "only") ?? 0}</span>}</label>
                 <label><input type="checkbox" checked={f.prac === "none"} onChange={e => update({ prac: e.target.checked ? "none" : "" })} /> Leave out</label>
-              </div>}
-              {hasYears && <div className="qb-field qb-calc" role="group" aria-label="School year">
-                <span className="qb-label">School year</span>
-                <label title="Questions you can do with the first year's (AS) content"><input type="checkbox" checked={f.yr === "12"} onChange={e => update({ yr: e.target.checked ? "12" : "" })} /> Year 12{counts && <span className="qb-n"> {n("yr", "12") ?? 0}</span>}</label>
-                <label title="Questions that need second-year content"><input type="checkbox" checked={f.yr === "13"} onChange={e => update({ yr: e.target.checked ? "13" : "" })} /> Year 13{counts && <span className="qb-n"> {n("yr", "13") ?? 0}</span>}</label>
               </div>}
             </div>
             {isPhone && (
