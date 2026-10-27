@@ -396,7 +396,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">
