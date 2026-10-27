@@ -141,5 +141,7 @@ def build(bank):
 
 
 if __name__ == "__main__":
+    # A bank whose work dir isn't here (built in another checkout) is left as it is.
     for b in BANKS:
-        build(b)
+        if os.path.isdir(os.path.join(WORK, b["work"])):
+            build(b)
