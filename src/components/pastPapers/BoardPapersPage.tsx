@@ -5,7 +5,7 @@ import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
-  boardHeading, boardPath, boardsFor, display, fileUrl, hasKind, isOwnBoard, otherLevel, revisionPage, sessionCount, shareImage, subjectPath, subjectTitle,
+  boardHeading, boardPath, boardsFor, display, fileUrl, hasKind, isOwnBoard, otherLevel, revisionPage, sessionCount, subjectPath, subjectTitle,
   type BoardPapers, type Paper, type SubjectHub,
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
@@ -43,7 +43,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
 
   return (
     <CosyPage after={<>
-      <PageStructuredData path={path} name={meta.title} description={meta.description} image={shareImage(hub)} type="CollectionPage"
+      <PageStructuredData path={path} name={meta.title} description={meta.description} type="CollectionPage"
         breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
       <PaperClickTracker page={path} />
     </>}>

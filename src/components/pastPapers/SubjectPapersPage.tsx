@@ -3,7 +3,7 @@ import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
 import {
-  boardPath, boardsFor, display, otherLevel, pastPaperSubjects, revisionPage, sessionCount, shareImage, subjectPath, subjectTitle,
+  boardPath, boardsFor, display, otherLevel, pastPaperSubjects, revisionPage, sessionCount, subjectPath, subjectTitle,
   type SubjectHub,
 } from "@/content/pastPapers";
 import { subjectPageMeta } from "@/lib/pastPaperMeta";
@@ -29,7 +29,7 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
 
   return (
     <CosyPage after={
-      <PageStructuredData path={path} name={meta.title} description={meta.description} image={shareImage(hub)} type="CollectionPage"
+      <PageStructuredData path={path} name={meta.title} description={meta.description} type="CollectionPage"
         breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path }]} />
     }>
       <article className="pp">

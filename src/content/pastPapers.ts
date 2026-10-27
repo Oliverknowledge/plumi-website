@@ -320,11 +320,6 @@ export function revisionPage(hub: SubjectHub): { label: string; path: string } |
   return { label: "A-Level Maths tutor", path: "/ai-tutor-for-a-level-maths" };
 }
 
-/** The subject's share card, where it has its own. */
-export function shareImage(hub: SubjectHub): string {
-  return hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology" ? `/og-${hub.name.toLowerCase()}.png` : "/og-lofi.png";
-}
-
 /** Every generated page, for the sitemap. */
 export function pastPaperPaths(): string[] {
   return [
