@@ -182,7 +182,6 @@
 .lp-ticket small { display: block; font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }
 
 /* free practice: the question bank, past papers, and the Discord's daily question */
-.lp .lp-free { padding-top: 24px; }
 .lp-practice { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr); gap: 28px; align-items: start; }
 .lp-practice-card { padding: 28px 26px; display: grid; gap: 12px; align-content: start; }
 .lp .lp-practice-card h3 { margin: 0; font-family: var(--f-px); font-size: 28px; }

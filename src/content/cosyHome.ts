@@ -188,9 +188,10 @@ export const shelf = {
  * The free practice on the website itself: Practice papers (Plumi's packs, /practice-papers,
  * with the past paper library, /past-papers, inside it) and the question bank (/question-bank).
  * Both are free and need no account; the question count is read from the bank's data in
- * CosyHome, so it stays true as subjects are added. It comes
- * straight after the hero (23 October 2026), and each card's chips go straight to a subject,
- * so a student from a video is one tap from their own paper.
+ * CosyHome, so it stays true as subjects are added. It sits near the end, after the
+ * subjects and before the questions (founder, 27 October 2026: "I want people to see the
+ * Plumi mark and the study with friends bit early on"), and each card's chips go straight
+ * to a subject, so a student from a video is one tap from their own paper.
  *
  * `discord` is the community's daily question (1 App/discord-bot: a real past-paper question
  * from the bank every morning, marked yourself, with streaks and a Sunday leaderboard).

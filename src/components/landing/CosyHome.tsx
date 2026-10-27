@@ -125,57 +125,6 @@ export function CosyHome({ variant }: { variant?: string }) {
         </div>
       </section>
 
-      {/* FREE PRACTICE */}
-      <section id="free-practice" className="lp-free" aria-labelledby="practice-title">
-        <div className="lp-wrap">
-          <div className="lp-sec-head">
-            <span className="lp-eyebrow">{practice.eyebrow}</span>
-            <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
-            <p className="lp-lead">{practice.lead}</p>
-          </div>
-          <div id="practice-papers" className="lp-card pk-feature" data-testid="practice-papers">
-            <div className="lp-tape" aria-hidden="true" />
-            <div className="pk-feature-copy">
-              <span className="lp-tag">{practice.packs.tag}</span>
-              <h3><Link href="/practice-papers" data-testid="practice-papers-link">{practice.packs.title} <em>{practice.packs.titleEm}</em></Link></h3>
-              <p>{practice.packs.line}</p>
-              <ul className="pk-proof">{packCopy.proof.map(p => <li key={p.title}>{tick}<span><b>{p.title}.</b> <span className="pk-proof-line">{p.line}</span></span></li>)}</ul>
-              <Link href="/practice-papers" className="lp-btn pk-all">{practice.packs.all} ›</Link>
-            </div>
-            <div className="pk-feature-right">
-              <ul className="pk-feature-packs">
-                {practicePacks.map(p => (
-                  <li key={p.slug} className="pk-feature-pack">
-                    <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} small /></Link>
-                  </li>
-                ))}
-              </ul>
-              <p className="pk-disclaimer pk-feature-note">{practice.packs.note}</p>
-            </div>
-            <PastPapersCard placement="home" strip />
-          </div>
-          <div className="lp-practice">
-            <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
-              <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
-              <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
-              <p>{practice.bank.line}</p>
-              <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
-              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
-                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
-              </ul>
-              <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
-            </article>
-            <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
-              <div className="lp-tape" aria-hidden="true" />
-              <h3 id="daily-title">{practice.discord.title}</h3>
-              <p>{practice.discord.line}</p>
-              <DiscordButton placement="practice" />
-            </aside>
-          </div>
-          <p className="lp-bridge">{practice.bridge} <a href="#marking">{practice.bridgeLink} ›</a></p>
-        </div>
-      </section>
-
       {/* HOW IT MARKS */}
       <section id="marking" aria-labelledby="marking-title">
         <span id="how" className="lp-anchor" aria-hidden="true" />
@@ -317,6 +266,57 @@ export function CosyHome({ variant }: { variant?: string }) {
             ))}
           </ul>
           <ul className="lp-boards" aria-label="Exam boards">{shelf.boards.map(b => <li key={b}>{b}</li>)}</ul>
+        </div>
+      </section>
+
+      {/* FREE PRACTICE */}
+      <section id="free-practice" className="lp-free" aria-labelledby="practice-title">
+        <div className="lp-wrap">
+          <div className="lp-sec-head">
+            <span className="lp-eyebrow">{practice.eyebrow}</span>
+            <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
+            <p className="lp-lead">{practice.lead}</p>
+          </div>
+          <div id="practice-papers" className="lp-card pk-feature" data-testid="practice-papers">
+            <div className="lp-tape" aria-hidden="true" />
+            <div className="pk-feature-copy">
+              <span className="lp-tag">{practice.packs.tag}</span>
+              <h3><Link href="/practice-papers" data-testid="practice-papers-link">{practice.packs.title} <em>{practice.packs.titleEm}</em></Link></h3>
+              <p>{practice.packs.line}</p>
+              <ul className="pk-proof">{packCopy.proof.map(p => <li key={p.title}>{tick}<span><b>{p.title}.</b> <span className="pk-proof-line">{p.line}</span></span></li>)}</ul>
+              <Link href="/practice-papers" className="lp-btn pk-all">{practice.packs.all} ›</Link>
+            </div>
+            <div className="pk-feature-right">
+              <ul className="pk-feature-packs">
+                {practicePacks.map(p => (
+                  <li key={p.slug} className="pk-feature-pack">
+                    <Link href={packPath(p.slug)} className="pk-cover-link" aria-label={`${p.board}-style ${p.title} practice pack: ${practice.packs.inside}`}><PackCover pack={p} small /></Link>
+                  </li>
+                ))}
+              </ul>
+              <p className="pk-disclaimer pk-feature-note">{practice.packs.note}</p>
+            </div>
+            <PastPapersCard placement="home" strip />
+          </div>
+          <div className="lp-practice">
+            <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
+              <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
+              <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
+              <p>{practice.bank.line}</p>
+              <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
+              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
+                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
+              </ul>
+              <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
+            </article>
+            <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
+              <div className="lp-tape" aria-hidden="true" />
+              <h3 id="daily-title">{practice.discord.title}</h3>
+              <p>{practice.discord.line}</p>
+              <DiscordButton placement="practice" />
+            </aside>
+          </div>
+          <p className="lp-bridge">{practice.bridge} <a href="#marking">{practice.bridgeLink} ›</a></p>
         </div>
       </section>
 
