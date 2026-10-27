@@ -173,11 +173,12 @@ export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | 
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
  */
 /**
- * A-Level Maths has a year13.json beside its data: the ids of the questions that need second-year
+ * A-Level Maths and Further Maths have a year13.json beside their data (Cambridge's Further Maths, with no AS, has none, and no filter): the ids of the questions that need second-year
  * content (scripts/question-bank/maths_years.py), for the "Year" filter. A Year 12 student wants the
  * ones they can already do; maths topics span both years, so the split is by question, not by topic.
  */
-export const bankHasYears = (s: Pick<BankSubject, "level" | "subject">) => s.level === "A-Level" && s.subject === "Maths";
+export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
+  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE"));
 export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */

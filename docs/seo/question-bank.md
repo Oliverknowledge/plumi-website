@@ -1148,7 +1148,7 @@ python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec --pdf-prefix=wjec/
 ```
 
-## Year 12 and Year 13 (A-Level Maths)
+## Year 12 and Year 13 (A-Level Maths and Further Maths)
 
 A student asked for it (27 October 2026): "the maths questions are kinda annoying bc it
 includes yr13 stuff as a year 12". The sciences split by topic (each topic's `year`), but
@@ -1158,14 +1158,21 @@ need only the AS content) or Year 13 (questions that need second-year content).
 
 - **Data:** `public/question-bank/<slug>/year13.json`, the ids of the Year 13 questions,
   beside the bank's data so a rebuild leaves it alone. `bankHasYears` turns the filter
-  on for A-Level Maths; the URL keeps it as `?yr=12` or `?yr=13`.
+  on for A-Level Maths and Further Maths; the URL keeps it as `?yr=12` or `?yr=13`.
+- **Where it shows:** a "School year" switch (Both years · Year 12 · Year 13, with
+  counts) at the top of the filters, above the topics, and on a single topic's page too.
+  It started as two checkboxes near the bottom, and a student on Edexcel Maths didn't
+  find them ("its not separated", 27 October 2026).
 - **Which is which:** an AS paper's questions are all Year 12. WJEC's Units 3 and 4 and
   Cambridge's Papers 3 and 6 test only second-year content, so theirs are all Year 13.
   Each question on a full A-Level paper (Edexcel, OCR, OCR MEI, AQA) was read against the
   brief in `tag.md` ("Year 12 or Year 13"): Year 12 only when every part can be done
   with AS content.
 - **After a new series:** `maths_years.py split`, read the new batches, `maths_years.py merge`.
-- **Further Maths** isn't split yet: its AS and A-Level papers would split the same way.
+- **Further Maths** (Edexcel, OCR, OCR MEI) splits the same way: AS Further Maths papers
+  are Year 12, and each A-Level paper question was read against that board's AS Further
+  Maths specification (`maths_years.py split-further` / `merge-further`, brief in
+  `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
 
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
