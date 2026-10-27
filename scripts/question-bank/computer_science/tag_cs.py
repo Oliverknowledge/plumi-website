@@ -7,6 +7,8 @@ tag_ocr.py's sibling for OCR's (.work/ocr-cs) and AQA's (.work/aqa-cs) Computer 
 the brief is tag.md's, with its Computer Science section. split writes, in each work
 dir, tag/cs-topics.txt and batch-NN-cs.jsonl; each batch is tagged into
 batch-NN-cs.tags.json, and merge collects them into <work-dir>/tags.json for build_cs.py.
+A part already in tags.json isn't batched again, and new batches number on from the old
+ones, so a later series (OCR's older ones, added from PMT) is tagged on its own.
 """
 import glob, json, os, re, sys
 
@@ -25,6 +27,8 @@ NOISE = re.compile(r"© OCR \d{4}|\.{6,}|Turn over ►?|Do not write outside the
 def split():
     for work, (spec, as_specs) in BOARDS.items():
         d = os.path.join(HERE, "..", ".work", work)
+        if not os.path.isdir(d):
+            continue
         tag = os.path.join(d, "tag")
         os.makedirs(tag, exist_ok=True)
         tree = json.load(open(os.path.join(d, "spec.json")))[spec]
@@ -32,8 +36,10 @@ def split():
         lines = [f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']}" + (" [AS]" if t["year"] == 1 else " [A-Level only]")
                  + f" — {clip(t['text'], 600)}" for t in tree["topics"]]
         open(os.path.join(tag, "cs-topics.txt"), "w").write("\n".join(lines) + "\n")
-        parts = [p for p in json.load(open(os.path.join(d, "parts.json"))) if p.get("qp")]
-        n = 0
+        done = json.load(open(os.path.join(d, "tags.json"))) if os.path.exists(os.path.join(d, "tags.json")) else {}
+        parts = [p for p in json.load(open(os.path.join(d, "parts.json"))) if p.get("qp") and p["id"] not in done]
+        n = max([int(re.search(r"batch-(\d+)-cs", f).group(1)) for f in glob.glob(os.path.join(tag, "batch-*-cs.jsonl"))] or [0])
+        first = n + 1
         for i in range(0, len(parts), SIZE):
             n += 1
             with open(os.path.join(tag, f"batch-{n:02d}-cs.jsonl"), "w") as f:
@@ -47,12 +53,14 @@ def split():
                     paper = ("AS " if p["spec"].upper() in as_specs else "A-Level ") + str(int(p["component"][-2:] if work == "ocr-cs" else p["component"][-1]))
                     f.write(json.dumps({"id": p["id"], "paper": paper, "setup": clip(setup, 300), "question": clip(question, 500),
                                         "scheme": clip(p.get("msText", ""), 300)}, ensure_ascii=False) + "\n")
-        print(f"{work}: {n} batches of {len(parts)} parts in {tag}", file=sys.stderr)
+        print(f"{work}: batches {first}-{n} for {len(parts)} parts not yet tagged, in {tag}", file=sys.stderr)
 
 
 def merge():
     for work, (spec, _) in BOARDS.items():
         d = os.path.join(HERE, "..", ".work", work)
+        if not os.path.isdir(d):
+            continue
         valid = {t["code"] for t in json.load(open(os.path.join(d, "spec.json")))[spec]["topics"]}
         tags, missing = {}, 0
         for path in sorted(glob.glob(os.path.join(d, "tag", "batch-*.jsonl"))):

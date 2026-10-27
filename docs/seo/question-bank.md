@@ -1389,9 +1389,21 @@ naming) and `aqa/AQA-75171-QP-JUN24.pdf`, the crops under `bank/h446*`, `bank/h0
   `tag_cs.py` (briefed by tag.md's Computer Science section) and `build_cs.py`.
   Seven scheme rows the schemes number differently from the papers (OCR prints "4(a)(i)"
   for a paper's 4(a)) are put right in `scripts/question-bank/labels/<set>.json`.
-- **Gaps:** OCR publishes A-Level from November 2021 and AS from June 2022 only; June
-  2017 to November 2020 (A-Level) and June 2016 to 2021 (AS) are on Teach Cambridge, its
-  teacher login. OCR's November 2021 reports comment on the paper as a whole, not
+- **OCR's older series, from Physics & Maths Tutor (27 October 2026).** OCR publishes
+  A-Level from November 2021 and AS from June 2022 only; the earlier series are on Teach
+  Cambridge, its teacher login. The founder asked for them from PMT, for the question bank
+  only (not the past paper library): A-Level June 2017-2019 and November 2020, AS June
+  2016-2019 and November 2020, 18 papers and 565 parts (`fetch_pmt_ocr_cs.py`, run after
+  `fetch_ocr_cs.py`; PMT's copies are OCR's own PDFs, with a "PMT" stamp in the top corner
+  outside every crop). Every paper adds up (140 and 70). Four needed label files: AS Paper 2
+  2016 (Q7's four one-line parts share one "[4]"; each gets 1 mark and the scheme's Q7
+  block) and 2017 (a numbered answer list read as Questions 1-3), A-Level Paper 1 November
+  2020 (Q4's "(a) (i)" on one line; Q6 and Q8 the scheme files as "(a)") and Paper 2 June
+  2017 (parts printed "(c*)"). Ten parts link to the whole scheme (Paper 1 June 2019 Q10,
+  AS Paper 2 November 2020 Q2(b)-(d) and June 2019 Q4(b)), whose rows the cutter can't
+  find. PMT has examiners' reports for only two of these papers, so they have none here.
+  `tag_cs.py split` now batches only the parts not yet tagged.
+- **Gaps:** there are no OCR series before June 2016 (AS) or June 2017 (A-Level). OCR's November 2021 reports comment on the paper as a whole, not
   question by question (OCR says so), and its H446/01 November 2021 question 7(c)(ii)
   had an error (a corrected paper went to centres only), so that part is left out. AQA
   publishes November 2020 on; its file store has nothing earlier for 7516/7517. AQA has no
