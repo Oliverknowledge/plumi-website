@@ -572,6 +572,99 @@ python3 scripts/question-bank/aqa_economics/build_economics.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-economics
 ```
 
+## AQA GCSE English Literature
+
+Added 27 October 2026, the bank's first essay-on-set-texts subject:
+`/question-bank/aqa-gcse-english-literature`, every question from AQA's GCSE English
+Literature (8702) papers that AQA still publishes, November 2020 to June 2025. That is 247
+questions from 16 papers, every one with its mark scheme cropped and 233 with the
+examiner's comments.
+
+- **Topics are the set texts.** A paper asks a question (two, for a modern text) on every
+  set text, and a student answers only on the texts they studied, so the bank's topics
+  are the texts ("Macbeth", "An Inspector Calls", "Power and conflict", "Unseen poetry")
+  under the specification's sections (Shakespeare, the 19th-century novel, modern prose or
+  drama, the poetry anthology, unseen poetry). Each question is tagged from its heading in
+  the mark scheme or the paper (`aqa_english_lit/texts.py`), so there is no tagging pass.
+  Only texts AQA has set a question on since 2020 are listed (the 2025 texts Princess &
+  The Hustler, Leave Taking, My Name Is Leon and the Worlds and lives cluster included).
+- **Whole questions, extract included.** Answers go in a separate answer book, so a
+  question runs from its label to the next "or", heading or label: the extract printed
+  under a Shakespeare or novel question's label, the question printed again under it, the
+  named poem printed after an anthology question. An unseen question's poem comes before
+  its label, so 27.1 runs from the section's start and 27.2 from the end of 27.1; the two
+  show as one question. No stems. Ids are `87021-jun24-01`, `87022-jun24-27-1`.
+- **Either/or.** In each section every question after the first carries `or`, so a
+  paper's marks count the one question a student answers (both unseen questions count).
+  A question's marks include its AO4 marks (30 + 4), so every paper adds up to its front
+  cover's maximum: 64 for Paper 1, 96 for Paper 2.
+- **2021–22.** In November 2021 and June 2022 Paper 1 was sat as three 30-mark papers, one
+  a section (1M modern prose or drama, 1N the novel, 1P the anthology: components
+  `87021M`, `87021N`, `87021P`), and Paper 2 (70 marks) was Shakespeare and unseen poetry.
+  They are separate papers in the filter; the June 2024 Paper 2 is AQA's "8702/2R".
+- **Mark schemes:** each question's own page (the question and its indicative content),
+  then the section's levels grid (landscape, printed once per section) and, for an AO4
+  question, the AO4 descriptors, stacked into one crop. The 8-mark unseen comparison has
+  its own grid on its page and takes no other.
+- **Reports** go section by section, a paragraph or two a text: a question gets its
+  section's paragraphs that name its text, else the section's general paragraphs; the
+  2021–22 1P report heads each question, and is used as is. The November 2021 1M report
+  names only some texts, so 14 of its questions have no report.
+- **Search** covers the whole extract, so searching a quotation finds its question.
+- **Pipeline:** `scripts/question-bank/aqa_english_lit/`: `fetch_english_lit.py` (fetch_aqa.py
+  over 8702), `texts.py`, `cut_english_lit.py` (its own layout around cut.py's label finder
+  and image helpers; cut.py is unchanged) and `build_english_lit.py`. Papers are on R2
+  under `aqa/AQA-8702*`, crops under `bank/8702*`.
+- **Gaps:** AQA no longer publishes June 2017–2019 (its file store has none), so the bank
+  starts at November 2020; the specimen papers are left out. AQA's own copies withhold some
+  poems for copyright, and those crops show AQA's note in place of the poem: the unseen
+  poems of June 2023 (both), June 2025 (the first, 'Table') and November 2020 (the second), and June
+  2022 1P's 'Bayonet Charge'. The questions are all there.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py gcse
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-gcse
+```
+
+### AQA A-Level English Literature A
+
+`/question-bank/aqa-a-level-english-literature-a`: every question from AQA's A-Level (7712:
+Paper 1 Love through the ages, Paper 2A WW1 and its aftermath, Paper 2B Modern times) and AS
+(7711, Papers 1 and 2) English Literature A papers AQA still publishes, November 2020 to June
+2025: 303 questions from 28 papers, every one with its mark scheme cropped and 199 with the
+examiner's comments. The same scripts with `--level=a`; topics are the set texts again, under
+Love through the ages, WW1 and its aftermath and Modern times, with unseen poetry, unseen prose,
+comparing texts and each Paper 2's contextual linking as topics of their own.
+
+- **Options.** Paper 2A and 2B offer three options (a poetry, drama or prose set text), each
+  a Section A on the set text and a Section B of two questions on an unseen prose extract
+  printed in the insert. A student answers one option, so options 2 and 3 carry `or` whole,
+  and every paper adds up to 75 (AS: 50). The three options print the same Section B, so its
+  two questions appear three times (05/06, 11/12, 17/18), each tagged to that paper's
+  contextual linking topic. Section B's ids are `77122a-jun24-b-05`, and their stem is the
+  section's introduction and the insert's extract (`77122a-jun24-b-stem.webp`).
+- **Questions** print the question before the extract (Shakespeare) or the poems (unseen
+  poetry, the AS anthology), and the crop carries both.
+- **Mark schemes:** each question's indicative content, starting at its "Question" line,
+  then the one levels grid printed for every question. Section B's scheme serves all three
+  options ("Questions 05, 11 and 17").
+- **Reports** head each question ("Question 1 Othello", "Questions 5, 11, 17"), and each
+  question gets its own; questions a report covers only under its text's heading get that.
+- **Gaps:** AQA no longer publishes 2017–2019 (or AS 2016–2019). There are no reports for
+  November 2020 and 2021, or for AS Paper 2 June 2024, and the June 2025 Paper 2B report
+  skips 6 questions. AQA's copies withhold some extracts for copyright, and the crops show
+  AQA's note: the Paper 2 insert for November 2021 (2A and 2B), June 2022 (2B: Peyton
+  Place, with page references) and June 2025 (2B), and one unseen poem each in Paper 1 June
+  2023 and November 2021. Specification B (7717) is not here yet.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=a
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=a
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-a
+
 ## AQA A-Level Sociology
 
 Added 27 October 2026: `/question-bank/aqa-a-level-sociology`, every question from AQA's

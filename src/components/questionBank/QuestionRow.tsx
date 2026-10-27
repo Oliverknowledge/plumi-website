@@ -74,9 +74,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
-  // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
-  // alternative (AQA Sociology's Topic A2, Economics' Context 2) still shows its marks.
-  const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
+  // An essay choice, "EITHER (d) OR (e)", counts once; a question that is itself the alternative (Romeo and Juliet, or Macbeth) counts its own.
+  const marked = parts.filter(p => p.m != null && (!p.or || parts.every(x => x.or)));
   const marks = marked.length ? marked.reduce((sum, p) => sum + (p.m ?? 0), 0) : null;
   const topics = [...new Set(parts.flatMap(p => p.t))].slice(0, many ? 3 : 2);
   const withScheme = parts.filter(p => p.ms || p.k);
