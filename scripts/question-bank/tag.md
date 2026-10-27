@@ -186,6 +186,92 @@ collects them. The brief is the one at the top, with these differences:
   vulnerability to earthquakes is `1.EQ2`; on its trade and TNCs `3.EQ1` or `3.EQ2`), with
   a second code when the scheme's indicative content draws equally on two topics.
 
+## AQA Geography
+
+`aqa_geography/tag_geography.py split` writes batches of AQA A-Level (7037) and AS
+(7036) Geography parts to `.work/aqa-geography/tag/`, and `merge` collects them. The
+brief is the one at the top, with these differences:
+
+- `geography-topics.txt` lists one topic per line: `code | area | title — the
+  specification's words`. Codes have four numbers (`3.1.3.2`, `3.2.4.4`), except the
+  fieldwork area's (`3.3.1`-`3.3.5`, the stages of a fieldwork enquiry, which the
+  specification doesn't number); choose from these, never an area like `3.1.3`.
+- Each line has its `paper`, its `area`, its `marks`, the part's own `question` (an AS
+  multiple-choice part lists its options A-D), its `setup` (the lines above it,
+  "Figure 4 shows…") with the insert `figures` it is set on, and the start of its
+  `scheme`.
+- **Every code must be in the line's `area`**: the area is the question the part is
+  printed in, and each option is its own area (deserts `3.1.2`, coasts `3.1.3`,
+  glaciers `3.1.4`, hazards `3.1.5`, ecosystems `3.1.6`, urban `3.2.3`, population
+  `3.2.4`, resources `3.2.5`), so a student who studies coasts never meets a glaciers
+  part. The merge rejects a code from another area. A second code, only when the part
+  genuinely needs two topics, comes from the same area.
+- Each area's last topics are `Quantitative and qualitative skills` and `Case studies`.
+  A part that asks to analyse, interpret or calculate from a figure ("Analyse the data
+  shown in Figure 3", the 6-mark AO3 parts) is tagged to the content the data is about
+  (rainfall and vegetation change in the Sahara: `3.1.2.4` desertification), with the
+  area's skills topic second when the part is mainly a data skill (a mean, a standard
+  deviation, a graph to complete). A 20-mark essay "with reference to a <place> you have
+  studied" or "a case study of…" is tagged to the content it asks about first, with the
+  area's `Case studies` topic second. Changing places' `3.2.2.4 Place studies` is for
+  questions on the student's own local or distant place study.
+- AS Paper 2 Section B (area `3.3`, questions 02-04) is fieldwork: `3.3.1` planning,
+  aims, hypotheses, sampling, risk and ethics, choosing a site; `3.3.2` collecting
+  primary and secondary data (questionnaires, interviews, census data, measurements);
+  `3.3.3` presenting data (maps, graphs, completing a figure); `3.3.4` analysing data
+  and statistics (median, interquartile range, standard deviation, Spearman's rank,
+  significance); `3.3.5` conclusions, evaluating reliability and the enquiry, and how
+  it could be developed. The scenario (a town survey, a peat depth study) doesn't
+  matter: tag the stage of the enquiry the part asks about.
+
+## AQA Business
+
+`aqa_business/tag_business.py split` writes batches of AQA A-Level (7132) and AS (7131)
+Business questions to `.work/aqa-business/tag/`, and `merge` collects them. The brief
+is the one at the top, with these differences:
+
+- `business-topics.txt` lists the specification's topics: `code | area | title [AS] or
+  [A-Level only] — what the specification says under it`. Codes have three numbers
+  (`3.5.2`, `3.10.1`); choose from these, never an area like `3.5`.
+- Each line has its `paper` ("AS 1", "A-Level 3"), `label` and `marks`. AS papers only
+  test the [AS] topics (3.1 to 3.6). On A-Level papers prefer the A-Level topic where
+  one fits: interest rates, exchange rates or the economy are `3.7.5` there, but `3.1.3`
+  on an AS paper.
+- `question` is the question's own words first, then its case study or shared data (cut
+  short). Judge by what the question asks and its scheme ("The demands of the question
+  are…"), not by the case's subject. Multiple-choice questions carry their answer as
+  `scheme` ("Answer: B").
+- Essays and 16- to 25-mark questions often span topics: give the main one first and a
+  second only when the question genuinely needs it ("financial or non-financial
+  motivation to raise labour productivity" is `3.6.4`; "is innovation essential to
+  differentiation" is `3.8.2` then `3.9.2`).
+- Where things live: decision trees and expected values `3.2.2`; stakeholder mapping
+  `3.2.3`; leadership styles `3.2.1`; market research, sampling, elasticity, correlation
+  and marketing data `3.3.2`; segmentation and market mapping `3.3.3`; the 7Ps, pricing,
+  product life cycle and Boston matrix `3.3.4`; capacity utilisation, unit costs and
+  operations data `3.4.2`; lean production, technology and efficiency `3.4.3`; quality
+  `3.4.4`; inventory, JIT, suppliers and outsourcing `3.4.5`; profit and profit margins
+  `3.5.1`; budgets, variances, cash-flow forecasts, break-even, contribution and margin
+  of safety `3.5.2`; sources of finance and debt factoring `3.5.3`; improving cash flow
+  or profit `3.5.4`; hard and soft HRM, HR objectives `3.6.1`; labour turnover,
+  retention and HR data `3.6.2`; structure, spans of control, delayering, centralisation,
+  workforce planning `3.6.3`; motivation theories and methods `3.6.4`; trade unions,
+  works councils, employee involvement `3.6.5`; mission, objectives and SWOT `3.7.1`;
+  financial ratios (current ratio, gearing, ROCE, payables/receivables days, inventory
+  turnover) `3.7.2`; non-financial performance, the balanced scorecard and Elkington's
+  Triple Bottom Line `3.7.3`; legislation and government policy `3.7.4`; the economy,
+  interest and exchange rates, globalisation's economic side `3.7.5`; CSR, ethics and
+  social or technological change `3.7.6`; Porter's five forces `3.7.7`; payback, ARR
+  and NPV `3.7.8`; Ansoff `3.8.1`; Porter's generic strategies and Bowman's strategic
+  clock `3.8.2`; growth, mergers and takeovers, economies of scale, franchising,
+  retrenchment `3.9.1`; innovation, R&D, kaizen `3.9.2`; international markets,
+  offshoring and reshoring `3.9.3`; digital technology, e-commerce, big data `3.9.4`;
+  change, resistance, Lewin, Kotter and Schlesinger, flexible organisations `3.10.1`;
+  organisational culture, Handy, Hofstede `3.10.2`; implementing strategy, network
+  analysis and the critical path `3.10.3`; strategic drift, planned v emergent strategy,
+  why strategies fail `3.10.4`. A ratio or appraisal on an AS paper takes the [AS]
+  topic it sits in (a profit margin `3.5.1`, labour productivity `3.6.2` or `3.4.2`).
+
 ## AQA Economics
 
 `aqa_economics/tag_economics.py split` writes batches of AQA A-Level (7136) and AS

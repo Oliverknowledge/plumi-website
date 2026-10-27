@@ -612,6 +612,78 @@ python3 scripts/question-bank/edexcel_psychology/tag_psychology.py split   # tag
 python3 scripts/question-bank/edexcel_psychology/tag_psychology.py merge
 python3 scripts/question-bank/edexcel_psychology/build_psychology.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-psychology --pdf-prefix=edexcel/
+
+## AQA A-Level Geography
+
+Added 27 October 2026: `/question-bank/aqa-a-level-geography`, every question from AQA's
+A-Level (7037, Papers 1–2) and AS (7036, Papers 1–2) Geography papers that AQA still
+publishes, November 2020 to June 2025. That is 537 parts from 22 papers, every one with
+its mark scheme cropped and tagged to a topic, and 405 with the examiner's comments.
+
+- **Parts, each with its setup and figures.** AQA numbers parts (`01.3`), so each is a
+  crop, as in the AQA sciences: the lines that set it up ("Figure 2 is in the insert.
+  Figure 2 shows…", or a figure printed in the paper), then its label and words down to
+  its marks, with what's printed under the marks before the answer space (an AS
+  multiple-choice part's options, a table to complete). The answer lines, "Extra space"
+  and the section and question headings are left out. The A-Level papers print most
+  figures in a colour insert: a part that names one has it in its crop, between its
+  setup and its label (106 parts), so a part shown alone under a topic still has its
+  figure. Insert figures run from their bold caption to the next; a page printed
+  sideways is turned upright. AS Paper 2's fieldwork scenarios ("0 3", a bare label) are
+  their question's stem (`70362-jun24-03-stem.webp`).
+- **Options.** A-Level Paper 1 is water and carbon cycles, one of hot deserts, coasts and
+  glaciers, and one of hazards and ecosystems under stress; Paper 2 is global systems,
+  changing places, and one of urban environments, population and the environment, and
+  resource security. AS Paper 1 is one of water and carbon, coasts and glaciers, and one
+  of hazards and urban environments; AS Paper 2 is changing places, a fieldwork question,
+  and one of two fieldwork scenarios. Each option is its own area (tile) and its parts are
+  tagged only to that area: `tag_geography.py merge` rejects any code outside the area
+  the question is printed in. As in the Edexcel Geography bank, no part is marked `or`:
+  the choices are whole questions, and `or` on a whole question would leave its card with
+  no marks. `check_geography.py` checks every paper's total instead, counting one question
+  of each choice and requiring a choice's questions to carry the same marks: all 22 add up
+  (120 for A-Level, 80 for AS, 65 for the shortened AS Paper 2 of June 2022).
+- **Mark schemes:** tables whose rows are labelled in two cells (`01` | `3`); a part's
+  scheme runs from its row to the next part's, so a 20-mark question's "Marking grid for
+  Question 01.4", printed after its notes, comes whole with it (the cutter checks every
+  20-mark scheme has its Level 4 and every 9-mark or longer one its levels).
+- **Examiner's reports** are keyed by question. Some are headed by question ("Question 1",
+  "Question 01.2"); others are written by question type ("6-mark AO3 questions … Q1.3 and
+  Q5.3"), and every paragraph that names a part is kept for that part's question.
+- **Topics:** the specification's areas as tiles (`3.1.1 Water and carbon cycles` …
+  `3.2.5 Resource security`) and their numbered topics (`3.1.1.2 The water cycle`), with
+  a last tile for AS Paper 2's fieldwork (planning, collecting, presenting, analysing,
+  concluding; the specification doesn't number these, so their codes aren't shown). The
+  areas the AS covers are Year 1 · AS; hot deserts, ecosystems, global systems, population
+  and resources are Year 2 (`aqa_geography/spec_geography.py`). AS questions use the
+  A-Level codes.
+- **Pipeline:** `scripts/question-bank/aqa_geography/`: `fetch_geography.py` (fetch_aqa.py
+  over 7036/7037, inserts included), `spec_geography.py`, `cut_geography.py` (its own
+  layout around cut.py's image helpers; cut.py is unchanged), `check_geography.py`,
+  `tag_geography.py` (briefed by tag.md's AQA Geography section) and `build_geography.py`.
+  Papers are on R2 under `aqa/`, crops under `bank/7036*`, `bank/7037*`.
+- **Gaps:** AQA no longer publishes June 2017–2019 (the AS) or June 2018–2019 (the
+  A-Level), and sat no AS papers in November 2021, so the bank starts at November 2020.
+  The specimen papers are left out, as for the other AQA banks. Component 3 (the NEA,
+  the fieldwork investigation) is coursework, so there's nothing to cut. AQA published no
+  reports for the November 2020 AS papers or the November 2021 A-Level papers, and its
+  A-Level Paper 1 reports for November 2020, June 2023 and June 2024 are written by
+  question type and name only some questions, so the rest have none. Some figures are
+  withheld for copyright in AQA's own copies (its "-CR" inserts and papers: June 2025
+  Paper 2's Figure 3, November 2021 Paper 2's access to clean water graph), so those
+  parts show AQA's notice instead. AQA's November 2020 AS scheme prints no levels for question
+  02.5. There's no past paper library page for AQA Geography yet, so the credit links to
+  `/past-papers`.
+
+```bash
+python3 scripts/question-bank/aqa_geography/fetch_geography.py
+python3 scripts/question-bank/aqa_geography/spec_geography.py
+python3 scripts/question-bank/aqa_geography/cut_geography.py
+python3 scripts/question-bank/aqa_geography/check_geography.py
+python3 scripts/question-bank/aqa_geography/tag_geography.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_geography/tag_geography.py merge
+python3 scripts/question-bank/aqa_geography/build_geography.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-geography
 ```
 
 ## AQA A-Level Economics
@@ -671,6 +743,73 @@ python3 scripts/question-bank/aqa_economics/tag_economics.py split   # tag the b
 python3 scripts/question-bank/aqa_economics/tag_economics.py merge
 python3 scripts/question-bank/aqa_economics/build_economics.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-economics
+```
+
+## AQA A-Level Business
+
+Added 27 October 2026, after a student asked for it: `/question-bank/aqa-a-level-business`,
+every question from AQA's A-Level (7132, Papers 1–3) and AS (7131, Papers 1–2) Business
+papers that AQA still publishes, November 2020 to June 2025. That is 393 questions from 28
+papers, every one with its mark scheme cropped or its multiple-choice answer, tagged to a
+topic, and 204 with the examiner's comments.
+
+- **Questions and parts.** A-Level Paper 1 is 15 multiple-choice questions, short answers
+  (16–20; November 2021 sets two of them on data with parts, 16.1–16.4 and 17.1–17.2), then
+  EITHER/OR essays in Sections C and D. Paper 2 is three cases, each its text and appendices
+  then its parts (01.1–01.5). Paper 3 and AS Paper 2 are one case study, printed in the
+  insert, and six or eight whole questions on it. AS Paper 1 is 10 multiple-choice
+  questions, short answers 11–15, then two short cases with parts (16.1, 16.2, 17.1, 17.2).
+  So ids are cut.py's own (`71322-jun24-01-3`, `71321-jun24-18`), and a question ends at its
+  marks (the answer lines and pages are left out); multiple choice runs to the next label,
+  so its options stay with it.
+- **Case material as stems.** A part's stem is its question's case, from the question's
+  label to its first part (`71322-jun24-01-stem.webp`), so "Show how question 01 starts"
+  opens the case and its appendices. Paper 3's and AS Paper 2's questions share the insert's
+  case study as one stem (`71323-jun24-stem.webp`, every page up to "END OF SOURCE"). A few
+  papers print data several questions use ("Questions 16, 17 and 18 are based on the data
+  provided in Table 1"): where it sits above the first question's label every member shares
+  it as `<set>-stem.webp`; where it sits beside the first label ("1 4  Questions 14 and 15 are
+  based on the network below"), the first question keeps it in its own crop and the others
+  share it. A downloaded set prints each stem once.
+- **Either/or.** The second essay of each pair in A-Level Paper 1's Sections C and D
+  ("OR", lower case in 2021 and 2022) carries `or`, so every A-Level paper adds up to its 100
+  marks and every AS paper to its 80.
+- **Mark schemes:** not tables: each question is its label, its words again, its own
+  levels-of-response grid and indicative content, up to the next label. Every grid is
+  printed with its question, so none is shared and none is cut apart from it (a grid that
+  runs over a page is two pieces of one crop). The header and footer rules, which even pages
+  draw from the left edge, are left out. Multiple-choice answers come from Section A's
+  "Question number / Answer" table (`k`).
+- **Reports:** headed "Question 16", "Question 16.1", "Q16:" (Paper 1, 2022–23) or just
+  "1.1"; a whole question's comments are gathered under it, each part headed by its label,
+  as the other AQA science banks key them. Paper 3's reports from 2023 open with a contents
+  list and quote student answers as images; the examiner's commentary on them is kept.
+- **Topics:** the specification's ten areas as tiles (`3.1 What is business?` …
+  `3.10 Managing strategic change`) and their 42 numbered topics under them ("3.7.2
+  Analysing the existing internal position of a business to assess strengths and
+  weaknesses: financial ratio analysis", shown short where the title is long: "Financial
+  ratio analysis"). 3.1–3.6 are the AS content (Year 1 · AS), 3.7–3.10 A-Level only. The
+  tree is read from the current specification (version 2.0, June 2023, linked from AQA's
+  7132 page), whose numbering is the 2015 one's. AS questions are tagged with AS topics only.
+- **Pipeline:** `scripts/question-bank/aqa_business/`: `fetch_business.py` (fetch_aqa.py
+  over 7131/7132, inserts included), `spec_business.py`, `cut_business.py` (cut_economics.py's
+  page frames and spans, with Business's own layout; cut.py and cut_economics.py are
+  unchanged), `tag_business.py` (tag_pearson.py, briefed by tag.md's AQA Business section)
+  and `build_business.py`. Papers are on R2 under `aqa/`, crops under `bank/7131*`, `bank/7132*`.
+- **Gaps:** AQA no longer publishes June 2017–2019 (its file store has none of them), and
+  sat no AS papers in November 2021, so the bank starts at November 2020. The specimen
+  papers are left out, as for the other AQA banks. AQA published no reports for November
+  2021 or AS November 2020. There's no past paper library page for AQA Business yet, so the
+  credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/aqa_business/fetch_business.py
+python3 scripts/question-bank/aqa_business/spec_business.py
+python3 scripts/question-bank/aqa_business/cut_business.py
+python3 scripts/question-bank/aqa_business/tag_business.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_business/tag_business.py merge
+python3 scripts/question-bank/aqa_business/build_business.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-business
 ```
 
 ## AQA A-Level Philosophy
