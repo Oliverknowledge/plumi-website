@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { CosyPage, FaqSchema, SectionHead, Tape, WindowBar } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
-import { MarkItCard } from "@/components/pastPapers/PastPaperChrome";
 import { display } from "@/content/pastPapers";
 import { intentFor } from "@/config/routes";
 import {
@@ -11,6 +10,7 @@ import {
 import { levelClass, PackCover, PackDownloads, PackLadder } from "./Pack";
 import { PackClickTracker } from "./PackClickTracker";
 import { PastPapersCard } from "./PastPapersCard";
+import { TopicMapCard } from "./TopicMapCard";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -113,7 +113,7 @@ export function PackHub() {
         <Compare />
 
         <section className="pp-mark-wrap" aria-label="Get your answers marked">
-          <div className="lp-wrap"><MarkItCard level="A-Level" placement="packs-hub" /></div>
+          <div className="lp-wrap"><TopicMapCard placement="packs-hub" /></div>
         </section>
 
         <Faq />
@@ -225,7 +225,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
         <Compare />
 
         <section className="pp-mark-wrap" aria-label="Get your answers marked">
-          <div className="lp-wrap"><MarkItCard level="A-Level" placement={`pack-${pack.slug}`} /></div>
+          <div className="lp-wrap"><TopicMapCard placement={`pack-${pack.slug}`} /></div>
         </section>
 
         <section aria-labelledby="more-title" className="pp-more">
