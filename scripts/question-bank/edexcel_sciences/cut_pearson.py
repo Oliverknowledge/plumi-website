@@ -36,6 +36,9 @@ WHOLE = "--whole" in sys.argv
 # before answering Question 6") carries them in its stem (economics).
 EXTRACTS = "--extracts" in sys.argv
 READ = re.compile(r"^Read (the following |Figures? |Figure \d)", re.I)
+# --figures: a question set on figures in the Resource Booklet bound in after the paper ("Study Figure 2b in the
+# Resource Booklet") carries those figures in its stem, and a part's own "Study Figure…" line goes with it (geography).
+FIGURES = "--figures" in sys.argv
 # Economics lists a question's parts together, then prints each again above its answer space: "6 (a) With reference…".
 RELABEL = re.compile(r"^\*?(\d{1,2})?\s*\(([a-n])\)\s")
 ONLY = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--only=")), None)
@@ -407,6 +410,94 @@ def source_booklet(doc, end_page):
     return out
 
 
+def resource_booklet(doc, end_page):
+    """The Resource Booklet bound in after the questions, as figures: [{pieces: [(page, rect)], figs: {"2a"}, section: "B",
+    block: {2, 3}}] in reading order. Each figure's caption is under it ("Figure 2a" in bold, then its title), so a figure
+    runs from the end of the one before (or its block's heading, "The following resources relate to Question 2.") to
+    the end of its caption; text with no figure of its own (Paper 3's) goes with the next figure on."""
+    cover = next((i for i in range(end_page + 1, len(doc)) if "Resource Booklet" in doc.text(i)), None)
+    if cover is None:
+        return []
+    units, pending, section, block = [], [], None, set()
+
+    def piece(pg, top, bottom):
+        r = pymupdf.Rect(doc.frame(pg).x0, top, doc.frame(pg).x1, bottom)
+        return [(pg, r)] if bottom > top + 10 and has_content(doc, pg, r) else []
+
+    for i in range(cover + 1, len(doc)):
+        if doc.blank(i):
+            continue
+        f = doc.frame(i)
+        lines = [l for l in doc.lines(i) if inside(l, f)]
+        top, k, bottom, headed = f.y0, 0, f.y1, False
+        while k < len(lines):
+            l, t = lines[k], lines[k]["text"]
+            if re.match(r"Acknowledg|Every effort has been made|Pearson Education Ltd (gratefully|is grateful)", t):
+                bottom = l["y0"] - 4  # the copyright credits
+                break
+            sec, rel = re.match(r"SECTION ([A-D])\b", t), re.match(r"The following resources? relates? to Questions? (.+)", t)
+            cap = re.match(r"Figure (\d{1,2}[a-z]?)\b[.:]?\s*(.*)", t)
+            if sec or rel:
+                # What is above a heading ends the block before it; headings one under another stay together.
+                if not headed:
+                    pending += piece(i, top, l["y0"] - 4)
+                    if units:
+                        units[-1]["pieces"] += pending
+                        pending = []
+                    top = l["y0"] - 4
+                headed = True
+                if sec:
+                    section, block = sec.group(1), set()
+                else:
+                    block = set()
+                    for a, b in re.findall(r"(\d{1,2})(?:\s*[–-]\s*(\d{1,2}))?", rel.group(1)):
+                        block |= set(range(int(a), int(b or a) + 1))
+                k += 1
+                continue
+            if cap and bold(l["spans"][0]) and not re.search(r"©|https?:|www\.|[Ss]ource|adapted from", cap.group(2)):
+                # Figures side by side are captioned on one row; the title runs on under the caption, in bold.
+                figs, end, k = {cap.group(1)}, l["y1"], k + 1
+                while k < len(lines) and lines[k]["y0"] - end < 12 and bold(lines[k]["spans"][0]) \
+                        and not re.match(r"SECTION [A-D]\b|The following resource", lines[k]["text"]):
+                    side = re.fullmatch(r"Figure (\d{1,2}[a-z]?)", lines[k]["text"])
+                    if side:
+                        figs.add(side.group(1))
+                    end = max(end, lines[k]["y1"])
+                    k += 1
+                units.append({"pieces": pending + piece(i, top, end + 6), "figs": figs, "section": section, "block": set(block)})
+                pending, top, headed = [], end + 6, False
+                continue
+            headed = False
+            k += 1
+        pending += piece(i, top, bottom)
+        headed = False
+    if units:
+        units[-1]["pieces"] += pending
+    return units
+
+
+def resources_for(text, units, q):
+    """The booklet's figures a question refers to: "Study Figures 4a, 4b, 4c and 4d in the Resource Booklet",
+    "Study the resources in Section B", "the whole of the Resource Booklet"; else, where it only names the
+    booklet, its block ("The following resources relate to Question 2.")."""
+    if not units or "Resource Booklet" not in text:
+        return []
+    if re.search(r"whole of the Resource Booklet", text):
+        return [p for u in units for p in u["pieces"]]
+    wanted, sections = set(), set(re.findall(r"(?:resources in|Study|Use) Section ([A-D])", text))
+    for m in re.finditer(r"Figures?\s+(\d{1,2}[a-z]?(?:(?:\s*,\s*|\s+and\s+|\s*&\s*|\s+to\s+|\s*[–-]\s*)(?:Figures?\s+)?\d{1,2}[a-z]?)*)([^.]{0,60})", text):
+        if re.search(r"\b(below|above|opposite)\b", m.group(2)):
+            continue  # printed in the paper
+        got = re.sub(r"(\d{1,2})([a-z]?)\s*(?:to|[–-])\s*(\d{1,2})([a-z]?)",
+                     lambda r: " ".join(f"{r.group(1)}{chr(c)}" for c in range(ord(r.group(2)), ord(r.group(4)) + 1)) if r.group(2) and r.group(4)
+                     else " ".join(str(n) for n in range(int(r.group(1)), int(r.group(3)) + 1)), m.group(1))
+        wanted |= set(re.findall(r"\d{1,2}[a-z]?", got))
+    # "Figure 2" for a booklet that has 2a and 2b
+    named = lambda u: any(f in wanted or re.sub(r"[a-z]$", "", f) in wanted for f in u["figs"]) or u["section"] in sections  # noqa: E731
+    found = [p for u in units if named(u) for p in u["pieces"]]
+    return found or [p for u in units if q in u["block"] for p in u["pieces"]]
+
+
 def has_content(doc, pg, rect):
     words = BOILER.sub(" ", doc.text(pg, rect))
     if re.search(r"[A-Za-z]{3,}", words):
@@ -585,9 +676,9 @@ def ms_tables(doc):
             if not label or len(label) > 16:
                 continue  # labels are short; a long line would only make the pattern backtrack
             m = MS_LABEL.match(label)
-            if not m:
-                continue
-            subs = re.findall(r"[a-z]{1,5}", m.group(2))
+            if not m or FIGURES and (m.group(1) == "0" or re.fullmatch(r"\d{1,2}", label) and l["y0"] > doc[i].rect.height - 100):
+                continue  # (a levels grid's "0 | No rewardable material" row is no question, nor is a page's number at its foot)
+            subs =re.findall(r"[a-z]{1,5}", m.group(2))
             if len(subs) == 1 and subs[0] not in LETTERS and subs[0] not in ROMANS and subs[0][0] in LETTERS and subs[0][1:] in ROMANS:
                 subs = [subs[0][0], subs[0][1:]]  # "1ai": no brackets, no spaces
             if len(subs) > 2 or any(x not in LETTERS and x not in ROMANS for x in subs):
@@ -654,6 +745,8 @@ def ms_tables(doc):
             continue
         after = ROMANS[ROMANS.index(proman) + 1]
         garbled = roman and (roman not in ROMANS or ROMANS.index(roman) > ROMANS.index(after) + 2)  # "(x)" straight after "(i)"
+        # Geography's misprints: "6(aiv)" for 6(a)(iii), straight after 6(a)(ii), with the real 6(a)(iv) still to come.
+        garbled = garbled or FIGURES and letter == pletter and roman != after and any(f[2] == found[n][2] for f in found[n + 1:])
         if (letter is None and roman == after) or (letter == pletter and garbled):
             found[n] = (found[n][0], found[n][1], (q, pletter, after), found[n][3])
     out = {}
@@ -735,6 +828,19 @@ def examiner_report(path, section=None):
         # …or open a paragraph with it, "Question 6a asked candidates…": a heading goes above, the sentence stays.
         text = re.sub(r"\n[ \t]*Question (\d{1,2})([a-e])?(?=[ \t]+[a-z])",
                       lambda m: f"\nQuestion {m.group(1)}{f' ({m.group(2)})' if m.group(2) else ''}\n\nQuestion {m.group(1)}{m.group(2) or ''}", text)
+    if FIGURES:
+        # Geography's reports head a part on its own line as "Question 1c", "Question 1bi –", "Question 1a (i)",
+        # "Question Q2(a)(i)", "Q1(a)(i)", "Q1a", "3aiv" or just "4": read each as "Question 1 (b)(i)". A bare
+        # number is a heading only where it is the question expected next, not a page number.
+        last = [0]
+
+        def heading(m):
+            q, bare = int(m.group(2)), not m.group(1) and not m.group(3) and not m.group(4)
+            if not m.group(1) and (q not in (last[0], last[0] + 1) or bare and q != last[0] + 1):
+                return m.group(0)
+            last[0] = q
+            return f"\nQuestion {q} " + (f"({m.group(3)})" if m.group(3) else "") + (f"({m.group(4)})" if m.group(4) else "")
+        text = re.sub(r"\n[ \t]*(Question\s*Q?|Q)?\s*(\d{1,2})\s*\(?([a-h])?\)?\s*\(?(iv|v|vi{0,3}|ix|x|i{1,3})?\)?[ \t]*[–-]?[ \t]*(?=\n)", heading, text)
     chunks = re.split(r"\n\s*(Question\s+(\d{1,2})\s*((?:\(\s*[a-z]{1,4}(?:\s*[–-]\s*[a-z]{1,4})?\s*\)\s*)*))\s*\n", text)
     out = {}
     for k in range(1, len(chunks) - 3, 4):
@@ -767,8 +873,9 @@ def hand_labels(set_id):
     paper page by page, and any paper its marks where the cutter can't read them:
     scripts/question-bank/labels/<set>.json, {"end_page": 25,
     "labels": [[page, y, q, letter, roman], ...], "ms_alias": [[[19, "c", "ii"], [19, "c", "a"]]],
-    "keys": {"1": "A", ...}, "marks": {"17(b)(i)": 2, ...}}: a scheme row the scheme itself
-    misprints, as [the part, what the scheme calls it]; the multiple-choice answers, read off the
+    "ms_copy": [[[1, "a", "ii"], [1, "a", "i"]]], "keys": {"1": "A", ...}, "marks": {"17(b)(i)": 2, ...}}:
+    a scheme row the scheme itself misprints, as [the part, what the scheme calls it]; a row that
+    answers two of the paper's parts, as [the other part, the row]; the multiple-choice answers, read off the
     scheme's table; and marks that can't be read, read off the paper or its scheme. Only
     "labels" makes a scan's parts trusted without the checks below."""
     path = os.path.join(HERE, "..", "labels", f"{set_id}.json")
@@ -779,15 +886,28 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     qp = Doc(qp_path)
     hand = hand_labels(set_id)
     labels, end_page = ([tuple(x) for x in hand["labels"]], hand["end_page"]) if hand and "labels" in hand else qp_labels(qp)
+    moved = set()  # where a label was before it took in the line above it
+    if FIGURES:
+        # "Study Figure 2b in the Resource Booklet." set just above "(b)" belongs to (b), not to the end of (a).
+        for n, (pg, y, q, letter, roman) in enumerate(labels):
+            prev = labels[n - 1] if n else None
+            above = [l for l in qp.lines(pg) if y - 40 < l["y0"] < y - 2 and not (prev and prev[0] == pg and l["y0"] <= prev[1] + 2)]
+            start = next((l for l in above if re.match(r"(Study|Using|Use|Look at|Read)\b", l["text"])), None)
+            if letter and start and not (prev and prev[3] is None and prev[0] == pg):  # not the question's own opening
+                labels[n] = (pg, start["y0"], q, letter, roman)
+                moved.add((pg, round(y)))
     ms = ms_tables(Doc(ms_path)) if ms_path and os.path.exists(ms_path) else {}
     for good, bad in (hand or {}).get("ms_alias", []):
         if tuple(bad) in ms:
             ms[tuple(good)] = ms.pop(tuple(bad))
+    for good, row in (hand or {}).get("ms_copy", []):
+        if tuple(row) in ms:
+            ms[tuple(good)] = ms[tuple(row)]
     ms_doc = Doc(ms_path) if ms else None
     er = examiner_report(er_path, meta.pop("erSection", None))
     relabels = []  # (page, y, q, letter) of each part printed a second time
     if EXTRACTS:
-        at = {(pg, round(y)) for pg, y, *_ in labels}
+        at = {(pg, round(y)) for pg, y, *_ in labels} | moved
         for i in range(1, end_page + 1):
             f = qp.frame(i)
             for l in qp.lines(i):
@@ -837,6 +957,18 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
     has_children = lambda k: any(o[0] == k[0] and ((k[1] is None and o[1]) or (k[1] and not k[2] and o[1] == k[1] and o[2])) for o in keys)  # noqa: E731
     leaves = [k for k in keys if not has_children(k)]
     by_key = dict(regions)
+    resources = {}
+    if FIGURES:
+        units = resource_booklet(qp, end_page)
+        # The lines set over a question's number ("You should have read the whole of the Resource Booklet…") are its
+        # own, though they fall at the foot of the question before.
+        heads = [(pg, y, q) for pg, y, q, letter, _ in labels if letter is None]
+        over = {q: [l for l in qp.lines(pg) if y - 40 < l["y0"] < y - 2] for pg, y, q in heads}
+        for pg, y, q in heads:
+            theirs = [id(l) for o in over.values() for l in o]
+            said = [l["text"] for l in over[q]] + [l["text"] for k, rs in regions if k[0] == q for p, r in rs
+                                                   for l in qp.lines(p) if inside(l, r) and id(l) not in theirs]
+            resources[q] = resources_for(re.sub(r"\s+", " ", " ".join(said)), units, q)
     if qp.scanned and ms and not (hand and "labels" in hand):
         # OCR can miss a label; the part before it then runs on into it. The mark scheme
         # lists every part, so leave out any part whose next one was missed.
@@ -871,6 +1003,18 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                     if re.fullmatch(r"\(\d{1,2}\)", l["text"]) and l["x0"] > r.x1 - 140 \
                             and not any(re.match(r"[A-D](\s|$)", o["text"].strip()) for o in inner[k + 1:]):
                         end = l["y1"] + 6
+                        if FIGURES:
+                            # A figure or table to work on, printed under the marks ("Complete the table below."), stays,
+                            # to the end of its caption.
+                            cap = next((j for j in range(k + 1, len(inner)) if bold(inner[j]["spans"][0])
+                                        and re.match(r"(Figure|Table) \d{1,2}[a-z]?\b", inner[j]["text"])), None)
+                            if cap is not None:
+                                end = inner[cap]["y1"]
+                                for o in inner[cap + 1:]:
+                                    if o["y0"] - end > 12 or not bold(o["spans"][0]):
+                                        break
+                                    end = o["y1"]
+                                end += 6
                     elif re.match(r"\(Total for Question \d+ = \d+ marks?\)", l["text"]):
                         end = l["y1"] + 6
                     elif l["text"].strip() in ("OR", "EITHER"):
@@ -881,16 +1025,21 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                     keep = keep[:n] + [(pg, pymupdf.Rect(r.x0, r.y0, r.x1, end))]
                     break
         label = f"{q}" + (f"({letter})" if letter else "") + (f"({roman})" if roman else "")
-        pid = f"{set_id}-{q:02d}" + (f"-{letter or ''}{roman or ''}" if letter or roman else "")
+        # A one-part question set on the booklet ("Study the resources in Section B…") has it as its stem too; the
+        # stem is named for the question, so the part takes a part name of its own, "-q".
+        whole = not letter and bool(resources.get(q))
+        pid = f"{set_id}-{q:02d}" + (f"-{letter or ''}{roman or ''}" if letter or roman else "-q" if whole else "")
         qimg = stack([trim(qp.crop(pg, r)) for pg, r in keep])
         stem_name = None
-        if letter and ((q, None, None) in by_key or q in extracts):
-            stem_pieces = extracts.get(q, []) + [p for p in by_key.get((q, None, None), []) if has_content(qp, *p)]
+        if letter and ((q, None, None) in by_key or q in extracts or resources.get(q)) or whole:
+            own = [p for p in by_key.get((q, None, None), []) if has_content(qp, *p)] if letter else []
+            stem_pieces = extracts.get(q, []) + own + resources.get(q, [])
             if stem_pieces:
                 stem_name = f"{set_id}-{q:02d}-stem.webp"
                 if not os.path.exists(os.path.join(IMG, stem_name)):
                     save(stack([trim(qp.crop(pg, r), 14) for pg, r in stem_pieces]), stem_name)
-        stem_text = " ".join(qp.text(pg, r) for pg, r in extracts.get(q, []) + by_key.get((q, None, None), [])) if letter else ""
+        stem_text = " ".join(qp.text(pg, r) for pg, r in extracts.get(q, []) + by_key.get((q, None, None), []) + resources.get(q, [])) if letter \
+            else " ".join(qp.text(pg, r) for pg, r in resources[q]) if whole else ""
         text = " ".join(qp.text(pg, r) for pg, r in keep)
         marks = marks_in(qp, pieces)  # all of it: a long answer's "[6]" can sit on a page of answer lines we don't show
         if marks is None and letter and not roman:
