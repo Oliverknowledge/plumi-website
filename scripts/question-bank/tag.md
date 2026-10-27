@@ -462,3 +462,75 @@ The brief is the one at the top, with these differences:
   `4.3.1.1`; patterns by class, gender or ethnicity `4.3.1.2`; globalisation, the
   media, green and state crime `4.3.1.3`; punishment, policing, surveillance, victims
   and prevention `4.3.1.4`.
+
+## Year 12 or Year 13 (A-Level Maths)
+
+`maths_years.py split` writes every question from the full A-Level Maths papers (Edexcel
+9MA0, OCR H240, OCR MEI H640, AQA 7357) to `.work/maths-years/batch-NN.jsonl`, each
+with its `course`, `paper` and `text` (the question, then its mark scheme). A reader
+judges every line and writes `batch-NN.answers.json`, `{"<id>": 12 or 13}` for every id;
+`maths_years.py merge` turns the 13s into each bank's `year13.json`, which the bank's
+"Year" filter reads. A Year 12 student is part-way through the course, and wants the
+questions they can already do.
+
+Answer **12** when a student who has learnt only the AS content (the first year) could
+answer **every part** of the question. Answer **13** when any part needs second-year
+content. Judge from what the question and its scheme actually need, not from the
+paper it's on: full A-Level papers have plenty of questions that only need AS content.
+If a part could be done either way, take the method the scheme expects; when it's a
+real toss-up, answer 13 (a Year 12 student stuck on a question is the worse mistake).
+
+**Second-year content (any of it makes a question 13):**
+- **Proof:** proof by contradiction.
+- **Algebra and functions:** partial fractions; the modulus function and its graphs;
+  composite and inverse functions (fg(x), f⁻¹(x)), domain and range of them; combinations
+  of graph transformations.
+- **Coordinate geometry:** parametric equations (sketching, converting to Cartesian,
+  modelling).
+- **Sequences and series:** arithmetic and geometric sequences and series, sums to
+  infinity, sigma notation, recurrence relations, increasing/decreasing/periodic
+  sequences; the binomial expansion of (a + bx)ⁿ for negative or fractional n, and its
+  validity.
+- **Trigonometry:** radians (arc length, sector and segment area); small-angle
+  approximations; sec, cosec, cot and arcsin, arccos, arctan, and their graphs;
+  sec²θ = 1 + tan²θ, cosec²θ = 1 + cot²θ; compound- and double-angle formulae;
+  R cos(θ ± α) or R sin(θ ± α); proving identities and solving equations with these.
+- **Exponentials and logarithms:** nothing beyond AS, except in a calculus context
+  below (differentiating or integrating them).
+- **Differentiation:** differentiating sin x, cos x, tan x and the others; eˣ, aˣ and
+  ln x with the chain, product or quotient rule; implicit and parametric
+  differentiation; points of inflection, concave and convex; connected rates of change.
+  (AS covers differentiating polynomials and xⁿ, tangents, normals, stationary points,
+  increasing/decreasing, and the gradient of e^(kx) as k·e^(kx).)
+- **Integration:** integrating eˣ, 1/x, sin x, cos x and others beyond xⁿ; integration
+  by substitution and by parts; using partial fractions; area between a curve and a line
+  or two curves; the area under a parametric curve; integration as the limit of a sum;
+  separable differential equations and their modelling.
+- **Numerical methods:** locating roots by sign change, iteration xₙ₊₁ = g(xₙ),
+  Newton–Raphson, the trapezium rule.
+- **Vectors:** vectors in three dimensions.
+- **Statistics:** conditional probability, including from Venn diagrams and tree
+  diagrams with set notation; the normal distribution (and using it to approximate a
+  binomial); hypothesis tests for a correlation coefficient and for the mean of a normal
+  distribution; regression with exponential models (y = ab^x, y = axⁿ via logs) is
+  13 when it needs the logs of both variables in a statistics context.
+- **Mechanics:** moments; resolving forces in two dimensions and on inclined planes;
+  friction (F ≤ μR); projectiles; motion in two dimensions with vectors, including
+  variable acceleration with calculus in 2D.
+
+**First-year (AS) content, for comparison:** proof by deduction, exhaustion and
+counter-example; surds and indices; quadratics, the discriminant, inequalities;
+polynomials and the factor theorem; graphs and simple transformations; straight lines
+and circles; the binomial expansion for positive whole n; sine and cosine rules, area
+½ab sin C, trig graphs, tan θ = sin θ/cos θ, sin² + cos² = 1, solving trig equations in
+degrees; exponentials and logs, laws of logs, e^x and ln x, exponential models and
+linearising with logs; differentiation from first principles, of xⁿ and polynomials,
+tangents, normals, stationary points; integration of xⁿ, definite integrals, area under
+a curve; 2D vectors; sampling, data presentation and interpretation, correlation,
+probability (mutually exclusive, independent), the binomial distribution, a binomial
+hypothesis test; kinematics in one dimension (suvat, graphs, variable acceleration
+with calculus), Newton's laws in one dimension, connected particles and pulleys.
+
+The rest of the A-Level Maths banks need no reader: every AS paper question is 12, and
+WJEC's A2 units (Units 3 and 4) and Cambridge's Papers 3 and 6 test only second-year
+content, so all theirs are 13.

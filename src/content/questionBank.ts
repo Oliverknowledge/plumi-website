@@ -164,11 +164,17 @@ export function bankTopic(subject: BankSubject, slug: string): BankTopic | undef
 
 export const bankPath = (slug: string) => `/question-bank/${slug}`;
 export const bankTopicPath = (slug: string, topic: string) => `/question-bank/${slug}/${topic}`;
-export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | "year13" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
 /**
  * The sciences have a practicals.json beside their data: the ids of the parts about
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
  */
+/**
+ * A-Level Maths has a year13.json beside its data: the ids of the questions that need second-year
+ * content (scripts/question-bank/maths_years.py), for the "Year" filter. A Year 12 student wants the
+ * ones they can already do; maths topics span both years, so the split is by question, not by topic.
+ */
+export const bankHasYears = (s: Pick<BankSubject, "level" | "subject">) => s.level === "A-Level" && s.subject === "Maths";
 export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */
