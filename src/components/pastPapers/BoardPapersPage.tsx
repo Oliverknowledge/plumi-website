@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { CosyPage, WindowBar } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
-import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
+import { HowToUse, MarkItCard } from "./PastPaperChrome";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
-  boardHeading, boardPath, boardsFor, display, fileUrl, hasKind, isOwnBoard, otherLevel, revisionPage, sessionCount, subjectPath, subjectTitle,
+  bankFor, boardHeading, boardOwner, boardPath, boardsFor, display, fileUrl, hasKind, otherLevel, revisionPage, sessionCount, subjectPath, subjectTitle,
   type BoardPapers, type Paper, type SubjectHub,
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
@@ -38,7 +38,8 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   const siblings = boardsFor(hub.slug).filter(b => b.slug !== board.slug);
   const other = otherLevel(hub);
   const revision = revisionPage(hub);
-  const extras = [hasKind(board, "er") && "examiner’s reports", hasKind(board, "ma") && "model answers", hasKind(board, "vs") && "video solutions"].filter(Boolean);
+  const extras = [hasKind(board, "er") && "examiner’s reports", hasKind(board, "gt") && "grade thresholds"].filter(Boolean);
+  const banks = bankFor(board);
   const years = board.firstYear === board.lastYear ? `${board.lastYear}` : `${board.firstYear} to ${board.lastYear}`;
 
   return (
@@ -57,9 +58,10 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
           </nav>
           <h1>{display(heading)} <em>past papers</em></h1>
           <p className="lp-lead">
-            Every {heading} question paper and mark scheme{extras.length ? `, with ${extras.join(" and ")}` : ""}, from {years}.
+            Every {heading} question paper and mark scheme {board.board} publishes{extras.length ? `, with ${extras.join(" and ")}` : ""}, from {years}.
             Free, no sign‑up. Each session is one row, so the paper and its scheme are side by side.
           </p>
+          {board.note && <p className="pp-note">{board.note}</p>}
           <ul className="pp-facts" aria-label="At a glance">
             {board.specCodes.length > 0 && <li><strong>{board.specCodes.join(" · ")}</strong><span>specification</span></li>}
             <li><strong>{sessionCount(board)}</strong><span>papers</span></li>
@@ -128,11 +130,12 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
               {revision && <Link href={revision.path}>{revision.label} on Plumi</Link>}
               <Link href="/past-papers">Every subject</Link>
             </nav>
-            {isOwnBoard(board)
-              ? <p className="pp-credit">Past papers, mark schemes and examiner’s reports are © {board.slug === "edexcel" ? "Pearson Edexcel" : "AQA"}, from their published papers. Plumi isn’t affiliated with any exam board. Want single questions by topic? {board.slug === "edexcel" && hub.slug === "a-level-biology"
-                ? <><Link href="/question-bank/edexcel-a-level-biology-a">The Biology A question bank</Link> or <Link href="/question-bank/edexcel-a-level-biology-b">the Biology B one</Link>.</>
-                : <><Link href={`/question-bank/${board.slug}-${hub.slug}`}>The {hub.name} question bank</Link>.</>}</p>
-              : <SourceCredit source={board.groups[0]?.papers[0]?.source} />}
+            <p className="pp-credit">
+              Past papers, mark schemes and examiner’s reports are © {boardOwner(board)}, from their published papers. Plumi isn’t affiliated with any exam board.
+              {banks.length > 0 && <> Want single questions by topic? {banks.map((b, i) => (
+                <span key={b.slug}>{i > 0 && " or "}<Link href={`/question-bank/${b.slug}`}>{i === 0 ? "The" : "the"} {b.name} question bank</Link></span>
+              ))}.</>}
+            </p>
           </div>
         </section>
       </article>
@@ -150,7 +153,7 @@ function PaperCard({ paper, groupId, heading }: { paper: Paper; groupId: string;
   const id = `${groupId}-${paper.id}`;
   return (
     <section id={id} className="lp-card pp-paper" aria-labelledby={`${id}-title`}>
-      <WindowBar label={`${paper.rows.length} sessions`} />
+      <WindowBar label={`${paper.rows.length} ${paper.rows.length === 1 ? "session" : "sessions"}`} />
       <div className="pp-paper-body">
         <h3 id={`${id}-title`}>{paper.title}</h3>
         {paper.extras.length > 0 && (

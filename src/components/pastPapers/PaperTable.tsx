@@ -55,7 +55,7 @@ function Table({ rows, paper, heading, track, kinds, more }: { rows: PaperRow[];
               return (
                 <td key={kind}>
                   <a className={`pp-file is-${kind}`} href={fileUrl(href)} target="_blank" rel="noopener" title={name}
-                    aria-label={`${name}${kind === "vs" ? "" : " (PDF)"}`}
+                    aria-label={`${name} (PDF)`}
                     data-paper={track} data-kind={kind} data-session={row.session}>
                     {fileKindLabel[kind].short}
                   </a>

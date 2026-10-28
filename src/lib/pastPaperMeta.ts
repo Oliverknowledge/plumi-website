@@ -18,7 +18,7 @@ export function boardPageMeta(hub: SubjectHub, board: BoardPapers) {
   const heading = boardHeading(hub, board);
   const title = withBrand(`${heading} Past Papers & Mark Schemes`);
   const spec = board.specCodes.length ? ` (${board.specCodes.slice(0, 2).join(", ")})` : "";
-  const ma = hasKind(board, "er") ? ", examiner reports" : hasKind(board, "ma") ? ", model answers" : "";
+  const ma = hasKind(board, "er") ? ", examiner reports" : "";
   let description = `Free ${heading}${spec} past papers, mark schemes${ma}, ${board.firstYear}–${board.lastYear}, by paper. No sign-up. Then get your answers marked in Plumi.`;
   if (description.length > 158) description = `Free ${heading} past papers and mark schemes, ${board.firstYear}–${board.lastYear}, every paper on one page. No sign-up needed.`;
   return { title, description };

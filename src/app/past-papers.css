@@ -101,6 +101,7 @@
 
 /* more, credit */
 .pp-more .lp-sp-more { margin-top: 12px; }
+.lp .pp-note { max-width: 46em; margin: 10px 0 0; padding: 8px 14px; border: 2px dashed var(--lp-line); border-radius: 12px; background: var(--lp-card-bg); font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp .pp-credit { margin-top: 30px; max-width: 60em; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp .pp-use .lp-sec-head h2 { font-size: clamp(26px, 3.2vw, 38px); }
 

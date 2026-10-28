@@ -34,7 +34,7 @@ export function PastPapersHub() {
             <h1>{display(intent.h1.replace(/ past papers$/, ""))} <em>past papers</em></h1>
             <p className="lp-lead">
               Maths, Further Maths, Biology, Chemistry and Physics, for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge.
-              Every question paper with its mark scheme, a whole board on one page.
+              Every paper each board publishes, with its mark scheme, a whole board on one page.
             </p>
           </div>
           <Image className="pp-hub-mascot" src="/landing/plumi-mood-thinking.svg" alt="" width={150} height={150} unoptimized priority />
