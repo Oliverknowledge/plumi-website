@@ -104,6 +104,7 @@ def main():
         years = [int("20" + s[3:]) for s in series]
         meta = {
             "slug": bank, "board": "WJEC", "level": "A-Level", "subject": name, "specs": sorted({c[:4].upper() for c in comps}),
+            **({"cropVersion": 1} if name == "Maths" else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": f"{SEASON[s[:3]]} 20{s[3:]}"} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},
