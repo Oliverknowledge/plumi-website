@@ -16,17 +16,12 @@ import { site } from "@/config/site";
  * against the canonical domain, so the copy of this page served from any other
  * host still points home.
  */
-/** The share card for a path: a subject page has its own, every other page the homepage's. */
-function shareImageFor(path: string) {
-  const subject = { "/physics-revision": "physics", "/chemistry-revision": "chemistry", "/biology-revision": "biology" }[path];
-  return subject
-    ? { url: `/og-${subject}.png`, width: 1200, height: 630, alt: `${subject[0].toUpperCase()}${subject.slice(1)} revision that marks it: GCSE and A-Level, for AQA, OCR and Edexcel, on iPad.` }
-    : { url: "/og-lofi.png", width: 1200, height: 630, alt: "The cosy notebook that marks your work. Plumi, the GCSE and A-Level revision app for iPad." };
-}
+/** The share card every page uses: the cosy homepage, made by scripts/build-og-lofi.ts. */
+const shareImage = { url: "/og-lofi.png", width: 1200, height: 630, alt: "The cosy notebook that marks your work. Plumi, the GCSE and A-Level revision app for iPad." };
 
 export function metadataFor(path: string): Metadata {
   const intent = intentFor(path);
-  const image = shareImageFor(path);
+  const image = shareImage;
 
   return {
     // `absolute` opts out of the root layout's " · Plumi" template. These
