@@ -367,14 +367,30 @@ def qp_labels(doc):
     return out, end_page
 
 
+def label_top(doc, pg, y):
+    """Where the line a label sits on really begins on the page.
+
+    A label's own text starts at `y`, but a column vector or a stacked fraction on that line is taller than
+    the label: its first row begins above `y` and runs down through it. Cropping from the label alone cuts that
+    row in half ("The equation of the plane is r = (2 4 1)" with the top numbers sliced through, which a student
+    reported on Further Maths, 28 October). So the top is the highest line that starts above the label and runs
+    down past its top, within a line or two. The same top ends the question above, so no row is in both."""
+    f = doc.frame(pg)
+    top = y - 5
+    for l in doc.lines(pg):
+        if f.y0 - 4 <= l["y0"] < y - 1 and l["y1"] > y + 2 and y - l["y0"] < 32:
+            top = min(top, l["y0"] - 9)
+    return max(top, f.y0 - 4)
+
+
 def region(doc, start, end, end_page):
     """[(page, rect)] from one label to the next, across pages, skipping blank pages."""
     (pg, y), nxt = start, end
     pieces = []
     while True:
         f = doc.frame(pg)
-        top = y - 5 if (pg, y) == start else f.y0
-        bottom = nxt[1] - 5 if nxt and nxt[0] == pg else f.y1
+        top = label_top(doc, pg, y) if (pg, y) == start else f.y0
+        bottom = label_top(doc, nxt[0], nxt[1]) if nxt and nxt[0] == pg else f.y1
         for l in doc.lines(pg):
             if l["y0"] > top + 2 and l["y0"] < bottom and (STOP.match(l["text"]) or doc.cambridge and CAMBRIDGE_END.match(l["text"])):
                 bottom = l["y0"] - 4

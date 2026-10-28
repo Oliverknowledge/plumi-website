@@ -58,6 +58,20 @@ def qp_frame(page, legacy):
     return pymupdf.Rect(36, 36, 526 if legacy else 557, h - 50)
 
 
+def label_top(page, y0, floor):
+    """Where the line a question's label sits on really begins. A column vector or a stacked fraction on that
+    line is taller than the label: its first row starts above `y0` and runs down through it, and cropping from
+    the label alone sliced those numbers in half (a student reported it on Further Maths, 28 October). The top
+    is the highest span that starts above the label and runs down past its top, within a line or two; the same
+    top ends the question above, so no row is in both."""
+    top = y0 - 6
+    for s in spans(page):
+        b = s["bbox"]
+        if floor - 4 <= b[1] < y0 - 1 and b[3] > y0 + 2 and y0 - b[1] < 32:
+            top = min(top, b[1] - 9)
+    return max(top, floor - 4)
+
+
 def qp_regions(doc, legacy):
     labels = []  # (page, y, q)
     seen = set()
@@ -72,14 +86,14 @@ def qp_regions(doc, legacy):
     out = []
     for n, (pg0, y0, q) in enumerate(labels):
         nxt = labels[n + 1] if n + 1 < len(labels) else None
-        pieces, pg, top = [], pg0, y0 - 6
+        pieces, pg, top = [], pg0, label_top(doc[pg0], y0, qp_frame(doc[pg0], legacy).y0)
         while pg < len(doc):
             page = doc[pg]
             f = qp_frame(page, legacy)
             stops = [s["bbox"][1] for s in spans(page) if s["bbox"][1] > top + 10 and (
                 ANSWER_LINE.match(s["text"].strip()) or CONTINUED.match(s["text"].strip()) or TOTAL_NEW.search(s["text"]) or TOTAL_OLD.search(s["text"]))]
             if nxt and nxt[0] == pg:
-                stops.append(nxt[1])
+                stops.append(label_top(page, nxt[1], f.y0) + 4)
             end = min(stops) - 4 if stops else f.y1
             if end > top + 8:
                 pieces.append((pg, pymupdf.Rect(f.x0, max(top, f.y0), f.x1, end)))
