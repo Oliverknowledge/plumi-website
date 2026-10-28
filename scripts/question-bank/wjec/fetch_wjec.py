@@ -42,6 +42,7 @@ QUALS = {
     "chemistry": ("chemistry-asa-level", "wjec-a-level-chemistry", "410"),
     "biology": ("biology-asa-level", "wjec-a-level-biology", "400"),
     "maths": ("mathematics-aas-level", "wjec-a-level-maths", "300"),
+    "business": ("business-asa-level", "wjec-a-level-business", "510"),
 }
 PRACTICAL = {"420": "50", "410": "50", "400": "50"}  # the sciences' Unit 5, the practical exam
 UNIT = re.compile(r"\b([12]\d{3})U(\d)0-(\d)\b")
@@ -81,8 +82,9 @@ def read_cover(path):
     welsh = bool(re.search(r"Atebwch bob cwestiwn|CYNLLUN MARCIO|Cyfenw|cwestiwn", text))
     if re.search(r"MARKING SCHEME|MARK SCHEME", text, re.I):
         kind = "ms"
-    elif re.search(r"INSTRUCTIONS TO CANDIDATES", text) and re.search(r"Answer\s+all\s+questions|answer booklet", text, re.I):
+    elif re.search(r"INSTRUCTIONS TO CANDIDATES", text) and re.search(r"Answer\s+all\s+(the\s+)?questions|answer booklet", text, re.I):
         # (maths papers are answered in a separate booklet, so have no candidate boxes)
+        # (Business AS Unit 1 says "Answer all the questions")
         kind = "qp"
     else:
         kind = "other"  # a data booklet, an insert, a formula booklet
