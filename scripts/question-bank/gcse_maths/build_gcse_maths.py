@@ -91,6 +91,7 @@ def build(board):
     years = [int("20" + s[3:]) for s in series if s != "SPEC"]
     meta = {
         "slug": slug_, "board": board_name, "level": "GCSE", "subject": "Maths", "fullName": FULL_NAME[board], "specs": [spec_code],
+        **({"cropVersion": 1} if board in ("edexcel", "ocr") else {}),  # 1 (cut_pearson.py): a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
         "sections": spec["sections"], "topics": topics,
         "papers": [{"id": c, "name": paper_name(board, c), "title": "Calculator" if c in CALCULATOR else "Non-calculator", "as": False} for c in comps],
         "series": [{"id": s, "label": series_label(s)} for s in series],

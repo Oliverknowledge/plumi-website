@@ -131,6 +131,7 @@ def main():
         series = [s for s in SERIES if any(r["s"] == s for r in rows)]
         meta = {
             "slug": bank, "board": "CAIE", "level": level, "subject": subject, "fullName": full, "specs": [code] + ([nine] if nine else []),
+            **({"cropVersion": 1} if "Maths" in subject else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": SERIES[s]} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in {p["id"] for p in papers}},

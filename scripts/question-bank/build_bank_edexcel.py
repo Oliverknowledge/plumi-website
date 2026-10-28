@@ -111,6 +111,7 @@ def main():
         years = [int("20" + s[3:]) for s in series]
         meta = {
             "slug": subj_slug, "board": "Edexcel", "level": "A-Level", "subject": name,
+            "cropVersion": 1,  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             "specs": sorted({c.split("-")[0] for c in comps}), "sections": sections, "topics": topics,
             "papers": [paper_for(c) for c in comps],
             "series": [{"id": s, "label": series_label(s)} for s in series],

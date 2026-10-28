@@ -24,12 +24,16 @@ sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from build_pearson import BOILERPLATE, CALC, clean_report, label_order, own_text, slug  # noqa: E402
 sys.path.insert(0, HERE)
 from tag_wjec import BOILER, subject, trees  # noqa: E402
+import tag_wjec  # noqa: E402
+
+tag_wjec.WORK = WORK  # (it reads its own work dir from a different argument)
 
 BANKS = {  # slug: (spec.json's subject, the bank's subject)
     "wjec-a-level-biology": ("biology", "Biology"),
     "wjec-a-level-chemistry": ("chemistry", "Chemistry"),
     "wjec-a-level-physics": ("physics", "Physics"),
     "wjec-a-level-maths": ("maths", "Maths"),
+    "wjec-a-level-business": ("business", "Business"),  # its own work dir, .work/wjec-business
 }
 SEASON = {"JUN": "Summer", "NOV": "Autumn"}
 
@@ -41,7 +45,8 @@ def series_rank(s):
 def main():
     parts = []
     for name in ("parts.json", "parts-maths.json"):
-        parts += json.load(open(os.path.join(WORK, name)))
+        if os.path.exists(os.path.join(WORK, name)):
+            parts += json.load(open(os.path.join(WORK, name)))
     spec = trees()
     manifest = json.load(open(os.path.join(WORK, "manifest.json")))
     tags_path = os.path.join(WORK, "tags.json")
@@ -53,6 +58,8 @@ def main():
     out_dir = os.path.join(ROOT, "src", "content", "questionBank")
     for bank, (key, name) in BANKS.items():
         maths = key == "maths"
+        if key not in spec or not any(subject(p) == key for p in parts):
+            continue  # a bank cut in another work dir (Business is its own): leave its files alone
         tree = spec[key]
         valid = {t["code"] for t in tree["topics"]}
         mine = [p for p in parts if subject(p) == key and p.get("qp") and p["h"] > 0]
@@ -75,7 +82,7 @@ def main():
                     reports[p["id"]] = clean_report(p["er"])
                 else:
                     reports.setdefault(f"{p['set']}-{p['question']}", clean_report(p["er"]))
-            if not maths and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
+            if key not in ("maths", "business") and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
                 row["calc"] = 1
             rows.append(row)
             text[p["id"]] = (words + " " + re.sub(r"\s+", " ", p.get("msText", ""))).lower()
@@ -104,6 +111,7 @@ def main():
         years = [int("20" + s[3:]) for s in series]
         meta = {
             "slug": bank, "board": "WJEC", "level": "A-Level", "subject": name, "specs": sorted({c[:4].upper() for c in comps}),
+            **({"cropVersion": 1} if name == "Maths" else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": f"{SEASON[s[:3]]} 20{s[3:]}"} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},

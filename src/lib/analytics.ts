@@ -44,6 +44,9 @@ export type PlumiEvent =
   | "bank_reveal"
   | "bank_set_added"
   | "bank_pdf_downloaded"
+  /** A student marked themselves on a part: `score` of `out_of`, `kind` (marks, rough
+   *  for a part with no printed marks, choice for multiple choice), `attempts` on it so far. */
+  | "bank_self_marked"
   /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */
   | "embed_view"
