@@ -25,7 +25,9 @@ sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from build_pearson import BOILERPLATE, slug  # noqa: E402
 from tag_pearson import clip  # noqa: E402
 sys.path.insert(0, HERE)
-from build_ocr import CROP_VERSION, ocr_report  # noqa: E402
+from build_ocr import ocr_report  # noqa: E402
+
+CROP_VERSION = 4  # build_ocr.py's 3, then 4: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026). See questionBank.ts partImage
 
 BANKS = {  # slug: (board, subject, topic list)
     "ocr-a-level-maths": ("OCR", "Maths", "maths"),

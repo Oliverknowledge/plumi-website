@@ -374,11 +374,15 @@ def label_top(doc, pg, y):
     the label: its first row begins above `y` and runs down through it. Cropping from the label alone cuts that
     row in half ("The equation of the plane is r = (2 4 1)" with the top numbers sliced through, which a student
     reported on Further Maths, 28 October). So the top is the highest line that starts above the label and runs
-    down past its top, within a line or two. The same top ends the question above, so no row is in both."""
+    down past its top, within a line or two. The same top ends the question above, so no row is in both.
+    "Above" means 5pt or more: a vector's first row starts 6-12pt above its label, while plain text set in a
+    slightly larger size than the label starts 1-4pt above it, and taking that pulled a page's rule into the
+    crop (WJEC, OCR GCSE). And only lines inside the frame count: WJEC's "Examiner only" margin column sits
+    beside every label."""
     f = doc.frame(pg)
     top = y - 5
     for l in doc.lines(pg):
-        if f.y0 - 4 <= l["y0"] < y - 1 and l["y1"] > y + 2 and y - l["y0"] < 32:
+        if f.y0 - 4 <= l["y0"] < y - 5 and l["y1"] > y + 2 and y - l["y0"] < 32 and l["x0"] >= f.x0 - 2 and l["x1"] <= f.x1 + 2:
             top = min(top, l["y0"] - 9)
     return max(top, f.y0 - 4)
 

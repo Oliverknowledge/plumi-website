@@ -73,6 +73,28 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Column vectors and fractions at a question's top (maths), fixed 28 October 2026
+
+A student sent screenshots of Further Maths vector questions (OCR Pure Core, Edexcel Further
+Pure 1) whose column vectors had their top row cut off: a question's crop began at its
+label, and a vector or a stacked fraction on that line starts above it. `cut_pearson.py`
+and `cut_edexcel.py` now start a question at the highest line that starts 5pt or more above
+its label and runs down past it (`label_top`), within its frame; the question above ends
+there, so it no longer carries the sliced row either. The 5pt and the frame matter: plain
+text a size larger than its label starts 1-4pt above it, and WJEC's "Examiner only" margin
+column sits beside every label, and counting either pulled a page's rule into the crop.
+
+Every maths bank cut by those two was re-cut, and only the question crops whose bytes changed
+were uploaded (642; schemes are unchanged): OCR and OCR MEI A-Level Maths and Further Maths
+(375 crops, `cropVersion` 3 to 4, `maths_ocr.py`'s own `CROP_VERSION` now that it differs from
+the sciences'), Edexcel A-Level Maths and Further Maths (47), Edexcel and OCR GCSE Maths (107),
+Cambridge A-Level Maths, Further Maths, IGCSE Maths and Additional Maths (54) and WJEC Maths
+(59), the rest at `cropVersion` 1 (set in their build scripts too). The live rows took only
+the changed crops' new width and height, since the shared work folders' other data can be
+older than what is live. AQA's maths banks use `cut.py`'s boxed labels and weren't affected.
+The sciences banks cut by `cut_pearson.py` part by part would change only where a part's line
+holds a fraction or a vector, and weren't re-cut.
+
 ## Mark scheme crops (every board), fixed 25 October 2026
 
 A student testing OCR found a multiple-choice question whose mark scheme was a
