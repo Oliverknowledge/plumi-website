@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { site } from "@/config/site";
 import {
-  boardHeading, boardPath, boardsFor, hasKind, shareImage, subjectPath, subjectTitle,
+  boardHeading, boardPath, boardsFor, hasKind, subjectPath, subjectTitle,
   type BoardPapers, type SubjectHub,
 } from "@/content/pastPapers";
 
@@ -48,5 +48,5 @@ export function pastPaperMetadata(path: string, meta: { title: string; descripti
 }
 
 export const boardMetadata = (hub: SubjectHub, board: BoardPapers) =>
-  pastPaperMetadata(boardPath(hub.slug, board.slug), boardPageMeta(hub, board), shareImage(hub));
-export const subjectMetadata = (hub: SubjectHub) => pastPaperMetadata(subjectPath(hub.slug), subjectPageMeta(hub), shareImage(hub));
+  pastPaperMetadata(boardPath(hub.slug, board.slug), boardPageMeta(hub, board));
+export const subjectMetadata = (hub: SubjectHub) => pastPaperMetadata(subjectPath(hub.slug), subjectPageMeta(hub));

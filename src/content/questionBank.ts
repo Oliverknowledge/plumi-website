@@ -210,9 +210,6 @@ export const baseSubject = (s: Pick<BankSubject, "subject">) => s.subject.replac
 export const bankPapersPath = (s: Pick<BankSubject, "board" | "level" | "subject">) => s.level === "IGCSE"
   ? `/past-papers/gcse-${baseSubject(s).replace(/^Additional /, "").toLowerCase()}/cie-igcse`
   : `/past-papers/${s.level.toLowerCase()}-${baseSubject(s).toLowerCase().replace(/\s+/g, "-")}/${s.board === "CAIE" ? "cie" : s.board.toLowerCase().replace(/\s+/g, "-")}`;
-/** The subject's share card, where it has its own. */
-export const bankShareImage = (s: Pick<BankSubject, "subject">) =>
-  ["Biology", "Chemistry", "Physics"].includes(baseSubject(s)) ? `/og-${baseSubject(s).toLowerCase()}.png` : "/og.png";
 
 export function paperName(subject: BankSubject, id: string) {
   const p = subject.papers.find(x => x.id === id);
