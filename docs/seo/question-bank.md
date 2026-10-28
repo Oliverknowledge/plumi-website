@@ -31,8 +31,26 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
 
 ## Gaps, honestly
 
-- AQA no longer publishes Biology Paper 1 for 2017–2019 or Paper 3 for June 2018,
-  so they aren't here.
+- AQA no longer publishes nine Biology sets (its file store answers "not found"):
+  A-Level Paper 1 June 2017–2019, Paper 3 June 2018, AS Paper 1 June 2016, 2018 and
+  2019, AS Paper 2 June 2017 and 2018. A student asked for them, and the founder chose
+  Physics & Maths Tutor's copies (28 October 2026), **for the question bank only**: 319
+  parts, `fetch_pmt_aqa_biology.py` then `cut_aqa_bio_pmt.py --only=<set>` one set at a
+  time. PMT's copies are AQA's own PDFs (its "PMT" stamp sits outside every crop), with
+  no examiners' reports. `build_bank.py` keeps them out of `files.json`, the past paper
+  library's list, and the whole-paper links point at our R2 copies under `aqa/`.
+  `cut_aqa_bio_pmt.py` is cut.py with fixes for these older layouts: "1.1" scheme labels
+  on headerless continuation pages, an answer's "1." run into its label, a stray number
+  in a table cell taken for a label, and June 2016's "[n marks]" printed past the crop's
+  right edge. That last one had clipped AQA's own AS Paper 2 June 2016 too (and hidden
+  13 of its mark counts); it is re-cut, and Biology's `cropVersion` (in `build_bank.py`)
+  makes browsers fetch the new crops. Every new paper adds up (91, 75; Paper 3's 103 is
+  78 plus the second essay choice). Chemistry's AS June 2016–17 and A-Level June 2017,
+  and some specimens, are clipped the same way and not yet re-cut.
+- Rebuilding from the shared work folder: `build_bank.py` has changed since Chemistry
+  and Physics were last built (it trims the search text and links some scheme crops to
+  the whole scheme), so this run kept their files as they were and took only Biology's
+  new and re-cut rows.
 - Five older AS sets (Chemistry June 2016 and 2018, Physics June 2016–17) use a
   mark scheme layout the cutter doesn't read; their questions link to the whole
   mark scheme PDF instead of a cropped row.
