@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
+import { ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
@@ -97,6 +98,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         <span className="qb-num" aria-hidden="true">{n}</span>
         <p className="qb-q">Q{shown}</p>
         <p className="qb-meta">{seriesLabel(subject, part.s)} · {paperName(subject, part.p)}</p>
+        {!embed && <MarginScore subject={subject.slug} parts={parts} />}
         <div className="qb-tags">
           {marks != null && <span className="qb-marks">{marks} {marks === 1 ? "mark" : "marks"}</span>}
           {topics.map(code => {
@@ -145,6 +147,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             // eslint-disable-next-line @next/next/no-img-element
             <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
               alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />,
+            // Multiple choice marks itself from the letter picked, before the key is shown.
+            !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
           ])}
         </div>
         <p className="qb-swipe" aria-hidden="true">Swipe the paper sideways to read it all.</p>
@@ -157,8 +161,11 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               <p className="qb-note-label">Mark scheme for {p.l}</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
+              {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
+        {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
+        {!embed && schemePdf && parts.filter(p => !p.k).map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>
 
       <div className="qb-right">

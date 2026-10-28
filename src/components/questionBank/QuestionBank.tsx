@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import { baseSubject, bankDataPath, bankHasPracticals, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { BankProgress } from "./BankProgress";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 
@@ -375,6 +376,9 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
           Filters{active ? ` · ${active} on` : ""} · {total.toLocaleString("en-GB")} {total === 1 ? "question" : "questions"}
         </button>
       )}
+
+      <BankProgress subject={subject} lockedTopic={lockedTopic} compact={isPhone}
+        onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
 
       <section className="qb-filters" aria-label="Filter questions" ref={panelRef}>
         {hasYears && isPhone && yearSwitch}
