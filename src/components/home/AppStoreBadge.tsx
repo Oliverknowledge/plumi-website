@@ -155,7 +155,7 @@ function DesktopSend({ placement }: { placement: string }) {
 
 /**
  * The header's small pill: the badge's destination, or the phone's send-on (see above).
- * `download` is the wording on the App Store link ("Get it free" in the cosy header on
+ * `download` is the wording on the App Store link ("Try on iPad" in the cosy header on
  * every page) and `className` the key's look; the destination, the phone's send-on and
  * the events are the same whatever they are.
  */

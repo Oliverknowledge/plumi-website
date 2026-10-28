@@ -92,6 +92,7 @@ send an unlisted one.
 | `comparison_viewed` | The comparison table scrolls into view | — |
 | `pricing_viewed` | The Free/Pro chapter scrolls into view | — |
 | `faq_opened` | A question is expanded | `question` |
+| `pack_downloaded` | A Plumi practice pack's questions or mark scheme is opened (one listener per page, `PackClickTracker`) | `pack` (its slug), `file` (`questions` / `mark-scheme`), `placement` (`home`, `packs-hub`, `pack-hero`, `pack-samples`, `papers-<subject>[-<board>]`) |
 
 **Why `story_section_viewed` uses a middle band rather than a percentage.**
 A threshold of "50% of the section is visible" is unreachable for the tall

@@ -23,6 +23,9 @@ SUBJECTS = [("aqa-a-level-biology", "Biology", ("7401", "7402")),
             ("aqa-a-level-physics", "Physics", ("7407", "7408"))]
 MONTH = {"JUN": "June", "NOV": "November"}
 OPTIONS = {"A": "Section A", "BA": "Astrophysics", "BB": "Medical physics", "BC": "Engineering physics", "BD": "Turning points", "BE": "Electronics"}
+# A bank re-cut under the same crop names gets a new version, so browsers fetch the new crops:
+# Biology for AS June 2016, whose crops had lost the end of every "[n marks]" (28 October 2026).
+CROP_VERSION = {"aqa-a-level-biology": 1}
 CALC = re.compile(r"\bcalculate\b|\bshow your working\b|\bgive your answer to \d|\bsignificant figures\b|\bdetermine the value\b", re.I)
 
 
@@ -76,8 +79,11 @@ def main():
         if f["kind"] == "qp" and f.get("title"):
             titles.setdefault(f["component"], []).append(f["title"])
 
+    # The past paper library lists AQA's own copies only: the Biology papers taken from PMT
+    # (fetch_pmt_aqa_biology.py) are for the question bank, as the founder asked.
     files = [{"component": f["component"], "series": f["series"], "kind": f["kind"], "file": f"aqa/{f['file']}", "title": f.get("title", "")}
-             for f in manifest if f["component"][:4] in ("7401", "7402", "7404", "7405", "7407", "7408") and len(f["component"]) >= 5]
+             for f in manifest if f["component"][:4] in ("7401", "7402", "7404", "7405", "7407", "7408") and len(f["component"]) >= 5
+             and "physicsandmathstutor" not in f.get("source", "")]
     os.makedirs(os.path.join(ROOT, "src", "content", "questionBank"), exist_ok=True)
     json.dump(files, open(os.path.join(ROOT, "src", "content", "questionBank", "files.json"), "w"), ensure_ascii=False, separators=(",", ":"))
 
@@ -142,6 +148,7 @@ def main():
         years = [int("20" + s[3:]) for s in series if s != "SPEC"]
         meta = {
             "slug": subj_slug, "board": "AQA", "level": "A-Level", "subject": name, "specs": list(specs),
+            **({"cropVersion": CROP_VERSION[subj_slug]} if subj_slug in CROP_VERSION else {}),
             "sections": sections, "topics": topics,
             "papers": [paper_for(c, titles.get(c, [])) for c in comps],
             "series": [{"id": s, "label": series_label(s)} for s in series],

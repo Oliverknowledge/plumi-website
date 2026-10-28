@@ -4,8 +4,8 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import type { BankPart, BankSubject } from "@/content/questionBank";
 
-/** The most a set can hold: enough for a long practice paper, small enough to build in a browser. */
-export const SET_MAX = 40;
+/** The most one set (or one download by number) holds: a long practice session's worth, picked by hand. */
+export const SET_MAX = 150;
 
 /**
  * "My set": the questions someone has picked, kept in this browser between visits.
@@ -17,15 +17,25 @@ export function useQuestionSet(slug: string) {
   const raw = useSyncExternalStore(subscribeStorage, () => readStorage(key), () => "[]");
   const ids = useMemo<string[]>(() => { try { return JSON.parse(raw); } catch { return []; } }, [raw]);
   const save = useCallback((next: string[]) => writeStorage(key, JSON.stringify(next)), [key]);
+  const inSet = useMemo(() => new Set(ids), [ids]);
   return {
     ids,
-    has: (id: string) => ids.includes(id),
+    has: (id: string) => inSet.has(id),
+    full: ids.length >= SET_MAX,
     toggle: (id: string) => {
-      if (ids.includes(id)) return save(ids.filter(x => x !== id));
+      if (inSet.has(id)) return save(ids.filter(x => x !== id));
       if (ids.length >= SET_MAX) return;
       track("bank_set_added", { subject: slug, size: ids.length + 1 });
       save([...ids, id]);
     },
+    /** A whole question's parts: all of them go in, or none if they wouldn't fit. */
+    add: (more: string[]) => {
+      const missing = more.filter(id => !inSet.has(id));
+      if (!missing.length || ids.length + missing.length > SET_MAX) return;
+      track("bank_set_added", { subject: slug, size: ids.length + missing.length, parts: missing.length });
+      save([...ids, ...missing]);
+    },
+    remove: (gone: string[]) => save(ids.filter(x => !gone.includes(x))),
     clear: () => save([]),
     restore: (next: string[]) => save(next),
   };
@@ -60,6 +70,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [withMs, setWithMs] = useState(true);
+  const [withReports, setWithReports] = useState(false);
   const [undo, setUndo] = useState<string[] | null>(null);
   const [listOpen, setListOpen] = useState(false);
   if (!set.ids.length && !undo) return null;
@@ -76,6 +87,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   }
 
   const chosen = parts ? set.ids.map(id => parts.find(p => p.id === id)).filter((p): p is BankPart => !!p) : [];
+  const hasReports = chosen.some(p => p.er);
   const marks = chosen.reduce((n, p) => n + (p.m ?? 0), 0);
   const count = set.ids.length;
 
@@ -84,8 +96,11 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
     setBusy("Building…");
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
-      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs });
+      // Numbered as the list below is, in the order they were added.
+      const numbers = new Map(chosen.map((p, i) => [p.id, i + 1]));
+      const reports = withReports && hasReports;
+      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0 });
       setNote(skipped ? `Saved ✓ (${skipped} couldn’t be added)` : "Saved ✓");
     } catch {
       setNote("Couldn’t build it. Try again?");
@@ -110,9 +125,11 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
         </button>
         <button type="button" className="lp-btn qb-tray-go" onClick={download} disabled={!!busy || !parts}>{busy ?? (parts ? "Download PDF" : "Loading…")}</button>
         {note && <p className="qb-tray-note" role="status">{note}</p>}
+        {count >= SET_MAX && !note && <p className="qb-tray-note" role="status">That’s {SET_MAX}, the most one set holds. Download it, then clear it for the next.</p>}
         {listOpen && (
           <div className="qb-tray-list">
             <label className="qb-tray-ms"><input type="checkbox" checked={withMs} onChange={e => setWithMs(e.target.checked)} /> Mark schemes at the back</label>
+            {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports at the back</label>}
             <ol>
               {chosen.map(p => (
                 <li key={p.id}>
@@ -122,7 +139,6 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
               ))}
             </ol>
             <button type="button" className="qb-link" onClick={clear} disabled={!!busy}>Clear the set</button>
-            {count >= SET_MAX && <p className="qb-tray-note">That’s the most one set holds.</p>}
           </div>
         )}
       </div>

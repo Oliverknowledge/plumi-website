@@ -3,11 +3,12 @@ import Link from "next/link";
 import { Book, TopicSquares } from "@/components/cosy/Book";
 import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
-import { display } from "@/content/pastPapers";
+import { boardPapers, display } from "@/content/pastPapers";
 import {
-  baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, paperName, seriesLabel, topicName,
+  baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
+import { packFor, packPath } from "@/content/practicePacks";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -30,39 +31,65 @@ function QuietPlumi() {
 }
 
 function Credit({ subject }: { subject?: BankSubject }) {
-  const owner = subject ? bankOwner(subject) : "AQA and Pearson Edexcel";
+  const owner = subject ? bankOwner(subject) : "AQA, Pearson Edexcel, OCR, WJEC Eduqas, Cambridge University Press & Assessment and WJEC CBAC Ltd";
+  // Not every bank subject has a library page yet (Psychology): then the library's front door.
+  const [, , hub, board] = subject ? bankPapersPath(subject).split("/") : [];
+  const library = subject && boardPapers(hub, board) ? subject : undefined;
+  // Plumi's own pack for this subject, where there is one: still the same one line.
+  const pack = subject ? packFor(bankPath(subject.slug)) : undefined;
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={subject ? bankPapersPath(subject) : "/past-papers"}>{subject ? `Every ${subject.board} ${subject.level} ${subject.subject} paper` : "Full past papers"}</Link>.
+      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>{pack
+        ? <>, or <Link href={packPath(pack.slug)}>our free {pack.board}-style practice pack</Link>.</>
+        : "."}
     </p>
   );
 }
 
+/**
+ * The hub's shelves: GCSE first, so a GCSE student isn't scrolling past twenty A-Level
+ * banks to find theirs, then Cambridge IGCSE, then the A-Levels a board at a time.
+ */
+const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject) => boolean }[] = [
+  { id: "gcse", name: "GCSE", jump: "GCSE", match: s => s.level === "GCSE" },
+  { id: "igcse", name: "Cambridge International (CAIE) IGCSE", jump: "CAIE IGCSE", match: s => s.level === "IGCSE" },
+  ...(["Edexcel", "AQA", "OCR", "Eduqas", "CAIE", "WJEC"] as const).map(board => ({
+    id: `a-level-${board.toLowerCase()}`,
+    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : board === "WJEC" ? "WJEC AS & A Level (Wales)" : `${board} A-Level`,
+    jump: board === "CAIE" ? "CAIE A Level" : `${board} A-Level`,
+    match: (s: BankSubject) => s.level === "A-Level" && s.board.split(" ")[0] === board,
+  })),
+];
+
 export function BankHub() {
+  const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA GCSE and A-Level and Edexcel A-Level Biology, Chemistry and Physics, and Edexcel A-Level Maths and Further Maths exam question, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA A-Level Economics, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature and A-Level English Literature A, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA’s GCSE Biology, Chemistry and Physics papers since 2018, AQA’s and Edexcel’s A‑Level and AS Biology, Chemistry and Physics since 2016, and Edexcel’s A‑Level Maths and Further Maths since 2018, cut out one by one, sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <nav className="qb-levels" aria-label="Jump to a shelf">
+              {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
+            </nav>
           </div>
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
         <section className="pp-group">
           <div className="lp-wrap">
-            {(["Edexcel", "AQA"] as const).map(board => (
-            <div key={board} className="qb-board">
-            <h2 className="qb-board-name">{board}</h2>
+            {shelves.map(sh => (
+            <div key={sh.id} id={sh.id} className="qb-board">
+            <h2 className="qb-board-name">{display(sh.name)}</h2>
             <ul className="qb-subjects">
-              {bankSubjects.filter(s => s.board === board).map(s => (
+              {sh.banks.map(s => (
                 <li key={s.slug}>
                   <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
                     <Book subject={baseSubject(s)} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>
                       <span className="qb-subject-count"><strong>{s.count.toLocaleString("en-GB")}</strong> questions · {s.topics.length} topics</span>
-                      <span className="qb-subject-years">{s.firstYear}–{s.lastYear}</span>
+                      <span className="qb-subject-years">{s.scope ? s.series.map(x => x.label).join(" · ") : bankYears(s)}</span>
                       <TopicSquares count={s.topics.length} />
                       <span className="pp-board-go" aria-hidden="true">Open the bank →</span>
                     </Book>
@@ -106,8 +133,12 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
       </h1>
       <p className="lp-lead">
         {topic
-          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${subject.firstYear}–${subject.lastYear}, with its mark scheme and examiner’s report.`
-          : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${bankYears(subject)}, with its mark scheme and examiner’s report.`
+          : subject.scope
+            // Cambridge (CAIE) keeps its archive for schools: say plainly what's public, and so here.
+            ? `Every question from the ${subject.board} ${subject.level === "IGCSE" ? "IGCSE" : "AS & A Level"} ${subject.fullName ?? subject.subject} papers Cambridge International publishes, ${subject.scope}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Cambridge keeps its other papers on its School Support Hub, for schools. Filter by topic or paper, open the mark scheme under any question, and download a set as a PDF.`
+            : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+        {!topic && subject.note ? ` ${subject.note}` : null}
       </p>
     </header>
   );

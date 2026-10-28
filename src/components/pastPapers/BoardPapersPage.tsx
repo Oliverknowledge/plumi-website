@@ -5,10 +5,12 @@ import { HowToUse, MarkItCard } from "./PastPaperChrome";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
-  bankFor, boardHeading, boardOwner, boardPath, boardsFor, display, fileUrl, hasKind, otherLevel, revisionPage, sessionCount, shareImage, subjectPath, subjectTitle,
+  bankFor, boardHeading, boardOwner, boardPath, boardsFor, display, fileUrl, hasKind, otherLevel, revisionPage, sessionCount, subjectPath, subjectTitle,
   type BoardPapers, type Paper, type SubjectHub,
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
+import { packFor, packPath } from "@/content/practicePacks";
+import { PackPromo } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -27,6 +29,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   const heading = boardHeading(hub, board);
   const meta = boardPageMeta(hub, board);
   const path = boardPath(hub.slug, board.slug);
+  const pack = packFor(path);
   const current = board.groups.filter(g => !g.legacy);
   const legacy = board.groups.filter(g => g.legacy);
   const jumpGroups = current.length > 0 ? current : legacy;
@@ -41,13 +44,14 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
 
   return (
     <CosyPage after={<>
-      <PageStructuredData path={path} name={meta.title} description={meta.description} image={shareImage(hub)} type="CollectionPage"
-        breadcrumb={[{ name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
+      <PageStructuredData path={path} name={meta.title} description={meta.description} type="CollectionPage"
+        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
       <PaperClickTracker page={path} />
     </>}>
       <article className="pp">
         <header className="lp-wrap pp-hero">
           <nav className="pp-crumbs" aria-label="Breadcrumb">
+            <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
             <Link href="/past-papers">Past papers</Link><span aria-hidden="true">›</span>
             <Link href={subjectPath(hub.slug)}>{subjectTitle(hub)}</Link><span aria-hidden="true">›</span>
             <span aria-current="page">{board.label}</span>
@@ -84,6 +88,12 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
           </section>
         ))}
 
+        {pack && (
+          <section className="pp-mark-wrap" aria-label="Plumi practice pack">
+            <div className="lp-wrap"><PackPromo pack={pack} placement={`papers-${hub.slug}-${board.slug}`} /></div>
+          </section>
+        )}
+
         <section className="pp-mark-wrap" aria-label="Get your paper marked">
           <div className="lp-wrap"><MarkItCard level={hub.level} placement={`papers-${hub.slug}-${board.slug}`} /></div>
         </section>
@@ -115,6 +125,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
               <Link href={subjectPath(hub.slug)}>All {subjectTitle(hub)} boards</Link>
             </nav>
             <nav className="lp-sp-more" aria-label="Related">
+              {pack && <Link href={packPath(pack.slug)}>Plumi’s {pack.board}-style practice pack</Link>}
               {other && <Link href={subjectPath(other.slug)}>{subjectTitle(other)} past papers</Link>}
               {revision && <Link href={revision.path}>{revision.label} on Plumi</Link>}
               <Link href="/past-papers">Every subject</Link>

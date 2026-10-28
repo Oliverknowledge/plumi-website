@@ -30,7 +30,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
           <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
-        <HeaderDownload download="Get it free" className="lp-btn lp-navbtn" />
+        <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" />
       </div>
     </header>
   );

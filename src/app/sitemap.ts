@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/config/site";
 import { indexableRoutes } from "@/config/routes";
 import { pastPaperPaths, pastPapersGenerated } from "@/content/pastPapers";
+import { practicePacks, packPath } from "@/content/practicePacks";
 import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
 
 /**
@@ -39,6 +40,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: path.split("/").length > 3 ? 0.7 : 0.8,
     })),
+    // Plumi's own practice packs, one page each, dated by their last version.
+    ...practicePacks.map((p) => ({ url: absoluteUrl(packPath(p.slug)), lastModified: p.updated, changeFrequency: "monthly" as const, priority: 0.9 })),
     // The question bank: each subject's bank, and a page per topic with questions.
     ...bankSubjects.flatMap((s) => [
       { url: absoluteUrl(bankPath(s.slug)), lastModified: BANK_BUILT, changeFrequency: "monthly" as const, priority: 0.9 },

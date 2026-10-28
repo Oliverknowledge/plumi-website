@@ -136,6 +136,7 @@ export const appStoreProviderToken: string | null = process.env.NEXT_PUBLIC_APP_
 export function appStoreCampaignToken(placement: string, via: "link" | "send" = "link"): string {
   if (via === "send") return "web-send-to-ipad";
   if (placement === "smart-banner") return "web-smart-banner";
+  if (placement === "embed") return "web-embed";
   if (placement === "header" || placement === "sticky_mobile") return "web-header";
   if (placement === "hero" || placement.endsWith("-hero")) return "web-hero";
   return "web-page";
