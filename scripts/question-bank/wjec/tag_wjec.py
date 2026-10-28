@@ -23,7 +23,7 @@ mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work", "wjec")
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 200
 TAG = os.path.join(WORK, "tag")
-SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths"}
+SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths", "510": "business"}
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from tag_pearson import clip, own  # noqa: E402
 sys.path.insert(0, os.path.join(HERE, "..", "ocr"))
@@ -56,7 +56,7 @@ def parts():
 
 
 def trees():
-    spec = json.load(open(os.path.join(WORK, "spec.json")))
+    spec = json.load(open(os.path.join(WORK, "spec.json")))  # Business's own work dir: spec_wjec_business.py's
     spec["maths"] = topic_lists()["maths"]
     return spec
 
@@ -106,7 +106,8 @@ def merge():
                 continue  # an option's part, already its option's
             u = pid[5]
             # An AS paper tests its own unit; maths and the A2 papers any topic (an option's only on its own paper).
-            valid = {t["code"] for t in topics if subj == "maths" or (t["section"] == u if u in "12" else t.get("year") != 3)}
+            # (a topic's unit is its code's first number: Business's Unit 2 is four sections, "2.1 Marketing"…)
+            valid = {t["code"] for t in topics if subj == "maths" or (t["code"].split(".")[0] == u if u in "12" else t.get("year") != 3)}
             codes = [c for c in got.get(pid, []) if c in valid][:3 if subj == "maths" else 2]
             if codes:
                 tags[pid] = codes

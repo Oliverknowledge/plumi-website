@@ -414,6 +414,14 @@ these differences:
 - Unit 4's options (Physics A–D, Biology A–C) aren't in the batches: merge tags every
   part of an option to that option's code (`4.B`).
 - Practical skills and maths skills questions get the content topic they sit in.
+- Business (`business-topics.txt`, its own work dir `.work/wjec-business`): AS Unit 1's
+  topics are `1.x`; AS Unit 2's four areas are sections of their own, so its topics are
+  `2.1.x` Marketing, `2.2.x` Finance, `2.3.x` People in organisations and `2.4.x` Operations
+  management (a Unit 2 part takes a `2.x.y` code). Units 3 and 4 are synoptic: a question
+  on a case often tests AS content (a Unit 3 cash flow question is `2.2.3`), so tag what the
+  marks are for, not the unit. Unit 4's PEST and ethical, legal and environmental factors are
+  a topic each (`4.4 Economic factors`); an essay that weighs several takes the two it
+  leans on most. Each line's `setup` is the start of the case the part is set on.
 - Maths uses the Edexcel maths topics (`maths-topics.txt`, as the OCR maths banks do):
   one to three codes per question, the main one first. AS Unit 1 and A2 Unit 3 are
   pure maths; AS Unit 2 and A2 Unit 4 are statistics (Section A) and mechanics
