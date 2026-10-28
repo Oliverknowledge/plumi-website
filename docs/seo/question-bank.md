@@ -253,6 +253,90 @@ python3 scripts/question-bank/practicals.py split --only=aqa-gcse-combined-scien
 npm run bank:upload -- scripts/question-bank/.work-gcse-trilogy
 ```
 
+## GCSE Maths, Higher tier (AQA, Edexcel and OCR)
+
+Added 28 October 2026, after the founder asked for "maths higher gcse" (no board named, so
+the three main English boards): `/question-bank/aqa-gcse-maths`, `/question-bank/edexcel-gcse-maths`
+and `/question-bank/ocr-gcse-maths`, every Higher tier question from 2017 to 2025, November
+series included.
+
+| Bank | Papers | Series | Questions | Scheme crops | Reports |
+| --- | --- | --- | --- | --- | --- |
+| AQA 8300 | 1H (non-calculator), 2H, 3H | June 2017 to June 2025, with the specimen papers (16) | 1,304 | 1,304 | 1,134 |
+| Pearson Edexcel 1MA1 | 1H (non-calculator), 2H, 3H | June 2017 to June 2025 (15) | 997 | 997 | 988 |
+| OCR J560 | 4, 5 (non-calculator), 6 | June 2017 to June 2025 (15) | 921 | 920 | 647 |
+
+Every AQA and Pearson paper's questions add up to its 80 marks; every OCR paper's to its
+100, bar June 2024 Paper 6 (99: one question's mark is a point short).
+
+- **Sources, all the boards' own sites.** AQA's and OCR's papers, schemes and reports are the
+  past paper library's crawl of aqa.org.uk and ocr.org.uk (already on R2 under `aqa/` and
+  `ocr/`; the banks link to those copies). Pearson's come from its past paper search:
+  June 2019 on as single PDFs (on R2 under `edexcel/` from the library), June 2017 to
+  November 2018 as one public zip per series of question papers and mark schemes and
+  another of examiner's reports, which `fetch_gcse_maths.py` takes the Higher files out of
+  (uploaded under `edexcel/1ma1-*`, with November 2020 Paper 2's report, which the library
+  hadn't got).
+- **Cut a whole question at a time,** as every maths bank is (a later part builds on an
+  earlier one): the question's words with the room to work in closed up, and all its
+  scheme rows. AQA is `aqa_maths/cut_maths.py` run over the GCSE layout, which draws its
+  working lines rather than typing them, prints the scheme as "Q | Answer | Mark | Comments"
+  with each label centred in a cell spanning its rows (and printed again over a row
+  carried to the next page), and heads its report parts "Question 9(a)", "Question 9(b)"
+  (all kept). Pearson and OCR are `edexcel_sciences/cut_pearson.py --whole`, as for the
+  OCR A-Level maths banks, plus: Pearson's "(Total for Question 1 is 3 marks)", the
+  "Paper: 1MA1/1H" bar over each scheme page, bold-only question numbers (so "12" up a
+  graph's axis isn't one), OCR's page number at the top of the page, and the end matter
+  of both boards' schemes (OCR's appendix, Pearson's notes on its modified papers) kept out
+  of the last question's rows.
+- **Topics:** the DfE subject content all three specifications teach, N1–N16, A1–A25,
+  R1–R16, G1–G25, P1–P9, S1–S6, under the six areas (Number; Algebra; Ratio, proportion
+  and rates of change; Geometry and measures; Probability; Statistics). AQA and Pearson
+  print those codes; OCR numbers its sections its own way but covers the same statements,
+  so its questions take the same codes. The statements are read from AQA's specification;
+  the short titles ("G20 Pythagoras and trigonometry") are ours. Topics with no question
+  get no page (AQA 5, Edexcel 11, OCR 5 of the 97, such as A8 Coordinates on its own).
+  Tagged by Claude subagents per tag.md's GCSE Maths section; `batch-31` holds the 18 OCR
+  questions found after a re-cut (November 2019 Paper 5's questions 7–21, which OCR numbers
+  in regular type, and June 2019 Paper 5's question 19) and was tagged by hand.
+- **Calculator filter:** the bank's `calcPapers` turns the "Calculations" filter (which the
+  maths banks otherwise leave out, `noCalc`) into "Calculator: Allowed / Not allowed";
+  a question's `calc` says its paper allows one (AQA and Pearson Papers 2 and 3, OCR Papers
+  4 and 6), and each paper's title in the filter says which it is. The URL stays `?calc=only`
+  (calculator) or `?calc=none` (non-calculator).
+- **Pipeline:** `scripts/question-bank/gcse_maths/`: `fetch_gcse_maths.py`, `spec_gcse_maths.py`,
+  `cut_aqa_gcse_maths.py`, `cut_pearson_gcse_maths.py`, `tag_gcse_maths.py`, `build_gcse_maths.py`.
+  Ids: `83001h-jun23-09`, `1ma11h-jun23-05`, `j56004-nov22-12`; crops under `bank/` with those names.
+
+### Gaps
+
+- **November 2025:** no board has it public yet. Pearson lists it (and June 2026) for
+  teachers only; AQA's and OCR's pages stop at June 2025. Add it when they publish.
+- **Specimen papers:** AQA's are in (they come as separate files and cut cleanly). OCR's
+  three Higher specimens are one PDF for all three papers, and Pearson's Set 1 is teachers
+  only while Set 2 and the sample assessment materials are single PDFs of every paper, so
+  those are left out.
+- **Examiner's reports:** OCR wrote one report for all six papers in June and November
+  2017, and one for the three Higher papers in November 2019; those series have no
+  per-question report. Otherwise reports cover the questions the examiners commented on
+  (AQA's skip a few, the opening multiple-choice ones especially).
+- **Scheme:** OCR November 2019 Paper 6 question 11 prints its rows "11 a" in a way the
+  cutter doesn't read; it links to the whole mark scheme instead.
+- None of the three boards puts older Higher papers behind a teacher login (Pearson's 2017
+  and 2018 series are public, as zips), so no mirror was needed.
+
+```bash
+pip install pymupdf pillow boto3
+python3 scripts/question-bank/gcse_maths/fetch_gcse_maths.py aqa --from=<past-papers work dir>   # and edexcel, ocr
+python3 scripts/question-bank/gcse_maths/spec_gcse_maths.py <AQA's 8300 specification PDF>
+python3 scripts/question-bank/gcse_maths/cut_aqa_gcse_maths.py
+python3 scripts/question-bank/gcse_maths/cut_pearson_gcse_maths.py edexcel   # and ocr
+python3 scripts/question-bank/gcse_maths/tag_gcse_maths.py split   # tag the batches, then:
+python3 scripts/question-bank/gcse_maths/tag_gcse_maths.py merge
+python3 scripts/question-bank/gcse_maths/build_gcse_maths.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/gcse-maths/aqa --crops-only   # and edexcel, ocr
+```
+
 ## OCR and OCR MEI
 
 Added 25 October 2026, after the bank's video went viral and students asked for OCR:

@@ -283,7 +283,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     ...(f.series.length > 3
       ? [{ label: seriesSummary, clear: () => update({ series: [] }) }]
       : f.series.map(s => ({ label: seriesLabel(subject, s), clear: () => update({ series: f.series.filter(x => x !== s) }) }))),
-    ...(f.calc ? [{ label: f.calc === "only" ? "Only calculations" : "No calculations", clear: () => update({ calc: "" }) }] : []),
+    ...(f.calc ? [{ label: subject.calcPapers ? (f.calc === "only" ? "Calculator" : "Non-calculator") : f.calc === "only" ? "Only calculations" : "No calculations", clear: () => update({ calc: "" }) }] : []),
     ...(f.prac && hasPracticals ? [{ label: f.prac === "only" ? "Only practicals" : "No practicals", clear: () => update({ prac: "" }) }] : []),
     ...(f.yr && hasYears ? [{ label: f.yr === "12" ? "Year 12 content" : "Year 13 content", clear: () => update({ yr: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
@@ -468,10 +468,10 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                   placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
-              {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label="Calculations">
-                <span className="qb-label">Calculations</span>
-                <label><input type="checkbox" checked={f.calc === "only"} onChange={e => update({ calc: e.target.checked ? "only" : "" })} /> Only these</label>
-                <label><input type="checkbox" checked={f.calc === "none"} onChange={e => update({ calc: e.target.checked ? "none" : "" })} /> Leave out</label>
+              {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
+                <span className="qb-label">{subject.calcPapers ? "Calculator" : "Calculations"}</span>
+                <label><input type="checkbox" checked={f.calc === "only"} onChange={e => update({ calc: e.target.checked ? "only" : "" })} /> {subject.calcPapers ? "Allowed" : "Only these"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "only") ?? 0}</span>}</label>
+                <label><input type="checkbox" checked={f.calc === "none"} onChange={e => update({ calc: e.target.checked ? "none" : "" })} /> {subject.calcPapers ? "Not allowed" : "Leave out"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "none") ?? 0}</span>}</label>
               </div>}
             </div>
             <div className="qb-row-toggles">
