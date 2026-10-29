@@ -1708,8 +1708,12 @@ question, and every part is tagged.
   (`eduqas_rs/tag_eduqas_rs.py`, tag.md's "Eduqas Religious Studies"). The reports for
   2024 and 2025 name each question's theme, and the tags agree with every one of them.
   23 parts have two topics; 4 topics have no questions yet (B.3C, C.3A, F.3F, F.4D).
-  Buddhism's two pairs of sections that share a title get the start of their content added
-  ("The nature of ultimate reality – The three lakshanas").
+  A topic's title is its heading as a student would know it ("Aquinas’ Natural Law: virtues
+  and goods", "Muhammad in Makkah"), from `SHORT` in `spec_eduqas_rs.py`. The specification's
+  own wording can run on into a paragraph, which made 600-character slugs that broke the
+  production build. That wording stays in the topic's text in `spec.json`, for tagging.
+  Titles shared across religions name their religion ("Festivals and Jewish identity"), and
+  every slug is under 50 characters.
 - **Pipeline.** `scripts/question-bank/eduqas_rs/`:
   - `fetch_eduqas_rs.py` reads the qualification page's pastpapers and keydocuments tabs,
     as `eduqas/fetch_eduqas.py` does. It places each file by its listed title, checked
