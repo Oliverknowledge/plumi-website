@@ -793,6 +793,75 @@ python3 scripts/question-bank/edexcel_psychology/tag_psychology.py merge
 python3 scripts/question-bank/edexcel_psychology/build_psychology.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-psychology --pdf-prefix=edexcel/
 
+## Edexcel A-Level Politics
+
+Added 29 October 2026, after the founder asked for Politics on the most common board:
+`/question-bank/edexcel-a-level-politics`, every question from Pearson Edexcel's A-Level (9PL0:
+Paper 1, Paper 2, and Paper 3A USA or 3B Global) and AS (8PL0, Papers 1 and 2) Politics papers
+that Pearson publishes on its own site, 2019 to 2025. That is 296 parts from 40 papers (7 series
+of the A-Level, 6 of the AS), every one with its own mark scheme crop (the levels grid, then its
+indicative content), and 284 with the examiner's comments on its question. Every paper's parts add
+up to its printed total, counting each either/or choice once (`check_politics.py`).
+
+- **Papers:** Paper 3 is two papers, 3A and 3B, of which a student sits one. Each is a paper of its
+  own (`9pl03a`, `9pl03b`, "Paper 3A · Comparative Politics: USA"), so the paper filter picks one,
+  and their topics sit under the tiles' "Paper 3 options": USA (Paper 3A) and Global Politics
+  (Paper 3B).
+- **Topics** are the specification's content areas (Issue 4), in six areas: UK Politics (democracy
+  and participation, parties, electoral systems, voting behaviour and the media), Core Political
+  Ideas (liberalism, conservatism, socialism), UK Government (constitution, Parliament, PM and
+  executive, relations between the branches), Non-core Political Ideas (anarchism, ecologism,
+  feminism, multiculturalism, nationalism), USA (six) and Global (six). Essays range across an
+  area's numbered sub-points, so the bank tags to content areas. The specification numbers them
+  afresh in each area, so codes carry the area (`UKP.2`) and topics show their names alone.
+  UK Politics and UK Government are Year 1 (the AS), the ideas Year 2.
+- **Either/or:** every question is "EITHER 1(a) OR 1(b)" (Paper 3's Section C: two of three), so
+  every part after a question's first carries `or` and a whole question's marks count one essay.
+  Paper 2's Section B is one question per non-core idea (3 Anarchism … 7 Nationalism on every paper).
+- **Sources:** before 2023 each source is printed in its part, so the part's crop has it. From June
+  2023 they are in a Source Booklet bound in after the paper; the question that says "Look at Source
+  1(a)…" or "Read Sources 2 and 3…" carries them as its stem. The bank shows a question's stem once
+  above its parts, so an "EITHER 1(a) OR 1(b)" question's stem has both sources, each under its own
+  heading. AS Questions 2 and 3 have no parts, so their ids end `-q` (`8pl001-jun24-02-q`), as
+  Geography's, for the stem's name.
+- **Cutting:** `cut_politics.py` runs `cut_pearson.py --extracts --figures` with Politics' own
+  pieces, patched from the wrapper so no other bank's crops move: older papers print the number again
+  before the alternative ("1 (b)", "3 (b)"), read as the next part; the source booklet's stems; and
+  its own mark scheme reader. Pearson's Politics schemes have no one layout (a levels grid before the
+  indicative content or after it, labels "1(a)", "1a", "2a.", "4b)", "Question number 3", or none),
+  so each part's crop runs from its label to the next landmark, after its "Guidelines for marking…"
+  block. AS Paper 2 June 2022 prints 4(b)'s label as "4a": its start is set by hand (`MS_HAND`).
+- **Reports:** headings like "Q1a Using the source…" go on lines of their own before cut_pearson
+  reads them. A-Level Paper 1 and Paper 3B June 2024 set their text in fonts with no character map,
+  so they are read by OCR (`ocr.swift`), with the candidates' scripts (pictures) whited out first.
+- **Tags:** Claude tagged every part following `tag.md`'s "Edexcel Politics" section.
+
+Gaps, honestly:
+
+- No exams in June 2020 or June 2021 (cancelled); October 2020 and November 2021 were sat instead.
+  AS wasn't sat in November 2021, so Pearson has no AS set for it.
+- Pearson published no examiner's report for either AS paper in October 2020 ("insufficient
+  entries"): those 12 parts have the scheme but no report.
+- The two OCR'd reports (June 2024 Paper 1 and 3B) may have the odd misread word.
+- Not included, by the brief's 2019–2025 scope: AS June 2018 (AS's first sitting, public on
+  Pearson's site, could be added) and June 2026 (listed, but in Pearson's teachers-only area). The
+  specimen papers are teachers-only too.
+- Scheme crops are long (a levels grid plus up to four pages of indicative content); the longest,
+  3B November 2021's essays, are 9,000–10,700px.
+- No past paper library page for Politics yet (`FILES_JSON = None`), though the whole papers are on
+  R2 under `edexcel/` for the bank's "whole paper" links.
+
+```bash
+python3 scripts/question-bank/edexcel_politics/fetch_politics.py
+python3 scripts/question-bank/edexcel_politics/spec_politics.py
+python3 scripts/question-bank/edexcel_politics/cut_politics.py
+python3 scripts/question-bank/edexcel_politics/check_politics.py
+python3 scripts/question-bank/edexcel_politics/tag_politics.py split   # tag the batches, then:
+python3 scripts/question-bank/edexcel_politics/tag_politics.py merge
+python3 scripts/question-bank/edexcel_politics/build_politics.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-politics --pdf-prefix=edexcel/
+```
+
 ## AQA A-Level Geography
 
 Added 27 October 2026: `/question-bank/aqa-a-level-geography`, every question from AQA's
@@ -1010,6 +1079,94 @@ python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-econo
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-economics --crops-only
 ```
 
+## OCR A-Level Law
+
+Added 29 October 2026: `/question-bank/ocr-a-level-law`, every question from the OCR A-Level
+(H418, Papers 1–3) and AS (H018, Papers 1–2) Law papers that OCR publishes on its own site:
+June 2022, the specification's first exams, to June 2025. That is 208 questions from 24 papers
+(16 A-Level, 8 AS). Every question has its mark scheme cropped and its examiner's comments, and
+every paper adds up to its 80 (A-Level) or 64 (AS) marks, counting one question of each choice
+and one Part of Section B.
+
+- **The option.** Component 3 is two papers: H418/03 (the nature of law and human rights) and
+  H418/04 (the nature of law and the law of contract). A student sits one. They are named
+  "Paper 3 (Human rights)" and "Paper 3 (Contract)", so the paper filter picks a student's option,
+  and their Section B topics are year 3, listed under "Paper 3 options" in the topic list. The
+  bank's note says so.
+- **Questions are whole.** There are no parts and no answer lines (candidates write in a booklet).
+  A question's crop ends at the line its marks are on, so it doesn't run on into the next
+  Part's heading or, after the last question, OCR's copyright page.
+- **Scenarios as stems.** Each A-Level Section B is "Choose Part 1 or Part 2", and each Part opens
+  with two unrelated scenarios, then three questions: two "Advise…" questions on them and an
+  essay. The AS Section B opens with one scenario ("Read the scenario.") and asks four questions,
+  two of them "Advise…". The block, from its heading to its first question, is the stem of each
+  "Advise…" question in it. The "Explain…" questions ("Do not refer to the scenario") and the
+  essays have none. The scenario questions are named for their block, so they share one stem:
+  `h41801-jun24-p1-05`, stem `h41801-jun24-p1-stem.webp`; the AS block is `sc`
+  (`h01801-jun24-sc-06`). 80 questions have a stem. Reports are keyed by question
+  (`reportsBy: "question"`).
+- **Mark schemes.** Section A's scheme is a table, a row per question. Section B's are pages of
+  indicative content and level grids under a heading ("5. Advise whether Kobe…", "5", "Q3",
+  "7* and 10*"), with numbered lists of points among them. So `cut_ocr_law.py` finds each
+  question's scheme by its own words: the first heading after the last question's that carries
+  its number at the left margin and, there or just under it, most of the question's opening
+  words. Failing that, its bare number. The crop runs to the next question's heading, the
+  "Section B" heading, the assessment-objectives grid or OCR's back page. The Section A table's
+  header row comes with it. The second Part's essay is the first Part's again, and its scheme
+  says only "As per question 7" (or "SEE ABOVE FOR Q5*"), so it shows Question 7's crop.
+- **Choices.** "Answer Question 1 or Question 2" (2023 on), "Answer one question from questions
+  1–2" (June 2022), and Paper 3's "Answer one question" over Questions 1 and 2: the second
+  carries `or`. 24 questions.
+- **Reports.** Every question has its report. The second Part's essay takes the first's where
+  OCR writes one report on both ("Question 7* and Question 10*"), or reports only once. H418/01
+  June 2022 heads its Question 8 report "Questions 8/9" (Question 9 has its own); it is read as
+  Question 8.
+- **Topics.** The specification's content tables have bold topic headings with no numbers
+  ("Fatal offences against the person"), so they're coded by section (`1B.3`) with an empty
+  `ref`. There are 7 sections (the legal system, criminal law, law making, tort, the nature of
+  law, human rights, contract) and 44 topics. The nature of law is printed for both Paper 3s and
+  read once. Where two sections share a topic name, the title says whose ("Criminal law: rules
+  and theory", "Tort: remedies"). 20 topics are Year 1 · AS (the AS specification has a topic of
+  the same name; its "Rules" is the A-Level's "Rules and theory", and its "Introduction to the
+  nature of law" opens its legal system), 11 are A-Level only and 13 are the Paper 3 options.
+  Every question is tagged by reading it (tag.md's "OCR Law" section). Essays carry the
+  section's evaluation topic second. No question tests the "rules and theory" topics of tort,
+  human rights or contract.
+- **Pipeline.** `scripts/question-bank/ocr_law/` holds:
+  - `fetch_ocr_law.py`: OCR's assessment page, read with `fetch_ocr_cs.py`'s reader.
+  - `spec_ocr_law.py`.
+  - `cut_ocr_law.py`: `cut_pearson.py` as a library, patched for this run only, so
+    `cut_pearson.py` is unchanged.
+  - `tag_ocr_law.py`.
+  - `build_ocr_law.py`.
+
+  Whole papers are on R2 under `ocr/` (`OCR-H418-01-QP-JUN24.pdf`, the library's naming), and
+  crops are under `bank/h418*` and `bank/h018*`.
+
+**Gaps:**
+- OCR's page lists only June 2022 to June 2025, for both levels. That is every exam series of
+  this specification so far (there are no November series, and the AS's first exams, June 2021,
+  were not sat). The legacy specification's papers are not on this page and are not fetched. No
+  mirror (PMT or other) is used: that needs the founder's say-so.
+- The sample assessment materials and modified papers (zips) are left out, as for the other OCR
+  banks.
+- Questions appear more than once where OCR prints them more than once: both Paper 3s share
+  Section A (16 questions, 8 of them repeats), and every A-Level paper sets the same essay in
+  Part 1 and Part 2 (16 repeats). They are kept, as English Literature keeps its shared Section B,
+  so each paper is whole under the paper filter.
+- There's no past paper library page for Law yet, so the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/ocr_law/fetch_ocr_law.py
+python3 scripts/question-bank/ocr_law/spec_ocr_law.py
+python3 scripts/question-bank/ocr_law/cut_ocr_law.py
+python3 scripts/question-bank/ocr_law/tag_ocr_law.py split   # tag the batches, then:
+python3 scripts/question-bank/ocr_law/tag_ocr_law.py merge
+python3 scripts/question-bank/ocr_law/build_ocr_law.py
+ln -sfn ../img scripts/question-bank/.work/ocr-law/r2/img
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-law/r2 --pdf-prefix=ocr/
+```
+
 ## AQA A-Level Business
 
 Added 27 October 2026, after a student asked for it: `/question-bank/aqa-a-level-business`,
@@ -1206,13 +1363,68 @@ comparing texts and each Paper 2's contextual linking as topics of their own.
   skips 6 questions. AQA's copies withhold some extracts for copyright, and the crops show
   AQA's note: the Paper 2 insert for November 2021 (2A and 2B), June 2022 (2B: Peyton
   Place, with page references) and June 2025 (2B), and one unseen poem each in Paper 1 June
-  2023 and November 2021. Specification B (7717) is not here yet.
+  2023 and November 2021. Specification B is its own bank, below.
 
 ```bash
 python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level
 python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=a
 python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=a
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-a
+```
+
+### AQA A-Level English Literature B
+
+Added 29 October 2026: `/question-bank/aqa-a-level-english-literature-b`, every question from
+AQA's A-Level (7717) and AS (7716) English Literature B papers that AQA still publishes,
+November 2020 to June 2025. That is 327 questions (228 A-Level, 99 AS) from 42 papers, every
+one with its mark scheme cropped and 238 with the examiner's comments. The same scripts with
+`--level=b` (`fetch_english_lit.py a-level-b`).
+
+- **Options are genres, and papers.** Each paper is sat as one of two options, and AQA gives
+  each its own component: A-Level Paper 1A Aspects of tragedy, 1B Aspects of comedy, 2A
+  Elements of crime writing, 2B Elements of political and social protest writing; AS Paper
+  1A/1B (drama) and 2A/2B (prose and poetry) in tragedy or comedy. So the paper filter has
+  eight papers, and the topic tiles are the four genres.
+- **Topics are the set texts, within their genre.** A question is tagged from its heading
+  ("Othello – William Shakespeare") against its option's genre only (`texts.for_option`).
+  Texts that A-Level students write about only in Section C (Richard II, The Great Gatsby,
+  Emma and the rest) have named questions only on the AS papers, so their topics say "(AS)".
+  The questions that name no text are their genre's own topics (`texts.unheaded`): Paper
+  2's unseen extract (Section A: "Unseen crime extract", "Unseen protest extract") and the
+  A-Level's two-text questions (Section C: "Tragedy across two texts" and so on). The
+  Merchant's Prologue and Tale has had no question since 2020, so it has no tile.
+- **Whole questions, extract included,** as at GCSE: a question runs from its label to the
+  next "or", heading or label, so the extract printed under a Paper 1 Section A or AS
+  question, and Paper 2's unseen extract, come with it. Section C's ids are
+  `77171a-jun24-c-07`, and their stem is the section's rubric with its list of texts
+  (`77171a-jun24-c-stem.webp`). Other ids are `77172a-jun24-01`.
+- **Either/or.** In each section every question after the first carries `or` (Paper 2's
+  Section A is one question), so every paper adds up to its 75 (AS: 50).
+- **Mark schemes** print each question's label in a box, as the papers do: a question's
+  indicative content runs to the next label, with the one levels grid ("Band 5 … How to
+  arrive at (a) mark", landscape, portrait in AS June 2022) stacked under it. AS Paper 2A
+  and 2B June 2022 print the label's two boxes one over the other (`stacked_labels`).
+- **Reports** head a question ("Question 1", "Question 1: The Taming of the Shrew") or a
+  section (Paper 2's), and a question gets its own paragraphs, else its section's that name
+  its text, else the section's general ones. June 2025's reports set their headings in a
+  medium weight, read as bold for B.
+- **Pipeline:** `aqa_english_lit/` as above with `--level=b`; GCSE and Specification A are
+  unchanged (their Paper 2 cuts are byte-identical before and after). Papers are on R2 under
+  `aqa/AQA-771[67]*`, crops under `bank/771[67]*`.
+- **Gaps:** AQA no longer publishes 2017–2019 (or AS 2016–2019), and its file store has
+  none, so the bank starts at November 2020; the specimens are left out. AQA publishes no
+  AS Paper 1B or 2B for November 2020 and sat no AS papers in November 2021. There are no
+  reports for November 2020 or 2021 (87 questions), and the AS Paper 1A reports of June 2022
+  and 2023 skip A Streetcar Named Desire (2 questions). AQA's copies withhold three extracts
+  for copyright, and those crops show AQA's note: Paper 2A June 2022's unseen extract, AS
+  Paper 2A June 2022's Poetry Anthology: Tragedy poem and AS Paper 2B June 2025's Poetry
+  Anthology: Comedy extract. The questions are all there.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level-b
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=b
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=b
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-b
 ```
 
 ## AQA A-Level Sociology
