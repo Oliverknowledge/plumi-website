@@ -2,6 +2,7 @@
 
     python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py [work-dir] [--only=87021]   # default scripts/question-bank/.work/aqa-english-lit-gcse
     python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=a [work-dir]       # A-Level 7712 and AS 7711, default .work/aqa-english-lit-a
+    python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=b [work-dir]       # A-Level B 7717 and AS 7716, default .work/aqa-english-lit-b
 
 cut.py's label finder and image helpers, with Literature's own layout around them:
   - A paper is choices: a question on each set text, and the student answers on the
@@ -43,6 +44,17 @@ The A-Level (7712) and AS (7711) papers are laid out the same way, with three di
   - The schemes print the text's name under "Question 01", one levels grid for every
     question, and Section B once for all three options ("Questions 05, 11 and 17").
   - The reports head each question ("Question 1 Othello", "Questions 5, 11, 17").
+
+Specification B (7717 and AS 7716) is laid out like the GCSE's Paper 1: a question per set text, each
+section either/or, the extract printed under the question. Each paper is sat as one of two options, a
+genre (1A tragedy, 1B comedy; 2A crime, 2B protest writing; AS 1A/2A tragedy, 1B/2B comedy), a component
+of its own, so a question is tagged to a text of its option's genre (texts.for_option). Otherwise:
+  - The questions that name no text are their genre's own topics (texts.unheaded): Paper 2's unseen
+    extract (Section A) and the two-text questions of Section C. Section C's rubric, which lists the
+    texts it may be answered on, is their stem ("77171a-jun24-c-07", "77171a-jun24-c-stem.webp").
+  - The schemes print each question's label in a box, as the papers do, and its indicative content
+    runs to the next label. The one levels grid (landscape, "Band 5") is stacked under each.
+  - The reports head a question ("Question 1", "Question 1: The Taming of the Shrew") or a section.
 """
 import json, os, re, sys, traceback
 from concurrent.futures import ProcessPoolExecutor
@@ -53,7 +65,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 flags = [a for a in sys.argv[1:] if a.startswith("--")]
 A_LEVEL = "--level=a" in flags
-sys.argv[1:] = [os.path.abspath(args[0]) if args else os.path.join(HERE, "..", ".work", "aqa-english-lit-a" if A_LEVEL else "aqa-english-lit-gcse")] + flags
+B = "--level=b" in flags  # Specification B; A_LEVEL is Specification A's
+sys.argv[1:] = [os.path.abspath(args[0]) if args else os.path.join(HERE, "..", ".work", "aqa-english-lit-a" if A_LEVEL else "aqa-english-lit-b" if B else "aqa-english-lit-gcse")] + flags
 sys.path.insert(0, os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 import cut  # noqa: E402
@@ -61,10 +74,12 @@ import texts  # noqa: E402
 
 WORK, IMG, ONLY = cut.WORK, cut.IMG, cut.ONLY
 SERIES = {"NOV20", "NOV21", "JUN22", "JUN23", "JUN24", "JUN25"}  # the specimen papers are left out, as in the other AQA banks
-SPEC = texts.A_LEVEL if A_LEVEL else texts.GCSE
+SPEC = texts.A_LEVEL if A_LEVEL else texts.B if B else texts.GCSE
 
 # Lines that end a question: the either/or, a section, the end, a pointer to the next page.
 QP_STOP = re.compile(r"^(Either|EITHER|or|OR|and)$|^Option [1-3]$|^(Section|SECTION) [A-C]\b|^Answer (one|both|all) questions?\b|^END\s+OF\s+QUESTIONS|^Turn over for|^There are no questions")
+# Specification B's rubrics between a section's questions: the texts Sections B and C may be answered on.
+QP_STOP_B = re.compile(r"^Over Section B and Section C\b|^In (this section|your answer) you must\b|^You can write about\b")
 SECTION = re.compile(r"^(?:Section|SECTION) ([A-C])\b")
 MARKS = re.compile(r"\[(\d+) marks?\]")
 MS_QUESTION = re.compile(r"^Questions? (\d{1,2})(?:\.(\d))?((?:\s*(?:,|and)\s*\d{1,2})*)$")
@@ -80,7 +95,8 @@ def lines_of(page, rect=None):
             spans = [s for s in line["spans"] if s["text"].strip()]
             t = re.sub(r"\s+", " ", "".join(s["text"] for s in line["spans"])).strip()
             if t and spans:
-                out.append((line["bbox"][1], line["bbox"][0], line["bbox"][3], t, all("Bold" in s["font"] for s in spans)))
+                # Specification B's June 2025 reports set their headings in a medium weight.
+                out.append((line["bbox"][1], line["bbox"][0], line["bbox"][3], t, all("Bold" in s["font"] or B and "Medium" in s["font"] and s["size"] > 12 for s in spans)))
     return sorted(out)
 
 
@@ -158,7 +174,7 @@ def qp_events(doc):
                 events.append((pg, y0, y1, "heading", t))
                 if not on_label:
                     events.append((pg, y0, y1, "stop", t))
-            elif QP_STOP.match(t) and (bold or not re.fullmatch(r"Either|EITHER|or|OR|and|Option [1-3]", t)):
+            elif QP_STOP.match(t) and (bold or not re.fullmatch(r"Either|EITHER|or|OR|and|Option [1-3]", t)) or B and QP_STOP_B.match(t):
                 events.append((pg, y0, y1, "stop", t))
             if MARKS.search(t):
                 events.append((pg, y0, y1, "marks", t))
@@ -256,6 +272,46 @@ def ms_questions(ms):
     return out
 
 
+def stacked_labels(page):
+    """Labels whose two boxes are printed one over the other ("0" then "1", AS June 2022): [(y0, '01', None)]."""
+    digits = [(s["bbox"][1], s["bbox"][0], s["text"].strip()) for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])
+              for s in l["spans"] if s["bbox"][0] < 75 and "Bold" in s["font"] and re.fullmatch(r"\d", s["text"].strip())]
+    return [(y, a + b, None) for y, x, a in digits for y2, x2, b in digits if 15 < y2 - y < 35 and abs(x2 - x) < 3]
+
+
+def ms_questions_b(ms):
+    """Specification B: {label: (pieces, text, heading)}, each from its boxed label (portrait pages) to the next one,
+    or to the end of the scheme. The heading is the first line by or under the label ("Othello – William Shakespeare")."""
+    starts = []
+    for pg, page in enumerate(ms):
+        if page.rect.width > page.rect.height:
+            continue
+        f = ms_frame(page)
+        lines = lines_of(page, f)
+        for y, q, part in cut.left_labels(page, 75, True) or stacked_labels(page):
+            if not f.y0 - 4 <= y <= f.y1:
+                continue
+            below = [l[3] for l in lines if y - 4 <= l[0] < y + 40 and l[1] > 60 and not re.fullmatch(r"[\d.\s]+", l[3])][:1]
+            starts.append((pg, y - 4, f"{q}.{part}" if part else q, " ".join(below)))
+    out = {}
+    for k, (pg, y, label, heading) in enumerate(starts):
+        end = (starts[k + 1][0], starts[k + 1][1] - 2) if k + 1 < len(starts) else (len(ms) - 1, ms[-1].rect.height)
+        pieces = span(ms, (pg, y), end, ms_frame)
+        out.setdefault(label, (pieces, "\n".join(ms[p].get_text("text", clip=r) for p, r in pieces), heading))
+    return out
+
+
+def ms_grids_b(ms):
+    """Specification B's one levels grid: from the page that heads it "How to arrive at (a) mark" (landscape, or portrait
+    in AS June 2022), through the pages after it that go on with its bands."""
+    pieces = []
+    for pg, page in enumerate(ms):
+        text = page.get_text()
+        if re.search(r"How to arrive at (a )?mark", text) and not pieces or pieces and pieces[-1][0] == pg - 1 and re.search(r"\bBand [1-4]\b", text):
+            pieces.append((pg, ms_frame(page)))
+    return [[None, None, 0, pieces, set()]] if pieces else []
+
+
 def ms_grids(ms):
     """The levels grids: [(first, last, marks, pieces, sections)], each the landscape pages from its heading on.
     A heading names its questions ("Questions 01–24"), or only its section ("Section C: Unseen poetry – (24 marks …)")."""
@@ -296,7 +352,9 @@ REPORT_END_A = re.compile(r"(Part (One|Two|Three)\b(?!: Feedback)|Final points|E
 # A heading over Section B's questions in the general part: "Extract: unseen prose (Section B: Questions 5, 11, 17)".
 REPORT_QUESTIONS_IN = re.compile(r"Questions? (\d{1,2}(?:\s*(?:,|and|&)\s*\d{1,2})+)")
 # "Question 4", and at A-Level "Question 1 Othello", "Questions 5, 11, 17".
-REPORT_QUESTION = re.compile(r"Questions? (\d{1,2})((?:\s*(?:,|and|&)\s*\d{1,2})*)\b" + (r".*" if A_LEVEL else r"(?:\.\d)?"))
+REPORT_QUESTION = re.compile(r"Questions? (\d{1,2})((?:\s*(?:,|and|&)\s*\d{1,2})*)\b" + (r".*" if A_LEVEL or B else r"(?:\.\d)?"))
+# Specification B's reports' general parts ("Knowing the text", "Specific comments about 1A: Aspects of Tragedy").
+REPORT_END_B = re.compile(r"(Introductory comments|Knowing the text|What is getting in the way|Answering the precise question|AO\d\b|Specific comments|Rubric Infringements?|(Open|Closed) [Bb]ook|Conclusion|Looking forward|General comments|Overview)", re.I)
 
 
 def report_paragraphs(path):
@@ -324,9 +382,9 @@ def report_paragraphs(path):
                     section = "Q" + ",".join(str(int(x)) for x in re.findall(r"\d+", q.group(1) + q.group(2)))
                 elif A_LEVEL and REPORT_QUESTIONS_IN.search(t):
                     section = "Q" + ",".join(str(int(x)) for x in re.findall(r"\d+", REPORT_QUESTIONS_IN.search(t).group(1)))
-                elif A_LEVEL and REPORT_END_A.match(t):
+                elif A_LEVEL and REPORT_END_A.match(t) or B and REPORT_END_B.match(t):
                     section = None
-                elif A_LEVEL and texts.find(SPEC, t):
+                elif (A_LEVEL or B) and texts.find(SPEC, t):
                     section = "T:" + texts.find(SPEC, t)  # a text's heading, over its questions' paragraphs
                 elif REPORT_ALL.match(t):
                     section = "ALL"
@@ -378,11 +436,14 @@ def insert_extract(ins):
 
 
 def cut_set(qp_path, ms_path, er_path, ins_path, set_id, meta):
+    global SPEC
+    if B:  # a question is on a text of its option's genre
+        SPEC = texts.for_option(meta["component"])
     qp = pymupdf.open(qp_path)
     questions = qp_questions(qp)
     ms = pymupdf.open(ms_path) if ms_path and os.path.exists(ms_path) else None
-    schemes = ms_questions(ms) if ms else {}
-    grids = ms_grids(ms) if ms else []
+    schemes = (ms_questions_b(ms) if B else ms_questions(ms)) if ms else {}
+    grids = (ms_grids_b(ms) if B else ms_grids(ms)) if ms else []
     ao4 = ao4_piece(ms) if ms else []
     paras = report_paragraphs(er_path)
     single = len({s for s, _ in paras}) <= 1  # the 2021-22 papers of one section each
@@ -401,6 +462,13 @@ def cut_set(qp_path, ms_path, er_path, ins_path, set_id, meta):
             pid, qnum = f"{set_id}-b-{q}", "b"
             if "b" not in stems:
                 stems["b"] = cut.save(render([(qp, pg, r) for pg, r in intro] + insert_extract(insert), 16), f"{set_id}-b-stem.webp")
+        rubric = B and texts.unheaded(meta["component"], section)
+        if rubric and section == "C":  # Specification B's two-text questions: the section's rubric and its list of texts
+            pid, qnum = f"{set_id}-c-{q}", "c"
+            if "c" not in stems:
+                rubric_pieces = [(pg, pymupdf.Rect(r.x0, r.y0, r.x1, min([r.y1] + [y0 - 4 for y0, x0, y1, t, _ in lines_of(qp[pg], r) if t in ("Either", "EITHER")])))
+                                 for pg, r in intro]  # down to its "Either"
+                stems["c"] = cut.save(render([(qp, pg, r) for pg, r in rubric_pieces if r.height > 8], 16), f"{set_id}-c-stem.webp")
         qimg = render([(qp, pg, r) for pg, r in pieces])
         msimg, ms_text, ms_heading = None, "", ""
         if q in schemes:
@@ -416,7 +484,7 @@ def cut_set(qp_path, ms_path, er_path, ins_path, set_id, meta):
             if re.search(r"AO4", text) and ao4 and not A_LEVEL:
                 images.append(render([(ms, pg, r) for pg, r in ao4], 12))
             msimg = cut.stack(images)
-        code = texts.for_component(texts.find(SPEC, ms_heading, heading or "", text[:300]), meta["component"])
+        code = rubric or texts.for_component(texts.find(SPEC, ms_heading, heading or "", text[:300]), meta["component"])
         if not code:
             problems.append(f"{pid}: no set text ({heading!r}, {ms_heading!r})")
         firsts.setdefault((option, section), q)
