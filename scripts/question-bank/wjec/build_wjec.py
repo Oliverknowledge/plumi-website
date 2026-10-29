@@ -34,12 +34,13 @@ BANKS = {  # slug: (spec.json's subject, the bank's subject)
     "wjec-a-level-physics": ("physics", "Physics"),
     "wjec-a-level-maths": ("maths", "Maths"),
     "wjec-a-level-business": ("business", "Business"),  # its own work dir, .work/wjec-business
+    "wjec-criminology": ("criminology", "Criminology"),  # the Level 3 Applied Diploma, its own work dir, .work/wjec-criminology
 }
-SEASON = {"JUN": "Summer", "NOV": "Autumn"}
+SEASON = {"JUN": "Summer", "NOV": "Autumn", "JAN": "January"}  # (Criminology sat in January 2022 and October 2020)
 
 
 def series_rank(s):
-    return int("20" + s[3:]) * 100 + (11 if s.startswith("NOV") else 6)
+    return int("20" + s[3:]) * 100 + {"NOV": 11, "JAN": 1}.get(s[:3], 6)
 
 
 def main():
@@ -82,7 +83,7 @@ def main():
                     reports[p["id"]] = clean_report(p["er"])
                 else:
                     reports.setdefault(f"{p['set']}-{p['question']}", clean_report(p["er"]))
-            if key not in ("maths", "business") and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
+            if key not in ("maths", "business", "criminology") and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
                 row["calc"] = 1
             rows.append(row)
             text[p["id"]] = (words + " " + re.sub(r"\s+", " ", p.get("msText", ""))).lower()
@@ -98,24 +99,26 @@ def main():
                 s = slug(t["code"] + " " + t["title"])
             used.add(s)
             # (Unit 4's options are A2 topics in the Unit 4 group: the bank's year 3 is headed "Paper 3 options")
-            topics.append({"code": t["code"], "title": t["title"], "section": t["section"], "slug": s, "count": counts.get(t["code"], 0),
-                           "year": min(t.get("year", 0), 2)})
+            topics.append({"code": t["code"], **({"ref": t["ref"]} if t.get("ref") else {}), "title": t["title"], "section": t["section"], "slug": s,
+                           "count": counts.get(t["code"], 0), "year": min(t.get("year", 0), 2)})
         comps = sorted({r["p"] for r in rows}, key=lambda c: (c.startswith("2"), c))
         papers = []
         for c in comps:
-            u = c[5]
+            u = {"b": "2", "d": "4"}.get(c[5], c[5])  # (Criminology's units are lettered: 4543UB0 is Unit 2)
             title = qps[c]["title"].split(":")[-1].strip()  # "Physics Unit 1: Written:Motion, Energy and Matter"
             title = {"The Lang of Chem, Structure of Matter and Simple Reactions": "The Language of Chemistry, Structure of Matter and Simple Reactions"}.get(title, title)
             papers.append({"id": c, "name": f"{'AS ' if c.startswith('2') else ''}Unit {u}", "title": title, "as": c.startswith("2")})
         series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
         years = [int("20" + s[3:]) for s in series]
         meta = {
-            "slug": bank, "board": "WJEC", "level": "A-Level", "subject": name, "specs": sorted({c[:4].upper() for c in comps}),
+            "slug": bank, "board": "WJEC", "level": "Level 3" if key == "criminology" else "A-Level", "subject": name,
+            **({"fullName": "Applied Diploma in Criminology"} if key == "criminology" else {}), "specs": sorted({c[:4].upper() for c in comps}),
             **({"cropVersion": 1} if name == "Maths" else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": f"{SEASON[s[:3]]} 20{s[3:]}"} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},
             **({"noCalc": True, "reportsBy": "question"} if maths else {}),
+            **({"noCalc": True} if key == "criminology" else {}),  # (no Criminology question is a calculation: the filter is left out)
             "count": len(rows), "firstYear": min(years), "lastYear": max(years), "sample": rows[:20],
         }
         json.dump(meta, open(os.path.join(out_dir, f"{bank}.json"), "w"), ensure_ascii=False, separators=(",", ":"))

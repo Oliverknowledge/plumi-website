@@ -1079,6 +1079,94 @@ python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-econo
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-economics --crops-only
 ```
 
+## OCR A-Level Law
+
+Added 29 October 2026: `/question-bank/ocr-a-level-law`, every question from the OCR A-Level
+(H418, Papers 1–3) and AS (H018, Papers 1–2) Law papers that OCR publishes on its own site:
+June 2022, the specification's first exams, to June 2025. That is 208 questions from 24 papers
+(16 A-Level, 8 AS). Every question has its mark scheme cropped and its examiner's comments, and
+every paper adds up to its 80 (A-Level) or 64 (AS) marks, counting one question of each choice
+and one Part of Section B.
+
+- **The option.** Component 3 is two papers: H418/03 (the nature of law and human rights) and
+  H418/04 (the nature of law and the law of contract). A student sits one. They are named
+  "Paper 3 (Human rights)" and "Paper 3 (Contract)", so the paper filter picks a student's option,
+  and their Section B topics are year 3, listed under "Paper 3 options" in the topic list. The
+  bank's note says so.
+- **Questions are whole.** There are no parts and no answer lines (candidates write in a booklet).
+  A question's crop ends at the line its marks are on, so it doesn't run on into the next
+  Part's heading or, after the last question, OCR's copyright page.
+- **Scenarios as stems.** Each A-Level Section B is "Choose Part 1 or Part 2", and each Part opens
+  with two unrelated scenarios, then three questions: two "Advise…" questions on them and an
+  essay. The AS Section B opens with one scenario ("Read the scenario.") and asks four questions,
+  two of them "Advise…". The block, from its heading to its first question, is the stem of each
+  "Advise…" question in it. The "Explain…" questions ("Do not refer to the scenario") and the
+  essays have none. The scenario questions are named for their block, so they share one stem:
+  `h41801-jun24-p1-05`, stem `h41801-jun24-p1-stem.webp`; the AS block is `sc`
+  (`h01801-jun24-sc-06`). 80 questions have a stem. Reports are keyed by question
+  (`reportsBy: "question"`).
+- **Mark schemes.** Section A's scheme is a table, a row per question. Section B's are pages of
+  indicative content and level grids under a heading ("5. Advise whether Kobe…", "5", "Q3",
+  "7* and 10*"), with numbered lists of points among them. So `cut_ocr_law.py` finds each
+  question's scheme by its own words: the first heading after the last question's that carries
+  its number at the left margin and, there or just under it, most of the question's opening
+  words. Failing that, its bare number. The crop runs to the next question's heading, the
+  "Section B" heading, the assessment-objectives grid or OCR's back page. The Section A table's
+  header row comes with it. The second Part's essay is the first Part's again, and its scheme
+  says only "As per question 7" (or "SEE ABOVE FOR Q5*"), so it shows Question 7's crop.
+- **Choices.** "Answer Question 1 or Question 2" (2023 on), "Answer one question from questions
+  1–2" (June 2022), and Paper 3's "Answer one question" over Questions 1 and 2: the second
+  carries `or`. 24 questions.
+- **Reports.** Every question has its report. The second Part's essay takes the first's where
+  OCR writes one report on both ("Question 7* and Question 10*"), or reports only once. H418/01
+  June 2022 heads its Question 8 report "Questions 8/9" (Question 9 has its own); it is read as
+  Question 8.
+- **Topics.** The specification's content tables have bold topic headings with no numbers
+  ("Fatal offences against the person"), so they're coded by section (`1B.3`) with an empty
+  `ref`. There are 7 sections (the legal system, criminal law, law making, tort, the nature of
+  law, human rights, contract) and 44 topics. The nature of law is printed for both Paper 3s and
+  read once. Where two sections share a topic name, the title says whose ("Criminal law: rules
+  and theory", "Tort: remedies"). 20 topics are Year 1 · AS (the AS specification has a topic of
+  the same name; its "Rules" is the A-Level's "Rules and theory", and its "Introduction to the
+  nature of law" opens its legal system), 11 are A-Level only and 13 are the Paper 3 options.
+  Every question is tagged by reading it (tag.md's "OCR Law" section). Essays carry the
+  section's evaluation topic second. No question tests the "rules and theory" topics of tort,
+  human rights or contract.
+- **Pipeline.** `scripts/question-bank/ocr_law/` holds:
+  - `fetch_ocr_law.py`: OCR's assessment page, read with `fetch_ocr_cs.py`'s reader.
+  - `spec_ocr_law.py`.
+  - `cut_ocr_law.py`: `cut_pearson.py` as a library, patched for this run only, so
+    `cut_pearson.py` is unchanged.
+  - `tag_ocr_law.py`.
+  - `build_ocr_law.py`.
+
+  Whole papers are on R2 under `ocr/` (`OCR-H418-01-QP-JUN24.pdf`, the library's naming), and
+  crops are under `bank/h418*` and `bank/h018*`.
+
+**Gaps:**
+- OCR's page lists only June 2022 to June 2025, for both levels. That is every exam series of
+  this specification so far (there are no November series, and the AS's first exams, June 2021,
+  were not sat). The legacy specification's papers are not on this page and are not fetched. No
+  mirror (PMT or other) is used: that needs the founder's say-so.
+- The sample assessment materials and modified papers (zips) are left out, as for the other OCR
+  banks.
+- Questions appear more than once where OCR prints them more than once: both Paper 3s share
+  Section A (16 questions, 8 of them repeats), and every A-Level paper sets the same essay in
+  Part 1 and Part 2 (16 repeats). They are kept, as English Literature keeps its shared Section B,
+  so each paper is whole under the paper filter.
+- There's no past paper library page for Law yet, so the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/ocr_law/fetch_ocr_law.py
+python3 scripts/question-bank/ocr_law/spec_ocr_law.py
+python3 scripts/question-bank/ocr_law/cut_ocr_law.py
+python3 scripts/question-bank/ocr_law/tag_ocr_law.py split   # tag the batches, then:
+python3 scripts/question-bank/ocr_law/tag_ocr_law.py merge
+python3 scripts/question-bank/ocr_law/build_ocr_law.py
+ln -sfn ../img scripts/question-bank/.work/ocr-law/r2/img
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-law/r2 --pdf-prefix=ocr/
+```
+
 ## AQA A-Level Business
 
 Added 27 October 2026, after a student asked for it: `/question-bank/aqa-a-level-business`,
@@ -1275,13 +1363,68 @@ comparing texts and each Paper 2's contextual linking as topics of their own.
   skips 6 questions. AQA's copies withhold some extracts for copyright, and the crops show
   AQA's note: the Paper 2 insert for November 2021 (2A and 2B), June 2022 (2B: Peyton
   Place, with page references) and June 2025 (2B), and one unseen poem each in Paper 1 June
-  2023 and November 2021. Specification B (7717) is not here yet.
+  2023 and November 2021. Specification B is its own bank, below.
 
 ```bash
 python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level
 python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=a
 python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=a
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-a
+```
+
+### AQA A-Level English Literature B
+
+Added 29 October 2026: `/question-bank/aqa-a-level-english-literature-b`, every question from
+AQA's A-Level (7717) and AS (7716) English Literature B papers that AQA still publishes,
+November 2020 to June 2025. That is 327 questions (228 A-Level, 99 AS) from 42 papers, every
+one with its mark scheme cropped and 238 with the examiner's comments. The same scripts with
+`--level=b` (`fetch_english_lit.py a-level-b`).
+
+- **Options are genres, and papers.** Each paper is sat as one of two options, and AQA gives
+  each its own component: A-Level Paper 1A Aspects of tragedy, 1B Aspects of comedy, 2A
+  Elements of crime writing, 2B Elements of political and social protest writing; AS Paper
+  1A/1B (drama) and 2A/2B (prose and poetry) in tragedy or comedy. So the paper filter has
+  eight papers, and the topic tiles are the four genres.
+- **Topics are the set texts, within their genre.** A question is tagged from its heading
+  ("Othello – William Shakespeare") against its option's genre only (`texts.for_option`).
+  Texts that A-Level students write about only in Section C (Richard II, The Great Gatsby,
+  Emma and the rest) have named questions only on the AS papers, so their topics say "(AS)".
+  The questions that name no text are their genre's own topics (`texts.unheaded`): Paper
+  2's unseen extract (Section A: "Unseen crime extract", "Unseen protest extract") and the
+  A-Level's two-text questions (Section C: "Tragedy across two texts" and so on). The
+  Merchant's Prologue and Tale has had no question since 2020, so it has no tile.
+- **Whole questions, extract included,** as at GCSE: a question runs from its label to the
+  next "or", heading or label, so the extract printed under a Paper 1 Section A or AS
+  question, and Paper 2's unseen extract, come with it. Section C's ids are
+  `77171a-jun24-c-07`, and their stem is the section's rubric with its list of texts
+  (`77171a-jun24-c-stem.webp`). Other ids are `77172a-jun24-01`.
+- **Either/or.** In each section every question after the first carries `or` (Paper 2's
+  Section A is one question), so every paper adds up to its 75 (AS: 50).
+- **Mark schemes** print each question's label in a box, as the papers do: a question's
+  indicative content runs to the next label, with the one levels grid ("Band 5 … How to
+  arrive at (a) mark", landscape, portrait in AS June 2022) stacked under it. AS Paper 2A
+  and 2B June 2022 print the label's two boxes one over the other (`stacked_labels`).
+- **Reports** head a question ("Question 1", "Question 1: The Taming of the Shrew") or a
+  section (Paper 2's), and a question gets its own paragraphs, else its section's that name
+  its text, else the section's general ones. June 2025's reports set their headings in a
+  medium weight, read as bold for B.
+- **Pipeline:** `aqa_english_lit/` as above with `--level=b`; GCSE and Specification A are
+  unchanged (their Paper 2 cuts are byte-identical before and after). Papers are on R2 under
+  `aqa/AQA-771[67]*`, crops under `bank/771[67]*`.
+- **Gaps:** AQA no longer publishes 2017–2019 (or AS 2016–2019), and its file store has
+  none, so the bank starts at November 2020; the specimens are left out. AQA publishes no
+  AS Paper 1B or 2B for November 2020 and sat no AS papers in November 2021. There are no
+  reports for November 2020 or 2021 (87 questions), and the AS Paper 1A reports of June 2022
+  and 2023 skip A Streetcar Named Desire (2 questions). AQA's copies withhold three extracts
+  for copyright, and those crops show AQA's note: Paper 2A June 2022's unseen extract, AS
+  Paper 2A June 2022's Poetry Anthology: Tragedy poem and AS Paper 2B June 2025's Poetry
+  Anthology: Comedy extract. The questions are all there.
+
+```bash
+python3 scripts/question-bank/aqa_english_lit/fetch_english_lit.py a-level-b
+python3 scripts/question-bank/aqa_english_lit/cut_english_lit.py --level=b
+python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=b
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-b
 ```
 
 ## AQA A-Level Sociology
@@ -1530,6 +1673,75 @@ python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec-busi
 `fetch_wjec.py` now also accepts "Answer all the questions" on a cover (Unit 1, 2016–19 and
 2024, which it had read as inserts). Eduqas's A Level Business would be the same pipeline over
 Eduqas's site, with Component 1 tagged against Units 1 and 2's topics.
+
+## WJEC Level 3 Criminology
+
+Added 29 October 2026, after the founder asked for "wjec crim". It is WJEC's Level 3 Applied
+Diploma in Criminology (4543), a vocational Level 3 rather than an A-Level, so its bank has a
+`level` of its own, `"Level 3"`. The hub puts it on a "Level 3 vocational (Applied Diploma)"
+shelf after the A-Level shelves, jump link "Level 3". The homepage's bank index lists it under
+WJEC as "Level 3", after its A-Levels. `bankTitle` gives "WJEC Level 3 Criminology", and
+`fullName` gives "Applied Diploma in Criminology" in the bank page's lead.
+
+`/question-bank/wjec-criminology` has 246 parts from WJEC's 18 published papers, every one
+tagged and every one with its own mark scheme crop and its scenario as a stem:
+- Unit 2 (Criminological Theories, 4543UB0) and Unit 4 (Crime and Punishment, 4543UD0).
+- Summer 2017, 2018, 2019, 2022, 2023, 2024 and 2025, Autumn (October) 2020 and January 2022.
+- 218 parts have the examiner’s comments: every one but Summer 2017’s.
+
+Units 1 and 3 are controlled assessments, not exams, so they aren't in the bank.
+
+- **Papers:** three 25-mark questions, each a scenario ("1. Scenario: Richard and Geta are…")
+  and then "(a)", "(b) (i)", which `cut_wjec.py` reads as they are, the scenario as the stem.
+  Every part is written in the booklet, so `wjec/cut_wjec_criminology.py` ends each crop just
+  under its marks ("[6]"), leaving out the dotted lines and "Additional space for Question
+  1(a) only".
+  - Summer 2017's Unit 4 numbers the answer lines of three "give two" questions "(i)" and
+    "(ii)": those are cut as the one part the scheme marks (2(c) [10], 3(a) and 3(b) [4]).
+  - Every paper adds up to 75.
+- **Schemes:** 2017–2019's are ruled tables ("Question | Answer | Mark | LO"), which
+  `cut_wjec.py` reads. From Autumn 2020 each part is a block: its label in the margin, the
+  question again, the levels grid and the indicative content.
+  - The wrapper reads these blocks by the label's column ("1." at x 72, "(a)" at 108, "(i)" at
+    144). From 2023 the letter is printed again beside each sub-part.
+  - Summer 2023's Unit 2 scheme lists every question first and then the blocks: a label's last
+    block is its own.
+  - WJEC lists two Summer 2017 Unit 2 schemes. They match except that the `4543UB0` copy
+    corrects Sheldon's somatotypes, and it is the one kept.
+  - The list files the 2019 schemes under "Autumn". `fetch_wjec.py` reads Criminology's series
+    off each cover instead.
+- **Reports:** one a series for the whole qualification, a section a unit, comments headed
+  "Q.1". The contents page's last line, "Unit 4 – Crime and Punishment", runs straight into the
+  general comments, so the wrapper hands `cut_wjec.py`'s reader the report from the unit's own
+  heading on. 2019 also has a two-page "Summary Report"; the full report is used.
+- **Topics:** `wjec/spec_wjec_criminology.py` reads the Diploma specification. (WJEC also lists
+  the Applied Certificate's, which covers only Units 1 and 2; `fetch_wjec.py` skips it.)
+  - Sections are the learning outcomes, "Unit 2, LO1: Understand social constructions of
+    criminality".
+  - Topics are the assessment criteria, with the titles from the assessment grids: 10 a unit,
+    20 in all, coded `2.1.1` with `ref` "AC1.1" so the pages show the AC.
+  - The 246 parts were tagged by reading them (tag.md's WJEC section), one AC each, one with
+    two. Each part takes only its own unit's ACs.
+- **Papers' names:** "Unit 2 · Criminological Theories", "Unit 4 · Crime and Punishment";
+  series "Summer 2025", "January 2022", "Autumn 2020". `noCalc` hides the calculation filter.
+- **Gaps, honestly:**
+  - WJEC publishes no examiners' report for Summer 2017, so those 28 parts have none.
+  - No series ran in 2021, and none is published for Summer 2026: the paper list ends at 2025,
+    though the key documents already carry the Summer 2026 report.
+  - The Sample Assessment Materials for Units 2 and 4 aren't in the bank.
+  - The on-screen versions (4543UA0/UC0) are the same papers and aren't repeated.
+  - The Welsh-medium papers aren't included.
+  - Tags are one reader's, not three.
+- **Pipeline** (its own work dir, `.work/wjec-criminology`):
+
+```bash
+python3 scripts/question-bank/wjec/fetch_wjec.py scripts/question-bank/.work/wjec-criminology --only=criminology
+python3 scripts/question-bank/wjec/cut_wjec_criminology.py scripts/question-bank/.work/wjec-criminology
+python3 scripts/question-bank/wjec/spec_wjec_criminology.py scripts/question-bank/.work/wjec-criminology
+python3 scripts/question-bank/wjec/tag_wjec.py split scripts/question-bank/.work/wjec-criminology 300   # then tag, merge
+python3 scripts/question-bank/wjec/build_wjec.py scripts/question-bank/.work/wjec-criminology
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec-criminology --pdf-prefix=wjec/
+```
 
 ## Year 12 and Year 13 (A-Level Maths and Further Maths)
 
