@@ -422,6 +422,18 @@ these differences:
   marks are for, not the unit. Unit 4's PEST and ethical, legal and environmental factors are
   a topic each (`4.4 Economic factors`); an essay that weighs several takes the two it
   leans on most. Each line's `setup` is the start of the case the part is set on.
+- Criminology (the Level 3 Applied Diploma, `criminology-topics.txt`, its own work dir
+  `.work/wjec-criminology`): the topics are the assessment criteria of the two examined
+  units, coded unit, learning outcome, criterion: `2.2.1` is Unit 2's AC2.1 (biological
+  theories), `4.3.3` Unit 4's AC3.3 (limitations of agencies). A part's `paper` ("Unit 2",
+  "Unit 4") only takes its own unit's codes. Tag by the command word and what the marks are
+  for: "describe one sociological theory" is `2.2.3`, "analyse how the theory applies to
+  Barbara" `2.3.1`, "evaluate the effectiveness of …theories" `2.3.2`, "how theories have
+  informed policy" `2.4.1`; in Unit 4, "the role/aims/funding/reach of the police" is `4.3.1`,
+  "tactics and measures" `4.3.2`, "limitations/weaknesses" `4.3.3`, "evaluate the
+  effectiveness" `4.3.4`, and the court system's personnel and agencies' relationships
+  `4.1.2`. 2017–2019's schemes print each part's learning outcome (`LO3`) in the margin, a
+  check on the criterion's first two digits.
 - Maths uses the Edexcel maths topics (`maths-topics.txt`, as the OCR maths banks do):
   one to three codes per question, the main one first. AS Unit 1 and A2 Unit 3 are
   pure maths; AS Unit 2 and A2 Unit 4 are statistics (Section A) and mechanics
