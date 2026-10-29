@@ -20,8 +20,9 @@ type Calc = "" | "only" | "none";
 type View = "parts" | "whole";
 type Yr = "" | "12" | "13";
 /** `calc` and `prac` both take "only" or "none" (leave them out); `yr` (maths) is "12", the questions that need only
- * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; view: View; sort: Sort }
+ * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions;
+ * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all. */
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; view: View; sort: Sort }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -47,6 +48,7 @@ function parse(search: string): Filters {
     calc: calc === "only" || calc === "none" ? calc : "",
     prac: prac === "only" || prac === "none" ? prac : "",
     yr: yr === "12" || yr === "13" ? yr : "",
+    opt: u.get("option") ?? "",
     view: u.get("view") === "whole" ? "whole" : "parts",
     sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" ? sort : "new",
   };
@@ -60,6 +62,7 @@ function write(f: Filters) {
   if (f.calc) u.set("calc", f.calc);
   if (f.prac) u.set("practical", f.prac);
   if (f.yr) u.set("yr", f.yr);
+  if (f.opt) u.set("option", f.opt);
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
   const qs = u.toString();
@@ -74,7 +77,7 @@ const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : 
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
 const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
-type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "q";
+type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "q";
 
 /**
  * The bank itself. The whole subject's list (a few thousand short rows) is fetched
@@ -149,17 +152,22 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
 
   // A topic's section from the data, not its code: "3.1.2" is in "3.1", but Edexcel's "6.A" is in Topic "6".
   const sectionOf = useMemo(() => new Map(subject.topics.map(t => [t.code, t.section])), [subject.topics]);
+  // The option (religion) each paper is for, where it is for one; a link's unknown option is no option.
+  const optionOf = useMemo(() => new Map(subject.papers.flatMap(p => (p.option ? [[p.id, p.option] as const] : []))), [subject.papers]);
+  const opt = subject.options?.list.some(o => o.id === f.opt) ? f.opt : "";
+  const forOption = (option?: string) => !opt || !option || option === opt;
 
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
     return (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
       (skip === "papers" || !f.papers.length || f.papers.includes(p.p)) &&
+      (skip === "opt" || !opt || (optionOf.get(p.p) ?? opt) === opt) &&
       (skip === "series" || !f.series.length || f.series.includes(p.s)) &&
       (skip === "calc" || ((f.calc !== "only" || !!p.calc) && (f.calc !== "none" || !p.calc))) &&
       (skip === "prac" || !f.prac || !practicals || (f.prac === "only") === practicals.has(p.id)) &&
       (skip === "yr" || !f.yr || !year13 || (f.yr === "13") === year13.has(p.id)) &&
       (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
-  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.q, text, sectionOf, practicals, year13]);
+  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.q, opt, text, sectionOf, optionOf, practicals, year13]);
 
   // Every part of each question, in order, for the whole-question view.
   const questions = useMemo(() => {
@@ -210,7 +218,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   /** How many questions each chip would give, with every other filter kept. */
   const counts = useMemo(() => {
     if (!parts) return null;
-    const c = { topics: new Map<string, number>(), papers: new Map<string, number>(), series: new Map<string, number>(), calc: new Map<string, number>(), prac: new Map<string, number>(), yr: new Map<string, number>() };
+    const c = { topics: new Map<string, number>(), papers: new Map<string, number>(), series: new Map<string, number>(), calc: new Map<string, number>(), prac: new Map<string, number>(), yr: new Map<string, number>(), opt: new Map<string, number>() };
     // In the whole-question view a chip counts questions: each once, however many of its parts match.
     const counted = new Set<string>();
     const bump = (m: Map<string, number>, k: string, p: BankPart) => {
@@ -228,14 +236,16 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       if (matches(p, "calc")) { bump(c.calc, "", p); bump(c.calc, p.calc ? "only" : "none", p); }
       if (practicals && matches(p, "prac")) bump(c.prac, practicals.has(p.id) ? "only" : "none", p);
       if (year13 && matches(p, "yr")) bump(c.yr, year13.has(p.id) ? "13" : "12", p);
+      // (a paper everyone sits counts under "": it is in every option's list)
+      if (subject.options && matches(p, "opt")) bump(c.opt, optionOf.get(p.p) ?? "", p);
     }
     return c;
-  }, [parts, matches, sectionOf, whole, practicals, year13]);
+  }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf]);
   const n = (dim: keyof NonNullable<typeof counts>, k: string) => counts?.[dim].get(k);
 
   const list = results ?? initial.map(p => [p]);
   const total = results?.length ?? subject.count;
-  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (f.q ? 1 : 0);
+  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (opt ? 1 : 0) + (f.q ? 1 : 0);
 
   useEffect(() => {
     if (!results || !active) return;
@@ -278,6 +288,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const wholePaper = f.papers.length === 1 && f.series.length === 1 ? subject.wholes[`${f.papers[0]}-${f.series[0]}`] : undefined;
 
   const pills: { label: string; clear: () => void }[] = [
+    ...(opt ? [{ label: subject.options?.list.find(o => o.id === opt)?.name ?? opt, clear: () => update({ opt: "" }) }] : []),
     ...(lockedTopic ? [] : f.topics.map(t => ({ label: subject.topics.find(x => x.code === t)?.title ?? subject.sections.find(x => x.code === t)?.title ?? t, clear: () => update({ topics: f.topics.filter(x => x !== t) }) }))),
     ...f.papers.map(p => ({ label: paperName(subject, p), clear: () => update({ papers: f.papers.filter(x => x !== p) }) })),
     // Three sittings or fewer each get a pill; more read as one ("6 exams"), which clears them all.
@@ -289,13 +300,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     ...(f.yr && hasYears ? [{ label: f.yr === "12" ? "Year 12 content" : "Year 13 content", clear: () => update({ yr: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", view: f.view, sort: f.sort }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", view: f.view, sort: f.sort }); setShown(PAGE); };
 
   // Topic groups, as GradeHunt and the specification both arrange them: each section split by year.
   const years = ([0, 1, 2, 3] as const).map(y => ({
     year: y,
     label: y === 0 ? "By area" : y === 1 ? "Year 1 · AS" : y === 2 ? "Year 2 · A‑Level only" : "Paper 3 options",
-    groups: subject.sections.map(sec => ({ key: `${sec.code}-${y}`, title: sec.title, code: sec.code, topics: subject.topics.filter(t => t.section === sec.code && t.year === y) }))
+    groups: subject.sections.filter(sec => forOption(sec.option)).map(sec => ({ key: `${sec.code}-${y}`, title: sec.title, code: sec.code, topics: subject.topics.filter(t => t.section === sec.code && t.year === y) }))
       .filter(g => g.topics.length),
   })).filter(y => y.groups.length);
   const groupState = (codes: string[]) => {
@@ -430,11 +441,24 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
             )}
 
             <div className="qb-row-controls">
+              {/* A student sits one option (their religion): picking it keeps its papers and topics and the ones everyone sits. */}
+              {subject.options && !lockedTopic && (
+                <label className="qb-field">
+                  <span className="qb-label">{subject.options.label}</span>
+                  <select value={opt} onChange={e => {
+                    const o = e.target.value;
+                    update({ opt: o, papers: f.papers.filter(id => !o || !optionOf.get(id) || optionOf.get(id) === o) });
+                  }}>
+                    <option value="">All</option>
+                    {subject.options.list.map(o => <option key={o.id} value={o.id}>{o.name}{counts ? ` (${(n("opt", o.id) ?? 0) + (n("opt", "") ?? 0)})` : ""}</option>)}
+                  </select>
+                </label>
+              )}
               <label className="qb-field">
                 <span className="qb-label">Paper</span>
                 <select value={f.papers.length === 1 ? f.papers[0] : ""} onChange={e => update({ papers: e.target.value ? [e.target.value] : [] })}>
                   <option value="">All papers</option>
-                  {subject.papers.map(p => <option key={p.id} value={p.id}>{p.name}{p.title ? ` · ${p.title}` : ""}{counts ? ` (${n("papers", p.id) ?? 0})` : ""}</option>)}
+                  {subject.papers.filter(p => forOption(p.option)).map(p => <option key={p.id} value={p.id}>{p.name}{p.title ? ` · ${p.title}` : ""}{counts ? ` (${n("papers", p.id) ?? 0})` : ""}</option>)}
                 </select>
               </label>
               <div className="qb-field">
@@ -469,7 +493,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
               <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
                 <label htmlFor="qb-q" className="qb-label">Search</label>
                 <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
+                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
                   onChange={e => setTyped(e.target.value)} onFocus={needText} />
               </form>
               {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
