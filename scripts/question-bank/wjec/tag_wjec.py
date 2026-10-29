@@ -23,13 +23,13 @@ mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work", "wjec")
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 200
 TAG = os.path.join(WORK, "tag")
-SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths", "510": "business"}
+SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths", "510": "business", "543": "criminology"}
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from tag_pearson import clip, own  # noqa: E402
 sys.path.insert(0, os.path.join(HERE, "..", "ocr"))
 from maths_ocr import topic_lists  # noqa: E402
 
-BOILER = re.compile(r"© WJEC CBAC Ltd\.?|\([12]\d{3}U\d0-\d\)|Turn over\.?|Examiner only|\.{6,}|…{3,}|\x08", re.I)
+BOILER = re.compile(r"© WJEC CBAC Ltd\.?|\([12]\d{3}U\d0-\d\)|\(4543U[BD]0-1\)|Turn over\.?|Examiner only|\.{6,}|…{3,}|\x08", re.I)
 OPTION = re.compile(r"^\s*Option\s+([A-F])\s*[–:-]")
 
 
@@ -38,8 +38,8 @@ def subject(part):
 
 
 def unit(part):
-    """'2420u10' -> '1'."""
-    return part["component"][5]
+    """'2420u10' -> '1'; Criminology's '4543ub0' -> '2' (its Units 2 and 4 are coded by letter, B and D)."""
+    return {"b": "2", "d": "4"}.get(part["component"][5], part["component"][5])
 
 
 def option(part):
@@ -77,7 +77,7 @@ def split():
             with open(os.path.join(TAG, f"batch-{n:02d}-{subj}.jsonl"), "w") as f:
                 for p in mine[i:i + SIZE]:
                     words = BOILER.sub(" ", p["text"])
-                    paper = f"{'AS' if unit(p) in '12' else 'A2'} Unit {unit(p)}"
+                    paper = f"{'' if subj == 'criminology' else 'AS ' if unit(p) in '12' else 'A2 '}Unit {unit(p)}"
                     if subj == "maths":
                         row = {"id": p["id"], "paper": f"{paper}: {p['paperTitle'].split(':')[-1].strip()}",
                                "question": clip(words, 700), "scheme": clip(p.get("msText", ""), 300)}
@@ -104,10 +104,11 @@ def merge():
             pid = json.loads(line)["id"]
             if pid in tags:
                 continue  # an option's part, already its option's
-            u = pid[5]
+            u = {"b": "2", "d": "4"}.get(pid[5], pid[5])
             # An AS paper tests its own unit; maths and the A2 papers any topic (an option's only on its own paper).
             # (a topic's unit is its code's first number: Business's Unit 2 is four sections, "2.1 Marketing"…)
-            valid = {t["code"] for t in topics if subj == "maths" or (t["code"].split(".")[0] == u if u in "12" else t.get("year") != 3)}
+            # (Criminology's papers test their own unit's assessment criteria: a Unit 4 part is tagged 4.x.x)
+            valid = {t["code"] for t in topics if subj == "maths" or (t["code"].split(".")[0] == u if u in "12" or subj == "criminology" else t.get("year") != 3)}
             codes = [c for c in got.get(pid, []) if c in valid][:3 if subj == "maths" else 2]
             if codes:
                 tags[pid] = codes
