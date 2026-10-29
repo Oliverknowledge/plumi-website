@@ -49,7 +49,8 @@ function Credit({ subject }: { subject?: BankSubject }) {
 
 /**
  * The hub's shelves: GCSE first, so a GCSE student isn't scrolling past twenty A-Level
- * banks to find theirs, then Cambridge IGCSE, then the A-Levels a board at a time.
+ * banks to find theirs, then Cambridge IGCSE, then the A-Levels a board at a time, then the
+ * vocational Level 3 qualifications (WJEC's Applied Diploma in Criminology).
  */
 const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject) => boolean }[] = [
   { id: "gcse", name: "GCSE", jump: "GCSE", match: s => s.level === "GCSE" },
@@ -60,18 +61,19 @@ const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject)
     jump: board === "CAIE" ? "CAIE A Level" : `${board} A-Level`,
     match: (s: BankSubject) => s.level === "A-Level" && s.board.split(" ")[0] === board,
   })),
+  { id: "level-3", name: "Level 3 vocational (Applied Diploma)", jump: "Level 3", match: s => s.level === "Level 3" },
 ];
 
 export function BankHub() {
   const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature and A-Level English Literature A and B, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature and A-Level English Literature A and B, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap pp-hero qb-hub-hero">
           <div>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
+            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level and Level 3, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
             <nav className="qb-levels" aria-label="Jump to a shelf">
               {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
             </nav>

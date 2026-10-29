@@ -43,10 +43,32 @@ QUALS = {
     "biology": ("biology-asa-level", "wjec-a-level-biology", "400"),
     "maths": ("mathematics-aas-level", "wjec-a-level-maths", "300"),
     "business": ("business-asa-level", "wjec-a-level-business", "510"),
+    # Level 3 Applied Diploma: its two exams are Units 2 and 4, coded by letter, 4543UB0-1 and 4543UD0-1
+    "criminology": ("criminology-level-3", "wjec-criminology", "543"),
 }
 PRACTICAL = {"420": "50", "410": "50", "400": "50"}  # the sciences' Unit 5, the practical exam
 UNIT = re.compile(r"\b([12]\d{3})U(\d)0-(\d)\b")
-SEASON = {"Summer": "JUN", "Autumn": "NOV", "Winter": "JAN"}
+SEASON = {"Summer": "JUN", "Autumn": "NOV", "Winter": "JAN", "January": "JAN"}
+# Criminology's units: "4543UB0-1" is Unit 2 written (UA0 on-screen), "4543UD0-1" Unit 4; 2017's schemes print
+# "4543U20-1" and "4543U40-1" for the same papers. Its series is read off the cover, as the list files 2019's
+# schemes under "Autumn" (they are Summer 2019's, as their covers say).
+LETTER_UNIT = re.compile(r"\b(4543)U([BD24])0-(1)\b")
+LETTERS = {"2": "B", "4": "D"}
+MONTHS = {"JANUARY": "JAN", "MAY": "JUN", "JUNE": "JUN", "OCTOBER": "NOV", "NOVEMBER": "NOV"}
+
+
+def unit_number(code):
+    """'2420U10-1' -> '1'; Criminology's '4543UB0-1' -> '2'."""
+    return {"B": "2", "D": "4"}.get(code[5], code[5])
+
+
+def cover_series(text):
+    """'JUN19' from a scheme's "SUMMER 2019" or a paper's "MONDAY, 20 MAY 2019"."""
+    m = re.search(r"\b(SUMMER|AUTUMN|WINTER) (20\d\d)\b", text)
+    if m:
+        return SEASON[m.group(1).title()] + m.group(2)[2:]
+    m = re.search(r"DAY, \d{1,2} ([A-Z]+) (20\d\d)\b", text)
+    return MONTHS[m.group(1)] + m.group(2)[2:] if m and m.group(1) in MONTHS else None
 
 
 def get(url, binary=False):
@@ -79,6 +101,7 @@ def read_cover(path):
     doc = pymupdf.open(path)
     text = "\n".join(doc[i].get_text() for i in range(min(3, len(doc))))
     unit = UNIT.search(text)
+    letter = None if unit else LETTER_UNIT.search(text)
     welsh = bool(re.search(r"Atebwch bob cwestiwn|CYNLLUN MARCIO|Cyfenw|cwestiwn", text))
     if re.search(r"MARKING SCHEME|MARK SCHEME", text, re.I):
         kind = "ms"
@@ -89,13 +112,15 @@ def read_cover(path):
     else:
         kind = "other"  # a data booklet, an insert, a formula booklet
     code = f"{unit.group(1)}U{unit.group(2)}0-{unit.group(3)}" if unit else None
+    if letter:
+        code = f"{letter.group(1)}U{LETTERS.get(letter.group(2), letter.group(2))}0-{letter.group(3)}"
     said = re.search(r"\bUNIT\s*[–-]?\s*(\d)\b", text)
-    if code and kind == "ms" and said:
+    if code and kind == "ms" and said and not letter:
         # A scheme's cover can misprint its code ("CHEMISTRY - UNIT 3 / 2410U20-1" in 2017, "2410U30-1" in 2018):
         # its unit's name wins, and Units 1 and 2 are AS (2…), the rest A-Level (1…).
         n = int(said.group(1))
         code = f"{2 if n <= 2 else 1}{code[1:4]}U{n}0-{code[-1]}"
-    return kind, code, welsh
+    return kind, code, welsh, cover_series(text) if letter else None
 
 
 def main():
@@ -114,7 +139,7 @@ def main():
             name = it["FileName"] or ""
             if it["ProductReference"] not in ("Past Paper", "Mark Scheme") or re.search(r"Practical|Further Math", name, re.I):
                 continue
-            if re.search(r"-mlp\.pdf$", it["Url"], re.I) or re.search(r"Modified|Font size", name, re.I):
+            if re.search(r"-mlp(-a\d-\d\d)?\.pdf$|-BRL\.pdf$", it["Url"], re.I) or re.search(r"Modified|Font size|Braille", name, re.I):
                 continue  # a large-print copy, sometimes listed as the "Past Paper" itself (2018 Maths Unit 1)
             series = SEASON.get(it["Series"], "X") + it["Year"][2:]
             url = urllib.parse.quote(it["Url"].replace("http://", "https://"), safe=":/")
@@ -133,7 +158,8 @@ def main():
             if md5 in seen:
                 continue
             seen[md5] = local
-            kind, unit, welsh = read_cover(local)
+            kind, unit, welsh, on_cover = read_cover(local)
+            series = on_cover or series
             listed = re.search(r"Unit (\d)", name)
             if not unit and kind == "ms" and listed:  # 2016's schemes print no unit code: the list's "Unit 1"
                 n = int(listed.group(1))
@@ -144,6 +170,7 @@ def main():
             if key in kept:
                 continue
             title = re.sub(r"\s*\[.*?\]\s*$", "", name.split(" - ", 2)[-1]).strip()  # "Physics Unit 1: Written:Motion, Energy and Matter"
+            title = re.sub(r"\s+-\s+(Paper|Onscreen)$", "", title)  # "Criminology Unit 2: Paper Based:Criminological Theories - Paper"
             kept[key] = {"component": unit.split("-")[0], "spec": unit[:4], "kind": kind, "series": series, "title": title,
                          "source": it["Url"], "local": local, "bank": bank, "as": unit.startswith("2")}
         # Examiners' reports and the specification, from the key documents.
@@ -151,11 +178,14 @@ def main():
         reports = {}
         for d in docs:
             link = SITE + d["Link"] if d["Link"].startswith("/") else d["Link"]
-            if d["DocumentType"] == "Specification" and not os.path.exists(os.path.join(spec_dir, f"{subject}.pdf")):
+            # (Criminology lists the Applied Certificate's, Units 1 and 2 only, before the Diploma's: the Diploma's is the bank's)
+            if d["DocumentType"] == "Specification" and "Applied Certificate" not in d["Name"] and not os.path.exists(os.path.join(spec_dir, f"{subject}.pdf")):
                 open(os.path.join(spec_dir, f"{subject}.pdf"), "wb").write(get(link, binary=True))
-            m = re.search(r"Report (Summer|Autumn) (\d{4})", d["Name"])
+            m = re.search(r"Report (Summer|Autumn|January) (\d{4})", d["Name"])
             if "Examiner" in d["DocumentType"] + d["Name"] and m and not re.search(r"-w\.pdf$|welsh|cymraeg", d["Link"], re.I):
-                reports[SEASON[m.group(1)] + m.group(2)[2:]] = (link, d["Name"])
+                # (Criminology's 2019 has a two-page "Summary Report" beside the report itself: the report wins)
+                if "Summary Report" not in d["Name"] or SEASON[m.group(1)] + m.group(2)[2:] not in reports:
+                    reports[SEASON[m.group(1)] + m.group(2)[2:]] = (link, d["Name"])
         for (unit, kind, series), row in sorted(kept.items()):
             name = f"WJEC-{unit}-{kind.upper()}-{series}.pdf"
             dest = os.path.join(pdf, name)
@@ -169,7 +199,7 @@ def main():
                 if not os.path.exists(os.path.join(pdf, er)):
                     open(os.path.join(pdf, er), "wb").write(get(link, binary=True))
                 manifest.append({**row, "kind": "er", "title": report_name, "source": link, "file": er, "r2": f"wjec/{er}",
-                                 "bytes": os.path.getsize(os.path.join(pdf, er)), "section": unit[5]})
+                                 "bytes": os.path.getsize(os.path.join(pdf, er)), "section": unit_number(unit)})
         for (unit, kind, series) in kept:
             if kind == "qp" and (unit, "ms", series) not in kept:
                 gaps.append(f"{subject} {series} {unit}: no mark scheme")
