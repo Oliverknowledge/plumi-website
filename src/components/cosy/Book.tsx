@@ -25,6 +25,7 @@ export const subjectColours: Record<string, string> = {
   "English Literature": "#c4a484",
   Geography: "#a9c48a",
   "Religious Studies": "#e0b878",
+  Criminology: "#8f9cc0", // a dusk blue
 };
 
 /** A row of little squares, one a topic, filling in like the app's topic map: a fixed pattern, the same on every render. */
