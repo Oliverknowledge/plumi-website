@@ -231,3 +231,9 @@
   .pk-compare tbody th { white-space: normal; }
 }
 @media (prefers-reduced-motion: reduce) { .lp .pk-feature-pack > a.pk-cover-link { transition: none; } }
+
+/* Getting a pack: free for members of the Plumi Discord (Pack.tsx, PackGet). */
+.pk-get { display: grid; gap: 8px; justify-items: start; }
+.lp .pk-get .lp-discord { gap: 8px; }
+.pk-get-line { max-width: 34em; font-size: 14px; font-weight: 700; line-height: 1.45; color: var(--lp-ink-soft); }
+.pk-get-line b { color: var(--lp-ink); white-space: nowrap; }

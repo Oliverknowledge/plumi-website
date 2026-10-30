@@ -8,6 +8,7 @@ import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYear
 import { BankProgress } from "./BankProgress";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
+import { ZoomViewer } from "./ZoomViewer";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -740,6 +741,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       </section>
 
       <SetTray subject={subject} set={set} parts={parts} />
+      <ZoomViewer />
     </div>
   );
 }

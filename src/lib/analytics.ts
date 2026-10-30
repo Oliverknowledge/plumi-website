@@ -51,6 +51,8 @@ export type PlumiEvent =
   /** "Hide what I've done" switched (`on`), and Redo pressed on a question in Your history
    *  (`subject`, `part`, `last` score share). */
   | "bank_hide_done"
+  /** A question or mark scheme opened full screen to zoom (`kind` qp or ms, `part`). */
+  | "bank_zoom"
   | "bank_redo"
   /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */

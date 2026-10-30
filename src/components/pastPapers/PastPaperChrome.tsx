@@ -1,71 +1,10 @@
-import Image from "next/image";
-import { AppStoreBadge } from "@/components/home/AppStoreBadge";
-import { DiscordButton } from "@/components/cosy/DiscordButton";
-import { Tape } from "@/components/cosy/Chrome";
 import { site } from "@/config/site";
-import type { Level } from "@/content/pastPapers";
 
 /**
- * The pieces every past paper page shares: the "now get it marked" card that turns
- * a paper download into a reason to open Plumi, the three-step way to use a paper,
- * and the credit line. Copy follows the homepage's truth rules (src/content/home.ts):
- * A-Level papers are in the app's Papers tab and Plumi marks handwritten answers; a GCSE
- * paper goes in as a PDF to write on. No plans or prices (founder, 23 October 2026).
+ * What every past paper page ends with: the credit line. (The "get it marked on iPad" card,
+ * the three ways to use a paper and the practice pack promo went, founder, 30 October 2026:
+ * the pages are the papers.)
  */
-export function MarkItCard({ level, placement }: { level: Level; placement: string }) {
-  return (
-    <aside className="lp-card pp-mark" aria-labelledby={`${placement}-title`}>
-      <Tape />
-      <div className="pp-mark-copy">
-        <span className="lp-eyebrow">Done a paper?</span>
-        <h2 id={`${placement}-title`}>Sit it on iPad, and <em>get it marked.</em></h2>
-        <p className="lp-lead">
-          {level === "A-Level"
-            ? "Your board’s A‑Level papers are already in Plumi’s Papers tab, with their mark schemes. Write your answers with Apple Pencil, and Plumi marks your working against the mark scheme."
-            : "Put the PDF in your Plumi notebook and write on it like any page. Then practise the questions you dropped: Plumi writes new ones in your board’s style and marks your handwritten working."}
-        </p>
-        <div className="lp-cta-row">
-          <AppStoreBadge placement={placement} height={52} />
-          <DiscordButton placement={`${placement}-discord`} />
-        </div>
-        <p className="lp-cta-note">Free to download on the App Store. The Discord is a study room for revising together.</p>
-      </div>
-      <figure className="pp-mark-shot">
-        <Image src="/site/tile-papers2.webp" width={1442} height={550} sizes="(max-width: 980px) 90vw, 520px"
-          alt="Plumi's past papers for OCR A-Level Physics, June 2023: three papers, each with the paper, mark scheme and examiner report." />
-      </figure>
-    </aside>
-  );
-}
-
-const steps = [
-  { title: "Sit it like the real thing.", line: "Timed, by hand, with the formula sheet and nothing else. A paper you peek at teaches you the mark scheme, not the topic." },
-  { title: "Mark it honestly.", line: "Go line by line with the mark scheme. Method marks are where most lost marks hide, so check your working, not just the answer." },
-  { title: "Go back to what you dropped.", line: "Your board publishes an examiner report for each paper: it says what most students wrote and why it didn’t score. Redo those questions a week later." },
-];
-
-export function HowToUse({ subject }: { subject: string }) {
-  return (
-    <section aria-labelledby="use-title" className="pp-use">
-      <div className="lp-wrap">
-        <div className="lp-sec-head">
-          <span className="lp-eyebrow">Using past papers</span>
-          <h2 id="use-title">How to get the most out of {subject} past papers</h2>
-        </div>
-        <ol className="lp-sp-steps">
-          {steps.map((s, i) => (
-            <li key={s.title} className="lp-card lp-step">
-              <span className="lp-num">{String(i + 1).padStart(2, "0")}</span>
-              <h3>{s.title}</h3>
-              <p>{s.line}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
 /** Whose papers they are. Every file is our copy of the board's published paper. */
 export function SourceCredit() {
   return (
