@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
+import { sendAndroidWelcome } from "@/lib/waitlist/email";
 import { getWaitlistStore, type WaitlistSignup } from "@/lib/waitlist/store";
 import type { Attribution } from "@/lib/attribution";
 import { waitlist } from "@/content/copy";
@@ -153,6 +154,10 @@ export async function POST(request: Request) {
 
   switch (result.status) {
     case "created":
+      // The Android waitlist's welcome email goes out once, after the response, so a slow mail server never
+      // holds the student's page. A repeat signup ("already_joined") sends nothing, so the form cannot be used
+      // to mail someone twice.
+      if (signup.platform === "android") after(() => sendAndroidWelcome(signup.email));
       return NextResponse.json({ ok: true, code: "created" });
 
     case "already_joined":

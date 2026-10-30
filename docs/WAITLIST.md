@@ -156,3 +156,31 @@ Students are told they can leave by replying to any email. Do it by hand:
 ```sql
 delete from public.waitlist_signups where email = 'them@example.com';
 ```
+
+---
+
+## Without a secret key (30 October 2026)
+
+`supabase/migrations/0002_join_waitlist.sql` adds one function, `join_waitlist`, that the project's **public**
+key may call. It adds one row to `waitlist_signups` and returns whether the email was new; it cannot read the
+table, change a row or delete one (RLS is still on with no policies; checked with the public key: a read returns
+`[]` and a direct insert is refused). The site uses it whenever there is no service role key, so the host needs only:
+
+| Name | Value |
+|---|---|
+| `SUPABASE_URL` | Project URL |
+| `SUPABASE_PUBLISHABLE_KEY` | The project's public (publishable) key |
+
+Both are set in Vercel (Production) for the `plumi` Supabase project. Rows from the Android page have
+`source = 'android'`: `select count(*) from waitlist_signups where source = 'android'`.
+
+## The Android welcome email
+
+`/android` signups get one email (`src/lib/waitlist/androidWelcomeEmail.ts`: Plumi's notebook look and a
+"Join the Plumi Discord" key), sent after the response, only when the email is new. It needs a Resend account:
+
+1. resend.com, add the domain `tryplumi.app` and put the DNS records it gives you in the domain's DNS.
+2. Create an API key and add it in Vercel (Production) as `RESEND_API_KEY`.
+3. Redeploy. `WAITLIST_EMAIL_FROM` is optional and defaults to `Plumi <hello@tryplumi.app>`.
+
+Until `RESEND_API_KEY` is set the signup still works and the server logs that no email was sent.

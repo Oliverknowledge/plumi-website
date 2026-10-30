@@ -54,6 +54,14 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TABLE = process.env.SUPABASE_WAITLIST_TABLE ?? "waitlist_signups";
 
 /**
+ * The project's PUBLIC key. With it the site needs no secret at all: it calls the one function
+ * `join_waitlist` (supabase/migrations/0002_join_waitlist.sql), which can add a row and nothing else.
+ * Used when there is no service role key.
+ */
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+/**
  * Talks to PostgREST directly rather than pulling in @supabase/supabase-js.
  * One insert is not worth 40 kB of client library on a serverless cold start.
  */
@@ -125,6 +133,56 @@ class SupabaseWaitlistStore implements WaitlistStore {
   }
 }
 
+/** Joins through `join_waitlist`, with the public key. Cannot read the list; says whether the email was new. */
+class SupabaseRpcWaitlistStore implements WaitlistStore {
+  readonly name = "supabase-rpc";
+
+  constructor(
+    private readonly url: string,
+    private readonly publishableKey: string,
+  ) {}
+
+  async save(signup: WaitlistSignup): Promise<WaitlistResult> {
+    const endpoint = `${this.url.replace(/\/$/, "")}/rest/v1/rpc/join_waitlist`;
+
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: this.publishableKey },
+        body: JSON.stringify({
+          p_email: signup.email,
+          p_source: signup.platform === "android" ? "android" : "website",
+          p_subject: signup.subject ?? null,
+          p_board: signup.board ?? null,
+          p_utm_source: signup.attribution.utm_source ?? null,
+          p_utm_medium: signup.attribution.utm_medium ?? null,
+          p_utm_campaign: signup.attribution.utm_campaign ?? null,
+          p_utm_content: signup.attribution.utm_content ?? null,
+          p_utm_term: signup.attribution.utm_term ?? null,
+          p_landing_variant: signup.attribution.landing_variant ?? null,
+          p_referrer_host: signup.attribution.referrer_host ?? null,
+          p_gclid: signup.attribution.gclid ?? null,
+          p_fbclid: signup.attribution.fbclid ?? null,
+          p_ttclid: signup.attribution.ttclid ?? null,
+          p_user_agent: signup.userAgent ?? null,
+          p_country: signup.country ?? null,
+        }),
+        cache: "no-store",
+      });
+    } catch (cause) {
+      return { status: "error", message: cause instanceof Error ? cause.message : "Network error reaching Supabase" };
+    }
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      return { status: "error", message: `Supabase responded ${response.status}: ${body.slice(0, 200)}` };
+    }
+    const added = (await response.json().catch(() => null)) as unknown;
+    return { status: added === false ? "already_joined" : "created" };
+  }
+}
+
 /** Used when no backend is configured. Refuses rather than silently succeeding. */
 class UnconfiguredWaitlistStore implements WaitlistStore {
   readonly name = "unconfigured";
@@ -142,11 +200,13 @@ export function getWaitlistStore(): WaitlistStore {
   cached =
     SUPABASE_URL && SUPABASE_SERVICE_KEY
       ? new SupabaseWaitlistStore(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-      : new UnconfiguredWaitlistStore();
+      : SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+        ? new SupabaseRpcWaitlistStore(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+        : new UnconfiguredWaitlistStore();
 
   return cached;
 }
 
 export function isWaitlistConfigured(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY);
+  return Boolean(SUPABASE_URL && (SUPABASE_SERVICE_KEY || SUPABASE_PUBLISHABLE_KEY));
 }
