@@ -128,6 +128,8 @@ export interface BankPart {
   st?: 1;
   ms?: 1;
   er?: 1;
+  /** The scheme crop is the whole question's rows, not the part's own (its label didn't read on its own; ms_fallback.py). */
+  msq?: 1;
   /** No cropped scheme: the whole paper's mark scheme PDF, relative to the papers base. */
   msf?: string;
   /** A multiple-choice question's answer letter, where the scheme is a key rather than a table. */
