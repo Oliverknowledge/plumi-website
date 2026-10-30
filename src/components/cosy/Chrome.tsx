@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AndroidHeaderButton } from "@/components/home/AndroidLink";
 import { HeaderDownload } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { entityDescription, site } from "@/config/site";
@@ -30,6 +31,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
           <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
+        <AndroidHeaderButton />
         <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" />
       </div>
     </header>

@@ -4,6 +4,7 @@ import { appStoreLink } from "@/config/site";
 import { noteCtaClick } from "@/lib/cta";
 import { track } from "@/lib/analytics";
 import { reportAdsConversion } from "@/lib/adsConversion";
+import { AndroidInlineLink, AndroidKey, useIsAndroid } from "@/components/home/AndroidLink";
 import "@/app/send-to-ipad.css";
 
 /**
@@ -55,8 +56,11 @@ const sendLabel = (state: SendState, idle: string) => state === "sent" ? phoneCo
  */
 export function AppStoreBadge({ placement, tone = "black", height = 52, showLine = false, desktopSend = true }: { placement: string; tone?: "black" | "white"; height?: number; showLine?: boolean; desktopSend?: boolean }) {
   const [state, setState] = useState<SendState>("idle");
+  const android = useIsAndroid();
   const href = storeHref(placement);
   const width = Math.round((718 / 240) * height);
+  // An Android phone or tablet cannot install Plumi, so it is not offered "Send it to my iPad": it gets the waitlist.
+  if (android) return <AndroidKey placement={placement} />;
   return (
     <>
       <a
@@ -79,6 +83,7 @@ export function AppStoreBadge({ placement, tone = "black", height = 52, showLine
           : showLine && <span className="hp-phone-line" aria-live="polite">{phoneCopy.line}</span>}
       </span>
       {desktopSend && <DesktopSend placement={placement} />}
+      <AndroidInlineLink placement={placement} />
     </>
   );
 }
@@ -161,8 +166,11 @@ function DesktopSend({ placement }: { placement: string }) {
  */
 export function HeaderDownload({ download = "Download", className = "hp-pill" }: { download?: string; className?: string } = {}) {
   const [state, setState] = useState<SendState>("idle");
+  const android = useIsAndroid();
   const href = storeHref("header");
   const label = state === "sent" ? "Sent" : state === "emailed" ? "Check email" : "Send to iPad";
+  // The Android waitlist button sits beside this one; an Android visitor needs only that.
+  if (android) return null;
   return (
     <>
       <a href={href} target="_blank" rel="noopener noreferrer" className={`${className} hp-not-phone`} data-testid="header-cta-button"
