@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CosyPage, WindowBar } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
-import { HowToUse, MarkItCard } from "./PastPaperChrome";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
@@ -10,7 +9,6 @@ import {
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
 import { packFor, packPath } from "@/content/practicePacks";
-import { PackPromo } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -45,14 +43,13 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   return (
     <CosyPage after={<>
       <PageStructuredData path={path} name={meta.title} description={meta.description} type="CollectionPage"
-        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
+        breadcrumb={[{ name: "Past papers", path: "/past-papers" }, { name: subjectTitle(hub), path: subjectPath(hub.slug) }, { name: board.label, path }]} />
       <PaperClickTracker page={path} />
     </>}>
       <article className="pp">
         <header className="lp-wrap pp-hero">
           <nav className="pp-crumbs" aria-label="Breadcrumb">
-            <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
-            <Link href="/past-papers">Past papers</Link><span aria-hidden="true">›</span>
+                        <Link href="/past-papers">Past papers</Link><span aria-hidden="true">›</span>
             <Link href={subjectPath(hub.slug)}>{subjectTitle(hub)}</Link><span aria-hidden="true">›</span>
             <span aria-current="page">{board.label}</span>
           </nav>
@@ -88,16 +85,6 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
           </section>
         ))}
 
-        {pack && (
-          <section className="pp-mark-wrap" aria-label="Plumi practice pack">
-            <div className="lp-wrap"><PackPromo pack={pack} placement={`papers-${hub.slug}-${board.slug}`} /></div>
-          </section>
-        )}
-
-        <section className="pp-mark-wrap" aria-label="Get your paper marked">
-          <div className="lp-wrap"><MarkItCard level={hub.level} placement={`papers-${hub.slug}-${board.slug}`} /></div>
-        </section>
-
         {legacy.length > 0 && (
           <section aria-labelledby="legacy-title" className="pp-group pp-legacy">
             <div className="lp-wrap">
@@ -114,8 +101,6 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
             </div>
           </section>
         )}
-
-        <HowToUse subject={heading} />
 
         <section aria-labelledby="more-title" className="pp-more">
           <div className="lp-wrap">

@@ -2,7 +2,7 @@ import { papersBase } from "./questionBank";
 
 /**
  * Plumi Practice Packs: whole practice papers written by Plumi, each a question paper and
- * a full mark scheme, free to download with no sign-up (founder, 25 October 2026: "a really
+ * a full mark scheme, free for members of the Plumi Discord since 30 October 2026 (before that a download with no sign-up; founder, 25 October 2026: "a really
  * important aspect of our website"). Shown on the homepage's free practice section, at
  * /practice-papers and /practice-papers/<slug>, and beside the matching past papers.
  *
@@ -330,8 +330,10 @@ export const packCopy = {
   section: "Practice papers",
   hubTitle: "Practice papers,",
   hubTitleEm: "written by us.",
-  hubLead: "Each pack is 30 exam-style questions in your board’s style, climbing from easy to super hard, with a full mark scheme written the way examiners write them. Print it, sit it, mark it. Free, with no sign-up.",
-  download: { questions: "Questions PDF", scheme: "Mark scheme PDF" },
+  hubLead: "Each pack is 30 exam-style questions in your board’s style, climbing from easy to super hard, with a full mark scheme written the way examiners write them. Print it, sit it, mark it. Free for everyone in the Plumi Discord.",
+  // Packs are free for Discord members (founder, 30 October 2026). Where in the server they are:
+  // change `channel` here if they're posted somewhere else.
+  get: { line: "Free for members of the Plumi Discord. Join, then find every pack, questions and mark scheme, in", channel: "📖 resources" },
   proof: [
     { title: "Every answer checked twice", line: "Each numerical answer in the mark schemes was re-checked, not just worked out and trusted. Each pack says how, on its page." },
     { title: "Mark schemes like the real ones", line: "M1, A1 and B1 marks, what to allow, error carried forward, and a note on the slip most students make." },
@@ -342,7 +344,7 @@ export const packCopy = {
     titleEm: "compares",
     lead: "What you get in a Plumi pack, beside what a typical paid practice pack gives you.",
     rows: [
-      ["Price", "Free, no sign-up", "Usually paid"],
+      ["Price", "Free in our Discord", "Usually paid"],
       ["Questions", "30, across every part of the course", "Often one paper’s worth"],
       ["Mark scheme", "Every mark, with what to allow and error carried forward", "Often answers only"],
       ["Common slips", "A note on each question saying where marks are lost", "Rarely"],
@@ -371,7 +373,7 @@ export const packCopy = {
   },
   faq: [
     { q: "Are these real past papers?", a: "No. Plumi wrote every question in the style of the board’s papers, to its specification, with a mark scheme in the board’s style. They are not produced or endorsed by the exam board. For the board’s own papers, see our past papers pages." },
-    { q: "Are they really free?", a: "Yes. Download the questions and the mark scheme, print them or write on them on a tablet. There is nothing to sign up for." },
+    { q: "Are they really free?", a: "Yes. Join the Plumi Discord, which is free, and every pack is there: the questions and the mark scheme. Print them or write on them on a tablet." },
     { q: "How should I use a pack?", a: "Sit one section at a time, timed and by hand. Mark it with the scheme, read the note on each question you dropped, and come back to those a week later. Each section takes about two to three hours." },
     { q: "Can Plumi mark my answers?", a: "On iPad, yes: Plumi marks handwritten answers to questions like these against each question’s own mark scheme. The packs themselves are for marking by hand, and the scheme tells you everything you need." },
   ],

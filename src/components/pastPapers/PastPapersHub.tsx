@@ -4,9 +4,8 @@ import { Book } from "@/components/cosy/Book";
 import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { intentFor } from "@/config/routes";
-import { HowToUse, MarkItCard, SourceCredit } from "./PastPaperChrome";
+import { SourceCredit } from "./PastPaperChrome";
 import { boardPath, boardsFor, display, pastPaperSubjects, subjectPath, subjectTitle, type Level } from "@/content/pastPapers";
-import { PacksCallout } from "@/components/practicePacks/Pack";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 
@@ -21,14 +20,13 @@ export function PastPapersHub() {
   return (
     <CosyPage after={
       <PageStructuredData path="/past-papers" name={intent.title} description={intent.description} type="CollectionPage"
-        breadcrumb={[{ name: "Practice papers", path: "/practice-papers" }, { name: "Past papers", path: "/past-papers" }]} />
+        breadcrumb={[{ name: "Past papers", path: "/past-papers" }]} />
     }>
       <article className="pp">
         <header className="lp-wrap pp-hero pp-hub-hero">
           <div>
             <nav className="pp-crumbs" aria-label="Breadcrumb">
-              <Link href="/practice-papers">Practice papers</Link><span aria-hidden="true">›</span>
-              <span aria-current="page">Past papers</span>
+                            <span aria-current="page">Past papers</span>
             </nav>
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display(intent.h1.replace(/ past papers$/, ""))} <em>past papers</em></h1>
@@ -60,16 +58,6 @@ export function PastPapersHub() {
             </div>
           </section>
         ))}
-
-        <section className="pp-mark-wrap" aria-label="Plumi practice packs">
-          <div className="lp-wrap"><PacksCallout /></div>
-        </section>
-
-        <section className="pp-mark-wrap" aria-label="Get your paper marked">
-          <div className="lp-wrap"><MarkItCard level="A-Level" placement="papers-hub" /></div>
-        </section>
-
-        <HowToUse subject="GCSE and A-Level" />
 
         <section className="pp-more">
           <div className="lp-wrap"><SourceCredit /></div>
