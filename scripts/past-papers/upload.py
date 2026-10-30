@@ -4,7 +4,7 @@
     python3 scripts/past-papers/upload.py [board ...] [--dry-run]
 
 Sends every file in every board's manifest (scripts/past-papers/.work/<board>/manifest.json)
-to its R2 key (the entry's "file"), from .work/<board>/pdf/. Same keys, settings and
+to its R2 key (the entry's "file"), from .work/<board>/pdf/ (PDFs, and GCSE Computer Science's code-file zips). Same keys, settings and
 .env.local as scripts/question-bank/upload_r2.py, whose helpers this uses: a year-long
 immutable cache, and anything already there with the same size is skipped.
 """
@@ -46,9 +46,10 @@ def main():
 
     def put(job):
         local, key = job
+        zipped = key.endswith(".zip")  # GCSE Computer Science's code files: saved, not shown
         s3.upload_file(local, bucket, key, ExtraArgs={
-            "ContentType": "application/pdf", "CacheControl": "public, max-age=31536000, immutable",
-            "ContentDisposition": f'inline; filename="{os.path.basename(key)}"'})
+            "ContentType": "application/zip" if zipped else "application/pdf", "CacheControl": "public, max-age=31536000, immutable",
+            "ContentDisposition": f'{"attachment" if zipped else "inline"}; filename="{os.path.basename(key)}"'})
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         for i, _ in enumerate(pool.map(put, todo), 1):

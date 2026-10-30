@@ -155,6 +155,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           )}
         </div>
         {!embed && whole?.qp && <a className="qb-wholelink" href={`${papersBase}/${whole.qp}`} target="_blank" rel="noopener">The whole paper ↗</a>}
+        {!embed && whole?.code && <a className="qb-wholelink" href={`${papersBase}/${whole.code}`} download>The code files (zip) ↓</a>}
       </div>
 
       <div className="qb-sheet">
