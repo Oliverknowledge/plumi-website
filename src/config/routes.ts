@@ -142,11 +142,11 @@ export const routeIntents: readonly RouteIntent[] = [
     primaryQuery: "free A-Level practice papers",
     secondaryQueries: ["A-Level Maths practice paper with mark scheme", "OCR A-Level Physics practice questions", "Edexcel A-Level Maths practice paper", "A-Level Physics practice paper free", "A-Level exam practice questions with answers"],
     intent: "Find more full papers to practise on once the past papers run out, with a mark scheme to check them.",
-    objective: "Get the student to download a Plumi pack in one tap, then on to the boards' past papers, which sit inside this section.",
+    objective: "Show the student what's in each Plumi pack and get them into the Discord, where the packs are free.",
     title: "Free A-Level Practice Papers With Mark Schemes | Plumi",
     h1: "Practice papers, written by us.",
     description:
-      "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. No sign-up.",
+      "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. Free in the Plumi Discord.",
     // Each pack's own page (/practice-papers/<slug>) is generated from src/content/practicePacks.ts
     // and added to the sitemap by src/app/sitemap.ts.
     linksTo: ["/past-papers", "/question-bank", "/physics-revision", "/ai-tutor-for-a-level-maths"],

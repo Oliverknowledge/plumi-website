@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { recordMark, ROUGH, shareTone, topicAttempts, undoMark, useBankMarks, type Attempt } from "@/lib/bankProgress";
+import { partStatus, recordMark, ROUGH, shareTone, topicAttempts, undoMark, useBankMarks, type Attempt } from "@/lib/bankProgress";
 import type { BankPart } from "@/content/questionBank";
 
 /**
@@ -165,4 +165,12 @@ export function MarginScore({ subject, parts }: { subject: string; parts: BankPa
       {marked < parts.length && <small>so far</small>}
     </span>
   );
+}
+
+/** In the margin, under the score: a question missed a few days ago that has come back. */
+export function AgainTag({ subject, parts }: { subject: string; parts: BankPart[] }) {
+  const store = useBankMarks();
+  const bank = store.subjects[subject];
+  if (!parts.some(p => partStatus(bank?.[p.id]).status === "again")) return null;
+  return <span className="qb-again-tag" title="You missed this a few days ago. Try it again before you look at the scheme.">↻ Have another go</span>;
 }

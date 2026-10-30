@@ -2,10 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
+import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
+import { inBand, markBands } from "@/lib/markBands";
 import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress } from "./BankProgress";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
+import { ZoomViewer } from "./ZoomViewer";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -22,8 +25,9 @@ type Yr = "" | "12" | "13";
 /** `calc` and `prac` both take "only" or "none" (leave them out); `yr` (maths) is "12", the questions that need only
  * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions;
  * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all; `once` (GCSE) shows a question
- * printed on both tiers' papers once, as its Higher copy. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; view: View; sort: Sort }
+ * printed on both tiers' papers once, as its Higher copy; `marks` the question types picked (markBands' ids); `again`
+ * only what's come back to have another go at; `part` one question, from Redo in Your history. */
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; part: string; view: View; sort: Sort }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -51,6 +55,7 @@ function parse(search: string): Filters {
     yr: yr === "12" || yr === "13" ? yr : "",
     opt: u.get("option") ?? "",
     once: u.get("tiers") === "once",
+    marks: list("marks"), again: u.get("again") === "1", part: u.get("question") ?? "",
     view: u.get("view") === "whole" ? "whole" : "parts",
     sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" ? sort : "new",
   };
@@ -66,6 +71,9 @@ function write(f: Filters) {
   if (f.yr) u.set("yr", f.yr);
   if (f.opt) u.set("option", f.opt);
   if (f.once) u.set("tiers", "once");
+  if (f.marks.length) u.set("marks", f.marks.join(","));
+  if (f.again) u.set("again", "1");
+  if (f.part) u.set("question", f.part);
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
   const qs = u.toString();
@@ -82,7 +90,7 @@ const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : 
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
 const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
-type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "q";
+type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "marks" | "done" | "q";
 
 /**
  * The bank itself. The whole subject's list (a few thousand short rows) is fetched
@@ -108,6 +116,11 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const loadingText = useRef(false);
   const panelRef = useRef<HTMLElement>(null);
   const resultsRef = useRef<HTMLHeadingElement>(null);
+  // What this student has done here (lib/bankProgress), and whether to keep it out of the list.
+  const mine = useBankMarks().subjects[subject.slug];
+  const hideDone = useHideDone();
+  // Marked since the page opened: kept in view, so a question doesn't vanish the moment it's marked.
+  const [since] = useState(() => Date.now());
 
   // On a phone the filters start folded, so the first question is on screen; after that it's the reader's call.
   const isPhone = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false);
@@ -168,9 +181,25 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const opt = subject.options?.list.some(o => o.id === f.opt) ? f.opt : "";
   const forOption = (option?: string) => !opt || !option || option === opt;
 
+  const bands = useMemo(() => (parts ? markBands(subject, parts) : []), [subject, parts]);
+  /**
+   * Whether a part is in the list as far as history goes. Redo's one question always is;
+   * "Have another go" is only what's due again; otherwise, with hiding on, what's new or
+   * due again, plus anything marked since the page opened.
+   */
+  const visible = useCallback((p: BankPart) => {
+    if (f.part) return true;
+    const { status, last } = partStatus(mine?.[p.id]);
+    if (f.again) return status === "again";
+    return !hideDone || status === "new" || status === "again" || (!!last && last[2] >= since);
+  }, [f.part, f.again, hideDone, mine, since]);
+
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
-    return (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
+    return (!f.part || p.id === f.part) &&
+      (skip === "marks" || !f.marks.length || bands.some(b => f.marks.includes(b.id) && inBand(p.m, b))) &&
+      (skip === "done" || visible(p)) &&
+      (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
       (skip === "papers" || !f.papers.length || f.papers.includes(p.p)) &&
       (skip === "opt" || !opt || (optionOf.get(p.p) ?? opt) === opt) &&
       (skip === "series" || !f.series.length || f.series.includes(p.s)) &&
@@ -180,7 +209,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       // On both tiers, once: a Foundation part goes when its Higher twin's paper is in view too.
       (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.p)))) &&
       (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
-  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, opt, text, sectionOf, optionOf, practicals, year13, twins]);
+  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, f.part, f.marks, opt, text, sectionOf, optionOf, practicals, year13, twins, bands, visible]);
 
   // Every part of each question, in order, for the whole-question view.
   const questions = useMemo(() => {
@@ -237,10 +266,24 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     return groups;
   }, [parts, matches, f.sort, subject.papers, whole, questions]);
 
+  /** What hiding keeps out of the list as it is now: parts, or in the whole-question view, questions with no part left showing. */
+  const hiddenCount = useMemo(() => {
+    if (!parts || !hideDone || f.part || f.again) return 0;
+    const shown = new Set<string>();
+    const hidden = new Set<string>();
+    for (const p of parts) {
+      if (!matches(p, "done")) continue;
+      const k = whole ? questionKey(p) : p.id;
+      (visible(p) ? shown : hidden).add(k);
+    }
+    return [...hidden].filter(k => !shown.has(k)).length;
+  }, [parts, hideDone, f.part, f.again, matches, visible, whole]);
+  const hasHistory = !!mine && Object.keys(mine).length > 0;
+
   /** How many questions each chip would give, with every other filter kept. */
   const counts = useMemo(() => {
     if (!parts) return null;
-    const c = { topics: new Map<string, number>(), papers: new Map<string, number>(), series: new Map<string, number>(), calc: new Map<string, number>(), prac: new Map<string, number>(), yr: new Map<string, number>(), opt: new Map<string, number>() };
+    const c = { topics: new Map<string, number>(), papers: new Map<string, number>(), series: new Map<string, number>(), calc: new Map<string, number>(), prac: new Map<string, number>(), yr: new Map<string, number>(), opt: new Map<string, number>(), marks: new Map<string, number>() };
     // In the whole-question view a chip counts questions: each once, however many of its parts match.
     const counted = new Set<string>();
     const bump = (m: Map<string, number>, k: string, p: BankPart) => {
@@ -260,20 +303,21 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       if (year13 && matches(p, "yr")) bump(c.yr, year13.has(p.id) ? "13" : "12", p);
       // (a paper everyone sits counts under "": it is in every option's list)
       if (subject.options && matches(p, "opt")) bump(c.opt, optionOf.get(p.p) ?? "", p);
+      if (matches(p, "marks")) for (const b of bands) if (inBand(p.m, b)) bump(c.marks, b.id, p);
     }
     return c;
-  }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf]);
+  }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf, bands]);
   const n = (dim: keyof NonNullable<typeof counts>, k: string) => counts?.[dim].get(k);
 
   const list = results ?? initial.map(p => [p]);
   const total = results?.length ?? subject.count;
-  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (opt ? 1 : 0) + (f.q ? 1 : 0);
+  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (opt ? 1 : 0) + f.marks.length + (f.again ? 1 : 0) + (f.part ? 1 : 0) + (f.q ? 1 : 0);
 
   useEffect(() => {
     if (!results || !active) return;
-    const t = setTimeout(() => track("bank_filtered", { subject: subject.slug, results: results.length, topics: f.topics.length, search: f.q ? 1 : 0 }), 1200);
+    const t = setTimeout(() => track("bank_filtered", { subject: subject.slug, results: results.length, topics: f.topics.length, search: f.q ? 1 : 0, marks: f.marks.join(",") || undefined, again: f.again ? 1 : 0, hide_done: hideDone ? 1 : 0 }), 1200);
     return () => clearTimeout(t);
-  }, [results, active, f.topics.length, f.q, subject.slug]);
+  }, [results, active, f.topics.length, f.q, f.marks, f.again, hideDone, subject.slug]);
 
   function showResults() {
     setUserOpen(false);
@@ -329,6 +373,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     return `${f.papers.length} papers`;
   })();
 
+  /** "June 2024 Paper 1, Q04.2" for one part, from Redo. */
+  function partLabel(id: string) {
+    const p = parts?.find(x => x.id === id);
+    return p ? `${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, Q${p.l}` : "One question";
+  }
+  const toResults = () => requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+
   // One paper of one sitting picked: offer the whole thing.
   const wholePaper = f.papers.length === 1 && f.series.length === 1 ? subject.wholes[`${f.papers[0]}-${f.series[0]}`] : undefined;
 
@@ -346,9 +397,12 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     ...(f.prac && hasPracticals ? [{ label: f.prac === "only" ? "Only practicals" : "No practicals", clear: () => update({ prac: "" }) }] : []),
     ...(f.once && twins ? [{ label: "Both-tier questions once", clear: () => update({ once: false }) }] : []),
     ...(f.yr && hasYears ? [{ label: f.yr === "12" ? "Year 12 content" : "Year 13 content", clear: () => update({ yr: "" }) }] : []),
+    ...bands.filter(b => f.marks.includes(b.id)).map(b => ({ label: b.label, clear: () => update({ marks: f.marks.filter(x => x !== b.id) }) })),
+    ...(f.again ? [{ label: "Have another go", clear: () => update({ again: false }) }] : []),
+    ...(f.part ? [{ label: partLabel(f.part), clear: () => update({ part: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, view: f.view, sort: f.sort }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort }); setShown(PAGE); };
 
   // Topic groups, as GradeHunt and the specification both arrange them: each section split by year.
   const years = ([0, 1, 2, 3] as const).map(y => ({
@@ -436,8 +490,10 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
         </button>
       )}
 
-      <BankProgress subject={subject} lockedTopic={lockedTopic} compact={isPhone}
-        onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
+      <BankProgress subject={subject} lockedTopic={lockedTopic} compact={isPhone} parts={parts}
+        onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }}
+        onAgain={() => { update({ again: true, part: "" }); toResults(); }}
+        onRedo={id => { update({ part: id, again: false }); toResults(); }} />
 
       <section className="qb-filters" aria-label="Filter questions" ref={panelRef}>
         {hasYears && isPhone && yearSwitch}
@@ -486,6 +542,22 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                   </div>
                 ))}
               </fieldset>
+            )}
+
+            {bands.length > 0 && (
+              <div className="qb-field qb-types" role="group" aria-labelledby="qb-types-label">
+                <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">by the marks it’s worth</span></span>
+                <div className="qb-type-chips">
+                  {bands.map(b => {
+                    const on = f.marks.includes(b.id);
+                    return (
+                      <button key={b.id} type="button" aria-pressed={on} className={`qb-type${on ? " is-on" : ""}`} onClick={() => update({ marks: toggle(f.marks, b.id) })}>
+                        {b.label}{counts && <span className="qb-n"> {n("marks", b.id) ?? 0}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             <div className="qb-row-controls">
@@ -581,6 +653,14 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                   </label>
                 </div>
               )}
+              {hasHistory && (
+                <div className="qb-field qb-calc" role="group" aria-label="Questions you’ve done">
+                  <span className="qb-label">Done</span>
+                  <label title="Questions you’ve marked stay out of the list; ones you missed come back to have another go">
+                    <input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} /> Hide the ones I’ve done{hiddenCount > 0 && <span className="qb-n"> {hiddenCount}</span>}
+                  </label>
+                </div>
+              )}
               {hasPracticals && <div className="qb-field qb-calc" role="group" aria-label="Practicals">
                 <span className="qb-label">Practicals</span>
                 <label><input type="checkbox" checked={f.prac === "only"} onChange={e => update({ prac: e.target.checked ? "only" : "" })} /> Only these{counts && <span className="qb-n"> {n("prac", "only") ?? 0}</span>}</label>
@@ -611,6 +691,13 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
             {rangeNote && <span className="qb-range-note" role="status">{rangeNote}</span>}
           </form>
         </div>
+        {hiddenCount > 0 && (
+          <p className="qb-hidden-note">
+            <span className="qb-tick" aria-hidden="true">✓</span>
+            {hiddenCount.toLocaleString("en-GB")} you’ve done {hiddenCount === 1 ? "is" : "are"} hidden. Ones you missed come back to have another go.{" "}
+            <button type="button" className="qb-link" onClick={() => setHideDone(false)}>Show them</button>
+          </p>
+        )}
         {pills.length > 0 && (
           <ul className="qb-pills" aria-label="Filters on">
             {pills.map(p => <li key={p.label}><button type="button" onClick={p.clear} aria-label={`Remove ${p.label}`}>{p.label} <span aria-hidden="true">×</span></button></li>)}
@@ -654,6 +741,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       </section>
 
       <SetTray subject={subject} set={set} parts={parts} />
+      <ZoomViewer />
     </div>
   );
 }
