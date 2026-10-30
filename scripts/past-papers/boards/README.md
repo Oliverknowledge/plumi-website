@@ -33,7 +33,7 @@ A JSON list, one object per downloaded file:
 
 - **subject:** one of the library's slugs: `a-level-maths`, `a-level-further-maths`,
   `a-level-biology`, `a-level-chemistry`, `a-level-physics`, `gcse-maths`,
-  `gcse-biology`, `gcse-chemistry`, `gcse-physics`.
+  `gcse-biology`, `gcse-chemistry`, `gcse-physics`, `gcse-english-language`.
 - **board:** the library's board slug: `aqa`, `edexcel`, `ocr`, `ocr-mei`, `wjec`,
   `eduqas`, `cie`, `edexcel-ial`, `cie-igcse`, `edexcel-igcse`.
 - **group:** the heading the paper sits under on the board page, one per

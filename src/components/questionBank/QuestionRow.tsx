@@ -82,6 +82,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
+  // A question on the paper's sources (English Language) is read with them open: they're printed in the insert.
+  const insert = whole?.ins && parts.some(p => /\bsources?\b|\bextract\b|\blines? \d/i.test(p.x)) ? whole.ins : undefined;
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
@@ -143,6 +145,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             <a className="qb-key" href={`${papersBase}/${schemePdf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
           )}
           {!withScheme.length && !schemePdf && <span className="qb-noms">No published mark scheme</span>}
+          {insert && (
+            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The sources for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Sources (insert) ↗</a>
+          )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
               {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
