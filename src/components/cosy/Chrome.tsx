@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AndroidHeaderButton } from "@/components/home/AndroidLink";
 import { HeaderDownload } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { entityDescription, site } from "@/config/site";
 import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
 
@@ -33,6 +34,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
         </nav>
         <AndroidHeaderButton />
         <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" appleMark />
+        <ThemeToggle />
       </div>
     </header>
   );

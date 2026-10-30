@@ -1,0 +1,64 @@
+/* ═══ DARK MODE ═════════════════════════════════════════════════════════════
+   The same notebook by lamplight: warm dark paper, cream ink, the brown line and hard drop shadows kept (lighter line, near-black
+   shadow). `data-theme` is set on <html> before first paint (src/lib/theme.ts) and flipped by the header's sun/moon key
+   (ThemeToggle). The tokens do most of it; what follows recolours the few places a light colour is written out in full. */
+html[data-theme="dark"] { color-scheme: dark; }
+html[data-theme="dark"] body { background-color: #1f1a18; color: #f3e9d9; }
+html[data-theme="dark"] .lp, html[data-theme="dark"] .consent {
+  --lp-paper: #1f1a18; --lp-paper-2: #2c2522; --lp-rule: #2a2321; --lp-margin: #6e3f38; --lp-spiral: #7a6b60;
+  --lp-ink: #f3e9d9; --lp-ink-soft: #bcab9b; --lp-line: #8a7365; --lp-shadow: #0c0a09;
+  --lp-card-bg: #2c2522; --lp-blue: #8fb8e8; --lp-blue-soft: #36506b; --lp-orange: #f09a5a; --lp-gold: #8a6a22; --lp-teal: #4f9d99; --lp-red: #e0605a;
+  --lp-needs: #e0605a; --lp-rusty: #f0a53a; --lp-dev: #36506b; --lp-strong: #7aa5f0;
+}
+html[data-theme="dark"] .lp-nav { background: rgba(31, 26, 24, .92); }
+html[data-theme="dark"] .lp-soon { color: #1f1a18; }
+html[data-theme="dark"] .lp-book-plate { background: #3a302b; }
+html[data-theme="dark"] .lp .hp-phone-button { background: #f3e9d9; color: #1f1a18; border-color: #f3e9d9; }
+html[data-theme="dark"] .lp .hp-desk-button { background: #2c2522; color: #f3e9d9; border-color: var(--lp-line); }
+html[data-theme="dark"] .lp .hp-desk-button:hover { background: #3a302b; }
+html[data-theme="dark"] .lp .lp-nav nav a.lp-nav-discord { color: #8f9bff; }
+html[data-theme="dark"] .skip-content { background: #2c2522; color: #f3e9d9; border-color: #8a7365; box-shadow: 0 4px 0 #0c0a09; }
+html[data-theme="dark"] ::selection { background-color: #8a6a22; color: #f3e9d9; }
+
+/* the header key */
+.lp .lp-themebtn { padding: 7px 11px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp .lp-nav .lp-themebtn { flex: none; margin-left: 0; }
+@media (max-width: 620px) { .lp .lp-themebtn { padding: 6px 9px; } }
+
+/* ── Surfaces written out in full in the page stylesheets, darkened. The paper itself stays paper: the exam sheet, the scans and the
+   marked page keep their white, as the embed does, because the scans are black on white. ── */
+html[data-theme="dark"] .lp .lp-pop, html[data-theme="dark"] .lp .lp-who, html[data-theme="dark"] .lp .lp-session,
+html[data-theme="dark"] .lp .lp-jar-who li, html[data-theme="dark"] .lp .lp-speech, html[data-theme="dark"] .lp .lp-label,
+html[data-theme="dark"] .lp .lp-practice-card li a, html[data-theme="dark"] .lp .lp-bank-board h4, html[data-theme="dark"] .lp .qb-find-box,
+html[data-theme="dark"] .lp .qb-jump, html[data-theme="dark"] .lp .pk-past-subjects a, html[data-theme="dark"] .lp .pk-cover,
+html[data-theme="dark"] .lp .lp-pa-code, html[data-theme="dark"] .lp .lp-pa-lines li, html[data-theme="dark"] .lp .lp-pa-age span,
+html[data-theme="dark"] .lp .lp-pa-close .lp-card, html[data-theme="dark"] .lp .pk-promo, html[data-theme="dark"] .lp .lp-pa-marked,
+html[data-theme="dark"] .lp .lp-aw-row input[type="email"], html[data-theme="dark"] .lp .hp-desk-panel, html[data-theme="dark"] .lp .hp-desk-actions button,
+html[data-theme="dark"] .hp-desk-panel, html[data-theme="dark"] .hp-desk-actions button { background: var(--lp-card-bg); color: var(--lp-ink); }
+html[data-theme="dark"] .lp-ring::after, html[data-theme="dark"] .lp .lp-ring::after { background: var(--lp-card-bg); }
+html[data-theme="dark"] .lp .lp-ring { background: conic-gradient(#4a3f39 var(--done, 0deg), var(--lp-gold) 0); }
+html[data-theme="dark"] .lp .lp-label:hover, html[data-theme="dark"] .lp .lp-ticket:hover, html[data-theme="dark"] .lp .hp-desk-actions button:hover,
+html[data-theme="dark"] .hp-desk-actions button:hover { background: #3a302b; }
+html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-note, html[data-theme="dark"] .lp .lp-mk-sec:nth-child(even), html[data-theme="dark"] .lp .pp-mark,
+html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+2), html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+3),
+html[data-theme="dark"] .lp .lp-pa-tile:nth-child(3n+2), html[data-theme="dark"] .lp .pk-feature, html[data-theme="dark"] .lp .lp-ticket.pk-ticket { background: #3a2f25; }
+html[data-theme="dark"] .lp .lp-sticky:nth-child(3n+1), html[data-theme="dark"] .lp .lp-pa-pile li, html[data-theme="dark"] .lp .lp-jar-who li.is-you { background: #4a3d22; }
+html[data-theme="dark"] .lp .lp-sticky:nth-child(3n+2), html[data-theme="dark"] .lp .lp-pa-pile li:nth-child(3n+2), html[data-theme="dark"] .lp .lp-daily { background: #23423f; }
+html[data-theme="dark"] .lp .lp-sticky:nth-child(3n), html[data-theme="dark"] .lp .lp-pa-pile li:nth-child(3n),
+html[data-theme="dark"] .lp .lp-tickets .pk-ticket i, html[data-theme="dark"] .lp .lp-pa-tile.is-wellbeing .lp-pa-tile-ico { background: #4a2b27; }
+html[data-theme="dark"] .lp .lp-flame i.off { background: #4a3f39; }
+html[data-theme="dark"] .lp .lp-bank-board li a:hover, html[data-theme="dark"] .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, #1f1a18); }
+html[data-theme="dark"] .lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 55%, #1f1a18); }
+html[data-theme="dark"] .lp .qb-plank { background: linear-gradient(#6b5440 0 4px, #5a4636 4px); }
+html[data-theme="dark"] .lp .hp-desk-qr-wait { background: repeating-linear-gradient(45deg, #2c2522 0 8px, #342b25 8px 16px); }
+html[data-theme="dark"] .lp .qb-book-total { background: rgba(44, 37, 34, .92); color: var(--lp-ink); }
+html[data-theme="dark"] .lp .lp-nm { background: rgba(44, 37, 34, .95); }
+html[data-theme="dark"] .lp .pk-past-strip { background: rgba(44, 37, 34, .6); border-top-color: #4a3f39; }
+
+/* Paper stays paper: a question sheet, the marked page and the screenshots keep the light notebook's colours inside them. */
+html[data-theme="dark"] .lp .qb-sheet, html[data-theme="dark"] .lp .lp-page, html[data-theme="dark"] .lp .lp-sp-paper, html[data-theme="dark"] .lp .lp-sp-screen,
+html[data-theme="dark"] .lp .lp-stamp, html[data-theme="dark"] .lp .pk-stamp {
+  --lp-ink: #4a3a36; --lp-ink-soft: #7a665d; --lp-line: #5b4741; --lp-shadow: #5b4741; --lp-card-bg: #fdf9f1; --lp-paper-2: #efe5d0;
+  --lp-blue: #4f86c6; --lp-orange: #d9702f; --lp-gold: #f2c96b; color: #4a3a36;
+}

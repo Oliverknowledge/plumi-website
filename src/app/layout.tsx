@@ -9,8 +9,11 @@ import { ConsentBanner } from "@/components/ConsentBanner";
 import { SiteOnly } from "@/components/SiteOnly";
 import { SiteStructuredData } from "@/components/StructuredData";
 import { cosyFonts } from "@/components/cosy/fonts";
+import { themeScript } from "@/lib/theme";
 import "./globals.css";
 import "./cosy.css";
+import "./dark.css";
+import "./dark-surfaces.css";
 assertLaunchConfig();
 
 const home = intentFor("/");
@@ -53,5 +56,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: "#f6efe1", colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en-GB" className={cosyFonts}><body className="antialiased"><SiteOnly><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/></SiteOnly>{children}<SiteOnly><ConsentBanner/><Analytics/><SpeedInsights/></SiteOnly></body></html>;
+  return <html lang="en-GB" className={cosyFonts} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body className="antialiased"><SiteOnly><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/></SiteOnly>{children}<SiteOnly><ConsentBanner/><Analytics/><SpeedInsights/></SiteOnly></body></html>;
 }
