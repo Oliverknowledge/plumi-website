@@ -710,6 +710,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
             {wholePaper.qp && <a href={`${papersBase}/${wholePaper.qp}`} target="_blank" rel="noopener">question paper</a>}
             {wholePaper.ms && <> · <a href={`${papersBase}/${wholePaper.ms}`} target="_blank" rel="noopener">mark scheme</a></>}
             {wholePaper.er && <> · <a href={`${papersBase}/${wholePaper.er}`} target="_blank" rel="noopener">examiner’s report</a></>}
+            {wholePaper.code && <> · <a href={`${papersBase}/${wholePaper.code}`} download>code files (zip)</a></>}
           </p>
         )}
 

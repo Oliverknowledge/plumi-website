@@ -8,7 +8,7 @@ its exam materials: question papers ("que"), mark schemes ("rms", "msc") and
 examiner's reports ("pef"). The A-Level Maths, Further Maths and sciences pages are
 the question bank's own (src/content/pastPapers.ts), so this covers the rest:
 
-  edexcel        GCSE Maths 1MA1, Biology 1BI0, Chemistry 1CH0, Physics 1PH0
+  edexcel        GCSE Maths 1MA1, Biology 1BI0, Chemistry 1CH0, Physics 1PH0 (Computer Science 1CP2: edexcel_cs.py)
   edexcel-igcse  International GCSE Maths A 4MA1, Maths B 4MB1, Further Pure 4PM1,
                  Biology 4BI1, Chemistry 4CH1, Physics 4PH1, and the 4xx0 specs before them
   edexcel-ial    International A-Level Maths and Further Maths (WMA, WFM, WST, WME, WDM)

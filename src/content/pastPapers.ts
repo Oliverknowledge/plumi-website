@@ -1,6 +1,6 @@
 /**
  * The past paper library: Maths, Further Maths, Biology, Chemistry and Physics papers
- * at GCSE, IGCSE and A-Level, grouped the way students search for them — level,
+ * at GCSE, IGCSE and A-Level, and Edexcel GCSE Computer Science, grouped the way students search for them — level,
  * subject, then board.
  *
  * Every file is our own copy of the board's published paper, fetched from the board's
@@ -40,7 +40,7 @@ export interface PaperLink { label: string; href: string }
 export interface PaperRow {
   session: string;
   files: Partial<Record<FileKind, string>>;
-  /** Anything else from that sitting: practical tasks (T1, TN), errata. */
+  /** Anything else from that sitting: practical tasks (T1, TN), errata, a Computer Science paper's code files (a zip). */
   more?: PaperLink[];
 }
 
@@ -356,6 +356,7 @@ export function otherLevel(hub: SubjectHub): SubjectHub | undefined {
 /** The Plumi revision page for a subject, where there is one. */
 export function revisionPage(hub: SubjectHub): { label: string; path: string } | undefined {
   if (hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology") return { label: `${hub.name} revision`, path: `/${hub.name.toLowerCase()}-revision` };
+  if (hub.name === "Computer Science") return undefined;
   if (hub.level === "GCSE") return { label: "GCSE Maths", path: "/gcse-maths" };
   return { label: "A-Level Maths tutor", path: "/ai-tutor-for-a-level-maths" };
 }

@@ -71,7 +71,7 @@ function Table({ rows, paper, heading, track, kinds, more }: { rows: PaperRow[];
               <td className="pp-more-files">
                 {row.more?.map(x => (
                   <a key={x.href} className="pp-file is-more" href={fileUrl(x.href)} target="_blank" rel="noopener"
-                    aria-label={`${heading} ${paper.name}, ${row.session}, ${x.label} (PDF)`} data-paper={track} data-kind="more" data-session={row.session}>
+                    aria-label={`${heading} ${paper.name}, ${row.session}, ${x.label} (${x.href.endsWith(".zip") ? "ZIP" : "PDF"})`} data-paper={track} data-kind="more" data-session={row.session}>
                     {x.label}
                   </a>
                 ))}

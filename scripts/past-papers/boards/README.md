@@ -33,7 +33,7 @@ A JSON list, one object per downloaded file:
 
 - **subject:** one of the library's slugs: `a-level-maths`, `a-level-further-maths`,
   `a-level-biology`, `a-level-chemistry`, `a-level-physics`, `gcse-maths`,
-  `gcse-biology`, `gcse-chemistry`, `gcse-physics`.
+  `gcse-biology`, `gcse-chemistry`, `gcse-physics`, `gcse-computer-science`.
 - **board:** the library's board slug: `aqa`, `edexcel`, `ocr`, `ocr-mei`, `wjec`,
   `eduqas`, `cie`, `edexcel-ial`, `cie-igcse`, `edexcel-igcse`.
 - **group:** the heading the paper sits under on the board page, one per
@@ -49,7 +49,8 @@ A JSON list, one object per downloaded file:
   variants (9709/11, /12, /13) are separate codes, not separate series.
 - **kind:** `qp` question paper, `ms` mark scheme, `er` examiner's report, `ins`
   insert or pre-release material, `db` data, formula or source booklet that belongs
-  to the paper, `gt` grade thresholds. Anything else, leave out.
+  to the paper, `gt` grade thresholds, `data` a sitting's code and data files (a zip:
+  Edexcel GCSE Computer Science Paper 2 is sat on screen), shown as "Code files". Anything else, leave out.
 - **source:** the URL the file was downloaded from, on the board's own domain.
 - **file:** the R2 key: `<board>/<board-prefix>-<code with / as ->-<KIND>-<series>.pdf`,
   upper case except the folder, unique across the whole bucket.
