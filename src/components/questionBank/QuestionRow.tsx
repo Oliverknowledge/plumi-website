@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
-import { ChoicePick, MarginScore, SelfMark } from "./SelfMark";
+import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
@@ -104,6 +104,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         <p className="qb-q">Q{shown}</p>
         <p className="qb-meta">{seriesLabel(subject, part.s)} · {paperName(subject, part.p)}</p>
         {!embed && <MarginScore subject={subject.slug} parts={parts} />}
+        {!embed && <AgainTag subject={subject.slug} parts={parts} />}
         <div className="qb-tags">
           {marks != null && <span className="qb-marks">{marks} {marks === 1 ? "mark" : "marks"}</span>}
           {topics.map(code => {

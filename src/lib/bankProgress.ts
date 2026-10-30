@@ -215,3 +215,47 @@ export function streak(store: Store, now = Date.now()) {
   while (marked.has(dayKey(at))) { n++; at -= DAY; }
   return n;
 }
+
+/* ── History: what you've done, and what should come back ────────────────── */
+
+/**
+ * Where a part stands for the list:
+ *   new      never marked;
+ *   done     marked, and the last try went well enough: it stays out of the way;
+ *   waiting  the last try was a miss, and it's too soon to try again;
+ *   again    a miss whose wait is over: "Have another go".
+ * A miss is under the app's developing edge (62%); a rough "Partly" or "Missed" is one
+ * too. The first miss comes back after 3 days; a second miss in a row after a week, and
+ * every miss after that a week later, until the student gets it.
+ */
+export type PartStatus = "new" | "done" | "waiting" | "again";
+const AGAIN_AFTER_DAYS = [3, 7];
+const missed = (a: Attempt) => (a[1] ? a[0] / a[1] : 0) < DEVELOPING_BELOW;
+
+export function partStatus(rec: PartRecord | undefined, now = Date.now()): { status: PartStatus; last?: Attempt; dueAt?: number } {
+  const last = rec?.h[rec.h.length - 1];
+  if (!last) return { status: "new" };
+  if (!missed(last)) return { status: "done", last };
+  let run = 0;
+  for (let i = rec!.h.length - 1; i >= 0 && missed(rec!.h[i]); i--) run++;
+  const dueAt = last[2] + AGAIN_AFTER_DAYS[Math.min(run, AGAIN_AFTER_DAYS.length) - 1] * DAY;
+  return { status: now >= dueAt ? "again" : "waiting", last, dueAt };
+}
+
+/**
+ * "Hide what I've done": on unless the student turns it off, and remembered in this
+ * browser. Hidden are the parts that are done or waiting; "again" ones always show.
+ */
+const HIDE_KEY = "plumi-bank-hide-done";
+const hideListeners = new Set<() => void>();
+function readHide() {
+  try { return localStorage.getItem(HIDE_KEY) !== "0"; } catch { return hideMemory; }
+}
+let hideMemory = true;
+export function setHideDone(on: boolean) {
+  hideMemory = on;
+  try { localStorage.setItem(HIDE_KEY, on ? "1" : "0"); } catch { /* memory only */ }
+  hideListeners.forEach(l => l());
+  track("bank_hide_done", { on: on ? 1 : 0 });
+}
+export const useHideDone = () => useSyncExternalStore(cb => { hideListeners.add(cb); return () => { hideListeners.delete(cb); }; }, readHide, () => true);
