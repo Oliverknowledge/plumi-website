@@ -30,16 +30,6 @@ export const subjectColours: Record<string, string> = {
   Politics: "#7f8fb8",
 };
 
-/** A row of little squares, one a topic, filling in like the app's topic map: a fixed pattern, the same on every render. */
-export function TopicSquares({ count, max = 36 }: { count: number; max?: number }) {
-  const n = Math.min(count, max);
-  return (
-    <span className="lp-book-squares" aria-hidden="true">
-      {Array.from({ length: n }, (_, i) => <i key={i} className={`is-${(i * 7 + (i >> 2)) % 4}`} />)}
-    </span>
-  );
-}
-
 export function Book({ subject, kicker, plate, children, as: Tag = "div", className = "", ...rest }: {
   subject: string;
   /** The small line on the cover above the plate: "AQA A-Level". */
