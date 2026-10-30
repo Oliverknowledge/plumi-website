@@ -174,7 +174,8 @@
 .qb-tray-ms { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
 .qb-tray-ms input { width: 18px; height: 18px; accent-color: var(--lp-orange); }
 
-.lp .qb-backpill { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 80px); left: 50%; transform: translateX(-50%); z-index: 15; appearance: none; cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; padding: 7px 16px; box-shadow: 0 3px 0 var(--lp-shadow); white-space: nowrap; }
+/* Along the bottom, in reach of a thumb and over nothing but the page; above the set tray when there is one. */
+.lp .qb-backpill { position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); left: 50%; transform: translateX(-50%); z-index: 15; appearance: none; cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; padding: 7px 16px; box-shadow: 0 3px 0 var(--lp-shadow); white-space: nowrap; }
 
 /* ── Hub ─────────────────────────────────────────────────────────────────── */
 .qb-subjects { list-style: none; margin: 0 0 40px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 26px; }
@@ -235,13 +236,11 @@
   /* On a phone the Exam checklist opens in place, under its box, rather than over the page. */
   .qb-multi-list { position: static; width: auto; max-width: none; margin-top: 6px; box-shadow: none; }
   .qb-range { flex: 1 1 100%; }
-  .qb-sheet { padding: 12px 10px 14px; }
+  .qb-sheet { padding: 10px 8px 12px; }
   /* A page width of exam paper is too small to read on a phone: show it at
      reading size and let it scroll sideways inside its sheet. */
-  .qb-paper, .qb-reveal-ms .qb-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
-  .lp .qb-paper .qb-img { width: 560px; max-width: none; }
-  .lp .qb-reveal-ms .qb-scroll .qb-img { width: 780px; max-width: none; }
-  .qb-swipe { display: block; margin-top: -6px; }
+  /* A paper is too wide to read at a phone's width: it fits the screen, whole, and a tap opens it to zoom (ZoomViewer). */
+  .qb-swipe { display: block; margin-top: -4px; }
   .lp .qb-tray-inner { gap: 6px 10px; padding: 8px 10px 8px 14px; width: 100%; max-width: none; justify-content: space-between; }
   .lp .qb-tray-go { margin-left: auto; padding: 7px 14px; font-size: 16px; }
   .qb-tray { padding: 0 10px; }
@@ -481,4 +480,62 @@
 @media (max-width: 620px) {
   .lp .qb-type { min-height: 44px; font-size: 15px; }
   .lp .qb-again-go { margin-left: 0; flex: 1; justify-content: center; }
+}
+
+/* ── Reading a question full screen (ZoomViewer.tsx) ─────────────────────── */
+.lp .qb-zoomable { appearance: none; display: block; position: relative; width: 100%; padding: 0; margin: 0; border: 0; background: none; cursor: zoom-in; border-radius: 6px; }
+.lp .qb-zoomable:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 3px; }
+.qb-paper .qb-zoomable + .qb-zoomable, .qb-paper .qb-zoomable + .qb-choice + .qb-zoomable { margin-top: 10px; }
+/* On a phone, a pixel magnifier on the line under the picture says it opens; not on the picture, where it would cover the marks. */
+@media (max-width: 620px) {
+  .qb-swipe { display: flex; align-items: center; gap: 6px; }
+  .qb-swipe::before { content: ""; flex: none; width: 18px; height: 18px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Cpath fill='%237a665d' d='M2 0h3v1H2zM1 1h1v1H1zM5 1h1v1H5zM0 2h1v3H0zM6 2h1v3H6zM1 5h1v1H1zM5 5h1v1H5zM2 6h3v-1H2zM6 6h1v1H6zM7 7h1v1H7z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
+  /* Your marking, before the first mark: a short card, not a screenful. */
+  .lp .qb-prog.is-empty { padding: 14px; gap: 10px; }
+  .lp .qb-prog-empty h2 { font-size: 19px; }
+  .qb-prog-empty p { font-size: 14.5px; }
+  .lp .qb-prog-try { width: 100%; justify-content: center; min-height: 44px; font-size: 15px; }
+  .lp .qb-page .pp-hero { padding-top: 28px; padding-bottom: 18px; gap: 12px; }
+  .lp .qb-page .pp-hero .lp-lead { font-size: 15.5px; }
+}
+
+.qb-zoom { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; color: var(--lp-ink); background: var(--lp-paper);
+  font-family: var(--f-body); }
+.qb-zoom[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.qb-zoom::backdrop { background: rgb(43 35 38 / .5); }
+.qb-zoom-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 10px; padding: calc(env(safe-area-inset-top, 0px) + 10px) max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px));
+  background: var(--lp-card-bg); border-bottom: 3px solid var(--lp-line); }
+.qb-zoom-title { min-width: 0; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qb-zoom-title b { font-family: var(--f-px); font-weight: 700; font-size: 19px; color: var(--lp-ink); margin-right: 4px; }
+.lp .qb-zoom-x, .qb-zoom-x { appearance: none; cursor: pointer; width: 42px; height: 42px; display: grid; place-items: center; font-size: 28px; line-height: 1; color: var(--lp-ink); background: #fff; border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); }
+.qb-zoom-parts { grid-column: 1 / -1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.qb-zoom-parts button { appearance: none; cursor: pointer; flex: none; min-width: 44px; min-height: 36px; padding: 2px 12px; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); background: #fff; border: 2px solid var(--lp-line); border-radius: 10px; }
+.qb-zoom-parts button.is-on { background: var(--lp-gold); }
+.qb-zoom-tabs { grid-column: 1 / -1; justify-self: start; }
+.qb-zoom .qb-tabs button { appearance: none; cursor: pointer; display: inline-flex; align-items: center; min-height: 34px; padding: 3px 14px; border: 0; border-radius: 9px; background: none; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink-soft); }
+.qb-zoom .qb-tabs button.is-on { background: var(--lp-card-bg); color: var(--lp-ink); box-shadow: 0 0 0 2px var(--lp-line), 0 2px 0 2px var(--lp-shadow); }
+
+.qb-zoom-stage { position: relative; min-height: 0; background: #ece4d4; }
+.qb-zoom-box { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; }
+.qb-zoom-box:active { cursor: grabbing; }
+.qb-zoom-inner { position: absolute; top: 0; left: 0; width: 100%; transform-origin: 0 0; will-change: transform; display: grid; gap: 10px; padding: 12px 8px; }
+.qb-zoom-inner img { display: block; width: 100%; max-width: 100%; height: auto; background: #fff; border: 2px solid #e2d6c2; border-radius: 6px; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+.qb-zoom-tools { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: 12px; display: flex; gap: 6px; }
+.qb-zoom-tools button { appearance: none; cursor: pointer; min-width: 44px; height: 44px; padding: 0 10px; font-family: var(--f-px); font-weight: 700; font-size: 20px; color: var(--lp-ink); background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); }
+.qb-zoom-tools button.is-fit { font-size: 15px; background: var(--lp-gold); }
+.qb-zoom-tools button:disabled { opacity: .4; cursor: default; }
+.qb-zoom-answer { display: grid; place-items: center; padding: 24px; font-size: 20px; font-weight: 700; }
+.qb-zoom-answer strong { font-family: var(--f-px); font-size: 44px; color: var(--lp-orange); margin-left: 8px; }
+
+.qb-zoom-foot { display: grid; gap: 8px; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 10px) max(14px, env(safe-area-inset-left, 0px));
+  background: var(--lp-card-bg); border-top: 3px solid var(--lp-line); max-height: 45dvh; overflow-y: auto; }
+.qb-zoom-foot .qb-self, .qb-zoom-foot .qb-choice { border-top: 0; padding-top: 0; }
+.lp .qb-zoom-go, .qb-zoom-go { justify-self: stretch; justify-content: center; background: var(--lp-gold); }
+.qb-zoom-hint { font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); text-align: center; }
+@media (min-width: 621px) { .qb-zoom-hint { display: none; } }
+/* Sideways on a phone: the picture gets the height, the bars slim down. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .qb-zoom-head { padding-block: 6px; }
+  .qb-zoom-foot { padding-block: 6px; max-height: 38dvh; }
+  .qb-zoom-hint { display: none; }
 }

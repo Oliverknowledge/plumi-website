@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
+import { openZoom } from "./ZoomViewer";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
@@ -90,6 +91,17 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const stemOpen = open.stem || many;
   const earlier = many ? [] : before;
 
+  /**
+   * A question or scheme picture that opens full screen to read (ZoomViewer). In the partner
+   * embed there's no viewer, so it stays a plain picture.
+   */
+  const zoomable = (p: BankPart, kind: "qp" | "ms", img: ReactNode) => embed ? img : (
+    <button key={`${p.id}-${kind}-zoom`} type="button" className={`qb-zoomable is-${kind}`} aria-label={`Zoom into ${kind === "ms" ? "the mark scheme for" : "question"} ${p.l}`}
+      onClick={() => openZoom({ subject, parts, index: Math.max(0, parts.indexOf(p)), kind })}>
+      {img}
+    </button>
+  );
+
   function flip(key: "ms" | "er" | "stem") {
     const next = !open[key];
     setOpen(o => ({ ...o, [key]: next }));
@@ -155,14 +167,15 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         <div className="qb-paper">
           {parts.map(p => [
             many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
-              alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />,
+            zoomable(p, "qp",
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+                alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />),
             // Multiple choice marks itself from the letter picked, before the key is shown.
             !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
           ])}
         </div>
-        <p className="qb-swipe" aria-hidden="true">Swipe the paper sideways to read it all.</p>
+        {!embed && <p className="qb-swipe" aria-hidden="true">Tap the question to read it full screen.</p>}
         {embed?.cta}
         {open.ms && withScheme.map(p => p.k
           ? <p key={p.id} className="qb-note qb-answer">{many ? <>{p.l}: the answer is </> : "The answer is "}<strong>{p.k}</strong></p>
@@ -170,8 +183,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             <div key={p.id} className="qb-note qb-reveal-ms">
               <span className="lp-tape" aria-hidden="true" />
               <p className="qb-note-label">Mark scheme for {p.l}</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
+              <div className="qb-scroll">{zoomable(p, "ms",
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
