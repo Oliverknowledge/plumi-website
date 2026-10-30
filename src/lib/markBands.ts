@@ -40,3 +40,7 @@ export function markBands(subject: Pick<BankSubject, "subject">, parts: BankPart
 }
 
 export const inBand = (m: number | null, band: MarkBand) => m != null && m >= band.lo && m <= band.hi;
+
+/** A subject answered in sentences and essays, not working: not maths, not a science. */
+export const isEssaySubject = (subject: Pick<BankSubject, "subject">) =>
+  !/Maths/.test(subject.subject) && !/^(Biology|Chemistry|Physics|Combined Science|Computer Science)/.test(subject.subject);

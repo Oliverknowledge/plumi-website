@@ -53,6 +53,8 @@ export type PlumiEvent =
   | "bank_hide_done"
   /** A question or mark scheme opened full screen to zoom (`kind` qp or ms, `part`). */
   | "bank_zoom"
+  /** A student started typing an answer to a bank question (`subject`, `part`), once a part a visit. */
+  | "bank_answer_started"
   | "bank_redo"
   /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */

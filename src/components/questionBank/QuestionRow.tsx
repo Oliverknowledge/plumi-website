@@ -5,6 +5,8 @@ import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import { openZoom } from "./ZoomViewer";
+import { AnswerBox } from "./AnswerBox";
+import { isEssaySubject } from "@/lib/markBands";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
@@ -173,9 +175,16 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
                 alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />),
             // Multiple choice marks itself from the letter picked, before the key is shown.
             !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
+            // Anything else can be answered in writing first, then checked against the scheme:
+            // under each part when a question shows in parts, under the whole (after the zoom hint) otherwise.
+            !embed && !p.k && many ? <AnswerBox key={`${p.id}-answer`} subject={subject.slug} part={p} open={isEssaySubject(subject)} many={many}
+              schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} /> : null,
           ])}
         </div>
         {!embed && <p className="qb-swipe" aria-hidden="true">Tap the question to read it full screen.</p>}
+        {!embed && !many && !part.k && (
+          <AnswerBox subject={subject.slug} part={part} open={isEssaySubject(subject)} schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />
+        )}
         {embed?.cta}
         {open.ms && withScheme.map(p => p.k
           ? <p key={p.id} className="qb-note qb-answer">{many ? <>{p.l}: the answer is </> : "The answer is "}<strong>{p.k}</strong></p>
