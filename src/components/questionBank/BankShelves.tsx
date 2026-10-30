@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { useBankMarks } from "@/lib/bankProgress";
 
 /**
@@ -33,6 +33,19 @@ export function RememberBank({ slug }: { slug: string }) {
     recentListeners.forEach(cb => cb());
   }, [slug]);
   return null;
+}
+
+/**
+ * A bank's row of boards (BankPages.tsx OtherBoards). On a phone the row scrolls sideways rather
+ * than wrapping onto a second line over the questions, so it starts scrolled to the board you're on.
+ */
+export function BoardRow({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const row = ref.current, on = row?.querySelector<HTMLElement>(".is-on");
+    if (row && on && on.offsetLeft + on.offsetWidth > row.clientWidth) row.scrollLeft = on.offsetLeft - 18;
+  }, []);
+  return <nav ref={ref} className="qb-boards-here" aria-label="Exam board">{children}</nav>;
 }
 
 const words = (q: string) => q.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter(Boolean);
