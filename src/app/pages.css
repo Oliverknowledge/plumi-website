@@ -132,12 +132,12 @@
 .lp .lp-aw-done span { font-weight: 700; color: var(--lp-ink-soft); }
 @media (max-width: 620px) { .lp .lp-aw { padding-block: 40px 64px; } }
 
-/* The Android page's hero: the Android logo, drawn as an Android app icon (a green squircle), beside the title. */
-.lp .lp-aw-hero { display: flex; align-items: center; gap: 32px; }
-.lp .lp-aw-hero .lp-sec-head { min-width: 0; }
-.lp .lp-aw-appicon { flex: none; width: 140px; height: 140px; display: grid; place-items: center; border-radius: 30%; background: #3ddc84; color: #12301f; border: 3px solid var(--lp-line); box-shadow: 0 6px 0 var(--lp-shadow); }
+/* The Android page's hero: the Android logo, drawn as an Android app icon (a green squircle), hung to the left of the title so the text
+   keeps the place it had. Where there is no room to its left (under 1040px) it sits above the text instead. */
+.lp .lp-aw-hero { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+.lp .lp-aw-appicon { flex: none; width: 104px; height: 104px; display: grid; place-items: center; border-radius: 30%; background: #3ddc84; color: #12301f; border: 3px solid var(--lp-line); box-shadow: 0 6px 0 var(--lp-shadow); }
 .lp .lp-aw-appicon .aw-icon { width: 64%; height: 64%; }
-@media (max-width: 620px) {
-  .lp .lp-aw-hero { flex-direction: column; align-items: flex-start; gap: 22px; }
-  .lp .lp-aw-appicon { width: 104px; height: 104px; }
+@media (min-width: 1040px) {
+  .lp .lp-aw-hero { display: block; }
+  .lp .lp-aw-appicon { position: absolute; right: 100%; top: 28px; margin-right: 36px; width: 140px; height: 140px; }
 }
