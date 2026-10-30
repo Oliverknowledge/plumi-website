@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { AndroidWaitlist } from "@/components/AndroidWaitlist";
 import { AndroidIcon } from "@/components/home/AndroidLink";
 import { CosyPage, SectionHead } from "@/components/cosy/Chrome";
@@ -27,10 +25,9 @@ export default function Page() {
       />
       <section className="lp-wrap lp-aw">
         <div className="lp-aw-hero">
-          {/* Plumi's app icon the way Android draws one: a squircle, with the robot's badge on its corner. */}
+          {/* The Android logo on the left of the title, drawn as an Android app icon: the robot on a green squircle. */}
           <div className="lp-aw-appicon" aria-hidden="true">
-            <Image src="/android/plumi-icon.png" alt="" width={192} height={192} priority />
-            <span className="lp-aw-badge"><AndroidIcon size={22} /></span>
+            <AndroidIcon size={88} />
           </div>
           <SectionHead
             as="h1"
