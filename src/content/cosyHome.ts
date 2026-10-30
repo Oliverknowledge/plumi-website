@@ -200,21 +200,26 @@ export const practice = {
   eyebrow: "Free exam practice",
   title: "Exam practice,",
   titleEm: "free, with no sign-up.",
-  lead: "Whole practice papers, ours and the boards’, and every real exam question sorted by topic. Works on your phone, laptop or iPad.",
+  lead: "Every real exam question sorted by topic, and every past paper with its mark scheme. Works on your phone, laptop or iPad. Our own practice packs are free in the Discord.",
   // Plumi's own practice packs come first in free practice (founder, 25 October 2026:
   // "a really important aspect of our website"). The packs and their facts are
   // src/content/practicePacks.ts; the proof points are that file's packCopy.proof.
   packs: {
-    tag: "Practice papers · new",
+    tag: "Practice packs · free in our Discord",
     title: "Practice packs,",
     titleEm: "written by us.",
-    line: "Ran out of past papers? Each pack is 30 new exam-style questions in your board’s style, easy to super hard, with a mark scheme as thorough as the real one.",
+    line: "Ran out of past papers? Each pack is 30 new exam-style questions in your board’s style, easy to super hard, with a mark scheme as thorough as the real one. Free for members of the Plumi Discord.",
     ticket: "Practice papers",
     ticketHero: "our own packs, and every past paper",
     all: "See every pack",
     // The downloads and each pack's own wording are on its page; the covers here just open it.
     note: "Written by Plumi in each board’s style. Not produced or endorsed by Pearson Edexcel or OCR.",
     inside: "What’s inside",
+  },
+  // The second ticket under the homepage's hero: the boards' papers (the packs are in the Discord).
+  pastPapers: {
+    ticket: "Past papers",
+    ticketHero: "every paper and mark scheme, by board",
   },
   bank: {
     name: "Question bank",

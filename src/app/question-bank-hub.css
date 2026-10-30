@@ -1,0 +1,133 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE QUESTION BANK'S FRONT DOOR (BankPages.tsx BankHub, BankShelves.tsx)
+
+   A shelf a level, a book a subject, a key a board (the founder, 30 October
+   2026: not three "Maths" books in a row). The pixel face only at 20px and
+   up, where its C and G still read; everything smaller, and every board's
+   name, in Nunito. Text on a subject's colour sits on cream, never on the
+   colour itself, so it passes 4.5:1 on every cover.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.qb-hub { --qb-orange-text: #a8521c; }
+.qb-hub :focus-visible { outline: 3px solid var(--lp-ink); outline-offset: 3px; }
+.qb-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ── Hero: one line of what it is, then straight to the search ───────────── */
+.lp .qb-hub-hero { position: relative; display: grid; gap: 12px; padding-top: 44px; padding-bottom: 22px; }
+.qb-hub-eyebrow { font-weight: 800; font-size: 14px; letter-spacing: .02em; color: var(--lp-strong); }
+.lp .qb-hub-hero h1 { font-size: clamp(34px, 4.8vw, 58px); max-width: 15em; padding-right: 110px; }
+.lp .qb-hub-hero h1 em { color: var(--qb-orange-text); }
+.qb-hub-lead { font-size: 18px; line-height: 1.5; font-weight: 600; color: var(--lp-ink-soft); max-width: 36em; }
+.lp .qb-hub-mascot { position: absolute; right: max(24px, env(safe-area-inset-right, 0px)); top: 40px; width: 84px; height: 84px; }
+
+/* ── The find bar: search and a level each, held under the nav ───────────── */
+.qb-find { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 82px); z-index: 5; display: flex; align-items: center; gap: 12px; padding: 10px; margin-bottom: 34px;
+  background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 18px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.qb-find-box { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0 14px; min-height: 50px; background: #fff; border: 2px solid var(--lp-line); border-radius: 12px; color: var(--lp-ink-soft); }
+.qb-find-box:focus-within { outline: 3px solid var(--lp-ink); outline-offset: 2px; }
+.qb-find-box svg { flex: none; width: 20px; height: 20px; image-rendering: pixelated; }
+.lp .qb-find-box input { flex: 1; min-width: 0; height: 46px; border: 0; background: none; font: 700 17px var(--f-body); color: var(--lp-ink); outline: none; }
+.qb-find-box input::placeholder { color: var(--lp-ink-soft); opacity: 1; font-weight: 600; }
+.qb-find-box input::-webkit-search-cancel-button { cursor: pointer; }
+.qb-jump { display: flex; flex: none; border: 2px solid var(--lp-line); border-radius: 12px; overflow: hidden; background: #fff; }
+.lp .qb-jump a { display: inline-flex; align-items: center; min-height: 50px; padding: 0 18px; font: 800 15.5px var(--f-body); color: var(--lp-ink); text-decoration: none; white-space: nowrap; }
+.lp .qb-jump a + a { border-left: 2px solid var(--lp-line); }
+.lp .qb-jump a:hover { background: var(--lp-gold); }
+.lp .qb-jump a:focus-visible { outline-offset: -4px; }
+
+/* ── Your subjects: the banks you opened lately, a tap back in ───────────── */
+.qb-mine { margin-bottom: 40px; }
+.lp .qb-mine-h { font-size: 24px; margin-bottom: 14px; }
+.qb-mine ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.lp .qb-mine a { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 16px 6px 12px; color: var(--lp-ink); text-decoration: none;
+  background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); transition: transform .08s, box-shadow .08s; }
+.qb-mine a i { flex: none; width: 16px; height: 22px; background: var(--bk); border: 2px solid var(--lp-line); border-radius: 2px 4px 4px 2px; }
+.qb-mine a span { font-weight: 800; font-size: 16px; }
+.qb-mine a small { font-weight: 700; font-size: 13.5px; color: var(--lp-ink-soft); }
+.qb-mine a b { color: var(--qb-orange-text); }
+.lp .qb-mine a:hover { background: var(--lp-gold); transform: translateY(-1px); box-shadow: 0 5px 0 var(--lp-shadow); }
+
+/* ── A shelf a level, each standing on its plank ─────────────────────────── */
+.lp .pp .qb-hub-shelves { padding-block: 0 72px; }
+.lp .pp .qb-shelf, .lp .pp .qb-how { padding-block: 0; }
+.qb-shelf { scroll-margin-top: 170px; }
+.lp .qb-shelf-name { font-size: clamp(26px, 3vw, 32px); margin: 0 0 20px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.qb-shelf-name span { font: 700 15px var(--f-body); color: var(--lp-ink-soft); }
+.qb-books { list-style: none; margin: 0; padding: 0 6px; display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 28px 22px; align-items: start; }
+.qb-plank { height: 14px; margin: 26px -8px 56px; background: linear-gradient(#d2b48f 0 4px, #c4a484 4px); border: 3px solid var(--lp-line); border-radius: 4px; box-shadow: 0 6px 0 var(--lp-shadow); }
+
+/* ── A book: the cover says the subject, the page under it its boards ────── */
+.lp .qb-book { height: 100%; }
+.lp .qb-book-cover { gap: 10px; padding: 16px 16px 18px; justify-items: start; }
+.lp .qb-book .qb-book-plate { font-size: 25px; font-weight: 700; line-height: 1.05; margin: 0; }
+.qb-book-total { display: inline-block; font-weight: 800; font-size: 13.5px; line-height: 1; color: var(--lp-ink); background: rgba(253, 249, 241, .92); border: 2px solid var(--lp-line); border-radius: 7px; padding: 5px 8px; }
+.qb-book .lp-book-rib { transition: height .15s ease-out; }
+.qb-book:hover .lp-book-rib, .qb-book:focus-within .lp-book-rib { height: 44px; }
+
+.qb-keys-board { list-style: none; margin: 0; padding: 30px 16px 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 8px; align-content: start; }
+.qb-keys-board .is-wide { grid-column: 1 / -1; }
+.lp .qb-keys-board a { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 44px; box-sizing: border-box; padding: 7px 11px 6px; color: var(--lp-ink); text-decoration: none;
+  background: #fff; border: 2px solid var(--lp-line); border-radius: 10px; box-shadow: 0 3px 0 var(--lp-shadow); transition: transform .08s, box-shadow .08s, background-color .08s; }
+.qb-keys-board a > span[aria-hidden] { font-weight: 800; font-size: 15.5px; line-height: 1.2; }
+.qb-keys-board a small { font-weight: 700; font-size: 12.5px; line-height: 1.2; color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; }
+.lp .qb-keys-board a:hover { background: var(--lp-gold); transform: translateY(-1px); box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp .qb-keys-board a:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--lp-shadow); }
+
+/* ── Nothing found ───────────────────────────────────────────────────────── */
+.lp .qb-none { display: grid; justify-items: start; gap: 14px; padding: 22px 24px; margin-bottom: 48px; }
+.qb-none p { font-size: 17px; font-weight: 600; color: var(--lp-ink-soft); }
+.qb-none strong { color: var(--lp-ink); }
+
+/* ── How it works ────────────────────────────────────────────────────────── */
+.lp .qb-how-h { font-size: clamp(26px, 3vw, 32px); margin-bottom: 18px; }
+.qb-how ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.qb-how li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; padding: 18px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.qb-how-n { grid-row: span 2; display: grid; place-items: center; width: 40px; height: 40px; font: 700 22px var(--f-px); color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 10px; }
+.lp .qb-how h3 { font-size: 21px; }
+.qb-how p { font-size: 15.5px; font-weight: 600; color: var(--lp-ink-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  .qb-book .lp-book-rib, .lp .qb-keys-board a, .lp .qb-mine a { transition: none; }
+  .lp .qb-keys-board a:hover, .lp .qb-keys-board a:active, .lp .qb-mine a:hover { transform: none; }
+}
+
+@media (max-width: 980px) {
+  .qb-how ol { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  /* The bar stacks, and lets go of the top: on a phone it would cover a third of the screen. */
+  .qb-find { position: static; flex-direction: column; align-items: stretch; padding: 8px; margin-bottom: 28px; }
+  .qb-jump a { flex: 1; justify-content: center; padding: 0 8px; }
+  .lp .qb-jump a { min-height: 44px; }
+}
+@media (max-width: 620px) {
+  .lp .qb-hub-hero { padding-top: 26px; padding-bottom: 16px; gap: 10px; }
+  .lp .qb-hub-hero h1 { padding-right: 64px; }
+  .qb-hub-lead { font-size: 15.5px; }
+  .lp .qb-hub-mascot { top: 22px; width: 56px; height: 56px; }
+  .qb-books { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 0 2px; }
+  /* The plate and the count side by side, the count dropping under the plate when the name is long. */
+  .lp .qb-book-cover { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px; padding: 12px 14px 14px; }
+  .lp .qb-book .qb-book-plate { font-size: 22px; max-width: 100%; }
+  .qb-book-total { margin-right: 26px; }
+  .qb-keys-board { padding: 28px 12px 14px; }
+  .qb-plank { margin: 20px -4px 40px; }
+  .qb-mine ul { display: grid; }
+  .lp .qb-mine a { display: flex; }
+  .qb-mine a b { margin-left: auto; }
+}
+
+/* ── On a bank's own page: the same subject at the other boards ──────────── */
+.qb-boards-here { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.qb-boards-here > span:first-child { font-weight: 800; font-size: 14px; color: var(--lp-ink-soft); }
+.lp .qb-boards-here a, .qb-boards-here .is-on { display: inline-flex; align-items: center; min-height: 36px; padding: 4px 12px; font: 800 14.5px var(--f-body); color: var(--lp-ink); text-decoration: none;
+  background: #fff; border: 2px solid var(--lp-line); border-radius: 9px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .qb-boards-here a:hover { background: var(--lp-gold); }
+.qb-boards-here .is-on { background: var(--lp-gold); box-shadow: inset 0 2px 0 rgba(43, 35, 38, .18); }
+/* On a phone, one row that scrolls sideways, edge to edge, rather than a second line over the questions. */
+@media (max-width: 620px) {
+  .qb-boards-here { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * max(18px, env(safe-area-inset-left, 0px))); padding: 2px max(18px, env(safe-area-inset-left, 0px)) 4px; }
+  .qb-boards-here::-webkit-scrollbar { display: none; }
+  .qb-boards-here > * { flex: none; white-space: nowrap; }
+}

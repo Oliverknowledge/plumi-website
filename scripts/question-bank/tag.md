@@ -421,6 +421,30 @@ these differences:
 - One code nearly always: a second only where the part plainly asks about two sections
   (a comparison of Natural Law with Situation Ethics, say).
 
+## Eduqas GCSE Religious Studies and History
+
+`eduqas_gcse/tag_eduqas_gcse.py split rs` (or `history`) writes Eduqas's GCSE Religious Studies
+(C120) or History (C100) parts to `.work/eduqas-gcse-<subject>/tag/`, one batch per section of
+the specification, and `merge` collects them. The brief is the one at the top, with these
+differences:
+
+- `topics-<section>.txt` lists the section's topics: `code | section | title — what the
+  specification says under it`. A part's section is fixed by its paper and question (Religious
+  Studies' Route A Component 1 question 2 is Theme 2, Issues of Life and Death; History's paper
+  is its option, 1G Germany in Transition), so choose only from the batch's own file.
+- Religious Studies: a topic is one of the specification's areas of study ("Sexual
+  relationships", "The Five Pillars of Sunni Islam"). `(a)` asks what a key concept means: tag
+  the area the concept belongs to. Route B's parts can hold two questions, `(i)` and `(ii)`:
+  tag both areas when they differ. `report_says`, where there is one, is the 2024 examiner's
+  report's own list of what each part tested ("(b) Area of Study: Symbolism; …"): use the line
+  for the part's letter.
+- History: a topic is one of the option's key questions ("The Black Death"). `sources` is the
+  question's stem; judge by the question and the scheme's indicative content, which say what
+  period and issue the answer is about. A thematic study's (2E-2H) question 6 is on its
+  historic site: always `<option>.site`. A thematic question that spans the whole period
+  ("how has the nature of criminal activity changed") is the key question it names.
+- One code nearly always: a second only where the part plainly needs two topics.
+
 ## WJEC
 
 `wjec/tag_wjec.py split` writes batches for WJEC's AS/A Level Biology, Chemistry and
@@ -864,3 +888,26 @@ is the one at the top, with these differences:
   obscenity, harassment, confidentiality and defamation `3B.4`, and judicial review `3B.5`;
   privity and intention to create legal relations `3C.2`, exclusion clauses `3C.3`, liquidated
   damages and penalty clauses `3C.6`.
+
+## Edexcel GCSE Computer Science
+
+`edexcel_cs/tag_cs.py split` writes batches of Pearson Edexcel GCSE Computer Science (1CP2)
+parts to `.work/edexcel-cs/tag/`, and `merge` collects them. The brief is the one at the top,
+with these differences:
+
+- `cs-topics.txt` lists one topic per line: `code | section | short title — the
+  specification's point`. The codes are the specification's numbered points (`2.1.3`,
+  `4.1.5`); choose from these, never a section like `2.1`.
+- Each line has a `paper`. Paper 1 tests Topics 1 to 5 only (codes `1.x.x` to `5.x.x`);
+  Paper 2 tests Topic 6 only (`6.x.x`). merge drops a code from the wrong paper.
+- Paper 1 questions are each set on one topic area ("1 Networks", "3 Data" at the start of
+  `setup`), but tag the point the part tests, not the area alone.
+- Algorithms on Paper 1 (flowcharts, pseudocode, program code to complete or trace) are
+  Topic 1: tracing or giving an output is `1.2.4`, a sort or search `1.2.6`, writing or
+  completing an algorithm `1.2.1`, unless the part is plainly about one thing (operators
+  `1.2.3`, errors `1.2.5`, a truth table `1.3.1`).
+- A file size or transfer time calculation is `2.3.1` or `4.1.5`, by what is being worked out.
+- Each Paper 2 line is a whole programming question ("Open file Q04.py…"): tag its main
+  skill and, where the question is as much about a second, that one too (reading a file
+  `6.4.2` with validation `6.4.3`; fixing errors `6.1.5`; "identify the constant / the
+  selection construct" `6.2.1`).

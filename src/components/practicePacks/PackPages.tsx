@@ -7,7 +7,7 @@ import { intentFor } from "@/config/routes";
 import {
   packCopy, packImage, packName, packShareImage, packPath, packTotals, practicePacks, type PracticePack,
 } from "@/content/practicePacks";
-import { levelClass, PackCover, PackDownloads, PackLadder } from "./Pack";
+import { levelClass, PackCover, PackGet, PackLadder } from "./Pack";
 import { PackClickTracker } from "./PackClickTracker";
 import { PastPapersCard } from "./PastPapersCard";
 import { TopicMapCard } from "./TopicMapCard";
@@ -28,7 +28,7 @@ const withBrand = (title: string) => (title.length + 8 <= 60 ? `${title} | Plumi
 /** One query per pack, the way students type it: "free OCR A-Level Physics practice paper". */
 export const packPageMeta = (p: PracticePack) => ({
   title: withBrand(`Free ${p.board} A-Level ${p.subject} Practice Paper & Mark Scheme`),
-  description: `A free ${packName(p)} practice pack by Plumi: ${p.questions.length} exam-style questions, ${p.marks} marks, easy to super hard, with a full mark scheme. No sign-up.`,
+  description: `A free ${packName(p)} practice pack by Plumi: ${p.questions.length} exam-style questions, ${p.marks} marks, easy to super hard, with a full mark scheme. Free in the Plumi Discord.`,
 });
 
 function Proof({ grid = false }: { grid?: boolean }) {
@@ -75,14 +75,14 @@ export function PackHub() {
     </>}>
       <article className="pp">
         <header className="lp-wrap pp-hero">
-          <span className="lp-eyebrow">{packCopy.section} · free, no sign-up</span>
+          <span className="lp-eyebrow">{packCopy.section} · free in our Discord</span>
           <h1>{packCopy.hubTitle} <em>{packCopy.hubTitleEm}</em></h1>
           <p className="lp-lead">{packCopy.hubLead}</p>
           <ul className="pp-facts" aria-label="At a glance">
             <li><strong>{practicePacks.length}</strong><span>packs</span></li>
             <li><strong>{packTotals.questions}</strong><span>questions</span></li>
             <li><strong>{packTotals.marks.toLocaleString("en-GB")}</strong><span>marks</span></li>
-            <li><strong>£0</strong><span>no sign-up</span></li>
+            <li><strong>£0</strong><span>in our Discord</span></li>
           </ul>
         </header>
 
@@ -96,7 +96,7 @@ export function PackHub() {
                     <h2><Link href={packPath(p.slug)}>{display(`${p.board}-style ${p.title}`)}</Link></h2>
                     <p>{p.questions.length} questions · {p.marks} marks · about {p.hours} hours, in three sittings. {p.sections.map(s => s.name).join(", ")}.</p>
                     <PackLadder pack={p} legend />
-                    <PackDownloads pack={p} placement="packs-hub" />
+                    <PackGet pack={p} placement="packs-hub" />
                     <p className="pk-small"><Link href={packPath(p.slug)}>See all {p.questions.length} questions ›</Link> · {p.disclaimer}</p>
                   </div>
                 </li>
@@ -143,7 +143,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
             <span className="lp-eyebrow">{packCopy.eyebrow}</span>
             <h1>{display(pack.title)} practice pack, <em>{pack.board}-style</em></h1>
             <p className="lp-lead">
-              {pack.questions.length} exam-style questions across {pack.sections.map(s => s.name).join(", ").replace(/, ([^,]*)$/, " and $1")}, climbing from easy to super hard, with a full mark scheme. Free to download, no sign-up.
+              {pack.questions.length} exam-style questions across {pack.sections.map(s => s.name).join(", ").replace(/, ([^,]*)$/, " and $1")}, climbing from easy to super hard, with a full mark scheme. Free for members of the Plumi Discord.
             </p>
             <ul className="pp-facts" aria-label="At a glance">
               <li><strong>{pack.questions.length}</strong><span>questions</span></li>
@@ -151,7 +151,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
               <li><strong>~{pack.hours}h</strong><span>in 3 sittings</span></li>
               <li><strong>{pack.spec}</strong><span>{pack.board} specification</span></li>
             </ul>
-            <PackDownloads pack={pack} placement="pack-hero" />
+            <PackGet pack={pack} placement="pack-hero" />
             <p className="pk-small">You need {pack.equipment}. {pack.disclaimer}</p>
           </div>
           <div className="pk-hero-cover">
@@ -164,7 +164,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
 
         <section aria-labelledby="inside-title">
           <div className="lp-wrap">
-            <SectionHead id="inside-title" eyebrow="What’s inside" title="Every question," titleEm="before you download."
+            <SectionHead id="inside-title" eyebrow="What’s inside" title="Every question," titleEm="before you get it."
               lead="Three sections, ten questions each. Each one starts with a warm-up and ends with three stretch-and-challenge questions." />
             <ul className="pk-sections">
               {pack.sections.map(s => (
@@ -218,7 +218,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
                 <figcaption>{pack.samples.scheme}</figcaption>
               </figure>
             </div>
-            <div style={{ marginTop: 30 }}><PackDownloads pack={pack} placement="pack-samples" /></div>
+            <div style={{ marginTop: 30 }}><PackGet pack={pack} placement="pack-samples" /></div>
           </div>
         </section>
 

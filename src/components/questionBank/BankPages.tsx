@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Book, TopicSquares } from "@/components/cosy/Book";
+import { subjectColours } from "@/components/cosy/Book";
 import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { boardPapers, display } from "@/content/pastPapers";
@@ -9,9 +9,11 @@ import {
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
 import { packFor, packPath } from "@/content/practicePacks";
+import { BankShelves, BoardRow, RememberBank, type Shelf } from "./BankShelves";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
+import "@/app/question-bank-hub.css";
 
 /**
  * The question bank's three kinds of page, all in the cosy notebook:
@@ -48,74 +50,98 @@ function Credit({ subject }: { subject?: BankSubject }) {
 }
 
 /**
- * The hub's shelves: GCSE first, so a GCSE student isn't scrolling past twenty A-Level
- * banks to find theirs, then Cambridge IGCSE, then the A-Levels a board at a time, then the
- * vocational Level 3 qualifications (WJEC's Applied Diploma in Criminology).
+ * The hub's shelves, a level each and a book a subject (the founder, 30 October 2026: not three
+ * "Maths" books in a row). Cambridge IGCSE shares GCSE's shelf, since an IGCSE student looks for
+ * GCSE-level Maths, not for a board. Subjects go biggest first, Maths and the sciences ahead;
+ * a book's boards go AQA, Edexcel, OCR, then the rest, the way most students sit them.
  */
-const SHELVES: { id: string; name: string; jump: string; match: (s: BankSubject) => boolean }[] = [
-  { id: "gcse", name: "GCSE", jump: "GCSE", match: s => s.level === "GCSE" },
-  { id: "igcse", name: "Cambridge International (CAIE) IGCSE", jump: "CAIE IGCSE", match: s => s.level === "IGCSE" },
-  ...(["Edexcel", "AQA", "OCR", "Eduqas", "CAIE", "WJEC"] as const).map(board => ({
-    id: `a-level-${board.toLowerCase()}`,
-    name: board === "CAIE" ? "Cambridge International (CAIE) AS & A Level" : board === "WJEC" ? "WJEC AS & A Level (Wales)" : `${board} A-Level`,
-    jump: board === "CAIE" ? "CAIE A Level" : `${board} A-Level`,
-    match: (s: BankSubject) => s.level === "A-Level" && s.board.split(" ")[0] === board,
-  })),
-  { id: "level-3", name: "Level 3 vocational (Applied Diploma)", jump: "Level 3", match: s => s.level === "Level 3" },
+const LEVELS = [
+  { id: "gcse", name: "GCSE & IGCSE", jump: "GCSE", match: (s: BankSubject) => s.level === "GCSE" || s.level === "IGCSE" },
+  { id: "a-level", name: display("A-Level"), jump: display("A-Level"), match: (s: BankSubject) => s.level === "A-Level" },
+  { id: "level-3", name: "Level 3 vocational", jump: "Level 3", match: (s: BankSubject) => s.level === "Level 3" },
 ];
+const FIRST = ["Maths", "Further Maths", "Biology", "Chemistry", "Physics", "Combined Science"];
+const BOARDS = ["AQA", "Edexcel", "OCR", "OCR MEI", "Eduqas", "WJEC", "CAIE"];
+const variant = (s: BankSubject) => s.subject.match(/ ([AB])$/)?.[1];
+/** The name on a board's key: "AQA", "OCR B", "Cambridge IGCSE". */
+const boardKey = (s: BankSubject) =>
+  [s.board === "CAIE" ? (s.level === "IGCSE" ? "Cambridge IGCSE" : "Cambridge") : s.board, variant(s)].filter(Boolean).join(" ");
+/** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
+const findText = (s: BankSubject) => [
+  s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
+].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
+
+function shelves(): Shelf[] {
+  return LEVELS.map(lv => {
+    const banks = bankSubjects.filter(lv.match);
+    const subjects = [...new Set(banks.map(baseSubject))];
+    const books = subjects.map(subject => {
+      const mine = banks.filter(s => baseSubject(s) === subject)
+        .sort((a, b) => (a.level === "IGCSE" ? 1 : 0) - (b.level === "IGCSE" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
+      return {
+        subject, colour: subjectColours[subject] ?? "#d8c8ad", count: mine.reduce((a, s) => a + s.count, 0),
+        banks: mine.map(s => ({ slug: s.slug, board: boardKey(s), title: display(bankTitle(s)), count: s.count, years: bankYears(s), find: findText(s) })),
+      };
+    }).sort((a, b) => {
+      const fa = FIRST.indexOf(a.subject), fb = FIRST.indexOf(b.subject);
+      return (fa < 0 ? 99 : fa) - (fb < 0 ? 99 : fb) || b.count - a.count;
+    });
+    return { id: lv.id, name: lv.name, jump: lv.jump, books };
+  }).filter(sh => sh.books.length);
+}
 
 export function BankHub() {
-  const shelves = SHELVES.map(sh => ({ ...sh, banks: bankSubjects.filter(sh.match) })).filter(sh => sh.banks.length);
+  const all = shelves();
+  const total = bankSubjects.reduce((a, s) => a + s.count, 0);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, OCR A-Level Law, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature and A-Level English Literature A and B, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology, Edexcel A-Level Politics and OCR and AQA A-Level Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics and AS/A Level Religious Studies, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, OCR A-Level Law, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature and English Language and A-Level English Literature A and B, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology, Edexcel A-Level Politics, OCR and AQA A-Level Computer Science and Edexcel GCSE Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, AS/A Level Religious Studies and GCSE Religious Studies and History, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
-        <header className="lp-wrap pp-hero qb-hub-hero">
-          <div>
-            <span className="lp-eyebrow">Free · no sign‑up</span>
-            <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
-            <p className="lp-lead">Every question from AQA, Edexcel, OCR, Eduqas, Cambridge (CAIE) and WJEC past papers, GCSE to A‑Level and Level 3, cut out one by one and sorted by topic, with its mark scheme and the examiner’s report beside it.</p>
-            <nav className="qb-levels" aria-label="Jump to a shelf">
-              {shelves.map(sh => <a key={sh.id} href={`#${sh.id}`}>{display(sh.jump)} <span>{sh.banks.length} {sh.banks.length === 1 ? "subject" : "subjects"}</span></a>)}
-            </nav>
-          </div>
-          <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={150} height={150} unoptimized priority />
+        <header className="lp-wrap qb-hub-hero">
+          <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>
+          <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
+          <p className="qb-hub-lead">Every past-paper question from AQA, Edexcel, OCR, Eduqas, Cambridge and WJEC, sorted by topic, with the mark scheme right underneath.</p>
+          <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={84} height={84} unoptimized priority />
         </header>
-        <section className="pp-group">
+        <section className="qb-hub-shelves">
           <div className="lp-wrap">
-            {shelves.map(sh => (
-            <div key={sh.id} id={sh.id} className="qb-board">
-            <h2 className="qb-board-name">{display(sh.name)}</h2>
-            <ul className="qb-subjects">
-              {sh.banks.map(s => (
-                <li key={s.slug}>
-                  <Link href={bankPath(s.slug)} className="lp-book-link qb-subject">
-                    <Book subject={baseSubject(s)} kicker={`${s.board} ${display(s.level)}`} plate={s.subject}>
-                      <span className="qb-subject-count"><strong>{s.count.toLocaleString("en-GB")}</strong> questions · {s.topics.length} topics</span>
-                      <span className="qb-subject-years">{s.scope ? s.series.map(x => x.label).join(" · ") : bankYears(s)}</span>
-                      <TopicSquares count={s.topics.length} />
-                      <span className="pp-board-go" aria-hidden="true">Open the bank →</span>
-                    </Book>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            </div>
-            ))}
-            <ol className="lp-sp-steps qb-how">
-              {[
-                ["Pick a topic.", "Or a paper, a year, or search the words in any question or mark scheme."],
-                ["Try it, then check.", "The mark scheme and the examiner’s report open right under the question."],
-                ["Take a set with you.", "Add questions to a set and download them as one PDF, mark schemes at the back."],
-              ].map(([t, l], i) => (
-                <li key={t} className="lp-card lp-step"><span className="lp-num">{String(i + 1).padStart(2, "0")}</span><h2 className="qb-step-title">{t}</h2><p>{l}</p></li>
-              ))}
-            </ol>
+            <BankShelves shelves={all} />
+            <section className="qb-how" aria-labelledby="qb-how-h">
+              <h2 id="qb-how-h" className="qb-how-h">How it works</h2>
+              <ol>
+                {[
+                  ["Pick a topic", "Or a paper, a year, or search the words in any question or mark scheme."],
+                  ["Try it, then check", "The mark scheme and the examiner’s report open right under the question."],
+                  ["Take a set with you", "Add questions to a set and download them as one PDF, mark schemes at the back."],
+                ].map(([t, l], i) => (
+                  <li key={t}><span className="qb-how-n" aria-hidden="true">{i + 1}</span><h3>{t}</h3><p>{l}</p></li>
+                ))}
+              </ol>
+            </section>
             <Credit />
             <QuietPlumi />
           </div>
         </section>
       </article>
     </CosyPage>
+  );
+}
+
+/** The same subject at the same level from the other boards: one tap to the right book, without the hub. */
+function OtherBoards({ subject }: { subject: BankSubject }) {
+  const level = (s: BankSubject) => (s.level === "IGCSE" ? "GCSE" : s.level);
+  const near = bankSubjects
+    .filter(s => level(s) === level(subject) && baseSubject(s) === baseSubject(subject))
+    .sort((a, b) => (a.level === "IGCSE" ? 1 : 0) - (b.level === "IGCSE" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
+  if (near.length < 2) return null;
+  return (
+    <BoardRow>
+      <span>Board:</span>
+      {near.map(s => s.slug === subject.slug
+        ? <span key={s.slug} className="is-on" aria-current="page">{boardKey(s)}</span>
+        : <Link key={s.slug} href={bankPath(s.slug)}>{boardKey(s)}</Link>)}
+    </BoardRow>
   );
 }
 
@@ -128,6 +154,7 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
         {topic ? <><Link href={bankPath(subject.slug)}>{display(title)}</Link><span aria-hidden="true">›</span><span aria-current="page">{topicName(topic)}</span></>
           : <span aria-current="page">{display(title)}</span>}
       </nav>
+      {!topic && <OtherBoards subject={subject} />}
       <h1>
         {topic
           ? <>{topic.title}: <em>{display(`${subject.board} ${subject.level} ${subject.subject}`)} questions</em></>
@@ -153,6 +180,7 @@ export function BankSubjectPage({ subject }: { subject: BankSubject }) {
       breadcrumb={[{ name: "Question bank", path: "/question-bank" }, { name: bankTitle(subject), path: bankPath(subject.slug) }]} />}>
       <article className="pp qb-page">
         <Hero subject={subject} />
+        <RememberBank slug={subject.slug} />
         <div className="lp-wrap">
           <QuestionBank subject={subject} initial={subject.sample} />
           <nav className="lp-sp-more qb-topic-index" aria-label={`${subject.subject} topics`}>

@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
-import { ChoicePick, MarginScore, SelfMark } from "./SelfMark";
+import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
+import { openZoom } from "./ZoomViewer";
+import { AnswerBox } from "./AnswerBox";
+import { isEssaySubject } from "@/lib/markBands";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
@@ -60,11 +63,15 @@ function ReportText({ paras }: { paras: string[] }) {
  * order: then its start is shown open above them, the marks are the question's, and
  * the scheme unfolds part by part.
  *
+ * `before` is a single part's earlier parts, if any: "Show question 5 so far" opens the question's start and
+ * those parts above it, as a later part can rest on what an earlier one gave (a mass, a table, a graph).
+ *
  * `embed` is the partner iframe's version of the same row (EmbedQuestionList): no
  * set, nothing that navigates inside the frame, and `embed.cta` under the paper.
  */
-export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic, embed }: {
+export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic, before = [], embed }: {
   n: number; parts: BankPart[]; subject: BankSubject; inSet: boolean; setFull?: boolean; onToggleSet: () => void; onTopic?: (code: string) => void;
+  before?: BankPart[];
   embed?: { cta: ReactNode };
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
@@ -75,15 +82,33 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
+  // A question on the paper's sources (English Language) is read with them open: they're printed in the insert.
+  const insert = whole?.ins && parts.some(p => /\bsources?\b|\bextract\b|\blines? \d/i.test(p.x)) ? whole.ins : undefined;
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
   const marks = marked.length ? marked.reduce((sum, p) => sum + (p.m ?? 0), 0) : null;
   const topics = [...new Set(parts.flatMap(p => p.t))].slice(0, many ? 3 : 2);
   const withScheme = parts.filter(p => p.ms || p.k);
-  const schemePdf = !withScheme.length ? parts.find(p => p.msf)?.msf : undefined;
+  const inWhole = withScheme.filter(p => p.msq).map(p => p.l);
+  const inWholeNames = inWhole.length > 1 ? `${inWhole.slice(0, -1).join(", ")} and ${inWhole[inWhole.length - 1]}` : inWhole[0];
+  // Parts with no crop of their own keep the PDF, beside the others' schemes when a question has both.
+  const pdfOnly = parts.filter(p => p.msf && !p.ms && !p.k);
+  const schemePdf = pdfOnly[0]?.msf;
   const stem = parts.find(p => p.st);
   const stemOpen = open.stem || many;
+  const earlier = many ? [] : before;
+
+  /**
+   * A question or scheme picture that opens full screen to read (ZoomViewer). In the partner
+   * embed there's no viewer, so it stays a plain picture.
+   */
+  const zoomable = (p: BankPart, kind: "qp" | "ms", img: ReactNode) => embed ? img : (
+    <button key={`${p.id}-${kind}-zoom`} type="button" className={`qb-zoomable is-${kind}`} aria-label={`Zoom into ${kind === "ms" ? "the mark scheme for" : "question"} ${p.l}`}
+      onClick={() => openZoom({ subject, parts, index: Math.max(0, parts.indexOf(p)), kind })}>
+      {img}
+    </button>
+  );
 
   function flip(key: "ms" | "er" | "stem") {
     const next = !open[key];
@@ -99,6 +124,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         <p className="qb-q">Q{shown}</p>
         <p className="qb-meta">{seriesLabel(subject, part.s)} · {paperName(subject, part.p)}</p>
         {!embed && <MarginScore subject={subject.slug} parts={parts} />}
+        {!embed && <AgainTag subject={subject.slug} parts={parts} />}
         <div className="qb-tags">
           {marks != null && <span className="qb-marks">{marks} {marks === 1 ? "mark" : "marks"}</span>}
           {topics.map(code => {
@@ -119,6 +145,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             <a className="qb-key" href={`${papersBase}/${schemePdf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
           )}
           {!withScheme.length && !schemePdf && <span className="qb-noms">No published mark scheme</span>}
+          {insert && (
+            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The sources for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Sources (insert) ↗</a>
+          )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
               {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
@@ -126,46 +155,63 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           )}
         </div>
         {!embed && whole?.qp && <a className="qb-wholelink" href={`${papersBase}/${whole.qp}`} target="_blank" rel="noopener">The whole paper ↗</a>}
+        {!embed && whole?.code && <a className="qb-wholelink" href={`${papersBase}/${whole.code}`} download>The code files (zip) ↓</a>}
       </div>
 
       <div className="qb-sheet">
         {inSet && <span className="qb-stamp" aria-hidden="true">In your set</span>}
-        {stem && (
+        {(stem || earlier.length > 0) && (
           <div className="qb-stem">
             {!many && (
               <button type="button" className="qb-link" aria-expanded={!!open.stem} onClick={() => flip("stem")}>
-                {open.stem ? "− Hide" : "+ Show"} how question {q} starts
+                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : `how question ${q} starts`}
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stem && stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stemOpen && earlier.map(p => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+                alt={`Question ${p.l}: ${p.x}`} />
+            ))}
           </div>
         )}
         <div className="qb-paper">
           {parts.map(p => [
             many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
-              alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />,
+            zoomable(p, "qp",
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+                alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />),
             // Multiple choice marks itself from the letter picked, before the key is shown.
             !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
+            // Anything else can be answered in writing first, then checked against the scheme:
+            // under each part when a question shows in parts, under the whole (after the zoom hint) otherwise.
+            !embed && !p.k && many ? <AnswerBox key={`${p.id}-answer`} subject={subject.slug} part={p} open={isEssaySubject(subject)} many={many}
+              schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} /> : null,
           ])}
         </div>
-        <p className="qb-swipe" aria-hidden="true">Swipe the paper sideways to read it all.</p>
+        {!embed && <p className="qb-swipe" aria-hidden="true">Tap the question to read it full screen.</p>}
+        {!embed && !many && !part.k && (
+          <AnswerBox subject={subject.slug} part={part} open={isEssaySubject(subject)} schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />
+        )}
         {embed?.cta}
-        {open.ms && withScheme.map(p => p.k
+        {open.ms && withScheme.map((p, i) => p.k
           ? <p key={p.id} className="qb-note qb-answer">{many ? <>{p.l}: the answer is </> : "The answer is "}<strong>{p.k}</strong></p>
+          // A whole question's scheme (`msq`) serves each of its parts: shown once, marked against part by part.
+          : p.msq && withScheme.slice(0, i).some(o => o.msq) ? (!embed && <SelfMark key={p.id} subject={subject.slug} part={p} many={many} />)
           : (
             <div key={p.id} className="qb-note qb-reveal-ms">
               <span className="lp-tape" aria-hidden="true" />
-              <p className="qb-note-label">Mark scheme for {p.l}</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <div className="qb-scroll"><img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" /></div>
+              <p className="qb-note-label">{p.msq ? <>Mark scheme for question {questionOf(p.l)}: find {inWholeNames} in it</> : <>Mark scheme for {p.l}</>}</p>
+              <div className="qb-scroll">{zoomable(p, "ms",
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
         {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
-        {!embed && schemePdf && parts.filter(p => !p.k).map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
+        {!embed && pdfOnly.map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>
 
       <div className="qb-right">

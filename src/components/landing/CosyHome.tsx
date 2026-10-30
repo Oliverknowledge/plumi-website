@@ -104,14 +104,14 @@ export function CosyHome({ variant }: { variant?: string }) {
             </div>
             <div className="lp-tickets">
               <p>{cosyHero.freeLabel}</p>
-              <a href="#practice-papers" className="lp-ticket pk-ticket" data-testid="hero-practice-papers-link">
-                <i aria-hidden="true"><PackIcon /></i>
-                <span><b>{practice.packs.ticket}</b><small>{practice.packs.ticketHero}</small></span>
-                <span className="pk-new">New</span>
-              </a>
+              {/* The question bank first, then the boards' past papers (founder, 30 October 2026). */}
               <Link href="/question-bank" className="lp-ticket" data-testid="hero-question-bank-link">
                 <i aria-hidden="true"><QuestionIcon /></i>
                 <span><b>{practice.bank.name}</b><small>{bankQuestions.toLocaleString("en-GB")} {practice.bank.hero}</small></span>
+              </Link>
+              <Link href="/past-papers" className="lp-ticket pk-ticket" data-testid="hero-past-papers-link">
+                <i aria-hidden="true"><PackIcon /></i>
+                <span><b>{practice.pastPapers.ticket}</b><small>{practice.pastPapers.ticketHero}</small></span>
               </Link>
             </div>
           </div>
@@ -277,6 +277,24 @@ export function CosyHome({ variant }: { variant?: string }) {
             <h2 id="practice-title">{practice.title} <em>{practice.titleEm}</em></h2>
             <p className="lp-lead">{practice.lead}</p>
           </div>
+          <div className="lp-practice">
+            <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
+              <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
+              <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
+              <p>{practice.bank.line}</p>
+              <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
+              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
+                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
+              </ul>
+              <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
+            </article>
+            <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
+              <div className="lp-tape" aria-hidden="true" />
+              <h3 id="daily-title">{practice.discord.title}</h3>
+              <p>{practice.discord.line}</p>
+              <DiscordButton placement="practice" />
+            </aside>
+          </div>
           <div id="practice-papers" className="lp-card pk-feature" data-testid="practice-papers">
             <div className="lp-tape" aria-hidden="true" />
             <div className="pk-feature-copy">
@@ -297,24 +315,6 @@ export function CosyHome({ variant }: { variant?: string }) {
               <p className="pk-disclaimer pk-feature-note">{practice.packs.note}</p>
             </div>
             <PastPapersCard placement="home" strip />
-          </div>
-          <div className="lp-practice">
-            <article className="lp-card lp-practice-card" data-testid="practice-question-bank">
-              <span className="lp-tag">{bankQuestions.toLocaleString("en-GB")} questions</span>
-              <h3><Link href="/question-bank" data-testid="practice-question-bank-link">{practice.bank.name}</Link></h3>
-              <p>{practice.bank.line}</p>
-              <p className="lp-bank-boards-label">{practice.bank.boardsLabel} <a href="#bank-subjects">{bankSubjects.length} subjects ↓</a></p>
-              <ul className="lp-bank-chips" aria-label="Question bank exam boards">
-                {bankBoards.map(b => <li key={b.board} style={boardStyle(b.board)}><a href={`#${boardId(b.board)}`}>{boardName[b.board] ?? b.board}</a></li>)}
-              </ul>
-              <Link href="/question-bank" className="lp-btn">{practice.bank.cta} ›</Link>
-            </article>
-            <aside className="lp-sticky lp-daily" aria-labelledby="daily-title">
-              <div className="lp-tape" aria-hidden="true" />
-              <h3 id="daily-title">{practice.discord.title}</h3>
-              <p>{practice.discord.line}</p>
-              <DiscordButton placement="practice" />
-            </aside>
           </div>
           <p className="lp-bridge">{practice.bridge} <a href="#marking">{practice.bridgeLink} ›</a></p>
         </div>

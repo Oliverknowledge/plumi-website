@@ -1,4 +1,5 @@
 import { fileKindLabel, fileKinds, fileUrl, type FileKind, type Paper, type PaperRow } from "@/content/pastPapers";
+import { DoneTick } from "./DoneTick";
 
 /** Sittings shown before the rest fold away. Cambridge papers run past a hundred. */
 const RECENT = 12;
@@ -14,6 +15,8 @@ const RECENT = 12;
  *
  * Long histories show the latest twelve sittings and fold the rest into a
  * <details>: still in the HTML, so still found, but not a wall to scroll past.
+ *
+ * Each sitting starts with a tickbox, to keep track of the papers done (`DoneTick`, kept in the browser).
  */
 export function PaperTable({ paper, heading, track }: { paper: Paper; heading: string; track: string }) {
   const kinds = fileKinds.filter(kind => paper.rows.some(row => row.files[kind]));
@@ -39,6 +42,7 @@ function Table({ rows, paper, heading, track, kinds, more }: { rows: PaperRow[];
     <table className="pp-table">
       <thead>
         <tr>
+          <th scope="col" className="pp-done-head"><span className="pp-done-mark" aria-hidden="true">✓</span><span className="sr-only">Done</span></th>
           <th scope="col">Session</th>
           {kinds.map(kind => <th key={kind} scope="col"><abbr title={fileKindLabel[kind].long}>{fileKindLabel[kind].short}</abbr></th>)}
           {more && <th scope="col">More</th>}
@@ -47,6 +51,7 @@ function Table({ rows, paper, heading, track, kinds, more }: { rows: PaperRow[];
       <tbody>
         {rows.map(row => (
           <tr key={row.session}>
+            <td className="pp-done-cell"><DoneTick paper={track} session={row.session} label={`${heading} ${paper.name}, ${row.session}`} /></td>
             <th scope="row">{row.session}</th>
             {kinds.map(kind => {
               const href = row.files[kind];
@@ -66,7 +71,7 @@ function Table({ rows, paper, heading, track, kinds, more }: { rows: PaperRow[];
               <td className="pp-more-files">
                 {row.more?.map(x => (
                   <a key={x.href} className="pp-file is-more" href={fileUrl(x.href)} target="_blank" rel="noopener"
-                    aria-label={`${heading} ${paper.name}, ${row.session}, ${x.label} (PDF)`} data-paper={track} data-kind="more" data-session={row.session}>
+                    aria-label={`${heading} ${paper.name}, ${row.session}, ${x.label} (${x.href.endsWith(".zip") ? "ZIP" : "PDF"})`} data-paper={track} data-kind="more" data-session={row.session}>
                     {x.label}
                   </a>
                 ))}

@@ -1,13 +1,12 @@
-import Link from "next/link";
+import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { Tape } from "@/components/cosy/Chrome";
 import { display } from "@/content/pastPapers";
-import { packCopy, packFile, packFileName, packLevels, packPath, practicePacks, type PackLevel, type PracticePack } from "@/content/practicePacks";
-import { PackClickTracker } from "./PackClickTracker";
+import { packCopy, packLevels, type PackLevel, type PracticePack } from "@/content/practicePacks";
 import "@/app/practice-packs.css";
 
 /**
  * The pieces every practice pack placement shares: the booklet cover drawn in CSS, the
- * difficulty ladder, the two download buttons and the small card beside past papers.
+ * difficulty ladder, and the way to get it: free for members of the Plumi Discord.
  * The disclaimer travels with the cover, so a pack is never shown as the board's own.
  */
 
@@ -48,55 +47,16 @@ export function PackLadder({ pack, legend = false }: { pack: PracticePack; legen
 /** What the ladder's colours mean. */
 export const PackLegend = () => <ul className="pk-legend" aria-label="Difficulty">{packLevels.map(l => <li key={l}><i className={levelClass(l)} />{l}</li>)}</ul>;
 
-/** The questions and the mark scheme, each one tap, tracked as `pack_downloaded`. */
-export function PackDownloads({ pack, placement }: { pack: PracticePack; placement: string }) {
-  const file = (f: "questions" | "mark-scheme", label: string, primary: boolean) => (
-    <a href={packFile(pack, f)} download={packFileName(pack, f)} target="_blank" rel="noopener"
-      className={`lp-btn pk-dl${primary ? " pk-dl-main" : ""}`} data-pack={pack.slug} data-file={f} data-placement={placement}
-      data-testid={`${placement}-${pack.slug}-${f}`}>
-      <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M7 1h2v7h2v1h-1v1H9v1H7v-1H6V9H5V8h2zM2 11h2v2h8v-2h2v4H2z" /></svg>
-      <span>{label.replace(/ PDF$/, "")}<span className="pk-pdf"> PDF</span></span>
-    </a>
-  );
+/**
+ * How to get a pack: it's free for members of the Plumi Discord (founder, 30 October 2026),
+ * so the website shows what's in it and the Discord hands it over. Joining is reported like
+ * every Discord button (`discord_clicked`, with this placement).
+ */
+export function PackGet({ pack, placement }: { pack: PracticePack; placement: string }) {
   return (
-    <div className="pk-dls">
-      {file("questions", packCopy.download.questions, true)}
-      {file("mark-scheme", packCopy.download.scheme, false)}
+    <div className="pk-get">
+      <DiscordButton placement={`${placement}-${pack.slug}`} label="Get it free on Discord" className="lp-btn lp-discord pk-dl" />
+      <p className="pk-get-line">{packCopy.get.line} the <b>{packCopy.get.channel}</b> channel.</p>
     </div>
-  );
-}
-
-/** A pack beside the board's own papers: on the past paper and question bank pages. */
-export function PackPromo({ pack, placement }: { pack: PracticePack; placement: string }) {
-  return (
-    <aside className="lp-card pk-promo" aria-labelledby={`${placement}-pack-title`}>
-      <PackCover pack={pack} small />
-      <div className="pk-promo-copy">
-        <span className="lp-eyebrow">{packCopy.eyebrow}</span>
-        <h2 id={`${placement}-pack-title`}>Done the past papers? <em>Try ours.</em></h2>
-        <p>
-          Our {pack.board}-style {display(pack.title)} pack: {pack.questions.length} new questions across the whole course,
-          {" "}{pack.marks} marks, from easy to super hard, with a full mark scheme.
-        </p>
-        <PackDownloads pack={pack} placement={placement} />
-        <p className="pk-small"><Link href={packPath(pack.slug)}>See what’s inside ›</Link> · {pack.disclaimer}</p>
-      </div>
-      <PackClickTracker />
-    </aside>
-  );
-}
-
-/** Every pack at once, for the past paper library's front page. */
-export function PacksCallout() {
-  return (
-    <aside className="lp-card pk-promo pk-callout" aria-labelledby="packs-callout-title">
-      <ul className="pk-callout-covers">{practicePacks.map(p => <li key={p.slug}><Link href={packPath(p.slug)} aria-label={`${p.board}-style ${p.title} practice pack`}><PackCover pack={p} small /></Link></li>)}</ul>
-      <div className="pk-promo-copy">
-        <span className="lp-eyebrow">{packCopy.eyebrow}</span>
-        <h2 id="packs-callout-title">Run out of past papers? <em>Try ours.</em></h2>
-        <p>Whole practice packs written by Plumi: 30 new exam-style questions each, easy to super hard, with a full mark scheme. Free, no sign-up.</p>
-        <Link href="/practice-papers" className="lp-btn pk-dl pk-dl-main">See the practice packs ›</Link>
-      </div>
-    </aside>
   );
 }

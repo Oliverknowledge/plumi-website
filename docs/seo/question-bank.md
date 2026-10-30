@@ -73,6 +73,26 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Students' feedback of 29 October 2026
+
+- **Several papers at once.** The Paper control is a checklist, as Exam is (`?paper=8464B1H,8464B1F`),
+  with "Higher only" and "Foundation only" on a tiered GCSE bank.
+- **Questions on both tiers.** A GCSE sitting's Foundation and Higher papers share questions (AQA's
+  Foundation paper ends with the Higher paper's first two or three; Pearson shares a few). `tiers.py`
+  matches each Foundation part to the same sitting's Higher part by its words and marks, one to one, and
+  writes `public/question-bank/<slug>/tiers.json` ({Foundation id: Higher id}) beside the bank's data:
+  214 to 396 parts a bank, every pair checked to map whole questions (Foundation 7-8 to Higher 1-2).
+  "On both tiers: Show once" (`?tiers=once`) leaves a Foundation part out when its Higher twin's paper is
+  in view too. Re-run `python3 scripts/question-bank/tiers.py` after a new series.
+- **The question so far.** A later part can rest on what an earlier one gave (WJEC Physics 2025 Q5(b)
+  needs the stone's mass from (a)), so a part with earlier parts offers "Show question 5 so far": the
+  question's start and every part before it.
+- **Set PDFs.** A crop up to 1.4 pages tall is shrunk onto one page; a longer one is cut at a blank row up
+  to half a page back (it was a fifth), so a graph, which has no blank row, moves whole to the next page.
+- **Past papers.** A tickbox before each sitting marks it done (`DoneTick`, kept in the browser, no
+  account). Edexcel GCSE Maths' 2017 and 2018 Higher papers, which Pearson publishes only as zips and the
+  library's fetch passed over, join its table from the bank's own copies (`withBankGcseMaths`).
+
 ## Column vectors and fractions at a question's top (maths), fixed 28 October 2026
 
 A student sent screenshots of Further Maths vector questions (OCR Pure Core, Edexcel Further
@@ -1427,6 +1447,56 @@ python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=b
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-b
 ```
 
+## AQA GCSE English Language
+
+Added 30 October 2026, after a student asked for Paper 2: `/question-bank/aqa-gcse-english-language`,
+every question from AQA's GCSE English Language (8700) papers that AQA still publishes,
+November 2020 to November 2025, June and November each year. That is 75 questions from 19
+papers (Paper 2: 41 from 9 sittings; Paper 1: 34 from 10), every one with its mark scheme
+cropped and its examiner's comments. The same papers, with their inserts and the 2026
+specimens, are in the library at `/past-papers/gcse-english-language/aqa` (84 files).
+
+- **Topics are the question types.** Each paper sets the same five questions every series,
+  each assessing the same objectives, so the topics are those ten questions under the
+  papers' sections: Paper 1 Q1 listing information (AO1), Q2 language (AO2), Q3 structure
+  (AO2), Q4 evaluating a statement (AO4), Q5 descriptive or narrative writing (AO5, AO6);
+  Paper 2 Q1 true statements (AO1), Q2 summary of differences (AO1), Q3 language (AO2),
+  Q4 comparing perspectives (AO3), Q5 writing a viewpoint (AO5, AO6). A question is tagged
+  by its number, so there is no tagging pass.
+- **Whole questions, sources in the insert.** Answers are written in the paper, so a
+  question runs from its label to its first answer line (Paper 2's Q1, which has none,
+  runs to its last statement). Paper 1's Q2 prints its extract, which the crop keeps. The
+  sources are printed in a separate insert: the bank's `wholes` carries it as `ins`, and
+  every question that mentions a source shows a "Sources (insert)" link to that sitting's
+  insert (the writing questions don't). Picking one paper of one sitting also lists it
+  with the whole paper. Search covers the sources' text.
+- **Marks:** 4, 8, 8 (or 12), 20 (or 16) and 40: every paper adds up to 80.
+- **Mark schemes:** each question's from its boxed label to the next (Q5's to the end, the
+  AO5 and AO6 grids included), the running header and footer rules cut away.
+- **Reports** head each question ("Question 3"); November 2024's Paper 1 report opens each
+  question's paragraph with it in bold instead. A question gets everything under its
+  heading up to the next one or the report's closing sections.
+- **Pipeline:** `scripts/question-bank/aqa_english_lang/`: `fetch_english_lang.py`
+  (fetch_aqa.py over 8700), `cut_english_lang.py` (cut.py's label finder and image helpers,
+  cut.py unchanged) and `build_english_lang.py`. Papers are on R2 under `aqa/AQA-8700*`,
+  crops under `bank/8700*`. The library's AQA fetcher (`scripts/past-papers/boards/aqa.py`)
+  includes 8700, and `build.py` has the `gcse-english-language` subject.
+- **Gaps:** AQA no longer publishes June 2017 to November 2019, so the bank starts at
+  November 2020. Where AQA's copy blanks out a source for copyright, its reading questions
+  (01 to 04) can't be answered and are left out, keeping the writing question: Paper 1 in
+  June 2022 and November 2022, 2023 and 2025, and Paper 2 in November 2025 (Source A).
+  AQA publishes no Paper 2 question paper or insert for November 2023 (scheme and report
+  only), so that sitting isn't in the bank. June 2023 Paper 1's picture is blanked out in
+  AQA's copy; its Q5 stays, as the description task still reads. The specimens (sample
+  set 1, for the updated questions first examined in 2026) are in the library only.
+
+```bash
+python3 scripts/question-bank/aqa_english_lang/fetch_english_lang.py
+python3 scripts/question-bank/aqa_english_lang/cut_english_lang.py
+python3 scripts/question-bank/aqa_english_lang/build_english_lang.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lang
+```
+
 ## AQA A-Level Sociology
 
 Added 27 October 2026: `/question-bank/aqa-a-level-sociology`, every question from AQA's
@@ -2054,6 +2124,124 @@ python3 scripts/question-bank/eduqas_rs/build_eduqas_rs.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/eduqas-rs --pdf-prefix=eduqas/
 ```
 
+## Eduqas GCSE Religious Studies and History
+
+Added 30 October 2026, after a student asked for "eduqas rs and history gcse":
+`/question-bank/eduqas-gcse-religious-studies` and `/question-bank/eduqas-gcse-history`.
+They hold every question from Eduqas's GCSE (9-1) Religious Studies (C120, full course,
+Routes A and B) and History (C100) papers published on eduqas.co.uk, June 2018 to June 2025,
+including the Autumn 2020 and 2021 resits.
+
+- Religious Studies: 632 parts from 71 papers, all tagged. Every part has its mark scheme
+  cropped, and 352 carry the examiner's comments on their question.
+- History: 640 parts from 116 papers, all tagged. Every part has its mark scheme cropped,
+  289 have their sources or interpretations as a stem, and 533 carry the examiner's
+  comments.
+
+- **Papers and options.** Every option is a paper of its own, so both banks use the
+  `options` filter that Eduqas A Level Religious Studies added. No new page code was needed.
+  - Religious Studies:
+    - Route A: Component 1 (`c120u10`, the four themes), Component 2 (`c120u20`,
+      Christianity) and Component 3, one world faith (`c120u30` Buddhism … `c120u70`
+      Sikhism).
+    - Route B: Components 1 and 2 (`c120u80`, `c120u90`, Catholic theology). Its
+      Component 3 is Route A's Judaism paper.
+    - The **Religion** filter picks Component 3's faith (`?option=is`). It keeps that paper
+      and every other paper; it doesn't separate the routes (use Paper for that).
+  - History:
+    - Component 1, studies in depth: 1A–1H (`c100ua0` … `c100uh0`).
+    - Component 2: period studies 2A–2D (`c100u10` … `c100u40`) and thematic studies
+      2E–2H (`c100u50` … `c100u80`). Component 3 is non-exam assessment.
+    - The **Study** filter (`?option=thematic`) keeps one kind of study: British depth,
+      non-British depth, period or thematic. Paper then lists that kind's four options.
+- **Parts.**
+  - Religious Studies: questions "1." with parts (a)–(d): a key concept [2], describe [5],
+    explain [8], evaluate [15]. (a) starts at the question's number, so it carries the
+    theme. Route B's (a)–(c), and some (d)s, are two questions, (i) and (ii). These stay one
+    part, and their marks add up (4, 10, 16, 30). Ids look like `c120u10-jun24-01-a`.
+  - History: one question per heading. A question printed under sources or interpretations
+    has them cut as its stem (`c100ug0-jun24-04-stem.webp`). The part is the question from
+    its own first line, so a one-part question's id ends `-q` (`c100ug0-jun24-04-q`).
+    Thematic question 6, on the historic site, has (a) and (b).
+  - Answers are written in the question booklet, so a crop runs from a part's first line
+    to its last, inside the page frame. It leaves out the answer lines and the margin's
+    mark boxes, and a run of answer lines between (i) and (ii) is cut out. Reports are by
+    question. `noCalc` is set.
+- **Mark schemes.**
+  - Religious Studies: a part's crop is its indicative content, then the band descriptors
+    it is marked on. Those come from the scheme's front pages, matched by their heading
+    ("Question (c)", "Questions 1 (d), 3 (d) and 4 (d) ONLY", "Question 2 (d) LIFE AND
+    DEATH"). A part that carries the SPaG marks also gets the SPaG grid. Some schemes print
+    the short course's (a) beside the full course's, and both stay in the crop.
+  - History: a question's whole block, its bands and then the indicative content.
+  - Marks add up on every paper.
+- **Topics.** These come from Eduqas's own specifications (`eduqas_gcse/spec_eduqas_gcse.py`).
+  `year` is 0.
+  - Religious Studies: 95 topics, which are the specification's areas of study.
+    - Route A's four themes have three areas each ("Sexual relationships").
+    - Christianity and each faith have 9 or 10 areas, beliefs then practices.
+    - Route B's four themes have six areas each ("Forms: Painting").
+    - Faith sections carry their `option`, so the topic tiles follow the Religion filter.
+  - History: 112 topics. Each option's seven key-question areas ("The Black Death") are
+    topics, and each thematic study also has "The historic site". Sections carry their
+    study's `option`.
+  - Long titles are shortened (`SHORT` and `SHORT_HISTORY`). A title shared by sections
+    names its section ("The afterlife (Judaism)", "Immigration (USA 1910–29)", `WHOSE` in
+    `build_eduqas_gcse.py`). Every slug is under 50 characters, and the build asserts
+    under 70.
+  - Tagging was done by Claude subagents reading each part against its own section's topics
+    (tag.md, "Eduqas GCSE Religious Studies and History"). Every topic has questions.
+    History's question 6 parts are always the historic site. Religious Studies' 2024
+    reports list what each part tested ("(b) Area of Study: Symbolism; …"), and those
+    lists were given to the taggers.
+- **Pipeline.** `scripts/question-bank/eduqas_gcse/`, one set of scripts for both subjects
+  (`rs` or `history`):
+  - `fetch_eduqas_gcse.py` reads the qualification pages' pastpapers and keydocuments tabs.
+    It places each file by the code in its name or by the old paper numbers 2018–2020 use
+    (`s18-5120-05.pdf` is RS's Islam paper; History's 5101–5104 are 1A–1D, 1E–1H, 2A–2D and
+    2E–2H), checked against the cover. Large-print, braille and short-course files are
+    skipped.
+  - `spec_eduqas_gcse.py`.
+  - `cut_eduqas_gcse.py` is self-contained; the shared cutters are untouched.
+  - `tag_eduqas_gcse.py`.
+  - `build_eduqas_gcse.py`.
+
+  On R2, the papers are under `eduqas/c120*` and `eduqas/c100*` (reports
+  `eduqas/c120-er-a-jun24.pdf`, one per series and, for Religious Studies until 2024, per
+  route). The crops are under `bank/c120*` and `bank/c100*`.
+- **Gaps (as Eduqas publishes them):**
+  - Papers:
+    - Religious Studies Sikhism, Autumn 2021: no paper or scheme published.
+    - History's Autumn 2021 resit: only 1G, 2A, 2E and 2F are published.
+    - June 2026 papers aren't up yet (Eduqas waits a year), though the June 2026 reports
+      are. They're left out until the papers follow.
+  - The Religious Studies short course (5125) is a qualification of its own, and its papers
+    are left out. Its questions overlap the full course's.
+  - Reports:
+    - Religious Studies' 2024 and 2025 reports, and Autumn 2021's, comment by type of
+      question ("the 'd' questions"), not question by question. Those parts show no
+      comments.
+    - Autumn 2020's comments question by question only on Route A Components 1 and 2 and
+      Islam; its other sections are short summaries.
+    - History's Autumn 2020 report covers only 1B, and Autumn 2021 has none.
+    - History's reports from 2019 on comment once for each kind of study ("Q.3" for every
+      British depth study). Each option's question shows those comments. June 2018 comments
+      option by option.
+  - Some sources are photographs or cartoons that Eduqas removed from the public papers
+    for copyright ("[A photograph showing …]"). The stem shows the caption where the
+    picture was.
+  - No sample assessment materials are included, as with the other banks.
+
+```bash
+python3 scripts/question-bank/eduqas_gcse/fetch_eduqas_gcse.py rs        # or history
+python3 scripts/question-bank/eduqas_gcse/spec_eduqas_gcse.py rs
+python3 scripts/question-bank/eduqas_gcse/cut_eduqas_gcse.py rs
+python3 scripts/question-bank/eduqas_gcse/tag_eduqas_gcse.py split rs    # tag the batches, then:
+python3 scripts/question-bank/eduqas_gcse/tag_eduqas_gcse.py merge rs
+python3 scripts/question-bank/eduqas_gcse/build_eduqas_gcse.py rs
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/eduqas-gcse-rs --pdf-prefix=eduqas/
+```
+
 ## Computer Science (OCR and AQA)
 
 Added 26 October 2026, the bank's first Computer Science: `/question-bank/ocr-a-level-computer-science`
@@ -2125,4 +2313,53 @@ python3 scripts/question-bank/computer_science/tag_cs.py split    # tag, then: m
 python3 scripts/question-bank/computer_science/build_cs.py        # also stages the whole papers in <work>/r2/pdf
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-cs/r2 --pdf-prefix=ocr/   # r2/img -> ../img
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-cs/r2 --pdf-prefix=aqa/
+```
+
+## Edexcel GCSE Computer Science
+
+Added 30 October 2026, after a student asked: `/question-bank/edexcel-gcse-computer-science`
+(Pearson Edexcel GCSE (9-1) Computer Science, 1CP2), on the GCSE shelf, and its past paper
+library page `/past-papers/gcse-computer-science/edexcel`. Every file is Pearson's own, from
+qualifications.pearson.com. Whole papers and code files are on R2 under the library's names
+(`edexcel/EDX-1CP2-01-QP-JUN24.pdf`, `edexcel/EDX-1CP2-02-DATA-JUN24.zip`), the crops under
+`bank/1cp21*` and `bank/1cp22*`.
+
+- **210 parts** from 10 papers: Paper 1 (Principles of Computer Science) and Paper 2
+  (Application of Computational Thinking) for June 2022 to June 2025 and the sample
+  assessment materials. Every paper adds up to its 75 marks, every part has its own scheme
+  crop, the 18 multiple-choice parts show their answer letter, and every question from a
+  live series has the examiner's comments on it.
+- **Paper 2 is sat on screen, in Python.** Each of its six questions ("Open file Q03.py",
+  amend or write the program) is one whole question here, with its scheme: the marking
+  points, the levels grids and Pearson's model program (printed as pictures). Beside each
+  question is "The code files (zip)", the sitting's Q01.py to Q06.py and data files. Pearson
+  keeps June 2025's code files for teachers only, so those questions have none; the bank
+  page says so.
+- **Topics:** the specification's 66 numbered points (`2.1.3` Converting denary and binary,
+  `4.1.5` Network speed calculations, `6.4.2` Reading and writing files), with short titles
+  written for them, under its 20 headings (`1.2 Algorithms`, `6.4 Input and output`).
+  Paper 1 is tagged to Topics 1 to 5, Paper 2 to Topic 6.
+- **Library:** both papers, every sitting, with question paper, mark scheme and examiner's
+  report, the specimen (Pearson's sample assessment book for each paper, split into its
+  question paper and mark scheme), and Paper 2's code files under "More" (June 2022 to
+  2024 and the specimen). The library's `data` kind and its "Code files" link are new.
+- **Pipeline:** `scripts/question-bank/edexcel_cs/`: `fetch_cs.py` (Pearson's search index,
+  as `boards/edexcel.py`), `spec_cs.py`, `cut_cs.py` (cut_pearson.py as a library; Paper 2's
+  schemes are cut by their pages, its reports' "Q01 – …" headings read), `tag_cs.py` (tag.md's
+  Edexcel GCSE Computer Science section) and `build_cs.py`. The library's
+  `scripts/past-papers/boards/edexcel_cs.py` runs the same fetch. Two marks the cutter
+  misreads are set in `scripts/question-bank/labels/1cp21-jun22.json` and `1cp21-jun25.json`.
+- **Gaps:** June 2026 and June 2025's code files are for teachers only on Pearson's site.
+  1CP2 was first sat in June 2022; there is no November series.
+
+```bash
+python3 scripts/question-bank/edexcel_cs/fetch_cs.py
+python3 scripts/question-bank/edexcel_cs/spec_cs.py
+python3 scripts/question-bank/edexcel_cs/cut_cs.py
+python3 scripts/question-bank/edexcel_cs/tag_cs.py split   # tag the batches, then:
+python3 scripts/question-bank/edexcel_cs/tag_cs.py merge
+python3 scripts/question-bank/edexcel_cs/build_cs.py
+python3 scripts/past-papers/boards/edexcel_cs.py && python3 scripts/past-papers/build.py
+python3 scripts/past-papers/upload.py edexcel-cs
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-cs --crops-only --checksum
 ```

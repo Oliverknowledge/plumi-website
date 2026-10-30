@@ -84,11 +84,6 @@
 .lp-book-plate small { display: block; font-family: var(--f-body); font-size: 13px; font-weight: 800; color: var(--lp-ink-soft); margin-top: 2px; }
 .lp-book-rib { position: absolute; right: 22px; bottom: -22px; width: 14px; height: 34px; background: var(--lp-red); border: 2px solid var(--lp-line); border-top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 74%, 0 100%); z-index: 1; }
 .lp-book-body { flex: 1; display: grid; gap: 8px; align-content: start; padding: 16px 18px 18px; }
-.lp-book-squares { display: flex; flex-wrap: wrap; gap: 3px; max-width: 260px; }
-.lp-book-squares i { width: 10px; height: 10px; border: 2px solid var(--lp-line); border-radius: 3px; background: #fff; }
-.lp-book-squares i.is-1 { background: var(--bk); }
-.lp-book-squares i.is-2 { background: color-mix(in srgb, var(--bk) 55%, #fff); }
-.lp-book-squares i.is-3 { background: color-mix(in srgb, var(--bk) 75%, #2b2326); }
 /* A book that is a link: the link fills its grid cell by stretching (not height: 100%, which Safari resolves differently), and the book fills the link. */
 a.lp-book-link { display: flex; flex: 1 1 auto; width: 100%; min-width: 0; color: var(--lp-ink); text-decoration: none; border-radius: 7px 16px 16px 7px; }
 a.lp-book-link .lp-book { transition: transform .1s, box-shadow .1s; }

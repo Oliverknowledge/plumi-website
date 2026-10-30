@@ -142,11 +142,11 @@ export const routeIntents: readonly RouteIntent[] = [
     primaryQuery: "free A-Level practice papers",
     secondaryQueries: ["A-Level Maths practice paper with mark scheme", "OCR A-Level Physics practice questions", "Edexcel A-Level Maths practice paper", "A-Level Physics practice paper free", "A-Level exam practice questions with answers"],
     intent: "Find more full papers to practise on once the past papers run out, with a mark scheme to check them.",
-    objective: "Get the student to download a Plumi pack in one tap, then on to the boards' past papers, which sit inside this section.",
+    objective: "Show the student what's in each Plumi pack and get them into the Discord, where the packs are free.",
     title: "Free A-Level Practice Papers With Mark Schemes | Plumi",
     h1: "Practice papers, written by us.",
     description:
-      "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. No sign-up.",
+      "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. Free in the Plumi Discord.",
     // Each pack's own page (/practice-papers/<slug>) is generated from src/content/practicePacks.ts
     // and added to the sitemap by src/app/sitemap.ts.
     linksTo: ["/past-papers", "/question-bank", "/physics-revision", "/ai-tutor-for-a-level-maths"],
@@ -157,7 +157,7 @@ export const routeIntents: readonly RouteIntent[] = [
   {
     path: "/past-papers",
     primaryQuery: "GCSE and A-Level past papers",
-    secondaryQueries: ["A-Level past papers", "GCSE past papers", "A-Level Maths past papers", "A-Level Chemistry past papers", "free past papers and mark schemes"],
+    secondaryQueries: ["A-Level past papers", "GCSE past papers", "A-Level Maths past papers", "A-Level Chemistry past papers", "AQA GCSE English Language past papers", "Edexcel GCSE Computer Science past papers", "free past papers and mark schemes"],
     intent: "Find the past papers and mark schemes for my subject and exam board, free.",
     objective: "Get the student to their board's papers in two clicks, then give them a reason to sit one in Plumi.",
     title: "Free GCSE & A-Level Past Papers and Mark Schemes | Plumi",
@@ -169,12 +169,12 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths"],
     changeFrequency: "monthly",
     priority: 0.9,
-    lastModified: "2026-10-23",
+    lastModified: "2026-10-30",
   },
   {
     path: "/question-bank",
     primaryQuery: "A-Level question bank",
-    secondaryQueries: ["GCSE question bank", "GCSE Maths questions by topic", "AQA GCSE Maths questions by topic", "Edexcel GCSE Maths questions by topic", "OCR GCSE Maths questions by topic", "AQA GCSE Physics questions by topic", "AQA GCSE Chemistry questions by topic", "AQA GCSE Biology questions by topic", "Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "Edexcel A-Level Chemistry questions by topic", "Edexcel A-Level Biology questions by topic", "Edexcel A-Level Physics questions by topic", "Edexcel A-Level Economics A questions by topic", "OCR A-Level Economics questions by topic", "OCR A-Level Law questions by topic", "Edexcel A-Level Psychology questions by topic", "Edexcel A-Level Politics questions by topic", "OCR A-Level Computer Science questions by topic", "AQA A-Level Computer Science questions by topic", "AQA A-Level Sociology questions by topic", "AQA A-Level Business questions by topic", "AQA A-Level Geography questions by topic", "OCR A-Level Chemistry questions by topic", "OCR A-Level Biology questions by topic", "OCR A-Level Physics questions by topic", "OCR MEI A-Level Maths questions by topic", "OCR MEI Further Maths questions by topic", "OCR A-Level Maths questions by topic", "CAIE A Level Maths questions by topic", "CAIE A Level Chemistry questions by topic", "CAIE A Level Biology questions by topic", "CAIE A Level Physics questions by topic", "Cambridge International AS & A Level Further Maths questions by topic", "IGCSE Maths questions by topic", "IGCSE Biology questions by topic", "IGCSE Chemistry questions by topic", "IGCSE Physics questions by topic", "Cambridge IGCSE Additional Maths questions by topic", "past paper questions by topic"],
+    secondaryQueries: ["GCSE question bank", "GCSE Maths questions by topic", "AQA GCSE Maths questions by topic", "Edexcel GCSE Maths questions by topic", "OCR GCSE Maths questions by topic", "AQA GCSE Physics questions by topic", "AQA GCSE Chemistry questions by topic", "AQA GCSE Biology questions by topic", "Edexcel A-Level Maths questions by topic", "AQA A-Level Chemistry questions by topic", "AQA A-Level Biology exam questions by topic", "AQA A-Level Physics questions by topic", "Edexcel A-Level Chemistry questions by topic", "Edexcel A-Level Biology questions by topic", "Edexcel A-Level Physics questions by topic", "Edexcel A-Level Economics A questions by topic", "OCR A-Level Economics questions by topic", "OCR A-Level Law questions by topic", "Edexcel A-Level Psychology questions by topic", "Edexcel A-Level Politics questions by topic", "OCR A-Level Computer Science questions by topic", "AQA A-Level Computer Science questions by topic", "Edexcel GCSE Computer Science questions by topic", "AQA A-Level Sociology questions by topic", "AQA A-Level Business questions by topic", "AQA A-Level Geography questions by topic", "OCR A-Level Chemistry questions by topic", "OCR A-Level Biology questions by topic", "OCR A-Level Physics questions by topic", "OCR MEI A-Level Maths questions by topic", "OCR MEI Further Maths questions by topic", "OCR A-Level Maths questions by topic", "CAIE A Level Maths questions by topic", "CAIE A Level Chemistry questions by topic", "CAIE A Level Biology questions by topic", "CAIE A Level Physics questions by topic", "Cambridge International AS & A Level Further Maths questions by topic", "IGCSE Maths questions by topic", "IGCSE Biology questions by topic", "IGCSE Chemistry questions by topic", "IGCSE Physics questions by topic", "Cambridge IGCSE Additional Maths questions by topic", "AQA GCSE English Language questions by topic", "Eduqas GCSE Religious Studies questions by topic", "Eduqas GCSE History questions by topic", "past paper questions by topic"],
     intent: "Practise exam questions on one topic, with the mark scheme to hand.",
     objective: "Get the student to their subject's bank in one click; the bank does the rest.",
     title: "GCSE & A-Level Question Bank: Questions by Topic | Plumi",
@@ -185,7 +185,7 @@ export const routeIntents: readonly RouteIntent[] = [
     linksTo: ["/past-papers"],
     changeFrequency: "monthly",
     priority: 0.9,
-    lastModified: "2026-10-23",
+    lastModified: "2026-10-30",
   },
   {
     path: "/goodnotes-alternative-for-students",
