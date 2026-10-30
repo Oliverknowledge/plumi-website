@@ -28,6 +28,8 @@ SUBJECTS = [
     ("gcse-biology", "GCSE", "Biology", ["aqa", "edexcel", "ocr", "eduqas", "wjec", "cie-igcse", "edexcel-igcse"]),
     ("gcse-chemistry", "GCSE", "Chemistry", ["aqa", "edexcel", "ocr", "eduqas", "wjec", "cie-igcse", "edexcel-igcse"]),
     ("gcse-physics", "GCSE", "Physics", ["aqa", "edexcel", "ocr", "eduqas", "wjec", "cie-igcse", "edexcel-igcse"]),
+    ("gcse-english-language", "GCSE", "English Language", ["aqa"]),
+    ("gcse-computer-science", "GCSE", "Computer Science", ["edexcel"]),
 ]
 # slug -> (how the board is written in a heading, its label on its own, the qualification at A-Level, at GCSE)
 BOARDS = {
@@ -48,6 +50,9 @@ BANK_OWNED = {("a-level-biology", "aqa"), ("a-level-chemistry", "aqa"), ("a-leve
               ("a-level-biology", "edexcel"), ("a-level-chemistry", "edexcel"), ("a-level-physics", "edexcel")}
 MONTH = {"JAN": "January", "FEB": "February", "MAR": "March", "MAY": "May", "JUN": "June", "OCT": "October", "NOV": "November"}
 ROW_KINDS = ["qp", "ms", "er", "ins", "gt"]
+# Files a sitting comes with that aren't a paper, linked under "More": Pearson GCSE Computer Science's
+# Paper 2 is sat on screen, editing the code files in its zip.
+MORE = {"data": "Code files"}
 # What a board keeps from the public, said on its pages instead of linking elsewhere.
 NOTES = {
     "cie": "Cambridge publishes one recent sitting and its specimen papers openly. Earlier papers are on its School Support Hub, for schools.",
@@ -100,11 +105,13 @@ def board_entry(subject, slug, level, files):
             per_series = {}
             for f in mine:
                 per_series.setdefault(f["series"], set()).add(f["code"])
-            rows = {}
+            rows, more = {}, {}
             for f in mine:
+                key = (f["series"], f["code"] if len(per_series[f["series"]]) > 1 else "")
+                if f["kind"] in MORE:
+                    more.setdefault(key, []).append({"label": MORE[f["kind"]], "href": f["file"]})
                 if f["kind"] not in ROW_KINDS:
                     continue
-                key = (f["series"], f["code"] if len(per_series[f["series"]]) > 1 else "")
                 rows.setdefault(key, {})[f["kind"]] = f["file"]
             ordered = sorted(rows, key=lambda k: (-series_order(k[0]), natural(k[1])))
             # The latest sitting's booklets: a formula booklet and statistical tables can come as a pair.
@@ -118,7 +125,8 @@ def board_entry(subject, slug, level, files):
                 "title": f"{head} {name} ({code_label})",
                 "source": "",
                 "extras": [{"label": ("Formula booklet" if "math" in subject else "Data booklet") + (f" {i + 1}" if len(booklets) > 1 else ""), "href": b["file"]} for i, b in enumerate(booklets)],
-                "rows": [{"session": series_name(s) + (f" ({c.split('/')[-1]})" if c else ""), "files": rows[(s, c)]} for s, c in ordered],
+                "rows": [{"session": series_name(s) + (f" ({c.split('/')[-1]})" if c else ""), "files": rows[(s, c)],
+                          **({"more": more[(s, c)]} if (s, c) in more else {})} for s, c in ordered],
             })
         papers = [p for p in papers if p["rows"]]
         if papers:
@@ -146,7 +154,7 @@ def board_entry(subject, slug, level, files):
         "specCodes": specs, "groups": out_groups,
         **({"note": NOTES[slug]} if slug in NOTES else {}),
         "firstYear": min(years) if years else 0, "lastYear": max(years) if years else 0,
-        "fileCount": sum(len(r["files"]) for g in out_groups for p in g["papers"] for r in p["rows"]) + sum(len(p["extras"]) for g in out_groups for p in g["papers"]),
+        "fileCount": sum(len(r["files"]) + len(r.get("more", [])) for g in out_groups for p in g["papers"] for r in p["rows"]) + sum(len(p["extras"]) for g in out_groups for p in g["papers"]),
     }
 
 

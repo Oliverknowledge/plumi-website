@@ -7,7 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
  * paper library's front doors in place of the spiral notebook cards. The look is in cosy.css (.lp-book).
  */
 
-/** Each subject's colour: the homepage shelf's four, the app's lilac for Further Maths (and IGCSE Additional Maths), a rose for Psychology, a teal for Economics, a parchment for Philosophy, a slate for Computer Science, an apricot for Combined Science, a sage for Sociology, a claret for Business, a leather tan for English Literature, a moss green for Geography, a law-report indigo for Law, a navy for Politics, a candle gold for Religious Studies and a brick red for History. */
+/** Each subject's colour: the homepage shelf's four, the app's lilac for Further Maths (and IGCSE Additional Maths), a rose for Psychology, a teal for Economics, a parchment for Philosophy, a slate for Computer Science, an apricot for Combined Science, a sage for Sociology, a claret for Business, a leather tan for English Literature, a terracotta for English Language, a moss green for Geography, a law-report indigo for Law, a navy for Politics, a candle gold for Religious Studies and a brick red for History. */
 export const subjectColours: Record<string, string> = {
   Physics: "#f2c96b",
   Maths: "#6a9bd0",
@@ -23,6 +23,7 @@ export const subjectColours: Record<string, string> = {
   Sociology: "#b5c78f",
   Business: "#c4848f",
   "English Literature": "#c4a484",
+  "English Language": "#b9836a",
   Geography: "#a9c48a",
   "Religious Studies": "#e0b878",
   Criminology: "#8f9cc0", // a dusk blue
@@ -30,16 +31,6 @@ export const subjectColours: Record<string, string> = {
   Politics: "#7f8fb8",
   History: "#c98a6b",
 };
-
-/** A row of little squares, one a topic, filling in like the app's topic map: a fixed pattern, the same on every render. */
-export function TopicSquares({ count, max = 36 }: { count: number; max?: number }) {
-  const n = Math.min(count, max);
-  return (
-    <span className="lp-book-squares" aria-hidden="true">
-      {Array.from({ length: n }, (_, i) => <i key={i} className={`is-${(i * 7 + (i >> 2)) % 4}`} />)}
-    </span>
-  );
-}
 
 export function Book({ subject, kicker, plate, children, as: Tag = "div", className = "", ...rest }: {
   subject: string;

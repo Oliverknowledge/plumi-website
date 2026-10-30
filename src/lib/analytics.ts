@@ -44,9 +44,18 @@ export type PlumiEvent =
   | "bank_reveal"
   | "bank_set_added"
   | "bank_pdf_downloaded"
+  | "paper_marked_done"
   /** A student marked themselves on a part: `score` of `out_of`, `kind` (marks, rough
    *  for a part with no printed marks, choice for multiple choice), `attempts` on it so far. */
   | "bank_self_marked"
+  /** "Hide what I've done" switched (`on`), and Redo pressed on a question in Your history
+   *  (`subject`, `part`, `last` score share). */
+  | "bank_hide_done"
+  /** A question or mark scheme opened full screen to zoom (`kind` qp or ms, `part`). */
+  | "bank_zoom"
+  /** A student started typing an answer to a bank question (`subject`, `part`), once a part a visit. */
+  | "bank_answer_started"
+  | "bank_redo"
   /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */
   | "embed_view"

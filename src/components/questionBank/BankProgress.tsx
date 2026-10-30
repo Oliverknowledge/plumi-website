@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { bankTopicPath, topicName, topicRef, type BankSubject, type BankTopic } from "@/content/questionBank";
-import { dailyCounts, standing, STATE_LABEL, STATE_ORDER, streak, subjectTotals, topicAttempts, useBankMarks, type Standing, type TopicState } from "@/lib/bankProgress";
+import { track } from "@/lib/analytics";
+import { bankTopicPath, paperName, seriesLabel, topicName, topicRef, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
+import { dailyCounts, partStatus, ROUGH, standing, STATE_LABEL, STATE_ORDER, streak, subjectTotals, topicAttempts, useBankMarks, type PartRecord, type Standing, type TopicState } from "@/lib/bankProgress";
+import { InkScore } from "./SelfMark";
 
 /**
  * "Your marking": what self-marking has added up to, above the bank. A ring for the
  * share of marks you've earned, where you're dropping marks (the topics to practise
  * next), the last fortnight in this subject, and the topic map the app draws: one
  * square a topic, coloured by how it's going.
+ *
+ * Two tabs once there's something to show: Overview, and History, every question marked in
+ * this subject, newest first, with Redo. Questions missed a few days ago are offered back
+ * ("Have another go"), which the bank's list then shows on their own.
  *
  * Before the first mark it is one line and a nudge to the first question. On a phone
  * the whole panel folds to a single row (a small ring and what needs attention), so
@@ -35,9 +41,65 @@ function Ring({ share, small }: { share: number; small?: boolean }) {
   );
 }
 
-export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subject: BankSubject; onTopic?: (code: string) => void; lockedTopic?: string; compact?: boolean }) {
+const dayLabel = (ms: number) => {
+  const d = new Date(ms), now = new Date();
+  const days = Math.round((new Date(now.toDateString()).getTime() - new Date(d.toDateString()).getTime()) / 86_400_000);
+  return days === 0 ? "Today" : days === 1 ? "Yesterday" : d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+};
+
+/** Every question marked in this subject, newest first: when, which, the mark, and Redo. */
+function History({ subject, bank, parts, onRedo }: { subject: BankSubject; bank: Record<string, PartRecord>; parts?: BankPart[] | null; onRedo?: (id: string) => void }) {
+  const [all, setAll] = useState(false);
+  const byId = useMemo(() => new Map((parts ?? []).map(p => [p.id, p])), [parts]);
+  const rows = Object.entries(bank)
+    .map(([id, rec]) => ({ id, rec, last: rec.h[rec.h.length - 1] }))
+    .filter(r => r.last)
+    .sort((a, b) => b.last[2] - a.last[2]);
+  const shown = all ? rows : rows.slice(0, 12);
+  return (
+    <div className="qb-hist">
+      <ol>
+        {shown.map(({ id, rec, last }) => {
+          const p = byId.get(id);
+          const topic = subject.topics.find(t => rec.t.includes(t.code));
+          const { status, dueAt } = partStatus(rec);
+          return (
+            <li key={id} className={status === "again" ? "is-again" : ""}>
+              <span className="qb-hist-when">{dayLabel(last[2])}</span>
+              <span className="qb-hist-q">
+                {p ? <>{seriesLabel(subject, p.s)} · {paperName(subject, p.p)} · <b>Q{p.l}</b></> : "A question"}
+                {topic && <small>{topic.short ?? topic.title}</small>}
+              </span>
+              <InkScore s={last[0]} of={last[1]} rough={last[3] === ROUGH} size="note" />
+              <span className="qb-hist-state">
+                {status === "again" ? <b>Have another go</b>
+                  : status === "waiting" && dueAt ? <>Back {new Date(dueAt).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</>
+                    : rec.h.length > 1 ? <>{rec.h.length} tries</> : null}
+              </span>
+              {onRedo && (
+                <button type="button" className="qb-key" onClick={() => { track("bank_redo", { subject: subject.slug, part: id, last: last[1] ? Math.round((last[0] / last[1]) * 100) / 100 : 0 }); onRedo(id); }}>Redo</button>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      {rows.length > shown.length && <button type="button" className="qb-link" onClick={() => setAll(true)}>Show all {rows.length}</button>}
+    </div>
+  );
+}
+
+export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, onAgain, onRedo }: {
+  subject: BankSubject; onTopic?: (code: string) => void; lockedTopic?: string; compact?: boolean;
+  /** The bank's parts, for naming the questions in History (null while they load). */
+  parts?: BankPart[] | null;
+  /** Show only the questions due to have another go at. */
+  onAgain?: () => void;
+  /** Show just this one question again, from History. */
+  onRedo?: (id: string) => void;
+}) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  const [tab, setTab] = useState<"overview" | "history">("overview");
   const store = useBankMarks();
   const bank = store.subjects[subject.slug];
 
@@ -58,7 +120,8 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
       .filter(x => x.st.state === "needs" || x.st.state === "developing" || x.st.state === "rusty")
       .sort((a, b) => (a.st.state === "rusty" ? 1 : 0) - (b.st.state === "rusty" ? 1 : 0) || (a.st.estimate ?? 1) - (b.st.estimate ?? 1))
       .slice(0, 3);
-    return { sections, byTopic, tally, tried, total: topics.length, weakest, ...subjectTotals(bank) };
+    const again = Object.values(bank ?? {}).filter(r => partStatus(r).status === "again").length;
+    return { sections, byTopic, tally, tried, total: topics.length, weakest, again, ...subjectTotals(bank) };
   }, [subject, bank]);
 
   const days = useMemo(() => dailyCounts(store, DAYS, subject.slug), [store, subject.slug]);
@@ -66,8 +129,9 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
   if (!mounted) return null;
 
   const empty = view.questions === 0;
-  const most = Math.max(1, ...days.map(d => d.n));
   const fortnight = days.reduce((n, d) => n + d.n, 0);
+  const activeDays = days.filter(d => d.n).length;
+  const level = (n: number) => (n === 0 ? 0 : n <= 2 ? 1 : n <= 5 ? 2 : 3);
   const go = (code: string, slug: string) => onTopic
     ? { as: "button" as const, onClick: () => onTopic(code) }
     : { as: "link" as const, href: bankTopicPath(subject.slug, slug) };
@@ -108,11 +172,38 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
 
   const stats = (
     <dl className="qb-stats">
-      <div><dt>Questions marked</dt><dd>{view.questions.toLocaleString("en-GB")}</dd></div>
-      <div><dt>Topics tried</dt><dd>{view.tried}<small> / {view.total}</small></dd></div>
-      <div><dt>Need attention</dt><dd className={view.tally.needs ? "is-needs" : ""}>{view.tally.needs}</dd></div>
+      <div><dd>{view.questions.toLocaleString("en-GB")}</dd><dt>{view.questions === 1 ? "question" : "questions"} marked</dt></div>
+      <div><dd>{view.tried}<small>/{view.total}</small></dd><dt>topics tried</dt></div>
+      <div className={view.tally.needs ? "is-needs" : ""}><dd>{view.tally.needs}</dd><dt>need attention</dt></div>
     </dl>
   );
+
+  const fortnightStrip = (
+    <figure className="qb-fortnight">
+      <figcaption>
+        <span className="qb-label">Last 2 weeks</span>
+        <span>{fortnight} {fortnight === 1 ? "answer" : "answers"} on {activeDays} {activeDays === 1 ? "day" : "days"}</span>
+      </figcaption>
+      <ol className="qb-fortnight-days">
+        {days.map((d, i) => (
+          <li key={d.day} className={`is-l${level(d.n)}${i === days.length - 1 ? " is-today" : ""}`}
+            title={`${new Date(d.at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}: ${d.n} ${d.n === 1 ? "answer" : "answers"} marked`}>
+            <i aria-hidden="true" />
+            <span aria-hidden="true">{new Date(d.at).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>
+          </li>
+        ))}
+      </ol>
+    </figure>
+  );
+
+  const again = view.again > 0 && onAgain && (
+    <p className="qb-again">
+      <span className="qb-again-n">{view.again}</span>
+      <span>{view.again === 1 ? "question you missed is" : "questions you missed are"} ready to have another go at.</span>
+      <button type="button" className="lp-btn qb-again-go" onClick={onAgain}>Show me</button>
+    </p>
+  );
+  const history = <History subject={subject} bank={bank ?? {}} parts={parts} onRedo={onRedo} />;
 
   const weak = view.weakest.length > 0 && (
     <div className="qb-weak">
@@ -136,7 +227,10 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
 
   const map = (
     <details className="qb-prog-more" open={userOpen ?? !compact} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== (userOpen ?? !compact)) setUserOpen(o); }}>
-      <summary className="qb-prog-sum"><span>Your topic map</span><span className="qb-prog-sum-hint">{view.tried} of {view.total} topics tried</span></summary>
+      <summary className="qb-prog-sum">
+        <span>Your topic map</span>
+        <span className="qb-prog-sum-hint">{view.tried} of {view.total} topics tried{view.tally.early === view.total ? " · two answers on a topic colour its square in" : ""}</span>
+      </summary>
       <div className="qb-map">
         {view.sections.map(sec => (
           <div key={sec.code} className="qb-map-sec">
@@ -171,7 +265,12 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
         </summary>
         {/* The row already says how many and what needs attention: open straight onto what to practise. */}
         <div className="qb-prog-body">
+          {again}
           {weak}
+          <details className="qb-prog-more">
+            <summary className="qb-prog-sum"><span>Your history</span><span className="qb-prog-sum-hint">{view.questions} {view.questions === 1 ? "question" : "questions"}</span></summary>
+            {history}
+          </details>
           {map}
           {foot}
         </div>
@@ -183,28 +282,25 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact }: { subje
     <section className="lp-card qb-prog" aria-labelledby="qb-prog-title">
       <header className="qb-prog-head">
         <h2 id="qb-prog-title">Your marking</h2>
+        <div className="qb-tabs" role="tablist" aria-label="Your marking">
+          <button type="button" role="tab" aria-selected={tab === "overview"} className={tab === "overview" ? "is-on" : ""} onClick={() => setTab("overview")}>Overview</button>
+          <button type="button" role="tab" aria-selected={tab === "history"} className={tab === "history" ? "is-on" : ""} onClick={() => setTab("history")}>History <span className="qb-tabs-n">{view.questions}</span></button>
+        </div>
         {run > 1 && <span className="qb-prog-streak" title="Days in a row you’ve marked at least one question">{run}-day streak</span>}
       </header>
+      {tab === "history" ? <>{again}{history}{foot}</> : <>
       <div className="qb-prog-top">
         {view.share !== null && <Ring share={view.share} />}
-        {stats}
-        <figure className="qb-days">
-          <div className="qb-days-bars" aria-hidden="true">
-            {days.map((d, i) => (
-              <span key={d.day} className={`qb-day${i === days.length - 1 ? " is-today" : ""}${d.n ? "" : " is-none"}`}
-                style={{ height: `${d.n ? 12 + (d.n / most) * 88 : 6}%` }}
-                title={`${new Date(d.at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}: ${d.n} ${d.n === 1 ? "answer" : "answers"} marked`} />
-            ))}
-          </div>
-          <div className="qb-days-labels" aria-hidden="true">
-            {days.map((d, i) => <span key={d.day} className={i === days.length - 1 ? "is-today" : ""}>{new Date(d.at).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>)}
-          </div>
-          <figcaption>{fortnight} {fortnight === 1 ? "answer" : "answers"} marked in {subject.subject}, last {DAYS} days</figcaption>
-        </figure>
+        <div className="qb-prog-side">
+          {stats}
+          {fortnightStrip}
+        </div>
       </div>
+      {again}
       {weak}
       {map}
       {foot}
+      </>}
     </section>
   );
 }

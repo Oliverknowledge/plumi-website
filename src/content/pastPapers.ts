@@ -1,6 +1,6 @@
 /**
  * The past paper library: Maths, Further Maths, Biology, Chemistry and Physics papers
- * at GCSE, IGCSE and A-Level, grouped the way students search for them — level,
+ * at GCSE, IGCSE and A-Level, AQA GCSE English Language and Edexcel GCSE Computer Science, grouped the way students search for them — level,
  * subject, then board.
  *
  * Every file is our own copy of the board's published paper, fetched from the board's
@@ -40,7 +40,7 @@ export interface PaperLink { label: string; href: string }
 export interface PaperRow {
   session: string;
   files: Partial<Record<FileKind, string>>;
-  /** Anything else from that sitting: practical tasks (T1, TN), errata. */
+  /** Anything else from that sitting: practical tasks (T1, TN), errata, a Computer Science paper's code files (a zip). */
   more?: PaperLink[];
 }
 
@@ -258,6 +258,36 @@ function ownEdexcelScienceBoard(subject: string, base: BoardPapers): BoardPapers
   };
 }
 
+/**
+ * Pearson publishes GCSE Maths' June and November 2017 and 2018 series only as zips, which the
+ * library's fetch (scripts/past-papers/boards/edexcel.py) passes over; the GCSE Maths question bank
+ * unpacked the Higher papers onto our storage (edexcel/1ma1-1h-qp-jun18.pdf). Those sittings join the
+ * library's Higher tier rows from the bank's own list.
+ */
+function withBankGcseMaths(base: BoardPapers): BoardPapers {
+  const wholes = bankSubject("edexcel-gcse-maths")?.wholes ?? {};
+  let added = 0;
+  const groups = base.groups.map(g => ({
+    ...g,
+    papers: g.papers.map(p => {
+      const code = p.title.match(/\(1MA1\/(\d)H\)/);
+      if (!code) return p;
+      const have = new Set(p.rows.map(r => r.session));
+      const extra: PaperRow[] = Object.entries(wholes)
+        .filter(([k]) => k.startsWith(`1ma1${code[1]}h-`) && !have.has(seriesName(k.split("-")[1])))
+        .map(([k, files]) => ({ session: seriesName(k.split("-")[1]), files: { qp: files.qp, ms: files.ms, er: files.er } }));
+      added += extra.reduce((n, r) => n + Object.values(r.files).filter(Boolean).length, 0);
+      const order = (r: PaperRow) => {
+        const [month, year] = r.session.split(" ");
+        return Number(year) * 100 + (month === "November" ? 11 : month === "October" ? 10 : 6);
+      };
+      return extra.length ? { ...p, rows: [...p.rows, ...extra].sort((a, b) => order(b) - order(a)) } : p;
+    }),
+  }));
+  const years = groups.flatMap(g => g.papers.flatMap(p => p.rows.map(r => Number(r.session.split(" ")[1])))).filter(Boolean);
+  return { ...base, groups, firstYear: Math.min(base.firstYear, ...years), fileCount: base.fileCount + added };
+}
+
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const library: PastPaperData = {
@@ -266,6 +296,7 @@ const library: PastPaperData = {
     b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b)
       : b.slug === "edexcel" && ownEdexcel[b.subject] ? ownEdexcelBoard(b.subject, b)
         : b.slug === "edexcel" && ownEdexcelSciences[b.subject] ? ownEdexcelScienceBoard(b.subject, b)
+        : b.slug === "edexcel" && b.subject === "gcse-maths" ? withBankGcseMaths(b)
         : b),
 };
 
@@ -325,6 +356,7 @@ export function otherLevel(hub: SubjectHub): SubjectHub | undefined {
 /** The Plumi revision page for a subject, where there is one. */
 export function revisionPage(hub: SubjectHub): { label: string; path: string } | undefined {
   if (hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology") return { label: `${hub.name} revision`, path: `/${hub.name.toLowerCase()}-revision` };
+  if (hub.name === "English Language" || hub.name === "Computer Science") return undefined;
   if (hub.level === "GCSE") return { label: "GCSE Maths", path: "/gcse-maths" };
   return { label: "A-Level Maths tutor", path: "/ai-tutor-for-a-level-maths" };
 }

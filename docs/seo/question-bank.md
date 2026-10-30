@@ -73,6 +73,26 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Students' feedback of 29 October 2026
+
+- **Several papers at once.** The Paper control is a checklist, as Exam is (`?paper=8464B1H,8464B1F`),
+  with "Higher only" and "Foundation only" on a tiered GCSE bank.
+- **Questions on both tiers.** A GCSE sitting's Foundation and Higher papers share questions (AQA's
+  Foundation paper ends with the Higher paper's first two or three; Pearson shares a few). `tiers.py`
+  matches each Foundation part to the same sitting's Higher part by its words and marks, one to one, and
+  writes `public/question-bank/<slug>/tiers.json` ({Foundation id: Higher id}) beside the bank's data:
+  214 to 396 parts a bank, every pair checked to map whole questions (Foundation 7-8 to Higher 1-2).
+  "On both tiers: Show once" (`?tiers=once`) leaves a Foundation part out when its Higher twin's paper is
+  in view too. Re-run `python3 scripts/question-bank/tiers.py` after a new series.
+- **The question so far.** A later part can rest on what an earlier one gave (WJEC Physics 2025 Q5(b)
+  needs the stone's mass from (a)), so a part with earlier parts offers "Show question 5 so far": the
+  question's start and every part before it.
+- **Set PDFs.** A crop up to 1.4 pages tall is shrunk onto one page; a longer one is cut at a blank row up
+  to half a page back (it was a fifth), so a graph, which has no blank row, moves whole to the next page.
+- **Past papers.** A tickbox before each sitting marks it done (`DoneTick`, kept in the browser, no
+  account). Edexcel GCSE Maths' 2017 and 2018 Higher papers, which Pearson publishes only as zips and the
+  library's fetch passed over, join its table from the bank's own copies (`withBankGcseMaths`).
+
 ## Column vectors and fractions at a question's top (maths), fixed 28 October 2026
 
 A student sent screenshots of Further Maths vector questions (OCR Pure Core, Edexcel Further
@@ -1427,6 +1447,56 @@ python3 scripts/question-bank/aqa_english_lit/build_english_lit.py --level=b
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lit-b
 ```
 
+## AQA GCSE English Language
+
+Added 30 October 2026, after a student asked for Paper 2: `/question-bank/aqa-gcse-english-language`,
+every question from AQA's GCSE English Language (8700) papers that AQA still publishes,
+November 2020 to November 2025, June and November each year. That is 75 questions from 19
+papers (Paper 2: 41 from 9 sittings; Paper 1: 34 from 10), every one with its mark scheme
+cropped and its examiner's comments. The same papers, with their inserts and the 2026
+specimens, are in the library at `/past-papers/gcse-english-language/aqa` (84 files).
+
+- **Topics are the question types.** Each paper sets the same five questions every series,
+  each assessing the same objectives, so the topics are those ten questions under the
+  papers' sections: Paper 1 Q1 listing information (AO1), Q2 language (AO2), Q3 structure
+  (AO2), Q4 evaluating a statement (AO4), Q5 descriptive or narrative writing (AO5, AO6);
+  Paper 2 Q1 true statements (AO1), Q2 summary of differences (AO1), Q3 language (AO2),
+  Q4 comparing perspectives (AO3), Q5 writing a viewpoint (AO5, AO6). A question is tagged
+  by its number, so there is no tagging pass.
+- **Whole questions, sources in the insert.** Answers are written in the paper, so a
+  question runs from its label to its first answer line (Paper 2's Q1, which has none,
+  runs to its last statement). Paper 1's Q2 prints its extract, which the crop keeps. The
+  sources are printed in a separate insert: the bank's `wholes` carries it as `ins`, and
+  every question that mentions a source shows a "Sources (insert)" link to that sitting's
+  insert (the writing questions don't). Picking one paper of one sitting also lists it
+  with the whole paper. Search covers the sources' text.
+- **Marks:** 4, 8, 8 (or 12), 20 (or 16) and 40: every paper adds up to 80.
+- **Mark schemes:** each question's from its boxed label to the next (Q5's to the end, the
+  AO5 and AO6 grids included), the running header and footer rules cut away.
+- **Reports** head each question ("Question 3"); November 2024's Paper 1 report opens each
+  question's paragraph with it in bold instead. A question gets everything under its
+  heading up to the next one or the report's closing sections.
+- **Pipeline:** `scripts/question-bank/aqa_english_lang/`: `fetch_english_lang.py`
+  (fetch_aqa.py over 8700), `cut_english_lang.py` (cut.py's label finder and image helpers,
+  cut.py unchanged) and `build_english_lang.py`. Papers are on R2 under `aqa/AQA-8700*`,
+  crops under `bank/8700*`. The library's AQA fetcher (`scripts/past-papers/boards/aqa.py`)
+  includes 8700, and `build.py` has the `gcse-english-language` subject.
+- **Gaps:** AQA no longer publishes June 2017 to November 2019, so the bank starts at
+  November 2020. Where AQA's copy blanks out a source for copyright, its reading questions
+  (01 to 04) can't be answered and are left out, keeping the writing question: Paper 1 in
+  June 2022 and November 2022, 2023 and 2025, and Paper 2 in November 2025 (Source A).
+  AQA publishes no Paper 2 question paper or insert for November 2023 (scheme and report
+  only), so that sitting isn't in the bank. June 2023 Paper 1's picture is blanked out in
+  AQA's copy; its Q5 stays, as the description task still reads. The specimens (sample
+  set 1, for the updated questions first examined in 2026) are in the library only.
+
+```bash
+python3 scripts/question-bank/aqa_english_lang/fetch_english_lang.py
+python3 scripts/question-bank/aqa_english_lang/cut_english_lang.py
+python3 scripts/question-bank/aqa_english_lang/build_english_lang.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-english-lang
+```
+
 ## AQA A-Level Sociology
 
 Added 27 October 2026: `/question-bank/aqa-a-level-sociology`, every question from AQA's
@@ -2243,4 +2313,53 @@ python3 scripts/question-bank/computer_science/tag_cs.py split    # tag, then: m
 python3 scripts/question-bank/computer_science/build_cs.py        # also stages the whole papers in <work>/r2/pdf
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-cs/r2 --pdf-prefix=ocr/   # r2/img -> ../img
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-cs/r2 --pdf-prefix=aqa/
+```
+
+## Edexcel GCSE Computer Science
+
+Added 30 October 2026, after a student asked: `/question-bank/edexcel-gcse-computer-science`
+(Pearson Edexcel GCSE (9-1) Computer Science, 1CP2), on the GCSE shelf, and its past paper
+library page `/past-papers/gcse-computer-science/edexcel`. Every file is Pearson's own, from
+qualifications.pearson.com. Whole papers and code files are on R2 under the library's names
+(`edexcel/EDX-1CP2-01-QP-JUN24.pdf`, `edexcel/EDX-1CP2-02-DATA-JUN24.zip`), the crops under
+`bank/1cp21*` and `bank/1cp22*`.
+
+- **210 parts** from 10 papers: Paper 1 (Principles of Computer Science) and Paper 2
+  (Application of Computational Thinking) for June 2022 to June 2025 and the sample
+  assessment materials. Every paper adds up to its 75 marks, every part has its own scheme
+  crop, the 18 multiple-choice parts show their answer letter, and every question from a
+  live series has the examiner's comments on it.
+- **Paper 2 is sat on screen, in Python.** Each of its six questions ("Open file Q03.py",
+  amend or write the program) is one whole question here, with its scheme: the marking
+  points, the levels grids and Pearson's model program (printed as pictures). Beside each
+  question is "The code files (zip)", the sitting's Q01.py to Q06.py and data files. Pearson
+  keeps June 2025's code files for teachers only, so those questions have none; the bank
+  page says so.
+- **Topics:** the specification's 66 numbered points (`2.1.3` Converting denary and binary,
+  `4.1.5` Network speed calculations, `6.4.2` Reading and writing files), with short titles
+  written for them, under its 20 headings (`1.2 Algorithms`, `6.4 Input and output`).
+  Paper 1 is tagged to Topics 1 to 5, Paper 2 to Topic 6.
+- **Library:** both papers, every sitting, with question paper, mark scheme and examiner's
+  report, the specimen (Pearson's sample assessment book for each paper, split into its
+  question paper and mark scheme), and Paper 2's code files under "More" (June 2022 to
+  2024 and the specimen). The library's `data` kind and its "Code files" link are new.
+- **Pipeline:** `scripts/question-bank/edexcel_cs/`: `fetch_cs.py` (Pearson's search index,
+  as `boards/edexcel.py`), `spec_cs.py`, `cut_cs.py` (cut_pearson.py as a library; Paper 2's
+  schemes are cut by their pages, its reports' "Q01 – …" headings read), `tag_cs.py` (tag.md's
+  Edexcel GCSE Computer Science section) and `build_cs.py`. The library's
+  `scripts/past-papers/boards/edexcel_cs.py` runs the same fetch. Two marks the cutter
+  misreads are set in `scripts/question-bank/labels/1cp21-jun22.json` and `1cp21-jun25.json`.
+- **Gaps:** June 2026 and June 2025's code files are for teachers only on Pearson's site.
+  1CP2 was first sat in June 2022; there is no November series.
+
+```bash
+python3 scripts/question-bank/edexcel_cs/fetch_cs.py
+python3 scripts/question-bank/edexcel_cs/spec_cs.py
+python3 scripts/question-bank/edexcel_cs/cut_cs.py
+python3 scripts/question-bank/edexcel_cs/tag_cs.py split   # tag the batches, then:
+python3 scripts/question-bank/edexcel_cs/tag_cs.py merge
+python3 scripts/question-bank/edexcel_cs/build_cs.py
+python3 scripts/past-papers/boards/edexcel_cs.py && python3 scripts/past-papers/build.py
+python3 scripts/past-papers/upload.py edexcel-cs
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-cs --crops-only --checksum
 ```

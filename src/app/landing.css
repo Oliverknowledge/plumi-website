@@ -183,6 +183,8 @@
 
 /* free practice: the question bank, past papers, and the Discord's daily question */
 .lp-practice { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr); gap: 28px; align-items: start; }
+/* The question bank comes first in free practice, the practice packs under it (founder, 30 October 2026). */
+.lp-practice + .pk-feature { margin-top: 36px; }
 .lp-practice-card { padding: 28px 26px; display: grid; gap: 12px; align-content: start; }
 .lp .lp-practice-card h3 { margin: 0; font-family: var(--f-px); font-size: 28px; }
 .lp .lp-practice-card h3 a { color: inherit; text-decoration: none; }
