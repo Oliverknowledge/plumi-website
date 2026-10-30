@@ -11,8 +11,8 @@ import { discordUrl } from "@/config/site";
  * The footer holds every indexable page, the community and the legal pair, so every
  * page stays one click from every other page.
  */
+// "How it marks" left the bar (founder, 30 October 2026) to make room for the Android waitlist button.
 export const sectionLinks: readonly (readonly [string, string])[] = [
-  ["How it marks", "marking"],
   ["Study with friends", "friends"],
 ];
 
