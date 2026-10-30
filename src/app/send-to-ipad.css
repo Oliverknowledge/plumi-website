@@ -10,3 +10,18 @@
 .hp-desk-actions { display: grid; gap: 6px; width: 100%; }
 .hp-desk-actions button { appearance: none; cursor: pointer; width: 100%; min-height: 40px; border-radius: 12px; border: 2px solid #5b4741; background: #fff; color: #2b2326; font: inherit; font-size: 14px; font-weight: 700; }
 .hp-desk-actions button:hover { background: #f6efe1; }
+
+/* The copy key: a clipboard that turns into a tick, drawn stroke by stroke, with a soft green wash that fades back after two seconds. */
+.hp-desk-actions .hp-desk-copy { display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .25s ease, border-color .25s ease, transform .12s ease; }
+.hp-desk-actions .hp-desk-copy:active { transform: scale(.97); }
+.hp-copy-icon { position: relative; width: 18px; height: 18px; display: inline-grid; }
+.hp-copy-icon svg { grid-area: 1 / 1; transition: opacity .2s ease, transform .3s cubic-bezier(.3, 1.4, .5, 1); }
+.hp-copy-tick { opacity: 0; transform: scale(.4) rotate(-20deg); }
+.hp-copy-tick path { stroke-dasharray: 24; stroke-dashoffset: 24; }
+.hp-desk-copy.is-copied, .hp-desk-actions .hp-desk-copy.is-copied:hover { background: #d9f2dc; border-color: #2f9e62; color: #17562f; }
+.hp-desk-copy.is-copied .hp-copy-clip { opacity: 0; transform: scale(.4) rotate(20deg); }
+.hp-desk-copy.is-copied .hp-copy-tick { opacity: 1; transform: none; }
+.hp-desk-copy.is-copied .hp-copy-tick path { animation: hp-tick .38s .08s ease-out forwards; }
+@keyframes hp-tick { to { stroke-dashoffset: 0; } }
+html[data-theme="dark"] .hp-desk-copy.is-copied, html[data-theme="dark"] .hp-desk-actions .hp-desk-copy.is-copied:hover { background: #1f3a2a; border-color: #5fcf8a; color: #bdf0cf; }
+@media (prefers-reduced-motion: reduce) { .hp-copy-icon svg, .hp-desk-actions .hp-desk-copy { transition: none; } .hp-desk-copy.is-copied .hp-copy-tick path { animation: none; stroke-dashoffset: 0; } }

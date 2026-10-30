@@ -26,7 +26,7 @@ function emailLink(placement: string) {
 }
 
 /** The send-on's outcome, in our own analytics and, when it got the link out, as a Google Ads conversion. */
-function noteSendResult(placement: string, outcome: "sent" | "emailed" | "dismissed") {
+function noteSendResult(placement: string, outcome: "sent" | "emailed" | "copied" | "dismissed") {
   track("send_to_ipad_result", { placement, outcome });
   if (outcome !== "dismissed") reportAdsConversion("sendToIpad");
 }
@@ -92,14 +92,16 @@ export const desktopCopy = {
   button: "Send to my iPad",
   scan: "Point your iPad’s camera here",
   share: "AirDrop or share",
-  email: "Email me the link",
+  copy: "Copy link",
+  copied: "Copied",
   close: "Close",
 } as const;
 
 /**
  * On a computer, beside the badge: Plumi is iPad only, so the link is handed across. The
  * panel shows the link as a QR code for the iPad's camera, the share sheet where the
- * browser has one (Safari on a Mac offers AirDrop), and an email to themselves. Hidden on a
+ * browser has one (Safari on a Mac offers AirDrop), and a copy key that ticks. There is no "email me" here: a mailto
+ * opens nothing on a computer with no mail app set up. Hidden on a
  * phone, which has its own "Send it to my iPad" above. The code is drawn on first open, so
  * the library costs nothing to a visitor who never asks for it.
  */
@@ -107,8 +109,10 @@ function DesktopSend({ placement }: { placement: string }) {
   const [open, setOpen] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [canShare, setCanShare] = useState(false);
-  const [done, setDone] = useState<"sent" | "emailed" | null>(null);
+  const [done, setDone] = useState<"sent" | null>(null);
+  const [copied, setCopied] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
+  const resetCopied = useRef<ReturnType<typeof setTimeout>>(undefined);
   const href = storeHref(placement, "send");
 
   useEffect(() => {
@@ -123,6 +127,26 @@ function DesktopSend({ placement }: { placement: string }) {
     return () => { live = false; window.removeEventListener("keydown", onKey); window.removeEventListener("mousedown", onDown); };
   }, [open, href]);
 
+  /** Puts the link on the clipboard and shows the tick for a moment. `execCommand` is the fallback for a page with no clipboard permission. */
+  const copy = async () => {
+    track("cta_clicked", { placement, cta_kind: "copy_link", label: desktopCopy.copy, destination: href });
+    let ok = false;
+    try { await navigator.clipboard.writeText(href); ok = true; }
+    catch {
+      const field = document.createElement("textarea");
+      field.value = href; field.setAttribute("readonly", ""); field.style.position = "fixed"; field.style.opacity = "0";
+      document.body.appendChild(field); field.select();
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
+      document.body.removeChild(field);
+    }
+    if (!ok) return;
+    noteSendResult(placement, "copied");
+    setCopied(true);
+    clearTimeout(resetCopied.current);
+    resetCopied.current = setTimeout(() => setCopied(false), 2000);
+  };
+  useEffect(() => () => clearTimeout(resetCopied.current), []);
+
   return (
     <span className="hp-desk hp-not-phone">
       <button type="button" className="hp-desk-button" aria-expanded={open} data-testid={`${placement}-desktop-send`}
@@ -134,7 +158,7 @@ function DesktopSend({ placement }: { placement: string }) {
           setOpen(!open);
         }}>
         <svg aria-hidden="true" width="16" height="20" viewBox="0 0 16 20"><rect x="1.5" y="1.5" width="13" height="17" rx="2.5" fill="none" stroke="currentColor" strokeWidth="2" /><circle cx="8" cy="15.5" r="1" fill="currentColor" /></svg>
-        {done === "sent" ? phoneCopy.sent : done === "emailed" ? phoneCopy.emailed : desktopCopy.button}
+        {done === "sent" ? phoneCopy.sent : desktopCopy.button}
       </button>
       {open && (
         <div ref={panel} className="hp-desk-panel" role="dialog" aria-label={desktopCopy.button}>
@@ -144,12 +168,16 @@ function DesktopSend({ placement }: { placement: string }) {
           <p className="hp-desk-scan">{desktopCopy.scan}</p>
           <div className="hp-desk-actions">
             {canShare && (
-              <button type="button" onClick={async () => { const outcome = await sendToIPad(placement, desktopCopy.share); if (outcome !== "dismissed") { setDone(outcome); setOpen(false); } }}>
+              <button type="button" onClick={async () => { const outcome = await sendToIPad(placement, desktopCopy.share); if (outcome === "sent") { setDone("sent"); setOpen(false); } }}>
                 {desktopCopy.share}
               </button>
             )}
-            <button type="button" onClick={() => { track("cta_clicked", { placement, cta_kind: "email_to_ipad", label: desktopCopy.email, destination: "mailto" }); emailLink(placement); noteSendResult(placement, "emailed"); setDone("emailed"); setOpen(false); }}>
-              {desktopCopy.email}
+            <button type="button" className={`hp-desk-copy${copied ? " is-copied" : ""}`} onClick={copy} aria-live="polite" data-testid={`${placement}-desktop-copy`}>
+              <span className="hp-copy-icon" aria-hidden="true">
+                <svg className="hp-copy-clip" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><rect x="8.5" y="8.5" width="11" height="12" rx="2.5" /><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v8A2.5 2.5 0 0 0 6 16.5h2.5" /></svg>
+                <svg className="hp-copy-tick" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 12.8 9.8 18 19.5 6.5" /></svg>
+              </span>
+              <span>{copied ? desktopCopy.copied : desktopCopy.copy}</span>
             </button>
           </div>
         </div>
