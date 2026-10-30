@@ -11,12 +11,10 @@ import { discordUrl, site } from "@/config/site";
  * is a PNG too. Everything else is a table with inline styles. No em dashes anywhere a student reads.
  */
 
-const INK = "#4a3a36";
 const SOFT = "#7a665d";
 const LINE = "#5b4741";
 const PAPER = "#f6efe1";
 const CARD = "#fdf9f1";
-const ORANGE = "#d9702f";
 const DISCORD = "#5865f2";
 const MONO = "'Courier New', Courier, monospace";
 const BODY = "'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif";
