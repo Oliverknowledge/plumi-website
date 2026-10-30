@@ -9,7 +9,7 @@ import {
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
 import { packFor, packPath } from "@/content/practicePacks";
-import { BankShelves, RememberBank, type Shelf } from "./BankShelves";
+import { BankShelves, BoardRow, RememberBank, type Shelf } from "./BankShelves";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -136,12 +136,12 @@ function OtherBoards({ subject }: { subject: BankSubject }) {
     .sort((a, b) => (a.level === "IGCSE" ? 1 : 0) - (b.level === "IGCSE" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
   if (near.length < 2) return null;
   return (
-    <nav className="qb-boards-here" aria-label="Exam board">
+    <BoardRow>
       <span>Board:</span>
       {near.map(s => s.slug === subject.slug
         ? <span key={s.slug} className="is-on" aria-current="page">{boardKey(s)}</span>
         : <Link key={s.slug} href={bankPath(s.slug)}>{boardKey(s)}</Link>)}
-    </nav>
+    </BoardRow>
   );
 }
 

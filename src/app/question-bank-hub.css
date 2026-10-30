@@ -124,3 +124,10 @@
   background: #fff; border: 2px solid var(--lp-line); border-radius: 9px; box-shadow: 0 2px 0 var(--lp-shadow); }
 .lp .qb-boards-here a:hover { background: var(--lp-gold); }
 .qb-boards-here .is-on { background: var(--lp-gold); box-shadow: inset 0 2px 0 rgba(43, 35, 38, .18); }
+/* On a phone, one row that scrolls sideways, edge to edge, rather than a second line over the questions. */
+@media (max-width: 620px) {
+  .qb-boards-here { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    margin-inline: calc(-1 * max(18px, env(safe-area-inset-left, 0px))); padding: 2px max(18px, env(safe-area-inset-left, 0px)) 4px; }
+  .qb-boards-here::-webkit-scrollbar { display: none; }
+  .qb-boards-here > * { flex: none; white-space: nowrap; }
+}
