@@ -21,7 +21,7 @@ const BODY = "'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif";
 
 export const androidWelcomeSubject = "You're on the Plumi Android waitlist";
 
-export function androidWelcomeHtml(): string {
+export function androidWelcomeHtml(unsubscribeUrl: string): string {
   const img = (file: string) => `${site.domain}/email/${file}`;
   return `<!doctype html>
 <html lang="en">
@@ -36,10 +36,10 @@ export function androidWelcomeHtml(): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${PAPER};">
 <tr><td align="center" style="padding:36px 16px 44px;">
   <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
-    <tr><td style="padding:0 4px 18px;"><img src="${img("plumi-logo.png")}" width="137" height="48" alt="plumi" style="display:block;border:0;width:137px;height:48px;"></td></tr>
+    <tr><td style="padding:0 4px 18px;"><img src="${img("plumi-logo.png")}" width="143" height="48" alt="plumi" style="display:block;border:0;width:143px;height:48px;"></td></tr>
     <tr><td style="background:${CARD};border:3px solid ${LINE};border-bottom:8px solid ${LINE};border-radius:20px;padding:34px 32px 36px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td align="left" style="padding-bottom:18px;"><img src="${img("plumi-celebrating.png")}" width="96" alt="Plumi" style="display:block;border:0;width:96px;height:auto;"></td></tr>
+        <tr><td align="left" style="padding-bottom:18px;"><img src="${img("plumi-mascot.png")}" width="112" height="112" alt="Plumi" style="display:block;border:0;width:112px;height:112px;"></td></tr>
         <tr><td style="padding-bottom:12px;"><img src="${img("plumi-android-heading.png")}" width="370" alt="You're on the list." style="display:block;border:0;width:100%;max-width:370px;height:auto;"></td></tr>
         <tr><td style="font-family:${BODY};font-size:18px;line-height:1.5;color:${SOFT};padding-bottom:28px;">We'll email you once, the day Plumi reaches Android.</td></tr>
         <tr><td align="left">
@@ -52,7 +52,7 @@ export function androidWelcomeHtml(): string {
         <tr><td style="font-family:${BODY};font-size:15px;line-height:1.5;color:${SOFT};padding-top:16px;">While you wait, come and say hi.</td></tr>
       </table>
     </td></tr>
-    <tr><td style="padding:22px 6px 0;font-family:${BODY};font-size:13px;line-height:1.6;color:${SOFT};">You asked for this at ${site.domain.replace("https://", "")}/android. Reply to this email and we'll take you off the list.<br>Plumi, the GCSE and A-Level revision app that marks your handwriting. Made in the UK.</td></tr>
+    <tr><td style="padding:22px 6px 0;font-family:${BODY};font-size:13px;line-height:1.7;color:${SOFT};">You asked for this at ${site.domain.replace("https://", "")}/android. Plumi, the GCSE and A-Level revision app that marks your handwriting. Made in the UK.<br><a href="${site.domain}/privacy" style="color:${SOFT};text-decoration:underline;">Privacy policy</a> &nbsp;&middot;&nbsp; <a href="${unsubscribeUrl}" style="color:${SOFT};text-decoration:underline;">Unsubscribe</a></td></tr>
   </table>
 </td></tr>
 </table>
@@ -60,7 +60,7 @@ export function androidWelcomeHtml(): string {
 </html>`;
 }
 
-export function androidWelcomeText(): string {
+export function androidWelcomeText(unsubscribeUrl: string): string {
   return [
     "You're on the list.",
     "",
@@ -68,7 +68,9 @@ export function androidWelcomeText(): string {
     "",
     `While you wait, come and say hi: ${discordUrl}`,
     "",
-    `You asked for this at ${site.domain.replace("https://", "")}/android. Reply to this email and we'll take you off the list.`,
-    "Plumi, the GCSE and A-Level revision app that marks your handwriting. Made in the UK.",
+    `You asked for this at ${site.domain.replace("https://", "")}/android. Plumi, the GCSE and A-Level revision app that marks your handwriting. Made in the UK.`,
+    "",
+    `Privacy policy: ${site.domain}/privacy`,
+    `Unsubscribe: ${unsubscribeUrl}`,
   ].join("\n");
 }

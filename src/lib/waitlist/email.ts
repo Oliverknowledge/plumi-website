@@ -1,6 +1,7 @@
 import "server-only";
 
 import { site } from "@/config/site";
+import { unsubscribeLinks } from "@/lib/waitlist/unsubscribe";
 import { androidWelcomeHtml, androidWelcomeSubject, androidWelcomeText } from "@/lib/waitlist/androidWelcomeEmail";
 
 /**
@@ -22,6 +23,12 @@ export async function sendAndroidWelcome(to: string): Promise<EmailResult> {
     console.error("[plumi] Android welcome email not sent: RESEND_API_KEY is not set. See docs/WAITLIST.md.");
     return "unconfigured";
   }
+  // Every email has a working Unsubscribe link, or it is not sent.
+  const links = unsubscribeLinks(to);
+  if (!links) {
+    console.error("[plumi] Android welcome email not sent: WAITLIST_UNSUBSCRIBE_SECRET is not set, so it could not carry an Unsubscribe link.");
+    return "unconfigured";
+  }
   try {
     const response = await fetch(ENDPOINT, {
       method: "POST",
@@ -31,9 +38,13 @@ export async function sendAndroidWelcome(to: string): Promise<EmailResult> {
         to: [to],
         reply_to: site.contactEmail,
         subject: androidWelcomeSubject,
-        html: androidWelcomeHtml(),
-        text: androidWelcomeText(),
-        headers: { "List-Unsubscribe": `<mailto:${site.contactEmail}?subject=unsubscribe>` },
+        html: androidWelcomeHtml(links.page),
+        text: androidWelcomeText(links.page),
+        // Mail apps' own Unsubscribe button (RFC 8058 one-click): a POST to the same signed link.
+        headers: {
+          "List-Unsubscribe": `<${links.api}>, <mailto:${site.contactEmail}?subject=unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
       }),
       cache: "no-store",
     });

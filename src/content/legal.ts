@@ -3,8 +3,8 @@ export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
 const updated = "14 October 2026";
 const updatedIso = "2026-10-14";
-const privacyUpdated = "27 October 2026";
-const privacyUpdatedIso = "2026-10-27";
+const privacyUpdated = "30 October 2026";
+const privacyUpdatedIso = "2026-10-30";
 /**
  * Rewritten 27 October 2026 to cover the app as well as the website. The App Store listing and the
  * app's consent screen both link here, and the previous text said it covered the website only and that
@@ -95,13 +95,17 @@ export const privacy: LegalDoc = {
      * section changes in the same commit.
      */
     { heading: "The website", blocks: [
-      {kind:"text",text:"You can explore the website without creating an account or submitting an email address. Three measurement services run there and they do different things."},
+      {kind:"text",text:"You can explore the website without creating an account. The one place it asks for an email address is the Android waitlist, described below. Three measurement services run there and they do different things."},
       {kind:"list",items:[
         "Our own analytics records which sections of a page were read and which buttons were pressed, so we can tell whether the site explains Plumi well. It is hosted in the EU, it never creates a profile of you, it does not record your screen, and it never receives anything you type. Email addresses are stripped before any event leaves your browser.",
         "Vercel Web Analytics, from our hosting provider, counts page views and visitors so we can see how many people the site reaches. It sets no cookies and builds no profile: a visitor is recognised for one day by an anonymised value that is then discarded.",
         "Google Ads conversion tracking tells us which advert brought someone to the site, and whether they then went to the App Store or sent the link to their iPad. This one sets an advertising cookie and shares data with Google for advertising purposes. It is the only thing on this website that does.",
       ]},
       {kind:"text",text:"The analytics described above stores an anonymous identifier in your browser so that two page views in one visit are not counted as two visitors. The Google Ads tag sets an advertising cookie. You can clear or block both in your browser settings; the website works normally without them. Download buttons take you to the App Store, which is Apple’s service and is handled under Apple’s own terms and privacy policy. The Community link takes you to Discord, a separate service with its own policy, terms and age requirements. If you email us, we receive your address and what you choose to include so we can respond. Do not send sensitive personal information or private school records."},
+    ] },
+    { heading: "The Android waitlist", blocks: [
+      {kind:"text",text:"If you join the Android waitlist at tryplumi.app/android we keep your email address, the country your visit came from, your browser type and which page or advert brought you, so we can tell you once when Plumi reaches Android and see which Android students and channels to build for. We send you one confirmation email now and one email when Android is ready. The list is held in our database (Supabase, in the EU) and the emails are sent through Resend, our email service. We do not sell it or use it for anything else."},
+      {kind:"text",text:"You can leave at any time with the Unsubscribe link in the email, or by writing to hello@tryplumi.app. Either way your address is deleted."},
     ] },
     { heading: "Advert measurement in the app", blocks: [{kind:"text",text:"Plumi advertises on Google and uses Google’s Firebase in the app to see which adverts work. The app asks once. Only if you say yes does Firebase send Google a random app id with the first open and with a free trial or subscription (the plan, not your name), and a rough location worked out from your connection. Only if you also allow tracking when your iPad asks can Google match a trial to the advert you saw. Google may not use any of it to show you personalised ads. Without a yes, Firebase may still tell Google the app was opened with no id attached, and Apple may tell Google that an advert led to a download without saying who. You can turn this off in the app’s Account page. Nothing you write, draw or upload is ever shared for advertising."}] },
     { heading: "Changes to this policy", blocks: [{kind:"text",text:"If what we do with your information changes we will update this page and its date, and tell you in the app if the change matters to you. Earlier versions are available on request."}] },
