@@ -23,6 +23,8 @@ export interface WaitlistSignup {
    */
   subject?: string;
   board?: string;
+  /** Which app the student is waiting for. Absent is the iPad waitlist, which is what the rows were before. */
+  platform?: "android";
   /** Set by the route from request headers, not by the browser. */
   userAgent?: string;
   /** Coarse country from the edge, if the host provides it. Never an IP. */
@@ -95,7 +97,8 @@ class SupabaseWaitlistStore implements WaitlistStore {
             country: signup.country ?? null,
             subject: signup.subject ?? null,
             board: signup.board ?? null,
-            source: "website",
+            // `android` rows are the Android waitlist; everything else is the website's iPad waitlist.
+            source: signup.platform === "android" ? "android" : "website",
           },
         ]),
         cache: "no-store",

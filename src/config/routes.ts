@@ -217,6 +217,21 @@ export const routeIntents: readonly RouteIntent[] = [
     priority: 0.6,
   },
   {
+    path: "/android",
+    primaryQuery: "Plumi for Android",
+    secondaryQueries: ["Plumi Android app", "GCSE revision app for Android"],
+    intent: "An Android student wants to know whether Plumi is on their phone or tablet.",
+    objective: "Say plainly that Plumi is on iPad today, and take an email so they hear when Android is ready.",
+    title: "Plumi for Android: Join the Waitlist",
+    h1: "Plumi for Android is coming.",
+    description:
+      "Plumi, the GCSE and A-Level revision app that marks your handwriting, is on iPad now. Join the Android waitlist and we will email you when it arrives.",
+    linksTo: ["/", "/about"],
+    changeFrequency: "monthly",
+    priority: 0.4,
+    lastModified: "2026-10-30",
+  },
+  {
     path: "/parents",
     primaryQuery: "Plumi for parents",
     secondaryQueries: ["is Plumi safe", "is Plumi worth it", "revision app for my child"],

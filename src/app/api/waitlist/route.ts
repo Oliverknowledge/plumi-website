@@ -115,6 +115,7 @@ export async function POST(request: Request) {
     honeypot?: unknown;
     subject?: unknown;
     board?: unknown;
+    platform?: unknown;
   };
 
   // A hidden field no human fills in. Bots that fill it get a 200 and go away
@@ -137,6 +138,8 @@ export async function POST(request: Request) {
     attribution: sanitiseAttribution(payload.attribution),
     subject: fromAllowList(payload.subject, waitlist.subjects),
     board: fromAllowList(payload.board, waitlist.boards),
+    // A closed vocabulary like subject and board: anything but "android" is the iPad waitlist.
+    platform: fromAllowList(payload.platform, ["android"]) as "android" | undefined,
     userAgent: request.headers.get("user-agent")?.slice(0, 400) ?? undefined,
     // Vercel and Cloudflare both set this. Country only — never the IP, which
     // we use transiently for rate limiting and never store.

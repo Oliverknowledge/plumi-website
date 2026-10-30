@@ -114,3 +114,20 @@
   .lp .lp-doc .lp-doc-intro { font-size: 17.5px; }
   .lp .lp-legal { padding-block: 28px 56px; }
 }
+
+/* ── The Android waitlist ────────────────────────────────────────────────── */
+.lp .lp-aw { padding-block: 72px 96px; display: grid; gap: 28px; max-width: 760px; }
+.lp .lp-aw h1 { font-size: clamp(34px, 4.6vw, 56px); max-width: 14em; }
+.lp .lp-aw-form { display: grid; gap: 10px; }
+.lp .lp-aw-label { font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink-soft); }
+.lp .lp-aw-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.lp .lp-aw-row input[type="email"] { flex: 1 1 280px; min-height: 52px; padding: 8px 14px; font-family: var(--f-body); font-weight: 700; font-size: 17px; color: var(--lp-ink); background: #fff; border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.lp .lp-aw-row input[type="email"]:focus { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
+.lp .lp-aw-row input[aria-invalid="true"] { border-color: var(--lp-red); }
+.lp .lp-aw-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.lp .lp-aw-row .lp-btn[disabled] { opacity: .6; cursor: progress; }
+.lp .lp-aw-error { font-weight: 800; font-size: 15px; color: #b5362f; }
+.lp .lp-aw-done { display: grid; gap: 4px; padding: 20px 22px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.lp .lp-aw-done strong { font-family: var(--f-px); font-size: 24px; color: var(--lp-ink); }
+.lp .lp-aw-done span { font-weight: 700; color: var(--lp-ink-soft); }
+@media (max-width: 620px) { .lp .lp-aw { padding-block: 40px 64px; } }
