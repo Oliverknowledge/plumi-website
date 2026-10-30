@@ -60,3 +60,6 @@ scripts/question-bank/.work-gcse/
 scripts/past-papers/.work/
 scripts/question-bank/.work-gcse-trilogy/
 scripts/practice-packs/.work/
+
+# Supabase CLI scratch
+supabase/.temp
