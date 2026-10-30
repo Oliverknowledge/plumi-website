@@ -193,7 +193,7 @@ export function bankTopic(subject: BankSubject, slug: string): BankTopic | undef
 
 export const bankPath = (slug: string) => `/question-bank/${slug}`;
 export const bankTopicPath = (slug: string, topic: string) => `/question-bank/${slug}/${topic}`;
-export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | "year13" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | "year13" | "tiers" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
 /**
  * The sciences have a practicals.json beside their data: the ids of the parts about
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
@@ -205,6 +205,9 @@ export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | 
  */
 export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
   s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE"));
+/** A GCSE bank with Higher and Foundation papers has a tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too. */
+export const bankHasTiers = (s: Pick<BankSubject, "level" | "papers">) =>
+  s.level === "GCSE" && s.papers.some(p => /H$/i.test(p.id)) && s.papers.some(p => /F$/i.test(p.id));
 export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */

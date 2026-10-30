@@ -258,6 +258,36 @@ function ownEdexcelScienceBoard(subject: string, base: BoardPapers): BoardPapers
   };
 }
 
+/**
+ * Pearson publishes GCSE Maths' June and November 2017 and 2018 series only as zips, which the
+ * library's fetch (scripts/past-papers/boards/edexcel.py) passes over; the GCSE Maths question bank
+ * unpacked the Higher papers onto our storage (edexcel/1ma1-1h-qp-jun18.pdf). Those sittings join the
+ * library's Higher tier rows from the bank's own list.
+ */
+function withBankGcseMaths(base: BoardPapers): BoardPapers {
+  const wholes = bankSubject("edexcel-gcse-maths")?.wholes ?? {};
+  let added = 0;
+  const groups = base.groups.map(g => ({
+    ...g,
+    papers: g.papers.map(p => {
+      const code = p.title.match(/\(1MA1\/(\d)H\)/);
+      if (!code) return p;
+      const have = new Set(p.rows.map(r => r.session));
+      const extra: PaperRow[] = Object.entries(wholes)
+        .filter(([k]) => k.startsWith(`1ma1${code[1]}h-`) && !have.has(seriesName(k.split("-")[1])))
+        .map(([k, files]) => ({ session: seriesName(k.split("-")[1]), files: { qp: files.qp, ms: files.ms, er: files.er } }));
+      added += extra.reduce((n, r) => n + Object.values(r.files).filter(Boolean).length, 0);
+      const order = (r: PaperRow) => {
+        const [month, year] = r.session.split(" ");
+        return Number(year) * 100 + (month === "November" ? 11 : month === "October" ? 10 : 6);
+      };
+      return extra.length ? { ...p, rows: [...p.rows, ...extra].sort((a, b) => order(b) - order(a)) } : p;
+    }),
+  }));
+  const years = groups.flatMap(g => g.papers.flatMap(p => p.rows.map(r => Number(r.session.split(" ")[1])))).filter(Boolean);
+  return { ...base, groups, firstYear: Math.min(base.firstYear, ...years), fileCount: base.fileCount + added };
+}
+
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const library: PastPaperData = {
@@ -266,6 +296,7 @@ const library: PastPaperData = {
     b.slug === "aqa" && ownSubjects[b.subject] ? ownAqaBoard(b.subject, b)
       : b.slug === "edexcel" && ownEdexcel[b.subject] ? ownEdexcelBoard(b.subject, b)
         : b.slug === "edexcel" && ownEdexcelSciences[b.subject] ? ownEdexcelScienceBoard(b.subject, b)
+        : b.slug === "edexcel" && b.subject === "gcse-maths" ? withBankGcseMaths(b)
         : b),
 };
 
