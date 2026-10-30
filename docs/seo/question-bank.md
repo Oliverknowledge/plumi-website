@@ -73,6 +73,26 @@ npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 Then build, check a subject and a topic page, commit the JSON, and resubmit the
 sitemap in Search Console.
 
+## Students' feedback of 29 October 2026
+
+- **Several papers at once.** The Paper control is a checklist, as Exam is (`?paper=8464B1H,8464B1F`),
+  with "Higher only" and "Foundation only" on a tiered GCSE bank.
+- **Questions on both tiers.** A GCSE sitting's Foundation and Higher papers share questions (AQA's
+  Foundation paper ends with the Higher paper's first two or three; Pearson shares a few). `tiers.py`
+  matches each Foundation part to the same sitting's Higher part by its words and marks, one to one, and
+  writes `public/question-bank/<slug>/tiers.json` ({Foundation id: Higher id}) beside the bank's data:
+  214 to 396 parts a bank, every pair checked to map whole questions (Foundation 7-8 to Higher 1-2).
+  "On both tiers: Show once" (`?tiers=once`) leaves a Foundation part out when its Higher twin's paper is
+  in view too. Re-run `python3 scripts/question-bank/tiers.py` after a new series.
+- **The question so far.** A later part can rest on what an earlier one gave (WJEC Physics 2025 Q5(b)
+  needs the stone's mass from (a)), so a part with earlier parts offers "Show question 5 so far": the
+  question's start and every part before it.
+- **Set PDFs.** A crop up to 1.4 pages tall is shrunk onto one page; a longer one is cut at a blank row up
+  to half a page back (it was a fifth), so a graph, which has no blank row, moves whole to the next page.
+- **Past papers.** A tickbox before each sitting marks it done (`DoneTick`, kept in the browser, no
+  account). Edexcel GCSE Maths' 2017 and 2018 Higher papers, which Pearson publishes only as zips and the
+  library's fetch passed over, join its table from the bank's own copies (`withBankGcseMaths`).
+
 ## Column vectors and fractions at a question's top (maths), fixed 28 October 2026
 
 A student sent screenshots of Further Maths vector questions (OCR Pure Core, Edexcel Further

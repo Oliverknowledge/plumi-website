@@ -23,10 +23,12 @@ const PRINT_W = A4.w - MARGIN * 2;
 const PRINT_H = A4.h - MARGIN * 2 - 40;
 
 /**
- * A crop taller than a page at full width (economics' extracts run to three pages) is cut
- * into page-sized slices rather than shrunk to fit, each cut made at a blank row nearby so
- * no line of text is split.
+ * A crop up to SHRINK pages tall goes on one page, a little smaller. A taller one (economics'
+ * extracts run to three pages) is cut into page-sized slices, each cut made at a blank row as
+ * far back as half a page, so no line of text is split and a graph or diagram, which has no
+ * blank row in it, moves whole to the next page (a maths graph was cut in two, 29 October 2026).
  */
+const SHRINK = 1.4;
 async function asJpeg(url: string): Promise<Slice[] | null> {
   const res = await paced(url);
   if (!res) return null;
@@ -41,13 +43,13 @@ async function asJpeg(url: string): Promise<Slice[] | null> {
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
   const pageRows = Math.floor((canvas.width * PRINT_H) / PRINT_W);
-  if (canvas.height <= pageRows * 1.15) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height }];
+  if (canvas.height <= pageRows * SHRINK) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height }];
   const blank = (row: number) => ctx.getImageData(0, row, canvas.width, 1).data.every((v, i) => i % 4 === 3 || v > 235);
   const slices: Slice[] = [];
   for (let top = 0; top < canvas.height;) {
     let cut = Math.min(canvas.height, top + pageRows);
     if (cut < canvas.height) {
-      const floor = cut - Math.floor(pageRows * 0.2);
+      const floor = cut - Math.floor(pageRows * 0.5);
       let r = cut;
       while (r > floor && !blank(r)) r -= 2;
       if (r > floor) cut = r;

@@ -44,6 +44,7 @@ export type PlumiEvent =
   | "bank_reveal"
   | "bank_set_added"
   | "bank_pdf_downloaded"
+  | "paper_marked_done"
   /** A student marked themselves on a part: `score` of `out_of`, `kind` (marks, rough
    *  for a part with no printed marks, choice for multiple choice), `attempts` on it so far. */
   | "bank_self_marked"

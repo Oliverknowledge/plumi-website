@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import { baseSubject, bankDataPath, bankHasPracticals, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress } from "./BankProgress";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
@@ -21,8 +21,9 @@ type View = "parts" | "whole";
 type Yr = "" | "12" | "13";
 /** `calc` and `prac` both take "only" or "none" (leave them out); `yr` (maths) is "12", the questions that need only
  * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions;
- * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; view: View; sort: Sort }
+ * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all; `once` (GCSE) shows a question
+ * printed on both tiers' papers once, as its Higher copy. */
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; view: View; sort: Sort }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -49,6 +50,7 @@ function parse(search: string): Filters {
     prac: prac === "only" || prac === "none" ? prac : "",
     yr: yr === "12" || yr === "13" ? yr : "",
     opt: u.get("option") ?? "",
+    once: u.get("tiers") === "once",
     view: u.get("view") === "whole" ? "whole" : "parts",
     sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" ? sort : "new",
   };
@@ -63,6 +65,7 @@ function write(f: Filters) {
   if (f.prac) u.set("practical", f.prac);
   if (f.yr) u.set("yr", f.yr);
   if (f.opt) u.set("option", f.opt);
+  if (f.once) u.set("tiers", "once");
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
   const qs = u.toString();
@@ -70,6 +73,8 @@ function write(f: Filters) {
   urlListeners.forEach(l => l());
 }
 
+// A Foundation paper's Higher partner: "84611F" → "84611H", "1bi01f" → "1bi01h".
+const twinPaper = (paper: string) => paper.replace(/f$/, "h").replace(/F$/, "H");
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 // (Cambridge's "JUN24V2" is a second June 2024 sitting, another variant of the same papers.)
 const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
@@ -93,6 +98,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const [text, setText] = useState<Record<string, string> | null>(null);
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [year13, setYear13] = useState<Set<string> | null>(null);
+  const [twins, setTwins] = useState<Map<string, string> | null>(null);
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
   const [withReports, setWithReports] = useState(false);
@@ -126,6 +132,11 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
       fetch(bankDataPath(subject.slug, "year13")).then(r => (r.ok ? r.json() : null)).then((ids: string[] | null) => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
+    }
+    // A GCSE's Foundation parts that its Higher paper prints too (tiers.py): no file and the switch stays hidden.
+    if (bankHasTiers(subject)) {
+      fetch(bankDataPath(subject.slug, "tiers")).then(r => (r.ok ? r.json() : null))
+        .then((m: Record<string, string> | null) => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
     }
   }, [subject]);
 
@@ -166,8 +177,10 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
       (skip === "calc" || ((f.calc !== "only" || !!p.calc) && (f.calc !== "none" || !p.calc))) &&
       (skip === "prac" || !f.prac || !practicals || (f.prac === "only") === practicals.has(p.id)) &&
       (skip === "yr" || !f.yr || !year13 || (f.yr === "13") === year13.has(p.id)) &&
+      // On both tiers, once: a Foundation part goes when its Higher twin's paper is in view too.
+      (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.p)))) &&
       (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
-  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.q, opt, text, sectionOf, optionOf, practicals, year13]);
+  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, opt, text, sectionOf, optionOf, practicals, year13, twins]);
 
   // Every part of each question, in order, for the whole-question view.
   const questions = useMemo(() => {
@@ -182,9 +195,18 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     for (const g of m.values()) g.sort((a, b) => a.l.localeCompare(b.l, undefined, { numeric: true }));
     return m;
   }, [parts]);
+  // The parts of a part's question that come before it: a later part can rest on what an earlier one gave
+  // ("the stone has a mass of 19 kg" is in (a), and (b) needs it; a student found it missing, 29 October 2026).
+  const earlierParts = (p: BankPart) => {
+    const group = questions?.get(questionKey(p)) ?? [];
+    return group.slice(0, Math.max(0, group.findIndex(x => x.id === p.id)));
+  };
   // Only a bank whose questions come in parts has a whole-question view (maths is cut whole already).
   const hasWhole = !!questions && [...questions.values()].some(g => g.length > 1);
   const hasPracticals = !!practicals?.size;
+  // How many Foundation parts the switch would leave out of the list as it is now.
+  const repeats = useMemo(() => (!twins || !parts ? 0 : parts.filter(p => twins.has(p.id) && matches({ ...p }, "q") && (!f.papers.length || f.papers.includes(twinPaper(p.p)))).length),
+    [twins, parts, matches, f.papers]);
   const hasYears = !!year13;
   const whole = f.view === "whole" && hasWhole;
 
@@ -277,12 +299,35 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     return `${f.series.length} exams`;
   })();
   const examRef = useRef<HTMLDetailsElement>(null);
-  // The checklist closes when you click or tap away from it, as a dropdown would.
+  const paperRef = useRef<HTMLDetailsElement>(null);
+  // A checklist closes when you click or tap away from it, as a dropdown would.
   useEffect(() => {
-    const close = (e: Event) => { const d = examRef.current; if (d?.open && !d.contains(e.target as Node)) d.open = false; };
+    const close = (e: Event) => {
+      for (const d of [examRef.current, paperRef.current]) if (d?.open && !d.contains(e.target as Node)) d.open = false;
+    };
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
+
+  // The papers picked, as the sittings are: none picked is every one (of the chosen option's). Several at once,
+  // since a student asked to see, say, both Biology papers' Higher tiers together (29 October 2026).
+  const shownPapers = subject.papers.filter(p => forOption(p.option));
+  function togglePaper(id: string, on: boolean) {
+    const all = shownPapers.map(x => x.id);
+    const cur = f.papers.length ? f.papers : all;
+    const next = all.filter(x => (x === id ? on : cur.includes(x)));
+    update({ papers: next.length === all.length ? [] : next });
+  }
+  const tierPapers = (tier: "Higher" | "Foundation") => shownPapers.filter(p => new RegExp(`\\b${tier}\\b`).test(p.name)).map(p => p.id);
+  const paperSummary = (() => {
+    if (!f.papers.length) return "All papers";
+    if (f.papers.length === 1) return paperName(subject, f.papers[0]);
+    for (const tier of ["Higher", "Foundation"] as const) {
+      const ids = tierPapers(tier);
+      if (ids.length > 1 && ids.length === f.papers.length && ids.every(id => f.papers.includes(id))) return `${tier} papers`;
+    }
+    return `${f.papers.length} papers`;
+  })();
 
   // One paper of one sitting picked: offer the whole thing.
   const wholePaper = f.papers.length === 1 && f.series.length === 1 ? subject.wholes[`${f.papers[0]}-${f.series[0]}`] : undefined;
@@ -290,17 +335,20 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   const pills: { label: string; clear: () => void }[] = [
     ...(opt ? [{ label: subject.options?.list.find(o => o.id === opt)?.name ?? opt, clear: () => update({ opt: "" }) }] : []),
     ...(lockedTopic ? [] : f.topics.map(t => ({ label: subject.topics.find(x => x.code === t)?.title ?? subject.sections.find(x => x.code === t)?.title ?? t, clear: () => update({ topics: f.topics.filter(x => x !== t) }) }))),
-    ...f.papers.map(p => ({ label: paperName(subject, p), clear: () => update({ papers: f.papers.filter(x => x !== p) }) })),
+    ...(f.papers.length > 3
+      ? [{ label: paperSummary, clear: () => update({ papers: [] }) }]
+      : f.papers.map(p => ({ label: paperName(subject, p), clear: () => update({ papers: f.papers.filter(x => x !== p) }) }))),
     // Three sittings or fewer each get a pill; more read as one ("6 exams"), which clears them all.
     ...(f.series.length > 3
       ? [{ label: seriesSummary, clear: () => update({ series: [] }) }]
       : f.series.map(s => ({ label: seriesLabel(subject, s), clear: () => update({ series: f.series.filter(x => x !== s) }) }))),
     ...(f.calc ? [{ label: subject.calcPapers ? (f.calc === "only" ? "Calculator" : "Non-calculator") : f.calc === "only" ? "Only calculations" : "No calculations", clear: () => update({ calc: "" }) }] : []),
     ...(f.prac && hasPracticals ? [{ label: f.prac === "only" ? "Only practicals" : "No practicals", clear: () => update({ prac: "" }) }] : []),
+    ...(f.once && twins ? [{ label: "Both-tier questions once", clear: () => update({ once: false }) }] : []),
     ...(f.yr && hasYears ? [{ label: f.yr === "12" ? "Year 12 content" : "Year 13 content", clear: () => update({ yr: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", view: f.view, sort: f.sort }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, view: f.view, sort: f.sort }); setShown(PAGE); };
 
   // Topic groups, as GradeHunt and the specification both arrange them: each section split by year.
   const years = ([0, 1, 2, 3] as const).map(y => ({
@@ -454,13 +502,26 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                   </select>
                 </label>
               )}
-              <label className="qb-field">
-                <span className="qb-label">Paper</span>
-                <select value={f.papers.length === 1 ? f.papers[0] : ""} onChange={e => update({ papers: e.target.value ? [e.target.value] : [] })}>
-                  <option value="">All papers</option>
-                  {subject.papers.filter(p => forOption(p.option)).map(p => <option key={p.id} value={p.id}>{p.name}{p.title ? ` · ${p.title}` : ""}{counts ? ` (${n("papers", p.id) ?? 0})` : ""}</option>)}
-                </select>
-              </label>
+              <div className="qb-field">
+                <span className="qb-label" id="qb-paper-label">Paper</span>
+                <details className="qb-multi" ref={paperRef}>
+                  <summary aria-labelledby="qb-paper-label qb-paper-summary"><span id="qb-paper-summary">{paperSummary}</span></summary>
+                  <div className="qb-multi-list" role="group" aria-label="Papers">
+                    <div className="qb-multi-quick">
+                      <button type="button" className="qb-link" onClick={() => update({ papers: [] })}>All papers</button>
+                      {(["Higher", "Foundation"] as const).map(tier => tierPapers(tier).length > 1 && (
+                        <button key={tier} type="button" className="qb-link" onClick={() => update({ papers: tierPapers(tier) })}>{tier} only</button>
+                      ))}
+                    </div>
+                    {shownPapers.map(p => (
+                      <label key={p.id}>
+                        <input type="checkbox" checked={!f.papers.length || f.papers.includes(p.id)} onChange={e => togglePaper(p.id, e.target.checked)} />
+                        {p.name}{p.title ? ` · ${p.title}` : ""}{counts && <span className="qb-n"> {n("papers", p.id) ?? 0}</span>}
+                      </label>
+                    ))}
+                  </div>
+                </details>
+              </div>
               <div className="qb-field">
                 <span className="qb-label" id="qb-exam-label">Exam</span>
                 {/* Every sitting starts ticked: untick the ones to keep back (June 2024 and 2025 for a mock), or tick just one. */}
@@ -510,6 +571,14 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
                     <button type="button" role="radio" aria-checked={!whole} className={!whole ? "is-on" : ""} onClick={() => update({ view: "parts" })}>Each part</button>
                     <button type="button" role="radio" aria-checked={whole} className={whole ? "is-on" : ""} onClick={() => update({ view: "whole" })}>Whole questions</button>
                   </div>
+                </div>
+              )}
+              {twins && (
+                <div className="qb-field qb-calc" role="group" aria-label="Questions on both tiers">
+                  <span className="qb-label">On both tiers</span>
+                  <label title="Foundation and Higher papers share some questions: show those once, as the Higher paper prints them">
+                    <input type="checkbox" checked={f.once} onChange={e => update({ once: e.target.checked })} /> Show once{counts && !f.once && repeats > 0 && <span className="qb-n"> −{repeats}</span>}
+                  </label>
                 </div>
               )}
               {hasPracticals && <div className="qb-field qb-calc" role="group" aria-label="Practicals">
@@ -569,6 +638,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
           <ol className="qb-rows">
             {list.slice(0, shown).map((g, i) => (
               <QuestionRow key={g[0].id} n={i + 1} parts={g} subject={subject} inSet={g.every(p => set.has(p.id))} setFull={set.ids.length + g.filter(p => !set.has(p.id)).length > SET_MAX}
+                before={g.length === 1 ? earlierParts(g[0]) : undefined}
                 onToggleSet={() => (g.every(p => set.has(p.id)) ? set.remove(g.map(p => p.id)) : set.add(g.map(p => p.id)))}
                 onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
             ))}

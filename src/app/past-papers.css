@@ -58,6 +58,12 @@
 .lp .pp-file.is-qp { background: var(--lp-blue-soft); }
 .lp .pp-file.is-ms { background: var(--lp-gold); }
 .lp .pp-file.is-ma, .lp .pp-file.is-vs { background: #cfe8d0; }
+/* the done tickbox before each sitting (DoneTick): a big target, ticked rows dimmed so what's left stands out */
+.pp-table .pp-done-head, .pp-table .pp-done-cell { width: 34px; padding-right: 2px; text-align: center; }
+.pp-done-mark { color: var(--lp-ink-soft); }
+.pp-done { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; cursor: pointer; }
+.pp-done input { width: 20px; height: 20px; margin: 0; accent-color: var(--lp-orange); cursor: pointer; }
+.pp-table tr:has(.pp-done input:checked) > :not(.pp-done-cell) { opacity: .55; }
 .pp-more-files { display: flex; flex-wrap: wrap; gap: 4px; }
 .pp-none { color: #c5b59c; font-weight: 800; padding-left: 18px; }
 .pp-older { margin-top: 8px; }

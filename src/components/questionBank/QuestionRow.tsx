@@ -60,11 +60,15 @@ function ReportText({ paras }: { paras: string[] }) {
  * order: then its start is shown open above them, the marks are the question's, and
  * the scheme unfolds part by part.
  *
+ * `before` is a single part's earlier parts, if any: "Show question 5 so far" opens the question's start and
+ * those parts above it, as a later part can rest on what an earlier one gave (a mass, a table, a graph).
+ *
  * `embed` is the partner iframe's version of the same row (EmbedQuestionList): no
  * set, nothing that navigates inside the frame, and `embed.cta` under the paper.
  */
-export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic, embed }: {
+export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, onTopic, before = [], embed }: {
   n: number; parts: BankPart[]; subject: BankSubject; inSet: boolean; setFull?: boolean; onToggleSet: () => void; onTopic?: (code: string) => void;
+  before?: BankPart[];
   embed?: { cta: ReactNode };
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
@@ -84,6 +88,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const schemePdf = !withScheme.length ? parts.find(p => p.msf)?.msf : undefined;
   const stem = parts.find(p => p.st);
   const stemOpen = open.stem || many;
+  const earlier = many ? [] : before;
 
   function flip(key: "ms" | "er" | "stem") {
     const next = !open[key];
@@ -130,15 +135,20 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
 
       <div className="qb-sheet">
         {inSet && <span className="qb-stamp" aria-hidden="true">In your set</span>}
-        {stem && (
+        {(stem || earlier.length > 0) && (
           <div className="qb-stem">
             {!many && (
               <button type="button" className="qb-link" aria-expanded={!!open.stem} onClick={() => flip("stem")}>
-                {open.stem ? "− Hide" : "+ Show"} how question {q} starts
+                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : `how question ${q} starts`}
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stem && stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stemOpen && earlier.map(p => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+                alt={`Question ${p.l}: ${p.x}`} />
+            ))}
           </div>
         )}
         <div className="qb-paper">
