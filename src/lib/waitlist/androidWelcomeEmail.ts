@@ -5,9 +5,10 @@ import { discordUrl, site } from "@/config/site";
  * brown outlined card with its hard shadow, the orange accent, the mascot) and one key, "Join the Plumi Discord".
  * No block of copy: a title, one line, the key.
  *
- * Email clients cannot load the site's pixel font or run its CSS, so this is a table with inline styles and a bold
- * monospace for the title, which sits closest to it. The mascot is a PNG at /email (clients do not draw SVG or WebP).
- * No em dashes anywhere a student reads.
+ * Email clients cannot load the site's pixel font or run its CSS, so the three pieces that carry the brand (the
+ * logo, the title and the Discord key's words) are PNGs drawn in Pixelify Sans, the site's own font, at /email, each
+ * with its words as alt text and the key a real link around its image. Clients do not draw SVG or WebP, so the mascot
+ * is a PNG too. Everything else is a table with inline styles. No em dashes anywhere a student reads.
  */
 
 const INK = "#4a3a36";
@@ -23,7 +24,7 @@ const BODY = "'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif";
 export const androidWelcomeSubject = "You're on the Plumi Android waitlist";
 
 export function androidWelcomeHtml(): string {
-  const mascot = `${site.domain}/email/plumi-celebrating.png`;
+  const img = (file: string) => `${site.domain}/email/${file}`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -37,16 +38,16 @@ export function androidWelcomeHtml(): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${PAPER};">
 <tr><td align="center" style="padding:36px 16px 44px;">
   <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;">
-    <tr><td style="padding:0 4px 18px;font-family:${MONO};font-weight:bold;font-size:30px;color:${INK};letter-spacing:-0.5px;">plumi</td></tr>
+    <tr><td style="padding:0 4px 18px;"><img src="${img("plumi-logo.png")}" width="137" height="48" alt="plumi" style="display:block;border:0;width:137px;height:48px;"></td></tr>
     <tr><td style="background:${CARD};border:3px solid ${LINE};border-bottom:8px solid ${LINE};border-radius:20px;padding:34px 32px 36px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr><td align="left" style="padding-bottom:18px;"><img src="${mascot}" width="96" alt="Plumi" style="display:block;border:0;width:96px;height:auto;"></td></tr>
-        <tr><td style="font-family:${MONO};font-weight:bold;font-size:36px;line-height:1.1;color:${INK};padding-bottom:12px;">You're on the <span style="color:${ORANGE};">list.</span></td></tr>
+        <tr><td align="left" style="padding-bottom:18px;"><img src="${img("plumi-celebrating.png")}" width="96" alt="Plumi" style="display:block;border:0;width:96px;height:auto;"></td></tr>
+        <tr><td style="padding-bottom:12px;"><img src="${img("plumi-android-heading.png")}" width="370" alt="You're on the list." style="display:block;border:0;width:100%;max-width:370px;height:auto;"></td></tr>
         <tr><td style="font-family:${BODY};font-size:18px;line-height:1.5;color:${SOFT};padding-bottom:28px;">We'll email you once, the day Plumi reaches Android.</td></tr>
         <tr><td align="left">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td style="background:${CARD};border:3px solid ${LINE};border-bottom:7px solid ${LINE};border-radius:14px;">
-              <a href="${discordUrl}" style="display:block;padding:13px 26px;font-family:${MONO};font-weight:bold;font-size:19px;color:${DISCORD};text-decoration:none;">Join the Plumi Discord</a>
+              <a href="${discordUrl}" style="display:block;padding:15px 26px;font-family:${MONO};font-weight:bold;font-size:19px;color:${DISCORD};text-decoration:none;"><img src="${img("plumi-discord-button.png")}" width="223" height="29" alt="Join the Plumi Discord" style="display:block;border:0;width:223px;height:29px;color:${DISCORD};font-family:${MONO};font-weight:bold;font-size:19px;"></a>
             </td>
           </tr></table>
         </td></tr>
