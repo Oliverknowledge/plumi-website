@@ -1,5 +1,6 @@
 import { NextResponse, after } from "next/server";
 
+import { addToAudience } from "@/lib/waitlist/audience";
 import { sendAndroidWelcome } from "@/lib/waitlist/email";
 import { getWaitlistStore, type WaitlistSignup } from "@/lib/waitlist/store";
 import type { Attribution } from "@/lib/attribution";
@@ -157,7 +158,11 @@ export async function POST(request: Request) {
       // The Android waitlist's welcome email goes out once, after the response, so a slow mail server never
       // holds the student's page. A repeat signup ("already_joined") sends nothing, so the form cannot be used
       // to mail someone twice.
-      if (signup.platform === "android") after(() => sendAndroidWelcome(signup.email));
+      if (signup.platform === "android") {
+        after(() => sendAndroidWelcome(signup.email));
+        // And onto the Resend audience, so a broadcast from Resend reaches them (src/lib/waitlist/audience.ts).
+        after(() => addToAudience(signup.email));
+      }
       return NextResponse.json({ ok: true, code: "created" });
 
     case "already_joined":

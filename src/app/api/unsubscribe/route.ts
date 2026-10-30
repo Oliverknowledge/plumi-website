@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
+import { removeFromAudience } from "@/lib/waitlist/audience";
 import { leaveWaitlist } from "@/lib/waitlist/leave";
 import { emailFromParam } from "@/lib/waitlist/unsubscribe";
 
@@ -19,6 +20,8 @@ export async function POST(request: Request) {
   }
   switch (await leaveWaitlist(email, token)) {
     case "left":
+      // Off the Resend audience too, so a broadcast never reaches someone who left.
+      after(() => removeFromAudience(email));
       return NextResponse.json({ ok: true, code: "left" });
     case "bad_link":
       return NextResponse.json({ ok: false, code: "bad_link", message: "That link isn't right." }, { status: 400 });

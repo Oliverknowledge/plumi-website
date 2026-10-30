@@ -184,3 +184,14 @@ Both are set in Vercel (Production) for the `plumi` Supabase project. Rows from 
 3. Redeploy. `WAITLIST_EMAIL_FROM` is optional and defaults to `Plumi <hello@tryplumi.app>`.
 
 Until `RESEND_API_KEY` is set the signup still works and the server logs that no email was sent.
+
+## Sending to the whole list (Resend audience)
+
+The Android list is mirrored into the Resend audience **Plumi Android waitlist** (id `5efffb52-ed23-4dc9-8fe1-fc47ef3642f8`), so
+a **Broadcast** from resend.com/broadcasts reaches everyone who joined. Supabase stays the list; the audience is a copy for sending.
+
+- A broadcast needs `{{{RESEND_UNSUBSCRIBE_URL}}}` in it: Resend's own unsubscribe, which marks the contact unsubscribed there.
+  The welcome email's Unsubscribe link instead deletes the person from Supabase and, with the two variables below, from the audience.
+- Automatic sync on signup and unsubscribe needs `RESEND_AUDIENCE_ID` and `RESEND_CONTACTS_KEY` (a Resend key with full access;
+  a sending-only key is refused by the contacts API) in Vercel. Without them the site works and the audience is synced by hand:
+  `select email from waitlist_signups where source = 'android'` and add the new ones to the audience.
