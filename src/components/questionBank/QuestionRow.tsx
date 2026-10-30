@@ -88,7 +88,11 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const marks = marked.length ? marked.reduce((sum, p) => sum + (p.m ?? 0), 0) : null;
   const topics = [...new Set(parts.flatMap(p => p.t))].slice(0, many ? 3 : 2);
   const withScheme = parts.filter(p => p.ms || p.k);
-  const schemePdf = !withScheme.length ? parts.find(p => p.msf)?.msf : undefined;
+  const inWhole = withScheme.filter(p => p.msq).map(p => p.l);
+  const inWholeNames = inWhole.length > 1 ? `${inWhole.slice(0, -1).join(", ")} and ${inWhole[inWhole.length - 1]}` : inWhole[0];
+  // Parts with no crop of their own keep the PDF, beside the others' schemes when a question has both.
+  const pdfOnly = parts.filter(p => p.msf && !p.ms && !p.k);
+  const schemePdf = pdfOnly[0]?.msf;
   const stem = parts.find(p => p.st);
   const stemOpen = open.stem || many;
   const earlier = many ? [] : before;
@@ -186,12 +190,14 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           <AnswerBox subject={subject.slug} part={part} open={isEssaySubject(subject)} schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />
         )}
         {embed?.cta}
-        {open.ms && withScheme.map(p => p.k
+        {open.ms && withScheme.map((p, i) => p.k
           ? <p key={p.id} className="qb-note qb-answer">{many ? <>{p.l}: the answer is </> : "The answer is "}<strong>{p.k}</strong></p>
+          // A whole question's scheme (`msq`) serves each of its parts: shown once, marked against part by part.
+          : p.msq && withScheme.slice(0, i).some(o => o.msq) ? (!embed && <SelfMark key={p.id} subject={subject.slug} part={p} many={many} />)
           : (
             <div key={p.id} className="qb-note qb-reveal-ms">
               <span className="lp-tape" aria-hidden="true" />
-              <p className="qb-note-label">Mark scheme for {p.l}</p>
+              <p className="qb-note-label">{p.msq ? <>Mark scheme for question {questionOf(p.l)}: find {inWholeNames} in it</> : <>Mark scheme for {p.l}</>}</p>
               <div className="qb-scroll">{zoomable(p, "ms",
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>
@@ -199,7 +205,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             </div>
           ))}
         {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
-        {!embed && schemePdf && parts.filter(p => !p.k).map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
+        {!embed && pdfOnly.map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>
 
       <div className="qb-right">
