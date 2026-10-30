@@ -4,7 +4,7 @@ import { appStoreLink } from "@/config/site";
 import { noteCtaClick } from "@/lib/cta";
 import { track } from "@/lib/analytics";
 import { reportAdsConversion } from "@/lib/adsConversion";
-import { AndroidInlineLink, AndroidKey, useIsAndroid } from "@/components/home/AndroidLink";
+import { AndroidInlineLink, AndroidKey, AppleIcon, useIsAndroid } from "@/components/home/AndroidLink";
 import "@/app/send-to-ipad.css";
 
 /**
@@ -164,7 +164,7 @@ function DesktopSend({ placement }: { placement: string }) {
  * every page) and `className` the key's look; the destination, the phone's send-on and
  * the events are the same whatever they are.
  */
-export function HeaderDownload({ download = "Download", className = "hp-pill" }: { download?: string; className?: string } = {}) {
+export function HeaderDownload({ download = "Download", className = "hp-pill", appleMark = false }: { download?: string; className?: string; appleMark?: boolean } = {}) {
   const [state, setState] = useState<SendState>("idle");
   const android = useIsAndroid();
   const href = storeHref("header");
@@ -175,10 +175,11 @@ export function HeaderDownload({ download = "Download", className = "hp-pill" }:
     <>
       <a href={href} target="_blank" rel="noopener noreferrer" className={`${className} hp-not-phone`} data-testid="header-cta-button"
         onClick={() => noteCtaClick("header", "app_store", download, href)}>
+        {appleMark && <AppleIcon />}
         {download}
       </a>
       <button type="button" className={`${className} hp-only-phone`} data-testid="header-send-button" aria-live="polite"
-        onClick={async () => setState(await sendToIPad("header", "Send to iPad"))}>{label}</button>
+        onClick={async () => setState(await sendToIPad("header", "Send to iPad"))}>{appleMark && <AppleIcon />}{label}</button>
     </>
   );
 }

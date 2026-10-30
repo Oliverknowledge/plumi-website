@@ -1,5 +1,6 @@
 /* The ways onto the Android waitlist (AndroidLink.tsx): the top-bar pill, the line under a badge, the key an Android visitor sees. */
 .aw-icon { flex: none; display: block; }
+.lp .lp-navbtn .aw-apple { color: var(--lp-ink); margin-top: -2px; }
 .lp .aw-header { margin-left: auto; gap: 8px; padding: 7px 14px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); }
 .lp .aw-header + .lp-navbtn { margin-left: 0; }
 .lp .aw-header .aw-icon { color: #3ddc84; filter: drop-shadow(0 0 0 #2b2326); }
@@ -8,11 +9,13 @@
 .aw-inline .aw-icon { color: #2f9e62; }
 .aw-key { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px; border: 3px solid #5b4741; border-radius: 14px; box-shadow: 0 5px 0 #5b4741; background: #3ddc84; color: #12301f; font-family: var(--f-px, inherit); font-weight: 700; font-size: 19px; text-decoration: none; white-space: nowrap; }
 .aw-key:active { transform: translateY(4px); box-shadow: 0 1px 0 #5b4741; }
-/* The top bar's width. The links, the Discord, "Android waitlist" and "Try on iPad" come to about 1050px and the bar's content
-   is at most 1100px wide. Below 1180px the Android button is its mark alone and below 1140px "Study with friends" gives way.
-   The logo and the buttons never shrink: a shrunk logo is what let "plumi" touch "Practice papers". */
+/* The top bar's width. The links, the Discord, "Android waitlist" and "Try on iPad" (with its Apple mark) come to about 1150px, and
+   the bar's content is at most 1100px wide, so the bar may be wider than the page's column. Below 1300px the Android button is its
+   mark alone and below 1140px "Study with friends" gives way. The logo and the buttons never shrink: a shrunk logo is what let
+   "plumi" touch "Practice papers". */
+.lp .lp-nav .lp-wrap { max-width: 1360px; }
 .lp .lp-nav .lp-logo, .lp .lp-nav .lp-navbtn, .lp .lp-nav .aw-header { flex: none; }
-@media (max-width: 1179px) {
+@media (max-width: 1299px) {
   .lp .aw-header-label { display: none; }
   .lp .aw-header { padding: 7px 10px; }
 }

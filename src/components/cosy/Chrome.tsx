@@ -32,7 +32,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
           <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
         <AndroidHeaderButton />
-        <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" />
+        <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" appleMark />
       </div>
     </header>
   );
