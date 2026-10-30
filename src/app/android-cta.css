@@ -8,7 +8,16 @@
 .aw-inline .aw-icon { color: #2f9e62; }
 .aw-key { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px; border: 3px solid #5b4741; border-radius: 14px; box-shadow: 0 5px 0 #5b4741; background: #3ddc84; color: #12301f; font-family: var(--f-px, inherit); font-weight: 700; font-size: 19px; text-decoration: none; white-space: nowrap; }
 .aw-key:active { transform: translateY(4px); box-shadow: 0 1px 0 #5b4741; }
-@media (max-width: 620px) {
+/* The top bar's width. The links, the Discord, "Android waitlist" and "Try on iPad" come to about 1180px, and the bar's
+   content is at most 1100px wide, so they squeezed together (the logo ran into "Practice papers"). The bar may be wider than
+   the page's column; below 1300px the Android button is its mark alone, and "Study with friends" gives way at 1140px. The logo and the
+   buttons never shrink: a shrunk logo is what let "plumi" touch "Practice papers". */
+.lp .lp-nav .lp-wrap { max-width: 1360px; }
+.lp .lp-nav .lp-logo, .lp .lp-nav .lp-navbtn, .lp .lp-nav .aw-header { flex: none; }
+@media (max-width: 1299px) {
   .lp .aw-header-label { display: none; }
   .lp .aw-header { padding: 7px 10px; }
+}
+@media (max-width: 1139px) {
+  .lp .lp-nav nav a[href$="#friends"] { display: none; }
 }
