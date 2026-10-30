@@ -129,8 +129,9 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
   if (!mounted) return null;
 
   const empty = view.questions === 0;
-  const most = Math.max(1, ...days.map(d => d.n));
   const fortnight = days.reduce((n, d) => n + d.n, 0);
+  const activeDays = days.filter(d => d.n).length;
+  const level = (n: number) => (n === 0 ? 0 : n <= 2 ? 1 : n <= 5 ? 2 : 3);
   const go = (code: string, slug: string) => onTopic
     ? { as: "button" as const, onClick: () => onTopic(code) }
     : { as: "link" as const, href: bankTopicPath(subject.slug, slug) };
@@ -171,10 +172,28 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
 
   const stats = (
     <dl className="qb-stats">
-      <div><dt>Questions marked</dt><dd>{view.questions.toLocaleString("en-GB")}</dd></div>
-      <div><dt>Topics tried</dt><dd>{view.tried}<small> / {view.total}</small></dd></div>
-      <div><dt>Need attention</dt><dd className={view.tally.needs ? "is-needs" : ""}>{view.tally.needs}</dd></div>
+      <div><dd>{view.questions.toLocaleString("en-GB")}</dd><dt>{view.questions === 1 ? "question" : "questions"} marked</dt></div>
+      <div><dd>{view.tried}<small>/{view.total}</small></dd><dt>topics tried</dt></div>
+      <div className={view.tally.needs ? "is-needs" : ""}><dd>{view.tally.needs}</dd><dt>need attention</dt></div>
     </dl>
+  );
+
+  const fortnightStrip = (
+    <figure className="qb-fortnight">
+      <figcaption>
+        <span className="qb-label">Last 2 weeks</span>
+        <span>{fortnight} {fortnight === 1 ? "answer" : "answers"} on {activeDays} {activeDays === 1 ? "day" : "days"}</span>
+      </figcaption>
+      <ol className="qb-fortnight-days">
+        {days.map((d, i) => (
+          <li key={d.day} className={`is-l${level(d.n)}${i === days.length - 1 ? " is-today" : ""}`}
+            title={`${new Date(d.at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}: ${d.n} ${d.n === 1 ? "answer" : "answers"} marked`}>
+            <i aria-hidden="true" />
+            <span aria-hidden="true">{new Date(d.at).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>
+          </li>
+        ))}
+      </ol>
+    </figure>
   );
 
   const again = view.again > 0 && onAgain && (
@@ -208,7 +227,10 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
 
   const map = (
     <details className="qb-prog-more" open={userOpen ?? !compact} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== (userOpen ?? !compact)) setUserOpen(o); }}>
-      <summary className="qb-prog-sum"><span>Your topic map</span><span className="qb-prog-sum-hint">{view.tried} of {view.total} topics tried</span></summary>
+      <summary className="qb-prog-sum">
+        <span>Your topic map</span>
+        <span className="qb-prog-sum-hint">{view.tried} of {view.total} topics tried{view.tally.early === view.total ? " · two answers on a topic colour its square in" : ""}</span>
+      </summary>
       <div className="qb-map">
         {view.sections.map(sec => (
           <div key={sec.code} className="qb-map-sec">
@@ -260,29 +282,19 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
     <section className="lp-card qb-prog" aria-labelledby="qb-prog-title">
       <header className="qb-prog-head">
         <h2 id="qb-prog-title">Your marking</h2>
-        <div className="qb-seg qb-prog-tabs" role="tablist" aria-label="Your marking">
+        <div className="qb-tabs" role="tablist" aria-label="Your marking">
           <button type="button" role="tab" aria-selected={tab === "overview"} className={tab === "overview" ? "is-on" : ""} onClick={() => setTab("overview")}>Overview</button>
-          <button type="button" role="tab" aria-selected={tab === "history"} className={tab === "history" ? "is-on" : ""} onClick={() => setTab("history")}>History <span className="qb-n">{view.questions}</span></button>
+          <button type="button" role="tab" aria-selected={tab === "history"} className={tab === "history" ? "is-on" : ""} onClick={() => setTab("history")}>History <span className="qb-tabs-n">{view.questions}</span></button>
         </div>
         {run > 1 && <span className="qb-prog-streak" title="Days in a row you’ve marked at least one question">{run}-day streak</span>}
       </header>
       {tab === "history" ? <>{again}{history}{foot}</> : <>
       <div className="qb-prog-top">
         {view.share !== null && <Ring share={view.share} />}
-        {stats}
-        <figure className="qb-days">
-          <div className="qb-days-bars" aria-hidden="true">
-            {days.map((d, i) => (
-              <span key={d.day} className={`qb-day${i === days.length - 1 ? " is-today" : ""}${d.n ? "" : " is-none"}`}
-                style={{ height: `${d.n ? 12 + (d.n / most) * 88 : 6}%` }}
-                title={`${new Date(d.at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}: ${d.n} ${d.n === 1 ? "answer" : "answers"} marked`} />
-            ))}
-          </div>
-          <div className="qb-days-labels" aria-hidden="true">
-            {days.map((d, i) => <span key={d.day} className={i === days.length - 1 ? "is-today" : ""}>{new Date(d.at).toLocaleDateString("en-GB", { weekday: "narrow" })}</span>)}
-          </div>
-          <figcaption>{fortnight} {fortnight === 1 ? "answer" : "answers"} marked in {subject.subject}, last {DAYS} days</figcaption>
-        </figure>
+        <div className="qb-prog-side">
+          {stats}
+          {fortnightStrip}
+        </div>
       </div>
       {again}
       {weak}
