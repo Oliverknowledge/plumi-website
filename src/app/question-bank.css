@@ -539,3 +539,32 @@
   .qb-zoom-foot { padding-block: 6px; max-height: 38dvh; }
   .qb-zoom-hint { display: none; }
 }
+
+/* ── Typing an answer (AnswerBox.tsx) ─────────────────────────────────────── */
+/* A lined page that grows with the answer; the lines move with the text. */
+.qb-answer { display: grid; gap: 6px; margin-top: 4px; }
+.qb-answer-label { font-family: var(--f-px); font-weight: 600; font-size: 14.5px; color: var(--lp-ink-soft); }
+.qb-answer-label span { color: var(--lp-orange); }
+.qb-answer-area { display: block; width: 100%; min-height: 104px; resize: none; overflow: hidden; padding: 6px 14px 8px; box-sizing: border-box;
+  font-family: var(--f-body); font-weight: 600; font-size: 16px; line-height: 32px; color: var(--lp-ink);
+  background: #fffdf8 repeating-linear-gradient(transparent 0 31px, #dfe8f3 31px 32px); background-attachment: local; background-position: 0 6px;
+  border: 2px solid #e2d6c2; border-radius: 10px; transition: border-color .15s, box-shadow .15s; }
+.qb-answer-area::placeholder { font-family: var(--f-hand); font-weight: 700; font-size: 24px; color: #a9a29c; }
+.qb-answer-area:focus { outline: none; border-color: var(--lp-line); box-shadow: 0 0 0 3px rgb(217 112 47 / .25); }
+.qb-answer-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.qb-answer-count { font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .qb-answer-check { min-height: 38px; padding: 4px 13px; font-size: 14px; background: var(--lp-gold); }
+.lp .qb-answer-open { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; justify-self: start; margin-top: 8px; min-height: 40px; padding: 6px 14px;
+  font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-ink); background: #fffdf8; border: 2px dashed var(--lp-line); border-radius: 11px; }
+.lp .qb-answer-open:hover { background: var(--lp-paper-2); border-style: solid; }
+.lp .qb-answer-open:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
+.qb-paper > .qb-answer-open { display: flex; width: fit-content; }
+/* The answer read back beside the scheme in the full-screen viewer. */
+.qb-answer-back { background: #fffdf8; border: 2px solid #e2d6c2; border-radius: 10px; padding: 6px 12px; }
+.qb-answer-back summary { cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 14px; }
+.qb-answer-back summary span { font-family: var(--f-body); font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); margin-left: 6px; }
+.qb-answer-back p { margin-top: 6px; max-height: 22dvh; overflow-y: auto; white-space: pre-wrap; font-size: 15px; font-weight: 600; line-height: 1.5; }
+@media (max-width: 620px) {
+  .qb-answer-area { padding: 6px 10px 8px; }
+  .lp .qb-answer-check { flex: 1; justify-content: center; }
+}

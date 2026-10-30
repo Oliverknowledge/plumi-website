@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
 import { paperName, partImage, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { AnswerReadBack } from "./AnswerBox";
 import { ChoicePick, SelfMark } from "./SelfMark";
 
 /**
@@ -97,6 +98,7 @@ export function ZoomViewer() {
           )}
 
           <footer className="qb-zoom-foot">
+            {kind === "ms" && !part.k && <AnswerReadBack part={part} />}
             {kind === "ms" && !part.k && <SelfMark subject={subject.slug} part={part} />}
             {kind === "qp" && part.k && /^[A-D]( or [A-D])*$/.test(part.k) && <ChoicePick subject={subject.slug} part={part} />}
             {kind === "qp" && !part.k && hasScheme && (
