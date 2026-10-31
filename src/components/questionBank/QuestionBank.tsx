@@ -6,6 +6,7 @@ import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankPr
 import { inBand, markBands } from "@/lib/markBands";
 import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
+import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
@@ -98,7 +99,11 @@ type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "ma
  * text is fetched only when someone types. The server renders the newest twenty
  * first (`initial`), so the page works and reads before any of this loads.
  */
-export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankSubject; initial: BankPart[]; lockedTopic?: string }) {
+export function QuestionBank({ subject, initial, lockedTopic, board }: {
+  subject: BankSubject; initial: BankPart[]; lockedTopic?: string;
+  /** What the revision board needs of the subject: its topics, colour and past papers (boardData.ts). */
+  board?: BoardSubject;
+}) {
   const search = useSyncExternalStore(subscribeUrl, () => window.location.search, () => "");
   const urlFilters = useMemo(() => parse(search), [search]);
   const f: Filters = lockedTopic ? { ...urlFilters, topics: [lockedTopic] } : urlFilters;
@@ -662,13 +667,15 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     subject, lockedTopic, parts,
     // A topic picked on the map goes back to Find, where its key shows it's on.
     onTopic: lockedTopic ? undefined : (code: string) => { update({ topics: [code] }); setCardTab("find"); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); },
+    onTopics: lockedTopic ? undefined : (codes: string[]) => { update({ topics: codes }); setCardTab("find"); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); },
+    board,
     onAgain: () => { update({ again: true, part: "" }); toResults(); },
     onRedo: (id: string) => { update({ part: id, again: false }); toResults(); },
   };
   const marked = mine ? Object.values(mine).filter(r => r.h.length).length : 0;
   const cardTabs = [
     { id: "find" as const, label: <>Find questions <span className="qb-tabs-n">{active > 0 ? `${active} on · ` : ""}{total.toLocaleString("en-GB")}</span></> },
-    { id: "overview" as const, label: <>Your marking</> },
+    { id: "overview" as const, label: <>My topics</> },
     ...(marked ? [{ id: "history" as const, label: <>History <span className="qb-tabs-n">{marked}</span></> }] : []),
   ];
   // History goes when there's nothing in it (marks cleared in another tab): back to the filters, for good.

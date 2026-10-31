@@ -16,11 +16,13 @@ export const sectionLinks: readonly (readonly [string, string])[] = [
   ["Study with friends", "friends"],
 ];
 
-// The question bank first, then the boards' past papers (founder, 30 October 2026). Plumi's own
+// The question bank first, then the boards' past papers (founder, 30 October 2026), then a student's
+// own revision board across their subjects (31 October 2026). Plumi's own
 // practice packs are for Discord members now, so they're in the footer, not the bar.
 export const pageLinks: readonly (readonly [string, string])[] = [
   ["Question bank", "/question-bank"],
   ["Past papers", "/past-papers"],
+  ["My board", "/my-board"],
 ];
 
 export const footerLinks: readonly (readonly [string, string])[] = [
