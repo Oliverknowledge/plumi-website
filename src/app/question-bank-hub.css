@@ -79,11 +79,14 @@
 .qb-mine .qb-mine-pick ul { display: grid; gap: 2px; }
 .lp .qb-mine-pick button { appearance: none; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 10px; text-align: left;
   font: inherit; color: var(--lp-ink); background: none; border: 2px solid transparent; border-radius: 10px; }
-.lp .qb-mine-pick button:hover { background: var(--lp-paper-2); border-color: var(--lp-line); }
+/* Gold through the card, so a row lights up in both themes (dark's paper-2 is the card's own colour). */
+.lp .qb-mine-pick button:hover { background: color-mix(in srgb, var(--lp-gold) 35%, var(--lp-card-bg)); border-color: var(--lp-line); }
 .qb-mine-pick button i { flex: none; width: 14px; height: 19px; background: var(--bk); border: 2px solid var(--lp-line); border-radius: 2px 4px 4px 2px; }
 .qb-mine-pick button span { flex: 1; min-width: 0; font-weight: 800; font-size: 15px; }
 .qb-mine-pick button small { flex: none; font-weight: 800; font-size: 13.5px; color: var(--lp-ink-soft); }
-.qb-mine-pick button.is-on small { color: var(--lp-strong); }
+.lp .qb-mine-pick button:not(.is-on):hover small { color: var(--lp-ink); }
+/* "✓ Added": the map's strong blue, drawn three parts in ten towards the ink, so it is 4.5:1 or more on the card and the hover in both themes. */
+.qb-mine-pick button.is-on small { color: color-mix(in srgb, var(--lp-strong) 70%, var(--lp-ink)); }
 .qb-mine-hint { padding: 4px 6px 2px; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
 
 /* ── A shelf a level, each standing on its plank ─────────────────────────── */
