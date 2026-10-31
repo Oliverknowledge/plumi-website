@@ -1,0 +1,87 @@
+{
+  "id": "9ma0-01-jun24-14",
+  "q": "14",
+  "m": 9,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A balloon is modelled as a sphere whose radius \\(r\\) cm increases at a rate inversely proportional to \\(\\sqrt{r}\\). Write down a differential equation for this.",
+      "method": "Turn the words into an equation",
+      "steps": [
+        { "text": "\"The rate of increase of the radius\" is \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t}\\). \"Inversely proportional to \\(\\sqrt{r}\\)\" means a constant divided by \\(\\sqrt{r}\\).", "why": "Proportional always needs a constant, \\(k\\). Without it the model is wrong." }
+      ],
+      "answer": "\\frac{\\mathrm{d}r}{\\mathrm{d}t} = \\frac{k}{\\sqrt{r}}",
+      "answerMarks": ["B1"],
+      "slips": [
+        "Writing \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t} = \\dfrac{1}{\\sqrt{r}}\\), with no constant. That also capped the marks in (b)."
+      ],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a model written from words: no number to compare"
+      }
+    },
+    {
+      "label": "b",
+      "ask": "At \\(t = 10\\) the radius is 16 cm and is increasing at 0.9 cm s⁻¹. Solve the differential equation to show that \\(r^{\\frac{3}{2}} = 5.4t + 10\\).",
+      "method": "Find \\(k\\) first, then separate the variables",
+      "steps": [
+        { "tex": "0.9 = \\frac{k}{\\sqrt{16}} = \\frac{k}{4} \\;\\Rightarrow\\; k = 3.6", "why": "Put \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t} = 0.9\\) and \\(r = 16\\) into the model. Finding \\(k\\) now leaves only one unknown, \\(c\\), later.", "marks": ["B1"], "check": { "vals": { "k": 3.6 } } },
+        { "tex": "\\frac{\\mathrm{d}r}{\\mathrm{d}t} = \\frac{3.6}{\\sqrt{r}} \\;\\Rightarrow\\; \\int \\sqrt{r}\\,\\mathrm{d}r = \\int 3.6\\,\\mathrm{d}t", "why": "Multiply both sides by \\(\\sqrt{r}\\), so all the \\(r\\) terms are on one side.", "marks": ["M1"], "check": false },
+        { "tex": "\\int r^{\\frac{1}{2}}\\,\\mathrm{d}r = \\frac{r^{\\frac{3}{2}}}{\\frac{3}{2}} = \\frac{2}{3}r^{\\frac{3}{2}}", "check": false },
+        { "tex": "\\frac{2}{3}r^{\\frac{3}{2}} = 3.6t + c", "marks": ["A1"], "check": { "vals": { "c": "20/3", "t": 10, "r": 16 } } },
+        { "tex": "t = 10,\\ r = 16: \\quad \\frac{2}{3}(16)^{\\frac{3}{2}} = 3.6(10) + c", "why": "\\(16^{\\frac{3}{2}} = \\left(\\sqrt{16}\\right)^3 = 64\\).", "check": { "vals": { "c": "20/3" } } },
+        { "tex": "\\frac{128}{3} = 36 + c \\;\\Rightarrow\\; c = \\frac{128}{3} - \\frac{108}{3} = \\frac{20}{3}", "marks": ["dM1"], "check": { "vals": { "c": "20/3" } } },
+        { "tex": "\\frac{2}{3}r^{\\frac{3}{2}} = 3.6t + \\frac{20}{3}", "check": { "vals": { "t": 10, "r": 16 } } },
+        { "tex": "r^{\\frac{3}{2}} = \\frac{3}{2}\\left(3.6t + \\frac{20}{3}\\right) = 5.4t + 10", "why": "Multiply both sides by \\(\\tfrac{3}{2}\\).", "check": { "vals": { "t": 10, "r": 16 } } }
+      ],
+      "answer": "r^{\\frac{3}{2}} = 5.4t + 10",
+      "answerMarks": ["A1*"],
+      "slips": [
+        "Getting the power of \\(r\\) wrong, from a wrong model or from separating the variables wrongly.",
+        "Not finding \\(k\\) at the start, then being stuck with both \\(k\\) and \\(c\\) unknown.",
+        "Putting 0.9 in for \\(k\\) instead of for \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t}\\)."
+      ],
+      "check": {
+        "marks": ["B1", "M1", "A1", "dM1", "A1*"],
+        "answers": [{ "tex": "5.4t + 10", "scheme": "27*t/5 + 10", "derive": "Rational(3, 2)*(Rational(18, 5)*t + Rational(2, 3)*16**Rational(3, 2) - Rational(18, 5)*10)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Hence find the radius when \\(t = 20\\), to the nearest millimetre.",
+      "method": "Substitute, then undo the power \\(\\tfrac{3}{2}\\)",
+      "steps": [
+        { "tex": "r^{\\frac{3}{2}} = 5.4(20) + 10 = 108 + 10 = 118" },
+        { "tex": "r = 118^{\\frac{2}{3}} = 24.06\\ldots", "why": "Raise both sides to the power \\(\\tfrac{2}{3}\\): \\(\\left(r^{\\frac{3}{2}}\\right)^{\\frac{2}{3}} = r\\).", "marks": ["M1"] },
+        { "text": "The nearest millimetre is 1 decimal place in centimetres." }
+      ],
+      "answer": "r = 24.1\\ \\text{cm}",
+      "answerMarks": ["A1"],
+      "slips": [
+        "Undoing the power wrongly, for example working out \\(118^{\\frac{3}{2}}\\) instead of \\(118^{\\frac{2}{3}}\\).",
+        "Leaving out the units, or a slip converting to millimetres."
+      ],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "24.1", "scheme": "24.1", "derive": "(Rational(27, 5)*20 + 10)**Rational(2, 3)", "tol": 0.05 }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "Suggest a limitation of the model.",
+      "method": "Think about what happens to a real balloon",
+      "steps": [
+        { "text": "The model lets \\(r\\) grow for ever: \\(r^{\\frac{3}{2}} = 5.4t + 10\\) has no upper limit." }
+      ],
+      "answerText": "A real balloon will burst, so the model cannot hold for large \\(t\\). (A balloon is also not a perfect sphere.)",
+      "answerMarks": ["B1"],
+      "slips": [
+        "Saying the rate of inflation is not constant. The model already has a changing rate, so this doesn't count."
+      ],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a comment on the model: no number to compare"
+      }
+    }
+  ]
+}
