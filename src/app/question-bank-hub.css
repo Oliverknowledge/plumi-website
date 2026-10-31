@@ -35,10 +35,17 @@
 .lp .qb-jump a:hover { background: var(--lp-gold); }
 .lp .qb-jump a:focus-visible { outline-offset: -4px; }
 
-/* ── Your subjects: the banks you opened lately, a tap back in ───────────── */
+/* ── Your subjects: the banks you added or opened lately, a tap back in ──── */
 .qb-mine { margin-bottom: 40px; }
-.lp .qb-mine-h { font-size: 24px; margin-bottom: 14px; }
+.qb-mine.is-empty { margin-bottom: 30px; }
+.qb-mine-top { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 14px; }
+.qb-mine.is-empty .qb-mine-top { margin-bottom: 0; }
+.lp .qb-mine-h { font-size: 24px; margin: 0; }
+.lp .qb-mine-edit { appearance: none; cursor: pointer; min-height: 32px; padding: 2px 4px; border: 0; background: none; font: 800 15px var(--f-body); color: var(--lp-ink-soft);
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.lp .qb-mine-edit:hover, .lp .qb-mine-edit[aria-pressed="true"] { color: var(--lp-ink); }
 .qb-mine ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+.qb-mine li { position: relative; }
 .lp .qb-mine a { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 16px 6px 12px; color: var(--lp-ink); text-decoration: none;
   background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); transition: transform .08s, box-shadow .08s; }
 .qb-mine a i { flex: none; width: 16px; height: 22px; background: var(--bk); border: 2px solid var(--lp-line); border-radius: 2px 4px 4px 2px; }
@@ -46,6 +53,38 @@
 .qb-mine a small { font-weight: 700; font-size: 13.5px; color: var(--lp-ink-soft); }
 .qb-mine a b { color: var(--qb-orange-text); }
 .lp .qb-mine a:hover { background: var(--lp-gold); transform: translateY(-1px); box-shadow: 0 5px 0 var(--lp-shadow); }
+
+/* Edit: each key loosens on its page, with a red cross on its corner. */
+.qb-mine.is-editing li:nth-child(odd) a { animation: qb-loose 1.1s ease-in-out infinite alternate; }
+.qb-mine.is-editing li:nth-child(even) a { animation: qb-loose 1.1s ease-in-out -.55s infinite alternate-reverse; }
+.lp .qb-mine.is-editing a { border-style: dashed; }
+@keyframes qb-loose { from { transform: rotate(-.7deg); } to { transform: rotate(.7deg); } }
+.lp .qb-mine-x { appearance: none; cursor: pointer; position: absolute; top: -10px; right: -10px; width: 30px; height: 30px; display: grid; place-items: center; padding: 0;
+  color: #fff; background: var(--lp-needs); border: 2px solid var(--lp-line); border-radius: 50%; box-shadow: 0 2px 0 var(--lp-shadow); transition: transform .08s; }
+.qb-mine-x svg { width: 10px; height: 10px; }
+.lp .qb-mine-x:hover { transform: scale(1.1); }
+
+/* "+ Add", beside the heading: a key drawn in pencil, waiting to be inked in. */
+.lp .qb-mine-add { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 2px 14px 2px 10px; font: 800 14.5px var(--f-body); color: var(--lp-ink-soft);
+  background: transparent; border: 2px dashed var(--lp-line); border-radius: 999px; transition: background-color .12s, color .12s; }
+.qb-mine-add span { font: 700 20px/1 var(--f-px); color: var(--lp-ink); }
+.lp .qb-mine-add:hover { color: var(--lp-ink); background: var(--lp-card-bg); }
+.lp .qb-mine-add[aria-expanded="true"] { color: var(--lp-ink); background: var(--lp-gold); border-style: solid; box-shadow: 0 4px 0 var(--lp-shadow); }
+
+/* The picker: a search and up to seven banks under it, each added or taken off with a tap. */
+.qb-mine-pick { position: absolute; z-index: 6; left: 0; top: calc(100% + 10px); width: min(460px, 100%); display: grid; gap: 8px; padding: 10px;
+  background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 6px 0 var(--lp-shadow); }
+.qb-mine-pick .qb-mine-find { min-height: 46px; }
+.lp .qb-mine-pick .qb-mine-find input { height: 42px; font-size: 16px; }
+.qb-mine .qb-mine-pick ul { display: grid; gap: 2px; }
+.lp .qb-mine-pick button { appearance: none; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 10px; text-align: left;
+  font: inherit; color: var(--lp-ink); background: none; border: 2px solid transparent; border-radius: 10px; }
+.lp .qb-mine-pick button:hover { background: var(--lp-paper-2); border-color: var(--lp-line); }
+.qb-mine-pick button i { flex: none; width: 14px; height: 19px; background: var(--bk); border: 2px solid var(--lp-line); border-radius: 2px 4px 4px 2px; }
+.qb-mine-pick button span { flex: 1; min-width: 0; font-weight: 800; font-size: 15px; }
+.qb-mine-pick button small { flex: none; font-weight: 800; font-size: 13.5px; color: var(--lp-ink-soft); }
+.qb-mine-pick button.is-on small { color: var(--lp-strong); }
+.qb-mine-hint { padding: 4px 6px 2px; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
 
 /* ── A shelf a level, each standing on its plank ─────────────────────────── */
 .lp .pp .qb-hub-shelves { padding-block: 0 72px; }
@@ -87,7 +126,8 @@
 .qb-how p { font-size: 15.5px; font-weight: 600; color: var(--lp-ink-soft); }
 
 @media (prefers-reduced-motion: reduce) {
-  .qb-book .lp-book-rib, .lp .qb-keys-board a, .lp .qb-mine a { transition: none; }
+  .qb-book .lp-book-rib, .lp .qb-keys-board a, .lp .qb-mine a, .lp .qb-mine-x, .lp .qb-mine-add { transition: none; }
+  .qb-mine.is-editing li a { animation: none; }
   .lp .qb-keys-board a:hover, .lp .qb-keys-board a:active, .lp .qb-mine a:hover { transform: none; }
 }
 
@@ -115,6 +155,8 @@
   .qb-mine ul { display: grid; }
   .lp .qb-mine a { display: flex; }
   .qb-mine a b { margin-left: auto; }
+  .lp .qb-mine-x { right: -6px; }
+  .qb-mine-pick { position: static; flex: 1 1 100%; width: auto; }
 }
 
 /* ── On a bank's own page: the same subject at the other boards ──────────── */
