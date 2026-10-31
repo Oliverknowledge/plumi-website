@@ -624,7 +624,8 @@ def carried(found, doc):
     question kept its levels grid and lost the indicative content overleaf (a student, 30 October 2026).
     A repeat that opens with the same words is the whole row printed twice, a misprint shown once; and the
     label as printed must match, pieces and all: OCR sets "35 | (c) | (ii)" in three columns, which the
-    reader takes as 35(c), so 35(c)(i) and the 35(c)(ii) over the page only look like one label.
+    reader takes as 35(c), so 35(c)(i) and the 35(c)(ii) over the page only look like one label (a whole
+    question's rows are one scheme either way).
     ms_carryover.py recuts the crops cut before this."""
     def short(l):
         return len(l["text"].strip()) <= 16 and MS_LABEL.match(l["text"].strip())
@@ -632,13 +633,18 @@ def carried(found, doc):
     def printed(pg, y):
         return "".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: l["x0"]) if abs(l["y0"] - y) < 3 and l["x0"] < 160 and short(l)).replace(" ", "")
 
-    def opening(pg, y):
+    def opening(pg, y, depth=25):
         words = " ".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: (round(l["y0"]), l["x0"]))
-                         if y - 2 <= l["y0"] <= y + 25 and not short(l) and not re.match(r"(?i)\(?cont", l["text"].strip()))
+                         if y - 2 <= l["y0"] <= y + depth and not short(l) and not re.match(r"(?i)\(?cont", l["text"].strip()))
         return re.sub(r"\W+", "", words.lower())[:60]
 
     def repeat(a, b):
-        return a[2] == b[2] and b[0] > a[0] and printed(a[0], a[3]) == printed(b[0], b[3]) and opening(a[0], a[3]) != opening(b[0], b[3])
+        # (a whole question's rows, "4" then "4 (b)" overleaf, are one question's scheme whatever the parts' labels)
+        whole = a[2][1] is None and a[2][2] is None
+        # (but not from a page number: AQA's "10" at a page's foot, with nothing under it, reads as a label too)
+        folio = a[3] > doc[a[0]].rect.height - 60 and not opening(a[0], a[3], 80)
+        return a[2] == b[2] and b[0] > a[0] and (whole or printed(a[0], a[3]) == printed(b[0], b[3])) \
+            and not folio and opening(a[0], a[3]) != opening(b[0], b[3])
     return [f for n, f in enumerate(found) if not (n and repeat(found[n - 1], f))]
 
 

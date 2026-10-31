@@ -10,7 +10,7 @@ cut_pearson.py's scheme reader took the repeat for a new row, so the crop stoppe
 cut_pearson.carried now reads it as one row; this recuts the crops made before that, so no bank needs
 cutting again from scratch.
 
-`cut` reads each bank's schemes both ways and, for every part whose rows differ, recuts its crop under
+`cut` reads each bank's schemes both ways and, for every part whose own label's rows differ, recuts its crop under
 the same name, but only where the old reading reproduces the crop the site serves, to the pixel in each
 dimension. A crop cut some other way (by another cutter, or by ms_fallback.py) is left alone and listed
 in <work-dir>/report.json. `apply` bumps each changed bank's cropVersion, so browsers fetch the new crops.
@@ -71,13 +71,6 @@ def keys(label):
     return out + ([(q, None, subs[0])] if subs[0] in cp.ROMANS else [])
 
 
-def hit(ms, key):
-    """cut_pearson.cut_set's lookup: the part's own row, else its parent's."""
-    q, letter, roman = key
-    return ms.get(key) or (ms.get((q, letter, None)) if roman else None) or (ms.get((q, None, None)) if not letter else None) \
-        or (ms.get((q, None, "i")) if letter == "i" and not roman else None)
-
-
 def render(doc, pieces, squash):
     img = cp.stack([cp.trim(doc.crop(pg, r), 10, sides=True) for pg, r in pieces])
     img = cp.squash(img) if squash and img else img
@@ -121,7 +114,9 @@ def cut():
             if all(rows(old.get(k)) == rows(new.get(k)) for k in set(old) | set(new)):
                 continue
             for p in parts:
-                change = next(((hit(old, k), hit(new, k)) for k in keys(p["l"]) if rows(hit(old, k)) != rows(hit(new, k))), None)
+                # (only a part the scheme labels as such: one read through its parent's label, OCR's "35(c)" for
+                # 35(c)(i), would take in its sister parts too)
+                change = next(((old[k], new[k]) for k in keys(p["l"]) if k in old and k in new and rows(old[k]) != rows(new[k])), None)
                 if not change:
                     continue
                 data = fetch(f"bank/{p['id']}-ms.webp")
