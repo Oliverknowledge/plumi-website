@@ -1,0 +1,57 @@
+/* ═══ SIGN IN AND SIGN UP (components/account/AuthPage.tsx) ═══════════════════════════════════════
+   Two halves of the screen: the form on the notebook paper, and the Grand Library on the right with
+   students writing at its tables (public/library/library-door.webp, made by scripts/library/door_scene.py
+   from the app's own art). The art is drawn at whole multiples of its pixels so it stays crisp. On a
+   phone the library is a strip across the top and the form follows. */
+
+.au { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--lp-paper); color: var(--lp-ink); font-family: var(--f-body); }
+
+.au-form { display: grid; grid-template-rows: auto 1fr; padding: 28px max(24px, env(safe-area-inset-left, 0px)) 40px max(24px, env(safe-area-inset-left, 0px)); }
+.au-logo { justify-self: start; display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-px); font-weight: 700; font-size: 24px; color: var(--lp-ink); text-decoration: none; }
+.au-card { align-self: center; justify-self: center; width: min(400px, 100%); display: grid; gap: 14px; padding-block: 32px; }
+.au-card h1 { margin: 0; font-family: var(--f-px); font-weight: 700; font-size: clamp(30px, 4vw, 40px); line-height: 1.1; text-wrap: balance; }
+.au-lead { margin: -6px 0 6px; font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
+
+.au-google { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; font: 800 16px/1 var(--f-body); color: #1f1f1f; background: #fff; border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 3px 0 var(--lp-shadow); }
+.au-google:hover { transform: translateY(-1px); }
+.au-or { display: flex; align-items: center; gap: 12px; margin: 2px 0; font-size: 12.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--lp-ink-soft); }
+.au-or::before, .au-or::after { content: ""; flex: 1; border-top: 2px dashed var(--lp-dash); }
+
+.au-field { display: grid; gap: 6px; }
+.au-field span { font-size: 14px; font-weight: 800; color: var(--lp-ink-soft); }
+.au-field input { min-width: 0; min-height: 50px; padding: 10px 14px; font: 700 16px var(--f-body); color: var(--lp-ink); background: var(--lp-field); border: 2px solid var(--lp-line); border-radius: 12px; }
+.au-field input:focus { outline: 3px solid var(--lp-orange); outline-offset: 1px; }
+.au-field input::placeholder { color: var(--lp-ink-soft); opacity: .7; font-weight: 600; }
+.au-code { font-family: var(--f-px) !important; font-size: 26px !important; letter-spacing: .3em; text-align: center; }
+
+.au-go { appearance: none; cursor: pointer; min-height: 52px; font: 700 17px/1 var(--f-px); color: #3a2a05; background: #f2c96b; border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.au-go:hover:not(:disabled) { transform: translateY(-1px); }
+.au-go:disabled { cursor: not-allowed; opacity: .55; }
+.au-google:focus-visible, .au-go:focus-visible, .au-link:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
+
+.au-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.au-link { appearance: none; cursor: pointer; padding: 2px 0; background: none; border: 0; font: 700 14.5px var(--f-body); color: var(--lp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+.au-link:disabled { opacity: .5; cursor: default; }
+.au-sent { font-size: 15px; font-weight: 600; line-height: 1.5; padding: 12px 14px; background: var(--lp-note); border: 2px solid var(--lp-line); border-radius: 12px; }
+.au-error { font-size: 14px; font-weight: 800; color: #b8403a; background: #fdecea; border: 2px solid #e8a9a4; border-radius: 10px; padding: 9px 12px; }
+.au-note { font-size: 14px; font-weight: 800; color: var(--lp-ink-soft); }
+.au-card hr { width: 100%; margin: 8px 0 0; border: 0; border-top: 2px dashed var(--lp-dash); }
+.au-switch { text-align: center; font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
+.au-switch a, .au-legal a { color: var(--lp-ink); font-weight: 800; text-underline-offset: 3px; }
+.au-legal { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--lp-ink-soft); }
+
+.au-art { position: relative; overflow: hidden; background: #6b2433; }
+.au-art img { position: absolute; left: 50%; top: 50%; width: auto; height: 1200px; max-width: none; transform: translate(-50%, -50%); image-rendering: pixelated; }
+@media (min-height: 1150px) { .au-art img { height: 1800px; } }
+
+html[data-theme="dark"] .au-error { color: #f08a84; background: #3a2422; border-color: #7a3a36; }
+
+@media (max-width: 820px) {
+  .au { grid-template-columns: minmax(0, 1fr); grid-template-rows: 200px auto; }
+  .au-art { grid-row: 1; }
+  .au-art img { height: 1200px; }
+  .au-form { grid-row: 2; position: relative; padding-top: 18px; }
+  .au-logo { position: absolute; z-index: 2; top: -186px; left: 16px; padding: 6px 12px 6px 8px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); font-size: 20px; }
+  .au-card { padding-block: 8px 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .au-google:hover, .au-go:hover:not(:disabled) { transform: none; } }

@@ -5,9 +5,9 @@ import { track } from "@/lib/analytics";
 
 /**
  * Self-marking in the question bank: the marks a student gives themselves after
- * opening a mark scheme, kept in this browser between visits. No account yet, so
- * storage can be missing (private windows): every access is guarded and the
- * record simply starts empty when it is.
+ * opening a mark scheme, kept in this browser between visits, and copied to their
+ * account when they're signed in (lib/bankSync). Storage can be missing (private
+ * windows): every access is guarded and the record simply starts empty when it is.
  *
  * One key holds every subject, so the streak and the days chart can count across
  * banks. Each part keeps its topic codes, so a topic's standing never waits on the
@@ -64,6 +64,44 @@ function parse(raw: string): Store {
   return store;
 }
 
+/* What changed, for the account sync (lib/bankSync): a mark set or corrected, or one taken back. */
+export type MarkEvent =
+  | { kind: "set"; subject: string; part: string; topics: string[]; attempt: Attempt }
+  | { kind: "undo"; subject: string; part: string; at: number };
+const markListeners = new Set<(e: MarkEvent) => void>();
+export function onMarkEvent(cb: (e: MarkEvent) => void) {
+  markListeners.add(cb);
+  return () => { markListeners.delete(cb); };
+}
+
+/** Every attempt in this browser, for the first sync after signing in. */
+export function allAttempts() {
+  const store = parse(readRaw());
+  return Object.entries(store.subjects).flatMap(([subject, bank]) =>
+    Object.entries(bank).flatMap(([part, rec]) => rec.h.map(attempt => ({ subject, part, topics: rec.t, attempt }))));
+}
+
+/**
+ * Bring in attempts from the account (marked on another device, or in another browser):
+ * each part keeps the union of both, newest last, the most recent few. Nothing is
+ * announced, since these came from the account and need not go back to it.
+ */
+export function mergeAttempts(rows: { subject: string; part: string; topics: string[]; attempt: Attempt }[]) {
+  if (!rows.length) return;
+  const store = parse(readRaw());
+  const subjects: Store["subjects"] = { ...store.subjects };
+  let changed = false;
+  for (const { subject, part, topics, attempt } of rows) {
+    const bank = (subjects[subject] = { ...(subjects[subject] ?? {}) });
+    const rec = bank[part];
+    if (rec?.h.some(a => a[2] === attempt[2])) continue;
+    const h = [...(rec?.h ?? []), attempt].sort((a, b) => a[2] - b[2]).slice(-KEEP);
+    bank[part] = { t: rec?.t ?? topics, h };
+    changed = true;
+  }
+  if (changed) writeRaw(JSON.stringify({ v: 1, subjects }));
+}
+
 /** Every subject's marks, read live: any tab's change shows in every other. */
 export function useBankMarks() {
   return parse(useSyncExternalStore(subscribe, readRaw, () => ""));
@@ -85,6 +123,7 @@ export function recordMark({ subject, part, topics, score, outOf, kind, choice }
   else h.push(next);
   bank[part] = { t: topics, h: h.slice(-KEEP) };
   writeRaw(JSON.stringify({ v: 1, subjects: { ...store.subjects, [subject]: bank } }));
+  markListeners.forEach(l => l({ kind: "set", subject, part, topics, attempt: bank[part].h[bank[part].h.length - 1] }));
   track("bank_self_marked", { subject, part, score, out_of: outOf, kind, attempts: h.length });
 }
 
@@ -94,10 +133,12 @@ export function undoMark(subject: string, part: string) {
   const bank = { ...(store.subjects[subject] ?? {}) };
   const prev = bank[part];
   if (!prev) return;
+  const gone = prev.h[prev.h.length - 1];
   const h = prev.h.slice(0, -1);
   if (h.length) bank[part] = { ...prev, h };
   else delete bank[part];
   writeRaw(JSON.stringify({ v: 1, subjects: { ...store.subjects, [subject]: bank } }));
+  if (gone) markListeners.forEach(l => l({ kind: "undo", subject, part, at: gone[2] }));
 }
 
 /** The whole question a part belongs to: "74051-jun25-01" of "74051-jun25-01-4". */

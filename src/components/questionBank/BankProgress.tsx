@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
+import { useAccount } from "@/lib/account";
+import { SignInLink } from "@/components/account/Account";
 import { bankTopicPath, paperName, seriesLabel, topicName, topicRef, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
 import { dailyCounts, partStatus, ROUGH, standing, STATE_LABEL, STATE_ORDER, streak, subjectTotals, topicAttempts, useBankMarks, type PartRecord, type Standing, type TopicState } from "@/lib/bankProgress";
 import { InkScore } from "./SelfMark";
@@ -138,6 +140,7 @@ export function BankProgress({ subject, onTopic, onTopics, board, lockedTopic, c
   const look = useBoardLook();
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
   const store = useBankMarks();
+  const account = useAccount();
   const bank = store.subjects[subject.slug];
 
   const view = useMemo(() => {
@@ -282,9 +285,13 @@ export function BankProgress({ subject, onTopic, onTopics, board, lockedTopic, c
     </details>
   );
 
+  // Where the marks live: this browser, or the account too. Accounts off: as before.
   const foot = (
     <p className="qb-prog-foot">
-      Saved in this browser only, for now. On iPad, <Link href="/">Plumi</Link> marks your handwriting and draws the same kind of map.
+      {account.user ? "Saved to your account, so they follow you to any browser." : account.on && account.ready
+        ? <>Saved in this browser. <SignInLink reason="marks">Sign in</SignInLink> to keep them on every device.</>
+        : "Saved in this browser only, for now."}
+      {" "}On iPad, <Link href="/">Plumi</Link> marks your handwriting and draws the same kind of map.
     </p>
   );
 

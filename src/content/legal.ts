@@ -3,8 +3,8 @@ export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
 const updated = "14 October 2026";
 const updatedIso = "2026-10-14";
-const privacyUpdated = "30 October 2026";
-const privacyUpdatedIso = "2026-10-30";
+const privacyUpdated = "31 October 2026";
+const privacyUpdatedIso = "2026-10-31";
 /**
  * Rewritten 27 October 2026 to cover the app as well as the website. The App Store listing and the
  * app's consent screen both link here, and the previous text said it covered the website only and that
@@ -23,7 +23,7 @@ export const privacy: LegalDoc = {
     { heading: "The short version", blocks: [{kind:"list",items:[
       "Your notebooks, handwriting and marked work are stored on your device. We do not keep a copy of them on our servers.",
       "When you ask Plumi to mark, explain or give a hint, the part of your work you asked about is sent, through Plumi, to our AI provider DeepSeek. This happens only after you agree, and you can say no or change your mind in Account.",
-      "You do not need an account to use the app. An account lets you keep your subscription and use the social features.",
+      "You do not need an account to use the app or the website. An account lets you keep your subscription, use the social features and, on the website, keep your question bank marks on every device.",
       "The social features (friends, groups, the Grand Library) are optional. In the Grand Library strangers see a random nickname, never your name, and nobody can message you privately.",
       "We never sell your information. The app shows no adverts, and nothing you write, draw or upload is shared for advertising.",
 "We email you only about your account and the app, such as an update being out. News about new things from Plumi comes only if you opt in, and every email has an unsubscribe link.",
@@ -31,11 +31,12 @@ export const privacy: LegalDoc = {
     { heading: "What we collect", blocks: [
       {kind:"text",text:"Only what each feature needs."},
       {kind:"list",items:[
-        "Your account, if you make one: your email address, your name if Sign in with Apple shares it, how you signed in (Apple, Google or an email code) and an account id. Your email is used to sign you in and to reach you about your account and the app (for example, to tell you an update is out). If you opt in, it is also used to tell you about new things from Plumi, such as new versions and features. If you used Sign in with Apple’s Hide My Email, our emails reach you through Apple’s relay address.",
+        "Your account, if you make one: your email address, your name if Sign in with Apple shares it, how you signed in (Apple, Google, an email code, or on the website an email and password) and an account id. A password is never stored as you typed it: our sign-in service keeps only a scrambled version (a hash) that can check it but not reveal it. Your email is used to sign you in and to reach you about your account and the app (for example, to tell you an update is out). If you opt in, it is also used to tell you about new things from Plumi, such as new versions and features. If you used Sign in with Apple’s Hide My Email, our emails reach you through Apple’s relay address.",
         "Work you send to be marked or explained: a picture of the handwriting you asked about, text you typed, pictures or pages you placed on the notebook, text from your notes or a lecture recording when you ask Plumi to summarise it or make flashcards, and the question and mark scheme it belongs to. If you write your name or another person’s details on a page you ask us to mark, that is sent too, so please do not.",
         "What you set up for studying: your subjects, exam boards, exam dates and target grades, which stay on your device, and a small summary used to run the subscription.",
         "If you turn friends on: a display name, an avatar look, a friend code, your streak and level, your groups and the messages you send in them. In the Grand Library: a random nickname, where you are standing, whether you are seated, the subject you are studying and how long you have been studying. If you start a study session anywhere in the app while friends are on, you appear in the library as studying until the session ends. Chat messages are checked by automatic rules before they are sent.",
         "Reports and blocks: if you report or block someone, we keep the report and who made it so we can act on it.",
+        "Question bank marks on the website, if you are signed in: for each question part you mark yourself on, its id, subject and topics, your score and what it was out of, the letter you picked for a multiple-choice question, and when. Signed out, these stay in your browser. Answers you type into the question bank stay in your browser and are never sent to us.",
         "Your subscription: whether you have Plumi Pro and the plan, through Apple and our payments service. We never see your card details.",
         "Feedback you choose to send us.",
         "How the app is used: which screens were opened and which features were used, whether the app crashed, your app and iOS version, device type and the country your connection appears to be in. This does not include what you wrote or drew. Screen recording is off.",
@@ -79,7 +80,7 @@ export const privacy: LegalDoc = {
       "What the AI provider keeps is governed by its own policy. We do not control it and cannot delete it for you, so please do not send anything you would not want a provider to hold.",
     ]}] },
     { heading: "Your choices and rights", blocks: [
-      {kind:"text",text:"Every email we send has an unsubscribe link. In the app, Account lets you change or withdraw your AI and advert-measurement choices, hide yourself from strangers in the Grand Library, sign out, and delete your account. Deleting your account removes your account and social information from our servers. You can also delete the work on your device when you delete the account, or delete the app."},
+      {kind:"text",text:"Every email we send has an unsubscribe link. In the app, Account lets you change or withdraw your AI and advert-measurement choices, hide yourself from strangers in the Grand Library, sign out, and delete your account. On the website, the account menu lets you sign out and leave the Grand Library; to delete an account you made on the website, use the app or email hello@tryplumi.app and we will delete it. Deleting your account removes your account and social information from our servers. You can also delete the work on your device when you delete the account, or delete the app."},
       {kind:"text",text:"You can ask us for a copy of the information we hold about you, to correct it, to delete it, to restrict or stop us using it, to move it, or to object to something we do on the basis of legitimate interests, by emailing hello@tryplumi.app. If you have given consent you can withdraw it at any time. We will reply within one month."},
       {kind:"text",text:"If you are unhappy with how we handle your information you can complain to the Information Commissioner’s Office at ico.org.uk. We would like the chance to put it right first."},
     ] },
@@ -100,7 +101,7 @@ export const privacy: LegalDoc = {
      * section changes in the same commit.
      */
     { heading: "The website", blocks: [
-      {kind:"text",text:"You can explore the website without creating an account. The one place it asks for an email address is the Android waitlist, described below. Three measurement services run there and they do different things."},
+      {kind:"text",text:"You can explore and use the website without an account. Two places ask for an email address: signing in, and the Android waitlist described below. Signing in uses the same Plumi account as the app, with Google, a code sent to your email, or an email and password, and you must be 13 or over. It keeps your question bank marks in your account (see What we collect) and lets you join the Grand Library. To keep you signed in, a sign-in token is stored in your browser; signing out from the account menu removes it. You can also leave the Grand Library from the account menu. Three measurement services run on the website and they do different things."},
       {kind:"list",items:[
         "Our own analytics records which sections of a page were read and which buttons were pressed, so we can tell whether the site explains Plumi well. It is hosted in the EU, it never creates a profile of you, it does not record your screen, and it never receives anything you type. Email addresses are stripped before any event leaves your browser.",
         "Vercel Web Analytics, from our hosting provider, counts page views and visitors so we can see how many people the site reaches. It sets no cookies and builds no profile: a visitor is recognised for one day by an anonymised value that is then discarded.",
