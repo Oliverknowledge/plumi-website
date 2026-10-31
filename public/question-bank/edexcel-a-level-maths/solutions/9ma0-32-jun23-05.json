@@ -1,0 +1,76 @@
+{
+  "id": "9ma0-32-jun23-05",
+  "q": "5",
+  "m": 11,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A small ball is projected from \\(O\\) on horizontal ground with speed 28 m s⁻¹ at an angle \\(\\alpha\\) to the ground. After \\(T\\) seconds it passes through \\(A\\), which is 40 m horizontally and 20 m vertically from \\(O\\) (Figure 2, with \\(A\\) on the way down). Modelling the ball as a particle moving freely under gravity, show that \\(T = \\dfrac{10}{7\\cos\\alpha}\\).",
+      "method": "Projectiles: horizontal motion",
+      "steps": [
+        { "tex": "28\\cos\\alpha \\times T = 40", "why": "Horizontal speed is constant: distance = speed \\(\\times\\) time.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow T = \\frac{40}{28\\cos\\alpha}" }
+      ],
+      "answer": "T = \\frac{10}{7\\cos\\alpha}",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "vals": { "\\alpha": "atan(3)", "T": "10/(7*cos(atan(3)))" },
+        "answers": [{ "tex": "T = \\frac{10}{7\\cos\\alpha}", "kind": "identity", "scheme": "10/(7*cos(alpha))", "derive": "solve(28*cos(alpha)*T - 40, T)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Show that \\(\\tan^2\\alpha - 4\\tan\\alpha + 3 = 0\\).",
+      "method": "Projectiles: vertical motion, then eliminate \\(T\\)",
+      "steps": [
+        { "tex": "20 = (28\\sin\\alpha)T - \\frac{1}{2}(9.8)T^2", "why": "\\(s = ut + \\frac{1}{2}at^2\\) vertically, taking up as positive.", "marks": ["M1", "A1"] },
+        { "tex": "\\Rightarrow 20 = 28\\sin\\alpha \\times \\frac{10}{7\\cos\\alpha} - 4.9\\left(\\frac{10}{7\\cos\\alpha}\\right)^2", "why": "Substitute \\(T\\) from part (a).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 20 = 40\\tan\\alpha - 10\\sec^2\\alpha" },
+        { "tex": "\\Rightarrow 20 = 40\\tan\\alpha - 10(1 + \\tan^2\\alpha)", "why": "Use \\(\\sec^2\\alpha = 1 + \\tan^2\\alpha\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 10\\tan^2\\alpha - 40\\tan\\alpha + 30 = 0" }
+      ],
+      "answer": "\\tan^2\\alpha - 4\\tan\\alpha + 3 = 0",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1", "M1", "M1", "A1*"],
+        "vals": { "\\alpha": "atan(3)", "T": "10/(7*cos(atan(3)))" },
+        "answers": [{ "tex": "\\tan^2\\alpha - 4\\tan\\alpha + 3 = 0", "kind": "identity", "scheme": "tan(alpha)**2 - 4*tan(alpha) + 3", "derive": "(28*sin(alpha)*10/(7*cos(alpha)) - Rational(49, 10)*(10/(7*cos(alpha)))**2 - 20)/(-10)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find the greatest possible height of the ball above the ground as it moves from \\(O\\) to \\(A\\).",
+      "method": "Solve for \\(\\tan\\alpha\\), then \\(v^2 = u^2 + 2as\\) vertically",
+      "steps": [
+        { "tex": "(\\tan\\alpha - 1)(\\tan\\alpha - 3) = 0" },
+        { "text": "Take the larger value, \\(\\tan\\alpha = 3\\): the steeper path goes higher.", "why": "With \\(\\tan\\alpha = 1\\) the top is only 20 m, at \\(A\\)." },
+        { "tex": "\\tan\\alpha = 3 \\;\\Rightarrow\\; \\sin\\alpha = \\frac{3}{\\sqrt{10}}", "why": "Right-angled triangle with sides 1, 3, \\(\\sqrt{10}\\).", "marks": ["M1"] },
+        { "tex": "0 = (28\\sin\\alpha)^2 - 2(9.8)H", "why": "At the top the vertical velocity is 0.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 0 = \\left(28 \\times \\frac{3}{\\sqrt{10}}\\right)^2 - 19.6H = 705.6 - 19.6H" },
+        { "tex": "\\Rightarrow H = \\frac{705.6}{19.6}" }
+      ],
+      "answer": "H = 36\\ \\text{m}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1"],
+        "vals": { "\\alpha": "atan(3)", "H": 36 },
+        "answers": [{ "tex": "36", "scheme": "36", "derive": "(28*sin(atan(3)))**2/(2*Rational(49, 5))" }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "The model does not include air resistance. State one other limitation of the model.",
+      "method": "What the model leaves out",
+      "steps": [
+        { "text": "Air resistance is excluded, so name something else real that the model leaves out. One clear limitation is enough.", "why": "Extra, wrong limitations can cost the mark." }
+      ],
+      "answerText": "The model ignores the spin of the ball.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a comment on the model: no number to compare"
+      }
+    }
+  ]
+}

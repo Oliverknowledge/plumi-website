@@ -6,17 +6,13 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = 4 - 3x^2\\) and \\(\\mathrm{g}(x) = \\dfrac{5}{2x-9}\\), \\(x \\neq \\tfrac{9}{2}\\). Find \\(\\mathrm{fg}(2)\\).",
-      "method": "Work from the inside out: g first, then f",
+      "method": "Inside out: g first, then f",
       "steps": [
-        { "tex": "\\mathrm{g}(2) = \\frac{5}{2(2) - 9} = \\frac{5}{-5} = -1", "why": "\\(\\mathrm{fg}(2)\\) means \\(\\mathrm{f}(\\mathrm{g}(2))\\): apply g first." },
-        { "tex": "\\mathrm{fg}(2) = \\mathrm{f}(-1) = 4 - 3(-1)^2 = 4 - 3", "why": "\\((-1)^2 = 1\\), so the 3 is subtracted.", "marks": ["M1"] }
+        { "tex": "\\mathrm{g}(2) = \\frac{5}{2(2) - 9} = -1", "why": "\\(\\mathrm{fg}(2)\\) means \\(\\mathrm{f}(\\mathrm{g}(2))\\): apply g first." },
+        { "tex": "\\Rightarrow \\mathrm{fg}(2) = \\mathrm{f}(-1) = 4 - 3(-1)^2", "marks": ["M1"] }
       ],
       "answer": "\\mathrm{fg}(2) = 1",
       "answerMarks": ["A1"],
-      "slips": [
-        "Working out \\(\\mathrm{gf}(2)\\) instead.",
-        "Finding \\(\\mathrm{fg}(x)\\) first and slipping when expanding the squared fraction."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "\\mathrm{fg}(2) = 1", "scheme": "1", "derive": "4 - 3*(5/(2*2 - 9))**2" }]
@@ -25,22 +21,15 @@
     {
       "label": "b",
       "ask": "Find \\(\\mathrm{g}^{-1}\\).",
-      "method": "Swap the roles: make \\(x\\) the subject",
+      "method": "Make \\(x\\) the subject",
       "steps": [
         { "tex": "y = \\frac{5}{2x - 9}" },
-        { "tex": "y(2x - 9) = 5", "why": "Multiply both sides by \\(2x - 9\\) to clear the fraction." },
-        { "tex": "2xy - 9y = 5" },
-        { "tex": "2xy = 5 + 9y", "why": "Get the \\(x\\) term on its own.", "marks": ["M1"] },
-        { "tex": "x = \\frac{5 + 9y}{2y}", "marks": ["A1"] },
-        { "text": "Now write it as a function of \\(x\\). Its domain is every value except the one that makes the denominator zero.", "why": "The domain of \\(\\mathrm{g}^{-1}\\) is the range of \\(\\mathrm{g}\\): \\(\\dfrac{5}{2x-9}\\) can never be 0." }
+        { "tex": "\\Rightarrow 2xy - 9y = 5", "why": "Multiply by \\(2x - 9\\) to clear the fraction." },
+        { "tex": "\\Rightarrow 2xy = 5 + 9y", "marks": ["M1"] },
+        { "tex": "\\Rightarrow x = \\frac{5 + 9y}{2y}", "why": "Domain of \\(\\mathrm{g}^{-1}\\) = range of g, and g is never 0.", "marks": ["A1"] }
       ],
       "answer": "\\mathrm{g}^{-1}(x) = \\frac{5 + 9x}{2x}, \\quad x \\in \\mathbb{R},\\ x \\neq 0",
       "answerMarks": ["A1"],
-      "slips": [
-        "Leaving out the domain \\(x \\neq 0\\). Examiners have pointed this out in many past reports.",
-        "Differentiating g, or finding its reciprocal \\(\\tfrac{2x-9}{5}\\), instead of the inverse.",
-        "A sign slip with the \\(9y\\) term."
-      ],
       "check": {
         "vals": { "x": 3, "y": "-5/3" },
         "marks": ["M1", "A1", "A1"],
@@ -52,15 +41,11 @@
       "ask": "Find \\(\\mathrm{gf}(x)\\) as a simplified fraction.",
       "method": "Put \\(\\mathrm{f}(x)\\) into g",
       "steps": [
-        { "tex": "\\mathrm{gf}(x) = \\mathrm{g}(4 - 3x^2) = \\frac{5}{2(4 - 3x^2) - 9}", "why": "Every \\(x\\) in g becomes \\(4 - 3x^2\\).", "marks": ["M1"], "check": false },
-        { "tex": "\\frac{5}{2(4 - 3x^2) - 9} = \\frac{5}{8 - 6x^2 - 9} = \\frac{5}{-1 - 6x^2}" }
+        { "tex": "\\mathrm{gf}(x) = \\mathrm{g}(4 - 3x^2) = \\frac{5}{2(4 - 3x^2) - 9}", "why": "Every \\(x\\) in g becomes \\(4 - 3x^2\\).", "marks": ["M1"] },
+        { "tex": "= \\frac{5}{8 - 6x^2 - 9} = \\frac{5}{-1 - 6x^2}" }
       ],
       "answer": "\\mathrm{gf}(x) = -\\frac{5}{1 + 6x^2}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Multiplying \\(\\mathrm{g}(x)\\) by \\(\\mathrm{f}(x)\\) instead of putting one inside the other.",
-        "Finding \\(\\mathrm{fg}(x)\\) instead, or making an algebra slip while over-simplifying a correct answer."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "-\\frac{5}{1 + 6x^2}", "scheme": "-5/(1 + 6*x**2)", "derive": "(5/(2*y - 9)).subs(y, 4 - 3*x**2)" }]
@@ -69,19 +54,14 @@
     {
       "label": "c(ii)",
       "ask": "Deduce the range of \\(\\mathrm{gf}(x)\\).",
-      "method": "Find the smallest and largest the denominator can be",
+      "method": "Smallest and largest denominator",
       "steps": [
-        { "tex": "x^2 \\geq 0 \\;\\Rightarrow\\; 1 + 6x^2 \\geq 1", "why": "The denominator is least, 1, when \\(x = 0\\)." },
-        { "tex": "x = 0: \\quad \\mathrm{gf}(0) = -\\frac{5}{1} = -5", "why": "The smallest denominator gives the most negative value." },
-        { "text": "As \\(x\\) grows, \\(1 + 6x^2\\) grows without limit, so \\(-\\dfrac{5}{1 + 6x^2}\\) gets closer to 0 but never reaches it." }
+        { "tex": "1 + 6x^2 \\geq 1", "why": "\\(x^2 \\geq 0\\), so the denominator is least at \\(x = 0\\)." },
+        { "tex": "\\Rightarrow \\mathrm{gf}(0) = -\\frac{5}{1} = -5" },
+        { "text": "As \\(x\\) grows, \\(-\\dfrac{5}{1 + 6x^2}\\) rises towards 0 but never reaches it." }
       ],
       "answer": "-5 \\leq \\mathrm{gf}(x) < 0",
       "answerMarks": ["B1"],
-      "slips": [
-        "Giving only one end, \\(\\mathrm{gf}(x) \\geq -5\\) or \\(\\mathrm{gf}(x) < 0\\), instead of the whole interval.",
-        "Writing the range in terms of \\(x\\), such as \\(-5 \\leq x < 0\\). A range is about the output: use \\(y\\) or \\(\\mathrm{gf}(x)\\).",
-        "Mixing up domain and range."
-      ],
       "check": {
         "marks": ["B1"],
         "answers": [{ "tex": "-5 \\leq \\mathrm{gf}(x) < 0", "kind": "set", "var": "\\mathrm{gf}(x)", "scheme": "Interval.Ropen(-5, 0)", "derive": "function_range(-5/(1 + 6*x**2), x, S.Reals)" }]
@@ -90,23 +70,16 @@
     {
       "label": "d",
       "ask": "\\(\\mathrm{h}(x) = 2x^2 - 6x + k\\). Find the values of \\(k\\) for which \\(\\mathrm{f}(x) = \\mathrm{h}(x)\\) has no real solutions.",
-      "method": "Form a quadratic, then use the discriminant",
+      "method": "Discriminant",
       "steps": [
         { "tex": "4 - 3x^2 = 2x^2 - 6x + k", "check": { "vals": { "x": 0, "k": 4 } } },
-        { "tex": "0 = 5x^2 - 6x + k - 4", "why": "Collect everything on the side where \\(x^2\\) is positive.", "marks": ["M1"], "check": { "vals": { "x": 0, "k": 4 } } },
-        { "tex": "a = 5, \\quad b = -6, \\quad c = k - 4", "check": false },
-        { "text": "No real solutions means the discriminant is negative: \\(b^2 - 4ac < 0\\).", "why": "Not \\(\\leq 0\\): a zero discriminant gives one repeated root." },
-        { "tex": "b^2 - 4ac = (-6)^2 - 4(5)(k - 4) = 36 - 20k + 80 = 116 - 20k", "check": { "vals": { "a": 5, "b": -6, "c": "k - 4" } } },
-        { "tex": "116 - 20k < 0 \\;\\Rightarrow\\; 116 < 20k", "marks": ["dM1"] },
-        { "tex": "k > \\frac{116}{20} = \\frac{29}{5}", "why": "Moving \\(20k\\) across avoids dividing by \\(-20\\), so the inequality never has to flip." }
+        { "tex": "\\Rightarrow 5x^2 - 6x + k - 4 = 0", "why": "Collect terms on the side where \\(x^2\\) is positive.", "marks": ["M1"], "check": { "vals": { "x": 0, "k": 4 } } },
+        { "text": "No real solutions: \\(b^2 - 4ac < 0\\), with \\(a = 5\\), \\(b = -6\\), \\(c = k - 4\\).", "why": "Not \\(\\leq 0\\): zero gives a repeated root." },
+        { "tex": "(-6)^2 - 4(5)(k - 4) = 116 - 20k < 0" },
+        { "tex": "\\Rightarrow 20k > 116", "why": "Move \\(20k\\) across: no dividing by a negative.", "marks": ["dM1"] }
       ],
       "answer": "k > \\frac{29}{5} \\ (= 5.8)",
       "answerMarks": ["A1"],
-      "slips": [
-        "Using \\(b^2 - 4ac \\geq 0\\), the condition for real roots, instead of \\(< 0\\).",
-        "Slips expanding \\(-4(5)(k-4)\\), or dividing by \\(-20\\) without reversing the inequality.",
-        "Dropping the \\(= 0\\), or taking the discriminant of a quadratic set equal to \\(k\\)."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1"],
         "answers": [{ "tex": "k > \\frac{29}{5}", "kind": "set", "var": "k", "scheme": "Interval.open(Rational(29, 5), oo)", "derive": "solveset(36 - 20*(k - 4) < 0, k, S.Reals)" }]

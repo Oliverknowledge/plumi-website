@@ -1,0 +1,43 @@
+{
+  "id": "9ma0-02-jun23-05",
+  "q": "5",
+  "m": 5,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The curve \\(C\\), \\(y = \\mathrm{f}(x)\\), passes through \\(P(3, -10)\\) and has a turning point at \\(P\\). Given that \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 2x^3 - 9x^2 + 5x + k\\), show that \\(k = 12\\).",
+      "method": "At a turning point the gradient is zero",
+      "steps": [
+        { "tex": "2(3)^3 - 9(3)^2 + 5(3) + k = 0", "why": "\\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 0\\) at \\(x = 3\\). Show the 3 substituted.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 54 - 81 + 15 + k = 0" },
+        { "tex": "\\Rightarrow -12 + k = 0" }
+      ],
+      "answer": "\\Rightarrow k = 12",
+      "answerMarks": ["A1*"],
+      "check": {
+        "vals": { "k": 12 },
+        "marks": ["M1", "A1*"],
+        "answers": [{ "tex": "12", "scheme": "12", "derive": "solve(2*3**3 - 9*3**2 + 5*3 + k, k)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence find the coordinates of the point where \\(C\\) crosses the \\(y\\)-axis.",
+      "method": "Integrate, then use \\(P\\) to find the constant",
+      "steps": [
+        { "tex": "y = \\int \\left(2x^3 - 9x^2 + 5x + 12\\right)\\mathrm{d}x", "check": false },
+        { "tex": "= \\frac{1}{2}x^4 - 3x^3 + \\frac{5}{2}x^2 + 12x + c", "marks": ["M1"] },
+        { "tex": "\\Rightarrow -10 = \\frac{1}{2}(3)^4 - 3(3)^3 + \\frac{5}{2}(3)^2 + 12(3) + c", "why": "\\(P(3, -10)\\) is on the curve.", "marks": ["dM1"] },
+        { "tex": "= 18 + c" },
+        { "tex": "\\Rightarrow c = -28", "why": "On the \\(y\\)-axis \\(x = 0\\), so \\(y = c\\)." }
+      ],
+      "answer": "(0,\\ -28)",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "c": -28 },
+        "marks": ["M1", "dM1", "A1"],
+        "answers": [{ "tex": "(0,\\ -28)", "kind": "point", "scheme": "(0, -28)", "derive": "Tuple(0, -10 - (Rational(1, 2)*3**4 - 3*3**3 + Rational(5, 2)*3**2 + 12*3))" }]
+      }
+    }
+  ]
+}

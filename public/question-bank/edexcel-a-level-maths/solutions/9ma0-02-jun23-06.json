@@ -1,0 +1,43 @@
+{
+  "id": "9ma0-02-jun23-06",
+  "q": "6",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Relative to \\(O\\), \\(A\\), \\(B\\), \\(C\\) and \\(D\\) have position vectors \\(12\\mathbf{i}\\), \\(16\\mathbf{j}\\), \\(50\\mathbf{i} + 136\\mathbf{j}\\) and \\(22\\mathbf{i} + 24\\mathbf{j}\\). Show that \\(AD\\) is parallel to \\(BC\\).",
+      "method": "Show one vector is a multiple of the other",
+      "steps": [
+        { "tex": "\\overrightarrow{AD} = (22\\mathbf{i} + 24\\mathbf{j}) - 12\\mathbf{i} = 10\\mathbf{i} + 24\\mathbf{j}", "why": "End minus start.", "check": false },
+        { "tex": "\\overrightarrow{BC} = (50\\mathbf{i} + 136\\mathbf{j}) - 16\\mathbf{j} = 50\\mathbf{i} + 120\\mathbf{j}", "why": "\\(B\\) is \\(16\\mathbf{j}\\): take it off the \\(\\mathbf{j}\\) part.", "marks": ["M1"], "check": false },
+        { "tex": "= 5(10\\mathbf{i} + 24\\mathbf{j}) = 5\\overrightarrow{AD}", "check": false }
+      ],
+      "answerText": "\\(\\overrightarrow{BC} = 5\\overrightarrow{AD}\\), a multiple of it, so \\(AD\\) is parallel to \\(BC\\).",
+      "answerMarks": ["A1*cso"],
+      "check": {
+        "marks": ["M1", "A1*cso"],
+        "answers": "show that: the vectors 10i + 24j and 50i + 120j are multiples (the assert checks 50/10 = 120/24 = 5)",
+        "assert": "Rational(50, 10) == Rational(120, 24) == 5 and (22 - 12, 24 - 0) == (10, 24) and (50 - 0, 136 - 16) == (50, 120)"
+      }
+    },
+    {
+      "label": "b",
+      "ask": "\\(A\\), \\(B\\), \\(C\\), \\(D\\) are the vertices of a running track (a quadrilateral), with lengths in metres. A runner takes exactly 5 minutes to complete 2 laps. Calculate the runner's average speed in kilometres per hour.",
+      "method": "Pythagoras for each side, then speed = distance ÷ time",
+      "steps": [
+        { "tex": "\\overrightarrow{AB} = -12\\mathbf{i} + 16\\mathbf{j}, \\qquad \\overrightarrow{CD} = -28\\mathbf{i} - 112\\mathbf{j}", "why": "\\(\\overrightarrow{BC}\\) and \\(\\overrightarrow{AD}\\) come from part (a).", "check": false },
+        { "tex": "|\\overrightarrow{AB}| = \\sqrt{12^2 + 16^2} = 20, \\qquad |\\overrightarrow{BC}| = \\sqrt{50^2 + 120^2} = 130", "marks": ["M1"] },
+        { "tex": "|\\overrightarrow{CD}| = \\sqrt{28^2 + 112^2} = 28\\sqrt{17}, \\qquad |\\overrightarrow{DA}| = \\sqrt{10^2 + 24^2} = 26", "marks": ["A1"] },
+        { "tex": "v = \\frac{2(20 + 130 + 28\\sqrt{17} + 26)}{1000} \\div \\frac{5}{60}", "why": "Two laps in km, divided by 5 minutes in hours.", "marks": ["dM1"] },
+        { "tex": "= 0.582893\\ldots \\times 12" },
+        { "tex": "= 6.9947\\ldots" }
+      ],
+      "answer": "\\approx 6.99\\ \\text{km/h}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1"],
+        "answers": [{ "tex": "6.99", "scheme": "6.99", "derive": "2*(20 + 130 + sqrt(28**2 + 112**2) + 26)/1000/(Rational(5, 60))", "tol": 0.006 }]
+      }
+    }
+  ]
+}

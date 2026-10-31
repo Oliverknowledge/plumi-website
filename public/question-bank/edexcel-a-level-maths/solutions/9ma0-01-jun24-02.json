@@ -6,42 +6,28 @@
     {
       "label": "a",
       "ask": "Find the first four terms of the binomial expansion of \\((1-9x)^{\\frac{1}{2}}\\), in ascending powers of \\(x\\).",
-      "method": "Binomial expansion with \\(n = \\tfrac{1}{2}\\)",
+      "method": "Binomial expansion",
       "steps": [
-        { "tex": "(1+u)^n = 1 + nu + \\frac{n(n-1)}{2!}u^2 + \\frac{n(n-1)(n-2)}{3!}u^3 + \\cdots", "why": "The formula book's expansion. Here \\(n = \\tfrac{1}{2}\\) and \\(u = -9x\\).", "check": false },
-        { "tex": "(1-9x)^{\\frac{1}{2}} = 1 + \\tfrac{1}{2}(-9x) + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)}{2!}(-9x)^2 + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)\\left(-\\frac{3}{2}\\right)}{3!}(-9x)^3 + \\cdots", "why": "Keep \\(-9x\\) in brackets: its minus sign is squared and cubed too.", "marks": ["M1", "A1"], "check": false },
-        { "tex": "\\tfrac{1}{2}(-9x) = -\\tfrac{9}{2}x", "why": "Now simplify one term at a time." },
-        { "tex": "\\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)}{2}(-9x)^2 = -\\frac{1}{8}\\left(81x^2\\right) = -\\frac{81}{8}x^2" },
-        { "tex": "\\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)\\left(-\\frac{3}{2}\\right)}{6}(-9x)^3 = \\frac{1}{16}\\left(-729x^3\\right) = -\\frac{729}{16}x^3", "why": "\\((-9x)^3 = -729x^3\\): an odd power keeps the minus sign." }
+        { "tex": "(1-9x)^{\\frac{1}{2}} = 1 + \\tfrac{1}{2}(-9x) + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)}{2!}(-9x)^2 + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)\\left(-\\frac{3}{2}\\right)}{3!}(-9x)^3 + \\cdots", "why": "Formula book: \\((1+x)^n\\), with \\(n = \\tfrac{1}{2}\\) and \\(-9x\\) for \\(x\\).", "marks": ["M1", "A1"], "check": false },
+        { "tex": "= 1 - \\tfrac{9}{2}x - \\tfrac{1}{8}\\left(81x^2\\right) + \\tfrac{1}{16}\\left(-729x^3\\right) + \\cdots", "why": "Keep \\(-9x\\) in brackets: \\((-9x)^3 = -729x^3\\)." }
       ],
       "answer": "(1-9x)^{\\frac{1}{2}} = 1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3 + \\cdots",
       "answerMarks": ["A1"],
-      "slips": [
-        "Using \\(9x\\) instead of \\(-9x\\), or ignoring the 9 altogether.",
-        "Losing brackets or not simplifying each term fully, which cost the final mark."
-      ],
       "check": {
         "marks": ["M1", "A1", "A1"],
-        "answers": [{ "tex": "1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3", "scheme": "1 - 9*x/2 - 81*x**2/8 - 729*x**3/16" }]
+        "answers": [{ "tex": "1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3", "scheme": "1 - 9*x/2 - 81*x**2/8 - 729*x**3/16", "derive": "series(sqrt(1 - 9*x), x, 0, 4).removeO()" }]
       }
     },
     {
       "label": "b",
       "ask": "Give a reason why \\(x = -\\tfrac{2}{9}\\) should not be used in the expansion to approximate \\(\\sqrt{3}\\).",
-      "method": "Compare with the range of validity",
+      "method": "Range of validity",
       "steps": [
-        { "text": "The expansion of \\((1+u)^n\\) is only valid when \\(|u| < 1\\).", "why": "Putting \\(x = -\\tfrac{2}{9}\\) in would give \\((1+2)^{\\frac{1}{2}} = \\sqrt{3}\\), which is why it is tempting." },
-        { "tex": "|-9x| < 1 \\;\\Rightarrow\\; |x| < \\frac{1}{9}" },
-        { "tex": "x = -\\frac{2}{9} \\;\\Rightarrow\\; |x| = \\frac{2}{9}", "why": "Validity is about the size of \\(x\\), so compare \\(|x|\\) with \\(\\tfrac{1}{9}\\).", "check": false },
-        { "tex": "\\frac{2}{9} > \\frac{1}{9}" }
+        { "tex": "|-9x| < 1 \\Rightarrow |x| < \\frac{1}{9}", "why": "The expansion only holds while the bracketed term has size below 1.", "check": false },
+        { "tex": "x = -\\frac{2}{9} \\Rightarrow |x| = \\frac{2}{9} > \\frac{1}{9}", "check": false }
       ],
-      "answerText": "The expansion is only valid for \\(|x| < \\tfrac{1}{9}\\), and \\(x = -\\tfrac{2}{9}\\) is outside this range because \\(\\tfrac{2}{9} > \\tfrac{1}{9}\\).",
+      "answerText": "The expansion is only valid for \\(|x| < \\tfrac{1}{9}\\), and \\(x = -\\tfrac{2}{9}\\) is outside this range.",
       "answerMarks": ["B1"],
-      "slips": [
-        "Finding the range but not comparing \\(-\\tfrac{2}{9}\\) with it, or not saying what that means.",
-        "Mixing up the modulus, giving statements such as \\(x > \\tfrac{1}{9}\\).",
-        "Putting \\(x = -\\tfrac{2}{9}\\) into the expansion and showing the answer is not \\(\\sqrt{3}\\). That does not give the reason, and scored nothing."
-      ],
       "check": {
         "marks": ["B1"],
         "answers": "reasoning: a statement about the range of validity"

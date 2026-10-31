@@ -1,0 +1,38 @@
+{
+  "id": "9ma0-32-jun23-01",
+  "q": "1",
+  "m": 3,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A car starts from rest on a straight horizontal road and accelerates at a constant \\(3.2\\) m s⁻². Find its speed after 5 s.",
+      "method": "suvat",
+      "steps": [
+        { "tex": "v = 0 + 3.2 \\times 5", "why": "\\(v = u + at\\). \"At rest\" means \\(u = 0\\)." }
+      ],
+      "answer": "v = 16\\ \\text{m s}^{-1}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "v": 16 },
+        "answers": [{ "tex": "16", "scheme": "16", "derive": "0 + Rational(16, 5)*5" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find the distance travelled by the car in the first 5 s.",
+      "method": "suvat",
+      "steps": [
+        { "tex": "s = 0 \\times 5 + \\frac{1}{2} \\times 3.2 \\times 5^2", "why": "\\(s = ut + \\frac{1}{2}at^2\\): uses only the given values.", "marks": ["M1"] },
+        { "tex": "= 1.6 \\times 25" }
+      ],
+      "answer": "s = 40\\ \\text{m}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "s": 40 },
+        "answers": [{ "tex": "40", "scheme": "40", "derive": "Rational(1, 2)*Rational(16, 5)*5**2" }]
+      }
+    }
+  ]
+}

@@ -6,24 +6,16 @@
     {
       "label": "a",
       "ask": "Given that \\(a > 0\\), use the substitution \\(x = a\\sin^2\\theta\\) to show that \\(\\displaystyle\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta\\).",
-      "method": "Integration by substitution: replace \\(x\\), \\(\\mathrm{d}x\\) and the limits",
+      "method": "Integration by substitution",
       "steps": [
-        { "tex": "x = a\\sin^2\\theta \\;\\Rightarrow\\; \\frac{\\mathrm{d}x}{\\mathrm{d}\\theta} = 2a\\sin\\theta\\cos\\theta", "why": "Chain rule: \\(\\sin^2\\theta = (\\sin\\theta)^2\\), so bring down the 2 and multiply by the derivative of \\(\\sin\\theta\\).", "marks": ["B1"], "check": false },
-        { "tex": "\\mathrm{d}x = 2a\\sin\\theta\\cos\\theta\\,\\mathrm{d}\\theta", "check": false },
-        { "tex": "x^{\\frac{1}{2}} = \\sqrt{a\\sin^2\\theta} = \\sqrt{a}\\sin\\theta", "why": "On \\(0 \\leq \\theta \\leq \\tfrac{\\pi}{2}\\), \\(\\sin\\theta \\geq 0\\), so the square root of \\(\\sin^2\\theta\\) is \\(\\sin\\theta\\)." },
-        { "tex": "\\sqrt{a - x} = \\sqrt{a - a\\sin^2\\theta} = \\sqrt{a\\left(1 - \\sin^2\\theta\\right)} = \\sqrt{a\\cos^2\\theta} = \\sqrt{a}\\cos\\theta", "why": "\\(1 - \\sin^2\\theta = \\cos^2\\theta\\). Factorise inside the root first: \\(\\sqrt{a - a\\sin^2\\theta}\\) is not \\(\\sqrt{a} - \\sqrt{a}\\sin\\theta\\)." },
+        { "tex": "x = a\\sin^2\\theta \\Rightarrow \\mathrm{d}x = 2a\\sin\\theta\\cos\\theta\\,\\mathrm{d}\\theta", "marks": ["B1"], "check": false },
+        { "tex": "\\sqrt{a - x} = \\sqrt{a - a\\sin^2\\theta} = \\sqrt{a\\cos^2\\theta} = \\sqrt{a}\\cos\\theta", "why": "Factorise inside the root: \\(1 - \\sin^2\\theta = \\cos^2\\theta\\)." },
         { "tex": "\\int x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\int \\sqrt{a}\\sin\\theta \\cdot \\sqrt{a}\\cos\\theta \\cdot 2a\\sin\\theta\\cos\\theta\\,\\mathrm{d}\\theta", "marks": ["M1"], "check": false },
-        { "tex": "\\sqrt{a}\\sin\\theta \\cdot \\sqrt{a}\\cos\\theta \\cdot 2a\\sin\\theta\\cos\\theta = 2a^2\\sin^2\\theta\\cos^2\\theta = 2a^2\\left(\\sin\\theta\\cos\\theta\\right)^2", "why": "\\(\\sqrt{a} \\times \\sqrt{a} \\times 2a = 2a^2\\)." },
-        { "tex": "2a^2\\left(\\sin\\theta\\cos\\theta\\right)^2 = 2a^2\\left(\\tfrac{1}{2}\\sin 2\\theta\\right)^2 = 2a^2 \\cdot \\tfrac{1}{4}\\sin^2 2\\theta = \\tfrac{1}{2}a^2\\sin^2 2\\theta", "why": "\\(\\sin 2\\theta = 2\\sin\\theta\\cos\\theta\\), so \\(\\sin\\theta\\cos\\theta = \\tfrac{1}{2}\\sin 2\\theta\\).", "marks": ["dM1"] },
-        { "tex": "x = 0: \\ a\\sin^2\\theta = 0 \\Rightarrow \\theta = 0, \\qquad x = a: \\ a\\sin^2\\theta = a \\Rightarrow \\sin\\theta = 1 \\Rightarrow \\theta = \\frac{\\pi}{2}", "why": "The limits must change to \\(\\theta\\) values too.", "check": false }
+        { "tex": "\\sqrt{a}\\sin\\theta \\cdot \\sqrt{a}\\cos\\theta \\cdot 2a\\sin\\theta\\cos\\theta = 2a^2\\left(\\sin\\theta\\cos\\theta\\right)^2 = 2a^2\\left(\\tfrac{1}{2}\\sin 2\\theta\\right)^2 = \\tfrac{1}{2}a^2\\sin^2 2\\theta", "why": "Simplify the integrand. \\(\\sin\\theta\\cos\\theta = \\tfrac{1}{2}\\sin 2\\theta\\).", "marks": ["dM1"] },
+        { "tex": "x = 0 \\Rightarrow \\theta = 0, \\qquad x = a \\Rightarrow \\sin\\theta = 1 \\Rightarrow \\theta = \\frac{\\pi}{2}", "why": "Change the limits to \\(\\theta\\) too.", "check": false }
       ],
       "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Wrong derivatives, such as \\(2a\\cos\\theta\\) instead of \\(2a\\sin\\theta\\cos\\theta\\).",
-        "Splitting the root wrongly, \\(\\sqrt{a - a\\sin^2\\theta}\\) as \\(\\sqrt{a} - \\sqrt{a}\\sin\\theta\\), or not spotting the double angle formula for \\(\\sin 2\\theta\\).",
-        "Reaching the right expression but never changing the limits, or leaving out the \\(\\mathrm{d}\\theta\\) or the integral sign."
-      ],
       "check": {
         "marks": ["B1", "M1", "dM1", "A1*"],
         "answers": [{ "tex": "\\frac{1}{2}a^2", "kind": "identity", "scheme": "Rational(1, 2)*a**2*sin(2*t)**2", "derive": "sqrt(a*sin(t)**2)*sqrt(a - a*sin(t)**2)*diff(a*sin(t)**2, t)", "note": "integrand after the substitution, checked at sample points with a > 0 and 0 < t < pi/2" }]
@@ -34,20 +26,12 @@
       "ask": "Hence use algebraic integration to show that \\(\\displaystyle\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = k\\pi a^2\\), finding \\(k\\).",
       "method": "Double angle formula, then integrate",
       "steps": [
-        { "tex": "\\cos 4\\theta = 1 - 2\\sin^2 2\\theta \\;\\Rightarrow\\; \\sin^2 2\\theta = \\frac{1 - \\cos 4\\theta}{2}", "why": "\\(\\cos 2A = 1 - 2\\sin^2 A\\) with \\(A = 2\\theta\\). Doubling \\(2\\theta\\) gives \\(4\\theta\\), not \\(2\\theta\\)." },
-        { "tex": "\\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta = \\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\frac{1 - \\cos 4\\theta}{2}\\,\\mathrm{d}\\theta = \\tfrac{1}{4}a^2\\int_0^{\\frac{\\pi}{2}} \\left(1 - \\cos 4\\theta\\right)\\mathrm{d}\\theta", "marks": ["M1"], "check": false },
-        { "tex": "\\int \\cos 4\\theta\\,\\mathrm{d}\\theta = \\tfrac{1}{4}\\sin 4\\theta", "why": "Divide by the 4. Integrating \\(-\\cos 4\\theta\\) gives \\(-\\tfrac{1}{4}\\sin 4\\theta\\): watch the sign.", "check": false },
-        { "tex": "\\tfrac{1}{4}a^2\\int \\left(1 - \\cos 4\\theta\\right)\\mathrm{d}\\theta = \\tfrac{1}{4}a^2\\left(\\theta - \\tfrac{1}{4}\\sin 4\\theta\\right)", "marks": ["dM1", "A1"], "check": false },
-        { "tex": "\\tfrac{1}{4}a^2\\left(\\frac{\\pi}{2} - \\tfrac{1}{4}\\sin 2\\pi\\right) - \\tfrac{1}{4}a^2\\left(0 - \\tfrac{1}{4}\\sin 0\\right) = \\tfrac{1}{4}a^2\\left(\\frac{\\pi}{2} - 0\\right) - 0", "why": "Top limit minus bottom limit. \\(\\sin 2\\pi = 0\\) and \\(\\sin 0 = 0\\)." },
-        { "tex": "\\tfrac{1}{4}a^2 \\cdot \\frac{\\pi}{2} = \\frac{1}{8}\\pi a^2" }
+        { "tex": "\\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta = \\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\frac{1 - \\cos 4\\theta}{2}\\,\\mathrm{d}\\theta", "why": "\\(\\cos 2A = 1 - 2\\sin^2 A\\) with \\(A = 2\\theta\\): that gives \\(\\cos 4\\theta\\).", "marks": ["M1"], "check": false },
+        { "tex": "= \\tfrac{1}{4}a^2\\left[\\theta - \\tfrac{1}{4}\\sin 4\\theta\\right]_0^{\\frac{\\pi}{2}}", "why": "\\(\\cos 4\\theta \\to \\tfrac{1}{4}\\sin 4\\theta\\): divide by the 4.", "marks": ["dM1", "A1"], "check": false },
+        { "tex": "= \\tfrac{1}{4}a^2\\left(\\frac{\\pi}{2} - \\tfrac{1}{4}\\sin 2\\pi\\right) - \\tfrac{1}{4}a^2\\left(0 - \\tfrac{1}{4}\\sin 0\\right) = \\tfrac{1}{4}a^2 \\cdot \\frac{\\pi}{2}" }
       ],
       "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{8}\\pi a^2, \\quad k = \\frac{1}{8}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Writing \\(\\sin^2 2\\theta = \\dfrac{1 - \\cos 2\\theta}{2}\\): the angle must double to \\(4\\theta\\). This scored nothing.",
-        "Integrating \\(-\\cos 4\\theta\\) to \\(+\\tfrac{1}{4}\\sin 4\\theta\\). It still gives the right number here, but lost both accuracy marks.",
-        "Raising the power and dividing, as if \\(\\sin^2 2\\theta\\) were \\(x^2\\), or trying integration by parts."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1", "A1"],
         "answers": [{ "tex": "\\frac{1}{8}\\pi a^2", "scheme": "pi*a**2/8", "derive": "Rational(1, 2)*a**2*integrate(sin(2*t)**2, (t, 0, pi/2))" }]

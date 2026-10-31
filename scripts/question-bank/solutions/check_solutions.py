@@ -1,7 +1,7 @@
 """
 Check the bank's worked solutions before anyone reads them.
 
-    python3 scripts/question-bank/solutions/check_solutions.py [subject-slug] [-v]
+    python3 scripts/question-bank/solutions/check_solutions.py [subject-slug] [-v] [--only <id prefix>]
 
 For every solutions/<id>.json beside a bank (public/question-bank/<slug>/solutions/):
 
@@ -41,7 +41,7 @@ from sympy.parsing.latex import parse_latex
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 
-MARK_CODE = re.compile(r"^(d{0,2}M|A|B)\d(\*|ft)?$")
+MARK_CODE = re.compile(r"^(d{0,2}M|d?B|A)\d\*?(ft|cso|cao)?\*?$")
 TRIG = (sp.sin, sp.cos, sp.tan, sp.sec, sp.csc, sp.cot)
 INVTRIG = (sp.asin, sp.acos, sp.atan)
 NAMESPACE = {name: getattr(sp, name) for name in dir(sp) if not name.startswith("_")}
@@ -223,16 +223,27 @@ def fmt_point(p):
     return ", ".join(f"{k}={float(v):.3f}" for k, v in p.items())
 
 
-def check_line(where, tex, vals, deg, rep: Report):
+def check_line(where, tex, vals, deg, rep: Report, carry=None):
+    """Check one line. A line that starts with = (or \\approx) carries on from the last piece
+    of the line before (`carry`); returns this line's last piece for the next one."""
     rep.counts["lines"] += 1
-    for chain in statements(tex):
+    continues = tex.lstrip().startswith(("=", "\\approx"))
+    last = None
+    for i, chain in enumerate(statements(tex)):
         parsed = [(raw, to_sympy(raw, deg)) for raw in chain]
+        if i == 0 and continues and not chain[0]:
+            if carry:
+                parsed[0] = carry
+            else:
+                rep.skipped.append(f"{where}: carries on from a line that could not be read")
         for raw, e in parsed:
             if e is None and raw:
                 rep.skipped.append(f"{where}: could not read \"{raw}\"")
         for (ra, a), (rb, b) in zip(parsed, parsed[1:]):
             if a is not None and b is not None:
                 compare_pieces(where, ra, rb, a, b, vals, rep)
+        last = parsed[-1] if parsed[-1][1] is not None else None
+    return last
 
 
 # ---------- answers ----------
@@ -359,7 +370,7 @@ def tex_jobs(qid, sol):
         key = path.rsplit(".", 1)[-1]
         if key in ("tex", "answer"):
             jobs.append({"where": f"{qid} {path}", "tex": s, "display": True})
-        elif key in ("ask", "why", "text", "answerText", "method") or re.search(r"slips\[\d+\]$", path):
+        elif key in ("ask", "why", "text", "answerText", "method"):
             if s.count("\\(") != s.count("\\)"):
                 jobs.append({"where": f"{qid} {path}", "tex": "\\unbalancedInlineMath", "display": False})
             for m in re.finditer(r"\\\((.+?)\\\)", s):
@@ -413,18 +424,21 @@ def check_solution(path: Path, parts_by_id: dict, rep: Report):
         total += sum(int(re.search(r"\d", m).group()) for m in tagged)
 
         part_vals = symbol_values(check.get("vals"))
+        carry = None  # the last piece of the line before, for a line that starts with =
         for i, step in enumerate(part["steps"]):
             sw = f"{where} step {i + 1}"
             step_check = step.get("check", True)
             if "tex" not in step:
+                carry = None
                 continue
             if step_check is False:
                 rep.unchecked.append(f"{sw}: {step['tex']} (a formula or statement, not a calculation)")
+                carry = None
                 continue
             vals = {**part_vals, **symbol_values(step_check.get("vals") if isinstance(step_check, dict) else None)}
-            check_line(sw, step["tex"], vals, deg, rep)
+            carry = check_line(sw, step["tex"], vals, deg, rep, carry)
         if part.get("answer"):
-            check_line(f"{where} answer", part["answer"], part_vals, deg, rep)
+            check_line(f"{where} answer", part["answer"], part_vals, deg, rep, carry)
         check_answers(where, part, rep)
         if "assert" in check:
             try:
@@ -442,18 +456,23 @@ def check_solution(path: Path, parts_by_id: dict, rep: Report):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    verbose = "-v" in sys.argv
+    argv = sys.argv[1:]
+    only = argv[argv.index("--only") + 1] if "--only" in argv else ""
+    if only:
+        argv.remove("--only")
+        argv.remove(only)
+    args = [a for a in argv if not a.startswith("-")]
+    verbose = "-v" in argv
     slugs = args or [p.parent.name for p in sorted((ROOT / "public/question-bank").glob("*/solutions"))]
     rep, jobs, n = Report(), [], 0
     for slug in slugs:
         bank_dir = ROOT / "public/question-bank" / slug
         parts = json.loads((bank_dir / "parts.json").read_text())
         parts_by_id = {p["id"]: p for p in parts}
-        files = sorted((bank_dir / "solutions").glob("*.json"))
+        files = sorted((bank_dir / "solutions").glob(f"{only}*.json"))
         have = {f.stem for f in files}
         for p in parts:
-            if p.get("sol") and p["id"] not in have:
+            if p.get("sol") and p["id"].startswith(only) and p["id"] not in have:
                 rep.fail(p["id"], "parts.json says sol: 1 but there is no solution file")
         for f in files:
             jobs += check_solution(f, parts_by_id, rep)

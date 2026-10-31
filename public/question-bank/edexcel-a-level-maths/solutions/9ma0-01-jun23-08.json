@@ -1,0 +1,56 @@
+{
+  "id": "9ma0-01-jun23-08",
+  "q": "8",
+  "m": 10,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The plan of a stage is two congruent triangles \\(ABO\\) and \\(GFO\\) joined to a sector \\(OCDEO\\) of a circle, centre \\(O\\). \\(C\\) lies on \\(OB\\) and \\(E\\) on \\(OF\\). Angle \\(COE = 2.3\\) radians, arc \\(CDE = 27.6\\) m, and \\(AOG\\) is a straight line of length 15 m along the back. Show that \\(OC = 12\\) m.",
+      "method": "Arc length",
+      "steps": [
+        { "tex": "r \\times 2.3 = 27.6", "why": "Arc length \\(l = r\\theta\\), with \\(r = OC\\) and \\(\\theta\\) in radians.", "marks": ["M1"], "check": { "vals": { "r": 12 } } }
+      ],
+      "answer": "\\Rightarrow OC = \\frac{27.6}{2.3} = 12\\ \\text{m}",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "answers": [{ "tex": "\\frac{27.6}{2.3} = 12", "scheme": "12", "derive": "Rational(276, 10)/Rational(23, 10)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Show that angle \\(AOB\\) is 0.421 radians to 3 decimal places.",
+      "method": "Angles on a straight line",
+      "steps": [
+        { "tex": "2\\theta + 2.3 = \\pi", "why": "Let \\(\\theta = \\angle AOB = \\angle GOF\\) (congruent). \\(AOG\\) is straight." },
+        { "tex": "\\Rightarrow 2\\theta = \\pi - 2.3", "marks": ["M1"] }
+      ],
+      "answer": "\\Rightarrow \\theta = \\frac{\\pi - 2.3}{2} = 0.4207\\ldots = 0.421 \\text{ rad}",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "vals": { "\\theta": "(pi - 23/10)/2" },
+        "answers": [{ "tex": "0.421", "scheme": "0.421", "derive": "(pi - Rational(23, 10))/2", "tol": 0.0005 }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "The front of the stage, \\(BCDEF\\), has total length 35 m. Find the total area of the stage, to the nearest square metre.",
+      "method": "Sector plus two triangles",
+      "steps": [
+        { "tex": "\\frac{1}{2}r^2\\theta = \\frac{1}{2}(12)^2(2.3)", "why": "Sector area, with \\(\\theta\\) in radians.", "marks": ["M1"], "check": { "vals": { "r": 12, "\\theta": "23/10" } } },
+        { "tex": "= 165.6", "marks": ["A1"] },
+        { "tex": "BC = \\frac{35 - 27.6}{2} = 3.7", "why": "The front is \\(BC\\) + arc + \\(EF\\), and \\(BC = EF\\)." },
+        { "tex": "OB = 12 + 3.7 = 15.7", "marks": ["B1"] },
+        { "tex": "\\frac{1}{2}(7.5)(15.7)\\sin 0.421 = 24.06\\ldots", "why": "\\(\\tfrac{1}{2}ab\\sin C\\), with \\(OA = \\tfrac{15}{2} = 7.5\\).", "marks": ["M1"] },
+        { "tex": "165.6 + 2(24.06\\ldots) = 213.7\\ldots", "why": "Two congruent triangles: don't forget the second.", "marks": ["dM1"] }
+      ],
+      "answerText": "The total area is \\(214\\ \\text{m}^2\\) (to the nearest square metre).",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "B1", "M1", "dM1", "A1"],
+        "answers": [{ "text": "\\(214\\ \\text{m}^2\\)", "value": "214", "scheme": "214", "derive": "Rational(1, 2)*144*Rational(23, 10) + 2*Rational(1, 2)*Rational(15, 2)*Rational(157, 10)*sin((pi - Rational(23, 10))/2)", "tol": 0.5 }]
+      }
+    }
+  ]
+}

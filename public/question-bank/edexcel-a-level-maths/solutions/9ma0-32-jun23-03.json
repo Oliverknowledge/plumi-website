@@ -1,0 +1,73 @@
+{
+  "id": "9ma0-32-jun23-03",
+  "q": "3",
+  "m": 9,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "At time \\(t\\) seconds (\\(t \\geq 0\\)) a particle \\(P\\) has velocity \\(\\mathbf{v} = (t^2 - 3t + 7)\\mathbf{i} + (2t^2 - 3)\\mathbf{j}\\) m s⁻¹. Find the speed of \\(P\\) at \\(t = 0\\).",
+      "method": "Magnitude of the velocity",
+      "steps": [
+        { "tex": "\\mathbf{v} = (0^2 - 3(0) + 7)\\mathbf{i} + (2(0)^2 - 3)\\mathbf{j}" },
+        { "tex": "= 7\\mathbf{i} - 3\\mathbf{j}", "marks": ["B1"] },
+        { "tex": "\\text{speed} = \\sqrt{7^2 + (-3)^2} = \\sqrt{49 + 9}", "why": "Speed is the magnitude of \\(\\mathbf{v}\\): use Pythagoras.", "marks": ["M1"] }
+      ],
+      "answer": "\\text{speed} = \\sqrt{58} = 7.62\\ \\text{m s}^{-1}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1"],
+        "answers": [{ "tex": "\\sqrt{58}", "scheme": "sqrt(58)", "derive": "sqrt(7**2 + (-3)**2)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find the value of \\(t\\) when \\(P\\) is moving parallel to \\(\\mathbf{i} + \\mathbf{j}\\).",
+      "method": "Equate the components",
+      "steps": [
+        { "tex": "t^2 - 3t + 7 = 2t^2 - 3", "why": "Parallel to \\(\\mathbf{i} + \\mathbf{j}\\): the two components are equal.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow t^2 + 3t - 10 = 0" },
+        { "tex": "\\Rightarrow (t + 5)(t - 2) = 0" },
+        { "text": "\\(t \\geq 0\\), so reject \\(t = -5\\)." }
+      ],
+      "answer": "t = 2",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "t": 2 },
+        "answers": [{ "tex": "t = 2", "scheme": "2", "derive": "solveset(Eq(t**2 - 3*t + 7, 2*t**2 - 3), t, Interval(0, oo))" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find the acceleration of \\(P\\) at time \\(t\\) seconds.",
+      "method": "Differentiate the velocity",
+      "steps": [
+        { "tex": "\\mathbf{v} = (t^2 - 3t + 7)\\mathbf{i} + (2t^2 - 3)\\mathbf{j}", "why": "\\(\\mathbf{a} = \\frac{\\mathrm{d}\\mathbf{v}}{\\mathrm{d}t}\\): differentiate each component.", "check": false }
+      ],
+      "answer": "\\mathbf{a} = (2t - 3)\\mathbf{i} + 4t\\mathbf{j}\\ \\text{m s}^{-2}",
+      "answerMarks": ["M1", "A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [
+          { "tex": "2t - 3", "scheme": "2*t - 3", "derive": "diff(t**2 - 3*t + 7, t)" },
+          { "tex": "4t", "scheme": "4*t", "derive": "diff(2*t**2 - 3, t)" }
+        ]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "Find the value of \\(t\\) when the acceleration of \\(P\\) is perpendicular to \\(\\mathbf{i}\\).",
+      "method": "The \\(\\mathbf{i}\\) component is zero",
+      "steps": [
+        { "tex": "2t - 3 = 0", "why": "Perpendicular to \\(\\mathbf{i}\\): the \\(\\mathbf{i}\\) component must be zero.", "marks": ["M1"] }
+      ],
+      "answer": "t = 1.5",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "t": "3/2" },
+        "answers": [{ "tex": "t = 1.5", "scheme": "3/2", "derive": "solve(diff(t**2 - 3*t + 7, t), t)" }]
+      }
+    }
+  ]
+}

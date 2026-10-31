@@ -12,12 +12,12 @@ import "./WorkedSolution.css";
  * it (QuestionRow), with KaTeX, so the bank's pages carry none of this until then.
  *
  * It opens one step at a time: each part shows its method, then "Next step" reveals the
- * working a line at a time, then the answer and the slips examiners saw. "Show every
- * step" lays the whole solution out at once.
+ * working a line at a time, then the answer. "Show every step" lays the whole solution
+ * out at once.
  */
 
 interface Step { tex?: string; text?: string; why?: string; marks?: string[] }
-interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[]; slips?: string[] }
+interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[] }
 interface Solution { id: string; q: string; m: number; parts: Part[] }
 
 const solutions: Record<string, Promise<Solution | null>> = {};
@@ -42,8 +42,43 @@ function Prose({ text }: { text: string }) {
   return <>{bits.map((b, i) => (i % 2 ? <span key={i} dangerouslySetInnerHTML={{ __html: mathHtml(b) }} /> : b))}</>;
 }
 
+const RELATIONS = ["=", "\\Rightarrow", "\\approx", "\\equiv", "\\leq", "\\geq", "<", ">"];
+
+/**
+ * A line of working split at its first relation outside braces, "f'(x)" | "= 1 + …", so the
+ * lines of a part line up on their = signs as they would by hand. A line that carries on
+ * ("= …", "⇒ …") has nothing on the left. A long left side isn't split: it would push
+ * every other line across.
+ */
+function splitAtRelation(tex: string): [string, string] | null {
+  let depth = 0;
+  for (let i = 0; i < tex.length; i++) {
+    const c = tex[i];
+    if (c === "\\" && (tex[i + 1] === "{" || tex[i + 1] === "}")) { i++; continue; }
+    if (c === "{") depth++;
+    else if (c === "}") depth--;
+    else if (depth === 0) {
+      const rel = RELATIONS.find(r => tex.startsWith(r, i) && !(r[0] === "\\" && /[a-zA-Z]/.test(tex[i + r.length] ?? "")));
+      if (!rel) continue;
+      const left = tex.slice(0, i).trim();
+      const seen = left.replace(/\\[a-zA-Z]+|[{}\s]/g, "");
+      return seen.length > 12 || /\\text\b/.test(left) ? null : [left, tex.slice(i).trim()];
+    }
+  }
+  return null;
+}
+
 /** A part's letter as written in the margin: "a)", "(ii)", "b(i)". */
 const marginLabel = (label: string) => (/^[ivx]+$/.test(label) ? `(${label})` : label.includes("(") ? label : `${label})`);
+
+function Working({ tex }: { tex: string }) {
+  const split = splitAtRelation(tex);
+  if (!split) return <span className="qb-sol-w"><Maths tex={tex} /></span>;
+  return <>
+    <span className="qb-sol-l">{split[0] && <Maths tex={split[0]} />}</span>
+    <span className="qb-sol-r"><Maths tex={`{}${split[1]}`} /></span>
+  </>;
+}
 
 function Marks({ marks }: { marks?: string[] }) {
   if (!marks?.length) return null;
@@ -54,14 +89,14 @@ function Marks({ marks }: { marks?: string[] }) {
   );
 }
 
-/** The things a part reveals in turn: its working, then its answer, then the slips. */
+/** The things a part reveals in turn: its working, then its answer. */
 function partItems(part: Part) {
-  const items: { key: string; node: ReactNode; kind: "step" | "answer" | "slips" }[] = part.steps.map((s, i) => ({
+  const items: { key: string; node: ReactNode; kind: "step" | "answer" }[] = part.steps.map((s, i) => ({
     key: `s${i}`, kind: "step",
     node: (
       <>
         <div className="qb-sol-line">
-          <div className="qb-sol-m">{s.tex ? <Maths tex={s.tex} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}</div>
+          {s.tex ? <Working tex={s.tex} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}
           <Marks marks={s.marks} />
         </div>
         {s.why && <p className="qb-sol-why"><Prose text={s.why} /></p>}
@@ -80,22 +115,6 @@ function partItems(part: Part) {
       </div>
     ),
   });
-  if (part.slips?.length) {
-    items.push({
-      key: "slips", kind: "slips",
-      node: (
-        <div className="qb-sol-slip">
-          <span className="qb-sol-slip-ico" aria-hidden="true">!</span>
-          <div>
-            <p className="qb-sol-slip-head">Examiners saw</p>
-            {part.slips.length > 1
-              ? <ul>{part.slips.map((s, i) => <li key={i}><Prose text={s} /></li>)}</ul>
-              : <p><Prose text={part.slips[0]} /></p>}
-          </div>
-        </div>
-      ),
-    });
-  }
   return items;
 }
 
@@ -131,7 +150,7 @@ export function WorkedSolution({ slug, id, question }: { slug: string; id: strin
     const item = parts[p][count - 1];
     const label = solution!.parts[p].label;
     const where = label ? `Part ${label}: ` : "";
-    setSaid(item.kind === "answer" ? `${where}the answer is showing.` : item.kind === "slips" ? `${where}what examiners saw is showing.` : `${where}step ${count} of ${solution!.parts[p].steps.length} is showing.`);
+    setSaid(item.kind === "answer" ? `${where}the answer is showing.` : `${where}step ${count} of ${solution!.parts[p].steps.length} is showing.`);
     if (count === parts[p].length) {
       // This part is done: carry on to the next part's key, or to the end of this one.
       requestAnimationFrame(() => (nextRefs.current.slice(p + 1).find(Boolean) ?? endRefs.current[p])?.focus());

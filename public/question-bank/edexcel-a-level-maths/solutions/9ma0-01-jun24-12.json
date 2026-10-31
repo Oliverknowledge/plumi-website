@@ -8,20 +8,17 @@
       "ask": "Express \\(140\\cos\\theta - 480\\sin\\theta\\) as \\(K\\cos(\\theta + \\alpha)\\), where \\(K > 0\\) and \\(0 < \\alpha < 90^\\circ\\). Give \\(\\alpha\\) to 2 decimal places.",
       "method": "Expand, then compare coefficients",
       "steps": [
-        { "tex": "K\\cos(\\theta + \\alpha) = K\\cos\\theta\\cos\\alpha - K\\sin\\theta\\sin\\alpha", "check": false },
-        { "tex": "\\text{so}\\quad K\\cos\\alpha = 140 \\quad\\text{and}\\quad K\\sin\\alpha = 480", "why": "Match the \\(\\cos\\theta\\) terms, then the \\(\\sin\\theta\\) terms. The minus signs line up, so both are positive.", "check": false },
-        { "tex": "K^2 = 140^2 + 480^2 = 19\\,600 + 230\\,400 = 250\\,000 \\;\\Rightarrow\\; K = 500", "why": "Square and add: \\(\\cos^2\\alpha + \\sin^2\\alpha = 1\\) leaves \\(K^2\\).", "marks": ["B1"], "check": { "vals": { "K": 500 } } },
-        { "tex": "\\tan\\alpha = \\frac{K\\sin\\alpha}{K\\cos\\alpha} = \\frac{480}{140} = \\frac{24}{7}", "why": "Sin over cos, so 480 goes on top.", "marks": ["M1"] },
-        { "tex": "\\alpha = \\tan^{-1}\\left(\\frac{24}{7}\\right) = 73.739\\ldots^\\circ", "why": "Calculator in degrees: the question says \\(0 < \\alpha < 90^\\circ\\)." }
+        { "tex": "140\\cos\\theta - 480\\sin\\theta = K\\cos\\theta\\cos\\alpha - K\\sin\\theta\\sin\\alpha", "why": "Formula book: \\(\\cos(A + B) = \\cos A\\cos B - \\sin A\\sin B\\).", "check": false },
+        { "tex": "\\Rightarrow K\\cos\\alpha = 140, \\quad K\\sin\\alpha = 480" },
+        { "tex": "\\Rightarrow K = \\sqrt{140^2 + 480^2} = \\sqrt{250\\,000} = 500", "why": "Square and add: \\(\\cos^2\\alpha + \\sin^2\\alpha = 1\\).", "marks": ["B1"] },
+        { "tex": "\\tan\\alpha = \\frac{480}{140} = \\frac{24}{7}", "why": "\\(\\sin\\) over \\(\\cos\\), so 480 goes on top.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow \\alpha = \\tan^{-1}\\left(\\frac{24}{7}\\right) = 73.739\\ldots^\\circ" }
       ],
       "answer": "140\\cos\\theta - 480\\sin\\theta = 500\\cos(\\theta + 73.74^\\circ)",
       "answerMarks": ["A1"],
-      "slips": [
-        "Working in radians instead of degrees.",
-        "\\(\\tan^{-1}\\left(\\tfrac{140}{480}\\right)\\): the fraction upside down."
-      ],
       "check": {
         "deg": true,
+        "vals": { "K": 500, "\\alpha": "atan(Rational(24, 7))*180/pi" },
         "marks": ["B1", "M1", "A1"],
         "answers": [
           { "tex": "500", "scheme": "500" },
@@ -32,18 +29,13 @@
     {
       "label": "b(i)",
       "ask": "Rabbits: \\(R = A + 140\\cos(30t)^\\circ - 480\\sin(30t)^\\circ\\), \\(t\\) months after the start of the year. The maximum is 1500. Find a complete equation for the model.",
-      "method": "Use part (a): it's the same expression",
+      "method": "Use part (a)",
       "steps": [
         { "tex": "R = A + 140\\cos(30t)^\\circ - 480\\sin(30t)^\\circ = A + 500\\cos(30t + 73.74)^\\circ", "why": "Part (a) with \\(\\theta = 30t\\).", "check": false },
-        { "tex": "-1 \\leq \\cos(30t + 73.74)^\\circ \\leq 1 \\;\\Rightarrow\\; A - 500 \\leq R \\leq A + 500" },
-        { "tex": "R_{\\max} = A + 500 = 1500 \\;\\Rightarrow\\; A = 1000", "check": { "vals": { "A": 1000 } } }
+        { "tex": "\\Rightarrow R_{\\max} = A + 500 = 1500 \\Rightarrow A = 1000", "why": "Greatest when the cosine is 1.", "check": { "vals": { "A": 1000 } } }
       ],
       "answer": "R = 1000 + 500\\cos(30t + 73.74)^\\circ",
       "answerMarks": ["B1ft"],
-      "slips": [
-        "Ignoring part (a) and finding a wrong \\(A\\).",
-        "Finding \\(A\\) and stopping: the question wants the whole equation."
-      ],
       "check": {
         "deg": true,
         "marks": ["B1ft"],
@@ -53,15 +45,12 @@
     {
       "label": "b(ii)",
       "ask": "Hence write down the minimum number of rabbits.",
-      "method": "The cosine at its least, \\(-1\\)",
+      "method": "Cosine at its least",
       "steps": [
-        { "tex": "R_{\\min} = 1000 - 500", "why": "The least value of \\(\\cos\\) is \\(-1\\).", "check": false }
+        { "tex": "R_{\\min} = 1000 - 500", "why": "Least when the cosine is \\(-1\\).", "check": false }
       ],
       "answerText": "The minimum is \\(500\\) rabbits.",
       "answerMarks": ["B1ft"],
-      "slips": [
-        "Adding \\(A\\) and \\(K\\) instead of subtracting: \\(A + K\\) is the maximum."
-      ],
       "check": {
         "marks": ["B1ft"],
         "answers": [{ "text": "\\(500\\) rabbits", "value": "500", "scheme": "500" }]
@@ -70,17 +59,14 @@
     {
       "label": "c",
       "ask": "The actual number of rabbits is least in the middle of April. Comment on the model.",
-      "method": "Turn \"the middle of April\" into a value of \\(t\\)",
+      "method": "Substitute mid-April",
       "steps": [
-        { "text": "\\(t = 0\\) is the start of January, so April starts at \\(t = 3\\) and its middle is \\(t = 3.5\\).", "why": "Not \\(t = 4\\): that's the start of May." },
-        { "tex": "R = 1000 + 500\\cos\\left(30(3.5) + 73.74\\right)^\\circ = 1000 + 500\\cos(178.74^\\circ)", "marks": ["M1"] },
-        { "tex": "1000 + 500\\cos(178.74^\\circ) = 1000 - 499.87\\ldots = 500.1\\ldots" }
+        { "text": "\\(t = 0\\) is the start of January, so mid-April is \\(t = 3.5\\).", "why": "Not \\(t = 4\\): that's the start of May." },
+        { "tex": "R = 1000 + 500\\cos\\left(30(3.5) + 73.74\\right)^\\circ", "marks": ["M1"] },
+        { "tex": "= 1000 + 500\\cos(178.74^\\circ) = 500.1\\ldots" }
       ],
       "answerText": "At \\(t = 3.5\\) the model gives about \\(500\\), its minimum, so the model is reliable.",
       "answerMarks": ["A1"],
-      "slips": [
-        "Solving for \\(t\\), getting 3.54 and calling it mid-March. \\(t\\) counts months after the start of the year."
-      ],
       "check": {
         "deg": true,
         "marks": ["M1", "A1"],
@@ -90,22 +76,19 @@
     {
       "label": "d",
       "ask": "Foxes: \\(F = 100 + 70\\sin(30t + 70)^\\circ\\), least at time \\(T\\) months. Find the number of rabbits at time \\(T\\).",
-      "method": "Find \\(T\\) from the foxes, then put it in the rabbits",
+      "method": "Find \\(T\\), then substitute it into \\(R\\)",
       "steps": [
         { "tex": "F = 100 + 70\\sin(30t + 70)^\\circ \\text{ is least when } \\sin(30t + 70)^\\circ = -1", "check": false },
-        { "tex": "30t + 70 = 270", "why": "\\(\\sin = -1\\) at \\(270^\\circ\\), not \\(90^\\circ\\) (that's the maximum).", "marks": ["M1"], "check": { "vals": { "t": "20/3" } } },
-        { "tex": "30t = 200 \\;\\Rightarrow\\; T = \\frac{20}{3} \\approx 6.67 \\text{ months}", "marks": ["A1"], "check": { "vals": { "t": "20/3", "T": "20/3" } } },
-        { "tex": "R = 1000 + 500\\cos\\left(30 \\times \\frac{20}{3} + 73.74\\right)^\\circ = 1000 + 500\\cos(273.74^\\circ)", "marks": ["dM1"] },
-        { "tex": "1000 + 500\\cos(273.74^\\circ) = 1000 + 500(0.0652\\ldots) = 1032.6\\ldots", "why": "Check with the original form: \\(1000 + 140\\cos 200^\\circ - 480\\sin 200^\\circ = 1032.6\\) ✓" }
+        { "tex": "\\Rightarrow 30t + 70 = 270", "why": "\\(\\sin = -1\\) at \\(270^\\circ\\), not \\(90^\\circ\\) (the maximum).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow T = \\frac{200}{30} = \\frac{20}{3}", "marks": ["A1"] },
+        { "tex": "R = 1000 + 500\\cos\\left(30 \\times \\frac{20}{3} + 73.74\\right)^\\circ", "marks": ["dM1"] },
+        { "tex": "= 1000 + 500\\cos(273.74^\\circ) = 1032.6\\ldots", "why": "Rabbits are counted: give a whole number." }
       ],
-      "answerText": "There are \\(1032\\) rabbits (a count, so a whole number).",
+      "answerText": "There are \\(1032\\) rabbits.",
       "answerMarks": ["A1"],
-      "slips": [
-        "\\(30t + 70 = 90\\), which is the maximum.",
-        "Rounding 1032.6 to 3 s.f. as 1030. Rabbits come in whole numbers: 1032 or 1033 scored."
-      ],
       "check": {
         "deg": true,
+        "vals": { "t": "20/3", "T": "20/3" },
         "marks": ["M1", "A1", "dM1", "A1"],
         "answers": [{ "text": "\\(1032\\) rabbits", "value": "1032", "scheme": "1032", "derive": "1000 + 140*cos(rad(200)) - 480*sin(rad(200))", "tol": 1 }]
       }

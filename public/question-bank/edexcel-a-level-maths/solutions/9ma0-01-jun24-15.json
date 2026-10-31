@@ -6,19 +6,13 @@
     {
       "label": "i",
       "ask": "Show that \\(k^2 - 4k + 5\\) is positive for all real values of \\(k\\).",
-      "method": "Completing the square",
+      "method": "Complete the square",
       "steps": [
-        { "tex": "k^2 - 4k + 5 = (k - 2)^2 - 4 + 5", "why": "Halve the coefficient of \\(k\\): \\((k-2)^2 = k^2 - 4k + 4\\), so take the 4 back off.", "marks": ["M1"] },
-        { "tex": "(k - 2)^2 - 4 + 5 = (k - 2)^2 + 1" },
-        { "tex": "(k - 2)^2 \\geq 0 \\;\\Rightarrow\\; (k - 2)^2 + 1 \\geq 1", "why": "A square is positive or zero, never negative. Saying \\((k-2)^2 > 0\\) is wrong: it is 0 when \\(k = 2\\)." }
+        { "tex": "k^2 - 4k + 5 = (k - 2)^2 - 4 + 5", "why": "\\((k-2)^2 = k^2 - 4k + 4\\), so take the 4 back off.", "marks": ["M1"] },
+        { "tex": "= (k - 2)^2 + 1", "why": "\\((k-2)^2 \\geq 0\\), not \\(> 0\\): it is 0 at \\(k = 2\\)." }
       ],
-      "answerText": "\\(k^2 - 4k + 5 = (k-2)^2 + 1 \\geq 1 > 0\\), so \\(k^2 - 4k + 5\\) is positive for all real \\(k\\).",
+      "answerText": "Since \\((k-2)^2 \\geq 0\\), \\((k-2)^2 + 1 \\geq 1 > 0\\), so \\(k^2 - 4k + 5\\) is positive for all real \\(k\\).",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Saying squares are always positive, forgetting they can be zero.",
-        "Finding the discriminant, \\(-4\\), and stopping there. You also need the \\(k^2\\) coefficient to be positive, so the curve sits above the axis.",
-        "Trying a few values of \\(k\\), or only even and odd whole numbers. That can't cover every real number."
-      ],
       "check": {
         "marks": ["M1", "A1*"],
         "answers": [{ "text": "(k-2)^2 + 1 \\geq 1 > 0", "kind": "positive", "value": "k**2 - 4*k + 5", "scheme": "(k - 2)**2 + 1" }]
@@ -29,23 +23,16 @@
       "ask": "Complete a student's proof by contradiction that there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\). The student has shown that \\(3x + 2y = 14\\), \\(2x - 5y = 2\\) gives \\(x = \\tfrac{74}{19}\\), \\(y = \\tfrac{22}{19}\\), not integers.",
       "method": "Check every factor pair of 28",
       "steps": [
-        { "text": "If \\(x\\) and \\(y\\) are positive integers, then \\(3x + 2y\\) and \\(2x - 5y\\) are integers whose product is 28. So they are a factor pair of 28." },
-        { "text": "\\(x \\geq 1\\) and \\(y \\geq 1\\), so \\(3x + 2y \\geq 3 + 2 = 5\\). So \\(3x + 2y\\) is positive, which makes \\(2x - 5y\\) positive too, and \\(3x + 2y\\) can only be 7, 14 or 28.", "why": "This cuts the twelve factor pairs (positive and negative, both ways round) down to three. Say why the others are impossible." },
-        { "tex": "3x + 2y = 28,\\quad 2x - 5y = 1", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
-        { "tex": "15x + 10y = 140,\\quad 4x - 10y = 2 \\;\\Rightarrow\\; 19x = 142", "why": "Multiply the first by 5 and the second by 2, then add to remove \\(y\\).", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
-        { "tex": "x = \\frac{142}{19}, \\quad y = \\frac{2x - 1}{5} = \\frac{53}{19}", "why": "Not integers.", "marks": ["M1"], "check": { "vals": { "x": "142/19", "y": "53/19" } } },
-        { "tex": "3x + 2y = 7,\\quad 2x - 5y = 4", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
-        { "tex": "15x + 10y = 35,\\quad 4x - 10y = 8 \\;\\Rightarrow\\; 19x = 43", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
-        { "tex": "x = \\frac{43}{19}, \\quad y = \\frac{2x - 4}{5} = \\frac{2}{19}", "why": "Not integers.", "marks": ["dM1"], "check": { "vals": { "x": "43/19", "y": "2/19" } } },
-        { "text": "With the student's case, \\(3x + 2y = 14\\), all three possible cases give \\(x\\) and \\(y\\) that are not integers.", "marks": ["ddM1"] }
+        { "text": "If \\(x\\) and \\(y\\) are positive integers, \\(3x + 2y\\) and \\(2x - 5y\\) are an integer factor pair of 28." },
+        { "text": "\\(3x + 2y \\geq 3 + 2 = 5\\), so both factors are positive and \\(3x + 2y\\) is 7, 14 or 28.", "why": "Say why the other factor pairs are impossible." },
+        { "tex": "3x + 2y = 28,\\quad 2x - 5y = 1 \\Rightarrow 19x = 142", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "tex": "\\Rightarrow x = \\frac{142}{19}, \\quad y = \\frac{53}{19}", "why": "Not integers.", "marks": ["M1"], "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "tex": "3x + 2y = 7,\\quad 2x - 5y = 4 \\Rightarrow 19x = 43", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "tex": "\\Rightarrow x = \\frac{43}{19}, \\quad y = \\frac{2}{19}", "why": "Not integers either.", "marks": ["dM1"], "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "text": "With the student's case, \\(3x + 2y = 14\\), all three cases give non-integer \\(x\\) and \\(y\\).", "marks": ["ddM1"] }
       ],
-      "answerText": "Every possible case gives non-integer \\(x\\) and \\(y\\). This contradicts the assumption, so there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\).",
+      "answerText": "This contradicts the assumption, so there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\).",
       "answerMarks": ["A1"],
-      "slips": [
-        "Expanding the brackets, or just rewriting the student's working, instead of checking the other cases.",
-        "Taking each factor pair only one way round, such as 28 and 1 but not 1 and 28, without saying why the other way is impossible.",
-        "Finding values and never saying they are not integers, or never writing a conclusion."
-      ],
       "check": {
         "marks": ["M1", "dM1", "ddM1", "A1"],
         "answers": "proof by contradiction: the assert searches positive integers up to 200 for a counterexample, and re-solves the three factor pairs with 3x + 2y >= 5",

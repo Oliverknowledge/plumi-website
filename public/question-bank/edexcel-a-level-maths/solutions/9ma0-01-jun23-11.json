@@ -1,0 +1,53 @@
+{
+  "id": "9ma0-01-jun23-11",
+  "q": "11",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The value \\(V\\) pounds of a mobile phone, \\(t\\) months after it was bought, is modelled by \\(V = ab^t\\). A graph of \\(\\log_{10} V\\) against \\(t\\) is a straight line through \\((0, 3)\\) and \\((10, 2.79)\\). Using these points, find the initial value of the phone.",
+      "method": "Undo the log at \\(t = 0\\)",
+      "steps": [
+        { "tex": "\\log_{10} V = 3 \\Rightarrow V = 10^3", "why": "Initial means \\(t = 0\\): read the intercept, then undo \\(\\log_{10}\\).", "marks": ["M1"], "check": { "vals": { "V": 1000 } } }
+      ],
+      "answerText": "The initial value of the phone is £1000.",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "text": "£1000", "value": "1000", "scheme": "1000", "derive": "10**3" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find a complete equation for \\(V\\) in terms of \\(t\\), giving the exact value of \\(a\\) and the value of \\(b\\) to 3 significant figures.",
+      "method": "Compare with the straight line",
+      "steps": [
+        { "tex": "\\log_{10} V = \\log_{10} a + t\\log_{10} b", "why": "Take logs of \\(V = ab^t\\): intercept \\(\\log_{10} a\\), gradient \\(\\log_{10} b\\).", "check": false },
+        { "tex": "\\log_{10} a = 3 \\Rightarrow a = 1000", "check": { "vals": { "a": 1000 } } },
+        { "tex": "\\log_{10} b = \\frac{2.79 - 3}{10 - 0} = -0.021", "marks": ["M1"], "check": { "vals": { "b": "10**(-0.021)" } } },
+        { "tex": "\\Rightarrow b = 10^{-0.021}", "marks": ["M1"], "check": { "vals": { "b": "10**(-0.021)" } } },
+        { "tex": "= 0.9527\\ldots" }
+      ],
+      "answer": "V = 1000 \\times 0.953^t",
+      "answerMarks": ["A1ft"],
+      "check": {
+        "marks": ["M1", "M1", "A1ft"],
+        "answers": [{ "tex": "1000 \\times 0.953^t", "scheme": "1000*0.953**t", "derive": "1000*(10**Rational(-21, 1000))**t", "tol": 0.5 }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Exactly 2 years after it was bought, the phone was worth £320. Use this to evaluate the reliability of the model.",
+      "method": "Compare the model's value with the real one",
+      "steps": [
+        { "tex": "V = 1000 \\times 0.953^{24} = 314.9\\ldots", "why": "2 years is \\(t = 24\\): \\(t\\) is in months.", "marks": ["M1"], "check": { "vals": { "V": "1000*0.953**24" } } }
+      ],
+      "answerText": "The model predicts £314.94, which is close to the actual £320 (under 2% out), so the model is reliable.",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "text": "£314.94", "value": "314.94", "scheme": "315", "derive": "1000*Rational(953, 1000)**24", "tol": 1 }]
+      }
+    }
+  ]
+}

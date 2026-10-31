@@ -1,0 +1,41 @@
+{
+  "id": "9ma0-02-jun23-07",
+  "q": "7",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A curve has equation \\(x^3 + 2xy + 3y^2 = 47\\). Find \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\) in terms of \\(x\\) and \\(y\\). You must show all stages of your working.",
+      "method": "Implicit differentiation",
+      "steps": [
+        { "tex": "x^3 + 2xy + 3y^2 = 47", "check": false },
+        { "tex": "\\Rightarrow 3x^2 + 2x\\frac{\\mathrm{d}y}{\\mathrm{d}x} + 2y + 6y\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 0", "why": "Product rule on \\(2xy\\). Each \\(y\\) term gains a \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\).", "marks": ["M1", "B1"], "check": false },
+        { "tex": "\\Rightarrow (2x + 6y)\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -3x^2 - 2y", "why": "Collect the \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\) terms on one side, then factorise.", "marks": ["M1"], "check": false }
+      ],
+      "answer": "\\Rightarrow \\frac{\\mathrm{d}y}{\\mathrm{d}x} = -\\frac{2y + 3x^2}{2x + 6y}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "B1", "M1", "A1"],
+        "answers": [{ "tex": "-\\frac{2y + 3x^2}{2x + 6y}", "scheme": "-(2*y + 3*x**2)/(2*x + 6*y)", "derive": "idiff(x**3 + 2*x*y + 3*y**2 - 47, y, x)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The point \\(P(-2, 5)\\) lies on the curve. Find the equation of the normal to the curve at \\(P\\), in the form \\(ax + by + c = 0\\) where \\(a\\), \\(b\\) and \\(c\\) are integers.",
+      "method": "Tangent gradient, then its negative reciprocal",
+      "steps": [
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -\\frac{2(5) + 3(-2)^2}{2(-2) + 6(5)} = -\\frac{22}{26} = -\\frac{11}{13}", "why": "Put \\(x = -2\\), \\(y = 5\\) into part (a).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow m_{\\text{normal}} = \\frac{13}{11}", "why": "Normal: flip the tangent gradient and change its sign.", "check": false },
+        { "tex": "y - 5 = \\frac{13}{11}(x + 2)", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow 11y - 55 = 13x + 26" }
+      ],
+      "answer": "\\Rightarrow 13x - 11y + 81 = 0",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "x": 9, "y": 18 },
+        "marks": ["M1", "dM1", "A1"],
+        "answers": [{ "tex": "13x - 11y + 81 = 0", "kind": "equation", "scheme": "Eq(13*x - 11*y + 81, 0)", "derive": "Eq(y - 5, -1/idiff(x**3 + 2*x*y + 3*y**2 - 47, y, x).subs(x, -2).subs(y, 5)*(x + 2))" }]
+      }
+    }
+  ]
+}

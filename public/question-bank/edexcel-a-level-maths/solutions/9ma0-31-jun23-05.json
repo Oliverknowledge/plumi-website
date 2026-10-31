@@ -1,0 +1,63 @@
+{
+  "id": "9ma0-31-jun23-05",
+  "q": "5",
+  "m": 8,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A spinner gives \\(X = 20, 50, 80, 100\\) with probabilities \\(a, b, c, d\\). Tisam stands \\(x\\) cm from a cup and throws a ball; \\(S\\) is the event she gets it in. Her model: \\(\\mathrm{P}(S \\mid \\{X = x\\}) = \\dfrac{k}{x}\\) for a constant \\(k\\), and \\(\\mathrm{P}(S \\cap \\{X = x\\})\\) is the same for every \\(x\\). Show that \\(c = \\tfrac{8}{5}b\\).",
+      "method": "Conditional probability",
+      "steps": [
+        { "tex": "\\mathrm{P}(S \\cap \\{X = 50\\}) = \\mathrm{P}(S \\cap \\{X = 80\\})", "why": "The model says these are equal for every \\(x\\).", "check": false },
+        { "tex": "\\Rightarrow \\frac{k}{50} \\times b = \\frac{k}{80} \\times c", "why": "\\(\\mathrm{P}(S \\cap \\{X = x\\}) = \\mathrm{P}(S \\mid \\{X = x\\}) \\times \\mathrm{P}(X = x)\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow c = \\frac{80}{50}b", "why": "Multiply by \\(\\dfrac{80}{k}\\): the \\(k\\) cancels." }
+      ],
+      "answer": "c = \\frac{8}{5}b",
+      "answerMarks": ["A1cso*"],
+      "check": {
+        "marks": ["M1", "A1cso*"],
+        "vals": { "b": "1/5", "c": "8/25", "k": "10" },
+        "answers": [{ "tex": "\\frac{8}{5}b", "kind": "identity", "scheme": "8*b/5", "derive": "solve(Eq(k*b/50, k*c/80), c)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find the probability distribution of \\(X\\).",
+      "method": "Link each probability to \\(b\\), then use a total of 1",
+      "steps": [
+        { "tex": "\\frac{k}{20}a = \\frac{k}{50}b \\Rightarrow a = \\frac{20}{50}b = \\frac{2}{5}b", "why": "Same idea as (a), for \\(x = 20\\) and \\(x = 50\\).", "marks": ["M1"] },
+        { "tex": "\\frac{k}{100}d = \\frac{k}{50}b \\Rightarrow d = \\frac{100}{50}b = 2b", "marks": ["A1"] },
+        { "tex": "a + b + c + d = 1 \\Rightarrow \\frac{2}{5}b + b + \\frac{8}{5}b + 2b = 1", "why": "Write everything in terms of \\(b\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 5b = 1 \\Rightarrow b = \\frac{1}{5}", "marks": ["A1"] },
+        { "tex": "a = \\frac{2}{5} \\times \\frac{1}{5} = \\frac{2}{25}\\qquad c = \\frac{8}{5} \\times \\frac{1}{5} = \\frac{8}{25}\\qquad d = 2 \\times \\frac{1}{5} = \\frac{2}{5}" }
+      ],
+      "answer": "\\begin{array}{c|cccc} x & 20 & 50 & 80 & 100 \\\\ \\hline \\mathrm{P}(X = x) & \\frac{2}{25} & \\frac{1}{5} & \\frac{8}{25} & \\frac{2}{5} \\end{array}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "M1", "A1", "A1"],
+        "vals": { "a": "2/25", "b": "1/5", "c": "8/25", "d": "2/5", "k": "10" },
+        "answers": [
+          { "tex": "\\frac{2}{25}", "scheme": "2/25", "derive": "Rational(20, 20 + 50 + 80 + 100)" },
+          { "tex": "\\frac{1}{5}", "scheme": "1/5", "derive": "Rational(50, 20 + 50 + 80 + 100)" },
+          { "tex": "\\frac{8}{25}", "scheme": "8/25", "derive": "Rational(80, 20 + 50 + 80 + 100)" },
+          { "tex": "\\frac{2}{5}", "scheme": "2/5", "derive": "Rational(100, 20 + 50 + 80 + 100)" }
+        ]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Nav throws from 100 cm a large number of times and gets the ball in the cup 30% of the time. State, giving a reason, why Tisam's model is not suitable to describe Nav playing the game for all values of \\(X\\).",
+      "method": "Find Nav's \\(k\\), then test the model",
+      "steps": [
+        { "tex": "\\frac{k}{100} = 0.3 \\Rightarrow k = 30", "why": "His success rate at 100 cm fixes \\(k\\).", "check": { "vals": { "k": 30 } } },
+        { "tex": "\\mathrm{P}(S \\mid \\{X = 20\\}) = \\frac{30}{20} = 1.5" }
+      ],
+      "answerText": "With \\(k = 30\\), the model gives a probability of \\(1.5\\) at \\(x = 20\\). A probability cannot be greater than 1, so the model does not work for Nav.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "text": "1.5", "value": "1.5", "scheme": "Rational(30, 20)", "derive": "Rational(3, 10)*100/20" }]
+      }
+    }
+  ]
+}

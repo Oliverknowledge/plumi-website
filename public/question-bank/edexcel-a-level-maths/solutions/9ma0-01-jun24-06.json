@@ -6,16 +6,13 @@
     {
       "label": "a",
       "ask": "The graph of \\(y = 3|x-2| + 5\\) has its vertex at \\(P\\). Find the coordinates of \\(P\\).",
-      "method": "The vertex is where the inside of the modulus is zero",
+      "method": "Vertex where the modulus is zero",
       "steps": [
-        { "tex": "x - 2 = 0 \\;\\Rightarrow\\; x = 2", "why": "\\(|x-2|\\) is never negative, so \\(y\\) is least when \\(|x-2| = 0\\).", "marks": ["B1"], "check": { "vals": { "x": 2 } } },
-        { "tex": "y = 3|2-2| + 5 = 3(0) + 5 = 5" }
+        { "tex": "x - 2 = 0 \\Rightarrow x = 2", "why": "\\(|x-2| \\geq 0\\), so \\(y\\) is least when \\(|x-2| = 0\\).", "marks": ["B1"], "check": { "vals": { "x": 2 } } },
+        { "tex": "\\Rightarrow y = 3|2-2| + 5 = 5", "check": { "vals": { "x": 2, "y": 5 } } }
       ],
       "answer": "P(2,\\ 5)",
       "answerMarks": ["B1"],
-      "slips": [
-        "Finding where the graph crosses the \\(y\\)-axis instead of the vertex."
-      ],
       "check": {
         "marks": ["B1", "B1"],
         "answers": [{ "tex": "(2,\\ 5)", "kind": "point", "scheme": "(2, 5)" }]
@@ -24,22 +21,16 @@
     {
       "label": "b",
       "ask": "Solve \\(16 - 4x = 3|x-2| + 5\\).",
-      "method": "Split the modulus into its two branches, then check each answer",
+      "method": "Solve each branch, then check it",
       "steps": [
-        { "text": "For \\(x \\geq 2\\), \\(|x-2| = x - 2\\). For \\(x < 2\\), \\(|x-2| = -(x-2) = 2 - x\\).", "why": "Each branch of the V is a straight line, valid on its own side of \\(x = 2\\)." },
-        { "tex": "x \\geq 2: \\quad 16 - 4x = 3(x-2) + 5", "marks": ["M1"], "check": { "vals": { "x": "17/7" } } },
-        { "tex": "16 - 4x = 3x - 6 + 5 = 3x - 1", "why": "\\(3(x-2) = 3x - 6\\), not \\(3x - 2\\).", "check": { "vals": { "x": "17/7" } } },
-        { "tex": "17 = 7x \\;\\Rightarrow\\; x = \\frac{17}{7}", "why": "\\(\\tfrac{17}{7} = 2.43\\ldots\\), which is \\(\\geq 2\\): it is on this branch, so keep it.", "check": { "vals": { "x": "17/7" } } },
+        { "tex": "x \\geq 2: \\quad 16 - 4x = 3(x-2) + 5", "why": "Each branch only holds on its own side of \\(x = 2\\).", "marks": ["M1"], "check": { "vals": { "x": "17/7" } } },
+        { "tex": "\\Rightarrow 16 - 4x = 3x - 1", "check": { "vals": { "x": "17/7" } } },
+        { "tex": "\\Rightarrow 7x = 17 \\Rightarrow x = \\frac{17}{7}", "why": "\\(\\tfrac{17}{7} = 2.43\\ldots \\geq 2\\): on this branch, so keep it.", "check": { "vals": { "x": "17/7" } } },
         { "tex": "x < 2: \\quad 16 - 4x = 3(2-x) + 5 = 11 - 3x", "check": { "vals": { "x": 5 } } },
-        { "tex": "16 - 11 = 4x - 3x \\;\\Rightarrow\\; x = 5", "why": "But this branch needs \\(x < 2\\), and \\(5\\) is not less than \\(2\\): reject it.", "check": { "vals": { "x": 5 } } }
+        { "tex": "\\Rightarrow x = 5", "why": "\\(5\\) is not less than \\(2\\): reject it.", "check": { "vals": { "x": 5 } } }
       ],
       "answer": "x = \\frac{17}{7}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Not rejecting \\(x = 5\\). A quick look at the graph shows the line \\(y = 16 - 4x\\) meets the V only once.",
-        "Expanding \\(3(x-2)\\) wrongly, or rearranging with the wrong inverse operations.",
-        "Keeping the modulus signs in the working, which made the equation hard to solve."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "x = \\frac{17}{7}", "scheme": "17/7", "derive": "solveset(Eq(16 - 4*x, 3*Abs(x - 2) + 5), x, S.Reals)" }]
@@ -48,19 +39,14 @@
     {
       "label": "c",
       "ask": "The line \\(y = kx + 4\\) meets \\(y = 3|x-2| + 5\\) at 2 distinct points. Find the range of values of \\(k\\).",
-      "method": "Picture the line turning about \\((0, 4)\\)",
+      "method": "Turn the line about \\((0, 4)\\)",
       "steps": [
-        { "text": "Every line \\(y = kx + 4\\) passes through \\((0, 4)\\), which is below the V. To meet the V twice, the line must pass above the vertex \\(P(2, 5)\\) and cross both branches.", "why": "A sketch makes this clear: rotate a ruler about \\((0, 4)\\)." },
-        { "tex": "\\text{Through } P: \\quad 5 = 2k + 4 \\;\\Rightarrow\\; k = \\frac{5-4}{2} = \\frac{1}{2}", "why": "At \\(k = \\tfrac{1}{2}\\) the line just touches the vertex: only one point. So \\(k > \\tfrac{1}{2}\\).", "marks": ["M1"], "check": { "vals": { "k": "1/2" } } },
-        { "text": "The right branch has gradient 3. At \\(x = 2\\) the line is already above the vertex, so if \\(k \\geq 3\\) it climbs at least as fast as that branch and never meets it. So \\(k < 3\\).", "why": "This upper limit is the one most people missed." }
+        { "text": "Every line \\(y = kx + 4\\) passes through \\((0, 4)\\), below the V. It meets the V twice when it passes above \\(P\\) and crosses the right branch." },
+        { "tex": "\\text{Through } P: \\quad 5 = 2k + 4 \\Rightarrow k = \\frac{1}{2}", "why": "At \\(k = \\tfrac{1}{2}\\) it meets the V only at \\(P\\), so \\(k > \\tfrac{1}{2}\\).", "marks": ["M1"], "check": { "vals": { "k": "1/2" } } },
+        { "text": "The right branch has gradient 3. If \\(k \\geq 3\\), the line never catches it, so \\(k < 3\\).", "why": "This upper limit is the one most people miss." }
       ],
       "answer": "\\frac{1}{2} < k < 3",
       "answerMarks": ["A1"],
-      "slips": [
-        "Finding \\(k > \\tfrac{1}{2}\\) but missing the upper limit \\(k < 3\\).",
-        "Getting \\(k = 3\\) from a discriminant of an equation that is not a quadratic. That method is invalid and scored nothing.",
-        "Setting up simultaneous equations in \\(x\\) and \\(k\\) without a plan, and never solving for \\(k\\)."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "\\frac{1}{2} < k < 3", "kind": "set", "var": "k", "scheme": "Interval.open(Rational(1, 2), 3)" }]

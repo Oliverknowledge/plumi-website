@@ -1,0 +1,63 @@
+{
+  "id": "9ma0-01-jun23-02",
+  "q": "2",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "\\(\\mathrm{f}(x) = 4x^3 + 5x^2 - 10x + 4a\\), where \\(a\\) is a positive constant. Given that \\((x - a)\\) is a factor of \\(\\mathrm{f}(x)\\), show that \\(a(4a^2 + 5a - 6) = 0\\).",
+      "method": "Factor theorem",
+      "steps": [
+        { "tex": "\\mathrm{f}(a) = 4a^3 + 5a^2 - 10a + 4a = 0", "why": "\\((x - a)\\) is a factor, so \\(\\mathrm{f}(a) = 0\\)." },
+        { "tex": "\\Rightarrow 4a^3 + 5a^2 - 6a = 0" }
+      ],
+      "answer": "\\Rightarrow a(4a^2 + 5a - 6) = 0",
+      "answerMarks": ["M1", "A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "vals": { "a": "3/4" },
+        "answers": [{ "tex": "a(4a^2 + 5a - 6)", "kind": "identity", "scheme": "a*(4*a**2 + 5*a - 6)", "derive": "expand((4*x**3 + 5*x**2 - 10*x + 4*a).subs(x, a))" }]
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "Hence find the value of \\(a\\).",
+      "method": "Factorise, then use \\(a > 0\\)",
+      "steps": [
+        { "tex": "4a^2 + 5a - 6 = (4a - 3)(a + 2) = 0", "check": { "vals": { "a": "3/4" } } },
+        { "tex": "\\Rightarrow a = \\frac{3}{4} \\ \\text{or}\\ a = -2", "check": false },
+        { "text": "\\(a\\) is positive, so reject \\(a = -2\\) (and \\(a = 0\\))." }
+      ],
+      "answer": "a = \\frac{3}{4}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "a": "3/4" },
+        "answers": [{ "tex": "a = \\frac{3}{4}", "scheme": "Rational(3, 4)", "derive": "solveset(a*(4*a**2 + 5*a - 6), a, Interval.open(0, oo))" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Use algebra to find the exact solutions of \\(\\mathrm{f}(x) = 3\\).",
+      "method": "Factor out \\(x\\), then the quadratic formula",
+      "steps": [
+        { "tex": "4x^3 + 5x^2 - 10x + 4\\left(\\frac{3}{4}\\right) = 3", "why": "Put in \\(a = \\tfrac{3}{4}\\).", "check": { "vals": { "x": 0 } } },
+        { "tex": "\\Rightarrow 4x^3 + 5x^2 - 10x = 0", "marks": ["M1"], "check": { "vals": { "x": 0 } } },
+        { "tex": "\\Rightarrow x(4x^2 + 5x - 10) = 0", "why": "Factor out \\(x\\). Dividing by \\(x\\) would lose \\(x = 0\\).", "check": { "vals": { "x": 0 } } },
+        { "tex": "\\Rightarrow x = 0 \\ \\text{or}\\ 4x^2 + 5x - 10 = 0", "marks": ["B1"], "check": false },
+        { "tex": "x = \\frac{-5 \\pm \\sqrt{5^2 - 4(4)(-10)}}{2(4)}", "why": "Quadratic formula: this one doesn't factorise." },
+        { "tex": "= \\frac{-5 \\pm \\sqrt{185}}{8}" }
+      ],
+      "answer": "x = 0, \\quad x = \\frac{-5 + \\sqrt{185}}{8}, \\quad x = \\frac{-5 - \\sqrt{185}}{8}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "B1", "A1"],
+        "answers": [
+          { "tex": "x = 0", "scheme": "0" },
+          { "tex": "\\frac{-5 + \\sqrt{185}}{8}", "scheme": "(-5 + sqrt(185))/8", "derive": "Max(*solve(4*x**3 + 5*x**2 - 10*x + 4*Rational(3, 4) - 3, x))" },
+          { "tex": "\\frac{-5 - \\sqrt{185}}{8}", "scheme": "(-5 - sqrt(185))/8", "derive": "Min(*solve(4*x**3 + 5*x**2 - 10*x + 4*Rational(3, 4) - 3, x))" }
+        ]
+      }
+    }
+  ]
+}
