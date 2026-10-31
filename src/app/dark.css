@@ -7,7 +7,7 @@ html[data-theme="dark"] body { background-color: #1f1a18; color: #f3e9d9; }
 html[data-theme="dark"] .lp, html[data-theme="dark"] .consent {
   --lp-paper: #1f1a18; --lp-paper-2: #2c2522; --lp-rule: #2a2321; --lp-margin: #6e3f38; --lp-spiral: #7a6b60;
   --lp-ink: #f3e9d9; --lp-ink-soft: #bcab9b; --lp-line: #8a7365; --lp-shadow: #0c0a09;
-  --lp-card-bg: #2c2522; --lp-blue: #8fb8e8; --lp-blue-soft: #36506b; --lp-orange: #f09a5a; --lp-gold: #8a6a22; --lp-teal: #4f9d99; --lp-red: #e0605a;
+  --lp-card-bg: #2c2522; --lp-blue: #8fb8e8; --lp-blue-soft: #36506b; --lp-orange: #f09a5a; --lp-gold: #7d5f1e; --lp-teal: #4f9d99; --lp-red: #e0605a;
   --lp-needs: #e0605a; --lp-rusty: #f0a53a; --lp-dev: #36506b; --lp-strong: #7aa5f0;
 }
 html[data-theme="dark"] .lp-nav { background: rgba(31, 26, 24, .92); }
@@ -40,6 +40,9 @@ html[data-theme="dark"] .lp .lp-ring { background: conic-gradient(#4a3f39 var(--
 html[data-theme="dark"] .lp .lp-label:hover, html[data-theme="dark"] .lp .lp-ticket:hover, html[data-theme="dark"] .lp .hp-desk-actions button:hover,
 html[data-theme="dark"] .hp-desk-actions button:hover { background: #3a302b; }
 html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label small, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label small { color: #5b4741; }
+html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label .lp-open, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label .lp-open { color: #1f3d8a; }
+html[data-theme="dark"] .lp .qb-mine a:hover b { color: var(--lp-ink); }
 html[data-theme="dark"] .lp .lp-note, html[data-theme="dark"] .lp .lp-mk-sec:nth-child(even), html[data-theme="dark"] .lp .pp-mark,
 html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+2), html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+3),
 html[data-theme="dark"] .lp .lp-pa-tile:nth-child(3n+2), html[data-theme="dark"] .lp .pk-feature, html[data-theme="dark"] .lp .lp-ticket.pk-ticket { background: #3a2f25; }
@@ -48,8 +51,9 @@ html[data-theme="dark"] .lp .lp-sticky:nth-child(3n+2), html[data-theme="dark"] 
 html[data-theme="dark"] .lp .lp-sticky:nth-child(3n), html[data-theme="dark"] .lp .lp-pa-pile li:nth-child(3n),
 html[data-theme="dark"] .lp .lp-tickets .pk-ticket i, html[data-theme="dark"] .lp .lp-pa-tile.is-wellbeing .lp-pa-tile-ico { background: #4a2b27; }
 html[data-theme="dark"] .lp .lp-flame i.off { background: #4a3f39; }
-html[data-theme="dark"] .lp .lp-bank-board li a:hover, html[data-theme="dark"] .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, #1f1a18); }
-html[data-theme="dark"] .lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 55%, #1f1a18); }
+/* A board's colour two parts in five over the dark page: cream text stays above 4.5:1 for every board, the pale yellow-green too. */
+html[data-theme="dark"] .lp .lp-bank-board li a:hover, html[data-theme="dark"] .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 40%, #1f1a18); }
+html[data-theme="dark"] .lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 40%, #1f1a18); }
 html[data-theme="dark"] .lp .qb-plank { background: linear-gradient(#6b5440 0 4px, #5a4636 4px); }
 html[data-theme="dark"] .lp .hp-desk-qr-wait { background: repeating-linear-gradient(45deg, #2c2522 0 8px, #342b25 8px 16px); }
 html[data-theme="dark"] .lp .qb-book-total { background: rgba(44, 37, 34, .92); color: var(--lp-ink); }
@@ -102,8 +106,24 @@ html[data-theme="dark"] .lp .lp-ts-stars { opacity: 1; }
 html.lp-theme-fading, html.lp-theme-fading *, html.lp-theme-fading *::before, html.lp-theme-fading *::after { transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, box-shadow .4s ease !important; }
 @media (prefers-reduced-motion: reduce) { html.lp-theme-fading, html.lp-theme-fading * { transition: none !important; } .lp .lp-themeswitch, .lp .lp-ts-thumb, .lp .lp-ts-thumb svg { transition: none; } }
 
-/* the bank's one card (question-bank.css): its dashed rules a quiet line, the score's empty cells dim and its lit ones bright */
-html[data-theme="dark"] .lp :is(.qb-onecard-head, .qb-onecard .qb-topics, .qb-glance > * + *, .qb-glance .qb-fortnight, .qb-glance ~ .qb-prog-more[open]) { border-color: #4a3e38; }
+/* the bank's one card (question-bank.css): the score's empty cells dim and its lit ones bright (its dashed rules are in dark-surfaces.css) */
 html[data-theme="dark"] .lp .qb-score-bar i { background: rgb(243 233 217 / .1); }
 html[data-theme="dark"] .lp .qb-score-bar i.is-on { background: #e8b84f; }
 html[data-theme="dark"] .lp .qb-prog-row-text b { color: #f08a84; }
+
+/* ── Ink written out in full (31 October). Red, green and amber set for cream paper sink into the dark one, so they are lifted;
+   and a pastel chip keeps its colour and takes dark ink, as cream ink on a pastel cannot be read. ── */
+html[data-theme="dark"] .lp .qb-ink { color: #f08a84; }
+html[data-theme="dark"] .lp .qb-ink.is-good { color: #7cc77f; }
+html[data-theme="dark"] .lp .qb-ink.is-mid, html[data-theme="dark"] .lp .qb-hist-state b { color: #f0a53a; }
+html[data-theme="dark"] .lp .qb-hist li.is-again { background: rgb(74 52 36 / .7); }
+html[data-theme="dark"] .lp .qb-hub { --qb-orange-text: var(--lp-orange); }
+html[data-theme="dark"] .lp .lp-aw-error, html[data-theme="dark"] .lp .lp-pop.is-tick, html[data-theme="dark"] .lp .lp-pa-sheet .is-plumi { color: #f08a84; }
+html[data-theme="dark"] .lp :is(.qb-sq.is-strong, .qb-sq.is-rusty, .qb-sq.is-needs, .qb-tick, .lp-bank-board header, .pk-cover-board, .pk-pill, .lp-pa-mk, .lp-m.is-needs,
+  .lp-traits li i[style*="--lp-red"], .lp-traits li i[style*="--lp-teal"]) { --lp-ink: #1f1a18; color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-book-cover .lp-book-kicker { color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-pa-tile.is-marking .lp-pa-tile-ico { background: #2f4a2c; }
+html[data-theme="dark"] .lp .lp-pa-tile-ico { color: var(--lp-ink); }
+/* Send to my iPad's panel floats over the page: its edge and drop in the dark line and shadow, not the light notebook's brown */
+html[data-theme="dark"] .hp-desk-panel { border-color: var(--lp-line, #8a7365); box-shadow: 0 6px 0 #0c0a09; }
+html[data-theme="dark"] .hp-desk-actions button { border-color: var(--lp-line, #8a7365); }

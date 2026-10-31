@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { THEME_KEY } from "@/lib/theme";
+import { useSyncExternalStore } from "react";
+import { THEME_COLOR, THEME_KEY } from "@/lib/theme";
+
+/** The theme is `data-theme` on <html>, so the switch reads it there and hears when it changes. */
+function onThemeChange(changed: () => void) {
+  const watch = new MutationObserver(changed);
+  watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => watch.disconnect();
+}
 
 /**
  * Light or dark, one tap, kept on the device. The first visit follows the device's own setting (the script in layout.tsx sets
@@ -12,15 +19,14 @@ import { THEME_KEY } from "@/lib/theme";
  * switch itself; elsewhere the colours cross-fade. A visitor who asked for reduced motion gets neither.
  */
 export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => { setDark(document.documentElement.dataset.theme === "dark"); }, []);
+  const dark = useSyncExternalStore(onThemeChange, () => document.documentElement.dataset.theme === "dark", () => false);
 
   const flip = (event: React.MouseEvent<HTMLButtonElement>) => {
     const root = document.documentElement;
     const next = dark ? "light" : "dark";
     const apply = () => {
       root.dataset.theme = next;
-      setDark(next === "dark");
+      document.querySelectorAll('meta[name="theme-color"]:not([media])').forEach(meta => meta.setAttribute("content", THEME_COLOR[next]));
       try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode: the choice lasts until the tab closes */ }
     };
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
