@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import { useAccount } from "@/lib/account";
+import { openSignIn, useAccount } from "@/lib/account";
 
 const noop = () => () => {};
 /** Only somewhere on this site: "/question-bank/x?y", never "//elsewhere" or "https://…". */
@@ -13,9 +13,15 @@ export function AuthCallback() {
   const account = useAccount();
   // Google (or Supabase) says what went wrong in the address it sends the student back to.
   const search = useSyncExternalStore(noop, () => window.location.search, () => "");
-  const problem = new URLSearchParams(search).get("error_description") ?? new URLSearchParams(search).get("error");
+  const params = new URLSearchParams(search);
+  const code = params.get("error_code");
+  const problem = params.get("error_description") ?? params.get("error");
   const [timedOut, setTimedOut] = useState(false);
-  const failed = problem ?? (timedOut ? "The sign-in didn’t finish." : null);
+  // In our words, not the server's: a used or replaced link is the common one.
+  const failed = code === "otp_expired" || /expired|invalid/i.test(problem ?? "")
+    ? "That sign-in link has expired or has already been used. Each new email replaces the last link, so use the newest one, or sign in again."
+    : problem ? "Signing in didn’t finish. Try again, and if it keeps happening, sign in with Google instead."
+    : timedOut ? "Signing in didn’t finish. A sign-in link only works in the browser you asked for it from, so open it there, or try again." : null;
 
   useEffect(() => {
     if (!account.ready) return;
@@ -38,8 +44,11 @@ export function AuthCallback() {
       {failed ? (
         <>
           <h1>That didn’t work</h1>
-          <p>{failed} A sign-in link only works in the browser you asked for it from, so open it there, or try again.</p>
-          <Link className="lp-btn" href="/question-bank">Back to the question bank</Link>
+          <p>{failed}</p>
+          <span className="lp-callback-btns">
+            <button type="button" className="lp-btn" onClick={() => openSignIn("header")}>Sign in again</button>
+            <Link className="qb-link" href={safe(params.get("next"))}>Back to where you were</Link>
+          </span>
         </>
       ) : (
         <>

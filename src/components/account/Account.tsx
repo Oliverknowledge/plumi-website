@@ -78,21 +78,22 @@ function GoogleMark() {
 }
 
 /**
- * The sign-in sheet. One screen: confirm you're 13 or over, then Google or an email
- * code. The code step replaces the email step in place, and the sheet closes itself
- * once you're in. A native <dialog>, so focus, Escape and the backdrop behave.
+ * The sign-in sheet. One screen: Google or an email code. The code step replaces the
+ * email step in place, and the sheet closes itself once you're in. A native <dialog>,
+ * so focus, Escape and the backdrop behave. Being 13 or over is in the line under the
+ * buttons, not a box to tick first (founder, 31 October 2026: a tick box was friction
+ * that told us nothing).
  */
 function SignInSheet() {
   const reason = useSignInSheet();
   const account = useAccount();
   const ref = useRef<HTMLDialogElement>(null);
-  const [age, setAge] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"start" | "code">("start");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const ids = { age: useId(), email: useId(), code: useId() };
+  const ids = { email: useId(), code: useId() };
 
   useEffect(() => {
     const d = ref.current;
@@ -133,30 +134,26 @@ function SignInSheet() {
 
         {step === "start" ? (
           <>
-            <label className="lp-signin-age" htmlFor={ids.age}>
-              <input id={ids.age} type="checkbox" checked={age} onChange={e => setAge(e.target.checked)} />
-              I’m 13 or older
-            </label>
-            <button type="button" className="lp-signin-google" disabled={!age} onClick={() => reason && void signInWithGoogle(reason)}>
+            <button type="button" className="lp-signin-google" onClick={() => reason && void signInWithGoogle(reason)}>
               <GoogleMark /> Continue with Google
             </button>
             <p className="lp-signin-or"><span>or</span></p>
             <form className="lp-signin-form" onSubmit={send}>
               <label htmlFor={ids.email}>Email</label>
               <input id={ids.email} type="email" required autoComplete="email" inputMode="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} />
-              <button type="submit" className="lp-btn lp-signin-go" disabled={!age || busy || !email.includes("@")}>{busy ? "Sending…" : "Email me a sign-in link"}</button>
+              <button type="submit" className="lp-btn lp-signin-go" disabled={busy || !email.includes("@")}>{busy ? "Sending…" : "Email me a code"}</button>
             </form>
-            {!age && <p className="lp-signin-hint">Tick the box above to continue.</p>}
           </>
         ) : (
           <form className="lp-signin-form" onSubmit={verify}>
             <div className="lp-signin-sent">
-              <p><strong>Check your email.</strong> We sent a sign-in link to <strong>{email}</strong>.</p>
-              <p>Open it on this device, in this browser, and you’ll come straight back here signed in.</p>
+              <p><strong>Check your email.</strong> We sent a code to <strong>{email}</strong>.</p>
+              <p>Type it below. The email has a sign-in link too, which works in this browser.</p>
             </div>
-            <label htmlFor={ids.code}>Got a 6-digit code instead? Type it here.</label>
-            <input id={ids.code} className="lp-signin-code" type="text" required autoComplete="one-time-code" inputMode="numeric" pattern="[0-9 ]*" maxLength={7}
-              placeholder="123456" value={code} onChange={e => setCode(e.target.value)} autoFocus />
+            <label htmlFor={ids.code}>Your code</label>
+            {/* The project's code length is a dashboard setting (6 to 10 digits), so any of those is taken. */}
+            <input id={ids.code} className="lp-signin-code" type="text" required autoComplete="one-time-code" inputMode="numeric" pattern="[0-9 ]*" maxLength={12}
+              placeholder="••••••" value={code} onChange={e => setCode(e.target.value)} autoFocus />
             <button type="submit" className="lp-btn lp-signin-go" disabled={busy || code.replace(/\D/g, "").length < 6}>{busy ? "Checking…" : "Sign in with the code"}</button>
             <p className="lp-signin-alt">
               <button type="button" className="qb-link" onClick={reset}>Use a different email</button>
@@ -165,7 +162,7 @@ function SignInSheet() {
           </form>
         )}
         {error && <p className="lp-signin-error" role="alert">{error}</p>}
-        <p className="lp-signin-legal">By continuing you agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
+        <p className="lp-signin-legal">By continuing you confirm you’re 13 or over and agree to our <Link href="/terms">Terms</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
       </div>
     </dialog>
   );

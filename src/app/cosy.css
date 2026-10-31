@@ -226,8 +226,6 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
 .lp-signin-lead { text-align: center; font-size: 14.5px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp-signin-x { position: absolute; top: 8px; right: 10px; appearance: none; cursor: pointer; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; font-size: 26px; line-height: 1; color: var(--lp-ink-soft); }
 .lp-signin-x:hover { background: var(--lp-paper-2); color: var(--lp-ink); }
-.lp-signin-age { display: flex; align-items: center; gap: 10px; justify-self: center; padding: 8px 14px; font-weight: 800; font-size: 15px; background: var(--lp-note); border: 2px dashed var(--lp-dash); border-radius: 12px; cursor: pointer; }
-.lp-signin-age input { width: 20px; height: 20px; accent-color: var(--lp-orange); }
 .lp-signin-google { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; font-family: var(--f-body); font-weight: 800; font-size: 16px; color: #1f1f1f; background: #fff; border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); }
 .lp-signin-google:disabled, .lp-signin-go:disabled { cursor: not-allowed; opacity: .5; }
 .lp-signin-or { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--lp-ink-soft); }
@@ -239,7 +237,6 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
 .lp-signin-code { font-family: var(--f-px) !important; font-size: 26px !important; letter-spacing: .3em; text-align: center; }
 .lp .lp-signin-go { justify-content: center; background: #f2c96b; color: #3a2a05; }
 .lp-signin-alt { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; }
-.lp-signin-hint { text-align: center; font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
 .lp-signin-error { font-size: 14px; font-weight: 800; color: #b8403a; background: #fdecea; border: 2px solid #e8a9a4; border-radius: 10px; padding: 8px 12px; }
 .lp-signin-legal { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp-signin-legal a { color: var(--lp-blue); }
@@ -260,6 +257,7 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
 
 .lp-callback { display: grid; gap: 14px; justify-items: start; padding-block: 80px 120px; }
 .lp .lp-callback h1 { font-size: clamp(30px, 4vw, 44px); }
+.lp-callback-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 
 @media (max-width: 620px) {
   .lp .lp-acct-in { font-size: 14px; padding: 6px 6px; }

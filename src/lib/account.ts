@@ -17,11 +17,12 @@ import { track } from "@/lib/analytics";
  * The names are Plumi's own, not NEXT_PUBLIC_SUPABASE_URL, because the waitlist
  * (lib/waitlist) falls back to that one and may live in a different project.
  *
- * Sign-in is an email or Google. The email is the project's "Magic link or OTP"
- * template: today Supabase's default, which carries only a link, so the link brings the
- * student back to /auth/callback, signed in, in the browser they asked from. If the
- * template ever carries the 6-digit code too (it needs the project's own email sender
- * to be edited), the sheet takes that as well. Apple on the web needs its own Services
+ * Sign-in is an email code or Google. The emails ("Confirm sign up" for a new address,
+ * "Magic link or OTP" otherwise) carry the code and a link; the code works anywhere,
+ * while the link brings the student back to /auth/callback, signed in, only in the
+ * browser they asked from (PKCE). Supabase's default templates carry only the link, and
+ * they can be edited only once the project sends through its own email sender (custom
+ * SMTP): supabase/email-templates/ has ours. Apple on the web needs its own Services
  * ID, so it waits. The key here is the publishable one, which the app ships too: what it can
  * touch is decided by row-level security, not by keeping it secret.
  */
