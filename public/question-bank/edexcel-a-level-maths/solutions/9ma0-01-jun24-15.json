@@ -8,8 +8,12 @@
       "ask": "Show that \\(k^2 - 4k + 5\\) is positive for all real values of \\(k\\).",
       "method": "Complete the square",
       "steps": [
-        { "tex": "k^2 - 4k + 5 = (k - 2)^2 - 4 + 5", "why": "\\((k-2)^2 = k^2 - 4k + 4\\), so take the 4 back off.", "marks": ["M1"] },
-        { "tex": "= (k - 2)^2 + 1", "why": "\\((k-2)^2 \\geq 0\\), not \\(> 0\\): it is 0 at \\(k = 2\\)." }
+        { "tex": "k^2 - 4k = (k - 2)^2 - 4", "why": "\\((k-2)^2 = k^2 - 4k + 4\\), so take the 4 back off." },
+        { "tex": "\\Rightarrow k^2 - 4k + 5 = (k - 2)^2 - 4 + 5", "marks": ["M1"] },
+        { "tex": "= (k - 2)^2 + 1" },
+        { "head": "A square is never negative" },
+        { "tex": "(k - 2)^2 \\geq 0", "why": "\\(\\geq 0\\), not \\(> 0\\): it is 0 at \\(k = 2\\)." },
+        { "tex": "\\Rightarrow (k - 2)^2 + 1 \\geq 1" }
       ],
       "answerText": "Since \\((k-2)^2 \\geq 0\\), \\((k-2)^2 + 1 \\geq 1 > 0\\), so \\(k^2 - 4k + 5\\) is positive for all real \\(k\\).",
       "answerMarks": ["A1*"],
@@ -21,15 +25,22 @@
     {
       "label": "ii",
       "ask": "Complete a student's proof by contradiction that there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\). The student has shown that \\(3x + 2y = 14\\), \\(2x - 5y = 2\\) gives \\(x = \\tfrac{74}{19}\\), \\(y = \\tfrac{22}{19}\\), not integers.",
-      "method": "Check every factor pair of 28",
+      "method": "List the possible factor pairs of 28",
       "steps": [
-        { "text": "If \\(x\\) and \\(y\\) are positive integers, \\(3x + 2y\\) and \\(2x - 5y\\) are an integer factor pair of 28." },
-        { "text": "\\(3x + 2y \\geq 3 + 2 = 5\\), so both factors are positive and \\(3x + 2y\\) is 7, 14 or 28.", "why": "Say why the other factor pairs are impossible." },
-        { "tex": "3x + 2y = 28,\\quad 2x - 5y = 1 \\Rightarrow 19x = 142", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
-        { "tex": "\\Rightarrow x = \\frac{142}{19}, \\quad y = \\frac{53}{19}", "why": "Not integers.", "marks": ["M1"], "check": { "vals": { "x": "142/19", "y": "53/19" } } },
-        { "tex": "3x + 2y = 7,\\quad 2x - 5y = 4 \\Rightarrow 19x = 43", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
-        { "tex": "\\Rightarrow x = \\frac{43}{19}, \\quad y = \\frac{2}{19}", "why": "Not integers either.", "marks": ["dM1"], "check": { "vals": { "x": "43/19", "y": "2/19" } } },
-        { "text": "With the student's case, \\(3x + 2y = 14\\), all three cases give non-integer \\(x\\) and \\(y\\).", "marks": ["ddM1"] }
+        { "text": "If \\(x\\) and \\(y\\) are positive integers, \\(3x + 2y\\) and \\(2x - 5y\\) are integers whose product is 28." },
+        { "text": "\\(x, y \\geq 1\\), so \\(3x + 2y \\geq 3 + 2 = 5\\). Then \\(2x - 5y\\) is positive too, and \\(3x + 2y\\) is 7, 14 or 28.", "why": "Pairs with \\(3x + 2y = 1\\), 2 or 4 are too small." },
+        { "head": "Case \\(3x + 2y = 28\\), \\(2x - 5y = 1\\)" },
+        { "tex": "3x + 2y = 28 \\Rightarrow 15x + 10y = 140", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "tex": "2x - 5y = 1 \\Rightarrow 4x - 10y = 2", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "tex": "\\text{Add: } 19x = 142 \\Rightarrow x = \\frac{142}{19}", "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "tex": "5y = 2x - 1 = \\frac{284}{19} - 1 = \\frac{265}{19} \\Rightarrow y = \\frac{53}{19}", "why": "Not integers.", "marks": ["M1"], "check": { "vals": { "x": "142/19", "y": "53/19" } } },
+        { "head": "Case \\(3x + 2y = 7\\), \\(2x - 5y = 4\\)" },
+        { "tex": "3x + 2y = 7 \\Rightarrow 15x + 10y = 35", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "tex": "2x - 5y = 4 \\Rightarrow 4x - 10y = 8", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "tex": "\\text{Add: } 19x = 43 \\Rightarrow x = \\frac{43}{19}", "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "tex": "5y = 2x - 4 = \\frac{86}{19} - 4 = \\frac{10}{19} \\Rightarrow y = \\frac{2}{19}", "why": "Not integers either.", "marks": ["dM1"], "check": { "vals": { "x": "43/19", "y": "2/19" } } },
+        { "head": "Bring the cases together" },
+        { "text": "With the student's case, \\(3x + 2y = 14\\), all three possible cases give non-integer \\(x\\) and \\(y\\).", "marks": ["ddM1"] }
       ],
       "answerText": "This contradicts the assumption, so there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\).",
       "answerMarks": ["A1"],

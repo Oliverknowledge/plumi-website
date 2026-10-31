@@ -6,13 +6,17 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = x + \\tan\\left(\\tfrac{1}{2}x\\right)\\), \\(\\pi < x < \\tfrac{3\\pi}{2}\\). Show that the root \\(\\alpha\\) of \\(\\mathrm{f}(x) = 0\\) lies in \\([3.6, 3.7]\\).",
-      "method": "Change of sign",
+      "method": "Evaluate f at each end of the interval",
       "steps": [
-        { "tex": "\\mathrm{f}(3.6) = 3.6 + \\tan(1.8) = -0.686\\ldots", "why": "Radians: the domain is in terms of \\(\\pi\\)." },
-        { "tex": "\\mathrm{f}(3.7) = 3.7 + \\tan(1.85) = 0.211\\ldots", "marks": ["M1"] },
-        { "text": "\\(\\mathrm{f}(3.6) < 0 < \\mathrm{f}(3.7)\\), so the sign changes, and f is continuous on \\([3.6, 3.7]\\).", "why": "Say continuous: without it the graph could jump the axis." }
+        { "tex": "\\mathrm{f}(3.6) = 3.6 + \\tan\\left(\\tfrac{1}{2} \\times 3.6\\right) = 3.6 + \\tan(1.8)", "why": "Radians: the domain is in terms of \\(\\pi\\)." },
+        { "tex": "= 3.6 - 4.28626\\ldots = -0.68626\\ldots" },
+        { "tex": "\\mathrm{f}(3.7) = 3.7 + \\tan\\left(\\tfrac{1}{2} \\times 3.7\\right) = 3.7 + \\tan(1.85)" },
+        { "tex": "= 3.7 - 3.48805\\ldots = 0.21194\\ldots", "marks": ["M1"] },
+        { "head": "Look at the signs" },
+        { "text": "\\(\\mathrm{f}(3.6) < 0\\) and \\(\\mathrm{f}(3.7) > 0\\), so there is a change of sign." },
+        { "text": "\\(\\mathrm{f}\\) is continuous on \\([3.6, 3.7]\\).", "why": "Say continuous: without it the graph could jump the axis." }
       ],
-      "answerText": "So the root \\(\\alpha\\) lies in \\([3.6, 3.7]\\).",
+      "answerText": "\\(\\therefore\\) The root \\(\\alpha\\) lies in \\([3.6, 3.7]\\).",
       "answerMarks": ["A1*"],
       "check": {
         "marks": ["M1", "A1*"],
@@ -24,10 +28,13 @@
       "ask": "Find \\(\\mathrm{f}'(x)\\).",
       "method": "Differentiate term by term",
       "steps": [
-        { "tex": "\\mathrm{f}(x) = x + \\tan\\left(\\tfrac{1}{2}x\\right)", "why": "Formula book: \\(\\tan kx \\to k\\sec^2 kx\\), with \\(k = \\tfrac{1}{2}\\). And \\(x \\to 1\\).", "check": false }
+        { "tex": "\\frac{\\mathrm{d}}{\\mathrm{d}x}\\left(\\tan kx\\right) = k\\sec^2 kx", "why": "From the formula book.", "check": false },
+        { "head": "Apply it with \\(k = \\tfrac{1}{2}\\)" },
+        { "tex": "\\frac{\\mathrm{d}}{\\mathrm{d}x}\\left(\\tan\\tfrac{1}{2}x\\right) = \\tfrac{1}{2}\\sec^2\\left(\\tfrac{1}{2}x\\right)", "marks": ["M1"], "check": false },
+        { "tex": "\\frac{\\mathrm{d}}{\\mathrm{d}x}\\left(x\\right) = 1", "check": false }
       ],
       "answer": "\\mathrm{f}'(x) = 1 + \\tfrac{1}{2}\\sec^2\\left(\\tfrac{1}{2}x\\right)",
-      "answerMarks": ["M1", "A1"],
+      "answerMarks": ["A1"],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "1 + \\tfrac{1}{2}\\sec^2\\left(\\tfrac{1}{2}x\\right)", "scheme": "diff(x + tan(x/2), x)" }]
@@ -36,16 +43,22 @@
     {
       "label": "c",
       "ask": "Using 3.7 as a first approximation, apply Newton–Raphson once. Give your answer to 3 decimal places.",
-      "method": "Newton–Raphson",
+      "method": "Quote the Newton–Raphson formula",
       "steps": [
-        { "tex": "x_2 = 3.7 - \\frac{\\mathrm{f}(3.7)}{\\mathrm{f}'(3.7)}", "why": "\\(x_{n+1} = x_n - \\dfrac{\\mathrm{f}(x_n)}{\\mathrm{f}'(x_n)}\\), from the formula book.", "check": false },
-        { "tex": "= 3.7 - \\frac{3.7 + \\tan(1.85)}{1 + \\tfrac{1}{2}\\sec^2(1.85)}", "why": "Show this line: a calculator slip with no substitution scores nothing.", "marks": ["M1"] },
-        { "tex": "= 3.7 - \\frac{0.21194\\ldots}{7.5833\\ldots}", "why": "No \\(\\sec\\) key: \\(\\sec^2(1.85) = \\dfrac{1}{\\cos^2(1.85)}\\)." },
+        { "tex": "x_{n+1} = x_n - \\frac{\\mathrm{f}(x_n)}{\\mathrm{f}'(x_n)}", "why": "From the formula book.", "check": false },
+        { "tex": "x_2 = 3.7 - \\frac{\\mathrm{f}(3.7)}{\\mathrm{f}'(3.7)}", "check": false },
+        { "head": "Substitute \\(x = 3.7\\)" },
+        { "tex": "x_2 = 3.7 - \\frac{3.7 + \\tan(1.85)}{1 + \\tfrac{1}{2}\\sec^2(1.85)}", "why": "Show this line: a calculator slip with no substitution scores nothing.", "marks": ["M1"] },
+        { "tex": "\\sec^2(1.85) = \\frac{1}{\\cos^2(1.85)} = \\frac{1}{(-0.27559\\ldots)^2} = 13.1665\\ldots", "why": "No \\(\\sec\\) key: use \\(\\dfrac{1}{\\cos^2}\\)." },
+        { "tex": "x_2 = 3.7 - \\frac{0.21194\\ldots}{1 + \\tfrac{1}{2}(13.1665\\ldots)}" },
+        { "tex": "= 3.7 - \\frac{0.21194\\ldots}{7.5832\\ldots}" },
+        { "tex": "= 3.7 - 0.027948\\ldots" },
         { "tex": "= 3.67205\\ldots" }
       ],
       "answer": "\\alpha \\approx 3.672",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "x_2": "3.7 - (3.7 + tan(1.85))/(1 + sec(1.85)**2/2)", "\\alpha": "3.7 - (3.7 + tan(1.85))/(1 + sec(1.85)**2/2)" },
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "3.672", "scheme": "3.7 - (3.7 + tan(1.85))/(1 + sec(1.85)**2/2)", "tol": 0.0005 }]
       }

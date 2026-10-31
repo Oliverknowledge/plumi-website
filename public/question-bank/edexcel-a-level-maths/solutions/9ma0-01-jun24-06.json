@@ -6,10 +6,11 @@
     {
       "label": "a",
       "ask": "The graph of \\(y = 3|x-2| + 5\\) has its vertex at \\(P\\). Find the coordinates of \\(P\\).",
-      "method": "Vertex where the modulus is zero",
+      "method": "The vertex is where the modulus is zero",
       "steps": [
-        { "tex": "x - 2 = 0 \\Rightarrow x = 2", "why": "\\(|x-2| \\geq 0\\), so \\(y\\) is least when \\(|x-2| = 0\\).", "marks": ["B1"], "check": { "vals": { "x": 2 } } },
-        { "tex": "\\Rightarrow y = 3|2-2| + 5 = 5", "check": { "vals": { "x": 2, "y": 5 } } }
+        { "tex": "|x - 2| = 0 \\Rightarrow x - 2 = 0 \\Rightarrow x = 2", "why": "\\(|x-2| \\geq 0\\), so \\(y\\) is least when \\(|x-2| = 0\\).", "marks": ["B1"], "check": { "vals": { "x": 2 } } },
+        { "head": "Now the \\(y\\) coordinate" },
+        { "tex": "y = 3|2 - 2| + 5 = 3(0) + 5 = 5", "check": { "vals": { "x": 2, "y": 5 } } }
       ],
       "answer": "P(2,\\ 5)",
       "answerMarks": ["B1"],
@@ -23,15 +24,22 @@
       "ask": "Solve \\(16 - 4x = 3|x-2| + 5\\).",
       "method": "Solve each branch, then check it",
       "steps": [
-        { "tex": "x \\geq 2: \\quad 16 - 4x = 3(x-2) + 5", "why": "Each branch only holds on its own side of \\(x = 2\\).", "marks": ["M1"], "check": { "vals": { "x": "17/7" } } },
+        { "text": "For \\(x \\geq 2\\), \\(|x - 2| = x - 2\\). For \\(x < 2\\), \\(|x - 2| = 2 - x\\).", "why": "Each branch only holds on its own side of \\(x = 2\\)." },
+        { "head": "Case 1: \\(x \\geq 2\\)" },
+        { "tex": "16 - 4x = 3(x-2) + 5", "check": { "vals": { "x": "17/7" } } },
+        { "tex": "\\Rightarrow 16 - 4x = 3x - 6 + 5", "check": { "vals": { "x": "17/7" } } },
         { "tex": "\\Rightarrow 16 - 4x = 3x - 1", "check": { "vals": { "x": "17/7" } } },
-        { "tex": "\\Rightarrow 7x = 17 \\Rightarrow x = \\frac{17}{7}", "why": "\\(\\tfrac{17}{7} = 2.43\\ldots \\geq 2\\): on this branch, so keep it.", "check": { "vals": { "x": "17/7" } } },
-        { "tex": "x < 2: \\quad 16 - 4x = 3(2-x) + 5 = 11 - 3x", "check": { "vals": { "x": 5 } } },
-        { "tex": "\\Rightarrow x = 5", "why": "\\(5\\) is not less than \\(2\\): reject it.", "check": { "vals": { "x": 5 } } }
+        { "tex": "\\Rightarrow 17 = 7x", "marks": ["M1"], "check": { "vals": { "x": "17/7" } } },
+        { "tex": "\\Rightarrow x = \\frac{17}{7}", "why": "\\(\\tfrac{17}{7} = 2.43\\ldots \\geq 2\\): on this branch, so keep it.", "check": { "vals": { "x": "17/7" } } },
+        { "head": "Case 2: \\(x < 2\\)" },
+        { "tex": "16 - 4x = 3(2-x) + 5", "check": { "vals": { "x": 5 } } },
+        { "tex": "\\Rightarrow 16 - 4x = 6 - 3x + 5 = 11 - 3x", "check": { "vals": { "x": 5 } } },
+        { "tex": "\\Rightarrow 5 = x", "why": "\\(5\\) is not less than \\(2\\): reject it.", "check": { "vals": { "x": 5 } } }
       ],
       "answer": "x = \\frac{17}{7}",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "x": "17/7" },
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "x = \\frac{17}{7}", "scheme": "17/7", "derive": "solveset(Eq(16 - 4*x, 3*Abs(x - 2) + 5), x, S.Reals)" }]
       }
@@ -41,8 +49,12 @@
       "ask": "The line \\(y = kx + 4\\) meets \\(y = 3|x-2| + 5\\) at 2 distinct points. Find the range of values of \\(k\\).",
       "method": "Turn the line about \\((0, 4)\\)",
       "steps": [
-        { "text": "Every line \\(y = kx + 4\\) passes through \\((0, 4)\\), below the V. It meets the V twice when it passes above \\(P\\) and crosses the right branch." },
-        { "tex": "\\text{Through } P: \\quad 5 = 2k + 4 \\Rightarrow k = \\frac{1}{2}", "why": "At \\(k = \\tfrac{1}{2}\\) it meets the V only at \\(P\\), so \\(k > \\tfrac{1}{2}\\).", "marks": ["M1"], "check": { "vals": { "k": "1/2" } } },
+        { "text": "Every line \\(y = kx + 4\\) passes through \\((0, 4)\\), which is below the V. It meets the V twice when it passes above \\(P\\) and also crosses the right branch." },
+        { "head": "Lower limit: the line through \\(P(2, 5)\\)" },
+        { "tex": "5 = 2k + 4", "check": { "vals": { "k": "1/2" } } },
+        { "tex": "\\Rightarrow 2k = 1 \\Rightarrow k = \\frac{1}{2}", "why": "At \\(k = \\tfrac{1}{2}\\) it meets the V only at \\(P\\), so \\(k > \\tfrac{1}{2}\\).", "marks": ["M1"], "check": { "vals": { "k": "1/2" } } },
+        { "head": "Upper limit: the gradient of the right branch" },
+        { "tex": "x \\geq 2: \\quad y = 3(x-2) + 5 = 3x - 1" },
         { "text": "The right branch has gradient 3. If \\(k \\geq 3\\), the line never catches it, so \\(k < 3\\).", "why": "This upper limit is the one most people miss." }
       ],
       "answer": "\\frac{1}{2} < k < 3",

@@ -9,12 +9,15 @@
       "method": "Initially means \\(t = 0\\)",
       "steps": [
         { "tex": "N_A = |0 - 3| + 4 = 3 + 4 = 7" },
-        { "tex": "N_B = 8 - |0 - 6| = 8 - 6 = 2" },
-        { "tex": "N_A - N_B = 7 - 2 = 5", "marks": ["M1"] }
+        { "tex": "N_B = 8 - |2(0) - 6| = 8 - 6 = 2" },
+        { "head": "Find the difference" },
+        { "tex": "N_A - N_B = 7 - 2 = 5", "marks": ["M1"] },
+        { "tex": "5 \\times 1000 = 5000", "why": "\\(N\\) is in thousands." }
       ],
       "answerText": "The difference is 5 thousand, so \\(5000\\) subscribers.",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "N_A": 7, "N_B": 2 },
         "marks": ["M1", "A1"],
         "answers": [{ "text": "\\(5000\\) subscribers", "value": "5000", "scheme": "5000", "derive": "1000*((Abs(0 - 3) + 4) - (8 - Abs(2*0 - 6)))" }]
       }
@@ -24,7 +27,9 @@
       "ask": "When \\(t = T\\), company A reduced its prices and its number of subscribers increased. Suggest a value for \\(T\\), giving a reason.",
       "method": "Find where \\(N_A\\) stops falling",
       "steps": [
-        { "text": "\\(N_A = |t - 3| + 4\\) falls until \\(t - 3 = 0\\), then rises: its vertex is at \\(t = 3\\)." }
+        { "text": "For \\(t < 3\\), \\(N_A = 7 - t\\): it is falling." },
+        { "text": "For \\(t > 3\\), \\(N_A = t + 1\\): it is rising." },
+        { "text": "So the vertex of the V, the lowest point of \\(N_A\\), is at \\(t = 3\\)." }
       ],
       "answerText": "\\(T = 3\\), because that is when company A had its lowest number of subscribers; after it, the number increased.",
       "answerMarks": ["B1", "B1"],
@@ -36,15 +41,24 @@
     {
       "label": "c",
       "ask": "Find the range of values of \\(t\\) for which \\(N_A > N_B\\), giving your answer in set notation.",
-      "method": "Find where the graphs cross, then read off from the sketch",
+      "method": "Remove the moduli for \\(0 \\leq t < 3\\)",
       "steps": [
-        { "text": "For \\(0 \\leq t < 3\\), both moduli have negative insides, so they change sign:" },
-        { "tex": "N_A = 3 - t + 4 = 7 - t, \\qquad N_B = 8 - (6 - 2t) = 2 + 2t" },
+        { "text": "For \\(0 \\leq t < 3\\), both \\(t - 3\\) and \\(2t - 6\\) are negative, so each modulus changes the sign." },
+        { "tex": "N_A = -(t - 3) + 4 = 3 - t + 4 = 7 - t" },
+        { "tex": "N_B = 8 - (6 - 2t) = 8 - 6 + 2t = 2 + 2t" },
+        { "head": "Where the graphs cross" },
         { "tex": "7 - t = 2 + 2t", "marks": ["B1"], "check": { "vals": { "t": "5/3" } } },
-        { "tex": "\\Rightarrow 3t = 5 \\;\\Rightarrow\\; t = \\frac{5}{3}", "marks": ["M1", "A1"], "check": { "vals": { "t": "5/3" } } },
-        { "text": "For \\(t \\geq 3\\), both insides are positive:" },
-        { "tex": "N_A = t - 3 + 4 = t + 1, \\qquad N_B = 8 - (2t - 6) = 14 - 2t" },
-        { "tex": "t + 1 = 14 - 2t \\;\\Rightarrow\\; 3t = 13 \\;\\Rightarrow\\; t = \\frac{13}{3}", "check": { "vals": { "t": "13/3" } } },
+        { "tex": "\\Rightarrow 7 - 2 = 2t + t", "check": { "vals": { "t": "5/3" } } },
+        { "tex": "\\Rightarrow 5 = 3t", "marks": ["M1"], "check": { "vals": { "t": "5/3" } } },
+        { "tex": "\\Rightarrow t = \\frac{5}{3}", "marks": ["A1"], "check": { "vals": { "t": "5/3" } } },
+        { "head": "Now remove the moduli for \\(t \\geq 3\\)" },
+        { "text": "For \\(t \\geq 3\\), both insides are positive, so the moduli just come off." },
+        { "tex": "N_A = t - 3 + 4 = t + 1" },
+        { "tex": "N_B = 8 - (2t - 6) = 8 - 2t + 6 = 14 - 2t" },
+        { "tex": "t + 1 = 14 - 2t", "check": { "vals": { "t": "13/3" } } },
+        { "tex": "\\Rightarrow 3t = 13", "check": { "vals": { "t": "13/3" } } },
+        { "tex": "\\Rightarrow t = \\frac{13}{3}", "check": { "vals": { "t": "13/3" } } },
+        { "head": "Finally, read off from the sketch" },
         { "text": "In Figure 2, \\(N_A\\) is above \\(N_B\\) before the first crossing and after the second, so \\(t < \\tfrac{5}{3}\\) or \\(t > \\tfrac{13}{3}\\).", "why": "Between the crossings \\(N_B\\) is higher: take the outside region.", "marks": ["A1ft"] }
       ],
       "answer": "\\{t : t < \\tfrac{5}{3}\\} \\cup \\{t : t > \\tfrac{13}{3}\\}",
@@ -63,7 +77,9 @@
       "ask": "State a limitation of the model used for company B.",
       "method": "Look at what happens to \\(N_B\\) for large \\(t\\)",
       "steps": [
-        { "tex": "N_B < 0 \\;\\Rightarrow\\; |2t - 6| > 8 \\;\\Rightarrow\\; t > 7", "why": "For \\(t > 3\\), \\(2t - 6 > 8\\) gives \\(t > 7\\)." }
+        { "tex": "N_B < 0 \\;\\Rightarrow\\; 8 - (2t - 6) < 0", "why": "For \\(t \\geq 3\\), \\(|2t - 6| = 2t - 6\\)." },
+        { "tex": "\\Rightarrow 14 - 2t < 0" },
+        { "tex": "\\Rightarrow t > 7" }
       ],
       "answerText": "For \\(t > 7\\) the model gives a negative number of subscribers, which is impossible.",
       "answerMarks": ["B1"],

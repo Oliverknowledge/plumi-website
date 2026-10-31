@@ -26,6 +26,7 @@
 .qb-sol-label { position: absolute; left: -48px; top: -4px; font: 700 26px/1 var(--f-hand); color: #1f3d8a; }
 .qb-sol-label.is-long { left: -54px; top: 0; font-size: 19px; }
 .qb-sol-ask { display: block; font: 15px/1.5 "Times New Roman", Times, serif; color: #4a3a36; }
+.qb-sol-method.is-stage { grid-column: 1 / -1; margin-top: 8px; font-size: 21px; }
 .qb-sol-method { justify-self: start; margin: 0; padding: 0 4px 2px; font: 700 23px/1.15 var(--f-hand); color: #1d1a19; background: linear-gradient(transparent 68%, #8fd6b4 68%); }
 
 /* The working: one grid for the part, so every line's = sits in the same place, as by hand.

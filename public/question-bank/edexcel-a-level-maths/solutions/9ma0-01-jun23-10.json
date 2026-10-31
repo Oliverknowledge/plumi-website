@@ -6,10 +6,14 @@
     {
       "label": "a(i)",
       "ask": "A circle \\(C\\) has equation \\(x^2 + y^2 + 6kx - 2ky + 7 = 0\\), where \\(k\\) is a constant. Find, in terms of \\(k\\), the coordinates of the centre of \\(C\\).",
-      "method": "Complete the square",
+      "method": "Completing the square",
       "steps": [
-        { "tex": "x^2 + y^2 + 6kx - 2ky + 7 = 0" },
-        { "tex": "\\Rightarrow (x + 3k)^2 - 9k^2 + (y - k)^2 - k^2 + 7 = 0", "why": "Halve the coefficients: \\(6k \\to 3k\\), \\(-2k \\to -k\\)." }
+        { "tex": "x^2 + 6kx + y^2 - 2ky + 7 = 0", "why": "Group the \\(x\\) terms and the \\(y\\) terms." },
+        { "tex": "x^2 + 6kx = (x + 3k)^2 - 9k^2", "why": "Halve the coefficient \\(6k\\), then take away its square." },
+        { "tex": "y^2 - 2ky = (y - k)^2 - k^2" },
+        { "tex": "\\Rightarrow (x + 3k)^2 - 9k^2 + (y - k)^2 - k^2 + 7 = 0" },
+        { "head": "Compare with the standard form" },
+        { "tex": "(x - a)^2 + (y - b)^2 = r^2 \\ \\text{has centre} \\ (a,\\ b)", "check": false }
       ],
       "answer": "\\text{Centre } (-3k,\\ k)",
       "answerMarks": ["B1"],
@@ -22,10 +26,13 @@
     {
       "label": "a(ii)",
       "ask": "Find, in terms of \\(k\\), the radius of \\(C\\).",
-      "method": "Read \\(r^2\\) from the completed square",
+      "method": "Move the constants to the right",
       "steps": [
-        { "tex": "(x + 3k)^2 + (y - k)^2 = 9k^2 + k^2 - 7", "why": "Move everything outside the brackets to the right.", "marks": ["M1"] },
-        { "tex": "= 10k^2 - 7" }
+        { "tex": "(x + 3k)^2 - 9k^2 + (y - k)^2 - k^2 + 7 = 0" },
+        { "tex": "\\Rightarrow (x + 3k)^2 + (y - k)^2 = 9k^2 + k^2 - 7", "marks": ["M1"] },
+        { "tex": "= 10k^2 - 7" },
+        { "head": "Read off the radius" },
+        { "tex": "r^2 = 10k^2 - 7", "check": false }
       ],
       "answer": "r = \\sqrt{10k^2 - 7}",
       "answerMarks": ["A1ft"],
@@ -38,17 +45,28 @@
     {
       "label": "b",
       "ask": "The line \\(y = 2x - 1\\) intersects \\(C\\) at 2 distinct points. Find the range of possible values of \\(k\\).",
-      "method": "Substitute, then discriminant \\(> 0\\)",
+      "method": "Substitute the line into the circle",
       "steps": [
         { "tex": "x^2 + (2x - 1)^2 + 6kx - 2k(2x - 1) + 7 = 0", "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "tex": "(2x - 1)^2 = 4x^2 - 4x + 1", "check": { "vals": { "x": 3 } } },
+        { "tex": "-2k(2x - 1) = -4kx + 2k", "check": { "vals": { "k": 2, "x": 3 } } },
         { "tex": "\\Rightarrow x^2 + 4x^2 - 4x + 1 + 6kx - 4kx + 2k + 7 = 0", "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
-        { "tex": "\\Rightarrow 5x^2 + (2k - 4)x + 2k + 8 = 0", "why": "Group the \\(x\\) terms: \\(-4x + 2kx = (2k - 4)x\\).", "marks": ["M1", "A1"], "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
-        { "tex": "b^2 - 4ac = (2k - 4)^2 - 4(5)(2k + 8)", "why": "Two distinct points: \\(b^2 - 4ac > 0\\)." },
-        { "tex": "= 4k^2 - 16k + 16 - 40k - 160" },
-        { "tex": "= 4k^2 - 56k - 144" },
-        { "tex": "4k^2 - 56k - 144 > 0 \\Rightarrow k^2 - 14k - 36 > 0", "why": "Divide by 4: a positive number, so the sign stays." },
-        { "tex": "k^2 - 14k - 36 = 0 \\Rightarrow k = \\frac{14 \\pm \\sqrt{196 + 144}}{2}", "marks": ["dM1"] },
-        { "tex": "= 7 \\pm \\sqrt{85}", "why": "\\(\\sqrt{340} = 2\\sqrt{85}\\).", "marks": ["A1"] },
+        { "tex": "\\Rightarrow 5x^2 - 4x + 2kx + 2k + 8 = 0", "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "tex": "\\Rightarrow 5x^2 + (2k - 4)x + 2k + 8 = 0", "why": "Here \\(a = 5\\), \\(b = 2k - 4\\), \\(c = 2k + 8\\).", "marks": ["M1", "A1"], "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "head": "Two distinct points: discriminant positive" },
+        { "tex": "b^2 - 4ac > 0", "check": false },
+        { "tex": "(2k - 4)^2 - 4(5)(2k + 8) > 0", "check": { "vals": { "k": 20 } } },
+        { "tex": "\\Rightarrow 4k^2 - 16k + 16 - 40k - 160 > 0", "why": "\\((2k - 4)^2 = 4k^2 - 16k + 16\\) and \\(20(2k + 8) = 40k + 160\\).", "check": { "vals": { "k": 20 } } },
+        { "tex": "\\Rightarrow 4k^2 - 56k - 144 > 0", "check": { "vals": { "k": 20 } } },
+        { "tex": "\\Rightarrow k^2 - 14k - 36 > 0", "why": "Divide by 4: a positive number, so the sign stays.", "check": { "vals": { "k": 20 } } },
+        { "head": "Find the critical values" },
+        { "tex": "k^2 - 14k - 36 = 0", "check": { "vals": { "k": "7 + sqrt(85)" } } },
+        { "tex": "k = \\frac{14 \\pm \\sqrt{(-14)^2 - 4(1)(-36)}}{2(1)}", "marks": ["dM1"] },
+        { "tex": "= \\frac{14 \\pm \\sqrt{196 + 144}}{2}" },
+        { "tex": "= \\frac{14 \\pm \\sqrt{340}}{2}" },
+        { "tex": "= \\frac{14 \\pm 2\\sqrt{85}}{2}", "why": "\\(\\sqrt{340} = \\sqrt{4}\\sqrt{85} = 2\\sqrt{85}\\)." },
+        { "tex": "= 7 \\pm \\sqrt{85}", "marks": ["A1"] },
+        { "head": "Choose the outside region" },
         { "text": "\\(k^2 - 14k - 36\\) is a U-shaped quadratic, so it is positive outside its roots.", "marks": ["ddM1"] }
       ],
       "answer": "k < 7 - \\sqrt{85} \\ \\text{or}\\ k > 7 + \\sqrt{85}",

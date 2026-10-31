@@ -8,8 +8,11 @@
       "ask": "\\(\\mathrm{f}(x) = 4 - 3x^2\\) and \\(\\mathrm{g}(x) = \\dfrac{5}{2x-9}\\), \\(x \\neq \\tfrac{9}{2}\\). Find \\(\\mathrm{fg}(2)\\).",
       "method": "Inside out: g first, then f",
       "steps": [
-        { "tex": "\\mathrm{g}(2) = \\frac{5}{2(2) - 9} = -1", "why": "\\(\\mathrm{fg}(2)\\) means \\(\\mathrm{f}(\\mathrm{g}(2))\\): apply g first." },
-        { "tex": "\\Rightarrow \\mathrm{fg}(2) = \\mathrm{f}(-1) = 4 - 3(-1)^2", "marks": ["M1"] }
+        { "text": "\\(\\mathrm{fg}(2)\\) means \\(\\mathrm{f}(\\mathrm{g}(2))\\).", "why": "The function next to the 2 acts first." },
+        { "tex": "\\mathrm{g}(2) = \\frac{5}{2(2) - 9} = \\frac{5}{4 - 9} = \\frac{5}{-5} = -1" },
+        { "head": "Now put \\(-1\\) into f" },
+        { "tex": "\\mathrm{fg}(2) = \\mathrm{f}(-1) = 4 - 3(-1)^2", "marks": ["M1"] },
+        { "tex": "= 4 - 3(1) = 4 - 3", "why": "Square first: \\((-1)^2 = 1\\)." }
       ],
       "answer": "\\mathrm{fg}(2) = 1",
       "answerMarks": ["A1"],
@@ -21,12 +24,17 @@
     {
       "label": "b",
       "ask": "Find \\(\\mathrm{g}^{-1}\\).",
-      "method": "Make \\(x\\) the subject",
+      "method": "Write \\(y = \\mathrm{g}(x)\\) and make \\(x\\) the subject",
       "steps": [
         { "tex": "y = \\frac{5}{2x - 9}" },
-        { "tex": "\\Rightarrow 2xy - 9y = 5", "why": "Multiply by \\(2x - 9\\) to clear the fraction." },
+        { "head": "Clear the fraction" },
+        { "tex": "\\Rightarrow y(2x - 9) = 5" },
+        { "tex": "\\Rightarrow 2xy - 9y = 5" },
+        { "head": "Collect the \\(x\\) terms on one side" },
         { "tex": "\\Rightarrow 2xy = 5 + 9y", "marks": ["M1"] },
-        { "tex": "\\Rightarrow x = \\frac{5 + 9y}{2y}", "why": "Domain of \\(\\mathrm{g}^{-1}\\) = range of g, and g is never 0.", "marks": ["A1"] }
+        { "tex": "\\Rightarrow x = \\frac{5 + 9y}{2y}", "marks": ["A1"] },
+        { "head": "Finally, swap the letters and state the domain" },
+        { "text": "The domain of \\(\\mathrm{g}^{-1}\\) is the range of g, and \\(\\frac{5}{2x-9}\\) is never 0.", "why": "A fraction with numerator 5 can't equal 0." }
       ],
       "answer": "\\mathrm{g}^{-1}(x) = \\frac{5 + 9x}{2x}, \\quad x \\in \\mathbb{R},\\ x \\neq 0",
       "answerMarks": ["A1"],
@@ -42,7 +50,10 @@
       "method": "Put \\(\\mathrm{f}(x)\\) into g",
       "steps": [
         { "tex": "\\mathrm{gf}(x) = \\mathrm{g}(4 - 3x^2) = \\frac{5}{2(4 - 3x^2) - 9}", "why": "Every \\(x\\) in g becomes \\(4 - 3x^2\\).", "marks": ["M1"] },
-        { "tex": "= \\frac{5}{8 - 6x^2 - 9} = \\frac{5}{-1 - 6x^2}" }
+        { "head": "Simplify the denominator" },
+        { "tex": "\\frac{5}{2(4 - 3x^2) - 9} = \\frac{5}{8 - 6x^2 - 9}" },
+        { "tex": "= \\frac{5}{-1 - 6x^2}" },
+        { "tex": "= \\frac{-5}{1 + 6x^2}", "why": "Take the minus out of the denominator." }
       ],
       "answer": "\\mathrm{gf}(x) = -\\frac{5}{1 + 6x^2}",
       "answerMarks": ["A1"],
@@ -54,10 +65,13 @@
     {
       "label": "c(ii)",
       "ask": "Deduce the range of \\(\\mathrm{gf}(x)\\).",
-      "method": "Smallest and largest denominator",
+      "method": "Start from the smallest denominator",
       "steps": [
-        { "tex": "1 + 6x^2 \\geq 1", "why": "\\(x^2 \\geq 0\\), so the denominator is least at \\(x = 0\\)." },
-        { "tex": "\\Rightarrow \\mathrm{gf}(0) = -\\frac{5}{1} = -5" },
+        { "tex": "x^2 \\geq 0 \\Rightarrow 1 + 6x^2 \\geq 1" },
+        { "tex": "\\Rightarrow 0 < \\frac{5}{1 + 6x^2} \\leq 5", "why": "A bigger denominator gives a smaller fraction." },
+        { "tex": "\\Rightarrow -5 \\leq -\\frac{5}{1 + 6x^2} < 0", "why": "Multiplying by \\(-1\\) flips the inequalities." },
+        { "head": "Check the end values" },
+        { "tex": "\\mathrm{gf}(0) = -\\frac{5}{1 + 0} = -5", "why": "So \\(-5\\) is reached, at \\(x = 0\\)." },
         { "text": "As \\(x\\) grows, \\(-\\dfrac{5}{1 + 6x^2}\\) rises towards 0 but never reaches it." }
       ],
       "answer": "-5 \\leq \\mathrm{gf}(x) < 0",
@@ -70,13 +84,20 @@
     {
       "label": "d",
       "ask": "\\(\\mathrm{h}(x) = 2x^2 - 6x + k\\). Find the values of \\(k\\) for which \\(\\mathrm{f}(x) = \\mathrm{h}(x)\\) has no real solutions.",
-      "method": "Discriminant",
+      "method": "Set \\(\\mathrm{f}(x) = \\mathrm{h}(x)\\)",
       "steps": [
         { "tex": "4 - 3x^2 = 2x^2 - 6x + k", "check": { "vals": { "x": 0, "k": 4 } } },
-        { "tex": "\\Rightarrow 5x^2 - 6x + k - 4 = 0", "why": "Collect terms on the side where \\(x^2\\) is positive.", "marks": ["M1"], "check": { "vals": { "x": 0, "k": 4 } } },
-        { "text": "No real solutions: \\(b^2 - 4ac < 0\\), with \\(a = 5\\), \\(b = -6\\), \\(c = k - 4\\).", "why": "Not \\(\\leq 0\\): zero gives a repeated root." },
-        { "tex": "(-6)^2 - 4(5)(k - 4) = 116 - 20k < 0" },
-        { "tex": "\\Rightarrow 20k > 116", "why": "Move \\(20k\\) across: no dividing by a negative.", "marks": ["dM1"] }
+        { "head": "Collect everything on one side" },
+        { "tex": "\\Rightarrow 0 = 2x^2 + 3x^2 - 6x + k - 4", "why": "Keep \\(x^2\\) positive: add \\(3x^2\\), take away 4.", "check": { "vals": { "x": 0, "k": 4 } } },
+        { "tex": "\\Rightarrow 5x^2 - 6x + k - 4 = 0", "marks": ["M1"], "check": { "vals": { "x": 0, "k": 4 } } },
+        { "head": "No real solutions: the discriminant is negative" },
+        { "tex": "b^2 - 4ac < 0, \\quad a = 5,\\ b = -6,\\ c = k - 4", "why": "Not \\(\\leq 0\\): zero gives a repeated root.", "check": false },
+        { "tex": "\\Rightarrow (-6)^2 - 4(5)(k - 4) < 0" },
+        { "tex": "\\Rightarrow 36 - 20(k - 4) < 0" },
+        { "tex": "\\Rightarrow 36 - 20k + 80 < 0" },
+        { "tex": "\\Rightarrow 116 - 20k < 0" },
+        { "tex": "\\Rightarrow 116 < 20k", "why": "Move \\(20k\\) across: no dividing by a negative.", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow k > \\frac{116}{20}" }
       ],
       "answer": "k > \\frac{29}{5} \\ (= 5.8)",
       "answerMarks": ["A1"],

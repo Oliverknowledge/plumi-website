@@ -6,9 +6,10 @@
     {
       "label": "a",
       "ask": "A rod \\(AB\\) of mass \\(M\\) and length \\(2a\\) has end \\(A\\) on rough horizontal ground and end \\(B\\) against a smooth vertical wall, making an angle \\(\\theta\\) with the ground. In Figure 3 the wall is on the right of \\(A\\). The rod is in limiting equilibrium. State the direction (left or right on Figure 3) of the friction at \\(A\\), with a reason.",
-      "method": "Resolve horizontally",
+      "method": "Resolving horizontally",
       "steps": [
-        { "text": "The smooth wall pushes on \\(B\\) at right angles to the wall: to the left.", "why": "Friction is the only other horizontal force." }
+        { "text": "Only two forces act horizontally: the wall's reaction at \\(B\\) and friction at \\(A\\)." },
+        { "text": "The smooth wall pushes on \\(B\\) at right angles to the wall: to the left." }
       ],
       "answerText": "To the right (towards the wall), to balance the normal reaction of the wall at \\(B\\), which acts to the left.",
       "answerMarks": ["B1"],
@@ -20,10 +21,14 @@
     {
       "label": "b",
       "ask": "The wall's normal reaction on the rod at \\(B\\) has magnitude \\(S\\). Modelling the rod as uniform, take moments about \\(A\\) to show that \\(S = \\frac{1}{2}Mg\\cot\\theta\\).",
-      "method": "Take moments about \\(A\\)",
+      "method": "Taking moments about A",
       "steps": [
-        { "tex": "S \\times 2a\\sin\\theta = Mg \\times a\\cos\\theta", "why": "Use perpendicular distances: \\(B\\) is \\(2a\\sin\\theta\\) high; the midpoint is \\(a\\cos\\theta\\) across.", "marks": ["M1", "A1"] },
-        { "tex": "\\Rightarrow S = \\frac{Mga\\cos\\theta}{2a\\sin\\theta}", "why": "Cancel \\(a\\); \\(\\frac{\\cos\\theta}{\\sin\\theta} = \\cot\\theta\\).", "check": { "vals": { "a": 2 } } }
+        { "tex": "\\text{moment} = \\text{force} \\times \\text{perpendicular distance}", "check": false },
+        { "text": "\\(B\\) is \\(2a\\sin\\theta\\) above the ground. The weight acts at the midpoint, \\(a\\cos\\theta\\) across from \\(A\\)." },
+        { "tex": "S \\times 2a\\sin\\theta = Mg \\times a\\cos\\theta", "why": "\\(S\\) turns the rod anticlockwise about \\(A\\); the weight turns it clockwise.", "marks": ["M1", "A1"] },
+        { "tex": "\\Rightarrow S = \\frac{Mga\\cos\\theta}{2a\\sin\\theta}", "check": { "vals": { "a": 2 } } },
+        { "tex": "= \\frac{Mg\\cos\\theta}{2\\sin\\theta}", "why": "Cancel \\(a\\).", "check": { "vals": { "a": 2 } } },
+        { "tex": "= \\frac{1}{2}Mg \\times \\frac{\\cos\\theta}{\\sin\\theta}", "why": "\\(\\frac{\\cos\\theta}{\\sin\\theta} = \\cot\\theta\\).", "check": { "vals": { "a": 2 } } }
       ],
       "answer": "S = \\frac{1}{2}Mg\\cot\\theta",
       "answerMarks": ["A1*"],
@@ -36,30 +41,39 @@
     {
       "label": "c",
       "ask": "The coefficient of friction between the rod and the ground is \\(\\mu\\). Given that \\(\\tan\\theta = \\frac{3}{4}\\), find the value of \\(\\mu\\).",
-      "method": "Resolve, then use \\(F = \\mu R\\)",
+      "method": "Resolving vertically",
       "steps": [
-        { "tex": "R = Mg", "why": "Resolve vertically, then horizontally.", "marks": ["B1"] },
-        { "tex": "F = S", "marks": ["B1"] },
+        { "tex": "R = Mg", "why": "Only \\(R\\) and the weight act vertically.", "marks": ["B1"] },
+        { "head": "Resolving horizontally" },
+        { "tex": "F = S", "why": "Friction balances the wall's reaction.", "marks": ["B1"] },
+        { "head": "Friction is limiting" },
         { "tex": "F = \\mu R", "why": "Limiting equilibrium: friction is at its maximum.", "marks": ["B1"] },
-        { "tex": "\\Rightarrow \\frac{1}{2}Mg \\times \\frac{4}{3} = \\mu Mg", "why": "\\(S\\) from part (b), with \\(\\cot\\theta = \\frac{4}{3}\\).", "marks": ["dM1"] },
-        { "tex": "\\Rightarrow \\frac{2}{3}Mg = \\mu Mg" }
+        { "tex": "\\Rightarrow S = \\mu R" },
+        { "tex": "\\Rightarrow \\frac{1}{2}Mg\\cot\\theta = \\mu Mg", "why": "\\(S\\) from part (b), \\(R\\) from above." },
+        { "head": "Substitute cot θ" },
+        { "tex": "\\cot\\theta = \\frac{1}{\\tan\\theta} = \\frac{4}{3}" },
+        { "tex": "\\Rightarrow \\frac{1}{2}Mg \\times \\frac{4}{3} = \\mu Mg", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow \\frac{2}{3}Mg = \\mu Mg", "why": "Divide both sides by \\(Mg\\)." }
       ],
       "answer": "\\mu = \\frac{2}{3}",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["B1", "B1", "B1", "dM1", "A1"],
-        "vals": { "R": "M*g", "F": "2*M*g/3", "S": "2*M*g/3", "\\mu": "2/3" },
+        "vals": { "R": "M*g", "F": "2*M*g/3", "S": "2*M*g/3", "\\mu": "2/3", "\\theta": "atan(3/4)" },
         "answers": [{ "tex": "\\frac{2}{3}", "scheme": "2/3", "derive": "Rational(1, 2)*Rational(4, 3)" }]
       }
     },
     {
       "label": "d",
       "ask": "Find, in terms of \\(M\\) and \\(g\\), the magnitude of the resultant force acting on the rod at \\(A\\).",
-      "method": "Pythagoras on the forces at \\(A\\)",
+      "method": "Pythagoras on the forces at A",
       "steps": [
-        { "tex": "X = \\sqrt{F^2 + R^2}", "why": "Friction and \\(R\\) are perpendicular.", "marks": ["M1"] },
+        { "text": "At \\(A\\) the ground exerts friction \\(F\\) and the normal reaction \\(R\\), at right angles to each other." },
+        { "tex": "X = \\sqrt{F^2 + R^2}", "marks": ["M1"] },
         { "tex": "= \\sqrt{\\left(\\frac{2}{3}Mg\\right)^2 + (Mg)^2}", "marks": ["M1"] },
-        { "tex": "= \\sqrt{\\frac{13}{9}M^2g^2}" }
+        { "tex": "= \\sqrt{\\frac{4}{9}M^2g^2 + M^2g^2}" },
+        { "tex": "= \\sqrt{\\frac{13}{9}M^2g^2}" },
+        { "tex": "= \\frac{\\sqrt{13}}{\\sqrt{9}}Mg" }
       ],
       "answer": "X = \\frac{\\sqrt{13}}{3}Mg",
       "answerMarks": ["A1"],
@@ -72,9 +86,12 @@
     {
       "label": "e",
       "ask": "In a new model the rod is non-uniform, with its centre of mass closer to \\(B\\) than to \\(A\\). With \\(\\tan\\theta = \\frac{3}{4}\\) again, is the new value of \\(S\\) larger, smaller or equal to the value from the initial model? Give a reason.",
-      "method": "Moments about \\(A\\)",
+      "method": "Taking moments about A again",
       "steps": [
-        { "text": "Moments about \\(A\\): \\(S \\times 2a\\sin\\theta = Mg \\times d\\cos\\theta\\), where the centre of mass is \\(d\\) from \\(A\\) and now \\(d > a\\)." }
+        { "text": "Let the centre of mass be a distance \\(d\\) from \\(A\\). Closer to \\(B\\) means \\(d > a\\)." },
+        { "tex": "S \\times 2a\\sin\\theta = Mg \\times d\\cos\\theta", "check": false },
+        { "tex": "\\Rightarrow S = \\frac{Mgd\\cos\\theta}{2a\\sin\\theta}", "check": false },
+        { "text": "\\(\\theta\\) is unchanged, so a larger \\(d\\) gives a larger \\(S\\)." }
       ],
       "answerText": "The new value of \\(S\\) is larger, because the moment of the weight about \\(A\\) is larger.",
       "answerMarks": ["B1"],

@@ -6,14 +6,21 @@
     {
       "label": "",
       "ask": "A student is asked: given that \\(x\\) is an obtuse angle, use algebra to prove by contradiction that \\(\\sin x - \\cos x \\geq 1\\). The student starts: assume that \\(\\sin x - \\cos x < 1\\) when \\(x\\) is obtuse, so \\((\\sin x - \\cos x)^2 < 1\\). Complete the proof.",
-      "method": "Proof by contradiction: expand and use \\(\\sin^2 x + \\cos^2 x = 1\\)",
+      "method": "Start from the assumption",
       "steps": [
         { "text": "Assume that \\(\\sin x - \\cos x < 1\\) when \\(x\\) is obtuse." },
         { "tex": "\\Rightarrow (\\sin x - \\cos x)^2 < 1", "why": "Squaring is safe: for obtuse \\(x\\), \\(\\sin x - \\cos x > 0\\)." },
+        { "head": "Expand the bracket" },
+        { "tex": "(\\sin x - \\cos x)^2 = \\sin^2 x - 2\\sin x\\cos x + \\cos^2 x" },
         { "tex": "\\Rightarrow \\sin^2 x - 2\\sin x\\cos x + \\cos^2 x < 1", "marks": ["M1"] },
-        { "tex": "\\Rightarrow 1 - 2\\sin x\\cos x < 1", "why": "\\(\\sin^2 x + \\cos^2 x = 1\\)." },
-        { "tex": "\\Rightarrow -2\\sin x\\cos x < 0", "marks": ["A1"] },
-        { "text": "But \\(x\\) is obtuse, so \\(\\sin x > 0\\) and \\(\\cos x < 0\\). Then \\(-2\\sin x\\cos x\\) is \\(- \\times + \\times -\\), which is positive. This is a contradiction.", "why": "Name the contradiction and say why: signs in the second quadrant." }
+        { "head": "Use \\(\\sin^2 x + \\cos^2 x = 1\\)" },
+        { "tex": "\\Rightarrow (\\sin^2 x + \\cos^2 x) - 2\\sin x\\cos x < 1" },
+        { "tex": "\\Rightarrow 1 - 2\\sin x\\cos x < 1" },
+        { "tex": "\\Rightarrow -2\\sin x\\cos x < 0", "why": "Take 1 from both sides.", "marks": ["A1"] },
+        { "head": "Now look at the signs for obtuse \\(x\\)" },
+        { "tex": "90^\\circ < x < 180^\\circ \\;\\Rightarrow\\; \\sin x > 0, \\quad \\cos x < 0", "check": false },
+        { "text": "So \\(-2\\sin x\\cos x\\) is \\((-) \\times (+) \\times (-)\\), which is positive: \\(-2\\sin x\\cos x > 0\\)." },
+        { "text": "This contradicts \\(-2\\sin x\\cos x < 0\\).", "why": "Name the contradiction and say why: signs in the second quadrant." }
       ],
       "answerText": "So the assumption is false: if \\(x\\) is obtuse, then \\(\\sin x - \\cos x \\geq 1\\).",
       "answerMarks": ["A1*"],

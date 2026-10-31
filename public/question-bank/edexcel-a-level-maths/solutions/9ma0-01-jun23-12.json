@@ -6,12 +6,20 @@
     {
       "label": "",
       "ask": "\\(y = \\sin x\\), with \\(x\\) in radians. Use differentiation from first principles to show that \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = \\cos x\\). You may use the formula for \\(\\sin(A \\pm B)\\), and assume that as \\(h \\to 0\\), \\(\\dfrac{\\sin h}{h} \\to 1\\) and \\(\\dfrac{\\cos h - 1}{h} \\to 0\\).",
-      "method": "Differentiation from first principles",
+      "method": "Start from the gradient of a chord",
       "steps": [
-        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0} \\frac{\\sin(x + h) - \\sin x}{h}", "why": "The gradient of the chord from \\(x\\) to \\(x + h\\), as \\(h \\to 0\\).", "marks": ["B1"], "check": false },
-        { "tex": "\\frac{\\sin(x + h) - \\sin x}{h} = \\frac{\\sin x\\cos h + \\cos x\\sin h - \\sin x}{h}", "why": "Expand with \\(\\sin(A + B) = \\sin A\\cos B + \\cos A\\sin B\\).", "marks": ["M1", "A1"] },
-        { "tex": "= \\sin x\\left(\\frac{\\cos h - 1}{h}\\right) + \\cos x\\left(\\frac{\\sin h}{h}\\right)", "why": "Group the terms so both given limits appear." },
-        { "tex": "\\to \\sin x \\times 0 + \\cos x \\times 1 \\ \\text{ as } h \\to 0", "marks": ["dM1"], "check": false }
+        { "tex": "\\mathrm{f}'(x) = \\lim_{h \\to 0} \\frac{\\mathrm{f}(x + h) - \\mathrm{f}(x)}{h}", "why": "The chord from \\(x\\) to \\(x + h\\), as \\(h\\) shrinks to 0.", "check": false },
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0} \\frac{\\sin(x + h) - \\sin x}{h}", "marks": ["B1"], "check": false },
+        { "head": "Expand sin(x + h)" },
+        { "tex": "\\sin(A + B) = \\sin A\\cos B + \\cos A\\sin B", "check": false },
+        { "tex": "\\sin(x + h) = \\sin x\\cos h + \\cos x\\sin h" },
+        { "tex": "\\frac{\\sin(x + h) - \\sin x}{h} = \\frac{\\sin x\\cos h + \\cos x\\sin h - \\sin x}{h}", "marks": ["M1", "A1"] },
+        { "head": "Group to use the given limits" },
+        { "tex": "\\frac{\\sin x\\cos h + \\cos x\\sin h - \\sin x}{h} = \\frac{\\sin x\\cos h - \\sin x}{h} + \\frac{\\cos x\\sin h}{h}" },
+        { "tex": "= \\sin x\\left(\\frac{\\cos h - 1}{h}\\right) + \\cos x\\left(\\frac{\\sin h}{h}\\right)", "why": "Isolate \\(\\tfrac{\\cos h - 1}{h}\\) and \\(\\tfrac{\\sin h}{h}\\)." },
+        { "head": "Now let h tend to zero" },
+        { "tex": "\\to \\sin x \\times 0 + \\cos x \\times 1 \\ \\text{ as } h \\to 0", "marks": ["dM1"], "check": false },
+        { "tex": "= \\cos x", "check": false }
       ],
       "answer": "\\text{So } \\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\cos x",
       "answerMarks": ["A1*"],

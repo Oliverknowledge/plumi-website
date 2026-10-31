@@ -8,10 +8,16 @@
       "ask": "Express \\(2\\cos\\theta + 8\\sin\\theta\\) in the form \\(R\\cos(\\theta - \\alpha)\\), where \\(R > 0\\) and \\(0 < \\alpha < \\dfrac{\\pi}{2}\\). Give the exact value of \\(R\\) and \\(\\alpha\\) in radians to 3 decimal places.",
       "method": "Expand, then compare coefficients",
       "steps": [
-        { "tex": "2\\cos\\theta + 8\\sin\\theta = R\\cos\\theta\\cos\\alpha + R\\sin\\theta\\sin\\alpha", "why": "\\(\\cos(A - B) = \\cos A\\cos B + \\sin A\\sin B\\): a plus sign.", "check": false },
-        { "tex": "\\Rightarrow R\\cos\\alpha = 2, \\quad R\\sin\\alpha = 8" },
-        { "tex": "\\Rightarrow R = \\sqrt{2^2 + 8^2} = \\sqrt{68} = 2\\sqrt{17}", "marks": ["B1"] },
-        { "tex": "\\tan\\alpha = \\frac{8}{2} = 4 \\;\\Rightarrow\\; \\alpha = \\tan^{-1}(4) = 1.32581\\ldots", "why": "Calculator in radians: the interval is in terms of \\(\\pi\\).", "marks": ["M1"] }
+        { "tex": "R\\cos(\\theta - \\alpha) = R\\cos\\theta\\cos\\alpha + R\\sin\\theta\\sin\\alpha", "why": "\\(\\cos(A - B) = \\cos A\\cos B + \\sin A\\sin B\\): a plus sign.", "check": false },
+        { "tex": "2\\cos\\theta + 8\\sin\\theta = R\\cos\\theta\\cos\\alpha + R\\sin\\theta\\sin\\alpha", "check": false },
+        { "tex": "\\Rightarrow R\\cos\\alpha = 2, \\quad R\\sin\\alpha = 8", "why": "Match the \\(\\cos\\theta\\) terms, then the \\(\\sin\\theta\\) terms." },
+        { "head": "Find \\(R\\)" },
+        { "tex": "R^2\\cos^2\\alpha + R^2\\sin^2\\alpha = 2^2 + 8^2", "why": "Square and add: \\(\\cos^2\\alpha + \\sin^2\\alpha = 1\\)." },
+        { "tex": "\\Rightarrow R^2 = 4 + 64 = 68" },
+        { "tex": "\\Rightarrow R = \\sqrt{68} = \\sqrt{4}\\sqrt{17} = 2\\sqrt{17}", "marks": ["B1"] },
+        { "head": "Find \\(\\alpha\\)" },
+        { "tex": "\\frac{R\\sin\\alpha}{R\\cos\\alpha} = \\tan\\alpha = \\frac{8}{2} = 4" },
+        { "tex": "\\Rightarrow \\alpha = \\tan^{-1}(4) = 1.32581\\ldots", "why": "Calculator in radians: the interval is in terms of \\(\\pi\\).", "marks": ["M1"] }
       ],
       "answerText": "\\(2\\cos\\theta + 8\\sin\\theta = 2\\sqrt{17}\\cos(\\theta - 1.326)\\), so \\(R = 2\\sqrt{17}\\) and \\(\\alpha = 1.326\\).",
       "answerMarks": ["A1"],
@@ -27,14 +33,21 @@
     {
       "label": "b(i)",
       "ask": "The first three terms of an arithmetic sequence are \\(\\cos x\\), \\(\\cos x + \\sin x\\), \\(\\cos x + 2\\sin x\\), with \\(x \\neq n\\pi\\). \\(S_9\\) is the sum of the first 9 terms as \\(x\\) varies. Find the exact maximum value of \\(S_9\\).",
-      "method": "AP sum formula, then use part (a)",
+      "method": "First term and common difference",
       "steps": [
-        { "tex": "S_9 = \\frac{9}{2}\\left(2\\cos x + (9 - 1)\\sin x\\right)", "why": "\\(S_n = \\frac{n}{2}\\left(2a + (n-1)d\\right)\\) with \\(a = \\cos x\\), \\(d = \\sin x\\)." },
+        { "tex": "a = \\cos x", "check": false },
+        { "tex": "d = (\\cos x + \\sin x) - \\cos x = \\sin x" },
+        { "head": "Sum of the first 9 terms" },
+        { "tex": "S_n = \\frac{n}{2}\\left(2a + (n - 1)d\\right)", "check": false },
+        { "tex": "S_9 = \\frac{9}{2}\\left(2\\cos x + (9 - 1)\\sin x\\right)" },
         { "tex": "= \\frac{9}{2}(2\\cos x + 8\\sin x)" },
-        { "tex": "= \\frac{9}{2} \\times 2\\sqrt{17}\\cos(x - \\alpha)", "marks": ["M1"] },
-        { "tex": "= 9\\sqrt{17}\\cos(x - \\alpha)", "why": "The largest value of \\(\\cos(x - \\alpha)\\) is 1." }
+        { "head": "Now use part (a)" },
+        { "tex": "\\frac{9}{2}(2\\cos x + 8\\sin x) = \\frac{9}{2} \\times 2\\sqrt{17}\\cos(x - \\alpha)", "marks": ["M1"] },
+        { "tex": "= 9\\sqrt{17}\\cos(x - \\alpha)" },
+        { "text": "The largest value of \\(\\cos(x - \\alpha)\\) is 1." },
+        { "tex": "\\Rightarrow 9\\sqrt{17} \\times 1 = 9\\sqrt{17}" }
       ],
-      "answer": "\\Rightarrow \\max S_9 = 9\\sqrt{17}",
+      "answer": "\\max S_9 = 9\\sqrt{17}",
       "answerMarks": ["A1"],
       "check": {
         "vals": { "alpha": "atan(4)" },
@@ -47,9 +60,11 @@
       "ask": "Deduce the smallest positive value of \\(x\\) at which this maximum value of \\(S_9\\) occurs.",
       "method": "The maximum is where \\(\\cos(x - \\alpha) = 1\\)",
       "steps": [
-        { "tex": "\\cos(x - \\alpha) = 1 \\;\\Rightarrow\\; x - \\alpha = 0", "why": "\\(x = \\alpha - 2\\pi\\) is negative; \\(\\alpha + 2\\pi\\) is larger." }
+        { "tex": "\\cos(x - \\alpha) = 1" },
+        { "tex": "\\Rightarrow x - \\alpha = 0", "why": "\\(x - \\alpha = -2\\pi\\) makes \\(x\\) negative; \\(+2\\pi\\) makes it larger." },
+        { "tex": "\\Rightarrow x = \\alpha = 1.3258\\ldots" }
       ],
-      "answer": "\\Rightarrow x = \\alpha = 1.33",
+      "answer": "x = 1.33",
       "answerMarks": ["B1ft"],
       "check": {
         "vals": { "x": "atan(4)", "alpha": "atan(4)" },

@@ -6,13 +6,16 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = x^3 + 2x^2 - 8x + 5\\). Find \\(\\mathrm{f}''(x)\\).",
-      "method": "Differentiate term by term, twice",
+      "method": "Differentiate term by term",
       "steps": [
         { "tex": "\\mathrm{f}(x) = x^3 + 2x^2 - 8x + 5", "check": false },
-        { "tex": "\\Rightarrow \\mathrm{f}'(x) = 3x^2 + 4x - 8", "why": "Multiply by the power, then lower the power by one.", "check": false }
+        { "tex": "\\Rightarrow \\mathrm{f}'(x) = 3x^{2} + 2 \\times 2x^{1} - 8x^{0} + 0", "why": "Multiply by the power, then lower the power by one." },
+        { "tex": "= 3x^2 + 4x - 8" },
+        { "head": "Differentiate again" },
+        { "tex": "\\Rightarrow \\mathrm{f}''(x) = 2 \\times 3x^{1} + 4x^{0} - 0", "why": "The constant \\(-8\\) differentiates to zero.", "marks": ["M1"] }
       ],
-      "answer": "\\Rightarrow \\mathrm{f}''(x) = 6x + 4",
-      "answerMarks": ["M1", "A1cso"],
+      "answer": "= 6x + 4",
+      "answerMarks": ["A1cso"],
       "check": {
         "marks": ["M1", "A1cso"],
         "answers": [{ "tex": "6x + 4", "scheme": "6*x + 4", "derive": "diff(x**3 + 2*x**2 - 8*x + 5, x, 2)" }]
@@ -23,7 +26,8 @@
       "ask": "Solve \\(\\mathrm{f}''(x) = 0\\).",
       "method": "Set the second derivative to zero",
       "steps": [
-        { "tex": "6x + 4 = 0" }
+        { "tex": "6x + 4 = 0" },
+        { "tex": "\\Rightarrow 6x = -4" }
       ],
       "answer": "\\Rightarrow x = -\\frac{4}{6} = -\\frac{2}{3}",
       "answerMarks": ["B1ft"],
@@ -38,7 +42,9 @@
       "ask": "Hence find the range of values of \\(x\\) for which \\(\\mathrm{f}(x)\\) is concave.",
       "method": "Concave means \\(\\mathrm{f}''(x) \\leq 0\\)",
       "steps": [
-        { "tex": "6x + 4 \\leq 0", "why": "Concave: the gradient is decreasing, so \\(\\mathrm{f}''(x) \\leq 0\\). Convex is \\(\\geq 0\\)." }
+        { "tex": "\\mathrm{f}''(x) \\leq 0", "why": "Concave: the gradient is decreasing. Convex would be \\(\\geq 0\\).", "check": false },
+        { "tex": "\\Rightarrow 6x + 4 \\leq 0" },
+        { "tex": "\\Rightarrow 6x \\leq -4" }
       ],
       "answer": "\\Rightarrow x \\leq -\\frac{2}{3}",
       "answerMarks": ["B1ft"],

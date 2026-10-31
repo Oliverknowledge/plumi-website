@@ -6,14 +6,25 @@
     {
       "label": "a",
       "ask": "The curve \\(C\\) has equation \\(y = \\mathrm{f}(x)\\), with \\(\\mathrm{f}'(x) = 2x + \\frac{1}{2}\\cos x\\). \\(C\\) has a stationary point with \\(x\\) coordinate \\(\\alpha\\), where \\(\\alpha\\) is small. Use the small angle approximation for \\(\\cos x\\) to estimate \\(\\alpha\\) to 3 decimal places.",
-      "method": "Small angle approximation",
+      "method": "Set the gradient to zero",
       "steps": [
-        { "tex": "\\mathrm{f}'(\\alpha) = 2\\alpha + \\frac{1}{2}\\cos\\alpha = 0", "why": "At a stationary point the gradient is zero.", "check": false },
-        { "tex": "\\Rightarrow 2\\alpha + \\frac{1}{2}\\left(1 - \\frac{\\alpha^2}{2}\\right) = 0", "why": "Small angle: \\(\\cos\\alpha \\approx 1 - \\tfrac{\\alpha^2}{2}\\).", "marks": ["M1"] },
+        { "tex": "\\mathrm{f}'(\\alpha) = 2\\alpha + \\frac{1}{2}\\cos\\alpha = 0", "check": false },
+        { "head": "Use the small angle approximation" },
+        { "tex": "\\cos\\alpha \\approx 1 - \\frac{\\alpha^2}{2}", "check": false },
+        { "tex": "\\Rightarrow 2\\alpha + \\frac{1}{2}\\left(1 - \\frac{\\alpha^2}{2}\\right) = 0", "marks": ["M1"] },
         { "tex": "\\Rightarrow 2\\alpha + \\frac{1}{2} - \\frac{\\alpha^2}{4} = 0" },
-        { "tex": "\\Rightarrow \\alpha^2 - 8\\alpha - 2 = 0", "why": "Multiply every term by \\(-4\\)." },
-        { "tex": "\\Rightarrow \\alpha = \\frac{8 \\pm \\sqrt{64 + 8}}{2} = 4 \\pm 3\\sqrt{2}", "marks": ["dM1"] },
-        { "tex": "\\Rightarrow \\alpha = 4 - 3\\sqrt{2} = -0.2426\\ldots", "why": "\\(\\alpha\\) is small: reject \\(4 + 3\\sqrt{2} = 8.24\\ldots\\)" }
+        { "tex": "\\Rightarrow 8\\alpha + 2 - \\alpha^2 = 0", "why": "Multiply every term by 4." },
+        { "tex": "\\Rightarrow \\alpha^2 - 8\\alpha - 2 = 0" },
+        { "head": "Solve the quadratic by formula" },
+        { "tex": "\\alpha = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}", "check": false },
+        { "tex": "\\alpha = \\frac{8 \\pm \\sqrt{(-8)^2 - 4(1)(-2)}}{2(1)}", "marks": ["dM1"] },
+        { "tex": "= \\frac{8 \\pm \\sqrt{64 + 8}}{2}" },
+        { "tex": "= \\frac{8 \\pm \\sqrt{72}}{2}" },
+        { "tex": "= \\frac{8 \\pm 6\\sqrt{2}}{2}", "why": "\\(\\sqrt{72} = \\sqrt{36}\\sqrt{2} = 6\\sqrt{2}\\)." },
+        { "tex": "= 4 \\pm 3\\sqrt{2}" },
+        { "head": "Choose the small root" },
+        { "tex": "4 + 3\\sqrt{2} = 8.24\\ldots", "why": "Too big for a small angle approximation." },
+        { "tex": "\\Rightarrow \\alpha = 4 - 3\\sqrt{2} = -0.2426\\ldots" }
       ],
       "answer": "\\alpha = -0.243",
       "answerMarks": ["A1"],
@@ -26,16 +37,19 @@
     {
       "label": "b",
       "ask": "The point \\(P(0, 3)\\) lies on \\(C\\). Find the equation of the tangent to the curve at \\(P\\), in the form \\(y = mx + c\\).",
-      "method": "Gradient from \\(\\mathrm{f}'(0)\\)",
+      "method": "Gradient at P",
       "steps": [
-        { "tex": "\\mathrm{f}'(0) = 2(0) + \\frac{1}{2}\\cos 0", "why": "Use the exact \\(\\mathrm{f}'(x)\\) here, not the approximation." },
-        { "tex": "= \\frac{1}{2}" },
-        { "tex": "y - 3 = \\frac{1}{2}(x - 0)", "marks": ["M1"] }
+        { "tex": "\\mathrm{f}'(0) = 2(0) + \\frac{1}{2}\\cos 0 = 0 + \\frac{1}{2}(1) = \\frac{1}{2}", "why": "Use the exact \\(\\mathrm{f}'(x)\\) here, not the approximation." },
+        { "head": "Equation of the tangent" },
+        { "tex": "y - y_1 = m(x - x_1)", "check": false },
+        { "tex": "y - 3 = \\frac{1}{2}(x - 0)", "marks": ["M1"] },
+        { "tex": "\\Rightarrow y - 3 = \\frac{1}{2}x" }
       ],
       "answer": "\\Rightarrow y = \\frac{1}{2}x + 3",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["M1", "A1"],
+        "vals": { "x": 2, "y": 4 },
         "answers": [{ "tex": "y = \\frac{1}{2}x + 3", "kind": "equation", "scheme": "Eq(y, x/2 + 3)" }]
       }
     }

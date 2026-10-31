@@ -6,9 +6,11 @@
     {
       "label": "a",
       "ask": "The plan of a stage is two congruent triangles \\(ABO\\) and \\(GFO\\) joined to a sector \\(OCDEO\\) of a circle, centre \\(O\\). \\(C\\) lies on \\(OB\\) and \\(E\\) on \\(OF\\). Angle \\(COE = 2.3\\) radians, arc \\(CDE = 27.6\\) m, and \\(AOG\\) is a straight line of length 15 m along the back. Show that \\(OC = 12\\) m.",
-      "method": "Arc length",
+      "method": "Use the arc length formula",
       "steps": [
-        { "tex": "r \\times 2.3 = 27.6", "why": "Arc length \\(l = r\\theta\\), with \\(r = OC\\) and \\(\\theta\\) in radians.", "marks": ["M1"], "check": { "vals": { "r": 12 } } }
+        { "tex": "l = r\\theta", "why": "\\(\\theta\\) must be in radians.", "check": false },
+        { "tex": "r \\times 2.3 = 27.6", "why": "Here \\(r = OC\\) and \\(\\theta = 2.3\\).", "marks": ["M1"], "check": { "vals": { "r": 12 } } },
+        { "tex": "\\Rightarrow r = \\frac{27.6}{2.3}", "check": { "vals": { "r": 12 } } }
       ],
       "answer": "\\Rightarrow OC = \\frac{27.6}{2.3} = 12\\ \\text{m}",
       "answerMarks": ["A1*"],
@@ -22,10 +24,13 @@
       "ask": "Show that angle \\(AOB\\) is 0.421 radians to 3 decimal places.",
       "method": "Angles on a straight line",
       "steps": [
-        { "tex": "2\\theta + 2.3 = \\pi", "why": "Let \\(\\theta = \\angle AOB = \\angle GOF\\) (congruent). \\(AOG\\) is straight." },
-        { "tex": "\\Rightarrow 2\\theta = \\pi - 2.3", "marks": ["M1"] }
+        { "text": "Let \\(\\theta = \\angle AOB\\). The triangles are congruent, so \\(\\angle GOF = \\theta\\) too." },
+        { "tex": "\\theta + 2.3 + \\theta = \\pi", "why": "\\(AOG\\) is straight: the angles at \\(O\\) add to \\(\\pi\\)." },
+        { "tex": "\\Rightarrow 2\\theta + 2.3 = \\pi" },
+        { "tex": "\\Rightarrow 2\\theta = \\pi - 2.3", "marks": ["M1"] },
+        { "tex": "\\Rightarrow \\theta = \\frac{\\pi - 2.3}{2} = \\frac{0.8415\\ldots}{2}" }
       ],
-      "answer": "\\Rightarrow \\theta = \\frac{\\pi - 2.3}{2} = 0.4207\\ldots = 0.421 \\text{ rad}",
+      "answer": "= 0.4207\\ldots = 0.421 \\text{ rad}",
       "answerMarks": ["A1*"],
       "check": {
         "marks": ["M1", "A1*"],
@@ -36,14 +41,25 @@
     {
       "label": "c",
       "ask": "The front of the stage, \\(BCDEF\\), has total length 35 m. Find the total area of the stage, to the nearest square metre.",
-      "method": "Sector plus two triangles",
+      "method": "Start with the area of the sector",
       "steps": [
-        { "tex": "\\frac{1}{2}r^2\\theta = \\frac{1}{2}(12)^2(2.3)", "why": "Sector area, with \\(\\theta\\) in radians.", "marks": ["M1"], "check": { "vals": { "r": 12, "\\theta": "23/10" } } },
+        { "tex": "A = \\frac{1}{2}r^2\\theta", "check": false },
+        { "tex": "\\frac{1}{2}(12)^2(2.3) = \\frac{1}{2}(144)(2.3)", "marks": ["M1"] },
+        { "tex": "= 72 \\times 2.3" },
         { "tex": "= 165.6", "marks": ["A1"] },
-        { "tex": "BC = \\frac{35 - 27.6}{2} = 3.7", "why": "The front is \\(BC\\) + arc + \\(EF\\), and \\(BC = EF\\)." },
-        { "tex": "OB = 12 + 3.7 = 15.7", "marks": ["B1"] },
-        { "tex": "\\frac{1}{2}(7.5)(15.7)\\sin 0.421 = 24.06\\ldots", "why": "\\(\\tfrac{1}{2}ab\\sin C\\), with \\(OA = \\tfrac{15}{2} = 7.5\\).", "marks": ["M1"] },
-        { "tex": "165.6 + 2(24.06\\ldots) = 213.7\\ldots", "why": "Two congruent triangles: don't forget the second.", "marks": ["dM1"] }
+        { "head": "Now find the length OB" },
+        { "text": "The front is \\(BC\\) + arc \\(CDE\\) + \\(EF\\), and \\(BC = EF\\)." },
+        { "tex": "BC + EF = 35 - 27.6 = 7.4" },
+        { "tex": "BC = \\frac{7.4}{2} = 3.7" },
+        { "tex": "OB = OC + CB = 12 + 3.7 = 15.7", "marks": ["B1"] },
+        { "head": "Area of one triangle" },
+        { "tex": "\\text{Area} = \\frac{1}{2}ab\\sin C", "check": false },
+        { "tex": "OA = \\frac{15}{2} = 7.5", "why": "\\(O\\) is the midpoint of \\(AG\\), by congruence." },
+        { "tex": "\\frac{1}{2}(7.5)(15.7)\\sin 0.421 = 58.875\\sin 0.421", "why": "The angle between \\(OA\\) and \\(OB\\) is \\(0.421\\)." },
+        { "tex": "= 24.06\\ldots", "marks": ["M1"] },
+        { "head": "Finally, add up the pieces" },
+        { "tex": "165.6 + 2(24.06\\ldots) = 165.6 + 48.12\\ldots", "why": "Two congruent triangles: don't forget the second." },
+        { "tex": "= 213.7\\ldots", "marks": ["dM1"] }
       ],
       "answerText": "The total area is \\(214\\ \\text{m}^2\\) (to the nearest square metre).",
       "answerMarks": ["A1"],

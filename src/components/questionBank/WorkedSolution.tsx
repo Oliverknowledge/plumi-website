@@ -16,7 +16,8 @@ import "./WorkedSolution.css";
  * out at once.
  */
 
-interface Step { tex?: string; text?: string; why?: string; marks?: string[] }
+/** A step is a line of working (`tex`), a sentence (`text`), or a stage heading (`head`), as MadAsMaths heads each stage of a part. */
+interface Step { tex?: string; text?: string; head?: string; why?: string; marks?: string[] }
 interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[] }
 interface Solution { id: string; q: string; m: number; parts: Part[] }
 
@@ -71,8 +72,13 @@ function splitAtRelation(tex: string): [string, string] | null {
 /** A part's letter as written in the margin: "a)", "(ii)", "b(i)". */
 const marginLabel = (label: string) => (/^[ivx]+$/.test(label) ? `(${label})` : label.includes("(") ? label : `${label})`);
 
-function Working({ tex }: { tex: string }) {
-  const split = splitAtRelation(tex);
+/**
+ * A line of working. Only a chain lines up, as MadAsMaths writes it: a line that the next
+ * carries on with "= …" (`chain`) is split at its =, and the "= …" lines sit under it. Every
+ * other line, ⇒ lines included, starts at the left of the working.
+ */
+function Working({ tex, chain }: { tex: string; chain: boolean }) {
+  const split = /^\s*=/.test(tex) ? ["", tex.trim()] as [string, string] : chain ? splitAtRelation(tex) : null;
   if (!split) return <span className="qb-sol-w"><Maths tex={tex} /></span>;
   return <>
     <span className="qb-sol-l">{split[0] && <Maths tex={split[0]} />}</span>
@@ -93,10 +99,10 @@ function Marks({ marks }: { marks?: string[] }) {
 function partItems(part: Part) {
   const items: { key: string; node: ReactNode; kind: "step" | "answer" }[] = part.steps.map((s, i) => ({
     key: `s${i}`, kind: "step",
-    node: (
+    node: s.head ? <p className="qb-sol-method is-stage"><Prose text={s.head} /></p> : (
       <>
         <div className="qb-sol-line">
-          {s.tex ? <Working tex={s.tex} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}
+          {s.tex ? <Working tex={s.tex} chain={/^\s*=/.test((i + 1 < part.steps.length ? part.steps[i + 1].tex : part.answer) ?? "")} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}
           <Marks marks={s.marks} />
         </div>
         {s.why && <p className="qb-sol-why"><Prose text={s.why} /></p>}

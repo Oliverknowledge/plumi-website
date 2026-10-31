@@ -6,10 +6,15 @@
     {
       "label": "",
       "ask": "\\(\\mathrm{g}(x) = 3x^3 - 20x^2 + (k+17)x + k\\). Given that \\((x-3)\\) is a factor of \\(\\mathrm{g}(x)\\), find \\(k\\).",
-      "method": "Factor theorem",
+      "method": "Use the factor theorem",
       "steps": [
-        { "tex": "\\mathrm{g}(3) = 3(3)^3 - 20(3)^2 + (k+17)(3) + k = 0", "why": "\\((x-3)\\) a factor means \\(\\mathrm{g}(3) = 0\\), not \\(\\mathrm{g}(-3)\\).", "marks": ["M1"] },
-        { "tex": "\\Rightarrow 81 - 180 + 3k + 51 + k = 0", "why": "Put \\(x = 3\\) in the \\((k+17)x\\) term too." },
+        { "text": "\\((x-3)\\) is a factor of \\(\\mathrm{g}(x)\\), so \\(\\mathrm{g}(3) = 0\\).", "why": "Put in \\(x = 3\\), not \\(x = -3\\)." },
+        { "tex": "\\mathrm{g}(3) = 3(3)^3 - 20(3)^2 + (k+17)(3) + k = 0", "marks": ["M1"] },
+        { "head": "Simplify each term" },
+        { "tex": "\\Rightarrow 3(27) - 20(9) + 3(k+17) + k = 0" },
+        { "tex": "\\Rightarrow 81 - 180 + 3k + 51 + k = 0", "why": "The 3 multiplies both terms in \\((k+17)\\)." },
+        { "head": "Collect terms and solve" },
+        { "tex": "\\Rightarrow 4k - 48 = 0" },
         { "tex": "\\Rightarrow 4k = 48", "marks": ["M1"] }
       ],
       "answer": "k = 12",

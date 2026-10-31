@@ -6,13 +6,19 @@
     {
       "label": "a",
       "ask": "A curve has equation \\(x^3 + 2xy + 3y^2 = 47\\). Find \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\) in terms of \\(x\\) and \\(y\\). You must show all stages of your working.",
-      "method": "Implicit differentiation",
+      "method": "Implicit differentiation, term by term",
       "steps": [
         { "tex": "x^3 + 2xy + 3y^2 = 47", "check": false },
-        { "tex": "\\Rightarrow 3x^2 + 2x\\frac{\\mathrm{d}y}{\\mathrm{d}x} + 2y + 6y\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 0", "why": "Product rule on \\(2xy\\). Each \\(y\\) term gains a \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\).", "marks": ["M1", "B1"], "check": false },
-        { "tex": "\\Rightarrow (2x + 6y)\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -3x^2 - 2y", "why": "Collect the \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\) terms on one side, then factorise.", "marks": ["M1"], "check": false }
+        { "tex": "x^3 \\to 3x^2, \\qquad 3y^2 \\to 6y\\frac{\\mathrm{d}y}{\\mathrm{d}x}, \\qquad 47 \\to 0", "why": "Each \\(y\\) term gains a \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x}\\) (the chain rule).", "marks": ["M1"], "check": false },
+        { "tex": "2xy \\to 2x\\frac{\\mathrm{d}y}{\\mathrm{d}x} + 2y", "why": "Product rule: \\(2x\\) times \\(y\\), so \\(2x \\cdot \\frac{\\mathrm{d}y}{\\mathrm{d}x} + y \\cdot 2\\).", "marks": ["B1"], "check": false },
+        { "head": "Put the terms together" },
+        { "tex": "3x^2 + 2x\\frac{\\mathrm{d}y}{\\mathrm{d}x} + 2y + 6y\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 0", "check": false },
+        { "head": "Make \\(\\frac{\\mathrm{d}y}{\\mathrm{d}x}\\) the subject" },
+        { "tex": "\\Rightarrow 2x\\frac{\\mathrm{d}y}{\\mathrm{d}x} + 6y\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -3x^2 - 2y", "check": false },
+        { "tex": "\\Rightarrow (2x + 6y)\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -3x^2 - 2y", "why": "Factorise out the \\(\\frac{\\mathrm{d}y}{\\mathrm{d}x}\\).", "marks": ["M1"], "check": false },
+        { "tex": "\\Rightarrow \\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\frac{-3x^2 - 2y}{2x + 6y}" }
       ],
-      "answer": "\\Rightarrow \\frac{\\mathrm{d}y}{\\mathrm{d}x} = -\\frac{2y + 3x^2}{2x + 6y}",
+      "answer": "= -\\frac{2y + 3x^2}{2x + 6y}",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["M1", "B1", "M1", "A1"],
@@ -22,12 +28,20 @@
     {
       "label": "b",
       "ask": "The point \\(P(-2, 5)\\) lies on the curve. Find the equation of the normal to the curve at \\(P\\), in the form \\(ax + by + c = 0\\) where \\(a\\), \\(b\\) and \\(c\\) are integers.",
-      "method": "Tangent gradient, then its negative reciprocal",
+      "method": "Gradient of the curve at \\(P\\)",
       "steps": [
-        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -\\frac{2(5) + 3(-2)^2}{2(-2) + 6(5)} = -\\frac{22}{26} = -\\frac{11}{13}", "why": "Put \\(x = -2\\), \\(y = 5\\) into part (a).", "marks": ["M1"] },
-        { "tex": "\\Rightarrow m_{\\text{normal}} = \\frac{13}{11}", "why": "Normal: flip the tangent gradient and change its sign.", "check": false },
-        { "tex": "y - 5 = \\frac{13}{11}(x + 2)", "marks": ["dM1"] },
-        { "tex": "\\Rightarrow 11y - 55 = 13x + 26" }
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = -\\frac{2(5) + 3(-2)^2}{2(-2) + 6(5)}", "why": "Put \\(x = -2\\), \\(y = 5\\) into part (a).", "marks": ["M1"] },
+        { "tex": "= -\\frac{10 + 12}{-4 + 30}" },
+        { "tex": "= -\\frac{22}{26} = -\\frac{11}{13}" },
+        { "head": "Gradient of the normal" },
+        { "tex": "m_N = -\\frac{1}{m_T} = -\\frac{1}{-\\frac{11}{13}} = \\frac{13}{11}", "why": "Normal: flip the tangent gradient and change its sign.", "check": { "vals": { "m_N": "13/11", "m_T": "-11/13" } } },
+        { "head": "Equation of the normal" },
+        { "tex": "y - y_1 = m(x - x_1)", "check": false },
+        { "tex": "\\Rightarrow y - 5 = \\frac{13}{11}(x - (-2))", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow y - 5 = \\frac{13}{11}(x + 2)" },
+        { "tex": "\\Rightarrow 11(y - 5) = 13(x + 2)", "why": "Multiply both sides by 11 to clear the fraction." },
+        { "tex": "\\Rightarrow 11y - 55 = 13x + 26" },
+        { "tex": "\\Rightarrow 0 = 13x - 11y + 26 + 55" }
       ],
       "answer": "\\Rightarrow 13x - 11y + 81 = 0",
       "answerMarks": ["A1"],
