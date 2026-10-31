@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AskForSubject, AskForSubjectHint } from "@/components/cosy/AskForSubject";
 import { Book } from "@/components/cosy/Book";
 import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
@@ -34,6 +35,7 @@ export function PastPapersHub() {
               Maths, Further Maths, Biology, Chemistry and Physics, for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge, AQA GCSE English Language and Edexcel GCSE Computer Science.
               Every paper each board publishes, with its mark scheme, a whole board on one page.
             </p>
+            <AskForSubjectHint />
           </div>
           <Image className="pp-hub-mascot" src="/landing/plumi-mood-thinking.svg" alt="" width={150} height={150} unoptimized priority />
         </header>
@@ -58,6 +60,8 @@ export function PastPapersHub() {
             </div>
           </section>
         ))}
+
+        <div className="lp-wrap"><AskForSubject placement="papers-hub" /></div>
 
         <section className="pp-more">
           <div className="lp-wrap"><SourceCredit /></div>

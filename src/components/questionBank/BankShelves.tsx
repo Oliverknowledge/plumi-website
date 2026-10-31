@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { DiscordButton } from "@/components/cosy/DiscordButton";
+import { askForSubject } from "@/content/community";
 import { useBankMarks } from "@/lib/bankProgress";
 
 /**
@@ -268,6 +270,8 @@ export function BankShelves({ shelves }: { shelves: Shelf[] }) {
         <div className="lp-card qb-none">
           <p><strong>No bank for “{query.trim()}” yet.</strong> Try just the subject, or the board’s name.</p>
           <button type="button" className="lp-btn" onClick={() => setQuery("")}>Show every subject</button>
+          <p className="lp-ask-none">{askForSubject.none}</p>
+          <DiscordButton placement="bank-search" label={askForSubject.noneCta} />
         </div>
       )}
     </>
