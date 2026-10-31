@@ -1,6 +1,6 @@
 /**
  * The past paper library: Maths, Further Maths, Biology, Chemistry and Physics papers
- * at GCSE, IGCSE and A-Level, AQA GCSE English Language and Edexcel GCSE Computer Science, grouped the way students search for them — level,
+ * at GCSE, IGCSE and A-Level, AQA GCSE English Language, Edexcel GCSE Computer Science and Edexcel A-Level Economics B, grouped the way students search for them — level,
  * subject, then board.
  *
  * Every file is our own copy of the board's published paper, fetched from the board's
