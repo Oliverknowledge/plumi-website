@@ -59,7 +59,7 @@ export const routeIntents: readonly RouteIntent[] = [
     // The free practice is named too: it is what most visitors from a video came for.
     description:
       "Plumi marks your handwritten GCSE and A-Level answers on iPad, line by line against the mark scheme. Plus free past papers and exam questions by topic.",
-    linksTo: ["/practice-papers", "/question-bank", "/past-papers", "/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths", "/about"],
+    linksTo: ["/practice-papers", "/question-bank", "/past-papers", "/ai-tutor-for-a-level-maths", "/about"],
     changeFrequency: "weekly",
     priority: 1,
     lastModified: "2026-10-23",
@@ -74,68 +74,9 @@ export const routeIntents: readonly RouteIntent[] = [
     h1: "An AI tutor for A‑Level Maths that understands your working",
     description:
       "No retyping. Plumi reads the working already on your page, nudges before it answers, and marks your method against the question's own mark scheme.",
-    linksTo: ["/gcse-maths", "/goodnotes-alternative-for-students", "/"],
+    linksTo: ["/goodnotes-alternative-for-students", "/"],
     changeFrequency: "monthly",
     priority: 0.9,
-  },
-  {
-    path: "/gcse-maths",
-    primaryQuery: "AI study app for GCSE",
-    secondaryQueries: ["GCSE maths AI tutor", "AI revision app GCSE", "GCSE maths revision iPad"],
-    intent: "Find a revision tool for GCSE that shows what to work on next.",
-    objective: "Speak to GCSE specifically, and be honest about which specs are covered.",
-    title: "GCSE Maths Revision App That Marks Your Working | Plumi",
-    h1: "GCSE Maths, marked on your working",
-    description:
-      "Answer GCSE Maths questions in AQA, OCR or Edexcel style with Apple Pencil. Plumi marks your working against each question's own mark scheme.",
-    linksTo: ["/ai-tutor-for-a-level-maths", "/"],
-    changeFrequency: "monthly",
-    priority: 0.8,
-  },
-  {
-    path: "/physics-revision",
-    primaryQuery: "physics revision app",
-    secondaryQueries: ["A-Level Physics revision app", "GCSE Physics revision", "AQA Physics revision", "OCR Physics revision", "Edexcel Physics revision", "Physics exam questions marked"],
-    intent: "Find a Physics revision tool for my board that marks exam answers and shows what to revise next.",
-    objective: "Show Physics questions marked line by line, and list every unit of every Physics specification Plumi tracks.",
-    title: "GCSE & A-Level Physics Revision App for iPad | Plumi",
-    h1: "Physics questions, marked on your working.",
-    description:
-      "GCSE and A-Level Physics questions in AQA, OCR or Edexcel style. Show your working on iPad and each mark lands on the line that won or lost it.",
-    linksTo: ["/", "/chemistry-revision", "/biology-revision"],
-    changeFrequency: "monthly",
-    priority: 0.9,
-    lastModified: "2026-10-23",
-  },
-  {
-    path: "/chemistry-revision",
-    primaryQuery: "chemistry revision app",
-    secondaryQueries: ["A-Level Chemistry revision app", "GCSE Chemistry revision", "AQA Chemistry revision", "OCR Chemistry revision", "Edexcel Chemistry revision"],
-    intent: "Find a Chemistry revision tool for my board that marks exam answers and shows what to revise next.",
-    objective: "Show Chemistry questions marked line by line, and list every unit of every Chemistry specification Plumi tracks.",
-    title: "GCSE & A-Level Chemistry Revision App for iPad | Plumi",
-    h1: "Write 57,100 J where the scheme says 57.1 kJ. You still get the mark.",
-    description:
-      "GCSE and A-Level Chemistry in AQA, OCR or Edexcel style. Handwrite the working on iPad. Where the scheme gives a value, Plumi checks yours by arithmetic.",
-    linksTo: ["/", "/physics-revision", "/biology-revision"],
-    changeFrequency: "monthly",
-    priority: 0.9,
-    lastModified: "2026-10-23",
-  },
-  {
-    path: "/biology-revision",
-    primaryQuery: "biology revision app",
-    secondaryQueries: ["A-Level Biology revision app", "GCSE Biology revision", "AQA Biology revision", "OCR Biology revision", "Edexcel Biology revision"],
-    intent: "Find a Biology revision tool for my board that marks exam answers and shows what to revise next.",
-    objective: "Show Biology questions marked line by line, and list every unit of every Biology specification Plumi tracks.",
-    title: "GCSE & A-Level Biology Revision App for iPad | Plumi",
-    h1: "A Biology notebook that marks your 6-markers too.",
-    description:
-      "GCSE and A-Level Biology questions in AQA, OCR or Edexcel style. Short answers marked point by point, 6-markers in levels where your board uses them.",
-    linksTo: ["/", "/physics-revision", "/chemistry-revision"],
-    changeFrequency: "monthly",
-    priority: 0.9,
-    lastModified: "2026-10-23",
   },
   {
     path: "/practice-papers",
@@ -149,7 +90,7 @@ export const routeIntents: readonly RouteIntent[] = [
       "Free A-Level Maths and Physics practice packs written by Plumi: 30 exam-style questions each, easy to super hard, with full mark schemes. Free in the Plumi Discord.",
     // Each pack's own page (/practice-papers/<slug>) is generated from src/content/practicePacks.ts
     // and added to the sitemap by src/app/sitemap.ts.
-    linksTo: ["/past-papers", "/question-bank", "/physics-revision", "/ai-tutor-for-a-level-maths"],
+    linksTo: ["/past-papers", "/question-bank", "/ai-tutor-for-a-level-maths"],
     changeFrequency: "monthly",
     priority: 0.9,
     lastModified: "2026-10-25",
@@ -166,7 +107,7 @@ export const routeIntents: readonly RouteIntent[] = [
       "Every Maths, Further Maths, Biology, Chemistry and Physics past paper and mark scheme for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge. Free, no sign-up.",
     // The subject and board pages under /past-papers are generated from data and
     // added to the sitemap by src/app/sitemap.ts; their metadata is src/lib/pastPaperMeta.ts.
-    linksTo: ["/physics-revision", "/chemistry-revision", "/biology-revision", "/ai-tutor-for-a-level-maths", "/gcse-maths"],
+    linksTo: ["/ai-tutor-for-a-level-maths"],
     changeFrequency: "monthly",
     priority: 0.9,
     lastModified: "2026-10-30",

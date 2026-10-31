@@ -168,22 +168,6 @@ export const identity = {
   caption: "Your predicted grade and your target, side by side.",
 } as const;
 
-export const subjects = {
-  eyebrow: "Subjects",
-  title: "Physics, Maths, Chemistry and Biology.",
-  line: "GCSE and A-Level, in the style of AQA, OCR or Edexcel.",
-  list: [
-    { name: "Physics", detail: "Circuits, forces, waves, fields", links: [{ label: "Physics revision", href: "/physics-revision" }] },
-    { name: "Maths", detail: "Pure, statistics, mechanics", links: [{ label: "GCSE Maths", href: "/gcse-maths" }, { label: "A-Level Maths", href: "/ai-tutor-for-a-level-maths" }] },
-    { name: "Chemistry", detail: "Moles, energetics, organic", links: [{ label: "Chemistry revision", href: "/chemistry-revision" }] },
-    { name: "Biology", detail: "Cells, genetics, ecology", links: [{ label: "Biology revision", href: "/biology-revision" }] },
-  ],
-  boards: ["AQA", "OCR", "Edexcel"],
-  // The app's own subject colours.
-  tones: { Physics: "#e8892b", Maths: "#2158d4", Chemistry: "#22a35a", Biology: "#0f9e95" } as Record<string, string>,
-} as const;
-
-
 /**
  * Written as replies to a message. Spending, as the app does it: a first mark, a re-mark
  * after a fix, and "Check again" after "I disagree" each spend one of the 10 marks;

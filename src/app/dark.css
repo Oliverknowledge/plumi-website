@@ -39,7 +39,8 @@ html[data-theme="dark"] .lp-ring::after, html[data-theme="dark"] .lp .lp-ring::a
 html[data-theme="dark"] .lp .lp-ring { background: conic-gradient(#4a3f39 var(--done, 0deg), var(--lp-gold) 0); }
 html[data-theme="dark"] .lp .lp-label:hover, html[data-theme="dark"] .lp .lp-ticket:hover, html[data-theme="dark"] .lp .hp-desk-actions button:hover,
 html[data-theme="dark"] .hp-desk-actions button:hover { background: #3a302b; }
-html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-tickets .lp-ticket-discord { background: #23423f; }
+html[data-theme="dark"] .lp .lp-tickets .lp-ticket-discord i { background: #2f6f69; }
 html[data-theme="dark"] .lp .lp-note, html[data-theme="dark"] .lp .lp-mk-sec:nth-child(even), html[data-theme="dark"] .lp .pp-mark,
 html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+2), html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+3),
 html[data-theme="dark"] .lp .lp-pa-tile:nth-child(3n+2), html[data-theme="dark"] .lp .pk-feature, html[data-theme="dark"] .lp .lp-ticket.pk-ticket { background: #3a2f25; }

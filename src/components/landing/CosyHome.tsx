@@ -4,7 +4,7 @@ import { SectionImpressions } from "@/components/SectionImpressions";
 import { AppStoreBadge } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
 import { CosyPage, FaqSchema, Soon, Spiral, WindowBar as Bar } from "@/components/cosy/Chrome";
-import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, practice, shelf } from "@/content/cosyHome";
+import { cosyFaq, cosyHero, faqEyebrow, faqTitle, finale, friends, habit, marking, meet, more, practice } from "@/content/cosyHome";
 import { bankPath, bankSubjects } from "@/content/questionBank";
 import { packCopy, packPath, practicePacks } from "@/content/practicePacks";
 import { PackCover } from "@/components/practicePacks/Pack";
@@ -17,8 +17,8 @@ import "@/app/landing.css";
  * The homepage: the founder's cosy notebook design (19 October 2026). The whole page is
  * a sheet of ruled paper; sections are pinned cards, sticky notes and pixel windows on it.
  *
- *   HERO      the promise, the App Store badge, the two free tickets (question bank, past
- *             papers), the café: students studying, and you walking in to pull up a chair
+ *   HERO      the promise, the App Store badge, the three free tickets (question bank, past
+ *             papers, and the practice papers in the Discord), the café: students studying, and you walking in to pull up a chair
  *             (LimeZu art, see cafeScene.ts)
  *   PRACTICE  the free question bank and past paper library on this site, each subject one
  *             tap away, and the Discord's daily question
@@ -27,7 +27,6 @@ import "@/app/landing.css";
  *   FRIENDS   groups and the study hall
  *   HABIT     streaks, Pomodoros that block apps, the room you earn
  *   MORE      six sticky notes
- *   SUBJECTS  four books on a shelf, linking to their pages
  *   FAQ       the vetted answers
  *   CLOSE     the badge again, and the Discord
  *   BANK      every question bank subject, one column per exam board (the practice card
@@ -85,6 +84,8 @@ const bankBoards = [...new Set(bankSubjects.map(s => s.board))].sort(byOrder(boa
 const QuestionIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h8l3 3v11H3zm1 1v12h9V5h-3V2zm2 5h5v1H6zm0 2h5v1H6zm0 2h3v1H6z" /></svg>;
 const PackIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 1h10v14H3zm1 1v12h1V2zm2 0v12h6V2zm1 2h4v1H7zm0 2h4v1H7zm0 2h2v1H7z" /></svg>;
 
+const DiscordIcon = () => <svg viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path fill="currentColor" d="M3 4h10v1h1v6h-1v1h-3l-1-1H7l-1 1H3v-1H2V5h1zM5 7v2h2V7zm4 0v2h2V7z" /></svg>;
+
 /** Five steps of a flame, one frozen and one missed: a week of streak. */
 const flame = [["", 34], ["", 48], ["frz", 40], ["", 58], ["", 66], ["", 74], ["off", 30]] as const;
 
@@ -113,6 +114,11 @@ export function CosyHome({ variant }: { variant?: string }) {
                 <i aria-hidden="true"><PackIcon /></i>
                 <span><b>{practice.pastPapers.ticket}</b><small>{practice.pastPapers.ticketHero}</small></span>
               </Link>
+              {/* Our own practice packs are free in the Discord (founder, 31 October 2026), so this ticket goes there. */}
+              <DiscordButton placement="hero-practice-papers" label={practice.packs.ticket} className="lp-ticket lp-ticket-discord">
+                <i aria-hidden="true"><DiscordIcon /></i>
+                <span><b>{practice.packs.ticket}</b><small>{practice.packs.ticketHero}</small></span>
+              </DiscordButton>
             </div>
           </div>
           <div>
@@ -250,25 +256,6 @@ export function CosyHome({ variant }: { variant?: string }) {
         </div>
       </section>
 
-      {/* SUBJECTS */}
-      <section id="subjects" aria-labelledby="subjects-title">
-        <div className="lp-wrap">
-          <div className="lp-sec-head">
-            <span className="lp-eyebrow">{shelf.eyebrow}</span>
-            <h2 id="subjects-title">{shelf.title} <em>{shelf.titleEm}</em></h2>
-            <p className="lp-lead">{shelf.lead}</p>
-          </div>
-          <ul className="lp-shelf">
-            {shelf.books.map(b => (
-              <li key={b.name} className="lp-shelf-book" style={{ background: b.colour, ["--book-h" as string]: `${b.height}px` }}>
-                <Link href={b.href} className="lp-label" data-testid={`subject-${b.href.slice(1)}-link`}><b>{b.name}</b><small>{b.detail}</small><span className="lp-open" aria-hidden="true">Open ›</span></Link>
-              </li>
-            ))}
-          </ul>
-          <ul className="lp-boards" aria-label="Exam boards">{shelf.boards.map(b => <li key={b}>{b}</li>)}</ul>
-        </div>
-      </section>
-
       {/* FREE PRACTICE */}
       <section id="free-practice" className="lp-free" aria-labelledby="practice-title">
         <div className="lp-wrap">
@@ -357,25 +344,26 @@ export function CosyHome({ variant }: { variant?: string }) {
           </div>
           <div className="lp-bank-boards">
             {bankBoards.map(b => (
-              <div key={b.board} id={boardId(b.board)} className="lp-bank-board" style={boardStyle(b.board)}>
-                <div className="lp-tape" aria-hidden="true" />
+              <article key={b.board} id={boardId(b.board)} className="lp-bank-board" style={boardStyle(b.board)}>
                 <header>
                   <h3>{b.board === "CAIE" ? "Cambridge" : b.board}</h3>
                   <small>{b.board === "CAIE" && "CAIE · "}{b.count.toLocaleString("en-GB")} questions</small>
                 </header>
-                {b.levels.map(l => (
-                  <div key={l.level} className="lp-bank-level">
-                    <h4>{l.level}</h4>
-                    <ul>
-                      {l.subjects.map(s => (
-                        <li key={s.slug}>
-                          <Link href={bankPath(s.slug)}><span>{s.subject}</span><i aria-hidden="true" /><small>{s.count.toLocaleString("en-GB")}<span className="sr-only"> questions</span></small></Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+                <div className="lp-bank-levels">
+                  {b.levels.map(l => (
+                    <div key={l.level} className="lp-bank-level">
+                      <h4>{l.level}</h4>
+                      <ul>
+                        {l.subjects.map(s => (
+                          <li key={s.slug}>
+                            <Link href={bankPath(s.slug)}><span>{s.subject}</span><small>{s.count.toLocaleString("en-GB")}<span className="sr-only"> questions</span></small></Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </article>
             ))}
           </div>
         </div>

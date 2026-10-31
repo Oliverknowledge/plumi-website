@@ -353,14 +353,6 @@ export function otherLevel(hub: SubjectHub): SubjectHub | undefined {
   return library.subjects.find(s => s.level !== hub.level && s.name === name);
 }
 
-/** The Plumi revision page for a subject, where there is one. */
-export function revisionPage(hub: SubjectHub): { label: string; path: string } | undefined {
-  if (hub.name === "Physics" || hub.name === "Chemistry" || hub.name === "Biology") return { label: `${hub.name} revision`, path: `/${hub.name.toLowerCase()}-revision` };
-  if (hub.name === "English Language" || hub.name === "Computer Science") return undefined;
-  if (hub.level === "GCSE") return { label: "GCSE Maths", path: "/gcse-maths" };
-  return { label: "A-Level Maths tutor", path: "/ai-tutor-for-a-level-maths" };
-}
-
 /** Every generated page, for the sitemap. */
 export function pastPaperPaths(): string[] {
   return [
