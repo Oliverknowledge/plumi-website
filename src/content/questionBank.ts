@@ -4,7 +4,7 @@
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
  * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, Eduqas's A-Level
  * sciences, AS/A Level Religious Studies and GCSE Religious Studies and History, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Psychology, Economics, Philosophy, Sociology, Business and Geography,
- * AQA's GCSE English Literature and English Language and A-Level English Literature A and B, Pearson Edexcel's A-Level Economics A and B,
+ * AQA's GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Pearson Edexcel's A-Level Economics A and B,
  * Geography, Psychology and Politics, OCR's A-Level Economics and Law, OCR's and AQA's A-Level Computer Science, Pearson Edexcel's GCSE Computer Science, and AQA's, Pearson Edexcel's and OCR's GCSE Maths
  * (Higher tier), cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
@@ -12,7 +12,7 @@
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; AQA economics: aqa_economics/; AQA philosophy: aqa_philosophy/;
- * AQA sociology: aqa_sociology/; AQA business: aqa_business/; AQA geography: aqa_geography/; AQA English Literature: aqa_english_lit/; AQA English Language: aqa_english_lang/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
+ * AQA sociology: aqa_sociology/; AQA business: aqa_business/; AQA geography: aqa_geography/; AQA English Literature: aqa_english_lit/; AQA English Language: aqa_english_lang/; AQA GCSE Geography: aqa_gcse_geography/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
  * scripts; Edexcel sciences: edexcel_sciences/; Edexcel GCSE sciences: edexcel_gcse/; Edexcel geography: edexcel_geography/; Edexcel psychology: edexcel_psychology/; Edexcel economics B: edexcel_economics_b/; Edexcel politics: edexcel_politics/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; Eduqas Religious Studies: eduqas_rs/; Eduqas GCSE Religious Studies and History: eduqas_gcse/; WJEC: wjec/;
  * Computer Science: computer_science/; Edexcel GCSE Computer Science: edexcel_cs/; OCR economics: ocr_economics/; OCR law: ocr_law/; GCSE Maths: gcse_maths/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
@@ -44,6 +44,7 @@ import gcsePhysics from "./questionBank/aqa-gcse-physics.json";
 import gcseCombinedScience from "./questionBank/aqa-gcse-combined-science.json";
 import gcseEnglishLiterature from "./questionBank/aqa-gcse-english-literature.json";
 import gcseEnglishLanguage from "./questionBank/aqa-gcse-english-language.json";
+import gcseGeography from "./questionBank/aqa-gcse-geography.json";
 import edexcelBiologyA from "./questionBank/edexcel-a-level-biology-a.json";
 import edexcelBiologyB from "./questionBank/edexcel-a-level-biology-b.json";
 import edexcelChemistry from "./questionBank/edexcel-a-level-chemistry.json";
@@ -158,7 +159,7 @@ export interface BankSubject {
   topics: BankTopic[];
   papers: BankPaper[];
   series: BankSeries[];
-  /** The whole papers we host for each sitting: { "74051-JUN23": { qp, ms, er } }, and its insert (`ins`) where its questions read sources printed apart (English Language), and the code files (`code`, a zip) a paper sat on screen opens (Edexcel GCSE Computer Science Paper 2). */
+  /** The whole papers we host for each sitting: { "74051-JUN23": { qp, ms, er } }, and its insert (`ins`) where its questions read sources printed apart (English Language's sources, GCSE Geography's Paper 3 pre-release resources booklet), and the code files (`code`, a zip) a paper sat on screen opens (Edexcel GCSE Computer Science Paper 2). */
   wholes: Record<string, Partial<Record<"qp" | "ms" | "er" | "ins" | "code", string>>>;
   /**
    * Papers a student chooses between, one per option (Eduqas Religious Studies: Component 1 is a paper per
@@ -189,7 +190,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaBusiness, aqaGeography, aqaPhilosophy, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelGeography, edexcelPsychology, edexcelPolitics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, gcseEnglishLanguage, edexcelGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaBusiness, aqaGeography, aqaPhilosophy, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelGeography, edexcelPsychology, edexcelPolitics, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, gcseEnglishLanguage, edexcelGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, gcseGeography] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
