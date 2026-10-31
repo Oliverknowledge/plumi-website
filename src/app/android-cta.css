@@ -8,6 +8,8 @@
 .aw-inline:hover { color: var(--lp-ink, #4a3a36); border-bottom-color: currentColor; }
 .aw-inline .aw-icon { color: #2f9e62; }
 .aw-key { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px; border: 3px solid #5b4741; border-radius: 14px; box-shadow: 0 5px 0 #5b4741; background: #3ddc84; color: #12301f; font-family: var(--f-px, inherit); font-weight: 700; font-size: 19px; text-decoration: none; white-space: nowrap; }
+/* `.lp a` would otherwise paint the label link-blue on the green */
+.lp a.aw-key { color: #12301f; }
 .aw-key:active { transform: translateY(4px); box-shadow: 0 1px 0 #5b4741; }
 /* The top bar's width. The links, the Discord, "Android waitlist" and "Try on iPad" (with its Apple mark) come to about 1150px, and
    the bar's content is at most 1100px wide, so the bar may be wider than the page's column. Below 1300px the Android button is its
