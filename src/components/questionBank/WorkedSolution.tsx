@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { Kalam } from "next/font/google";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "./WorkedSolution.css";
@@ -9,7 +8,7 @@ import "./WorkedSolution.css";
 /**
  * A worked solution, set out the way MadAsMaths writes theirs (madasmaths.com, the IYGB
  * practice paper solutions): one sheet of squared paper per question, everything in blue
- * pen, the maths included; the question's title across the top; a) b) in the margin;
+ * ink (the words in the site's handwriting, the maths typeset); the question's title across the top; a) b) in the margin;
  * each stage under a heading in capitals, underlined in coloured marker; the working
  * down the page on ⇒ arrows or lined-up = signs; small capital notes under a line; the
  * answer after ∴, underlined in highlighter and closed with //.
@@ -19,9 +18,6 @@ import "./WorkedSolution.css";
  * each line; MadAsMaths' sheets have none, so they aren't drawn. Loaded only when a
  * student opens it (QuestionRow), with KaTeX, so the bank's pages carry none of this.
  */
-
-// MadAsMaths' pen: upright print handwriting, the maths in it too.
-const pen = Kalam({ subsets: ["latin"], weight: ["400", "700"], display: "swap", variable: "--qb-sol-pen" });
 
 interface Step { tex?: string; text?: string; why?: string; marks?: string[] }
 interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[] }
@@ -124,7 +120,7 @@ export function WorkedSolution({ slug, id, question, title }: { slug: string; id
 
   const marker = MARKERS[(parseInt(question, 10) || 0) % MARKERS.length];
   return (
-    <section className={`qb-sol ${pen.variable}`} aria-labelledby={headingId} style={{ "--qb-sol-marker": marker } as CSSProperties}>
+    <section className="qb-sol" aria-labelledby={headingId} style={{ "--qb-sol-marker": marker } as CSSProperties}>
       <div className="qb-sol-sheet">
         <p className="qb-sol-page" aria-hidden="true">– 1 –</p>
         <h3 id={headingId} className="qb-sol-title">
