@@ -3,7 +3,7 @@ import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { SourceCredit } from "./PastPaperChrome";
 import {
-  boardPath, boardsFor, display, otherLevel, pastPaperSubjects, revisionPage, sessionCount, subjectPath, subjectTitle,
+  boardPath, boardsFor, display, otherLevel, pastPaperSubjects, sessionCount, subjectPath, subjectTitle,
   type SubjectHub,
 } from "@/content/pastPapers";
 import { subjectPageMeta } from "@/lib/pastPaperMeta";
@@ -21,7 +21,6 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
   const meta = subjectPageMeta(hub);
   const path = subjectPath(hub.slug);
   const other = otherLevel(hub);
-  const revision = revisionPage(hub);
   const sameLevel = pastPaperSubjects.filter(s => s.level === hub.level && s.slug !== hub.slug);
 
   return (
@@ -64,7 +63,6 @@ export function SubjectPapersPage({ hub }: { hub: SubjectHub }) {
             <nav className="lp-sp-more" aria-label={`Other ${hub.level} subjects`}>
               {sameLevel.map(s => <Link key={s.slug} href={subjectPath(s.slug)}>{subjectTitle(s)}</Link>)}
               {other && <Link href={subjectPath(other.slug)}>{subjectTitle(other)}</Link>}
-              {revision && <Link href={revision.path}>{revision.label} on Plumi</Link>}
             </nav>
             <SourceCredit />
           </div>

@@ -35,7 +35,10 @@ WHOLE = "--whole" in sys.argv
 # --extracts: a question set on extracts and figures printed before it ("Read the following extracts (A to D)
 # before answering Question 6") carries them in its stem (economics).
 EXTRACTS = "--extracts" in sys.argv
-READ = re.compile(r"^Read (the following |Figures? |Figure \d)", re.I)
+READ = re.compile(r"^Read (the following |Figures? |Figure \d|Extracts? [A-Z]\b)", re.I)
+# --stem-singles: a one-part question set on extracts ("Read the following extract (F) before answering Question 2")
+# carries them in its stem too (Economics B's 20-mark essays); Economics A's essays have none.
+STEM_SINGLES = "--stem-singles" in sys.argv
 # --figures: a question set on figures in the Resource Booklet bound in after the paper ("Study Figure 2b in the
 # Resource Booklet") carries those figures in its stem, and a part's own "Study Figure…" line goes with it (geography).
 FIGURES = "--figures" in sys.argv
@@ -414,8 +417,8 @@ def region(doc, start, end, end_page):
 def source_booklet(doc, end_page):
     """{"B": [(page, rect)], ...}: each "Sources for use with SECTION B" block of a source booklet
     bound in after the questions, to the next block or the booklet's end, blank pages left out."""
-    found = [(i, l["y0"], re.match(r"Sources for use with SECTION ([A-C])", l["text"]).group(1))
-             for i in range(end_page + 1, len(doc)) for l in doc.lines(i) if re.match(r"Sources for use with SECTION [A-C]", l["text"])]
+    found = [(i, l["y0"], re.match(r"Sources? for use with SECTION ([A-C])", l["text"]).group(1))
+             for i in range(end_page + 1, len(doc)) for l in doc.lines(i) if re.match(r"Sources? for use with SECTION [A-C]", l["text"])]
     out = {}
     for n, (pg, y, sec) in enumerate(found):
         stop = found[n + 1][:2] if n + 1 < len(found) else (len(doc), 0)
@@ -1072,7 +1075,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
         label = f"{q}" + (f"({letter})" if letter else "") + (f"({roman})" if roman else "")
         # A one-part question set on the booklet ("Study the resources in Section B…") has it as its stem too; the
         # stem is named for the question, so the part takes a part name of its own, "-q".
-        whole = not letter and bool(resources.get(q))
+        whole = not letter and bool(resources.get(q) or STEM_SINGLES and extracts.get(q))
         pid = f"{set_id}-{q:02d}" + (f"-{letter or ''}{roman or ''}" if letter or roman else "-q" if whole else "")
         qimg = stack([trim(qp.crop(pg, r)) for pg, r in keep])
         stem_name = None
@@ -1084,7 +1087,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
                 if not os.path.exists(os.path.join(IMG, stem_name)):
                     save(stack([trim(qp.crop(pg, r), 14) for pg, r in stem_pieces]), stem_name)
         stem_text = " ".join(qp.text(pg, r) for pg, r in extracts.get(q, []) + by_key.get((q, None, None), []) + resources.get(q, [])) if letter \
-            else " ".join(qp.text(pg, r) for pg, r in resources[q]) if whole else ""
+            else " ".join(qp.text(pg, r) for pg, r in extracts.get(q, []) + resources.get(q, [])) if whole else ""
         text = " ".join(qp.text(pg, r) for pg, r in keep)
         marks = marks_in(qp, pieces)  # all of it: a long answer's "[6]" can sit on a page of answer lines we don't show
         if marks is None and letter and not roman:

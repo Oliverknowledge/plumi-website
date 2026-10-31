@@ -2,7 +2,7 @@
    THE COSY HOMEPAGE (src/components/landing/CosyHome.tsx)
 
    The homepage's own sections: the pixel rooms, Plumi's moods, the marked
-   page, friends, habits, sticky notes, the subject shelf and the free practice. The
+   page, friends, habits, sticky notes, and the free practice. The
    paper, type, keys, cards, header and footer are in cosy.css, shared with
    every page. Scoped under .lp like everything else.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -143,29 +143,6 @@
 .lp .lp-sticky h3 { font-size: 21px; }
 .lp-sticky p { font-weight: 600; font-size: 15.5px; color: var(--lp-ink-soft); }
 
-/* shelf */
-.lp-shelf { list-style: none; margin: 0; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; padding: 0 12px; border-bottom: 14px solid #b07a52; box-shadow: 0 3px 0 var(--lp-line); }
-.lp-shelf-book { width: 150px; height: var(--book-h, 190px); border: 3px solid var(--lp-line); border-bottom: 0; border-radius: 10px 10px 2px 2px; position: relative; display: grid; align-content: start; justify-items: center; padding-top: 22px; }
-.lp-shelf-book::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 5px; background: rgba(91, 71, 65, .22); }
-.lp .lp-label { display: block; background: #fffdf8; border: 2px solid var(--lp-line); border-radius: 4px; padding: 6px 10px; text-align: center; width: 78%; color: var(--lp-ink); text-decoration: none; position: relative; }
-.lp .lp-label:hover { background: #fff; }
-/* A book you point at or tap comes off the shelf: it lifts and tilts, its label turns ink and
-   says where it goes, so choosing Maths or Physics reads as choosing (the founder, 19 October). */
-.lp-shelf-book { transition: transform .16s cubic-bezier(.2, .9, .3, 1.3), box-shadow .16s; cursor: pointer; }
-.lp-shelf-book:hover, .lp-shelf-book:focus-within { transform: translateY(-18px) rotate(-2.5deg); box-shadow: 0 12px 0 rgba(43, 35, 38, .2); z-index: 2; }
-.lp-shelf-book:active { transform: translateY(-8px) rotate(-1deg); }
-.lp-shelf-book:hover .lp-label, .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #fdf9f1; border-color: var(--lp-ink); }
-.lp-shelf-book:hover .lp-label small, .lp-shelf-book:focus-within .lp-label small { color: #f2e6d2; }
-.lp-label .lp-open { display: block; margin-top: 6px; font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-gold); max-height: 0; opacity: 0; overflow: hidden; transition: max-height .16s, opacity .16s; }
-.lp-shelf-book:hover .lp-open, .lp-shelf-book:focus-within .lp-open { max-height: 24px; opacity: 1; }
-.lp .lp-label:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 3px; }
-@media (hover: none) { .lp-label .lp-open { max-height: 24px; opacity: 1; color: var(--lp-blue); } }
-@media (prefers-reduced-motion: reduce) { .lp-shelf-book, .lp-shelf-book:hover, .lp-shelf-book:focus-within, .lp-shelf-book:active { transform: none; transition: none; } }
-.lp .lp-label::after { content: ""; position: absolute; inset: -22px -16px -200px; }
-.lp-label b { font-family: var(--f-px); font-weight: 600; font-size: 18px; display: block; }
-.lp-label small { display: block; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }
-.lp-shelf-book { overflow: hidden; }
-
 /* tags on cards */
 .lp-tag { justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 14px; background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 10px; }
 
@@ -178,6 +155,10 @@
 .lp-ticket i { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 2px solid var(--lp-line); border-radius: 10px; background: var(--lp-gold); }
 .lp-ticket + .lp-ticket i { background: var(--lp-blue-soft); }
 .lp-ticket svg { width: 24px; height: 24px; }
+/* The practice papers ticket opens the Discord (our packs are free there), so it runs the full width under the other two
+   and takes the Discord's teal, the colour of the daily-question note. */
+.lp-tickets .lp-ticket-discord { grid-column: 1 / -1; background: #dff0ee; }
+.lp .lp-ticket-discord i { background: #7cc6c2; }
 .lp-ticket b { display: block; font-family: var(--f-px); font-weight: 600; font-size: 18px; line-height: 1.2; }
 .lp-ticket small { display: block; font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.3; }
 
@@ -210,33 +191,34 @@
 .lp-hero-cafe .lp-cta-note { max-width: none; }
 @media (prefers-reduced-motion: reduce) { .lp .lp-daily { transform: none; } }
 
-/* every subject in the question bank: an index at the foot of the page, one pinned index card
-   per board, its header in the board's colour (the same colour as the dot on its chip above) */
-.lp-bank-boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 26px 20px; align-items: start; padding-top: 10px; }
-.lp-bank-board { position: relative; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); overflow: visible; scroll-margin-top: 110px; transition: transform .16s cubic-bezier(.2, .9, .3, 1.3); }
-.lp-bank-board:nth-child(odd) { transform: rotate(-.7deg); }
-.lp-bank-board:nth-child(even) { transform: rotate(.6deg); }
-.lp-bank-board:nth-child(3n) { transform: rotate(-.3deg); }
-.lp-bank-board:hover, .lp-bank-board:target { transform: rotate(0) translateY(-3px); }
+/* every subject in the question bank, at the foot of the page: one row a board. The board's name sits on a tab in its
+   colour (the colour of the dot on its chip in the practice card), its subjects are chips beside it, so a long board
+   like AQA grows downwards, a short one stays short, and a count never runs into a subject's name. */
+.lp-bank-boards { display: grid; gap: 22px; padding-top: 10px; }
+.lp-bank-board { display: grid; grid-template-columns: 220px minmax(0, 1fr); background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 18px; box-shadow: 0 5px 0 var(--lp-shadow); overflow: hidden; scroll-margin-top: 110px; transition: box-shadow .16s; }
 .lp-bank-board:target { box-shadow: 0 0 0 5px var(--board), 0 5px 0 var(--lp-shadow); }
-.lp-bank-board .lp-tape { top: -13px; width: 64px; margin-left: -32px; height: 22px; z-index: 1; }
-.lp-bank-board:nth-child(even) .lp-tape { transform: rotate(3deg); background: rgba(249, 220, 213, .9); }
-.lp-bank-board header { background: var(--board); border-bottom: 3px solid var(--lp-line); border-radius: 13px 13px 0 0; padding: 18px 16px 12px; background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .16) 0 6px, transparent 6px 12px); }
-.lp .lp-bank-board h3 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 21px; line-height: 1.15; color: var(--lp-ink); }
-.lp-bank-board header small { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 800; color: var(--lp-ink); opacity: .72; font-variant-numeric: tabular-nums; }
-.lp-bank-level { padding: 12px 12px 0; }
-.lp-bank-level:last-child { padding-bottom: 12px; }
-.lp-bank-level + .lp-bank-level { border-top: 2px dashed #e2d5bf; margin-top: 10px; }
-.lp .lp-bank-board h4 { display: inline-block; margin: 0 0 6px 4px; font-family: var(--f-px); font-size: 12.5px; font-weight: 600; color: var(--lp-ink); background: #fff; border: 2px solid var(--lp-line); border-radius: 7px; padding: 0 7px; }
-.lp-bank-board ul { margin: 0; padding: 0; list-style: none; display: grid; }
-.lp .lp-bank-board li a { display: flex; align-items: baseline; gap: 6px; padding: 5px 6px; border-radius: 8px; font-size: 15px; font-weight: 700; color: var(--lp-ink); text-decoration: none; transition: background .1s; }
-.lp-bank-board li a > span { white-space: nowrap; }
-.lp-bank-board li a i { flex: 1; min-width: 10px; border-bottom: 2px dotted #cdbda3; transform: translateY(-4px); }
-.lp-bank-board li a small { font-size: 12.5px; font-weight: 800; color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; }
-.lp .lp-bank-board li a:hover, .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, #fff); }
-.lp .lp-bank-board li a:hover i { border-bottom-color: var(--lp-line); }
-.lp .lp-bank-board li a:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .lp-bank-board, .lp-bank-board:hover, .lp-bank-board:target { transform: none; transition: none; } }
+.lp-bank-board header { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 22px 22px; background: var(--board); border-right: 3px solid var(--lp-line); background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .16) 0 6px, transparent 6px 12px); }
+/* The tab's colour is a pastel in both themes, so its words stay dark in both. */
+.lp .lp-bank-board h3 { margin: 0; font-family: var(--f-px); font-weight: 600; font-size: 28px; line-height: 1.1; color: #2b2326; }
+.lp-bank-board header small { font-size: 13.5px; font-weight: 800; color: #2b2326; opacity: .75; font-variant-numeric: tabular-nums; }
+.lp-bank-levels { display: grid; gap: 20px; padding: 20px 22px 22px; align-content: center; min-width: 0; }
+.lp .lp-bank-board h4 { display: inline-block; margin: 0 0 10px; font-family: var(--f-px); font-size: 14px; font-weight: 600; color: var(--lp-ink); background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 9px; }
+.lp-bank-board ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
+.lp .lp-bank-board li a { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 100%; padding: 8px 10px 8px 13px; border: 2px solid var(--lp-line); border-radius: 11px; background: var(--lp-card-bg); box-shadow: 0 2px 0 var(--lp-shadow); font-size: 15.5px; font-weight: 700; line-height: 1.2; color: var(--lp-ink); text-decoration: none; transition: background .1s, transform .08s, box-shadow .08s; }
+.lp-bank-board li a > span { min-width: 0; }
+.lp-bank-board li a small { flex: none; font-size: 12.5px; font-weight: 800; color: var(--lp-ink-soft); font-variant-numeric: tabular-nums; padding: 1px 8px; border-radius: 7px; background: color-mix(in srgb, var(--board) 32%, var(--lp-card-bg)); }
+.lp .lp-bank-board li a:hover, .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, var(--lp-card-bg)); transform: translateY(-1px); box-shadow: 0 3px 0 var(--lp-shadow); }
+.lp .lp-bank-board li a:active { transform: translateY(2px); box-shadow: 0 0 0 var(--lp-shadow); }
+.lp .lp-bank-board li a:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 2px; }
+@media (max-width: 760px) {
+  .lp-bank-board { grid-template-columns: minmax(0, 1fr); }
+  .lp-bank-board header { flex-direction: row; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 14px; padding: 14px 18px; border-right: 0; border-bottom: 3px solid var(--lp-line); }
+  .lp .lp-bank-board h3 { font-size: 24px; }
+  .lp-bank-levels { padding: 16px 16px 18px; }
+  .lp-bank-board ul { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; }
+  .lp .lp-bank-board li a { padding: 7px 8px 7px 10px; font-size: 14.5px; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .lp-bank-board, .lp-bank-board li a { transition: none; } .lp .lp-bank-board li a:hover, .lp .lp-bank-board li a:focus-visible, .lp .lp-bank-board li a:active { transform: none; } }
 
 /* the card's board chips: each carries its board's colour as a dot */
 .lp .lp-practice-card .lp-bank-chips li a { display: flex; align-items: center; gap: 6px; }
@@ -261,7 +243,5 @@
   .lp-hwl { font-size: 25px; }
   .lp-topicmap { grid-template-columns: minmax(0, 1fr); }
   .lp-squares { grid-template-columns: repeat(12, 1fr); }
-  .lp-bank-boards { grid-template-columns: minmax(0, 1fr); gap: 26px; }
-  .lp-shelf-book { width: calc(50% - 8px); height: calc(var(--book-h, 190px) - 25px); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-pop, .lp-meter i, .lp-cafe canvas { animation: none; transition: none; } }

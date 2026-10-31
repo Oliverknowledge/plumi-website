@@ -65,7 +65,7 @@
 .pp-done input { width: 20px; height: 20px; margin: 0; accent-color: var(--lp-orange); cursor: pointer; }
 .pp-table tr:has(.pp-done input:checked) > :not(.pp-done-cell) { opacity: .55; }
 .pp-more-files { display: flex; flex-wrap: wrap; gap: 4px; }
-.pp-none { color: #c5b59c; font-weight: 800; padding-left: 18px; }
+.pp-none { color: var(--lp-ink-soft); font-weight: 800; padding-left: 18px; }
 .pp-older { margin-top: 8px; }
 .pp-older summary { cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-blue); padding: 6px 0; }
 

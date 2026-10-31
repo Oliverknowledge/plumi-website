@@ -175,6 +175,35 @@ collects them. The brief is the one at the top, with these differences:
   policy `2.6.2` vs central banks `4.4.3` (the Bank of England's tools and role are
   `4.4.3` on A-Level papers when the question is about the central bank itself).
 
+## Edexcel Economics B
+
+`edexcel_economics_b/tag_economics_b.py split` writes batches of Pearson Edexcel A-Level
+(9EB0) Economics B parts to `.work/edexcel-economics-b/tag/`, and `merge` collects them.
+The brief is the one at the top, with these differences:
+
+- `economics-b-topics.txt` lists the specification's sub-topics: `code | topic | title
+  — what the specification says under it`. Codes have three numbers (`1.3.1`, `4.4.2`);
+  choose from these, never a topic like `1.3`. Economics B has four themes and no AS
+  split, so every topic is open to every paper.
+- Each line has its `paper` ("A-Level 1"). Paper 1 is drawn from Themes 1 and 4, Paper 2
+  from Themes 2 and 3, and Paper 3 (a context announced the year before, then unseen
+  extracts) can test anything.
+- The `setup` and the start of `question` are often the extracts the question is set
+  on; judge by what the part asks and its scheme, not by the extract's subject (a
+  question about Tesla's productivity is `2.3.1`, not a topic about cars).
+- Themes overlap by design: Theme 4 builds on Theme 1 (competition, market failure,
+  government intervention) and Theme 2 on Theme 1 (growth, elasticity, efficiency).
+  Tag the topic the scheme's indicative content is mostly about; give a second only for
+  a 20-mark essay that genuinely needs it.
+- Common confusions: business objectives `1.1.2` vs business objectives and pricing
+  decisions `4.1.4`; externalities and market failure `1.5.1` vs `4.3.2`/`4.2.1` (use the
+  Theme 4 code when the part is about regulation, society or the spectrum of
+  competition, the Theme 1 code when it is about the externality diagram itself);
+  government intervention `1.5.2` vs policies to deal with market failure `4.3.3`;
+  demand-side `4.4.2` and supply-side policies `4.4.3` (AD/AS and the impact on
+  firms) vs policy instruments `2.6.2` (Theme 2: the instruments themselves);
+  exchange rates `2.4.4` vs exchange rate changes `3.1.5`.
+
 ## Edexcel Geography
 
 `edexcel_geography/tag_geography.py split` writes batches of Pearson Edexcel A-Level
@@ -239,6 +268,52 @@ brief is the one at the top, with these differences:
   significance); `3.3.5` conclusions, evaluating reliability and the enquiry, and how
   it could be developed. The scenario (a town survey, a peat depth study) doesn't
   matter: tag the stage of the enquiry the part asks about.
+
+## AQA GCSE Geography
+
+`aqa_gcse_geography/tag_gcse_geography.py split` writes batches of AQA GCSE Geography (8035)
+parts to `.work/aqa-gcse-geography/tag/`, and `merge` collects them. The brief is the one at
+the top, with these differences:
+
+- `gcse-geography-topics.txt` lists one topic per line: `code | section | title — the
+  specification's words`. Codes are the specification's numbered topics (`3.1.1.2 Tectonic
+  hazards`, `3.2.3.2 Food`); urban issues (`3.2.1.1`-`3.2.1.4`) and the changing economic
+  world (`3.2.2.1`-`3.2.2.4`) are its key ideas, fieldwork (`3.3.2.1`-`3.3.2.6`) the six
+  stages of an enquiry, and Geographical skills `3.4.1`-`3.4.4`.
+- **Each line says which codes it may take**: `first` (the topics of the question it is
+  printed in, fixed by paper and number, so the coasts question never takes a rivers topic)
+  and `second`. merge rejects anything else. Give a second code only when it adds something.
+- Within an area, tag the content the part tests: in Paper 1's Question 1, plate margins,
+  earthquake effects and responses `3.1.1.2`; atmospheric circulation, tropical storms and
+  UK extreme weather `3.1.1.3`; climate change evidence, causes and management `3.1.1.4`;
+  hazard risk in general `3.1.1.1`. Question 2: a small-scale UK ecosystem, food webs, global
+  biomes `3.1.2.1`; rainforests and deforestation `3.1.2.2`; hot deserts and desertification
+  `3.1.2.3`; cold environments `3.1.2.4`. Physical landscapes: `3.1.3.1` only for the UK's
+  relief, upland and lowland areas; everything else in Questions 3-5 is the landscape's own
+  topic. Paper 2 Question 1: world urban trends and megacities `3.2.1.1`; the LIC/NEE city
+  case study (Rio, Lagos, Mumbai), slums, urban planning for the urban poor `3.2.1.2`; the UK
+  city case study, regeneration, the rural-urban fringe `3.2.1.3`; sustainable cities,
+  transport `3.2.1.4`. Question 2: measuring development, the DTM, population pyramids,
+  causes of uneven development `3.2.2.1`; aid, trade, debt relief, tourism, intermediate
+  technology `3.2.2.2`; the LIC/NEE country case study (Nigeria), TNCs `3.2.2.3`; the UK
+  economy, deindustrialisation, science parks, the north-south divide, rural change,
+  transport infrastructure `3.2.2.4`.
+- A part that is mostly a skill (a grid reference, a distance or direction on an OS map, a
+  graph or map to complete, a mean, median, range or percentage) takes its area's content
+  topic first and the skill second: `3.4.1` maps, OS maps, grid references, distances, cross
+  sections; `3.4.2` graphs and charts to read or complete; `3.4.3` percentages, ratios,
+  proportions, calculations; `3.4.4` mean, median, mode, range, interquartile range, quartiles.
+- Paper 3 Section A (questions 01-03, issue evaluation, set on the pre-release resources
+  booklet) is `3.3.1` first, with the content topic the issue is about second (waste
+  incineration: `3.2.3.4` Energy; housing and brownfield sites: `3.2.1.3`; an urban world:
+  `3.2.1.1`), or a skill when the part is one.
+- Paper 3 Section B (questions 04-05) is fieldwork: tag the stage the part asks about, not
+  the scenario. `3.3.2.1` the enquiry question or hypothesis, its theory, risks and how to
+  reduce them, choosing a site; `3.3.2.2` collecting data, primary and secondary data,
+  sampling, describing or justifying a method; `3.3.2.3` presenting data, completing or
+  choosing a graph or map; `3.3.2.4` describing, analysing and explaining results, links
+  between data sets, statistics, anomalies; `3.3.2.5` conclusions; `3.3.2.6` evaluating
+  methods, data or conclusions, and how the enquiry could be improved. A skill can be second.
 
 ## AQA Business
 

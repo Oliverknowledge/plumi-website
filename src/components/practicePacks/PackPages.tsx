@@ -19,6 +19,11 @@ import "@/app/past-papers.css";
  * pack per card; a pack's page shows everything in it before the download (its sections,
  * all thirty questions with their difficulty, a page of the paper and of the scheme), then
  * how it compares and the way to get it marked. Words: src/content/practicePacks.ts.
+ *
+ * The cover and sample pages are rendered at 1800px (scripts/practice-packs/build.sh) and are
+ * about 200KB each, so they go out as they are (`unoptimized`). Through the image optimizer they
+ * were shrunk to the slot's ~360px and recompressed at quality 75, which turned the paper's small
+ * print to mush (founder, 31 October 2026).
  */
 
 const tick = <svg viewBox="0 0 26 22" aria-hidden="true"><path d="M3 12 L10 19 L23 3" stroke="#d33a2f" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -156,7 +161,7 @@ export function PackPage({ pack }: { pack: PracticePack }) {
           </div>
           <div className="pk-hero-cover">
             <Tape />
-            <Image src={packImage(pack, "cover")} width={900} height={1274} priority sizes="(max-width: 980px) 320px, 360px"
+            <Image src={packImage(pack, "cover")} width={1800} height={2548} unoptimized priority sizes="(max-width: 980px) 320px, 360px"
               alt={`The cover of Plumi's ${packName(pack)} practice pack: ${pack.questions.length} questions, ${pack.marks} marks, in three sections.`} />
             <span className="pk-stamp" aria-hidden="true">Free</span>
           </div>
@@ -209,12 +214,12 @@ export function PackPage({ pack }: { pack: PracticePack }) {
             <div className="pk-samples">
               <figure className="lp-card pk-sample">
                 <WindowBar label="questions.pdf" />
-                <Image src={packImage(pack, "question")} width={900} height={1274} sizes="(max-width: 980px) 92vw, 560px" alt={`A page of the question paper: ${pack.samples.question}.`} />
+                <Image src={packImage(pack, "question")} width={1800} height={2548} unoptimized sizes="(max-width: 980px) 92vw, 560px" alt={`A page of the question paper: ${pack.samples.question}.`} />
                 <figcaption>{pack.samples.question}</figcaption>
               </figure>
               <figure className="lp-card pk-sample">
                 <WindowBar label="mark-scheme.pdf" />
-                <Image src={packImage(pack, "scheme")} width={900} height={1274} sizes="(max-width: 980px) 92vw, 560px" alt={`A page of the mark scheme: ${pack.samples.scheme}.`} />
+                <Image src={packImage(pack, "scheme")} width={1800} height={2548} unoptimized sizes="(max-width: 980px) 92vw, 560px" alt={`A page of the mark scheme: ${pack.samples.scheme}.`} />
                 <figcaption>{pack.samples.scheme}</figcaption>
               </figure>
             </div>

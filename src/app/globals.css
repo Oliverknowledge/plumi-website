@@ -39,7 +39,7 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid #d9702f;
+  outline: 3px solid var(--lp-orange, #a8521c);
   outline-offset: 3px;
 }
 
