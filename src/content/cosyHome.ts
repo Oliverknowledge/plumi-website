@@ -44,7 +44,8 @@ export const cosyHero = {
   h1em: "marks your work.",
   lead: "Handwrite your answer with Apple Pencil. Plumi marks it line by line against the mark scheme and picks what to revise tonight.",
   note: "Free on the App Store. Needs iPadOS 17 or later.",
-  freeLabel: "Free on this website, no sign-up:",
+  // Three tickets now, and the third is in the Discord, so the label no longer says "no sign-up".
+  freeLabel: "Free to use:",
   window: "the grand library · 21:40",
   sceneLabel: "A pixel library at night, with a gallery upstairs. Students study at long tables, in glass pods and by the fire. You come in at the entrance; tap the floor to walk, a free seat to sit, or anyone to see what they're studying.",
   hint: "Tap to walk. Tap anyone to see what they’re studying.",
@@ -170,26 +171,12 @@ export const more = {
   ],
 } as const;
 
-export const shelf = {
-  eyebrow: "Subjects",
-  title: "Physics, Maths, Chemistry",
-  titleEm: "and Biology.",
-  lead: "GCSE and A-Level, in the style of your exam board.",
-  books: [
-    { name: "Physics", detail: "Circuits, forces, fields", href: "/physics-revision", colour: "#f2c96b", height: 190 },
-    { name: "Maths", detail: "Pure, stats, mechanics", href: "/gcse-maths", colour: "#6a9bd0", height: 178 },
-    { name: "Chemistry", detail: "Moles, energetics, organic", href: "/chemistry-revision", colour: "#8fd0a0", height: 184 },
-    { name: "Biology", detail: "Cells, genetics, ecology", href: "/biology-revision", colour: "#eaa99a", height: 172 },
-  ],
-  boards: ["AQA", "OCR", "Edexcel"],
-} as const;
-
 /**
  * The free practice on the website itself: Practice papers (Plumi's packs, /practice-papers,
  * with the past paper library, /past-papers, inside it) and the question bank (/question-bank).
  * Both are free and need no account; the question count is read from the bank's data in
  * CosyHome, so it stays true as subjects are added. It sits near the end, after the
- * subjects and before the questions (founder, 27 October 2026: "I want people to see the
+ * notes and before the questions (founder, 27 October 2026: "I want people to see the
  * Plumi mark and the study with friends bit early on"), and each card's chips go straight
  * to a subject, so a student from a video is one tap from their own paper.
  *
@@ -210,7 +197,7 @@ export const practice = {
     titleEm: "written by us.",
     line: "Ran out of past papers? Each pack is 30 new exam-style questions in your board’s style, easy to super hard, with a mark scheme as thorough as the real one. Free for members of the Plumi Discord.",
     ticket: "Practice papers",
-    ticketHero: "our own packs, and every past paper",
+    ticketHero: "free to use, just join our Discord",
     all: "See every pack",
     // The downloads and each pack's own wording are on its page; the covers here just open it.
     note: "Written by Plumi in each board’s style. Not produced or endorsed by Pearson Edexcel or OCR.",

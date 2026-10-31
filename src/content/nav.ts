@@ -24,11 +24,7 @@ export const pageLinks: readonly (readonly [string, string])[] = [
 ];
 
 export const footerLinks: readonly (readonly [string, string])[] = [
-  ["Physics revision", "/physics-revision"],
-  ["Chemistry revision", "/chemistry-revision"],
-  ["Biology revision", "/biology-revision"],
   ["A-Level Maths", "/ai-tutor-for-a-level-maths"],
-  ["GCSE Maths", "/gcse-maths"],
   ["Practice papers", "/practice-papers"],
   ["Past papers", "/past-papers"],
   ["Question bank", "/question-bank"],

@@ -20,6 +20,12 @@ const removedPages: readonly (readonly [string, string])[] = [
   ["/how-it-works", "/#marking"],
   ["/ai-handwriting-tutor", "/"],
   ["/ipad-study-app", "/"],
+  // The subject shelf left the homepage and these four pages with it (founder, 31 October 2026): the
+  // question bank and past papers cover every subject and board now.
+  ["/physics-revision", "/question-bank"],
+  ["/chemistry-revision", "/question-bank"],
+  ["/biology-revision", "/question-bank"],
+  ["/gcse-maths", "/question-bank"],
 ];
 
 const nextConfig: NextConfig = {

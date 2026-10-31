@@ -4,7 +4,7 @@ import { PageStructuredData } from "@/components/StructuredData";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
-  bankFor, boardHeading, boardOwner, boardPath, boardsFor, display, fileUrl, hasKind, otherLevel, revisionPage, sessionCount, subjectPath, subjectTitle,
+  bankFor, boardHeading, boardOwner, boardPath, boardsFor, display, fileUrl, hasKind, otherLevel, sessionCount, subjectPath, subjectTitle,
   type BoardPapers, type Paper, type SubjectHub,
 } from "@/content/pastPapers";
 import { boardPageMeta } from "@/lib/pastPaperMeta";
@@ -35,7 +35,6 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
   const uniqueNames = new Set(jumpNames).size === jumpNames.length;
   const siblings = boardsFor(hub.slug).filter(b => b.slug !== board.slug);
   const other = otherLevel(hub);
-  const revision = revisionPage(hub);
   const extras = [hasKind(board, "er") && "examiner’s reports", hasKind(board, "gt") && "grade thresholds"].filter(Boolean);
   const banks = bankFor(board);
   const years = board.firstYear === board.lastYear ? `${board.lastYear}` : `${board.firstYear} to ${board.lastYear}`;
@@ -112,7 +111,6 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
             <nav className="lp-sp-more" aria-label="Related">
               {pack && <Link href={packPath(pack.slug)}>Plumi’s {pack.board}-style practice pack</Link>}
               {other && <Link href={subjectPath(other.slug)}>{subjectTitle(other)} past papers</Link>}
-              {revision && <Link href={revision.path}>{revision.label} on Plumi</Link>}
               <Link href="/past-papers">Every subject</Link>
             </nav>
             <p className="pp-credit">
