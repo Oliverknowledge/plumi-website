@@ -32,6 +32,8 @@ SUBJECTS = [
     ("gcse-computer-science", "GCSE", "Computer Science", ["edexcel"]),
     ("a-level-economics-b", "A-Level", "Economics B", ["edexcel"]),
     ("gcse-geography", "GCSE", "Geography", ["aqa"]),
+    ("a-level-english-literature", "A-Level", "English Literature", ["aqa", "edexcel", "ocr"]),
+    ("gcse-english-literature", "GCSE", "English Literature", ["aqa"]),
 ]
 # slug -> (how the board is written in a heading, its label on its own, the qualification at A-Level, at GCSE)
 BOARDS = {
