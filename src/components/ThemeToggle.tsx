@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { THEME_KEY } from "@/lib/theme";
+import { THEME_COLOR, THEME_KEY } from "@/lib/theme";
 
 /** The theme is `data-theme` on <html>, so the switch reads it there and hears when it changes. */
 function onThemeChange(changed: () => void) {
@@ -26,6 +26,7 @@ export function ThemeToggle() {
     const next = dark ? "light" : "dark";
     const apply = () => {
       root.dataset.theme = next;
+      document.querySelectorAll('meta[name="theme-color"]:not([media])').forEach(meta => meta.setAttribute("content", THEME_COLOR[next]));
       try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode: the choice lasts until the tab closes */ }
     };
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

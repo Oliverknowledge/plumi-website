@@ -40,6 +40,9 @@ html[data-theme="dark"] .lp .lp-ring { background: conic-gradient(#4a3f39 var(--
 html[data-theme="dark"] .lp .lp-label:hover, html[data-theme="dark"] .lp .lp-ticket:hover, html[data-theme="dark"] .lp .hp-desk-actions button:hover,
 html[data-theme="dark"] .hp-desk-actions button:hover { background: #3a302b; }
 html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #1f1a18; }
+html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label small, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label small { color: #5b4741; }
+html[data-theme="dark"] .lp .lp-shelf-book:hover .lp-label .lp-open, html[data-theme="dark"] .lp .lp-shelf-book:focus-within .lp-label .lp-open { color: #1f3d8a; }
+html[data-theme="dark"] .lp .qb-mine a:hover b { color: var(--lp-ink); }
 html[data-theme="dark"] .lp .lp-note, html[data-theme="dark"] .lp .lp-mk-sec:nth-child(even), html[data-theme="dark"] .lp .pp-mark,
 html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+2), html[data-theme="dark"] .lp .lp-pa-more-card:nth-child(4n+3),
 html[data-theme="dark"] .lp .lp-pa-tile:nth-child(3n+2), html[data-theme="dark"] .lp .pk-feature, html[data-theme="dark"] .lp .lp-ticket.pk-ticket { background: #3a2f25; }
@@ -48,8 +51,9 @@ html[data-theme="dark"] .lp .lp-sticky:nth-child(3n+2), html[data-theme="dark"] 
 html[data-theme="dark"] .lp .lp-sticky:nth-child(3n), html[data-theme="dark"] .lp .lp-pa-pile li:nth-child(3n),
 html[data-theme="dark"] .lp .lp-tickets .pk-ticket i, html[data-theme="dark"] .lp .lp-pa-tile.is-wellbeing .lp-pa-tile-ico { background: #4a2b27; }
 html[data-theme="dark"] .lp .lp-flame i.off { background: #4a3f39; }
-html[data-theme="dark"] .lp .lp-bank-board li a:hover, html[data-theme="dark"] .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 45%, #1f1a18); }
-html[data-theme="dark"] .lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 55%, #1f1a18); }
+/* A board's colour two parts in five over the dark page: cream text stays above 4.5:1 for every board, the pale yellow-green too. */
+html[data-theme="dark"] .lp .lp-bank-board li a:hover, html[data-theme="dark"] .lp .lp-bank-board li a:focus-visible { background: color-mix(in srgb, var(--board) 40%, #1f1a18); }
+html[data-theme="dark"] .lp .lp-practice-card .lp-bank-chips li a:hover { background: color-mix(in srgb, var(--board) 40%, #1f1a18); }
 html[data-theme="dark"] .lp .qb-plank { background: linear-gradient(#6b5440 0 4px, #5a4636 4px); }
 html[data-theme="dark"] .lp .hp-desk-qr-wait { background: repeating-linear-gradient(45deg, #2c2522 0 8px, #342b25 8px 16px); }
 html[data-theme="dark"] .lp .qb-book-total { background: rgba(44, 37, 34, .92); color: var(--lp-ink); }
@@ -119,6 +123,7 @@ html[data-theme="dark"] .lp :is(.qb-sq.is-strong, .qb-sq.is-rusty, .qb-sq.is-nee
   .lp-traits li i[style*="--lp-red"], .lp-traits li i[style*="--lp-teal"]) { --lp-ink: #1f1a18; color: #1f1a18; }
 html[data-theme="dark"] .lp .lp-book-cover .lp-book-kicker { color: #1f1a18; }
 html[data-theme="dark"] .lp .lp-pa-tile.is-marking .lp-pa-tile-ico { background: #2f4a2c; }
+html[data-theme="dark"] .lp .lp-pa-tile-ico { color: var(--lp-ink); }
 /* Send to my iPad's panel floats over the page: its edge and drop in the dark line and shadow, not the light notebook's brown */
 html[data-theme="dark"] .hp-desk-panel { border-color: var(--lp-line, #8a7365); box-shadow: 0 6px 0 #0c0a09; }
 html[data-theme="dark"] .hp-desk-actions button { border-color: var(--lp-line, #8a7365); }
