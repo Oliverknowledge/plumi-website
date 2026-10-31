@@ -22,10 +22,10 @@ import { standing, topicAttempts, useBankMarks, type PartRecord, type Standing, 
  * the tray, to be searched and added.
  *
  * Design exploration: three looks at the same board, flipped with a switcher pinned to the corner
- * in development only (?blook=). "now" is the tab as it ships.
+ * in development only (?blook=). Sticky notes is the board as it ships.
  */
 
-/** Off in a production build, except a local one made with NEXT_PUBLIC_DESIGN_PREVIEW=1 to judge the real speed. */
+/** The switcher: off in a production build, except a local one made with NEXT_PUBLIC_DESIGN_PREVIEW=1 to judge the real speed. */
 const TRYING = process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DESIGN_PREVIEW === "1";
 
 export const BOARD_LOOKS = [
@@ -33,18 +33,18 @@ export const BOARD_LOOKS = [
   { id: "sticky", name: "Sticky notes" },
   { id: "sidebar", name: "Spec sidebar" },
 ] as const;
-export type BoardLook = (typeof BOARD_LOOKS)[number]["id"] | "now";
+export type BoardLook = (typeof BOARD_LOOKS)[number]["id"];
 
 const LOOK_KEY = "plumi-board-look";
 const lookListeners = new Set<() => void>();
 const isLook = (v: string | null): v is BoardLook => BOARD_LOOKS.some(l => l.id === v);
 function readLook(): BoardLook {
-  if (!TRYING) return "now";
+  if (!TRYING) return "sticky";
   const fromUrl = new URLSearchParams(window.location.search).get("blook");
   if (isLook(fromUrl)) { try { localStorage.setItem(LOOK_KEY, fromUrl); } catch { /* fine */ } return fromUrl; }
   try { const v = localStorage.getItem(LOOK_KEY); return isLook(v) ? v : "sticky"; } catch { return "sticky"; }
 }
-export const useBoardLook = () => useSyncExternalStore(cb => { lookListeners.add(cb); return () => { lookListeners.delete(cb); }; }, readLook, () => "now" as BoardLook);
+export const useBoardLook = () => useSyncExternalStore(cb => { lookListeners.add(cb); return () => { lookListeners.delete(cb); }; }, readLook, () => "sticky" as BoardLook);
 
 export function BoardLookSwitch() {
   const look = useBoardLook();
@@ -585,7 +585,7 @@ export function addSubjectBoard(s: BoardSubject) {
 }
 
 export function TopicBoard({ look: design, subjects, mine = false, practise, lockedTopic, onHide, extra }: {
-  look: Exclude<BoardLook, "now">;
+  look: BoardLook;
   /** The subject on its own page, or every one on My board. */
   subjects: BoardSubject[];
   /** My board: every subject at once, with a chip to show one. */

@@ -54,7 +54,7 @@ export function MyBoard({ catalogue }: { catalogue: CatalogueSubject[] }) {
   }
   if (failed) return <p className="mb-wait">Your board couldn’t load. Check your connection and refresh.</p>;
   if (subjects.length < slugs.length) return <p className="mb-wait" role="status">Laying out your board…</p>;
-  return <TopicBoard look={look === "now" ? "sticky" : look} subjects={subjects} mine practise={practise} onHide={slug => setSubjectHidden(slug, true)} extra={picker} />;
+  return <TopicBoard look={look}subjects={subjects} mine practise={practise} onHide={slug => setSubjectHidden(slug, true)} extra={picker} />;
 }
 
 /** "+ Add a subject": a search of every subject in the bank, the way "Your subjects" adds one on the bank's front page. */
