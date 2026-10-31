@@ -10,6 +10,7 @@ import {
 } from "@/content/questionBank";
 import { packFor, packPath } from "@/content/practicePacks";
 import { BankShelves, BoardRow, RememberBank, type Shelf } from "./BankShelves";
+import { AskForSubject, AskForSubjectHint } from "@/components/cosy/AskForSubject";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -102,11 +103,13 @@ export function BankHub() {
           <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>
           <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
           <p className="qb-hub-lead">Every past-paper question from AQA, Edexcel, OCR, Eduqas, Cambridge and WJEC, sorted by topic, with the mark scheme right underneath.</p>
+          <AskForSubjectHint />
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={84} height={84} unoptimized priority />
         </header>
         <section className="qb-hub-shelves">
           <div className="lp-wrap">
             <BankShelves shelves={all} />
+            <AskForSubject placement="bank-hub" />
             <section className="qb-how" aria-labelledby="qb-how-h">
               <h2 id="qb-how-h" className="qb-how-h">How it works</h2>
               <ol>
