@@ -337,7 +337,7 @@
   font-family: var(--f-px); font-weight: 700; font-size: 13px; line-height: 1; color: var(--lp-ink); background: #fff; border: 2px solid var(--lp-line); border-radius: 6px; box-shadow: 0 2px 0 var(--lp-shadow); transition: transform .08s, background-color .3s; }
 .lp a.qb-sq:hover, .lp button.qb-sq:hover { transform: translateY(-2px); }
 .lp .qb-sq:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
-.lp .qb-sq.is-needs { background: var(--lp-needs); color: #fff; }
+.lp .qb-sq.is-needs { background: var(--lp-needs); color: #1f1a18; }
 .lp .qb-sq.is-rusty { background: var(--lp-rusty); }
 .lp .qb-sq.is-developing { background: linear-gradient(135deg, var(--lp-dev) 50%, #fff 50%); border-color: var(--lp-strong); }
 .lp .qb-sq.is-strong { background: var(--lp-strong); color: #fff; }

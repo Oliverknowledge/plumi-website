@@ -156,6 +156,7 @@
 .lp-shelf-book:active { transform: translateY(-8px) rotate(-1deg); }
 .lp-shelf-book:hover .lp-label, .lp-shelf-book:focus-within .lp-label { background: var(--lp-ink); color: #fdf9f1; border-color: var(--lp-ink); }
 .lp-shelf-book:hover .lp-label small, .lp-shelf-book:focus-within .lp-label small { color: #f2e6d2; }
+html:not([data-theme="dark"]) .lp-shelf-book:hover .lp-label .lp-open, html:not([data-theme="dark"]) .lp-shelf-book:focus-within .lp-label .lp-open { color: var(--lp-gold); }
 .lp-label .lp-open { display: block; margin-top: 6px; font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-gold); max-height: 0; opacity: 0; overflow: hidden; transition: max-height .16s, opacity .16s; }
 .lp-shelf-book:hover .lp-open, .lp-shelf-book:focus-within .lp-open { max-height: 24px; opacity: 1; }
 .lp .lp-label:focus-visible { outline: 3px solid var(--lp-blue); outline-offset: 3px; }

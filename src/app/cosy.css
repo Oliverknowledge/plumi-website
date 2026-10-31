@@ -18,8 +18,8 @@
 
 .lp, .consent {
   --lp-paper: #f6efe1; --lp-paper-2: #efe5d0; --lp-rule: #d5e1ef; --lp-margin: #e9a89a; --lp-spiral: #9b8b7e;
-  --lp-ink: #4a3a36; --lp-ink-soft: #7a665d; --lp-line: #5b4741; --lp-shadow: #5b4741;
-  --lp-card-bg: #fdf9f1; --lp-blue: #4f86c6; --lp-blue-soft: #a9cbeb; --lp-orange: #d9702f; --lp-gold: #f2c96b; --lp-teal: #7cc6c2; --lp-red: #e0605a;
+  --lp-ink: #4a3a36; --lp-ink-soft: #6b5850; --lp-line: #5b4741; --lp-shadow: #5b4741;
+  --lp-card-bg: #fdf9f1; --lp-blue: #3266a3; --lp-blue-soft: #a9cbeb; --lp-orange: #a8521c; --lp-gold: #f2c96b; --lp-teal: #7cc6c2; --lp-red: #e0605a;
   --lp-needs: #e0605a; --lp-rusty: #f0a53a; --lp-dev: #a9cbeb; --lp-strong: #3d6fd6;
   --lp-gutter: max(16px, env(safe-area-inset-left, 0px));
   --f-px: var(--lp-font-px), ui-monospace, monospace;
@@ -122,7 +122,7 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
    Question bank and Past papers and the Discord stay in the bar down to 980px, where it all hides. */
 .lp .lp-nav nav a { white-space: nowrap; }
 @media (max-width: 1100px) { .lp .lp-nav nav a[href$="#friends"] { display: none; } }
-.lp .lp-nav nav a.lp-nav-discord { display: inline-flex; align-items: center; gap: 6px; color: #5865f2; }
+.lp .lp-nav nav a.lp-nav-discord { display: inline-flex; align-items: center; gap: 6px; color: #4752c4; }
 .lp .lp-nav nav a.lp-nav-discord svg { width: 18px; height: 18px; }
 .lp .lp-navbtn { margin-left: auto; padding: 7px 16px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); }
 
@@ -138,6 +138,8 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
 .lp-bar span { margin-left: auto; color: #e9dccb; font-family: var(--f-px); font-size: 14px; }
 .lp-m { font-family: var(--f-body); font-weight: 800; font-size: 12.5px; padding: 1px 8px; border-radius: 7px; border: 2px solid var(--lp-line); color: var(--lp-ink); }
 .lp-m.is-needs { background: var(--lp-needs); }
+/* Text on a saturated chip (the red marks, the hard levels, a board's colour on a cover): near-black, which keeps 4.5:1 on all of them. */
+.lp :is(.lp-m.is-needs, .lp-pa-mk.is-no, .pk-pill.pk-lv-hard, .pk-pill.pk-lv-super-hard, .pk-cover-board, .lp-book-kicker, .lp-traits li i[style*="--lp-red"]) { color: #1f1a18; }
 .lp-step { padding: 18px 20px; display: grid; gap: 6px; align-content: start; }
 .lp-num { font-family: var(--f-px); font-weight: 700; color: var(--lp-orange); font-size: 18px; }
 .lp-step p { font-weight: 600; color: var(--lp-ink-soft); font-size: 16px; }

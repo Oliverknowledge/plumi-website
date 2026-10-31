@@ -59,8 +59,8 @@ html[data-theme="dark"] .lp .pk-past-strip { background: rgba(44, 37, 34, .6); b
 /* Paper stays paper: a question sheet, the marked page and the screenshots keep the light notebook's colours inside them. */
 html[data-theme="dark"] .lp .lp-page, html[data-theme="dark"] .lp .lp-sp-paper, html[data-theme="dark"] .lp .lp-sp-screen,
 html[data-theme="dark"] .lp .lp-stamp, html[data-theme="dark"] .lp .pk-stamp {
-  --lp-ink: #4a3a36; --lp-ink-soft: #7a665d; --lp-line: #5b4741; --lp-shadow: #5b4741; --lp-card-bg: #fdf9f1; --lp-paper-2: #efe5d0;
-  --lp-blue: #4f86c6; --lp-orange: #d9702f; --lp-gold: #f2c96b; color: #4a3a36;
+  --lp-ink: #4a3a36; --lp-ink-soft: #6b5850; --lp-line: #5b4741; --lp-shadow: #5b4741; --lp-card-bg: #fdf9f1; --lp-paper-2: #efe5d0;
+  --lp-blue: #3266a3; --lp-orange: #a8521c; --lp-gold: #f2c96b; color: #4a3a36;
 }
 
 /* ── The questions in dark (30 October). A question is a black-on-white scan, so it is inverted: white ink on the sheet's own dark,
