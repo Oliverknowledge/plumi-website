@@ -140,6 +140,8 @@ export interface BankPart {
   msq?: 1;
   /** No cropped scheme: the whole paper's mark scheme PDF, relative to the papers base. */
   msf?: string;
+  /** Has a worked solution, public/question-bank/<slug>/solutions/<id>.json (scripts/question-bank/solutions). */
+  sol?: 1;
   /** A multiple-choice question's answer letter, where the scheme is a key rather than a table. */
   k?: string;
   /** Asks for a calculation; in a bank with `calcPapers`, sits on a paper that allows a calculator. */

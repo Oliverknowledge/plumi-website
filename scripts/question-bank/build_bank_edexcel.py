@@ -89,6 +89,8 @@ def main():
             if p.get("er"):
                 row["er"] = 1
                 reports.setdefault(p["id"], p["er"])
+            if os.path.exists(os.path.join(ROOT, "public", "question-bank", subj_slug, "solutions", f"{p['id']}.json")):
+                row["sol"] = 1  # a worked solution beside the bank (scripts/question-bank/solutions)
             rows.append(row)
             text[p["id"]] = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", p["text"] + " " + p.get("msText", "")).lower())
         rows.sort(key=lambda r: (-series_rank(r["s"]), paper_order(r["p"]), int(r["l"])))

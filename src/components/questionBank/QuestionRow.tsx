@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
@@ -11,6 +12,12 @@ import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
+
+/** A worked solution and KaTeX load only when a student opens one. */
+const WorkedSolution = dynamic(() => import("./WorkedSolution").then(m => m.WorkedSolution), {
+  ssr: false,
+  loading: () => <p className="qb-note-label">Opening the worked solution…</p>,
+});
 
 /** Examiner's reports for a subject, fetched once the first time anyone opens one. */
 const reports: Record<string, Promise<Record<string, string>>> = {};
@@ -74,7 +81,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   before?: BankPart[];
   embed?: { cta: ReactNode };
 }) {
-  const [open, setOpen] = useState<{ ms?: boolean; er?: boolean; stem?: boolean }>({});
+  const [open, setOpen] = useState<{ ms?: boolean; sol?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
   const part = parts[0];
   const many = parts.length > 1;
@@ -90,6 +97,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const marks = marked.length ? marked.reduce((sum, p) => sum + (p.m ?? 0), 0) : null;
   const topics = [...new Set(parts.flatMap(p => p.t))].slice(0, many ? 3 : 2);
   const withScheme = parts.filter(p => p.ms || p.k);
+  const withSolution = parts.filter(p => p.sol);
   const inWhole = withScheme.filter(p => p.msq).map(p => p.l);
   const inWholeNames = inWhole.length > 1 ? `${inWhole.slice(0, -1).join(", ")} and ${inWhole[inWhole.length - 1]}` : inWhole[0];
   // Parts with no crop of their own keep the PDF, beside the others' schemes when a question has both.
@@ -110,7 +118,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
     </button>
   );
 
-  function flip(key: "ms" | "er" | "stem") {
+  function flip(key: "ms" | "sol" | "er" | "stem") {
     const next = !open[key];
     setOpen(o => ({ ...o, [key]: next }));
     if (next && key !== "stem") track("bank_reveal", { subject: subject.slug, kind: key, part: many ? questionKey(part) : part.id });
@@ -140,6 +148,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         <div className="qb-keys">
           {withScheme.length > 0 && (
             <button type="button" className={`qb-key${open.ms ? " is-open" : ""}`} aria-expanded={!!open.ms} onClick={() => flip("ms")}>{!many && part.k ? "Answer" : "Mark scheme"}</button>
+          )}
+          {withSolution.length > 0 && (
+            <button type="button" className={`qb-key${open.sol ? " is-open" : ""}`} aria-expanded={!!open.sol} onClick={() => flip("sol")}>Worked solution</button>
           )}
           {schemePdf && (
             <a className="qb-key" href={`${papersBase}/${schemePdf}`} target="_blank" rel="noopener">Mark scheme (PDF)</a>
@@ -210,6 +221,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
+        {open.sol && withSolution.map(p => <WorkedSolution key={`${p.id}-sol`} slug={subject.slug} id={p.id} question={p.l} />)}
         {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
         {!embed && pdfOnly.map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>
