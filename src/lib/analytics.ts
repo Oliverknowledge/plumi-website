@@ -58,6 +58,18 @@ export type PlumiEvent =
   /** A student started typing an answer to a bank question (`subject`, `part`), once a part a visit. */
   | "bank_answer_started"
   | "bank_redo"
+  /** Accounts (lib/account): the sign-in sheet opened (`reason`: header, marks, library),
+   *  a sign-in begun or finished (`method`: email or google), signing out. */
+  | "signin_prompted"
+  | "signin_started"
+  | "signin_completed"
+  | "signed_out"
+  /** "Join the library" (lib/library): the card shown, a student joined (`colour`), a name
+   *  refused (`why`: the rule's reason, never the name), the library left. */
+  | "library_join_shown"
+  | "library_joined"
+  | "library_name_refused"
+  | "library_left"
   /** The partner embed (/embed/question-bank): shown (`embed_view`) and a link
    *  out to Plumi pressed (`embed_cta_click`). Both carry `partner`, `subject`, `topic`. */
   | "embed_view"
