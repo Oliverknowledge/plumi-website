@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AccountButton } from "@/components/account/Account";
 import { AndroidHeaderButton } from "@/components/home/AndroidLink";
 import { HeaderDownload } from "@/components/home/AppStoreBadge";
 import { DiscordButton } from "@/components/cosy/DiscordButton";
@@ -17,7 +18,7 @@ import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
  * landing.css (the homepage's sections) and pages.css (subject, intent and legal pages).
  */
 
-/** The header: logo, the free practice, the homepage's sections, the Discord, and the download key. */
+/** The header: logo, the free practice, the homepage's sections, the Discord, your account, and the download key. */
 export function CosyHeader({ home = false }: { home?: boolean }) {
   return (
     <header className="lp-nav">
@@ -32,6 +33,7 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
           <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
+        <AccountButton />
         <AndroidHeaderButton />
         <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" appleMark />
         <ThemeToggle />

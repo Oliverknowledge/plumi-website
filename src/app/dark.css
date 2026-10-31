@@ -128,3 +128,9 @@ html[data-theme="dark"] .lp .lp-pa-tile-ico { color: var(--lp-ink); }
 /* Send to my iPad's panel floats over the page: its edge and drop in the dark line and shadow, not the light notebook's brown */
 html[data-theme="dark"] .hp-desk-panel { border-color: var(--lp-line, #8a7365); box-shadow: 0 6px 0 #0c0a09; }
 html[data-theme="dark"] .hp-desk-actions button { border-color: var(--lp-line, #8a7365); }
+
+/* Accounts: the sign-in sheet's and Join the library's fields and notes (cosy.css). */
+html[data-theme="dark"] .lp { --lp-field: #1f1a18; --lp-dash: #5a4a42; --lp-note: #3a302b; }
+html[data-theme="dark"] .lp-signin::backdrop { background: rgb(0 0 0 / .6); }
+html[data-theme="dark"] .lp-signin-error, html[data-theme="dark"] .lp-join-why { color: #f08a84; }
+html[data-theme="dark"] .lp-signin-error { background: #3a2422; border-color: #7a3a36; }
