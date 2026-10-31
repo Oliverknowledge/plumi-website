@@ -32,7 +32,7 @@ export function PastPapersHub() {
             <span className="lp-eyebrow">Free · no sign‑up</span>
             <h1>{display(intent.h1.replace(/ past papers$/, ""))} <em>past papers</em></h1>
             <p className="lp-lead">
-              Maths, Further Maths, Biology, Chemistry and Physics, for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge, AQA GCSE English Language and Edexcel GCSE Computer Science.
+              Maths, Further Maths, Biology, Chemistry and Physics, for AQA, Edexcel, OCR, WJEC, Eduqas and Cambridge, AQA GCSE English Language, Edexcel GCSE Computer Science and Edexcel A-Level Economics B.
               Every paper each board publishes, with its mark scheme, a whole board on one page.
             </p>
             <AskForSubjectHint />
