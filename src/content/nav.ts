@@ -11,10 +11,9 @@ import { discordUrl } from "@/config/site";
  * The footer holds every indexable page, the community and the legal pair, so every
  * page stays one click from every other page.
  */
-// "How it marks" left the bar (founder, 30 October 2026) to make room for the Android waitlist button.
-export const sectionLinks: readonly (readonly [string, string])[] = [
-  ["Study with friends", "friends"],
-];
+// "How it marks" left the bar (founder, 30 October 2026) to make room for the Android waitlist button, and
+// "Study with friends" followed it on 31 October. The homepage still has the section; the bar does not link to it.
+export const sectionLinks: readonly (readonly [string, string])[] = [];
 
 // The question bank first, then the boards' past papers (founder, 30 October 2026), then a student's
 // own revision board across their subjects (31 October 2026). Plumi's own
