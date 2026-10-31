@@ -90,54 +90,107 @@ export function onUser(cb: (userId: string | null) => void) {
 
 /* ── Signing in ──────────────────────────────────────────────────────────── */
 
+/**
+ * Signing in happens on its own page, /sign-in (and /sign-up), the library on one side and
+ * the form on the other (founder, 31 October 2026, after lofi.town's). Ways in: Google, an
+ * email and password, or a code sent by email. The code is there for every student who
+ * made their account on iPad, which has no passwords (Apple, Google or an email code).
+ */
 export type SignInReason = "header" | "marks" | "library";
 
-/** Where a sign-in link or Google sends the student back to: /auth/callback, then this page. */
-function callbackUrl(reason: SignInReason, method: "email" | "google") {
+/** Only somewhere on this site: "/question-bank/x?y", never "//elsewhere" or "https://…". */
+export const safeNext = (next: string | null | undefined) => (next && next.startsWith("/") && !next.startsWith("//") ? next : "/question-bank");
+
+/** The sign-in page, coming back to `next` (this page, by default). */
+export function signInHref(reason: SignInReason, next?: string, page: "sign-in" | "sign-up" = "sign-in") {
+  const back = next ?? (typeof window === "undefined" ? "/" : `${window.location.pathname}${window.location.search}`);
+  return `/${page}?next=${encodeURIComponent(back)}${reason === "header" ? "" : `&why=${reason}`}`;
+}
+
+/** Where an email link or Google sends the student back to: /auth/callback, then `next`. */
+function callbackUrl(reason: SignInReason, method: "email" | "google", next: string) {
   try { sessionStorage.setItem("plumi.signin.reason", `${method}:${reason}`); } catch { /* fine without */ }
-  const back = `${window.location.pathname}${window.location.search}`;
-  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(back)}`;
+  return `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext(next))}`;
 }
 
-/** Email a sign-in link (and code, where the template has one). New addresses become accounts, marked as made on the website by someone 13 or over. */
-export async function sendCode(email: string, reason: SignInReason) {
+const META = { age_band: "13_plus", signed_up_on: "web" };
+const off = { error: "Sign-in isn’t switched on here yet." };
+const done = (method: string, reason: SignInReason) => { track("signin_completed", { method, reason }); return { error: null }; };
+const codeTrouble = (message: string) => /rate|seconds/i.test(message) ? "Emails are limited to one a minute. Try again shortly." : "That didn’t send. Check the address and try again.";
+const codeWrong = (message: string) => /expired/i.test(message) ? "That code has expired. Send a new one." : "That code doesn’t match. Check it and try again.";
+
+/** Email a code (and a link). New addresses become accounts, marked as made on the website by someone 13 or over. */
+export async function sendCode(email: string, reason: SignInReason, next: string) {
   const sb = supabase();
-  if (!sb) return { error: "Sign-in isn’t switched on here yet." };
+  if (!sb) return off;
   track("signin_started", { method: "email", reason });
-  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: callbackUrl(reason, "email"), data: { age_band: "13_plus", signed_up_on: "web" } } });
-  if (!error) return { error: null };
-  return { error: /rate|seconds/i.test(error.message) ? "Codes are limited to one a minute. Try again shortly." : "That didn’t send. Check the address and try again." };
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: callbackUrl(reason, "email", next), data: META } });
+  return { error: error ? codeTrouble(error.message) : null };
 }
 
-export async function verifyCode(email: string, token: string, reason: SignInReason) {
+/** The emailed code, for signing in, finishing signing up, or (`recovery`) setting a new password. */
+export async function verifyCode(email: string, token: string, reason: SignInReason, type: "email" | "recovery" = "email") {
   const sb = supabase();
-  if (!sb) return { error: "Sign-in isn’t switched on here yet." };
-  const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
-  if (error) return { error: /expired/i.test(error.message) ? "That code has expired. Send a new one." : "That code doesn’t match. Check it and try again." };
-  track("signin_completed", { method: "email", reason });
+  if (!sb) return off;
+  let { error } = await sb.auth.verifyOtp({ email, token, type });
+  // A password sign-up's confirmation is a "signup" code to older servers.
+  if (error && type === "email") ({ error } = await sb.auth.verifyOtp({ email, token, type: "signup" }));
+  if (error) return { error: codeWrong(error.message) };
+  return type === "email" ? done("email", reason) : { error: null };
+}
+
+export async function signInWithPassword(email: string, password: string, reason: SignInReason) {
+  const sb = supabase();
+  if (!sb) return off;
+  track("signin_started", { method: "password", reason });
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (!error) return done("password", reason);
+  if (/confirm/i.test(error.message)) return { error: "Confirm your email first: use the code we sent when you signed up, or sign in with a code." };
+  if (/invalid/i.test(error.message)) return { error: "That email and password don’t match. Made your account on iPad? Sign in with a code instead." };
+  return { error: "That didn’t work. Check your connection and try again." };
+}
+
+/** A new account with a password. The email that follows carries a code to confirm it. */
+export async function signUpWithPassword(email: string, password: string, reason: SignInReason, next: string) {
+  const sb = supabase();
+  if (!sb) return { ...off, confirm: false };
+  track("signin_started", { method: "password_signup", reason });
+  const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: callbackUrl(reason, "email", next), data: META } });
+  if (error) {
+    if (/password/i.test(error.message)) return { error: "Use a longer password: at least 6 characters.", confirm: false };
+    return { error: codeTrouble(error.message), confirm: false };
+  }
+  if (data.session) { done("password_signup", reason); return { error: null, confirm: false }; }
+  return { error: null, confirm: true };
+}
+
+/** "Forgot password?": a code by email, then a new password. */
+export async function sendReset(email: string) {
+  const sb = supabase();
+  if (!sb) return off;
+  track("password_reset_started", {});
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/sign-in?set=1")}` });
+  return { error: error ? codeTrouble(error.message) : null };
+}
+
+export async function setPassword(password: string) {
+  const sb = supabase();
+  if (!sb) return off;
+  const { error } = await sb.auth.updateUser({ password });
+  if (error) return { error: /different|same/i.test(error.message) ? "Pick a password you haven’t used here before." : "Use a longer password: at least 6 characters." };
+  track("password_set", {});
   return { error: null };
 }
 
-/** Off to Google, and back to /auth/callback, which finishes and returns to this page. */
-export async function signInWithGoogle(reason: SignInReason) {
+/** Off to Google, and back to /auth/callback, which finishes and goes on to `next`. */
+export async function signInWithGoogle(reason: SignInReason, next: string) {
   const sb = supabase();
   if (!sb) return;
   track("signin_started", { method: "google", reason });
-  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: callbackUrl(reason, "google") } });
+  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: callbackUrl(reason, "google", next) } });
 }
 
 export async function signOut() {
   await supabase()?.auth.signOut();
   track("signed_out", {});
 }
-
-/* The sign-in sheet: any page can open it, and say why, so the sheet's words fit the moment. */
-let sheet: SignInReason | null = null;
-const sheetListeners = new Set<() => void>();
-export function openSignIn(reason: SignInReason) {
-  sheet = reason;
-  track("signin_prompted", { reason });
-  sheetListeners.forEach(l => l());
-}
-export function closeSignIn() { sheet = null; sheetListeners.forEach(l => l()); }
-export const useSignInSheet = () => useSyncExternalStore(cb => { sheetListeners.add(cb); return () => { sheetListeners.delete(cb); }; }, () => sheet, () => null);

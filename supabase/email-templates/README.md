@@ -11,6 +11,7 @@ Then paste each file into Authentication → Emails → Templates:
 |---|---|---|
 | Confirm sign up (a new address) | `Your Plumi code: {{ .Token }}` | `confirm-signup.html` |
 | Magic link or OTP (an existing address) | `Your Plumi code: {{ .Token }}` | `magic-link.html` |
+| Reset password ("Forgot password?") | `Your Plumi code: {{ .Token }}` | `reset-password.html` |
 
 Both lead with the code, because a code works on any device: the app asks for it, and on the website
 it works even if the email is opened on a phone. The link is kept for the website, where it signs

@@ -58,12 +58,15 @@ export type PlumiEvent =
   /** A student started typing an answer to a bank question (`subject`, `part`), once a part a visit. */
   | "bank_answer_started"
   | "bank_redo"
-  /** Accounts (lib/account): the sign-in sheet opened (`reason`: header, marks, library),
-   *  a sign-in begun or finished (`method`: email or google), signing out. */
+  /** Accounts (lib/account, /sign-in and /sign-up): the page opened (`reason`: header, marks,
+   *  library; `page`), a sign-in begun or finished (`method`: google, email (a code), password,
+   *  password_signup), signing out, and "Forgot password?" begun and a new password set. */
   | "signin_prompted"
   | "signin_started"
   | "signin_completed"
   | "signed_out"
+  | "password_reset_started"
+  | "password_set"
   /** "Join the library" (lib/library): the card shown, a student joined (`colour`), a name
    *  refused (`why`: the rule's reason, never the name), the library left. */
   | "library_join_shown"

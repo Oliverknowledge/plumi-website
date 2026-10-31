@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import { openSignIn, useAccount } from "@/lib/account";
+import { safeNext, signInHref, useAccount } from "@/lib/account";
 
 const noop = () => () => {};
-/** Only somewhere on this site: "/question-bank/x?y", never "//elsewhere" or "https://…". */
-const safe = (next: string | null) => (next && next.startsWith("/") && !next.startsWith("//") ? next : "/question-bank");
+const safe = safeNext;
 
 export function AuthCallback() {
   const account = useAccount();
@@ -46,7 +45,7 @@ export function AuthCallback() {
           <h1>That didn’t work</h1>
           <p>{failed}</p>
           <span className="lp-callback-btns">
-            <button type="button" className="lp-btn" onClick={() => openSignIn("header")}>Sign in again</button>
+            <Link className="lp-btn" href={signInHref("header", safe(params.get("next")))}>Sign in again</Link>
             <Link className="qb-link" href={safe(params.get("next"))}>Back to where you were</Link>
           </span>
         </>

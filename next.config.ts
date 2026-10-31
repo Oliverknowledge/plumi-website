@@ -32,11 +32,14 @@ const nextConfig: NextConfig = {
   /**
    * Security headers.
    *
-   * The site has no accounts, no user content and one form, so this is a short
-   * list — but a site collecting email addresses with no headers at all is an
-   * easy finding for anyone who looks.
+   * Accounts sign in from the browser straight to Supabase, so this is still a
+   * short list — but a site collecting email addresses with no headers at all is
+   * an easy finding for anyone who looks.
+   *
+   * 127.0.0.1 is localhost's twin with its own storage: a signed-out window onto
+   * the dev server, for trying /sign-in without signing out (development only).
    */
-  allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud"],
+  allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud", "127.0.0.1"],
   async headers() {
     return [
       {

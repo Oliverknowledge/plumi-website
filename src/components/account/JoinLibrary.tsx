@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { openSignIn, useAccount } from "@/lib/account";
+import { signInHref, useAccount } from "@/lib/account";
 import { track } from "@/lib/analytics";
 import { COLOUR_NAMES, LIBRARY_COLOURS, colourOf, generatedName, joinLibrary, leaveLibrary, nameProblem, suggestedName, useLibrary } from "@/lib/library";
 
@@ -14,14 +14,19 @@ import { COLOUR_NAMES, LIBRARY_COLOURS, colourOf, generatedName, joinLibrary, le
  */
 
 let open = false;
-let pending = false;
+// Asked to join while signed out: remembered across the trip to /sign-in and back.
+const PENDING = "plumi.join.pending";
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach(l => l());
 const useOpen = () => useSyncExternalStore(cb => { listeners.add(cb); return () => { listeners.delete(cb); }; }, () => open, () => false);
 
 /** Open the card; signed out, sign in first and it opens after. */
 export function openJoinLibrary(signedIn: boolean) {
-  if (!signedIn) { pending = true; openSignIn("library"); return; }
+  if (!signedIn) {
+    try { sessionStorage.setItem(PENDING, "1"); } catch { /* fine without */ }
+    window.location.assign(signInHref("library"));
+    return;
+  }
   open = true; emit();
 }
 const closeJoin = () => { open = false; emit(); };
@@ -79,7 +84,12 @@ export function JoinLibrarySheet() {
   const [error, setError] = useState<string | null>(null);
 
   // Signed in after "Join the library" sent them to sign in: carry on to the card.
-  useEffect(() => { if (account.user && pending) { pending = false; open = true; emit(); } }, [account.user]);
+  useEffect(() => {
+    if (!account.user) return;
+    let asked = false;
+    try { asked = sessionStorage.getItem(PENDING) === "1"; sessionStorage.removeItem(PENDING); } catch { /* fine without */ }
+    if (asked) { open = true; emit(); }
+  }, [account.user]);
 
   useEffect(() => {
     const d = ref.current;

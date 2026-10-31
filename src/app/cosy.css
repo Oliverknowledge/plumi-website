@@ -215,32 +215,23 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
 .lp-acct-leave { display: grid; gap: 6px; }
 .lp .lp-acct-link { padding: 0; font-size: inherit; }
 
-/* The sign-in sheet and "Join the library": a card on a dimmed page; on a phone, a sheet up from the bottom. */
+/* "Join the library": a card on a dimmed page; on a phone, a sheet up from the bottom (signing in is its own page, auth.css). */
 /* The site's reset zeroes every margin, so the modal's own centring is put back. */
 .lp { --lp-field: #fff; --lp-dash: #d8c8ad; --lp-note: #fff4dd; }
 .lp-signin { margin: auto; padding: 0; border: 0; background: transparent; max-width: min(440px, calc(100vw - 32px)); width: 100%; overflow: visible; color: var(--lp-ink); }
 .lp-signin::backdrop { background: rgb(43 35 38 / .45); }
 .lp-signin-card { position: relative; display: grid; gap: 14px; padding: 26px 24px 20px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 18px; box-shadow: 0 8px 0 var(--lp-shadow); font-family: var(--f-body); }
-.lp-signin-quill { justify-self: center; margin-top: -60px; width: 72px; height: 72px; image-rendering: pixelated; }
 .lp-signin h2 { margin: 0; text-align: center; font-family: var(--f-px); font-weight: 700; font-size: 24px; line-height: 1.15; text-wrap: balance; }
 .lp-signin-lead { text-align: center; font-size: 14.5px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp-signin-x { position: absolute; top: 8px; right: 10px; appearance: none; cursor: pointer; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; font-size: 26px; line-height: 1; color: var(--lp-ink-soft); }
 .lp-signin-x:hover { background: var(--lp-paper-2); color: var(--lp-ink); }
-.lp-signin-google { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; font-family: var(--f-body); font-weight: 800; font-size: 16px; color: #1f1f1f; background: #fff; border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); }
-.lp-signin-google:disabled, .lp-signin-go:disabled { cursor: not-allowed; opacity: .5; }
-.lp-signin-or { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--lp-ink-soft); }
-.lp-signin-or::before, .lp-signin-or::after { content: ""; flex: 1; border-top: 2px dashed var(--lp-dash); }
 .lp-signin-form { display: grid; gap: 8px; }
 .lp-signin-form label, .lp-join-colours legend { font-size: 14px; font-weight: 800; color: var(--lp-ink-soft); }
 .lp-signin-form input { min-width: 0; min-height: 46px; padding: 8px 12px; font: inherit; font-weight: 700; font-size: 16px; color: var(--lp-ink); background: var(--lp-field); border: 2px solid var(--lp-line); border-radius: 11px; }
 .lp-signin-form input:focus { outline: 3px solid var(--lp-orange); outline-offset: 1px; }
-.lp-signin-code { font-family: var(--f-px) !important; font-size: 26px !important; letter-spacing: .3em; text-align: center; }
 .lp .lp-signin-go { justify-content: center; background: #f2c96b; color: #3a2a05; }
-.lp-signin-alt { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 14px; }
-.lp-signin-error { font-size: 14px; font-weight: 800; color: #b8403a; background: #fdecea; border: 2px solid #e8a9a4; border-radius: 10px; padding: 8px 12px; }
 .lp-signin-legal { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--lp-ink-soft); }
 .lp-signin-legal a { color: var(--lp-blue); }
-.lp-signin-sent { display: grid; gap: 6px; padding: 12px 14px; background: var(--lp-note); border: 2px solid var(--lp-line); border-radius: 12px; font-size: 14.5px; font-weight: 600; }
 
 /* Join the library: the badge is your initial in your colour, as on iPad. */
 .lp-join-badge { justify-self: center; margin-top: -58px; width: 68px; height: 68px; display: grid; place-items: center; border-radius: 50%; border: 3px solid var(--lp-line); box-shadow: 0 4px 0 var(--lp-shadow); color: #fff; font-family: var(--f-px); font-weight: 700; font-size: 32px; transition: background .15s ease; }
