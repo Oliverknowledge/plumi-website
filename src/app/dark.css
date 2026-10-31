@@ -101,3 +101,9 @@ html[data-theme="dark"] .lp .lp-ts-stars { opacity: 1; }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 html.lp-theme-fading, html.lp-theme-fading *, html.lp-theme-fading *::before, html.lp-theme-fading *::after { transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, box-shadow .4s ease !important; }
 @media (prefers-reduced-motion: reduce) { html.lp-theme-fading, html.lp-theme-fading * { transition: none !important; } .lp .lp-themeswitch, .lp .lp-ts-thumb, .lp .lp-ts-thumb svg { transition: none; } }
+
+/* the bank's one card (question-bank.css): its dashed rules a quiet line, the score's empty cells dim and its lit ones bright */
+html[data-theme="dark"] .lp :is(.qb-onecard-head, .qb-onecard .qb-topics, .qb-glance > * + *, .qb-glance .qb-fortnight, .qb-glance ~ .qb-prog-more[open]) { border-color: #4a3e38; }
+html[data-theme="dark"] .lp .qb-score-bar i { background: rgb(243 233 217 / .1); }
+html[data-theme="dark"] .lp .qb-score-bar i.is-on { background: #e8b84f; }
+html[data-theme="dark"] .lp .qb-prog-row-text b { color: #f08a84; }

@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
 import { inBand, markBands } from "@/lib/markBands";
 import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
-import { BankProgress } from "./BankProgress";
+import { BankProgress, MarkingBadge } from "./BankProgress";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
@@ -125,6 +125,8 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
   // On a phone the filters start folded, so the first question is on screen; after that it's the reader's call.
   const isPhone = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false);
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  // On a desk, finding questions, your marking and your history are three tabs of one card.
+  const [cardTab, setCardTab] = useState<"find" | "overview" | "history">("find");
   const panelOpen = userOpen ?? !isPhone;
   // On a phone, once the filters have scrolled away, a pill brings them back.
   const [panelGone, setPanelGone] = useState(false);
@@ -134,7 +136,7 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     const io = new IntersectionObserver(([e]) => setPanelGone(!e.isIntersecting && e.boundingClientRect.top < 0));
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [isPhone]); // the phone's filters and the desk's card are different elements
 
   useEffect(() => {
     fetch(bankDataPath(subject.slug, "parts")).then(r => r.json()).then(setParts).catch(() => setParts(null));
@@ -482,6 +484,207 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
     </div>
   );
 
+  const filterBody = (
+      <div className="qb-desk-body">
+        {hasYears && !isPhone && yearSwitch}
+        {!lockedTopic && (
+          <fieldset className="qb-topics">
+            <legend><span className="qb-label">Topics</span> <span className="qb-hint">Pick as many as you like. Open one to choose its sub-topics.</span></legend>
+            {years.map(y => (
+              <div key={y.year} className="qb-year">
+                <p className="qb-year-label">{y.label}</p>
+                <div className="qb-tiles">
+                  {y.groups.map(g => {
+                    const codes = g.topics.map(t => t.code);
+                    const state = groupState(codes);
+                    const count = codes.reduce((sum, c) => sum + (n("topics", c) ?? 0), 0);
+                    return (
+                      <div key={g.key} className={`qb-tile${state ? " is-on" : ""}${openGroup === g.key ? " is-open" : ""}`}>
+                        <button type="button" role="checkbox" aria-checked={state} className="qb-check" onClick={() => toggleGroup(codes)}>
+                          <span className="qb-box" aria-hidden="true">{state === "mixed" ? "–" : state ? "✓" : ""}</span>
+                          <span>{g.title}{counts && <span className="qb-n"> {count}</span>}</span>
+                        </button>
+                        <button type="button" className="qb-open" aria-expanded={openGroup === g.key} aria-label={`Sub-topics of ${g.title}`}
+                          onClick={() => setOpenGroup(o => (o === g.key ? null : g.key))}>{openGroup === g.key ? "−" : "+"}</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                {y.groups.filter(g => g.key === openGroup).map(g => (
+                  <div key={g.key} className="qb-subs">
+                    {g.topics.map(t => (
+                      <button key={t.code} type="button" role="checkbox" aria-checked={f.topics.includes(t.code)}
+                        className={`qb-check qb-sub${f.topics.includes(t.code) ? " is-on" : ""}${!f.topics.includes(t.code) && n("topics", t.code) === 0 ? " is-empty" : ""}`}
+                        onClick={() => update({ topics: toggle(f.topics, t.code) })}>
+                        <span className="qb-box" aria-hidden="true">{f.topics.includes(t.code) ? "✓" : ""}</span>
+                        <span>{topicRef(t) && <><span className="qb-code">{topicRef(t)}</span> </>}{t.title}{counts && <span className="qb-n"> {n("topics", t.code) ?? 0}</span>}</span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </fieldset>
+        )}
+
+        {bands.length > 0 && (
+          <div className="qb-field qb-types" role="group" aria-labelledby="qb-types-label">
+            <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">by the marks it’s worth</span></span>
+            <div className="qb-type-chips">
+              {bands.map(b => {
+                const on = f.marks.includes(b.id);
+                return (
+                  <button key={b.id} type="button" aria-pressed={on} className={`qb-type${on ? " is-on" : ""}`} onClick={() => update({ marks: toggle(f.marks, b.id) })}>
+                    {b.label}{counts && <span className="qb-n"> {n("marks", b.id) ?? 0}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="qb-row-controls">
+          {/* A student sits one option (their religion): picking it keeps its papers and topics and the ones everyone sits. */}
+          {subject.options && !lockedTopic && (
+            <label className="qb-field">
+              <span className="qb-label">{subject.options.label}</span>
+              <select value={opt} onChange={e => {
+                const o = e.target.value;
+                update({ opt: o, papers: f.papers.filter(id => !o || !optionOf.get(id) || optionOf.get(id) === o) });
+              }}>
+                <option value="">All</option>
+                {subject.options.list.map(o => <option key={o.id} value={o.id}>{o.name}{counts ? ` (${(n("opt", o.id) ?? 0) + (n("opt", "") ?? 0)})` : ""}</option>)}
+              </select>
+            </label>
+          )}
+          <div className="qb-field">
+            <span className="qb-label" id="qb-paper-label">Paper</span>
+            <details className="qb-multi" ref={paperRef}>
+              <summary aria-labelledby="qb-paper-label qb-paper-summary"><span id="qb-paper-summary">{paperSummary}</span></summary>
+              <div className="qb-multi-list" role="group" aria-label="Papers">
+                <div className="qb-multi-quick">
+                  <button type="button" className="qb-link" onClick={() => update({ papers: [] })}>All papers</button>
+                  {(["Higher", "Foundation"] as const).map(tier => tierPapers(tier).length > 1 && (
+                    <button key={tier} type="button" className="qb-link" onClick={() => update({ papers: tierPapers(tier) })}>{tier} only</button>
+                  ))}
+                </div>
+                {shownPapers.map(p => (
+                  <label key={p.id}>
+                    <input type="checkbox" checked={!f.papers.length || f.papers.includes(p.id)} onChange={e => togglePaper(p.id, e.target.checked)} />
+                    {p.name}{p.title ? ` · ${p.title}` : ""}{counts && <span className="qb-n"> {n("papers", p.id) ?? 0}</span>}
+                  </label>
+                ))}
+              </div>
+            </details>
+          </div>
+          <div className="qb-field">
+            <span className="qb-label" id="qb-exam-label">Exam</span>
+            {/* Every sitting starts ticked: untick the ones to keep back (June 2024 and 2025 for a mock), or tick just one. */}
+            <details className="qb-multi" ref={examRef}>
+              <summary aria-labelledby="qb-exam-label qb-exam-summary"><span id="qb-exam-summary">{seriesSummary}</span></summary>
+              <div className="qb-multi-list" role="group" aria-label="Exam years">
+                <div className="qb-multi-quick">
+                  <button type="button" className="qb-link" onClick={() => update({ series: [] })}>All years</button>
+                  {subject.series.length > 2 && <button type="button" className="qb-link" onClick={() => update({ series: subject.series.slice(2).map(x => x.id) })}>Leave out the latest two</button>}
+                </div>
+                {subject.series.map(x => (
+                  <label key={x.id}>
+                    <input type="checkbox" checked={!f.series.length || f.series.includes(x.id)} onChange={e => toggleSeries(x.id, e.target.checked)} />
+                    {x.label}{counts && <span className="qb-n"> {n("series", x.id) ?? 0}</span>}
+                  </label>
+                ))}
+              </div>
+            </details>
+          </div>
+          <label className="qb-field">
+            <span className="qb-label">Sort</span>
+            <select value={f.sort} onChange={e => update({ sort: e.target.value as Sort })}>
+              <option value="new">Newest first</option>
+              <option value="old">Oldest first</option>
+              <option value="spec">Spec order</option>
+              <option value="marks">Most marks</option>
+              <option value="short">Fewest marks</option>
+            </select>
+          </label>
+          <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
+            <label htmlFor="qb-q" className="qb-label">Search</label>
+            <input id="qb-q" type="search" value={query} enterKeyHint="search"
+              placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
+              onChange={e => setTyped(e.target.value)} onFocus={needText} />
+          </form>
+          {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
+            <span className="qb-label">{subject.calcPapers ? "Calculator" : "Calculations"}</span>
+            <label><input type="checkbox" checked={f.calc === "only"} onChange={e => update({ calc: e.target.checked ? "only" : "" })} /> {subject.calcPapers ? "Allowed" : "Only these"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "only") ?? 0}</span>}</label>
+            <label><input type="checkbox" checked={f.calc === "none"} onChange={e => update({ calc: e.target.checked ? "none" : "" })} /> {subject.calcPapers ? "Not allowed" : "Leave out"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "none") ?? 0}</span>}</label>
+          </div>}
+        </div>
+        <div className="qb-row-toggles">
+          {hasWhole && (
+            <div className="qb-field qb-view" role="radiogroup" aria-label="Show">
+              <span className="qb-label">Show</span>
+              <div className="qb-seg">
+                <button type="button" role="radio" aria-checked={!whole} className={!whole ? "is-on" : ""} onClick={() => update({ view: "parts" })}>Each part</button>
+                <button type="button" role="radio" aria-checked={whole} className={whole ? "is-on" : ""} onClick={() => update({ view: "whole" })}>Whole questions</button>
+              </div>
+            </div>
+          )}
+          {twins && (
+            <div className="qb-field qb-calc" role="group" aria-label="Questions on both tiers">
+              <span className="qb-label">On both tiers</span>
+              <label title="Foundation and Higher papers share some questions: show those once, as the Higher paper prints them">
+                <input type="checkbox" checked={f.once} onChange={e => update({ once: e.target.checked })} /> Show once{counts && !f.once && repeats > 0 && <span className="qb-n"> −{repeats}</span>}
+              </label>
+            </div>
+          )}
+          {hasHistory && (
+            <div className="qb-field qb-calc" role="group" aria-label="Questions you’ve done">
+              <span className="qb-label">Done</span>
+              <label title="Questions you’ve marked stay out of the list; ones you missed come back to have another go">
+                <input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} /> Hide the ones I’ve done{hiddenCount > 0 && <span className="qb-n"> {hiddenCount}</span>}
+              </label>
+            </div>
+          )}
+          {hasPracticals && <div className="qb-field qb-calc" role="group" aria-label="Practicals">
+            <span className="qb-label">Practicals</span>
+            <label><input type="checkbox" checked={f.prac === "only"} onChange={e => update({ prac: e.target.checked ? "only" : "" })} /> Only these{counts && <span className="qb-n"> {n("prac", "only") ?? 0}</span>}</label>
+            <label><input type="checkbox" checked={f.prac === "none"} onChange={e => update({ prac: e.target.checked ? "none" : "" })} /> Leave out</label>
+          </div>}
+        </div>
+        {isPhone && (
+          <button type="button" className="lp-btn qb-show" onClick={showResults}>
+            Show {total.toLocaleString("en-GB")} {total === 1 ? "question" : "questions"}
+          </button>
+        )}
+      </div>
+  );
+
+  const markingProps = {
+    subject, lockedTopic, parts,
+    // A topic picked on the map goes back to Find, where its key shows it's on.
+    onTopic: lockedTopic ? undefined : (code: string) => { update({ topics: [code] }); setCardTab("find"); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); },
+    onAgain: () => { update({ again: true, part: "" }); toResults(); },
+    onRedo: (id: string) => { update({ part: id, again: false }); toResults(); },
+  };
+  const marked = mine ? Object.values(mine).filter(r => r.h.length).length : 0;
+  const cardTabs = [
+    { id: "find" as const, label: <>Find questions <span className="qb-tabs-n">{active > 0 ? `${active} on · ` : ""}{total.toLocaleString("en-GB")}</span></> },
+    { id: "overview" as const, label: <>Your marking</> },
+    ...(marked ? [{ id: "history" as const, label: <>History <span className="qb-tabs-n">{marked}</span></> }] : []),
+  ];
+  // History goes when there's nothing in it (marks cleared in another tab): back to the filters, for good.
+  const tabNow = cardTabs.some(t => t.id === cardTab) ? cardTab : "find";
+  if (cardTab !== tabNow) setCardTab(tabNow);
+  // Arrow keys, Home and End move between the tabs, as a tab list should.
+  const onTabKey = (e: React.KeyboardEvent) => {
+    const i = cardTabs.findIndex(t => t.id === tabNow);
+    const to = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? cardTabs.length - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    const t = cardTabs[(to + cardTabs.length) % cardTabs.length];
+    setCardTab(t.id);
+    document.getElementById(`qb-tab-${t.id}`)?.focus();
+  };
+
   return (
     <div className="qb">
       {isPhone && panelGone && (
@@ -490,191 +693,37 @@ export function QuestionBank({ subject, initial, lockedTopic }: { subject: BankS
         </button>
       )}
 
-      <BankProgress subject={subject} lockedTopic={lockedTopic} compact={isPhone} parts={parts}
-        onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }}
-        onAgain={() => { update({ again: true, part: "" }); toResults(); }}
-        onRedo={id => { update({ part: id, again: false }); toResults(); }} />
+      {!isPhone ? (
+        <section className="lp-card qb-onecard" aria-label="Find questions and your marking" ref={panelRef}>
+          <header className="qb-onecard-head">
+            <div className="qb-tabs" role="tablist" aria-label="Question bank" onKeyDown={onTabKey}>
+              {cardTabs.map(t => (
+                <button key={t.id} id={`qb-tab-${t.id}`} type="button" role="tab" aria-selected={tabNow === t.id} aria-controls="qb-card-panel" tabIndex={tabNow === t.id ? 0 : -1}
+                  className={tabNow === t.id ? "is-on" : ""} onClick={() => setCardTab(t.id)}>{t.label}</button>
+              ))}
+            </div>
+            <MarkingBadge subject={subject} />
+          </header>
+          {/* Both stay mounted, so an open dropdown or the folded map is as it was when you come back. */}
+          <div id="qb-card-panel" role="tabpanel" aria-labelledby={`qb-tab-${tabNow}`}>
+            <div hidden={tabNow !== "find"}>{filterBody}</div>
+            <div hidden={tabNow === "find"}><BankProgress {...markingProps} bare={tabNow === "history" ? "history" : "overview"} /></div>
+          </div>
+        </section>
+      ) : <>
+      <BankProgress {...markingProps} compact />
 
       <section className="qb-filters" aria-label="Filter questions" ref={panelRef}>
-        {hasYears && isPhone && yearSwitch}
+        {hasYears && yearSwitch}
         <details className="lp-card qb-desk" open={panelOpen} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== panelOpen) setUserOpen(o); }}>
           <summary className="qb-desk-head">
-            <span>{isPhone ? "Filter and search" : "Find questions"}</span>
+            <span>Filter and search</span>
             <span className="qb-count-pill" aria-live="polite">{active > 0 ? `${active} on · ` : ""}{total.toLocaleString("en-GB")}</span>
           </summary>
-          <div className="qb-desk-body">
-            {hasYears && !isPhone && yearSwitch}
-            {!lockedTopic && (
-              <fieldset className="qb-topics">
-                <legend><span className="qb-label">Topics</span> <span className="qb-hint">Pick as many as you like. Open one to choose its sub-topics.</span></legend>
-                {years.map(y => (
-                  <div key={y.year} className="qb-year">
-                    <p className="qb-year-label">{y.label}</p>
-                    <div className="qb-tiles">
-                      {y.groups.map(g => {
-                        const codes = g.topics.map(t => t.code);
-                        const state = groupState(codes);
-                        const count = codes.reduce((sum, c) => sum + (n("topics", c) ?? 0), 0);
-                        return (
-                          <div key={g.key} className={`qb-tile${state ? " is-on" : ""}${openGroup === g.key ? " is-open" : ""}`}>
-                            <button type="button" role="checkbox" aria-checked={state} className="qb-check" onClick={() => toggleGroup(codes)}>
-                              <span className="qb-box" aria-hidden="true">{state === "mixed" ? "–" : state ? "✓" : ""}</span>
-                              <span>{g.title}{counts && <span className="qb-n"> {count}</span>}</span>
-                            </button>
-                            <button type="button" className="qb-open" aria-expanded={openGroup === g.key} aria-label={`Sub-topics of ${g.title}`}
-                              onClick={() => setOpenGroup(o => (o === g.key ? null : g.key))}>{openGroup === g.key ? "−" : "+"}</button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {y.groups.filter(g => g.key === openGroup).map(g => (
-                      <div key={g.key} className="qb-subs">
-                        {g.topics.map(t => (
-                          <button key={t.code} type="button" role="checkbox" aria-checked={f.topics.includes(t.code)}
-                            className={`qb-check qb-sub${f.topics.includes(t.code) ? " is-on" : ""}${!f.topics.includes(t.code) && n("topics", t.code) === 0 ? " is-empty" : ""}`}
-                            onClick={() => update({ topics: toggle(f.topics, t.code) })}>
-                            <span className="qb-box" aria-hidden="true">{f.topics.includes(t.code) ? "✓" : ""}</span>
-                            <span>{topicRef(t) && <><span className="qb-code">{topicRef(t)}</span> </>}{t.title}{counts && <span className="qb-n"> {n("topics", t.code) ?? 0}</span>}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </fieldset>
-            )}
-
-            {bands.length > 0 && (
-              <div className="qb-field qb-types" role="group" aria-labelledby="qb-types-label">
-                <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">by the marks it’s worth</span></span>
-                <div className="qb-type-chips">
-                  {bands.map(b => {
-                    const on = f.marks.includes(b.id);
-                    return (
-                      <button key={b.id} type="button" aria-pressed={on} className={`qb-type${on ? " is-on" : ""}`} onClick={() => update({ marks: toggle(f.marks, b.id) })}>
-                        {b.label}{counts && <span className="qb-n"> {n("marks", b.id) ?? 0}</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="qb-row-controls">
-              {/* A student sits one option (their religion): picking it keeps its papers and topics and the ones everyone sits. */}
-              {subject.options && !lockedTopic && (
-                <label className="qb-field">
-                  <span className="qb-label">{subject.options.label}</span>
-                  <select value={opt} onChange={e => {
-                    const o = e.target.value;
-                    update({ opt: o, papers: f.papers.filter(id => !o || !optionOf.get(id) || optionOf.get(id) === o) });
-                  }}>
-                    <option value="">All</option>
-                    {subject.options.list.map(o => <option key={o.id} value={o.id}>{o.name}{counts ? ` (${(n("opt", o.id) ?? 0) + (n("opt", "") ?? 0)})` : ""}</option>)}
-                  </select>
-                </label>
-              )}
-              <div className="qb-field">
-                <span className="qb-label" id="qb-paper-label">Paper</span>
-                <details className="qb-multi" ref={paperRef}>
-                  <summary aria-labelledby="qb-paper-label qb-paper-summary"><span id="qb-paper-summary">{paperSummary}</span></summary>
-                  <div className="qb-multi-list" role="group" aria-label="Papers">
-                    <div className="qb-multi-quick">
-                      <button type="button" className="qb-link" onClick={() => update({ papers: [] })}>All papers</button>
-                      {(["Higher", "Foundation"] as const).map(tier => tierPapers(tier).length > 1 && (
-                        <button key={tier} type="button" className="qb-link" onClick={() => update({ papers: tierPapers(tier) })}>{tier} only</button>
-                      ))}
-                    </div>
-                    {shownPapers.map(p => (
-                      <label key={p.id}>
-                        <input type="checkbox" checked={!f.papers.length || f.papers.includes(p.id)} onChange={e => togglePaper(p.id, e.target.checked)} />
-                        {p.name}{p.title ? ` · ${p.title}` : ""}{counts && <span className="qb-n"> {n("papers", p.id) ?? 0}</span>}
-                      </label>
-                    ))}
-                  </div>
-                </details>
-              </div>
-              <div className="qb-field">
-                <span className="qb-label" id="qb-exam-label">Exam</span>
-                {/* Every sitting starts ticked: untick the ones to keep back (June 2024 and 2025 for a mock), or tick just one. */}
-                <details className="qb-multi" ref={examRef}>
-                  <summary aria-labelledby="qb-exam-label qb-exam-summary"><span id="qb-exam-summary">{seriesSummary}</span></summary>
-                  <div className="qb-multi-list" role="group" aria-label="Exam years">
-                    <div className="qb-multi-quick">
-                      <button type="button" className="qb-link" onClick={() => update({ series: [] })}>All years</button>
-                      {subject.series.length > 2 && <button type="button" className="qb-link" onClick={() => update({ series: subject.series.slice(2).map(x => x.id) })}>Leave out the latest two</button>}
-                    </div>
-                    {subject.series.map(x => (
-                      <label key={x.id}>
-                        <input type="checkbox" checked={!f.series.length || f.series.includes(x.id)} onChange={e => toggleSeries(x.id, e.target.checked)} />
-                        {x.label}{counts && <span className="qb-n"> {n("series", x.id) ?? 0}</span>}
-                      </label>
-                    ))}
-                  </div>
-                </details>
-              </div>
-              <label className="qb-field">
-                <span className="qb-label">Sort</span>
-                <select value={f.sort} onChange={e => update({ sort: e.target.value as Sort })}>
-                  <option value="new">Newest first</option>
-                  <option value="old">Oldest first</option>
-                  <option value="spec">Spec order</option>
-                  <option value="marks">Most marks</option>
-                  <option value="short">Fewest marks</option>
-                </select>
-              </label>
-              <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
-                <label htmlFor="qb-q" className="qb-label">Search</label>
-                <input id="qb-q" type="search" value={query} enterKeyHint="search"
-                  placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
-                  onChange={e => setTyped(e.target.value)} onFocus={needText} />
-              </form>
-              {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
-                <span className="qb-label">{subject.calcPapers ? "Calculator" : "Calculations"}</span>
-                <label><input type="checkbox" checked={f.calc === "only"} onChange={e => update({ calc: e.target.checked ? "only" : "" })} /> {subject.calcPapers ? "Allowed" : "Only these"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "only") ?? 0}</span>}</label>
-                <label><input type="checkbox" checked={f.calc === "none"} onChange={e => update({ calc: e.target.checked ? "none" : "" })} /> {subject.calcPapers ? "Not allowed" : "Leave out"}{subject.calcPapers && counts && <span className="qb-n"> {n("calc", "none") ?? 0}</span>}</label>
-              </div>}
-            </div>
-            <div className="qb-row-toggles">
-              {hasWhole && (
-                <div className="qb-field qb-view" role="radiogroup" aria-label="Show">
-                  <span className="qb-label">Show</span>
-                  <div className="qb-seg">
-                    <button type="button" role="radio" aria-checked={!whole} className={!whole ? "is-on" : ""} onClick={() => update({ view: "parts" })}>Each part</button>
-                    <button type="button" role="radio" aria-checked={whole} className={whole ? "is-on" : ""} onClick={() => update({ view: "whole" })}>Whole questions</button>
-                  </div>
-                </div>
-              )}
-              {twins && (
-                <div className="qb-field qb-calc" role="group" aria-label="Questions on both tiers">
-                  <span className="qb-label">On both tiers</span>
-                  <label title="Foundation and Higher papers share some questions: show those once, as the Higher paper prints them">
-                    <input type="checkbox" checked={f.once} onChange={e => update({ once: e.target.checked })} /> Show once{counts && !f.once && repeats > 0 && <span className="qb-n"> −{repeats}</span>}
-                  </label>
-                </div>
-              )}
-              {hasHistory && (
-                <div className="qb-field qb-calc" role="group" aria-label="Questions you’ve done">
-                  <span className="qb-label">Done</span>
-                  <label title="Questions you’ve marked stay out of the list; ones you missed come back to have another go">
-                    <input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} /> Hide the ones I’ve done{hiddenCount > 0 && <span className="qb-n"> {hiddenCount}</span>}
-                  </label>
-                </div>
-              )}
-              {hasPracticals && <div className="qb-field qb-calc" role="group" aria-label="Practicals">
-                <span className="qb-label">Practicals</span>
-                <label><input type="checkbox" checked={f.prac === "only"} onChange={e => update({ prac: e.target.checked ? "only" : "" })} /> Only these{counts && <span className="qb-n"> {n("prac", "only") ?? 0}</span>}</label>
-                <label><input type="checkbox" checked={f.prac === "none"} onChange={e => update({ prac: e.target.checked ? "none" : "" })} /> Leave out</label>
-              </div>}
-            </div>
-            {isPhone && (
-              <button type="button" className="lp-btn qb-show" onClick={showResults}>
-                Show {total.toLocaleString("en-GB")} {total === 1 ? "question" : "questions"}
-              </button>
-            )}
-          </div>
+          {filterBody}
         </details>
       </section>
+      </>}
 
       <section className="qb-results" aria-labelledby="qb-results-title">
         <div className="qb-bar">

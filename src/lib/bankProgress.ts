@@ -192,6 +192,9 @@ export const dayKey = (ms: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+/** Midday, `back` calendar days before `now`: stepping in 24 hours would land on one day twice when the clocks change. */
+const daysBack = (now: number, back: number) => { const d = new Date(now); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - back); return d.getTime(); };
+
 /** Parts marked on each of the last `days` days, oldest first: in one subject, or every subject. */
 export function dailyCounts(store: Store, days: number, subject?: string, now = Date.now()) {
   const counts = new Map<string, number>();
@@ -201,7 +204,7 @@ export function dailyCounts(store: Store, days: number, subject?: string, now = 
     counts.set(k, (counts.get(k) ?? 0) + 1);
   }
   return Array.from({ length: days }, (_, i) => {
-    const at = now - (days - 1 - i) * DAY;
+    const at = daysBack(now, days - 1 - i);
     return { day: dayKey(at), at, n: counts.get(dayKey(at)) ?? 0 };
   });
 }
@@ -210,9 +213,9 @@ export function dailyCounts(store: Store, days: number, subject?: string, now = 
 export function streak(store: Store, now = Date.now()) {
   const marked = new Set<string>();
   for (const bank of Object.values(store.subjects)) for (const rec of Object.values(bank)) for (const a of rec.h) marked.add(dayKey(a[2]));
-  let at = marked.has(dayKey(now)) ? now : now - DAY;
+  let back = marked.has(dayKey(now)) ? 0 : 1;
   let n = 0;
-  while (marked.has(dayKey(at))) { n++; at -= DAY; }
+  while (marked.has(dayKey(daysBack(now, back)))) { n++; back++; }
   return n;
 }
 
