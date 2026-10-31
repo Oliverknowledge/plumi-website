@@ -16,11 +16,6 @@
       ],
       "answer": "\\mathrm{f}'(x) = \\frac{-2x^2 + 6x + 8}{(x^2+4)^2}, \\quad a = -2,\\ b = 6,\\ c = 8",
       "answerMarks": ["A1"],
-      "slips": [
-        "A sign slip expanding the bracket: \\(-2x(2x-3)\\) becoming \\(-4x^2 - 6x\\) instead of \\(-4x^2 + 6x\\).",
-        "Leaving out \\(\\mathrm{f}'(x) =\\) in a \"show that\" question.",
-        "Quoting the quotient rule wrongly, which scored nothing."
-      ],
       "check": {
         "marks": ["M1", "A1", "A1"],
         "answers": [{ "tex": "\\frac{-2x^2 + 6x + 8}{(x^2+4)^2}", "scheme": "(-2*x**2 + 6*x + 8)/(x**2 + 4)**2", "derive": "diff((2*x - 3)/(x**2 + 4), x)" }]
@@ -40,11 +35,6 @@
       ],
       "answer": "x < -1 \\ \\text{or}\\ x > 4",
       "answerMarks": ["A1"],
-      "slips": [
-        "Choosing the inside region \\(-1 < x < 4\\), not noticing the \\(x^2\\) coefficient is negative, or dividing by \\(-2\\) without flipping the inequality.",
-        "Jumping from \\(-2x^2 + 6x + 8\\) straight to \\((x+1)(x-4)\\), or using a calculator's roots, which lost the mark for using algebra.",
-        "Writing \"and\" instead of \"or\" for the two regions."
-      ],
       "check": {
         "marks": ["B1", "M1", "A1"],
         "answers": [{ "tex": "x < -1 \\ \\text{or}\\ x > 4", "kind": "set", "scheme": "Union(Interval.open(-oo, -1), Interval.open(4, oo))", "derive": "solveset(diff((2*x - 3)/(x**2 + 4), x) < 0, x, S.Reals)" }]

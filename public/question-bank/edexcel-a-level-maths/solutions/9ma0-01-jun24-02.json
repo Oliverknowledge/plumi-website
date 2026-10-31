@@ -16,10 +16,6 @@
       ],
       "answer": "(1-9x)^{\\frac{1}{2}} = 1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3 + \\cdots",
       "answerMarks": ["A1"],
-      "slips": [
-        "Using \\(9x\\) instead of \\(-9x\\), or ignoring the 9 altogether.",
-        "Losing brackets or not simplifying each term fully, which cost the final mark."
-      ],
       "check": {
         "marks": ["M1", "A1", "A1"],
         "answers": [{ "tex": "1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3", "scheme": "1 - 9*x/2 - 81*x**2/8 - 729*x**3/16" }]
@@ -37,11 +33,6 @@
       ],
       "answerText": "The expansion is only valid for \\(|x| < \\tfrac{1}{9}\\), and \\(x = -\\tfrac{2}{9}\\) is outside this range because \\(\\tfrac{2}{9} > \\tfrac{1}{9}\\).",
       "answerMarks": ["B1"],
-      "slips": [
-        "Finding the range but not comparing \\(-\\tfrac{2}{9}\\) with it, or not saying what that means.",
-        "Mixing up the modulus, giving statements such as \\(x > \\tfrac{1}{9}\\).",
-        "Putting \\(x = -\\tfrac{2}{9}\\) into the expansion and showing the answer is not \\(\\sqrt{3}\\). That does not give the reason, and scored nothing."
-      ],
       "check": {
         "marks": ["B1"],
         "answers": "reasoning: a statement about the range of validity"

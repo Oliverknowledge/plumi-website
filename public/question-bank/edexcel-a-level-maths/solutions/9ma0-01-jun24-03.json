@@ -14,10 +14,6 @@
       ],
       "answerText": "There is a change of sign and \\(\\mathrm{f}\\) is continuous on \\([3.6, 3.7]\\), so the root \\(\\alpha\\) lies in \\([3.6, 3.7]\\).",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Leaving out continuity, or getting it wrong: \"change in sign therefore continuous\", \"the interval is continuous\" and \"\\(x\\) is continuous\" all lost the mark.",
-        "Working in degrees. Radians are needed."
-      ],
       "check": {
         "marks": ["M1", "A1*"],
         "answers": "proof: sign change and continuity"
@@ -34,11 +30,6 @@
       ],
       "answer": "\\mathrm{f}'(x) = 1 + \\tfrac{1}{2}\\sec^2\\left(\\tfrac{1}{2}x\\right)",
       "answerMarks": ["A1"],
-      "slips": [
-        "Forgetting to differentiate the \\(x\\) to 1, or losing it entirely.",
-        "Reading \\(\\mathrm{f}'(x)\\) as the inverse function \\(\\mathrm{f}^{-1}(x)\\), or integrating.",
-        "Rewriting \\(\\tan\\) as \\(\\sin\\) over \\(\\cos\\) and then slipping in the quotient rule. The formula book's result is quicker."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "1 + \\tfrac{1}{2}\\sec^2\\left(\\tfrac{1}{2}x\\right)", "scheme": "diff(x + tan(x/2), x)" }]
@@ -57,10 +48,6 @@
       ],
       "answer": "\\alpha \\approx 3.672",
       "answerMarks": ["A1"],
-      "slips": [
-        "Slips working out \\(\\sec^2(1.85)\\), which lost the final mark.",
-        "Writing only \\(3.7 - \\dfrac{\\mathrm{f}(3.7)}{\\mathrm{f}'(3.7)}\\) and an answer, with no substitution shown. A wrong answer then scores nothing."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "3.672", "scheme": "3.7 - (3.7 + tan(1.85))/(1 + sec(1.85)**2/2)", "tol": 0.0005 }]

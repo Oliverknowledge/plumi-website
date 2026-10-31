@@ -41,11 +41,6 @@
 .qb-sol-mk::before { content: "✓ "; }
 .qb-sol-answer { justify-self: start; margin: 0; padding: 3px 8px 5px; font-size: 16px; font-weight: 700; line-height: 1.5; color: #1d1a19; background: linear-gradient(transparent 12%, #ffe48a 12%, #ffe48a 92%, transparent 92%); max-width: 100%; overflow-x: auto; }
 
-.qb-sol-slip { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; max-width: 600px; margin-top: 4px; padding: 10px 14px; background: #fff4dd; color: #3e302b; border: 2px solid #5b4741; border-radius: 12px; box-shadow: 0 4px 0 #5b4741; }
-.qb-sol-slip-ico { font: 700 24px/1 var(--f-hand); color: #c8372f; }
-.qb-sol-slip-head { margin: 0 0 2px; font-family: var(--f-px); font-weight: 600; font-size: 14px; }
-.qb-sol-slip p, .qb-sol-slip li { margin: 0; font-size: 14.5px; font-weight: 600; line-height: 1.45; }
-.qb-sol-slip ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; list-style: disc; }
 .qb-sol-end { justify-self: end; margin: 6px 0 0; font: 700 26px/1 var(--f-hand); color: #1f3d8a; letter-spacing: -.1em; }
 
 @media (max-width: 700px) {

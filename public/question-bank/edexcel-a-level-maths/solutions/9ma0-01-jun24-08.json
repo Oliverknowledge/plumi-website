@@ -13,10 +13,6 @@
       ],
       "answer": "\\mathrm{fg}(2) = 1",
       "answerMarks": ["A1"],
-      "slips": [
-        "Working out \\(\\mathrm{gf}(2)\\) instead.",
-        "Finding \\(\\mathrm{fg}(x)\\) first and slipping when expanding the squared fraction."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "\\mathrm{fg}(2) = 1", "scheme": "1", "derive": "4 - 3*(5/(2*2 - 9))**2" }]
@@ -36,11 +32,6 @@
       ],
       "answer": "\\mathrm{g}^{-1}(x) = \\frac{5 + 9x}{2x}, \\quad x \\in \\mathbb{R},\\ x \\neq 0",
       "answerMarks": ["A1"],
-      "slips": [
-        "Leaving out the domain \\(x \\neq 0\\). Examiners have pointed this out in many past reports.",
-        "Differentiating g, or finding its reciprocal \\(\\tfrac{2x-9}{5}\\), instead of the inverse.",
-        "A sign slip with the \\(9y\\) term."
-      ],
       "check": {
         "vals": { "x": 3, "y": "-5/3" },
         "marks": ["M1", "A1", "A1"],
@@ -57,10 +48,6 @@
       ],
       "answer": "\\mathrm{gf}(x) = -\\frac{5}{1 + 6x^2}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Multiplying \\(\\mathrm{g}(x)\\) by \\(\\mathrm{f}(x)\\) instead of putting one inside the other.",
-        "Finding \\(\\mathrm{fg}(x)\\) instead, or making an algebra slip while over-simplifying a correct answer."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "-\\frac{5}{1 + 6x^2}", "scheme": "-5/(1 + 6*x**2)", "derive": "(5/(2*y - 9)).subs(y, 4 - 3*x**2)" }]
@@ -77,11 +64,6 @@
       ],
       "answer": "-5 \\leq \\mathrm{gf}(x) < 0",
       "answerMarks": ["B1"],
-      "slips": [
-        "Giving only one end, \\(\\mathrm{gf}(x) \\geq -5\\) or \\(\\mathrm{gf}(x) < 0\\), instead of the whole interval.",
-        "Writing the range in terms of \\(x\\), such as \\(-5 \\leq x < 0\\). A range is about the output: use \\(y\\) or \\(\\mathrm{gf}(x)\\).",
-        "Mixing up domain and range."
-      ],
       "check": {
         "marks": ["B1"],
         "answers": [{ "tex": "-5 \\leq \\mathrm{gf}(x) < 0", "kind": "set", "var": "\\mathrm{gf}(x)", "scheme": "Interval.Ropen(-5, 0)", "derive": "function_range(-5/(1 + 6*x**2), x, S.Reals)" }]
@@ -102,11 +84,6 @@
       ],
       "answer": "k > \\frac{29}{5} \\ (= 5.8)",
       "answerMarks": ["A1"],
-      "slips": [
-        "Using \\(b^2 - 4ac \\geq 0\\), the condition for real roots, instead of \\(< 0\\).",
-        "Slips expanding \\(-4(5)(k-4)\\), or dividing by \\(-20\\) without reversing the inequality.",
-        "Dropping the \\(= 0\\), or taking the discriminant of a quadratic set equal to \\(k\\)."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1"],
         "answers": [{ "tex": "k > \\frac{29}{5}", "kind": "set", "var": "k", "scheme": "Interval.open(Rational(29, 5), oo)", "derive": "solveset(36 - 20*(k - 4) < 0, k, S.Reals)" }]

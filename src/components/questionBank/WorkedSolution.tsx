@@ -12,12 +12,12 @@ import "./WorkedSolution.css";
  * it (QuestionRow), with KaTeX, so the bank's pages carry none of this until then.
  *
  * It opens one step at a time: each part shows its method, then "Next step" reveals the
- * working a line at a time, then the answer and the slips examiners saw. "Show every
- * step" lays the whole solution out at once.
+ * working a line at a time, then the answer. "Show every step" lays the whole solution
+ * out at once.
  */
 
 interface Step { tex?: string; text?: string; why?: string; marks?: string[] }
-interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[]; slips?: string[] }
+interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[] }
 interface Solution { id: string; q: string; m: number; parts: Part[] }
 
 const solutions: Record<string, Promise<Solution | null>> = {};
@@ -54,9 +54,9 @@ function Marks({ marks }: { marks?: string[] }) {
   );
 }
 
-/** The things a part reveals in turn: its working, then its answer, then the slips. */
+/** The things a part reveals in turn: its working, then its answer. */
 function partItems(part: Part) {
-  const items: { key: string; node: ReactNode; kind: "step" | "answer" | "slips" }[] = part.steps.map((s, i) => ({
+  const items: { key: string; node: ReactNode; kind: "step" | "answer" }[] = part.steps.map((s, i) => ({
     key: `s${i}`, kind: "step",
     node: (
       <>
@@ -80,22 +80,6 @@ function partItems(part: Part) {
       </div>
     ),
   });
-  if (part.slips?.length) {
-    items.push({
-      key: "slips", kind: "slips",
-      node: (
-        <div className="qb-sol-slip">
-          <span className="qb-sol-slip-ico" aria-hidden="true">!</span>
-          <div>
-            <p className="qb-sol-slip-head">Examiners saw</p>
-            {part.slips.length > 1
-              ? <ul>{part.slips.map((s, i) => <li key={i}><Prose text={s} /></li>)}</ul>
-              : <p><Prose text={part.slips[0]} /></p>}
-          </div>
-        </div>
-      ),
-    });
-  }
   return items;
 }
 
@@ -131,7 +115,7 @@ export function WorkedSolution({ slug, id, question }: { slug: string; id: strin
     const item = parts[p][count - 1];
     const label = solution!.parts[p].label;
     const where = label ? `Part ${label}: ` : "";
-    setSaid(item.kind === "answer" ? `${where}the answer is showing.` : item.kind === "slips" ? `${where}what examiners saw is showing.` : `${where}step ${count} of ${solution!.parts[p].steps.length} is showing.`);
+    setSaid(item.kind === "answer" ? `${where}the answer is showing.` : `${where}step ${count} of ${solution!.parts[p].steps.length} is showing.`);
     if (count === parts[p].length) {
       // This part is done: carry on to the next part's key, or to the end of this one.
       requestAnimationFrame(() => (nextRefs.current.slice(p + 1).find(Boolean) ?? endRefs.current[p])?.focus());

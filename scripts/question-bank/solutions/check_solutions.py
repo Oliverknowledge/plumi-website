@@ -1,7 +1,7 @@
 """
 Check the bank's worked solutions before anyone reads them.
 
-    python3 scripts/question-bank/solutions/check_solutions.py [subject-slug] [-v]
+    python3 scripts/question-bank/solutions/check_solutions.py [subject-slug] [-v] [--only <id prefix>]
 
 For every solutions/<id>.json beside a bank (public/question-bank/<slug>/solutions/):
 
@@ -359,7 +359,7 @@ def tex_jobs(qid, sol):
         key = path.rsplit(".", 1)[-1]
         if key in ("tex", "answer"):
             jobs.append({"where": f"{qid} {path}", "tex": s, "display": True})
-        elif key in ("ask", "why", "text", "answerText", "method") or re.search(r"slips\[\d+\]$", path):
+        elif key in ("ask", "why", "text", "answerText", "method"):
             if s.count("\\(") != s.count("\\)"):
                 jobs.append({"where": f"{qid} {path}", "tex": "\\unbalancedInlineMath", "display": False})
             for m in re.finditer(r"\\\((.+?)\\\)", s):
@@ -442,18 +442,23 @@ def check_solution(path: Path, parts_by_id: dict, rep: Report):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    verbose = "-v" in sys.argv
+    argv = sys.argv[1:]
+    only = argv[argv.index("--only") + 1] if "--only" in argv else ""
+    if only:
+        argv.remove("--only")
+        argv.remove(only)
+    args = [a for a in argv if not a.startswith("-")]
+    verbose = "-v" in argv
     slugs = args or [p.parent.name for p in sorted((ROOT / "public/question-bank").glob("*/solutions"))]
     rep, jobs, n = Report(), [], 0
     for slug in slugs:
         bank_dir = ROOT / "public/question-bank" / slug
         parts = json.loads((bank_dir / "parts.json").read_text())
         parts_by_id = {p["id"]: p for p in parts}
-        files = sorted((bank_dir / "solutions").glob("*.json"))
+        files = sorted((bank_dir / "solutions").glob(f"{only}*.json"))
         have = {f.stem for f in files}
         for p in parts:
-            if p.get("sol") and p["id"] not in have:
+            if p.get("sol") and p["id"].startswith(only) and p["id"] not in have:
                 rep.fail(p["id"], "parts.json says sol: 1 but there is no solution file")
         for f in files:
             jobs += check_solution(f, parts_by_id, rep)

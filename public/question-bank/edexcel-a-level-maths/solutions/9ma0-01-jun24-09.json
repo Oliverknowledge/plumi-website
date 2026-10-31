@@ -18,12 +18,6 @@
       ],
       "answer": "k = \\frac{5}{2}",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Dividing the indices instead of subtracting them when dividing powers, which led to a quadratic in \\(k\\).",
-        "Subtracting indices of \\(9^{\\ldots}\\) and \\(3^{\\ldots}\\) without first changing to the same base.",
-        "Substituting \\(k = \\tfrac{5}{2}\\) to check the sequence is geometric. That verifies, it doesn't prove, and scored at most 1 mark.",
-        "Stopping at \\(k = \\tfrac{35}{14}\\): simplify to the given form."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1*"],
         "answers": [{ "tex": "k = \\frac{5}{2}", "scheme": "5/2", "derive": "solve(Eq((2*(7 - 2*k))*2, (4*k - 5) + 2*(k - 1)), k)[0]" }]
@@ -42,9 +36,6 @@
       ],
       "answer": "S_\\infty = \\frac{729}{2} = 364.5",
       "answerMarks": ["A1"],
-      "slips": [
-        "Using \\(r = 3\\), the ratio upside down, or \\(r = \\tfrac{5}{2}\\). Neither has \\(|r| < 1\\), which should have been a warning sign."
-      ],
       "check": {
         "marks": ["M1", "M1", "A1"],
         "answers": [{ "tex": "\\frac{729}{2}", "scheme": "729/2", "derive": "3**(4*Rational(5,2) - 5)/(1 - 9**(7 - 2*Rational(5,2))/3**(4*Rational(5,2) - 5))" }]

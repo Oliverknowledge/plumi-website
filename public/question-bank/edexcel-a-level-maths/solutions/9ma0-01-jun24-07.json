@@ -16,11 +16,6 @@
       ],
       "answer": "H = 0.6\\mathrm{e}^{-0.2t} + 0.9",
       "answerMarks": ["A1"],
-      "slips": [
-        "Multiplying by \\(-0.2\\) instead of dividing, which gives a model that later parts can't use.",
-        "Using 1.5 as the constant instead of substituting \\(t = 0\\), \\(H = 1.5\\) to find it.",
-        "Stating \\(A\\) and \\(B\\) without writing the model out in full, \\(H = \\ldots\\), which lost the final mark."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1"],
         "answers": [{ "tex": "0.6\\mathrm{e}^{-0.2t} + 0.9", "scheme": "0.6*exp(-0.2*t) + 0.9", "derive": "integrate(-0.12*exp(-0.2*t), t) + 1.5 - integrate(-0.12*exp(-0.2*t), t).subs(t, 0)" }]
@@ -40,10 +35,6 @@
       ],
       "answerText": "\\(t = 3\\) hours \\(28\\) minutes",
       "answerMarks": ["A1"],
-      "slips": [
-        "Converting 3.4657 hours wrongly, for example as 3 hours 47 minutes.",
-        "Carrying on with a wrong model from (a) that led to the log of a negative number. That is a sign to go back and check (a)."
-      ],
       "check": {
         "vals": { "t": "5*log(2)" },
         "marks": ["M1", "dM1", "A1"],
@@ -60,11 +51,6 @@
       ],
       "answerText": "The hole is \\(0.9\\) m (90 cm) above the bottom of the tank.",
       "answerMarks": ["A1ft"],
-      "slips": [
-        "Solving \\(\\dfrac{\\mathrm{d}H}{\\mathrm{d}t} = 0\\), which has no solution.",
-        "Answering \\(1.5 - 0.9 = 0.6\\) m, or giving a height taller than the tank.",
-        "Leaving out the units."
-      ],
       "check": {
         "marks": ["M1", "A1ft"],
         "answers": [{ "text": "\\(0.9\\) m", "value": "0.9", "scheme": "0.9", "derive": "limit(0.6*exp(-0.2*t) + 0.9, t, oo)" }]

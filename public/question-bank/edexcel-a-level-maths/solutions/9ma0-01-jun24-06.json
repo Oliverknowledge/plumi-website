@@ -13,9 +13,6 @@
       ],
       "answer": "P(2,\\ 5)",
       "answerMarks": ["B1"],
-      "slips": [
-        "Finding where the graph crosses the \\(y\\)-axis instead of the vertex."
-      ],
       "check": {
         "marks": ["B1", "B1"],
         "answers": [{ "tex": "(2,\\ 5)", "kind": "point", "scheme": "(2, 5)" }]
@@ -35,11 +32,6 @@
       ],
       "answer": "x = \\frac{17}{7}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Not rejecting \\(x = 5\\). A quick look at the graph shows the line \\(y = 16 - 4x\\) meets the V only once.",
-        "Expanding \\(3(x-2)\\) wrongly, or rearranging with the wrong inverse operations.",
-        "Keeping the modulus signs in the working, which made the equation hard to solve."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "x = \\frac{17}{7}", "scheme": "17/7", "derive": "solveset(Eq(16 - 4*x, 3*Abs(x - 2) + 5), x, S.Reals)" }]
@@ -56,11 +48,6 @@
       ],
       "answer": "\\frac{1}{2} < k < 3",
       "answerMarks": ["A1"],
-      "slips": [
-        "Finding \\(k > \\tfrac{1}{2}\\) but missing the upper limit \\(k < 3\\).",
-        "Getting \\(k = 3\\) from a discriminant of an equation that is not a quadratic. That method is invalid and scored nothing.",
-        "Setting up simultaneous equations in \\(x\\) and \\(k\\) without a plan, and never solving for \\(k\\)."
-      ],
       "check": {
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "\\frac{1}{2} < k < 3", "kind": "set", "var": "k", "scheme": "Interval.open(Rational(1, 2), 3)" }]

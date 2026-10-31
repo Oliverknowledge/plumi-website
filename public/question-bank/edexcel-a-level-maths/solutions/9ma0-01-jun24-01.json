@@ -17,11 +17,6 @@
       ],
       "answer": "k = 12",
       "answerMarks": ["A1"],
-      "slips": [
-        "Leaving out the \\(= 0\\). Examiners let it be recovered from a correct value of \\(k\\), but write it.",
-        "Using \\(\\mathrm{g}(-3) = 0\\): the factor \\((x-3)\\) means \\(x = 3\\).",
-        "Dividing \\(\\mathrm{g}(x)\\) by \\((x-3)\\) instead. It can work, but it was rarely finished correctly: the factor theorem is far quicker."
-      ],
       "check": {
         "vals": { "k": 12 },
         "marks": ["M1", "M1", "A1"],

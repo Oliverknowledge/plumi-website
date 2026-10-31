@@ -16,11 +16,6 @@
       ],
       "answer": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0}(2x + h) = 2x",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Writing \\(\\dfrac{\\mathrm{f}(x+h)^2 - \\mathrm{f}(x)^2}{h}\\) or similar: the definition must be \\(\\dfrac{\\mathrm{f}(x+h) - \\mathrm{f}(x)}{h}\\).",
-        "Stopping at \\(\\lim\\limits_{h\\to 0} 2x\\) without the \\(= 2x\\), or never writing \\(h \\to 0\\).",
-        "Never writing \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} =\\) (or \\(\\mathrm{f}'(x) =\\)) anywhere, which lost the final mark."
-      ],
       "check": {
         "marks": ["M1", "A1", "A1*"],
         "answers": [{ "tex": "2x", "scheme": "diff(x**2, x)" }]

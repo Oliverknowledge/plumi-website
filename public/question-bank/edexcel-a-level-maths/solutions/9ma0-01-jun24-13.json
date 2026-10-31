@@ -19,11 +19,6 @@
       ],
       "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Wrong derivatives, such as \\(2a\\cos\\theta\\) instead of \\(2a\\sin\\theta\\cos\\theta\\).",
-        "Splitting the root wrongly, \\(\\sqrt{a - a\\sin^2\\theta}\\) as \\(\\sqrt{a} - \\sqrt{a}\\sin\\theta\\), or not spotting the double angle formula for \\(\\sin 2\\theta\\).",
-        "Reaching the right expression but never changing the limits, or leaving out the \\(\\mathrm{d}\\theta\\) or the integral sign."
-      ],
       "check": {
         "marks": ["B1", "M1", "dM1", "A1*"],
         "answers": [{ "tex": "\\frac{1}{2}a^2", "kind": "identity", "scheme": "Rational(1, 2)*a**2*sin(2*t)**2", "derive": "sqrt(a*sin(t)**2)*sqrt(a - a*sin(t)**2)*diff(a*sin(t)**2, t)", "note": "integrand after the substitution, checked at sample points with a > 0 and 0 < t < pi/2" }]
@@ -43,11 +38,6 @@
       ],
       "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{8}\\pi a^2, \\quad k = \\frac{1}{8}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Writing \\(\\sin^2 2\\theta = \\dfrac{1 - \\cos 2\\theta}{2}\\): the angle must double to \\(4\\theta\\). This scored nothing.",
-        "Integrating \\(-\\cos 4\\theta\\) to \\(+\\tfrac{1}{4}\\sin 4\\theta\\). It still gives the right number here, but lost both accuracy marks.",
-        "Raising the power and dividing, as if \\(\\sin^2 2\\theta\\) were \\(x^2\\), or trying integration by parts."
-      ],
       "check": {
         "marks": ["M1", "dM1", "A1", "A1"],
         "answers": [{ "tex": "\\frac{1}{8}\\pi a^2", "scheme": "pi*a**2/8", "derive": "Rational(1, 2)*a**2*integrate(sin(2*t)**2, (t, 0, pi/2))" }]

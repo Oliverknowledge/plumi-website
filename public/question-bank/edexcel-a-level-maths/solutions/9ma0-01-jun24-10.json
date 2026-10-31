@@ -13,9 +13,6 @@
       ],
       "answerText": "\\(y = 0\\) when \\(x = 4\\), so the curve crosses the \\(x\\)-axis at \\(x = 4\\).",
       "answerMarks": ["B1"],
-      "slips": [
-        "Trying to solve \\(8x - x^{\\frac{5}{2}} = 0\\) instead of verifying. It can work, but slips with indices often cost the mark. \"Verify\" means substitute and check."
-      ],
       "check": {
         "marks": ["B1"],
         "answers": [{ "text": "\\(y = 0\\) when \\(x = 4\\)", "value": "0", "scheme": "0", "derive": "(8*x - x**Rational(5, 2)).subs(x, 4)" }]
@@ -34,11 +31,6 @@
       ],
       "answer": "12x + y = 48",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Jumping to the given answer without showing how the line's equation was found.",
-        "Stopping at \\(y = -12x + 48\\) instead of rearranging to the form asked for.",
-        "Using \\(y = mx + c\\) but not finding \\(c\\) clearly. \\(y - y_1 = m(x - x_1)\\) is quicker here."
-      ],
       "check": {
         "marks": ["B1", "M1", "A1*"],
         "answers": [{ "tex": "12x + y = 48", "kind": "equation", "scheme": "Eq(y, -12*x + 48)", "derive": "Eq(y, diff(8*x - x**Rational(5, 2), x).subs(x, 4)*(x - 4))" }]
@@ -60,12 +52,6 @@
       ],
       "answer": "\\text{Area of } R = \\frac{384}{35}",
       "answerMarks": ["A1"],
-      "slips": [
-        "Giving the calculator's decimal, 10.97, when the question asks for an exact answer by algebraic integration.",
-        "Assuming the triangle is isosceles, with its top at \\(x = 2\\).",
-        "Combining the lines and the curve and integrating from 0 to 4 in one go, without finding where the lines meet.",
-        "Using Pythagoras and trigonometry for the triangle, which led to rounding errors."
-      ],
       "check": {
         "marks": ["M1", "dM1", "B1", "ddM1", "A1"],
         "answers": [{ "tex": "\\frac{384}{35}", "scheme": "384/35", "derive": "integrate(8*x, (x, 0, Rational(12, 5))) + integrate(48 - 12*x, (x, Rational(12, 5), 4)) - integrate(8*x - x**Rational(5, 2), (x, 0, 4))" }]

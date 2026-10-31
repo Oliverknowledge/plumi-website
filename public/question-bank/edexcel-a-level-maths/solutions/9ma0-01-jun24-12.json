@@ -16,10 +16,6 @@
       ],
       "answer": "140\\cos\\theta - 480\\sin\\theta = 500\\cos(\\theta + 73.74^\\circ)",
       "answerMarks": ["A1"],
-      "slips": [
-        "Working in radians instead of degrees.",
-        "\\(\\tan^{-1}\\left(\\tfrac{140}{480}\\right)\\): the fraction upside down."
-      ],
       "check": {
         "deg": true,
         "marks": ["B1", "M1", "A1"],
@@ -40,10 +36,6 @@
       ],
       "answer": "R = 1000 + 500\\cos(30t + 73.74)^\\circ",
       "answerMarks": ["B1ft"],
-      "slips": [
-        "Ignoring part (a) and finding a wrong \\(A\\).",
-        "Finding \\(A\\) and stopping: the question wants the whole equation."
-      ],
       "check": {
         "deg": true,
         "marks": ["B1ft"],
@@ -59,9 +51,6 @@
       ],
       "answerText": "The minimum is \\(500\\) rabbits.",
       "answerMarks": ["B1ft"],
-      "slips": [
-        "Adding \\(A\\) and \\(K\\) instead of subtracting: \\(A + K\\) is the maximum."
-      ],
       "check": {
         "marks": ["B1ft"],
         "answers": [{ "text": "\\(500\\) rabbits", "value": "500", "scheme": "500" }]
@@ -78,9 +67,6 @@
       ],
       "answerText": "At \\(t = 3.5\\) the model gives about \\(500\\), its minimum, so the model is reliable.",
       "answerMarks": ["A1"],
-      "slips": [
-        "Solving for \\(t\\), getting 3.54 and calling it mid-March. \\(t\\) counts months after the start of the year."
-      ],
       "check": {
         "deg": true,
         "marks": ["M1", "A1"],
@@ -100,10 +86,6 @@
       ],
       "answerText": "There are \\(1032\\) rabbits (a count, so a whole number).",
       "answerMarks": ["A1"],
-      "slips": [
-        "\\(30t + 70 = 90\\), which is the maximum.",
-        "Rounding 1032.6 to 3 s.f. as 1030. Rabbits come in whole numbers: 1032 or 1033 scored."
-      ],
       "check": {
         "deg": true,
         "marks": ["M1", "A1", "dM1", "A1"],

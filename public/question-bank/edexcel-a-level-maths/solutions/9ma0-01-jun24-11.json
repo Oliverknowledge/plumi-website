@@ -19,12 +19,6 @@
       ],
       "answer": "R = \\left(\\frac{25}{4}\\sqrt{3} + \\frac{25}{6}\\pi\\right)\\ \\text{cm}^2",
       "answerMarks": ["A1"],
-      "slips": [
-        "Not spotting that triangle \\(AOB\\) is equilateral, and so finding no angle at all. Others found \\(\\tfrac{\\pi}{3}\\) the long way, with Pythagoras and trigonometry.",
-        "Finding one sector, the triangle or the semicircle and stopping there.",
-        "Sign errors when subtracting the segment, because the segment itself has a subtraction inside it.",
-        "Trying integration or polar coordinates. Far harder than sectors and triangles."
-      ],
       "check": {
         "marks": ["B1", "M1", "dM1", "A1"],
         "answers": [{ "tex": "\\frac{25}{4}\\sqrt{3} + \\frac{25}{6}\\pi", "scheme": "25*sqrt(3)/4 + 25*pi/6", "derive": "Rational(1, 2)*25*(2*pi/3) - (Rational(1, 2)*25*(pi/3) - Rational(1, 2)*25*sin(pi/3))" }]

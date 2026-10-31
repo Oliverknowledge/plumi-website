@@ -14,11 +14,6 @@
       ],
       "answerText": "\\(k^2 - 4k + 5 = (k-2)^2 + 1 \\geq 1 > 0\\), so \\(k^2 - 4k + 5\\) is positive for all real \\(k\\).",
       "answerMarks": ["A1*"],
-      "slips": [
-        "Saying squares are always positive, forgetting they can be zero.",
-        "Finding the discriminant, \\(-4\\), and stopping there. You also need the \\(k^2\\) coefficient to be positive, so the curve sits above the axis.",
-        "Trying a few values of \\(k\\), or only even and odd whole numbers. That can't cover every real number."
-      ],
       "check": {
         "marks": ["M1", "A1*"],
         "answers": [{ "text": "(k-2)^2 + 1 \\geq 1 > 0", "kind": "positive", "value": "k**2 - 4*k + 5", "scheme": "(k - 2)**2 + 1" }]
@@ -41,11 +36,6 @@
       ],
       "answerText": "Every possible case gives non-integer \\(x\\) and \\(y\\). This contradicts the assumption, so there are no positive integers \\(x\\) and \\(y\\) with \\((3x + 2y)(2x - 5y) = 28\\).",
       "answerMarks": ["A1"],
-      "slips": [
-        "Expanding the brackets, or just rewriting the student's working, instead of checking the other cases.",
-        "Taking each factor pair only one way round, such as 28 and 1 but not 1 and 28, without saying why the other way is impossible.",
-        "Finding values and never saying they are not integers, or never writing a conclusion."
-      ],
       "check": {
         "marks": ["M1", "dM1", "ddM1", "A1"],
         "answers": "proof by contradiction: the assert searches positive integers up to 200 for a counterexample, and re-solves the three factor pairs with 3x + 2y >= 5",
