@@ -1,0 +1,44 @@
+{
+  "id": "9ma0-02-jun23-10",
+  "q": "10",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "\\(\\mathrm{f}(x) = \\dfrac{3kx - 18}{(x+4)(x-2)}\\), where \\(k\\) is a positive constant. Express \\(\\mathrm{f}(x)\\) in partial fractions in terms of \\(k\\).",
+      "method": "Partial fractions",
+      "steps": [
+        { "tex": "\\frac{3kx - 18}{(x+4)(x-2)} = \\frac{A}{x+4} + \\frac{B}{x-2}" },
+        { "tex": "\\Rightarrow 3kx - 18 = A(x - 2) + B(x + 4)", "why": "Multiply through by \\((x+4)(x-2)\\).", "marks": ["B1"] },
+        { "tex": "x = 2: \\quad 6k - 18 = 6B \\;\\Rightarrow\\; B = k - 3", "why": "\\(x = 2\\) makes the \\(A\\) term vanish.", "marks": ["M1"] },
+        { "tex": "x = -4: \\quad -12k - 18 = -6A \\;\\Rightarrow\\; A = 2k + 3" }
+      ],
+      "answer": "\\mathrm{f}(x) = \\frac{2k + 3}{x + 4} + \\frac{k - 3}{x - 2}",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "A": "2*k + 3", "B": "k - 3" },
+        "marks": ["B1", "M1", "A1"],
+        "answers": [{ "tex": "\\frac{2k + 3}{x + 4} + \\frac{k - 3}{x - 2}", "scheme": "(2*k + 3)/(x + 4) + (k - 3)/(x - 2)", "derive": "apart((3*k*x - 18)/((x + 4)*(x - 2)), x)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence find the exact value of \\(k\\) for which \\(\\displaystyle\\int_{-3}^{1} \\mathrm{f}(x)\\,\\mathrm{d}x = 21\\).",
+      "method": "Integrate each fraction to a log, then use the limits",
+      "steps": [
+        { "tex": "\\int_{-3}^{1} \\left(\\frac{2k + 3}{x + 4} + \\frac{k - 3}{x - 2}\\right)\\mathrm{d}x", "check": false },
+        { "tex": "= \\Big[(2k + 3)\\ln|x + 4| + (k - 3)\\ln|x - 2|\\Big]_{-3}^{1}", "why": "\\(\\dfrac{1}{x + a} \\to \\ln|x + a|\\). The modulus matters: \\(x - 2 < 0\\) here.", "marks": ["M1", "A1ft"], "check": false },
+        { "tex": "= \\left((2k + 3)\\ln 5 + (k - 3)\\ln 1\\right) - \\left((2k + 3)\\ln 1 + (k - 3)\\ln 5\\right)", "why": "\\(|1 - 2| = 1\\) and \\(|-3 - 2| = 5\\)." },
+        { "tex": "= (2k + 3)\\ln 5 - (k - 3)\\ln 5" },
+        { "tex": "= (k + 6)\\ln 5 = 21", "marks": ["dM1"] }
+      ],
+      "answer": "k = \\frac{21}{\\ln 5} - 6",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "k": "21/log(5) - 6" },
+        "marks": ["M1", "A1ft", "dM1", "A1"],
+        "answers": [{ "tex": "k = \\frac{21}{\\ln 5} - 6", "scheme": "21/log(5) - 6", "derive": "solve(integrate((2*k + 3)/(x + 4) + (k - 3)/(x - 2), (x, -3, 1)) - 21, k)" }]
+      }
+    }
+  ]
+}

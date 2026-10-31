@@ -6,13 +6,11 @@
     {
       "label": "",
       "ask": "Given that \\(y = x^2\\), use differentiation from first principles to show that \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 2x\\).",
-      "method": "Gradient of a chord, then let \\(h \\to 0\\)",
+      "method": "Differentiate from first principles",
       "steps": [
-        { "tex": "\\text{gradient of chord} = \\frac{\\mathrm{f}(x+h) - \\mathrm{f}(x)}{h}", "why": "Join the points at \\(x\\) and \\(x + h\\) on the curve: the change in \\(y\\) over the change in \\(x\\).", "check": false },
-        { "tex": "\\frac{(x+h)^2 - x^2}{h} = \\frac{x^2 + 2xh + h^2 - x^2}{h}", "why": "\\((x+h)^2 = x^2 + 2xh + h^2\\), not \\(x^2 + h^2\\).", "marks": ["M1"] },
-        { "tex": "= \\frac{2xh + h^2}{h}", "why": "The \\(x^2\\) terms cancel.", "marks": ["A1"] },
-        { "tex": "= 2x + h", "why": "Divide each term by \\(h\\). This is fine because \\(h \\neq 0\\) for a chord." },
-        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0} \\frac{2xh + h^2}{h} = \\lim_{h \\to 0} (2x + h)", "why": "As \\(h \\to 0\\) the chord becomes the tangent.", "check": false }
+        { "tex": "\\frac{(x+h)^2 - x^2}{h} = \\frac{x^2 + 2xh + h^2 - x^2}{h}", "why": "Gradient of the chord from \\(x\\) to \\(x + h\\).", "marks": ["M1"] },
+        { "tex": "= \\frac{2xh + h^2}{h}", "marks": ["A1"] },
+        { "tex": "= 2x + h", "why": "Cancelling \\(h\\) is fine: \\(h \\neq 0\\) for a chord." }
       ],
       "answer": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0}(2x + h) = 2x",
       "answerMarks": ["A1*"],

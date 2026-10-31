@@ -1,0 +1,56 @@
+{
+  "id": "9ma0-01-jun23-06",
+  "q": "6",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Given \\(a = \\log_2 x\\) and \\(b = \\log_2(x + 8)\\), express \\(\\log_2 \\sqrt{x}\\) in terms of \\(a\\) and/or \\(b\\).",
+      "method": "Power law of logs",
+      "steps": [
+        { "tex": "\\log_2 \\sqrt{x} = \\log_2 x^{\\frac{1}{2}}" },
+        { "tex": "= \\frac{1}{2}\\log_2 x", "why": "Power law: the power comes out in front." }
+      ],
+      "answer": "= \\frac{1}{2}a",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "tex": "\\frac{1}{2}a", "scheme": "a/2", "derive": "log(sqrt(x), 2).subs(x, 2**a)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Express \\(\\log_2(x^2 + 8x)\\) in terms of \\(a\\) and/or \\(b\\).",
+      "method": "Addition law of logs",
+      "steps": [
+        { "tex": "\\log_2(x^2 + 8x) = \\log_2\\left(x(x + 8)\\right)", "why": "Factorise so that \\(x\\) and \\(x + 8\\) appear." },
+        { "tex": "= \\log_2 x + \\log_2(x + 8)", "why": "The log of a product is a sum, not a product.", "marks": ["M1"] }
+      ],
+      "answer": "= a + b",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "a + b", "scheme": "a + b" }],
+        "assert": "all(Abs(N(log(v**2 + 8*v, 2) - (log(v, 2) + log(v + 8, 2)))) < 1e-12 for v in (1, 3, Rational(15, 2)))"
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Express \\(\\log_2\\left(8 + \\frac{64}{x}\\right)\\) in terms of \\(a\\) and/or \\(b\\), in simplest form.",
+      "method": "Single fraction, then the laws of logs",
+      "steps": [
+        { "tex": "\\log_2\\left(8 + \\frac{64}{x}\\right) = \\log_2\\left(\\frac{8x + 64}{x}\\right)", "marks": ["B1"] },
+        { "tex": "= \\log_2\\left(\\frac{8(x + 8)}{x}\\right)", "why": "Factor out 8 so that \\(x + 8\\) appears." },
+        { "tex": "= \\log_{2} 8 + \\log_2(x + 8) - \\log_2 x", "why": "Multiplying adds logs; dividing subtracts them." },
+        { "tex": "= 3 + \\log_2(x + 8) - \\log_2 x", "why": "\\(2^3 = 8\\), so \\(\\log_2 8 = 3\\).", "marks": ["M1"] }
+      ],
+      "answer": "= 3 + b - a",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1"],
+        "answers": [{ "tex": "3 + b - a", "scheme": "3 + b - a" }],
+        "assert": "all(Abs(N(log(8 + 64/v, 2) - (3 + log(v + 8, 2) - log(v, 2)))) < 1e-12 for v in (1, 3, Rational(15, 2)))"
+      }
+    }
+  ]
+}

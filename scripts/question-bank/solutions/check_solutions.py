@@ -41,7 +41,7 @@ from sympy.parsing.latex import parse_latex
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 
-MARK_CODE = re.compile(r"^(d{0,2}M|A|B)\d(\*|ft)?$")
+MARK_CODE = re.compile(r"^(d{0,2}M|d?B|A)\d\*?(ft|cso|cao)?\*?$")
 TRIG = (sp.sin, sp.cos, sp.tan, sp.sec, sp.csc, sp.cot)
 INVTRIG = (sp.asin, sp.acos, sp.atan)
 NAMESPACE = {name: getattr(sp, name) for name in dir(sp) if not name.startswith("_")}

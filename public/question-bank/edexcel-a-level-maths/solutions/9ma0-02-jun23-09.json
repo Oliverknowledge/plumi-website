@@ -1,0 +1,44 @@
+{
+  "id": "9ma0-02-jun23-09",
+  "q": "9",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The curve \\(C\\) has parametric equations \\(x = t^2 + 6t - 16\\), \\(y = 6\\ln(t+3)\\), \\(t > -3\\). Show that a Cartesian equation for \\(C\\) is \\(y = A\\ln(x + B)\\), \\(x > -B\\), where \\(A\\) and \\(B\\) are integers to be found.",
+      "method": "Complete the square, then eliminate \\(t\\)",
+      "steps": [
+        { "tex": "x = t^2 + 6t - 16" },
+        { "tex": "= (t + 3)^2 - 25", "why": "\\((t+3)^2 = t^2 + 6t + 9\\), so take off \\(9 + 16 = 25\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow t + 3 = (x + 25)^{\\frac{1}{2}}", "why": "Positive root only: \\(t > -3\\) makes \\(t + 3 > 0\\)." },
+        { "tex": "\\Rightarrow y = 6\\ln\\left((x + 25)^{\\frac{1}{2}}\\right)", "marks": ["M1"] },
+        { "tex": "= 6 \\times \\frac{1}{2}\\ln(x + 25)" }
+      ],
+      "answer": "y = 3\\ln(x + 25), \\quad A = 3,\\ B = 25",
+      "answerMarks": ["A1cso"],
+      "check": {
+        "vals": { "t": 2, "x": 0, "y": "6*log(5)", "A": 3, "B": 25 },
+        "marks": ["M1", "M1", "A1cso"],
+        "answers": [{ "tex": "3\\ln(x + 25)", "scheme": "3*log(x + 25)", "derive": "6*log(sqrt(x + 25))" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "\\(C\\) cuts the \\(y\\)-axis at \\(P\\). Show that the tangent to \\(C\\) at \\(P\\) can be written as \\(ax + by = c\\ln 5\\), where \\(a\\), \\(b\\) and \\(c\\) are integers to be found.",
+      "method": "Find \\(P\\) and the gradient there, then \\(y - y_1 = m(x - x_1)\\)",
+      "steps": [
+        { "tex": "y = 3\\ln(0 + 25) = 3\\ln 25 = 6\\ln 5", "why": "On the \\(y\\)-axis \\(x = 0\\). \\(\\ln 25 = \\ln 5^2 = 2\\ln 5\\).", "marks": ["B1"], "check": { "vals": { "x": 0, "y": "6*log(5)" } } },
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\frac{3}{x + 25} = \\frac{3}{0 + 25} = \\frac{3}{25}", "why": "\\(\\ln(x + 25) \\to \\dfrac{1}{x + 25}\\). Put in \\(x = 0\\).", "marks": ["M1"], "check": { "vals": { "x": 0 } } },
+        { "tex": "y - 6\\ln 5 = \\frac{3}{25}(x - 0)", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow 25y - 150\\ln 5 = 3x" }
+      ],
+      "answer": "\\Rightarrow -3x + 25y = 150\\ln 5",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "x": 25, "y": "6*log(5) + 3" },
+        "marks": ["B1", "M1", "dM1", "A1"],
+        "answers": [{ "tex": "-3x + 25y = 150\\ln 5", "kind": "equation", "scheme": "Eq(25*y - 3*x, 150*log(5))", "derive": "Eq(y - 3*log(25), diff(3*log(x + 25), x).subs(x, 0)*x)" }]
+      }
+    }
+  ]
+}

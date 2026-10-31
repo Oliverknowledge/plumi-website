@@ -9,14 +9,14 @@
       "method": "Integrate, then use the starting values",
       "steps": [
         { "tex": "H = \\int -0.12\\mathrm{e}^{-0.2t}\\,\\mathrm{d}t", "check": false },
-        { "tex": "\\int \\mathrm{e}^{kt}\\,\\mathrm{d}t = \\frac{1}{k}\\mathrm{e}^{kt} + c", "why": "Divide by the coefficient of \\(t\\), here \\(k = -0.2\\). Don't multiply by it.", "check": false },
-        { "tex": "H = \\frac{-0.12}{-0.2}\\mathrm{e}^{-0.2t} + c = 0.6\\mathrm{e}^{-0.2t} + c", "marks": ["M1"], "check": { "vals": { "c": 0.9 } } },
-        { "tex": "t = 0,\\ H = 1.5: \\quad 1.5 = 0.6\\mathrm{e}^{0} + c = 0.6 + c", "why": "The tank starts full: at \\(t = 0\\) the depth is the full 1.5 m. \\(\\mathrm{e}^0 = 1\\).", "check": { "vals": { "c": 0.9 } } },
-        { "tex": "c = 1.5 - 0.6 = 0.9", "marks": ["dM1"] }
+        { "tex": "= \\frac{-0.12}{-0.2}\\mathrm{e}^{-0.2t} + c = 0.6\\mathrm{e}^{-0.2t} + c", "why": "\\(\\mathrm{e}^{kt} \\to \\tfrac{1}{k}\\mathrm{e}^{kt}\\): divide by \\(-0.2\\), don't multiply.", "marks": ["M1"] },
+        { "tex": "t = 0,\\ H = 1.5: \\quad 1.5 = 0.6\\mathrm{e}^{0} + c", "why": "The tank starts full: \\(H = 1.5\\) at \\(t = 0\\)." },
+        { "tex": "\\Rightarrow c = 1.5 - 0.6 = 0.9", "marks": ["dM1"] }
       ],
       "answer": "H = 0.6\\mathrm{e}^{-0.2t} + 0.9",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "c": 0.9 },
         "marks": ["M1", "dM1", "A1"],
         "answers": [{ "tex": "0.6\\mathrm{e}^{-0.2t} + 0.9", "scheme": "0.6*exp(-0.2*t) + 0.9", "derive": "integrate(-0.12*exp(-0.2*t), t) + 1.5 - integrate(-0.12*exp(-0.2*t), t).subs(t, 0)" }]
       }
@@ -27,11 +27,10 @@
       "method": "Make \\(\\mathrm{e}^{-0.2t}\\) the subject, then take logs",
       "steps": [
         { "tex": "1.2 = 0.6\\mathrm{e}^{-0.2t} + 0.9" },
-        { "tex": "0.6\\mathrm{e}^{-0.2t} = 1.2 - 0.9 = 0.3", "marks": ["M1"] },
-        { "tex": "\\mathrm{e}^{-0.2t} = \\frac{0.3}{0.6} = \\frac{1}{2}" },
-        { "tex": "-0.2t = \\ln\\frac{1}{2}", "why": "\\(\\ln\\) undoes \\(\\mathrm{e}\\)." },
-        { "tex": "t = -5\\ln\\frac{1}{2} = 5\\ln 2 = 3.4657\\ldots", "why": "Dividing by \\(-0.2\\) is multiplying by \\(-5\\).", "marks": ["dM1"] },
-        { "tex": "0.4657\\ldots \\times 60 = 27.94\\ldots \\text{ minutes}", "why": "The decimal part of an hour is not minutes: multiply it by 60." }
+        { "tex": "\\Rightarrow \\mathrm{e}^{-0.2t} = \\frac{1.2 - 0.9}{0.6} = \\frac{1}{2}", "marks": ["M1"] },
+        { "tex": "\\Rightarrow -0.2t = \\ln\\frac{1}{2}" },
+        { "tex": "\\Rightarrow t = -5\\ln\\frac{1}{2} = 5\\ln 2 = 3.4657\\ldots", "marks": ["dM1"] },
+        { "tex": "0.4657\\ldots \\times 60 = 27.94\\ldots \\text{ minutes}", "why": "Turn the decimal part of an hour into minutes." }
       ],
       "answerText": "\\(t = 3\\) hours \\(28\\) minutes",
       "answerMarks": ["A1"],
@@ -46,8 +45,7 @@
       "ask": "In the long term the water falls to the level of the hole. Find the height of the hole above the bottom of the tank.",
       "method": "Let \\(t \\to \\infty\\)",
       "steps": [
-        { "tex": "t \\to \\infty: \\quad \\mathrm{e}^{-0.2t} \\to 0", "why": "A negative power of \\(\\mathrm{e}\\) shrinks towards zero as \\(t\\) grows.", "check": false },
-        { "tex": "H \\to 0.6(0) + 0.9 = 0.9", "marks": ["M1"], "check": false }
+        { "tex": "t \\to \\infty: \\quad \\mathrm{e}^{-0.2t} \\to 0 \\Rightarrow H \\to 0.6(0) + 0.9 = 0.9", "why": "A negative power of \\(\\mathrm{e}\\) shrinks to zero as \\(t\\) grows.", "marks": ["M1"], "check": false }
       ],
       "answerText": "The hole is \\(0.9\\) m (90 cm) above the bottom of the tank.",
       "answerMarks": ["A1ft"],

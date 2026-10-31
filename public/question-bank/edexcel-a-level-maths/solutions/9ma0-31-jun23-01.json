@@ -1,0 +1,58 @@
+{
+  "id": "9ma0-31-jun23-01",
+  "q": "1",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A Venn diagram shows events \\(A\\), \\(B\\) and \\(C\\). \\(A\\) only is \\(0.13\\), \\(A \\cap B\\) is \\(0.25\\), \\(B\\) only is \\(0.05\\), \\(B \\cap C\\) is \\(0.3\\), \\(C\\) only is \\(p\\) and outside all three is \\(q\\). \\(A\\) and \\(C\\) do not overlap. Find \\(\\mathrm{P}(A)\\).",
+      "method": "Add the regions in circle \\(A\\)",
+      "steps": [
+        { "tex": "\\mathrm{P}(A) = 0.13 + 0.25", "why": "Count the overlap with \\(B\\) too: it is inside \\(A\\)." }
+      ],
+      "answer": "\\mathrm{P}(A) = 0.38",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "tex": "0.38", "scheme": "0.38", "derive": "Rational(13, 100) + Rational(25, 100)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The events \\(B\\) and \\(C\\) are independent. Find the value of \\(p\\) and the value of \\(q\\).",
+      "method": "Independence, then the total of 1",
+      "steps": [
+        { "tex": "0.3 = (0.25 + 0.05 + 0.3)(0.3 + p)", "why": "Independent: \\(\\mathrm{P}(B \\cap C) = \\mathrm{P}(B) \\times \\mathrm{P}(C)\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 0.3 = 0.6(0.3 + p)" },
+        { "tex": "\\Rightarrow 0.3 + p = 0.5" },
+        { "tex": "\\Rightarrow p = 0.2", "marks": ["A1"] },
+        { "tex": "q = 1 - (0.13 + 0.25 + 0.05 + 0.3 + 0.2)", "why": "All the probabilities in the diagram add up to 1." },
+        { "tex": "= 1 - 0.93" }
+      ],
+      "answer": "p = 0.2,\\quad q = 0.07",
+      "answerMarks": ["B1ft"],
+      "check": {
+        "marks": ["M1", "A1", "B1ft"],
+        "vals": { "p": "1/5", "q": "7/100" },
+        "answers": [
+          { "tex": "p = 0.2", "scheme": "0.2", "derive": "solve(Rational(3, 10) - Rational(6, 10)*(Rational(3, 10) + y), y)" },
+          { "tex": "q = 0.07", "scheme": "0.07", "derive": "1 - Rational(13, 100) - Rational(25, 100) - Rational(5, 100) - Rational(3, 10) - Rational(1, 5)" }
+        ]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find \\(\\mathrm{P}(A \\mid B')\\).",
+      "method": "Conditional probability",
+      "steps": [
+        { "tex": "\\mathrm{P}(A \\mid B') = \\frac{\\mathrm{P}(A \\cap B')}{\\mathrm{P}(B')} = \\frac{0.13}{1 - 0.6}", "why": "\\(A \\cap B'\\) is the part of \\(A\\) outside \\(B\\): just \\(0.13\\).", "marks": ["M1"] }
+      ],
+      "answer": "\\mathrm{P}(A \\mid B') = \\frac{13}{40} = 0.325",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "0.325", "scheme": "13/40", "derive": "Rational(13, 100)/(1 - Rational(6, 10))" }]
+      }
+    }
+  ]
+}

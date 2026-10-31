@@ -1,0 +1,43 @@
+{
+  "id": "9ma0-01-jun23-04",
+  "q": "4",
+  "m": 5,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The curve \\(C\\) has equation \\(y = \\mathrm{f}(x)\\), with \\(\\mathrm{f}'(x) = 2x + \\frac{1}{2}\\cos x\\). \\(C\\) has a stationary point with \\(x\\) coordinate \\(\\alpha\\), where \\(\\alpha\\) is small. Use the small angle approximation for \\(\\cos x\\) to estimate \\(\\alpha\\) to 3 decimal places.",
+      "method": "Small angle approximation",
+      "steps": [
+        { "tex": "\\mathrm{f}'(\\alpha) = 2\\alpha + \\frac{1}{2}\\cos\\alpha = 0", "why": "At a stationary point the gradient is zero.", "check": false },
+        { "tex": "\\Rightarrow 2\\alpha + \\frac{1}{2}\\left(1 - \\frac{\\alpha^2}{2}\\right) = 0", "why": "Small angle: \\(\\cos\\alpha \\approx 1 - \\tfrac{\\alpha^2}{2}\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 2\\alpha + \\frac{1}{2} - \\frac{\\alpha^2}{4} = 0" },
+        { "tex": "\\Rightarrow \\alpha^2 - 8\\alpha - 2 = 0", "why": "Multiply every term by \\(-4\\)." },
+        { "tex": "\\Rightarrow \\alpha = \\frac{8 \\pm \\sqrt{64 + 8}}{2} = 4 \\pm 3\\sqrt{2}", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow \\alpha = 4 - 3\\sqrt{2} = -0.2426\\ldots", "why": "\\(\\alpha\\) is small: reject \\(4 + 3\\sqrt{2} = 8.24\\ldots\\)" }
+      ],
+      "answer": "\\alpha = -0.243",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "dM1", "A1"],
+        "vals": { "\\alpha": "4 - 3*sqrt(2)" },
+        "answers": [{ "tex": "\\alpha = -0.243", "scheme": "-0.243", "derive": "4 - 3*sqrt(2)", "tol": 0.0005 }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The point \\(P(0, 3)\\) lies on \\(C\\). Find the equation of the tangent to the curve at \\(P\\), in the form \\(y = mx + c\\).",
+      "method": "Gradient from \\(\\mathrm{f}'(0)\\)",
+      "steps": [
+        { "tex": "\\mathrm{f}'(0) = 2(0) + \\frac{1}{2}\\cos 0", "why": "Use the exact \\(\\mathrm{f}'(x)\\) here, not the approximation." },
+        { "tex": "= \\frac{1}{2}" },
+        { "tex": "y - 3 = \\frac{1}{2}(x - 0)", "marks": ["M1"] }
+      ],
+      "answer": "\\Rightarrow y = \\frac{1}{2}x + 3",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "y = \\frac{1}{2}x + 3", "kind": "equation", "scheme": "Eq(y, x/2 + 3)" }]
+      }
+    }
+  ]
+}

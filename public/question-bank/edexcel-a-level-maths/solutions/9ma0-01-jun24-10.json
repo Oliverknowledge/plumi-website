@@ -8,8 +8,7 @@
       "ask": "The curve \\(y = 8x - x^{\\frac{5}{2}}\\), \\(x \\geq 0\\), crosses the \\(x\\)-axis at \\(A\\). Verify that the \\(x\\) coordinate of \\(A\\) is 4.",
       "method": "Substitute and check",
       "steps": [
-        { "tex": "4^{\\frac{5}{2}} = \\left(\\sqrt{4}\\right)^5 = 2^5 = 32", "why": "The bottom of the power is the root, the top is the power: square root first, then the fifth power." },
-        { "tex": "x = 4: \\quad y = 8(4) - 4^{\\frac{5}{2}} = 32 - 32 = 0", "check": { "vals": { "x": 4, "y": 0 } } }
+        { "tex": "x = 4: \\quad y = 8(4) - 4^{\\frac{5}{2}} = 32 - 32 = 0", "why": "\\(4^{\\frac{5}{2}} = \\left(\\sqrt{4}\\right)^5 = 32\\): root first, then the power.", "check": { "vals": { "x": 4, "y": 0 } } }
       ],
       "answerText": "\\(y = 0\\) when \\(x = 4\\), so the curve crosses the \\(x\\)-axis at \\(x = 4\\).",
       "answerMarks": ["B1"],
@@ -21,17 +20,17 @@
     {
       "label": "b",
       "ask": "\\(l_1\\) is the tangent to the curve at \\(A\\). Use calculus to show that \\(l_1\\) has equation \\(12x + y = 48\\).",
-      "method": "Differentiate for the gradient, then \\(y - y_1 = m(x - x_1)\\)",
+      "method": "Differentiate, then \\(y - y_1 = m(x - x_1)\\)",
       "steps": [
-        { "tex": "y = 8x - x^{\\frac{5}{2}}", "check": false },
-        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 8 - \\frac{5}{2}x^{\\frac{3}{2}}", "why": "Multiply by the power, then take one off it: \\(\\tfrac{5}{2} - 1 = \\tfrac{3}{2}\\).", "marks": ["B1"], "check": false },
-        { "tex": "x = 4: \\quad m = 8 - \\frac{5}{2}(4)^{\\frac{3}{2}} = 8 - \\frac{5}{2}(8) = 8 - 20 = -12", "why": "\\(4^{\\frac{3}{2}} = \\left(\\sqrt{4}\\right)^3 = 8\\)." },
-        { "tex": "y - 0 = -12(x - 4)", "why": "The tangent passes through \\(A(4, 0)\\) with gradient \\(-12\\).", "marks": ["M1"], "check": { "vals": { "x": 3, "y": 12 } } },
-        { "tex": "y = -12x + 48", "check": { "vals": { "x": 3, "y": 12 } } }
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 8 - \\frac{5}{2}x^{\\frac{3}{2}}", "marks": ["B1"], "check": false },
+        { "tex": "x = 4: \\quad m = 8 - \\frac{5}{2}(4)^{\\frac{3}{2}} = 8 - 20 = -12", "why": "\\(4^{\\frac{3}{2}} = \\left(\\sqrt{4}\\right)^3 = 8\\).", "check": { "vals": { "x": 4, "m": -12 } } },
+        { "tex": "\\Rightarrow y - 0 = -12(x - 4)", "why": "Tangent through \\(A(4, 0)\\) with gradient \\(-12\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow y = -12x + 48" }
       ],
       "answer": "12x + y = 48",
       "answerMarks": ["A1*"],
       "check": {
+        "vals": { "x": 3, "y": 12 },
         "marks": ["B1", "M1", "A1*"],
         "answers": [{ "tex": "12x + y = 48", "kind": "equation", "scheme": "Eq(y, -12*x + 48)", "derive": "Eq(y, diff(8*x - x**Rational(5, 2), x).subs(x, 4)*(x - 4))" }]
       }
@@ -39,20 +38,20 @@
     {
       "label": "c",
       "ask": "\\(l_2\\) has equation \\(y = 8x\\). Region \\(R\\) is bounded by the curve, \\(l_1\\) and \\(l_2\\). Use algebraic integration to find the exact area of \\(R\\).",
-      "method": "Triangle under the lines, minus the area under the curve",
+      "method": "Triangle minus the area under the curve",
       "steps": [
-        { "text": "The lines and the \\(x\\)-axis make a triangle with corners \\(O\\), \\(A(4, 0)\\) and the point where \\(l_1\\) meets \\(l_2\\). \\(R\\) is that triangle with the area under the curve, from 0 to 4, taken away.", "why": "Both the curve and the triangle start at \\(O\\) and end at \\(A\\)." },
-        { "tex": "12x + 8x = 48 \\;\\Rightarrow\\; 20x = 48 \\;\\Rightarrow\\; x = 2.4", "why": "Substitute \\(y = 8x\\) into \\(12x + y = 48\\).", "check": { "vals": { "x": 2.4 } } },
-        { "tex": "y = 8(2.4) = 19.2", "marks": ["M1"] },
-        { "tex": "\\text{Triangle} = \\tfrac{1}{2} \\times 4 \\times 19.2 = 38.4 = \\frac{192}{5}", "why": "Base \\(OA = 4\\) along the \\(x\\)-axis; height is the \\(y\\) coordinate of the top corner. The triangle is not isosceles, so don't assume the top is at \\(x = 2\\).", "marks": ["dM1"] },
-        { "tex": "\\int \\left(8x - x^{\\frac{5}{2}}\\right)\\mathrm{d}x = 4x^2 - \\frac{2}{7}x^{\\frac{7}{2}} + c", "why": "Add one to the power and divide by the new power: \\(\\tfrac{5}{2} + 1 = \\tfrac{7}{2}\\), and dividing by \\(\\tfrac{7}{2}\\) is multiplying by \\(\\tfrac{2}{7}\\).", "marks": ["B1"], "check": false },
-        { "tex": "\\int_0^4 \\left(8x - x^{\\frac{5}{2}}\\right)\\mathrm{d}x = \\left(4(4)^2 - \\frac{2}{7}(4)^{\\frac{7}{2}}\\right) - (0) = 64 - \\frac{256}{7} = \\frac{192}{7}", "why": "\\(4^{\\frac{7}{2}} = \\left(\\sqrt{4}\\right)^7 = 2^7 = 128\\)." },
-        { "tex": "R = \\frac{192}{5} - \\frac{192}{7}", "marks": ["ddM1"], "check": false },
-        { "tex": "\\frac{192}{5} - \\frac{192}{7} = \\frac{1344 - 960}{35}", "why": "Common denominator 35." }
+        { "text": "\\(R\\) is the triangle \\(OAB\\), where \\(B\\) is where \\(l_1\\) meets \\(l_2\\), minus the area under the curve from 0 to 4.", "why": "Curve and triangle both run from \\(O\\) to \\(A(4, 0)\\)." },
+        { "tex": "12x + 8x = 48 \\Rightarrow x = 2.4", "check": { "vals": { "x": 2.4 } } },
+        { "tex": "\\Rightarrow y = 8(2.4) = 19.2", "marks": ["M1"], "check": { "vals": { "y": 19.2 } } },
+        { "tex": "\\text{Triangle} = \\tfrac{1}{2} \\times 4 \\times 19.2 = \\frac{192}{5}", "why": "Height is \\(B\\)'s \\(y\\) coordinate: don't assume \\(B\\) is above \\(x = 2\\).", "marks": ["dM1"] },
+        { "tex": "\\int_0^4 \\left(8x - x^{\\frac{5}{2}}\\right)\\mathrm{d}x = \\left[4x^2 - \\frac{2}{7}x^{\\frac{7}{2}}\\right]_0^4", "why": "Add 1 to the power, divide by the new power: \\(\\tfrac{7}{2}\\).", "marks": ["B1"], "check": false },
+        { "tex": "= 4(4)^2 - \\frac{2}{7}(4)^{\\frac{7}{2}} - 0 = 64 - \\frac{256}{7} = \\frac{192}{7}" },
+        { "tex": "R = \\frac{192}{5} - \\frac{192}{7} = \\frac{1344 - 960}{35}", "marks": ["ddM1"] }
       ],
       "answer": "\\text{Area of } R = \\frac{384}{35}",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "R": "384/35" },
         "marks": ["M1", "dM1", "B1", "ddM1", "A1"],
         "answers": [{ "tex": "\\frac{384}{35}", "scheme": "384/35", "derive": "integrate(8*x, (x, 0, Rational(12, 5))) + integrate(48 - 12*x, (x, Rational(12, 5), 4)) - integrate(8*x - x**Rational(5, 2), (x, 0, 4))" }]
       }

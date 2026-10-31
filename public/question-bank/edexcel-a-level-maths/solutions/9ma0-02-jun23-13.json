@@ -1,0 +1,61 @@
+{
+  "id": "9ma0-02-jun23-13",
+  "q": "13",
+  "m": 13,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Find the first three terms, in ascending powers of \\(x\\), of the binomial expansion of \\((3 + x)^{-2}\\), each in simplest form. You must show all stages of your working.",
+      "method": "Binomial expansion: take out a factor of \\(3^{-2}\\) first",
+      "steps": [
+        { "tex": "(3 + x)^{-2} = 3^{-2}\\left(1 + \\frac{x}{3}\\right)^{-2}", "why": "The bracket must start with 1. The 3 comes out as \\(3^{-2}\\).", "marks": ["M1"] },
+        { "tex": "= \\frac{1}{9}\\left(1 + (-2)\\left(\\frac{x}{3}\\right) + \\frac{(-2)(-3)}{2!}\\left(\\frac{x}{3}\\right)^2 + \\ldots\\right)", "why": "Formula book: \\((1 + x)^n = 1 + nx + \\frac{n(n-1)}{2!}x^2 + \\ldots\\), with \\(n = -2\\).", "marks": ["M1", "A1"], "check": false },
+        { "tex": "= \\frac{1}{9}\\left(1 - \\frac{2x}{3} + \\frac{x^2}{3}\\right)" }
+      ],
+      "answer": "= \\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1", "A1"],
+        "answers": [{ "tex": "\\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}", "scheme": "Rational(1, 9) - 2*x/27 + x**2/27", "derive": "series((3 + x)**-2, x, 0, 3).removeO()" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Using part (a) and algebraic integration, estimate \\(\\displaystyle\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x\\) to 4 significant figures.",
+      "method": "Multiply the expansion by \\(6x\\), then integrate term by term",
+      "steps": [
+        { "tex": "\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x \\approx \\int_{0.2}^{0.4} 6x\\left(\\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}\\right)\\mathrm{d}x", "why": "\\(\\dfrac{6x}{(3+x)^2} = 6x(3+x)^{-2}\\): use part (a).", "check": false },
+        { "tex": "= \\int_{0.2}^{0.4} \\left(\\frac{2x}{3} - \\frac{4x^2}{9} + \\frac{2x^3}{9}\\right)\\mathrm{d}x", "marks": ["M1"], "check": false },
+        { "tex": "= \\left[\\frac{x^2}{3} - \\frac{4x^3}{27} + \\frac{x^4}{18}\\right]_{0.2}^{0.4}", "marks": ["A1"], "check": false },
+        { "tex": "= \\left(\\frac{(0.4)^2}{3} - \\frac{4(0.4)^3}{27} + \\frac{(0.4)^4}{18}\\right) - \\left(\\frac{(0.2)^2}{3} - \\frac{4(0.2)^3}{27} + \\frac{(0.2)^4}{18}\\right)", "marks": ["dM1"] },
+        { "tex": "= 0.0452740\\ldots - 0.0122370\\ldots" },
+        { "tex": "= 0.0330370\\ldots", "why": "Exactly \\(\\tfrac{223}{6750}\\). 4 s.f. starts at the first non-zero digit." }
+      ],
+      "answer": "\\approx 0.03304",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1"],
+        "answers": [{ "tex": "0.03304", "scheme": "Rational(223, 6750)", "derive": "integrate(6*x*(Rational(1, 9) - 2*x/27 + x**2/27), (x, Rational(1, 5), Rational(2, 5)))", "tol": 0.000005 }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find, using algebraic integration, the exact value of \\(\\displaystyle\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x\\), in the form \\(a\\ln b + c\\).",
+      "method": "Integration by substitution, \\(u = 3 + x\\)",
+      "steps": [
+        { "tex": "u = 3 + x \\;\\Rightarrow\\; x = u - 3, \\quad \\mathrm{d}x = \\mathrm{d}u", "why": "New limits: \\(x = 0.2 \\to u = 3.2\\), \\(x = 0.4 \\to u = 3.4\\).", "check": false },
+        { "tex": "\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x = \\int_{3.2}^{3.4} \\frac{6(u - 3)}{u^2}\\,\\mathrm{d}u", "marks": ["M1"], "check": false },
+        { "tex": "= \\int_{3.2}^{3.4} \\left(\\frac{6}{u} - \\frac{18}{u^2}\\right)\\mathrm{d}u", "check": false },
+        { "tex": "= \\left[6\\ln u + \\frac{18}{u}\\right]_{3.2}^{3.4}", "why": "\\(-18u^{-2} \\to -18 \\times \\frac{u^{-1}}{-1} = +\\frac{18}{u}\\).", "marks": ["M1", "A1"], "check": false },
+        { "tex": "= \\left(6\\ln 3.4 + \\frac{18}{3.4}\\right) - \\left(6\\ln 3.2 + \\frac{18}{3.2}\\right)", "marks": ["ddM1"] },
+        { "tex": "= 6\\ln\\left(\\frac{3.4}{3.2}\\right) + \\frac{90}{17} - \\frac{45}{8}", "why": "\\(\\ln a - \\ln b = \\ln\\frac{a}{b}\\), and \\(\\frac{18}{3.4} = \\frac{180}{34} = \\frac{90}{17}\\)." }
+      ],
+      "answer": "= 6\\ln\\left(\\frac{17}{16}\\right) - \\frac{45}{136}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1", "ddM1", "A1"],
+        "answers": [{ "tex": "6\\ln\\left(\\frac{17}{16}\\right) - \\frac{45}{136}", "scheme": "6*log(Rational(17, 16)) - Rational(45, 136)", "derive": "integrate(6*x/(3 + x)**2, (x, Rational(1, 5), Rational(2, 5)))" }]
+      }
+    }
+  ]
+}

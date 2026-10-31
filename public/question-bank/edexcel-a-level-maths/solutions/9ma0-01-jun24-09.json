@@ -8,17 +8,16 @@
       "ask": "The first 3 terms of a geometric sequence are \\(3^{4k-5}\\), \\(9^{7-2k}\\), \\(3^{2(k-1)}\\). Using algebra, prove that \\(k = \\tfrac{5}{2}\\).",
       "method": "Equal ratios, then a common base of 3",
       "steps": [
-        { "tex": "\\frac{u_2}{u_1} = \\frac{u_3}{u_2} \\;\\Rightarrow\\; u_2^{\\,2} = u_1 u_3", "why": "In a geometric sequence each term is the one before times \\(r\\), so the two ratios are equal.", "check": false },
-        { "tex": "\\left(9^{7-2k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "check": { "vals": { "k": "5/2" } } },
-        { "tex": "9^{7-2k} = \\left(3^2\\right)^{7-2k} = 3^{2(7-2k)} = 3^{14-4k}", "why": "Write 9 as \\(3^2\\) so every term has the same base. Power of a power: multiply the indices.", "check": { "vals": { "k": "5/2" } } },
-        { "tex": "\\left(3^{14-4k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "marks": ["M1"], "check": { "vals": { "k": "5/2" } } },
-        { "tex": "3^{28-8k} = 3^{4k-5+2k-2} = 3^{6k-7}", "why": "Multiplying powers of the same base: add the indices.", "check": { "vals": { "k": "5/2" } } },
-        { "tex": "28 - 8k = 6k - 7", "why": "Same base on both sides, so the indices are equal.", "check": { "vals": { "k": "5/2" } } },
-        { "tex": "35 = 14k \\;\\Rightarrow\\; k = \\frac{35}{14}", "marks": ["dM1"], "check": { "vals": { "k": "5/2" } } }
+        { "tex": "\\left(9^{7-2k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "why": "Equal ratios \\(\\tfrac{u_2}{u_1} = \\tfrac{u_3}{u_2}\\) give \\(u_2^{\\,2} = u_1 u_3\\)." },
+        { "tex": "\\Rightarrow \\left(3^{14-4k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "why": "Write \\(9 = 3^2\\), so \\(9^{7-2k} = 3^{14-4k}\\).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 3^{28-8k} = 3^{6k-7}", "why": "Multiplying powers of 3: add the indices." },
+        { "tex": "\\Rightarrow 28 - 8k = 6k - 7" },
+        { "tex": "\\Rightarrow 14k = 35", "marks": ["dM1"] }
       ],
       "answer": "k = \\frac{5}{2}",
       "answerMarks": ["A1*"],
       "check": {
+        "vals": { "k": "5/2" },
         "marks": ["M1", "dM1", "A1*"],
         "answers": [{ "tex": "k = \\frac{5}{2}", "scheme": "5/2", "derive": "solve(Eq((2*(7 - 2*k))*2, (4*k - 5) + 2*(k - 1)), k)[0]" }]
       }
@@ -26,17 +25,17 @@
     {
       "label": "b",
       "ask": "Hence find the sum to infinity of the sequence.",
-      "method": "Find \\(a\\) and \\(r\\), then \\(S_\\infty = \\dfrac{a}{1-r}\\)",
+      "method": "Sum to infinity",
       "steps": [
-        { "tex": "a = 3^{4\\left(\\frac{5}{2}\\right) - 5} = 3^{10-5} = 3^5 = 243" },
-        { "tex": "u_2 = 9^{7 - 2\\left(\\frac{5}{2}\\right)} = 9^{7-5} = 9^2 = 81" },
-        { "tex": "r = \\frac{u_2}{u_1} = \\frac{81}{243} = \\frac{1}{3}", "why": "\\(|r| < 1\\), so the sum to infinity exists.", "marks": ["M1"], "check": { "vals": { "u_2": 81, "u_1": 243 } } },
-        { "tex": "S_\\infty = \\frac{a}{1-r} = \\frac{243}{1 - \\frac{1}{3}}", "marks": ["M1"], "check": { "vals": { "a": 243, "r": "1/3" } } },
-        { "tex": "\\frac{243}{1 - \\frac{1}{3}} = \\frac{243}{\\frac{2}{3}} = 243 \\times \\frac{3}{2} = \\frac{729}{2}" }
+        { "tex": "a = 3^{4\\left(\\frac{5}{2}\\right) - 5} = 3^5 = 243" },
+        { "tex": "u_2 = 9^{7 - 2\\left(\\frac{5}{2}\\right)} = 9^2 = 81" },
+        { "tex": "\\Rightarrow r = \\frac{81}{243} = \\frac{1}{3}", "why": "\\(|r| < 1\\), so the sum to infinity exists.", "marks": ["M1"] },
+        { "tex": "S_\\infty = \\frac{243}{1 - \\frac{1}{3}} = 243 \\times \\frac{3}{2}", "why": "Formula book: \\(S_\\infty = \\dfrac{a}{1-r}\\).", "marks": ["M1"] }
       ],
       "answer": "S_\\infty = \\frac{729}{2} = 364.5",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "a": 243, "r": "1/3", "u_2": 81 },
         "marks": ["M1", "M1", "A1"],
         "answers": [{ "tex": "\\frac{729}{2}", "scheme": "729/2", "derive": "3**(4*Rational(5,2) - 5)/(1 - 9**(7 - 2*Rational(5,2))/3**(4*Rational(5,2) - 5))" }]
       }

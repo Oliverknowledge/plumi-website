@@ -1,0 +1,58 @@
+{
+  "id": "9ma0-32-jun23-04",
+  "q": "4",
+  "m": 10,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A particle \\(P\\) moves on a smooth horizontal plane with constant acceleration \\((2.4\\mathbf{i} + \\mathbf{j})\\) m s⁻². At \\(t = 0\\) it passes through \\(A\\) with velocity \\((-16\\mathbf{i} - 3\\mathbf{j})\\) m s⁻¹, and at \\(t = 5\\) s it passes through \\(B\\). Find the speed of \\(P\\) at \\(B\\).",
+      "method": "suvat with vectors",
+      "steps": [
+        { "tex": "\\mathbf{v}_B = (-16\\mathbf{i} - 3\\mathbf{j}) + 5(2.4\\mathbf{i} + \\mathbf{j})", "why": "\\(\\mathbf{v} = \\mathbf{u} + \\mathbf{a}t\\) with \\(t = 5\\).", "marks": ["M1"] },
+        { "tex": "= -4\\mathbf{i} + 2\\mathbf{j}", "marks": ["A1"] },
+        { "tex": "\\text{speed} = \\sqrt{(-4)^2 + 2^2} = \\sqrt{20}", "marks": ["M1"] }
+      ],
+      "answer": "\\text{speed} = 2\\sqrt{5} = 4.47\\ \\text{m s}^{-1}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "M1", "A1"],
+        "answers": [{ "tex": "2\\sqrt{5}", "scheme": "2*sqrt(5)", "derive": "sqrt((-16 + 5*Rational(12, 5))**2 + (-3 + 5*1)**2)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The position vector of \\(A\\) is \\((44\\mathbf{i} - 10\\mathbf{j})\\) m. At \\(t = T\\) seconds, where \\(T > 5\\), \\(P\\) passes through \\(C\\), with position vector \\((4\\mathbf{i} + c\\mathbf{j})\\) m. Find the value of \\(T\\).",
+      "method": "suvat with vectors, then equate \\(\\mathbf{i}\\) components",
+      "steps": [
+        { "tex": "\\mathbf{i}:\\quad 4 = 44 - 16T + \\frac{1}{2}(2.4)T^2", "why": "\\(\\mathbf{r} = \\mathbf{r}_A + \\mathbf{u}t + \\frac{1}{2}\\mathbf{a}t^2\\). Add the start position, 44.", "marks": ["M1", "A1"] },
+        { "tex": "\\Rightarrow 1.2T^2 - 16T + 40 = 0" },
+        { "tex": "\\Rightarrow 3T^2 - 40T + 100 = 0", "why": "Multiply by 2.5 to clear the decimals." },
+        { "tex": "\\Rightarrow (3T - 10)(T - 10) = 0" },
+        { "text": "\\(T > 5\\), so reject \\(T = \\frac{10}{3}\\)." }
+      ],
+      "answer": "T = 10",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "A1"],
+        "vals": { "T": 10 },
+        "answers": [{ "tex": "T = 10", "scheme": "10", "derive": "solveset(Eq(4, 44 - 16*T + Rational(6, 5)*T**2), T, Interval.open(5, oo))" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find the value of \\(c\\).",
+      "method": "Equate \\(\\mathbf{j}\\) components",
+      "steps": [
+        { "tex": "\\mathbf{j}:\\quad c = -10 + (-3)(10) + \\frac{1}{2}(1)(10)^2", "why": "Use \\(T = 10\\). Don't forget the start position, \\(-10\\).", "marks": ["M1", "M1"] },
+        { "tex": "= -10 - 30 + 50" }
+      ],
+      "answer": "c = 10",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1"],
+        "vals": { "c": 10 },
+        "answers": [{ "tex": "c = 10", "scheme": "10", "derive": "-10 + (-3)*10 + Rational(1, 2)*1*10**2" }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "9ma0-01-jun23-10",
+  "q": "10",
+  "m": 9,
+  "parts": [
+    {
+      "label": "a(i)",
+      "ask": "A circle \\(C\\) has equation \\(x^2 + y^2 + 6kx - 2ky + 7 = 0\\), where \\(k\\) is a constant. Find, in terms of \\(k\\), the coordinates of the centre of \\(C\\).",
+      "method": "Complete the square",
+      "steps": [
+        { "tex": "x^2 + y^2 + 6kx - 2ky + 7 = 0" },
+        { "tex": "\\Rightarrow (x + 3k)^2 - 9k^2 + (y - k)^2 - k^2 + 7 = 0", "why": "Halve the coefficients: \\(6k \\to 3k\\), \\(-2k \\to -k\\)." }
+      ],
+      "answer": "\\text{Centre } (-3k,\\ k)",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "k": 1, "x": "-3 + sqrt(3)", "y": 1 },
+        "answers": [{ "tex": "(-3k,\\ k)", "kind": "point", "scheme": "(-3*k, k)" }]
+      }
+    },
+    {
+      "label": "a(ii)",
+      "ask": "Find, in terms of \\(k\\), the radius of \\(C\\).",
+      "method": "Read \\(r^2\\) from the completed square",
+      "steps": [
+        { "tex": "(x + 3k)^2 + (y - k)^2 = 9k^2 + k^2 - 7", "why": "Move everything outside the brackets to the right.", "marks": ["M1"] },
+        { "tex": "= 10k^2 - 7" }
+      ],
+      "answer": "r = \\sqrt{10k^2 - 7}",
+      "answerMarks": ["A1ft"],
+      "check": {
+        "marks": ["M1", "A1ft"],
+        "vals": { "k": 1, "x": "-3 + sqrt(3)", "y": 1 },
+        "answers": [{ "tex": "\\sqrt{10k^2 - 7}", "scheme": "sqrt(10*k**2 - 7)", "derive": "sqrt((3*k)**2 + k**2 - 7)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The line \\(y = 2x - 1\\) intersects \\(C\\) at 2 distinct points. Find the range of possible values of \\(k\\).",
+      "method": "Substitute, then discriminant \\(> 0\\)",
+      "steps": [
+        { "tex": "x^2 + (2x - 1)^2 + 6kx - 2k(2x - 1) + 7 = 0", "marks": ["M1"], "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "tex": "\\Rightarrow x^2 + 4x^2 - 4x + 1 + 6kx - 4kx + 2k + 7 = 0", "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "tex": "\\Rightarrow 5x^2 + (2k - 4)x + 2k + 8 = 0", "why": "Group the \\(x\\) terms: \\(-4x + 2kx = (2k - 4)x\\).", "marks": ["A1"], "check": { "vals": { "k": 20, "x": "(-36 + sqrt(336))/10" } } },
+        { "tex": "b^2 - 4ac = (2k - 4)^2 - 4(5)(2k + 8)", "why": "Two distinct points: \\(b^2 - 4ac > 0\\)." },
+        { "tex": "= 4k^2 - 16k + 16 - 40k - 160" },
+        { "tex": "= 4k^2 - 56k - 144" },
+        { "tex": "4k^2 - 56k - 144 > 0 \\Rightarrow k^2 - 14k - 36 > 0", "why": "Divide by 4: a positive number, so the sign stays." },
+        { "tex": "k^2 - 14k - 36 = 0 \\Rightarrow k = \\frac{14 \\pm \\sqrt{196 + 144}}{2}", "marks": ["dM1"] },
+        { "tex": "= 7 \\pm \\sqrt{85}", "why": "\\(\\sqrt{340} = 2\\sqrt{85}\\).", "marks": ["A1"] },
+        { "text": "\\(k^2 - 14k - 36\\) is a U-shaped quadratic, so it is positive outside its roots.", "marks": ["ddM1"] }
+      ],
+      "answer": "k < 7 - \\sqrt{85} \\ \\text{or}\\ k > 7 + \\sqrt{85}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1", "ddM1", "A1"],
+        "answers": [{ "tex": "k < 7 - \\sqrt{85} \\ \\text{or}\\ k > 7 + \\sqrt{85}", "kind": "set", "var": "k", "scheme": "Union(Interval.open(-oo, 7 - sqrt(85)), Interval.open(7 + sqrt(85), oo))", "derive": "solveset((2*k - 4)**2 - 20*(2*k + 8) > 0, k, S.Reals)" }]
+      }
+    }
+  ]
+}

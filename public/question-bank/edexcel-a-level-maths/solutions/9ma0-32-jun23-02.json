@@ -1,0 +1,54 @@
+{
+  "id": "9ma0-32-jun23-02",
+  "q": "2",
+  "m": 4,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A particle \\(P\\) of mass 5 kg is pulled along a rough horizontal plane by a horizontal force of 28 N. The only resistance is friction, \\(F\\) N, acting the opposite way (Figure 1). Find the magnitude of the normal reaction of the plane on \\(P\\).",
+      "method": "Resolve vertically",
+      "steps": [
+        { "tex": "R = 5g = 5 \\times 9.8", "why": "Only the weight and \\(R\\) act vertically." }
+      ],
+      "answer": "R = 49\\ \\text{N}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "g": 9.8, "R": 49 },
+        "answers": [{ "tex": "49", "scheme": "49", "derive": "5*Rational(49, 5)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The particle accelerates along the plane at \\(1.4\\) m s⁻². Find the value of \\(F\\).",
+      "method": "Newton's second law, \\(F = ma\\)",
+      "steps": [
+        { "tex": "28 - F = 5 \\times 1.4", "why": "Resultant force \\(= ma\\). Friction opposes the motion.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow F = 28 - 7" }
+      ],
+      "answer": "F = 21",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "F": 21 },
+        "answers": [{ "tex": "21", "scheme": "21", "derive": "28 - 5*Rational(7, 5)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "The coefficient of friction between \\(P\\) and the plane is \\(\\mu\\). Find \\(\\mu\\) to 2 significant figures.",
+      "method": "Friction is limiting, \\(F = \\mu R\\)",
+      "steps": [
+        { "tex": "21 = \\mu \\times 49", "why": "\\(P\\) is sliding, so friction is limiting: \\(F = \\mu R\\)." },
+        { "tex": "\\Rightarrow \\mu = \\frac{21}{49} = 0.428\\ldots" }
+      ],
+      "answer": "\\mu = 0.43",
+      "answerMarks": ["B1ft"],
+      "check": {
+        "marks": ["B1ft"],
+        "vals": { "\\mu": "3/7" },
+        "answers": [{ "tex": "0.43", "scheme": "0.43", "derive": "Rational(21, 49)", "tol": 0.005 }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "id": "9ma0-31-jun23-02",
+  "q": "2",
+  "m": 9,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A machine fills packets of sweets and \\(\\tfrac{1}{7}\\) of the packets also contain a prize. There are 40 packets in each box, and \\(T\\) is the number of packets in a box that contain a prize. State a condition needed for \\(T\\) to be modelled by \\(\\mathrm{B}\\left(40, \\tfrac{1}{7}\\right)\\).",
+      "method": "Conditions for a binomial model",
+      "steps": [
+        { "text": "A binomial model needs independent trials with a constant probability of success.", "why": "Answer in context: say packets and prizes." }
+      ],
+      "answerText": "The prizes must be put into packets independently of each other (or: every packet must have the same probability, \\(\\tfrac{1}{7}\\), of containing a prize).",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a condition for a binomial model, in context: no number to compare"
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "A box is selected at random. Using \\(T \\sim \\mathrm{B}\\left(40, \\tfrac{1}{7}\\right)\\), find the probability that the box has exactly 6 packets containing a prize.",
+      "method": "Binomial probability",
+      "steps": [
+        { "tex": "\\mathrm{P}(T = 6) = \\binom{40}{6}\\left(\\frac{1}{7}\\right)^6\\left(\\frac{6}{7}\\right)^{34}", "why": "Or binomial pdf: \\(n = 40\\), \\(p = \\tfrac{1}{7}\\), \\(x = 6\\)." },
+        { "tex": "= 0.17273\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(T = 6) = 0.173",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "tex": "0.173", "scheme": "0.173", "tol": 0.0005, "derive": "binomial(40, 6)*Rational(1, 7)**6*Rational(6, 7)**34" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Find the probability that the box has fewer than 3 packets containing a prize.",
+      "method": "Binomial cumulative probability",
+      "steps": [
+        { "tex": "\\mathrm{P}(T \\leq 2) = \\left(\\frac{6}{7}\\right)^{40} + 40\\left(\\frac{1}{7}\\right)\\left(\\frac{6}{7}\\right)^{39} + \\binom{40}{2}\\left(\\frac{1}{7}\\right)^2\\left(\\frac{6}{7}\\right)^{38}", "why": "Fewer than 3 means \\(T \\leq 2\\). Or binomial cdf with \\(x = 2\\)." },
+        { "tex": "= 0.061587\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(T < 3) = 0.0616",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "tex": "0.0616", "scheme": "0.0616", "tol": 0.00005, "derive": "Sum(binomial(40, r)*Rational(1, 7)**r*Rational(6, 7)**(40 - r), (r, 0, 2)).doit()" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Kamil's sweet shop buys 5 boxes. Find the probability that exactly 2 of these 5 boxes have fewer than 3 packets containing a prize.",
+      "method": "A second binomial, counting boxes",
+      "steps": [
+        { "tex": "K \\sim \\mathrm{B}(5,\\ 0.061587\\ldots)", "why": "\\(K\\): boxes with fewer than 3 prizes. Each box is one trial.", "marks": ["M1"], "check": false },
+        { "tex": "\\mathrm{P}(K = 2) = \\binom{5}{2}(0.061587\\ldots)^2(0.938412\\ldots)^3", "why": "Use the unrounded value from (b)(ii)." },
+        { "tex": "= 0.031344\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(K = 2) = 0.0313",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "0.0313", "scheme": "0.03135", "tol": 0.00006, "derive": "binomial(5, 2)*Sum(binomial(40, r)*Rational(1, 7)**r*Rational(6, 7)**(40 - r), (r, 0, 2)).doit()**2*(1 - Sum(binomial(40, r)*Rational(1, 7)**r*Rational(6, 7)**(40 - r), (r, 0, 2)).doit())**3" }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "Kamil claims that the proportion of packets containing a prize is less than \\(\\tfrac{1}{7}\\). In a random sample of 110 packets, 9 contain a prize. Use a suitable test, at the 5% level of significance, to assess Kamil's claim. State your hypotheses clearly.",
+      "method": "One-tailed binomial test",
+      "steps": [
+        { "tex": "\\mathrm{H}_0: p = \\tfrac{1}{7} \\qquad \\mathrm{H}_1: p < \\tfrac{1}{7}", "why": "Kamil says \"less than\", so the test is one-tailed.", "marks": ["B1"], "check": false },
+        { "tex": "X \\sim \\mathrm{B}\\left(110, \\tfrac{1}{7}\\right)", "why": "\\(X\\): packets with a prize, assuming \\(\\mathrm{H}_0\\).", "marks": ["M1"], "check": false },
+        { "tex": "\\mathrm{P}(X \\leq 9) = 0.038292\\ldots", "why": "As extreme or more: \\(\\mathrm{P}(X \\leq 9)\\), not \\(\\mathrm{P}(X = 9)\\).", "marks": ["A1"] }
+      ],
+      "answerText": "\\(0.0383 < 0.05\\), so reject \\(\\mathrm{H}_0\\). There is evidence to support Kamil's claim that the proportion of packets containing a prize is less than \\(\\tfrac{1}{7}\\).",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1", "A1"],
+        "answers": [{ "text": "0.0383", "value": "0.0383", "scheme": "0.038292", "tol": 0.00005, "derive": "Sum(binomial(110, r)*Rational(1, 7)**r*Rational(6, 7)**(110 - r), (r, 0, 9)).doit()" }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "9ma0-02-jun23-14",
+  "q": "14",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Show that \\(2\\tan\\theta(8\\cos\\theta + 23\\sin^2\\theta) = 8\\sin 2\\theta(1 + \\tan^2\\theta)\\) may be written as \\(\\sin 2\\theta(A\\cos^2\\theta + B\\cos\\theta + C) = 0\\), where \\(A\\), \\(B\\) and \\(C\\) are constants to be found. You must show all stages of your working.",
+      "method": "Use identities to write everything in \\(\\sin 2\\theta\\) and \\(\\cos\\theta\\)",
+      "steps": [
+        { "tex": "2\\tan\\theta(8\\cos\\theta + 23\\sin^2\\theta) = 8\\sin 2\\theta(1 + \\tan^2\\theta)" },
+        { "tex": "= 8\\sin 2\\theta\\sec^2\\theta", "why": "\\(1 + \\tan^2\\theta = \\sec^2\\theta\\).", "marks": ["B1"] },
+        { "tex": "\\Rightarrow 2\\tan\\theta\\cos^2\\theta(8\\cos\\theta + 23\\sin^2\\theta) = 8\\sin 2\\theta" },
+        { "tex": "\\Rightarrow 2\\sin\\theta\\cos\\theta(8\\cos\\theta + 23(1 - \\cos^2\\theta)) = 8\\sin 2\\theta", "why": "\\(\\tan\\theta\\cos^2\\theta = \\sin\\theta\\cos\\theta\\), and \\(\\sin^2\\theta = 1 - \\cos^2\\theta\\)." },
+        { "tex": "\\Rightarrow \\sin 2\\theta(8\\cos\\theta + 23 - 23\\cos^2\\theta) - 8\\sin 2\\theta = 0", "why": "\\(2\\sin\\theta\\cos\\theta = \\sin 2\\theta\\). Don't divide by \\(\\sin 2\\theta\\): you'd lose roots." },
+        { "tex": "\\Rightarrow \\sin 2\\theta(-23\\cos^2\\theta + 8\\cos\\theta + 15) = 0", "marks": ["M1"] }
+      ],
+      "answer": "\\sin 2\\theta(23\\cos^2\\theta - 8\\cos\\theta - 15) = 0, \\quad A = 23,\\ B = -8,\\ C = -15",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "theta": "acos(Rational(-15, 23))", "A": 23, "B": -8, "C": -15 },
+        "marks": ["B1", "M1", "A1"],
+        "answers": [{ "tex": "23\\cos^2\\theta - 8\\cos\\theta - 15", "scheme": "23*cos(theta)**2 - 8*cos(theta) - 15", "derive": "-(2*tan(theta)*(8*cos(theta) + 23*sin(theta)**2) - 8*sin(2*theta)*(1 + tan(theta)**2))*cos(theta)**2/sin(2*theta)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence solve, for \\(360^\\circ \\leq x \\leq 540^\\circ\\), \\(2\\tan x(8\\cos x + 23\\sin^2 x) = 8\\sin 2x(1 + \\tan^2 x)\\), \\(x \\neq 450^\\circ\\).",
+      "method": "Solve each factor of part (a) separately",
+      "steps": [
+        { "tex": "\\sin 2x(23\\cos^2 x - 8\\cos x - 15) = 0", "check": { "vals": { "x": 360 } } },
+        { "tex": "\\sin 2x = 0 \\;\\Rightarrow\\; 2x = 720^\\circ,\\ 900^\\circ,\\ 1080^\\circ", "check": { "vals": { "x": 360 } } },
+        { "tex": "\\Rightarrow x = 360^\\circ,\\ 450^\\circ,\\ 540^\\circ", "why": "Reject \\(x = 450^\\circ\\): \\(\\tan 450^\\circ\\) is undefined.", "marks": ["B1"], "check": { "vals": { "x": 360 } } },
+        { "tex": "23\\cos^2 x - 8\\cos x - 15 = (23\\cos x + 15)(\\cos x - 1) = 0", "check": { "vals": { "x": "360 + deg(acos(Rational(-15, 23)))" } } },
+        { "tex": "\\Rightarrow \\cos x = -\\frac{15}{23}", "why": "\\(\\cos x = 1\\) gives \\(x = 360^\\circ\\) again.", "marks": ["M1"], "check": { "vals": { "x": "360 + deg(acos(Rational(-15, 23)))" } } },
+        { "tex": "\\Rightarrow x = 360^\\circ + \\cos^{-1}\\left(-\\frac{15}{23}\\right) = 360^\\circ + 130.705\\ldots^\\circ = 490.705\\ldots^\\circ", "why": "The other solution, \\(720^\\circ - 130.7^\\circ = 589.3^\\circ\\), is out of range.", "marks": ["dM1"], "check": { "vals": { "x": "360 + deg(acos(Rational(-15, 23)))" } } }
+      ],
+      "answer": "x = 360^\\circ,\\ 491^\\circ,\\ 540^\\circ",
+      "answerMarks": ["A1"],
+      "check": {
+        "deg": true,
+        "marks": ["B1", "M1", "dM1", "A1"],
+        "answers": "three angles: 360 and 540 from sin 2x = 0 (450 excluded), and 491 from cos x = -15/23; the assert checks the set",
+        "assert": "Abs(360 + deg(acos(Rational(-15, 23))) - 491).evalf() < 0.5 and all((2*tan(rad(a))*(8*cos(rad(a)) + 23*sin(rad(a))**2) - 8*sin(rad(2*a))*(1 + tan(rad(a))**2)).evalf() < 1e-9 and (2*tan(rad(a))*(8*cos(rad(a)) + 23*sin(rad(a))**2) - 8*sin(rad(2*a))*(1 + tan(rad(a))**2)).evalf() > -1e-9 for a in (360, 540, 360 + deg(acos(Rational(-15, 23)))))"
+      }
+    }
+  ]
+}

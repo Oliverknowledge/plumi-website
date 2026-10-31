@@ -6,13 +6,10 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = \\dfrac{2x-3}{x^2+4}\\). Show that \\(\\mathrm{f}'(x) = \\dfrac{ax^2+bx+c}{(x^2+4)^2}\\), finding \\(a\\), \\(b\\) and \\(c\\).",
-      "method": "The quotient rule",
+      "method": "Quotient rule",
       "steps": [
-        { "tex": "\\frac{\\mathrm{d}}{\\mathrm{d}x}\\left(\\frac{u}{v}\\right) = \\frac{vu' - uv'}{v^2}", "why": "The formula book has it. The \\(v u'\\) term comes first: the minus sign makes the order matter.", "check": false },
-        { "tex": "u = 2x - 3, \\quad u' = 2, \\qquad v = x^2 + 4, \\quad v' = 2x", "check": false },
-        { "tex": "\\mathrm{f}'(x) = \\frac{(x^2+4)(2) - (2x-3)(2x)}{(x^2+4)^2}", "marks": ["M1", "A1"], "check": false },
-        { "tex": "(x^2+4)(2) - (2x-3)(2x) = 2x^2 + 8 - (4x^2 - 6x)", "why": "Keep the bracket after the minus sign until you have expanded it." },
-        { "tex": "2x^2 + 8 - (4x^2 - 6x) = 2x^2 + 8 - 4x^2 + 6x = -2x^2 + 6x + 8", "why": "The minus sign changes \\(-6x\\) into \\(+6x\\)." }
+        { "tex": "\\mathrm{f}'(x) = \\frac{(x^2+4)(2) - (2x-3)(2x)}{(x^2+4)^2}", "why": "Formula book: \\(\\dfrac{vu' - uv'}{v^2}\\), with \\(u = 2x - 3\\), \\(v = x^2 + 4\\).", "marks": ["M1", "A1"] },
+        { "tex": "= \\frac{2x^2 + 8 - (4x^2 - 6x)}{(x^2+4)^2}", "why": "Keep the bracket: the minus turns \\(-6x\\) into \\(+6x\\)." }
       ],
       "answer": "\\mathrm{f}'(x) = \\frac{-2x^2 + 6x + 8}{(x^2+4)^2}, \\quad a = -2,\\ b = 6,\\ c = 8",
       "answerMarks": ["A1"],
@@ -26,12 +23,10 @@
       "ask": "Hence, using algebra, find the values of \\(x\\) for which f is decreasing.",
       "method": "Solve \\(\\mathrm{f}'(x) < 0\\)",
       "steps": [
-        { "text": "f is decreasing where \\(\\mathrm{f}'(x) < 0\\).", "why": "Decreasing means a negative gradient." },
-        { "text": "The denominator \\((x^2+4)^2\\) is a square, so it is always positive. Only the numerator decides the sign.", "why": "No need to find critical values for the denominator: it is never zero." },
-        { "tex": "-2x^2 + 6x + 8 < 0" },
-        { "tex": "-2x^2 + 6x + 8 = -2(x^2 - 3x - 4) = -2(x+1)(x-4)", "why": "Take out \\(-2\\) first, then factorise. Show this: \"using algebra\" means a calculator's roots alone don't score." },
-        { "tex": "-2(x+1)(x-4) = 0 \\;\\Rightarrow\\; x = -1 \\ \\text{or}\\ x = 4", "marks": ["B1"], "check": false },
-        { "text": "\\(-2x^2 + 6x + 8\\) is an upside-down parabola (its \\(x^2\\) coefficient is negative), so it is negative outside its roots.", "why": "Dividing by \\(-2\\) instead? Then the inequality flips: \\(x^2 - 3x - 4 > 0\\).", "marks": ["M1"] }
+        { "text": "f is decreasing where \\(\\mathrm{f}'(x) < 0\\). The denominator \\((x^2+4)^2\\) is always positive, so:" },
+        { "tex": "-2x^2 + 6x + 8 = -2(x+1)(x-4) < 0", "why": "\"Using algebra\": show the factorising, not just calculator roots." },
+        { "text": "Critical values \\(x = -1\\) and \\(x = 4\\).", "marks": ["B1"] },
+        { "text": "The parabola is upside down, so it is negative outside its roots.", "why": "Or divide by \\(-2\\) and flip: \\((x+1)(x-4) > 0\\).", "marks": ["M1"] }
       ],
       "answer": "x < -1 \\ \\text{or}\\ x > 4",
       "answerMarks": ["A1"],
