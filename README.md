@@ -1,4 +1,4 @@
-# Plumi — website
+# Plumi — website.  
 
 The marketing site for Plumi, an iPad notebook for GCSE and A-Level students.
 

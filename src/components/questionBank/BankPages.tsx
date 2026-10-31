@@ -12,8 +12,10 @@ import { packFor, packPath } from "@/content/practicePacks";
 import { BankShelves, BoardRow, RememberBank, type Shelf } from "./BankShelves";
 import { AskForSubject, AskForSubjectHint } from "@/components/cosy/AskForSubject";
 import { QuestionBank } from "./QuestionBank";
+import { boardSubjectOf } from "./boardData";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
+import "@/app/question-bank-board.css";
 import "@/app/question-bank-hub.css";
 
 /**
@@ -185,7 +187,7 @@ export function BankSubjectPage({ subject }: { subject: BankSubject }) {
         <Hero subject={subject} />
         <RememberBank slug={subject.slug} />
         <div className="lp-wrap">
-          <QuestionBank subject={subject} initial={subject.sample} />
+          <QuestionBank subject={subject} initial={subject.sample} board={boardSubjectOf(subject)} />
           <nav className="lp-sp-more qb-topic-index" aria-label={`${subject.subject} topics`}>
             <span>Every topic:</span>
             {subject.topics.filter(t => t.count > 0).map(t => <Link key={t.slug} href={bankTopicPath(subject.slug, t.slug)}>{topicName(t)}</Link>)}
@@ -207,7 +209,7 @@ export function BankTopicPage({ subject, topic, parts, index }: { subject: BankS
       <article className="pp qb-page">
         <Hero subject={subject} topic={topic} />
         <div className="lp-wrap">
-          <QuestionBank subject={subject} initial={parts} lockedTopic={topic.code} />
+          <QuestionBank subject={subject} initial={parts} lockedTopic={topic.code} board={boardSubjectOf(subject)} />
           {/* Every question on the topic as text: what a crawler reads, and a quick contents list for anyone. */}
           <details className="lp-card qb-index">
             <summary>All {index.length} questions on {topic.title}, as a list</summary>
