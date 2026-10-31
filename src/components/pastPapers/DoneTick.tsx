@@ -12,7 +12,8 @@ const KEY = "plumi-papers-done";
 const listeners = new Set<() => void>();
 let cache: { raw: string | null; set: Set<string> } = { raw: null, set: new Set() };
 
-function read(): Set<string> {
+/** The papers ticked done, shared with the question bank's board (TopicBoard.tsx), which shows them as cards. */
+export function readPapersDone(): Set<string> {
   let raw: string | null = null;
   try {
     raw = window.localStorage.getItem(KEY);
@@ -31,15 +32,15 @@ function read(): Set<string> {
   return cache.set;
 }
 
-function subscribe(cb: () => void) {
+export function subscribePapersDone(cb: () => void) {
   listeners.add(cb);
   const onStorage = (e: StorageEvent) => { if (e.key === KEY) cb(); };
   window.addEventListener("storage", onStorage);
   return () => { listeners.delete(cb); window.removeEventListener("storage", onStorage); };
 }
 
-function setDone(id: string, on: boolean) {
-  const next = new Set(read());
+export function setPaperDone(id: string, on: boolean) {
+  const next = new Set(readPapersDone());
   if (on) next.add(id);
   else next.delete(id);
   try {
@@ -52,11 +53,11 @@ function setDone(id: string, on: boolean) {
 
 export function DoneTick({ paper, session, label }: { paper: string; session: string; label: string }) {
   const id = `${paper}|${session}`;
-  const done = useSyncExternalStore(subscribe, () => read().has(id), () => false);
+  const done = useSyncExternalStore(subscribePapersDone, () => readPapersDone().has(id), () => false);
   return (
     <label className="pp-done" title={done ? "Done: untick to clear" : "Tick when you've done this paper"}>
       <input type="checkbox" checked={done} aria-label={`${label}: done`}
-        onChange={e => { setDone(id, e.target.checked); if (e.target.checked) trackEvent("paper_marked_done", { paper, session }); }} />
+        onChange={e => { setPaperDone(id, e.target.checked); if (e.target.checked) trackEvent("paper_marked_done", { paper, session }); }} />
     </label>
   );
 }

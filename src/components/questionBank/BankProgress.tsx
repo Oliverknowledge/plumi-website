@@ -6,6 +6,7 @@ import { track } from "@/lib/analytics";
 import { bankTopicPath, paperName, seriesLabel, topicName, topicRef, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
 import { dailyCounts, partStatus, ROUGH, standing, STATE_LABEL, STATE_ORDER, streak, subjectTotals, topicAttempts, useBankMarks, type PartRecord, type Standing, type TopicState } from "@/lib/bankProgress";
 import { InkScore } from "./SelfMark";
+import { BoardLookSwitch, practiseWith, TopicBoard, useBoardLook, type BoardSubject } from "./TopicBoard";
 
 /**
  * "Your marking": what self-marking has added up to. On a desk it is two tabs of the bank's one
@@ -118,7 +119,7 @@ function History({ subject, bank, parts, onRedo }: { subject: BankSubject; bank:
   );
 }
 
-export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, onAgain, onRedo, bare }: {
+export function BankProgress({ subject, onTopic, onTopics, board, lockedTopic, compact, parts, onAgain, onRedo, bare }: {
   subject: BankSubject; onTopic?: (code: string) => void; lockedTopic?: string; compact?: boolean;
   /** Just a tab's contents, for the bank card that holds the tabs: "overview" or "history". */
   bare?: "overview" | "history";
@@ -128,8 +129,13 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
   onAgain?: () => void;
   /** Show just this one question again, from History. */
   onRedo?: (id: string) => void;
+  /** Practise several topics at once (a note on the board). */
+  onTopics?: (codes: string[]) => void;
+  /** What the revision board needs of the subject: its topics, colour and past papers. */
+  board?: BoardSubject;
 }) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const look = useBoardLook();
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
   const store = useBankMarks();
   const bank = store.subjects[subject.slug];
@@ -178,7 +184,9 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
       : <Link key={t.code} className={cls} title={label} aria-label={label} href={g.href}>{GLYPH[st.state]}</Link>;
   };
 
-  if (empty) {
+  // The revision board stands in for the marking summary, on a desk's tab and in a phone's folded row.
+  const boardOn = look !== "now" && !!board && (bare === "overview" || (!bare && compact));
+  if (empty && !boardOn) {
     const nudge = (
       <>
         <div className="qb-prog-empty">
@@ -288,14 +296,43 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
     </div>
   );
 
-  if (bare) return <div className="qb-prog is-bare">{bare === "history" ? <>{again}{history}{foot}</> : <>{glance}{again}{weak}{map}{foot}</>}</div>;
+  const topicBoard = boardOn && (
+    <TopicBoard look={look as Exclude<typeof look, "now">} subjects={[board!]} practise={practiseWith(onTopics && { slug: subject.slug, go: onTopics })} lockedTopic={lockedTopic} />
+  );
+  if (bare === "overview" && boardOn) return <div className="qb-prog is-bare">{again}{topicBoard}{foot}</div>;
+  if (boardOn) {
+    // A phone: the row folds the board away, so the questions are still on the first screen.
+    return (
+      <details className="lp-card qb-prog is-compact has-board">
+        <summary className="qb-prog-row">
+          {view.share !== null && <Score share={view.share} small />}
+          <span className="qb-prog-row-text">
+            <strong>My topics</strong>
+            <span>{empty ? "Plan what to revise next" : <>{view.questions} marked{view.tally.needs ? <> · <b>{view.tally.needs} need attention</b></> : null}</>}</span>
+          </span>
+        </summary>
+        <div className="qb-prog-body">
+          {again}
+          {topicBoard}
+          {!empty && (
+            <details className="qb-prog-more">
+              <summary className="qb-prog-sum"><span>Your history</span><span className="qb-prog-sum-hint">{view.questions} {view.questions === 1 ? "question" : "questions"}</span></summary>
+              {history}
+            </details>
+          )}
+          {foot}
+        </div>
+      </details>
+    );
+  }
+  if (bare) return <div className="qb-prog is-bare">{bare === "overview" && <BoardLookSwitch />}{bare === "history" ? <>{again}{history}{foot}</> : <>{glance}{again}{weak}{map}{foot}</>}</div>;
 
   return (
     <details className="lp-card qb-prog is-compact">
       <summary className="qb-prog-row">
         {view.share !== null && <Score share={view.share} small />}
         <span className="qb-prog-row-text">
-          <strong>Your marking</strong>
+          <strong>My topics</strong>
           <span>{view.questions} marked{view.tally.needs ? <> · <b>{view.tally.needs} need attention</b></> : null}</span>
         </span>
       </summary>

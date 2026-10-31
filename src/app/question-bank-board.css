@@ -1,0 +1,495 @@
+/* ═══ YOUR TOPIC BOARD (TopicBoard.tsx): three looks at one kanban ═════════════════════════════════════════════════════
+   Tints are mixed from the notebook's tokens, so dark mode follows on its own, except the sticky notes, which are paper
+   and stay paper-coloured in the dark, as the exam sheets do. The pixel face only at 20px and up. */
+
+.lp .tb-switch { position: fixed; z-index: 90; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 4px; padding: 5px 6px 5px 12px;
+  background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); font: 700 13px var(--f-body); }
+.lp .tb-switch > span { margin-right: 4px; color: var(--lp-ink-soft); }
+.lp .tb-switch button { appearance: none; cursor: pointer; min-height: 32px; padding: 3px 10px; border: 0; border-radius: 9px; background: none; font: inherit; font-weight: 800; color: var(--lp-ink); }
+.lp .tb-switch button.is-on { background: var(--lp-gold); box-shadow: 0 0 0 2px var(--lp-line); }
+
+/* Each column's colour, used for its header, its tint and the progress bar. */
+.tb { --c-next: var(--lp-blue); --c-doing: var(--lp-orange); --c-revise: #d9a520; --c-done: var(--lp-teal); display: grid; gap: 14px; }
+.tb-col.is-next, .tb-progress .is-next { --tone: var(--c-next); }
+.tb-col.is-doing, .tb-progress .is-doing { --tone: var(--c-doing); }
+.tb-col.is-revise, .tb-progress .is-revise { --tone: var(--c-revise); }
+.tb-col.is-done, .tb-progress .is-done { --tone: var(--c-done); }
+/* While dragging: one rule on the root, not one on every element, so starting a drag costs the page nothing. */
+html.tb-dragging { cursor: grabbing; }
+html.tb-dragging body { user-select: none; -webkit-user-select: none; }
+
+/* ── Head: the board's name, how much is in Got it, and the whole spec as one bar ── */
+.tb-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+.lp .tb-heading { font-size: 22px; }
+.tb-sum { margin-top: 2px; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.tb-sum b { color: var(--lp-ink); font-weight: 800; }
+.tb-progress { flex: 1 1 220px; max-width: 460px; display: flex; gap: 2px; height: 14px; padding: 2px; background: var(--lp-paper-2); border: 2px solid var(--lp-line); border-radius: 7px; }
+.tb-progress i { display: block; min-width: 4px; border-radius: 3px; background: var(--tone); }
+.tb-progress i.is-off { background: color-mix(in srgb, var(--lp-line) 15%, transparent); }
+.lp .tb-addall { appearance: none; cursor: pointer; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 2px 16px 2px 12px;
+  font: 800 14.5px var(--f-body); color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; box-shadow: 0 3px 0 var(--lp-shadow); }
+.tb-addall span { font: 700 20px/1 var(--f-px); }
+.lp .tb-addall[aria-expanded="true"] { transform: translateY(2px); box-shadow: 0 1px 0 var(--lp-shadow); }
+
+/* ── Columns ── */
+/* The four columns share one height, the tallest's up to most of a screen; past that each scrolls inside itself. */
+.tb-cols { --colmax: clamp(400px, calc(100vh - 220px), 660px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
+.tb-col { --colbg: color-mix(in srgb, var(--tone) 9%, var(--lp-card-bg)); display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 260px; max-height: var(--colmax); padding: 10px 10px 12px; border-radius: 16px;
+  background: var(--colbg); border: 2px solid color-mix(in srgb, var(--tone) 40%, var(--lp-card-bg)); transition: background-color .12s, border-color .12s; }
+.tb-col.is-over { --colbg: color-mix(in srgb, var(--tone) 18%, var(--lp-card-bg)); background: var(--colbg); border-color: var(--tone); border-style: dashed; }
+.tb-col-head { display: flex; align-items: center; gap: 8px; padding: 2px 4px 0; }
+.tb-col-head::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 4px; background: var(--tone); border: 2px solid var(--lp-line); }
+.lp .tb-col-head h4 { font: 700 20px/1.1 var(--f-px); }
+.tb-count { font-size: 12.5px; font-weight: 800; min-width: 24px; padding: 1px 7px; text-align: center; border-radius: 999px; background: color-mix(in srgb, var(--tone) 22%, var(--lp-card-bg)); }
+.tb-avg { margin-left: auto; font-size: 12.5px; font-weight: 800; color: var(--lp-ink-soft); }
+.tb-hint { margin-top: -4px; padding: 0 4px; font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); }
+.tb-col-head, .tb-hint, .tb-empty, .tb-add { flex: none; }
+/* The list scrolls; its edges fade into the column when there's more above or below. */
+.tb-scroll { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin: 0 -6px; }
+.tb-list { position: relative; flex: 1 1 auto; min-height: 0; list-style: none; margin: 0; padding: 4px 6px 10px; display: flex; flex-direction: column; gap: 8px;
+  overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--lp-line) 40%, transparent) transparent; }
+.tb-list > * { flex: none; }
+.tb-scroll::before, .tb-scroll::after { content: ""; position: absolute; left: 0; right: 10px; z-index: 2; height: 26px; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.tb-scroll::before { top: 0; background: linear-gradient(var(--colbg), transparent); }
+.tb-scroll::after { bottom: 0; background: linear-gradient(transparent, var(--colbg)); }
+.tb-scroll.has-above::before, .tb-scroll.has-below::after { opacity: 1; }
+/* The space a card will land in: its own height, opening as it appears. */
+/* Its full height at once (growing it would re-lay the page every frame); the cards around glide to make room. */
+.tb-place { height: var(--h, 70px); border: 2px dashed var(--tone); border-radius: 12px; background: color-mix(in srgb, var(--tone) 12%, transparent); animation: tb-open .16s ease-out; }
+@keyframes tb-open { from { opacity: 0; } }
+.tb-empty { display: grid; gap: 6px; justify-items: start; padding: 10px 6px; font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .tb-suggest { appearance: none; cursor: pointer; padding: 4px 10px; font: 800 13px var(--f-body); color: var(--lp-ink); background: var(--lp-card-bg); border: 2px dashed var(--lp-line); border-radius: 999px; }
+.lp .tb-suggest:hover { border-style: solid; }
+.lp .tb-add { appearance: none; cursor: pointer; min-height: 38px; font: 800 14px var(--f-body); color: var(--lp-ink-soft); background: none; border: 2px dashed color-mix(in srgb, var(--tone) 55%, var(--lp-card-bg)); border-radius: 12px; }
+.lp .tb-add:hover, .lp .tb-add[aria-expanded="true"] { color: var(--lp-ink); background: var(--lp-card-bg); border-color: var(--tone); }
+
+/* ── A card: the topic, its share of the marks big on the right, a bar under it, Practise ── */
+.tb-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 10px; padding: 10px 10px 10px 14px; cursor: grab; user-select: none;
+  background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); }
+.tb-card::before { content: ""; position: absolute; left: -2px; top: -2px; bottom: -2px; width: 7px; border-radius: 12px 0 0 12px; background: var(--state, transparent); }
+.tb-card.is-needs { --state: var(--lp-needs); }
+.tb-card.is-developing { --state: var(--lp-dev); }
+.tb-card.is-rusty { --state: var(--lp-rusty); }
+.tb-card.is-strong { --state: var(--lp-strong); }
+.tb-card.is-early { --state: color-mix(in srgb, var(--lp-line) 50%, transparent); }
+.lp .tb:not(.is-lifting) .tb-card:hover { border-color: var(--lp-ink); }
+.lp .tb-card:focus-visible { outline: 3px solid var(--lp-ink); outline-offset: 2px; }
+.tb-card.is-here { box-shadow: 0 0 0 3px var(--lp-orange), 0 3px 0 var(--lp-shadow); }
+.tb-card.is-lifted { display: none; }
+.tb-grip { display: none; }
+.tb-main { min-width: 0; }
+/* Every card the same height: a name runs to two lines at most (in full on hover), the details to one. */
+.tb-title { font-weight: 800; font-size: 14.5px; line-height: 1.25; color: var(--lp-ink); min-height: 2.5em; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.tb-title .qb-code { font-size: 12px; }
+.tb-meta { margin-top: 2px; font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-pct { font: 700 22px/1 var(--f-px); font-variant-numeric: tabular-nums; }
+.tb-pct i { font-style: normal; font-size: 13px; margin-left: 1px; color: var(--lp-ink-soft); }
+.tb-pct.is-high { color: color-mix(in srgb, var(--lp-strong) 85%, var(--lp-ink)); }
+.tb-pct.is-mid { color: color-mix(in srgb, var(--lp-orange) 80%, var(--lp-ink)); }
+.tb-pct.is-low { color: color-mix(in srgb, var(--lp-needs) 85%, var(--lp-ink)); }
+.tb-pct.is-none { font-size: 18px; color: color-mix(in srgb, var(--lp-line) 50%, transparent); }
+.tb-meter { grid-column: 1 / -1; flex: 1; min-width: 30px; height: 7px; overflow: hidden; border-radius: 4px; background: color-mix(in srgb, var(--lp-line) 15%, var(--lp-card-bg)); }
+.tb-meter i { display: block; height: 100%; border-radius: 4px; background: var(--state, var(--lp-strong)); }
+.tb-meter.is-early i { background: var(--lp-ink-soft); }
+.lp .tb-nudge { appearance: none; cursor: pointer; grid-column: 1 / -1; justify-self: start; padding: 3px 9px; font: 800 12px var(--f-body); color: var(--lp-ink); text-align: left;
+  border: 0; border-radius: 999px; background: color-mix(in srgb, var(--lp-teal) 28%, var(--lp-card-bg)); }
+.lp .tb-nudge.is-to-doing, .lp .tb-nudge.is-to-revise { background: color-mix(in srgb, var(--lp-rusty) 30%, var(--lp-card-bg)); }
+.lp .tb-nudge span { color: var(--lp-ink-soft); }
+.lp .tb-nudge:hover { box-shadow: inset 0 0 0 2px var(--lp-line); }
+.tb-foot { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; }
+.lp .tb-go { appearance: none; cursor: pointer; display: inline-flex; align-items: center; min-height: 30px; padding: 2px 12px; font: 800 13px var(--f-body); color: var(--lp-ink); text-decoration: none;
+  background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .tb-card.is-fresh .tb-go { background: var(--lp-card-bg); }
+.tb-foot .tb-meter + .tb-go, .tb-foot .tb-go:first-child { margin-left: auto; }
+.tb-foot .tb-go:first-child { margin-left: 0; }
+.tb-tools { display: none; gap: 4px; }
+.tb:not(.is-lifting) .tb-card:is(:hover, :focus-within) .tb-tools { display: flex; margin-left: auto; }
+.tb:not(.is-lifting) .tb-card:is(:hover, :focus-within) .tb-meter { display: none; }
+.lp .tb-tools button { appearance: none; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; font: 800 16px/1 var(--f-body); color: var(--lp-ink);
+  background: var(--lp-card-bg); border: 2px solid color-mix(in srgb, var(--lp-line) 55%, transparent); border-radius: 8px; }
+.lp .tb-tools button:hover { border-color: var(--lp-line); background: var(--lp-paper-2); }
+/* The lifted card: moved by its transform alone, on its own layer, with nothing easing it behind the pointer. */
+.tb-ghost { position: fixed; left: 0; top: 0; z-index: 100; margin: 0; pointer-events: none; will-change: transform; contain: layout style; }
+/* The card in it lifts: a touch bigger, a little turned, its shadow deeper. */
+.tb-ghost-card { transition: none !important; animation: tb-pick .16s cubic-bezier(.2, .8, .2, 1) forwards; box-shadow: 0 16px 30px rgb(0 0 0 / .22), 0 3px 0 var(--lp-shadow); }
+@keyframes tb-pick { to { transform: scale(1.035) rotate(2deg); } }
+
+/* On a touch screen the grip is the handle, and the tools are always there. */
+@media (pointer: coarse) {
+  .tb-card { padding-left: 34px; }
+  .tb-grip { display: grid; position: absolute; left: 9px; top: 50%; translate: 0 -50%; gap: 3px; padding: 8px 4px; touch-action: none; cursor: grab; }
+  .tb-grip i { display: block; width: 10px; height: 3px; border-radius: 2px; background: var(--lp-ink-soft); }
+  .tb-tools { display: flex; }
+}
+
+/* ── Every topic: the list to add from ── */
+.tb-lib { display: grid; gap: 10px; min-width: 0; padding: 12px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.tb-lib-top { display: flex; align-items: center; gap: 10px 12px; }
+.tb-lib-title { flex: none; font-size: 15px; font-weight: 800; }
+.lp .tb-lib-find { flex: 1; min-height: 42px; }
+.lp .tb-lib-find input { height: 38px; font-size: 15px; }
+.lp .tb-lib-x { appearance: none; cursor: pointer; width: 34px; height: 34px; padding: 0; font: 800 20px/1 var(--f-body); color: var(--lp-ink); background: none; border: 2px solid var(--lp-line); border-radius: 50%; }
+.tb-areas { display: flex; flex-wrap: wrap; gap: 6px; }
+.lp .tb-areas button { appearance: none; cursor: pointer; min-height: 30px; padding: 2px 11px; font: 800 13px var(--f-body); color: var(--lp-ink-soft); background: none; border: 2px solid color-mix(in srgb, var(--lp-line) 40%, transparent); border-radius: 999px; }
+.lp .tb-areas button.is-on { color: var(--lp-ink); background: var(--lp-gold); border-color: var(--lp-line); }
+.tb-lib-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 4px 10px; max-height: 280px; overflow: auto; }
+.tb-lib-group { grid-column: 1 / -1; padding: 8px 4px 2px; font: 800 12px var(--f-body); letter-spacing: .06em; text-transform: uppercase; color: var(--lp-ink-soft); }
+.tb-lib-item { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 6px 6px 8px; border: 2px solid transparent; border-radius: 10px; cursor: grab; user-select: none; }
+.tb-lib-item:hover { background: var(--lp-paper-2); border-color: color-mix(in srgb, var(--lp-line) 45%, transparent); }
+.tb-lib-item.is-on { cursor: default; opacity: .6; }
+.tb-lib-item.is-lifted { opacity: .3; }
+.tb-dot { flex: none; width: 12px; height: 12px; border-radius: 4px; border: 2px solid var(--lp-line); background: var(--lp-card-bg); }
+.tb-dot.is-fresh { border-style: dashed; border-color: color-mix(in srgb, var(--lp-line) 60%, transparent); }
+.tb-dot.is-needs { background: var(--lp-needs); }
+.tb-dot.is-developing { background: var(--lp-dev); }
+.tb-dot.is-rusty { background: var(--lp-rusty); }
+.tb-dot.is-strong { background: var(--lp-strong); }
+.tb-lib-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 800; line-height: 1.25; }
+.tb-lib-name small { display: block; font-size: 12px; font-weight: 700; color: var(--lp-ink-soft); }
+.tb-lib-where { flex: none; font-size: 12px; font-weight: 800; color: var(--lp-ink-soft); }
+.lp .tb-lib-add { appearance: none; cursor: pointer; flex: none; width: 30px; height: 30px; padding: 0; font: 700 20px/1 var(--f-px); color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 50%; }
+.tb-lib-none, .tb-lib-tip { font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
+.tb-lib .tb-grip { display: none; }
+@media (pointer: coarse) { .tb-lib .tb-grip { display: grid; position: static; translate: none; padding: 4px 2px; } }
+
+/* ══ 2. Sticky notes: the board pinned with notes, the topics waiting in a tray above it ══ */
+.tb.is-sticky .tb-cols { gap: 16px; padding: 16px 14px 18px; border-radius: 16px; border: 2px solid color-mix(in srgb, var(--lp-line) 35%, transparent);
+  background: radial-gradient(color-mix(in srgb, var(--lp-line) 18%, transparent) 1px, transparent 1.5px) 0 0 / 16px 16px, var(--lp-paper-2); }
+.tb.is-sticky .tb-col { --colbg: var(--lp-paper-2); background: none; border: 0; padding: 0; gap: 12px; }
+.tb.is-sticky .tb-col.is-over { --colbg: var(--lp-paper-2); background: color-mix(in srgb, var(--tone) 12%, transparent); border-radius: 12px; }
+.tb.is-sticky .tb-col-head { justify-self: start; padding: 5px 14px 5px 10px; transform: rotate(-1.5deg); background: color-mix(in srgb, var(--tone) 35%, var(--lp-card-bg)); border-radius: 3px;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lp-shadow) 40%, transparent); }
+.tb.is-sticky .tb-col:nth-child(even) .tb-col-head { transform: rotate(1.2deg); }
+.tb.is-sticky .tb-col-head::before { display: none; }
+.tb.is-sticky .tb-avg { margin-left: 6px; }
+.tb.is-sticky .tb-hint { margin-top: 0; }
+.tb.is-sticky .tb-list { gap: 14px; padding: 12px 8px 14px; }
+/* The notes are paper, in the dark as in the light. */
+.tb.is-sticky .tb-card { --paper: #fff3b8; --ink: #3a2a25; --soft: #6e5a50; min-height: 104px; padding: 18px 12px 12px; color: var(--ink); border: 0; border-radius: 2px 2px 14px 2px;
+  background: linear-gradient(170deg, color-mix(in srgb, var(--paper) 100%, #fff 0%) 0 82%, color-mix(in srgb, var(--paper) 88%, #000) 100%);
+  box-shadow: 0 10px 14px -8px rgb(40 25 20 / .45), 0 1px 1px rgb(40 25 20 / .15); transform: rotate(var(--tilt, -1deg)); transition: transform .12s; }
+.tb.is-sticky .tb-col.is-next .tb-card { --paper: #dbe9f8; }
+.tb.is-sticky .tb-col.is-doing .tb-card { --paper: #fde1c8; }
+.tb.is-sticky .tb-col.is-revise .tb-card { --paper: #fff1b0; }
+.tb.is-sticky .tb-col.is-done .tb-card { --paper: #d3efe8; }
+.tb.is-sticky .tb-list > :nth-child(3n + 2) { --tilt: .9deg; }
+.tb.is-sticky .tb-list > :nth-child(3n) { --tilt: -.3deg; }
+.lp .tb.is-sticky:not(.is-lifting) .tb-card:hover { transform: rotate(0) translateY(-2px); border: 0; }
+.tb.is-sticky .tb-ghost-card { box-shadow: 0 22px 30px -10px rgb(40 25 20 / .5), 0 2px 2px rgb(40 25 20 / .15); }
+.tb.is-sticky .tb-ghost-card.in-next { --paper: #dbe9f8; }
+.tb.is-sticky .tb-ghost-card.in-doing { --paper: #fde1c8; }
+.tb.is-sticky .tb-ghost-card.in-revise { --paper: #fff1b0; }
+.tb.is-sticky .tb-ghost-card.in-done { --paper: #d3efe8; }
+.tb.is-sticky .tb-card::before { left: 50%; top: -9px; bottom: auto; width: 62px; height: 20px; translate: -50% 0; rotate: -3deg; border-radius: 2px;
+  background: color-mix(in srgb, var(--state, #e9dfc9) 45%, rgb(255 255 255 / .55)); box-shadow: 0 1px 2px rgb(40 25 20 / .2); }
+.tb.is-sticky .tb-card.is-fresh::before { background: rgb(255 255 255 / .6); }
+.tb.is-sticky .tb-title { color: var(--ink); font-size: 15px; }
+.tb.is-sticky .tb-meta, .tb.is-sticky .tb-pct i, .tb.is-sticky .tb-title .qb-code { color: var(--soft); }
+/* The share in red pen, circled, as a teacher would. */
+.tb.is-sticky .tb-pct { position: relative; padding: 2px 6px; font: 700 26px/1 var(--f-hand); rotate: -6deg; }
+.tb.is-sticky .tb-pct::after { content: ""; position: absolute; inset: -3px -6px -2px -5px; border: 2.5px solid currentColor; border-radius: 52% 48% 55% 45% / 60% 50% 50% 40%; opacity: .8; }
+.tb.is-sticky .tb-pct.is-high { color: #2f7d32; }
+.tb.is-sticky .tb-pct.is-mid { color: #b25c0c; }
+.tb.is-sticky .tb-pct.is-low { color: #c8372f; }
+.tb.is-sticky .tb-pct.is-none { color: transparent; }
+.tb.is-sticky .tb-pct.is-none::after { display: none; }
+.tb.is-sticky .tb-meter { display: none; }
+.lp .tb.is-sticky .tb-go { color: var(--ink); background: rgb(255 255 255 / .6); border-color: rgb(58 42 37 / .55); box-shadow: none; }
+.lp .tb.is-sticky .tb-tools button { color: var(--ink); background: rgb(255 255 255 / .6); border-color: rgb(58 42 37 / .3); }
+.lp .tb.is-sticky .tb-nudge { color: var(--ink); background: rgb(255 255 255 / .65); }
+.lp .tb.is-sticky .tb-nudge span { color: var(--soft); }
+.tb.is-sticky .tb-grip i { background: var(--soft); }
+.tb.is-sticky .tb-place { border-radius: 2px; }
+/* The tray: topics not on the board yet, a row of small notes to drag down. */
+.tb-lib.is-tray .tb-lib-list { display: flex; gap: 10px; max-height: none; overflow-x: auto; overflow-y: hidden; padding: 6px 2px 10px; scroll-snap-type: x proximity; }
+.tb-lib.is-tray .tb-lib-item { flex: 0 0 196px; scroll-snap-align: start; align-items: flex-start; padding: 10px 8px 10px 10px; border: 0; border-radius: 2px 2px 10px 2px;
+  background: #fffbe6; color: #3a2a25; box-shadow: 0 6px 10px -6px rgb(40 25 20 / .45); }
+.tb-lib.is-tray .tb-lib-item:nth-child(odd) { rotate: -1deg; }
+.tb-lib.is-tray .tb-lib-item:nth-child(even) { rotate: .8deg; }
+.tb-lib.is-tray .tb-lib-item:hover { rotate: 0deg; }
+.tb-lib.is-tray .tb-lib-name small, .tb-lib.is-tray .tb-lib-name .qb-code { color: #6e5a50; }
+.tb-lib.is-tray .tb-dot { border-color: #6e5a50; }
+
+/* ══ 3. Spec sidebar: the whole spec down the left, the board beside it ══ */
+.tb-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; align-items: start; }
+.tb-lib.is-side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 92px); max-height: calc(100vh - 120px); grid-template-rows: auto auto minmax(0, 1fr) auto; padding: 10px; box-shadow: 0 4px 0 var(--lp-shadow); }
+.tb-lib.is-side .tb-lib-top { flex-wrap: wrap; }
+.tb-lib.is-side .tb-lib-title { flex: 1 1 100%; font: 700 20px var(--f-px); }
+.tb-lib.is-side .tb-lib-list { grid-template-columns: minmax(0, 1fr); max-height: none; gap: 2px; }
+.tb-lib.is-side .tb-areas { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+.lp .tb-lib.is-side .tb-areas button { flex: none; }
+.tb.is-sidebar .tb-cols { gap: 8px; }
+.tb.is-sidebar .tb-col { padding: 8px 8px 10px; }
+.tb.is-sidebar .tb-hint { display: none; }
+.tb.is-sidebar .tb-card { padding: 8px 8px 8px 12px; gap: 4px 8px; }
+.tb.is-sidebar .tb-pct { font-size: 20px; }
+.tb.is-sidebar .tb-meta { font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .tb-shell { grid-template-columns: minmax(0, 1fr); }
+  .tb-lib.is-side { position: static; max-height: none; }
+  .tb-lib.is-side .tb-lib-list { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); max-height: 260px; overflow: auto; }
+}
+@media (max-width: 980px) {
+  /* Columns side by side, a swipe apart. */
+  /* A tablet: two columns at a time, a swipe to the other two. */
+  .tb-cols { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - 12px) / 2); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+  .tb.is-sticky .tb-cols { grid-auto-columns: calc((100% - 16px) / 2); scroll-padding-inline: 14px; }
+  .tb-col { scroll-snap-align: start; }
+  .tb-areas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tb-areas > * { flex: none; }
+}
+@media (max-width: 620px) {
+  .lp .tb-switch { left: 10px; right: 10px; bottom: 10px; justify-content: center; flex-wrap: wrap; }
+  .tb-addall { margin-left: 0; }
+  .tb-lib-top { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-col, .tb-tools, .tb.is-sticky .tb-card { transition: none; }
+  .tb-place, .tb-ghost-card { animation: none; }
+  .tb-scroll::before, .tb-scroll::after { transition: none; }
+  .tb.is-sticky .tb-card, .tb-lib.is-tray .tb-lib-item, .tb.is-sticky .tb-col-head { transform: none; rotate: 0deg; }
+}
+/* The sidebar leaves the columns narrow: their names in the body face, free to wrap. */
+.tb-col > * { min-width: 0; }
+.tb.is-sidebar .tb-col-head { flex-wrap: wrap; gap: 4px 6px; }
+.lp .tb.is-sidebar .tb-col-head h4 { font: 800 16px/1.2 var(--f-body); }
+.tb.is-sidebar .tb-avg { margin-left: 0; }
+.tb.is-sidebar .tb-card .qb-code { display: block; }
+.tb.is-sidebar .tb-card { grid-template-columns: auto minmax(0, 1fr); }
+.tb.is-sidebar .tb-main, .tb.is-sidebar .tb-nudge { grid-column: 1 / -1; }
+.tb.is-sidebar .tb-card .qb-code { display: inline; }
+.tb.is-sidebar .tb-pct { grid-column: 1; align-self: center; font-size: 19px; }
+.tb.is-sidebar .tb-foot { grid-column: 2; }
+.tb.is-sidebar .tb-foot .tb-meter { display: none; }
+.tb.is-sidebar .tb-foot .tb-go { margin-left: auto; }
+
+/* ══ More on the board: high-yield topics, past papers, the student's own notes ══ */
+
+/* "Comes up a lot": a topic asked more than most. */
+.tb-hot { display: inline-block; margin-right: 6px; padding: 0 6px; font-size: 11px; font-weight: 800; letter-spacing: .02em; line-height: 1.6; vertical-align: 1px; border-radius: 999px;
+  color: #7a3d0c; background: #ffd9a8; }
+.tb-head-acts { margin-left: auto; display: flex; gap: 8px; }
+.tb-head-acts .tb-addall { margin-left: 0; }
+.lp .tb-newnote { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 2px 14px 2px 12px; font: 800 14.5px var(--f-body); color: var(--lp-ink);
+  background: var(--lp-card-bg); border: 2px dashed var(--lp-line); border-radius: 999px; }
+.lp .tb-newnote:hover, .lp .tb-newnote[aria-expanded="true"] { border-style: solid; background: #fff3b8; color: #3a2a25; }
+
+/* A past paper: exam paper, ruled, a red margin, its corner folded, clipped on; stamped once it's done. */
+.tb-card.is-paper, .tb.is-sticky .tb-card.is-paper, .tb-ghost-card.is-paper {
+  --paper: #fffdf7; --ink: #2f2622; --soft: #6e5a50; color: var(--ink); border: 1px solid #ddd3c4; border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 22px, rgb(200 55 47 / .35) 22px 23.5px, transparent 23.5px),
+    repeating-linear-gradient(transparent 0 19px, rgb(79 134 198 / .14) 19px 20px), #fffdf7;
+  padding: 14px 12px 12px 32px; box-shadow: 0 8px 14px -8px rgb(40 25 20 / .45), 0 1px 0 rgb(40 25 20 / .08); }
+.tb-card.is-paper::after { content: ""; position: absolute; top: -1px; right: -1px; width: 15px; height: 15px; background: linear-gradient(225deg, var(--colbg, var(--lp-paper-2)) 50%, #e8dfcf 50%); border-bottom-left-radius: 3px; box-shadow: -1px 1px 1px rgb(40 25 20 / .12); }
+.tb-card.is-paper::before, .tb.is-sticky .tb-card.is-paper::before { left: 12px; top: -10px; bottom: auto; width: 11px; height: 30px; translate: none; rotate: 0deg; background: none;
+  border: 2.5px solid #8f857d; border-radius: 6px; box-shadow: none; }
+.tb.is-sticky .tb-card.is-paper { transform: rotate(var(--tilt, -.6deg)); }
+.tb-card.is-paper .tb-title, .tb-card.is-paper .tb-meta, .tb-card.is-paper .tb-kicker { color: var(--ink); }
+.tb-card.is-paper .tb-meta { color: var(--soft); }
+.tb-kicker { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #b8403a; }
+.tb-sheet-icon { width: 22px; height: 27px; border: 2px solid #8f857d; border-radius: 2px; background: repeating-linear-gradient(transparent 0 5px, rgb(143 133 125 / .45) 5px 6.5px) 4px 6px / 10px 14px no-repeat, #fff; }
+.tb-sheet-icon.is-small { flex: none; width: 14px; height: 18px; border-width: 1.5px; background-size: 6px 9px; background-position: 3px 4px; }
+.tb-stamp { align-self: start; padding: 2px 8px; font: 700 15px/1 var(--f-px); letter-spacing: .06em; color: #c8372f; border: 2.5px solid #c8372f; border-radius: 6px; rotate: -8deg; opacity: .85; }
+.lp .tb-card.is-paper .tb-go { color: #2f2622; background: #fff; border-color: rgb(47 38 34 / .55); box-shadow: none; }
+.lp .tb-card.is-paper .tb-go:first-child { background: #fff3b8; }
+.lp .tb-go.is-quiet { padding: 2px 9px; font-weight: 700; }
+.lp .tb-card.is-paper .tb-tools button { color: #2f2622; background: #fff; border-color: rgb(47 38 34 / .3); }
+.tb-card.is-paper .tb-grip i { background: #6e5a50; }
+
+/* A note of the student's own: pinned, not taped, in its own colour, in their hand. */
+.tb-card.is-note, .tb-editor-paper { --ink: #3a2a25; --soft: #6e5a50; color: var(--ink); }
+.tb .tb-col .tb-card.is-note.tint-yellow, .tb-ghost-card.is-note.tint-yellow, .tb-editor.tint-yellow .tb-editor-paper { --paper: #fff3b8; }
+.tb .tb-col .tb-card.is-note.tint-pink, .tb-ghost-card.is-note.tint-pink, .tb-editor.tint-pink .tb-editor-paper { --paper: #fbd3dc; }
+.tb .tb-col .tb-card.is-note.tint-blue, .tb-ghost-card.is-note.tint-blue, .tb-editor.tint-blue .tb-editor-paper { --paper: #d6e6fb; }
+.tb .tb-col .tb-card.is-note.tint-green, .tb-ghost-card.is-note.tint-green, .tb-editor.tint-green .tb-editor-paper { --paper: #d6f0dc; }
+.tb .tb-col .tb-card.is-note.tint-lilac, .tb-ghost-card.is-note.tint-lilac, .tb-editor.tint-lilac .tb-editor-paper { --paper: #e5dcf7; }
+.tb .tb-card.is-note, .tb.is-sticky .tb-col .tb-card.is-note { background: var(--paper); border: 0; border-radius: 3px 3px 16px 3px; padding: 18px 12px 12px; box-shadow: 0 10px 14px -8px rgb(40 25 20 / .45), 0 1px 1px rgb(40 25 20 / .15); }
+.tb .tb-card.is-note::before { display: none; }
+.tb-pin { position: absolute; top: -7px; left: 50%; translate: -50% 0; width: 16px; height: 16px; border-radius: 50%; z-index: 1;
+  background: radial-gradient(circle at 35% 30%, #ff8a80 0 25%, #d93a32 45%, #9e2620 100%); box-shadow: 0 3px 3px rgb(40 25 20 / .35); }
+.tb-card.is-note .tb-title { color: var(--ink); font-size: 15.5px; min-height: 0; }
+.tb-text { margin-top: 2px; font: 600 19px/1.15 var(--f-hand); color: var(--ink); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.tb-chips { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.tb-chips li { padding: 1px 8px; font-size: 11.5px; font-weight: 800; color: var(--ink, var(--lp-ink)); background: rgb(255 255 255 / .6); border: 1.5px solid rgb(58 42 37 / .25); border-radius: 999px; }
+.tb-chips li.is-more { background: none; }
+.lp .tb-card.is-note .tb-go { color: var(--ink); background: rgb(255 255 255 / .65); border-color: rgb(58 42 37 / .55); box-shadow: none; }
+.lp .tb-card.is-note .tb-tools button { color: var(--ink); background: rgb(255 255 255 / .6); border-color: rgb(58 42 37 / .3); }
+.tb-card.is-note .tb-grip i { background: var(--soft); }
+.tb.is-sticky .tb-card.is-note .tb-pct { font: 700 24px/1 var(--f-hand); rotate: -6deg; }
+
+/* Writing one: the note itself on the left, what goes on it on the right. */
+.tb-editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px 22px; padding: 18px; background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 5px 0 var(--lp-shadow); }
+.tb-editor-paper { position: relative; display: grid; align-content: start; gap: 6px; min-height: 180px; padding: 22px 16px 16px; background: var(--paper); border-radius: 3px 3px 18px 3px; rotate: -.8deg;
+  box-shadow: 0 12px 16px -10px rgb(40 25 20 / .5), 0 1px 1px rgb(40 25 20 / .15); }
+.lp .tb-editor-title { width: 100%; padding: 2px 0; font: 800 19px var(--f-body); color: var(--ink); background: none; border: 0; border-bottom: 2px dashed rgb(58 42 37 / .3); outline: none; }
+.lp .tb-editor-text { width: 100%; resize: none; padding: 2px 0; font: 600 21px/1.2 var(--f-hand); color: var(--ink); background: none; border: 0; outline: none; }
+.tb-editor-title::placeholder, .tb-editor-text::placeholder { color: rgb(58 42 37 / .45); }
+.lp .tb-editor-title:focus-visible, .lp .tb-editor-text:focus-visible { box-shadow: 0 2px 0 var(--ink); }
+.tb-chips.is-edit button { appearance: none; cursor: pointer; padding: 0; font: inherit; color: inherit; background: none; border: 0; }
+.tb-editor-side { display: grid; align-content: start; gap: 10px; }
+.tb-editor-hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lp .tb-editor-hits button { appearance: none; cursor: pointer; width: 100%; padding: 6px 8px; text-align: left; font: 800 14px var(--f-body); color: var(--lp-ink); background: none; border: 2px solid transparent; border-radius: 10px; }
+.lp .tb-editor-hits button:hover { background: var(--lp-paper-2); border-color: color-mix(in srgb, var(--lp-line) 45%, transparent); }
+.tb-editor-hits .tb-hot { margin: 0 0 0 8px; }
+.tb-editor-row { display: flex; align-items: center; gap: 12px; }
+.tb-editor-label { font-size: 13.5px; font-weight: 800; color: var(--lp-ink-soft); }
+.tb-tints { display: flex; gap: 8px; }
+.lp .tb-tints button { appearance: none; cursor: pointer; width: 28px; height: 28px; padding: 0; border: 2px solid var(--lp-line); border-radius: 50%; }
+.lp .tb-tints button.is-on { box-shadow: 0 0 0 3px var(--lp-card-bg), 0 0 0 5px var(--lp-line); }
+.tb-tints .tint-yellow { background: #fff3b8; } .tb-tints .tint-pink { background: #fbd3dc; } .tb-tints .tint-blue { background: #d6e6fb; }
+.tb-tints .tint-green { background: #d6f0dc; } .tb-tints .tint-lilac { background: #e5dcf7; }
+.lp .tb-editor-row select { min-height: 36px; padding: 4px 10px; font: 700 14px var(--f-body); color: var(--lp-ink); background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 10px; }
+.tb-editor-go { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 4px; }
+.lp .tb-editor-save { background: var(--lp-gold); }
+.lp .tb-editor-save:disabled { opacity: .5; cursor: default; }
+
+/* The tray's two shelves, Topics and Past papers. */
+.tb-shelves { flex: none; display: inline-flex; padding: 3px; gap: 2px; background: var(--lp-paper-2); border: 2px solid color-mix(in srgb, var(--lp-line) 45%, transparent); border-radius: 12px; }
+.lp .tb-shelves button { appearance: none; cursor: pointer; min-height: 32px; padding: 2px 12px; font: 800 13.5px var(--f-body); color: var(--lp-ink-soft); background: none; border: 0; border-radius: 9px; }
+.lp .tb-shelves button.is-on { color: var(--lp-ink); background: var(--lp-card-bg); box-shadow: 0 0 0 2px var(--lp-line); }
+.lp .tb-areas .tb-order { margin-left: auto; border-style: dashed; }
+.tb-lib-name small .tb-hot { font-size: 10.5px; }
+.tb-lib.is-tray .tb-lib-item.is-paper { background: linear-gradient(90deg, transparent 18px, rgb(200 55 47 / .3) 18px 19.5px, transparent 19.5px), repeating-linear-gradient(transparent 0 17px, rgb(79 134 198 / .14) 17px 18px), #fffdf7;
+  border: 1px solid #ddd3c4; border-radius: 3px; padding-left: 24px; }
+.tb-lib.is-tray .tb-lib-item.is-paper .tb-lib-name small { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+@media (max-width: 720px) {
+  .tb-editor { grid-template-columns: minmax(0, 1fr); }
+  .tb-head-acts { margin-left: 0; }
+}
+
+/* ══ My board: every subject on one board ══ */
+
+/* A card's subject, on a tab along its top, in the subject's shelf colour. */
+.tb-tag { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin-bottom: 4px; padding: 0 7px 0 5px; font-size: 11px; font-weight: 800; line-height: 1.7;
+  color: #3a2a25; background: color-mix(in srgb, var(--tag) 45%, #fff); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-tag::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--tag); border: 1.5px solid rgb(58 42 37 / .55); }
+
+/* Show one subject, or all of them. */
+.tb-subjects { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tb-subject { display: inline-flex; align-items: center; border: 2px solid color-mix(in srgb, var(--lp-line) 45%, transparent); border-radius: 999px; background: var(--lp-card-bg); }
+.lp .tb-subject > button, .lp button.tb-subject { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 2px 14px 2px 10px;
+  font: 800 14px var(--f-body); color: var(--lp-ink); background: none; border: 0; border-radius: 999px; }
+.lp button.tb-subject { border: 2px solid color-mix(in srgb, var(--lp-line) 45%, transparent); background: var(--lp-card-bg); padding-left: 14px; }
+.tb-subject i { width: 12px; height: 12px; border-radius: 3px; background: var(--tag); border: 2px solid var(--lp-line); }
+.tb-subject small { font-size: 12px; font-weight: 800; color: var(--lp-ink-soft); }
+.tb-subject.is-on, .lp button.tb-subject.is-on { background: var(--lp-gold); border-color: var(--lp-line); box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .tb-subject-x { appearance: none; cursor: pointer; display: none; width: 24px; height: 24px; margin-right: 6px; padding: 0; font: 800 15px/1 var(--f-body); color: var(--lp-ink-soft); background: none; border: 0; border-radius: 50%; }
+.tb-subject:hover .tb-subject-x, .tb-subject:focus-within .tb-subject-x { display: inline-grid; place-items: center; }
+.lp .tb-subject-x:hover { color: var(--lp-ink); background: var(--lp-paper-2); }
+@media (pointer: coarse) { .tb-subject .tb-subject-x { display: inline-grid; place-items: center; } }
+.lp button.tb-subject.is-add { border-style: dashed; color: var(--lp-ink-soft); }
+.lp button.tb-subject.is-add span { font: 700 18px/1 var(--f-px); color: var(--lp-ink); }
+.lp .tb-allsubjects { font-weight: 800; white-space: nowrap; }
+.tb-lib-subject { flex: none; display: inline-flex; align-items: center; gap: 6px; padding-left: 10px; border-left: 6px solid var(--tag); border-radius: 4px; }
+.lp .tb-lib-subject select { min-height: 36px; max-width: 220px; padding: 4px 8px; font: 800 13.5px var(--f-body); color: var(--lp-ink); background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 10px; }
+.tb-suggest small { font-weight: 700; color: var(--lp-ink-soft); }
+
+/* Adding a subject. */
+.mb-add { position: relative; }
+.mb-add-pick { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; width: min(420px, calc(100vw - 40px)); display: grid; gap: 8px; padding: 10px;
+  background: var(--lp-card-bg); border: 3px solid var(--lp-line); border-radius: 16px; box-shadow: 0 6px 0 var(--lp-shadow); }
+.mb-add.is-first .mb-add-pick { position: static; width: min(520px, 100%); }
+.mb-add-pick ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.lp .mb-add-pick li button { appearance: none; cursor: pointer; width: 100%; display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 6px 10px; text-align: left;
+  font: 800 15px var(--f-body); color: var(--lp-ink); background: none; border: 2px solid transparent; border-radius: 10px; }
+.lp .mb-add-pick li button:hover { background: var(--lp-paper-2); border-color: color-mix(in srgb, var(--lp-line) 45%, transparent); }
+.mb-add-pick li i { flex: none; width: 14px; height: 19px; background: var(--tag); border: 2px solid var(--lp-line); border-radius: 2px 4px 4px 2px; }
+.mb-add-pick li span { margin-left: auto; font: 700 18px/1 var(--f-px); }
+.mb-add-hint { padding: 2px 6px; font-size: 13.5px; font-weight: 600; color: var(--lp-ink-soft); }
+
+/* The page. */
+.lp .mb-hero { padding-bottom: 18px; }
+.lp .mb-hero h1 { padding-right: 0; }
+.mb-page .tb { margin-bottom: 64px; }
+.lp .mb-empty { display: grid; gap: 10px; justify-items: start; padding: 24px; margin-bottom: 64px; }
+.lp .mb-empty h2 { font-size: 26px; }
+.mb-empty p { font-weight: 600; color: var(--lp-ink-soft); }
+.mb-wait { padding: 40px 0 80px; font-weight: 700; color: var(--lp-ink-soft); }
+
+/* ══ On a phone: one column at a time, a tab each; topics and papers in a sheet from the bottom ══ */
+.tb-coltabs, .tb-addbar { display: none; }
+@media (max-width: 620px) {
+  .tb { gap: 12px; }
+  .tb-head { gap: 8px; }
+  .lp .tb-heading { font-size: 20px; }
+  .tb-progress { flex: 1 1 100%; max-width: none; order: 3; }
+  .tb-head-acts { margin-left: auto; }
+  .lp .tb-newnote { min-height: 40px; }
+
+  /* The subject chips and the area pills: one row each, swiped. */
+  .tb-subjects, .tb-areas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding: 2px 16px 4px; }
+  .tb-subjects::-webkit-scrollbar, .tb-areas::-webkit-scrollbar { display: none; }
+  .tb-subjects > *, .tb-areas > * { flex: none; }
+  .lp .tb-areas .tb-order { margin-left: 0; }
+
+  .lp .tb-addbar { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; font: 800 15.5px var(--f-body);
+    color: var(--lp-ink); background: var(--lp-card-bg); border: 2px dashed var(--lp-line); border-radius: 14px; }
+  .tb-addbar span { font: 700 22px/1 var(--f-px); }
+
+  /* The tabs, held under the nav as the column scrolls by. */
+  .tb-coltabs { display: flex; gap: 3px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 78px); z-index: 6; padding: 4px;
+    background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 3px 0 var(--lp-shadow); }
+  .lp .tb-coltabs button { appearance: none; cursor: pointer; flex: 1; min-width: 0; min-height: 44px; display: grid; place-content: center; gap: 1px; padding: 2px; text-align: center;
+    font: 800 11.5px/1.15 var(--f-body); color: var(--lp-ink-soft); background: none; border: 0; border-radius: 10px; }
+  .tb-coltabs button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-coltabs button b { font: 700 17px/1 var(--f-px); color: var(--lp-ink); }
+  .lp .tb-coltabs button.is-on { color: var(--lp-ink); background: color-mix(in srgb, var(--tone) 28%, var(--lp-card-bg)); box-shadow: inset 0 0 0 2px var(--tone); }
+  .tb-coltabs .is-next { --tone: var(--c-next); } .tb-coltabs .is-doing { --tone: var(--c-doing); }
+  .tb-coltabs .is-revise { --tone: var(--c-revise); } .tb-coltabs .is-done { --tone: var(--c-done); }
+
+  /* A column the width of the screen, a swipe apart; long ones grow with the page rather than scroll in a box. */
+  .tb-cols, .tb.is-sticky .tb-cols { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 100%; gap: 14px; align-items: start; overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .tb-cols::-webkit-scrollbar { display: none; }
+  .tb.is-sticky .tb-cols { padding: 12px 10px 16px; scroll-padding-inline: 10px; }
+  .tb-col { max-height: none; min-height: 180px; scroll-snap-align: start; scroll-snap-stop: always; }
+  .tb-col-head, .tb-hint { display: none; }
+  .tb-list { overflow: visible; }
+  .tb-scroll::before, .tb-scroll::after { display: none; }
+  /* While a card is carried, the row lets go of its snap, so it can glide to the next column under the finger. */
+  .tb.is-lifting .tb-cols { scroll-snap-type: none; }
+
+  /* The sheet. */
+  .tb-sheet-back { position: fixed; inset: 0; z-index: 80; background: rgb(20 14 12 / .38); animation: tb-fade .2s ease-out; }
+  .tb-lib.is-sheet { position: fixed; z-index: 81; left: 0; right: 0; bottom: 0; max-height: min(80vh, 680px); overflow-y: auto; overscroll-behavior: contain;
+    padding: 8px 14px calc(16px + env(safe-area-inset-bottom, 0px)); border-width: 3px 0 0; border-radius: 22px 22px 0 0; box-shadow: 0 -4px 0 var(--lp-shadow); animation: tb-rise .24s cubic-bezier(.2, .8, .2, 1); }
+  .tb-sheet-grab { display: block; justify-self: center; width: 44px; height: 5px; margin-bottom: 4px; border-radius: 3px; background: color-mix(in srgb, var(--lp-line) 45%, transparent); }
+  .tb-lib.is-sheet .tb-lib-top { flex-wrap: wrap; }
+  .tb-lib.is-sheet .tb-lib-title { flex: 1 1 auto; font-size: 16px; }
+  .lp .tb-lib.is-sheet .tb-lib-x { order: 1; width: auto; height: 38px; padding: 0 16px; border-radius: 999px; font-size: 15px; background: var(--lp-gold); }
+  .tb-lib.is-sheet .tb-lib-subject { order: 2; flex: 1 1 100%; }
+  .lp .tb-lib.is-sheet .tb-lib-subject select { flex: 1; max-width: none; }
+  .tb-lib.is-sheet .tb-shelves { order: 3; }
+  .tb-lib.is-sheet .tb-lib-find { order: 4; flex: 1 1 100%; }
+  .tb-lib.is-sheet .tb-lib-list { grid-template-columns: minmax(0, 1fr); max-height: none; overflow: visible; }
+  .tb-lib.is-sheet .tb-lib-item { min-height: 52px; }
+  .tb-lib.is-sheet .tb-grip { display: none; }
+
+  .tb-editor { padding: 14px; }
+  .tb-editor-paper { rotate: 0deg; }
+  .tb-foot { flex-wrap: wrap; row-gap: 6px; }
+  .tb-foot .tb-meter { flex-basis: 100%; order: -1; }
+}
+@keyframes tb-rise { from { transform: translateY(100%); } }
+@keyframes tb-fade { from { opacity: 0; } }
+
+/* Fingers: bigger keys, and the grip to carry a card by. */
+@media (pointer: coarse) {
+  .lp .tb-tools button { width: 38px; height: 38px; font-size: 18px; }
+  .lp .tb-go { min-height: 38px; padding: 2px 14px; }
+  .lp .tb-lib-add { width: 40px; height: 40px; }
+  .tb-grip { padding: 12px 6px; }
+  .lp .tb-subject-x { width: 32px; height: 32px; }
+  /* Room for the grip down every card's left, whatever padding its kind has. */
+  .lp .tb .tb-col .tb-card.tb-card, .lp .tb .tb-ghost-card.tb-ghost-card { padding-left: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-lib.is-sheet, .tb-sheet-back { animation: none; }
+}
+.tb.is-lifting .tb-cols { scroll-snap-type: none; }
+/* In a phone's folded "My topics" row, the row already names the board. */
+.qb-prog.has-board .tb-heading { display: none; }
+.lp .qb-prog.has-board .qb-prog-body { padding-top: 10px; }
