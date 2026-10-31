@@ -1,0 +1,29 @@
+/* Ask for a subject in the Discord (AskForSubject.tsx): the ask and its key on the left, what else happens there on the right,
+   one column on a phone. Tokens only, so it is the same card by lamplight; the list's box mixes paper into the card so it shows
+   in both themes. */
+.lp .lp-ask { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 26px 40px; padding: 36px 32px 30px; margin-block: 12px 64px; scroll-margin-top: 110px; }
+/* Above 720px the bank's subject search sticks under the bar (question-bank-hub.css), so the hint's jump stops below both. */
+@media (min-width: 721px) { .lp .qb-hub .lp-ask { scroll-margin-top: 196px; } }
+.lp-ask-copy { display: grid; gap: 14px; align-content: start; justify-items: start; }
+.lp-ask-eyebrow { font-family: var(--f-px); font-weight: 600; font-size: 15px; color: #fff; background: #5865f2; border: 2px solid var(--lp-line); border-radius: 8px; padding: 1px 10px; }
+.lp .lp-ask h2 { font-size: clamp(28px, 3.4vw, 40px); }
+.lp-ask-copy p { margin: 0; font-size: 17px; line-height: 1.5; font-weight: 600; color: var(--lp-ink-soft); }
+.lp .lp-ask .lp-discord { margin-top: 4px; }
+.lp-ask-copy small { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.4; }
+.lp-ask-more { align-self: start; padding: 20px 22px; background: color-mix(in srgb, var(--lp-paper) 55%, var(--lp-card-bg)); border: 2px dashed var(--lp-line); border-radius: 14px; }
+.lp .lp-ask-more h3 { font-size: 20px; }
+.lp-ask-more ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+.lp-ask-more li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 12px; font-size: 15px; line-height: 1.4; font-weight: 600; color: var(--lp-ink-soft); }
+.lp-ask-more li i { grid-row: span 2; display: grid; place-items: center; width: 36px; height: 36px; font-style: normal; font-size: 18px; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 9px; }
+.lp-ask-more li b { color: var(--lp-ink); font-weight: 800; }
+@media (max-width: 760px) {
+  .lp .lp-ask { grid-template-columns: minmax(0, 1fr); padding: 30px 20px 22px; margin-bottom: 48px; }
+  .lp-ask-more { padding: 16px; }
+}
+
+/* The hint under a hub's lead: ink with a blurple underline, so it reads at AA on the cream page as well as the dark one. */
+.lp-ask-hint { margin: 0; font-size: 15px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .lp-ask-hint a { color: var(--lp-ink); font-weight: 800; text-decoration: underline; text-decoration-color: #5865f2; text-decoration-thickness: 2px; text-underline-offset: 3px; white-space: nowrap; }
+
+/* The bank's "No bank for … yet": the ask under the search's own key. */
+.lp .qb-none .lp-ask-none { margin: 0; font-size: 15px; }

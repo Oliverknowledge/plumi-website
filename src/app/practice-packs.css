@@ -161,6 +161,7 @@
 .pk-sample:nth-child(odd) { transform: rotate(-.6deg); }
 .pk-sample:nth-child(even) { transform: rotate(.5deg); }
 .lp .pk-sample img { display: block; width: 100%; height: auto; max-height: 620px; object-fit: cover; object-position: top; background: #fff; border-top: 3px solid var(--lp-line); }
+.pk-sample .lp-bar span { color: var(--lp-ink-soft); }
 .pk-sample figcaption { padding: 12px 18px 16px; font-size: 14.5px; font-weight: 700; color: var(--lp-ink-soft); border-top: 3px solid var(--lp-line); }
 
 .pk-proof-grid { list-style: none; margin: 0 0 34px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }

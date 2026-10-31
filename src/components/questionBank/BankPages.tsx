@@ -10,6 +10,7 @@ import {
 } from "@/content/questionBank";
 import { packFor, packPath } from "@/content/practicePacks";
 import { BankShelves, BoardRow, RememberBank, type Shelf } from "./BankShelves";
+import { AskForSubject, AskForSubjectHint } from "@/components/cosy/AskForSubject";
 import { QuestionBank } from "./QuestionBank";
 import "@/app/pages.css";
 import "@/app/question-bank.css";
@@ -96,17 +97,19 @@ export function BankHub() {
   const all = shelves();
   const total = bankSubjects.reduce((a, s) => a + s.count, 0);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, OCR A-Level Law, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Edexcel A-Level Economics A, Edexcel A-Level Geography, Edexcel A-Level Psychology, Edexcel A-Level Politics, OCR and AQA A-Level Computer Science and Edexcel GCSE Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, AS/A Level Religious Studies and GCSE Religious Studies and History, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Higher tier), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, OCR A-Level Law, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Edexcel A-Level Economics A and B, Edexcel A-Level Geography, Edexcel A-Level Psychology, Edexcel A-Level Politics, OCR and AQA A-Level Computer Science and Edexcel GCSE Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, AS/A Level Religious Studies and GCSE Religious Studies and History, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap qb-hub-hero">
           <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>
           <h1>{display("GCSE and A-Level questions,")} <em>one at a time</em></h1>
           <p className="qb-hub-lead">Every past-paper question from AQA, Edexcel, OCR, Eduqas, Cambridge and WJEC, sorted by topic, with the mark scheme right underneath.</p>
+          <AskForSubjectHint />
           <Image className="qb-hub-mascot" src="/landing/plumi-mood-starstruck.svg" alt="" width={84} height={84} unoptimized priority />
         </header>
         <section className="qb-hub-shelves">
           <div className="lp-wrap">
             <BankShelves shelves={all} />
+            <AskForSubject placement="bank-hub" />
             <section className="qb-how" aria-labelledby="qb-how-h">
               <h2 id="qb-how-h" className="qb-how-h">How it works</h2>
               <ol>

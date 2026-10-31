@@ -57,15 +57,6 @@ const projectileFigure: LandingImage = {
   maxWidth: 640,
 };
 
-const topicMapZoom: LandingImage = {
-  src: "/site/zoom-map3.webp",
-  alt: "A close-up of a Plumi topic map: topic squares marked strong, developing or needs attention.",
-  caption: "Your topic map: each square is a topic, coloured by your marked answers.",
-  width: 470,
-  height: 270,
-  maxWidth: 520,
-};
-
 const notebookCapture: LandingImage = {
   src: "/product/notebook.webp",
   alt: "A Plumi squared-paper notebook with the pen, pencil, highlighter, eraser, lasso and AI Pen tools along the bottom.",
@@ -101,34 +92,6 @@ export const aiTutorALevelMaths: LandingContent = {
     },
   ],
   closing: "Bring your actual working.",
-};
-
-export const gcseMaths: LandingContent = {
-  path: "/gcse-maths",
-  slug: "gcse-maths",
-  breadcrumbLabel: "GCSE Maths",
-  eyebrow: "GCSE",
-  lead: "Plumi marks your working, method marks included, against the question's own mark scheme.",
-  sections: [
-    {
-      heading: "One answer isn't enough",
-      line: "A topic turns Strong after more than one marked answer. Notes don't move it.",
-    },
-    {
-      heading: "Your topic map",
-      line: "Each topic on your spec gets a square, and your marked answers colour it in.",
-      image: topicMapZoom,
-    },
-    {
-      heading: "Pick a topic, get a question",
-      line: "Plumi writes it in your board's style, and you answer by hand in the same notebook.",
-    },
-    {
-      heading: "Your board",
-      line: "AQA, OCR and Edexcel GCSE Maths, each with its own topic map.",
-    },
-  ],
-  closing: "Write one answer and see where the marks went.",
 };
 
 export const goodnotesAlternative: LandingContent = {
@@ -181,7 +144,6 @@ export const about: LandingContent = {
 
 export const landingPages: readonly LandingContent[] = [
   aiTutorALevelMaths,
-  gcseMaths,
   goodnotesAlternative,
   about,
 ];
