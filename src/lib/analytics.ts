@@ -41,6 +41,8 @@ export type PlumiEvent =
   /** The question bank: filters settled on (`results`), a mark scheme or report
    *  opened (`kind`), a question added to a set (`size`), a set downloaded. */
   | "bank_filtered"
+  /** "Mix them up" (or Reshuffle, `again`): a question from each topic in turn. */
+  | "bank_mixed"
   | "bank_reveal"
   | "bank_set_added"
   | "bank_pdf_downloaded"

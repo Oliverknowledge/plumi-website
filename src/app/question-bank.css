@@ -85,6 +85,10 @@
 .qb-bar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; padding-bottom: 14px; border-bottom: 3px solid var(--lp-line); margin-bottom: 14px; }
 .lp .qb-bar h2 { font-size: 28px; font-weight: 600; }
 .lp .qb-bar h2 strong { color: var(--lp-orange); font-weight: 700; }
+/* "Mix them up" sits by the count: the key, or once mixed, what the mix is and a Reshuffle. */
+.qb-bar-lead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; min-width: 0; }
+.lp .qb-mix { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin: 0; font: 600 14.5px/1.4 var(--f-body); color: var(--lp-ink-soft); }
+.lp .qb-mix-on::before { content: "⤨ "; }
 .qb-range { display: grid; gap: 6px; }
 .qb-range label { font-size: 13.5px; font-weight: 700; color: var(--lp-ink-soft); }
 .qb-range > div { display: flex; gap: 10px; }
