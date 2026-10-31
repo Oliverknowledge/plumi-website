@@ -87,7 +87,6 @@
 .lp .qb-bar h2 strong { color: var(--lp-orange); font-weight: 700; }
 /* "Mix them up" sits by the count: the key, or once mixed, what the mix is and a Reshuffle. */
 .qb-bar-lead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; min-width: 0; }
-.lp .qb-mix { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 0; font: 600 14.5px/1.4 var(--f-body); color: var(--lp-ink-soft); }
 .lp .qb-mix-btn { padding: 7px 14px; gap: 6px; font-size: 15.5px; border-width: 2px; border-radius: 11px; box-shadow: 0 3px 0 var(--lp-shadow); background: var(--lp-gold); }
 .lp .qb-mix-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--lp-shadow); }
 /* Under the topics, once some are picked. */
