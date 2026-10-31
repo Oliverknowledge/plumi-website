@@ -1,0 +1,57 @@
+{
+  "id": "9ma0-02-jun23-01",
+  "q": "1",
+  "m": 4,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "\\(\\mathrm{f}(x) = x^3 + 2x^2 - 8x + 5\\). Find \\(\\mathrm{f}''(x)\\).",
+      "method": "Differentiate term by term",
+      "steps": [
+        { "tex": "\\mathrm{f}(x) = x^3 + 2x^2 - 8x + 5", "check": false },
+        { "tex": "\\Rightarrow \\mathrm{f}'(x) = 3x^{2} + 2 \\times 2x^{1} - 8x^{0} + 0", "why": "Multiply by the power, then lower the power by one." },
+        { "tex": "= 3x^2 + 4x - 8" },
+        { "head": "Differentiate again" },
+        { "tex": "\\Rightarrow \\mathrm{f}''(x) = 2 \\times 3x^{1} + 4x^{0} - 0", "why": "The constant \\(-8\\) differentiates to zero.", "marks": ["M1"] }
+      ],
+      "answer": "= 6x + 4",
+      "answerMarks": ["A1cso"],
+      "check": {
+        "marks": ["M1", "A1cso"],
+        "answers": [{ "tex": "6x + 4", "scheme": "6*x + 4", "derive": "diff(x**3 + 2*x**2 - 8*x + 5, x, 2)" }]
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "Solve \\(\\mathrm{f}''(x) = 0\\).",
+      "method": "Set the second derivative to zero",
+      "steps": [
+        { "tex": "6x + 4 = 0" },
+        { "tex": "\\Rightarrow 6x = -4" }
+      ],
+      "answer": "\\Rightarrow x = -\\frac{4}{6} = -\\frac{2}{3}",
+      "answerMarks": ["B1ft"],
+      "check": {
+        "vals": { "x": "-2/3" },
+        "marks": ["B1ft"],
+        "answers": [{ "tex": "-\\frac{2}{3}", "scheme": "-2/3", "derive": "solve(diff(x**3 + 2*x**2 - 8*x + 5, x, 2), x)" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Hence find the range of values of \\(x\\) for which \\(\\mathrm{f}(x)\\) is concave.",
+      "method": "Concave means \\(\\mathrm{f}''(x) \\leq 0\\)",
+      "steps": [
+        { "tex": "\\mathrm{f}''(x) \\leq 0", "why": "Concave: the gradient is decreasing. Convex would be \\(\\geq 0\\).", "check": false },
+        { "tex": "\\Rightarrow 6x + 4 \\leq 0" },
+        { "tex": "\\Rightarrow 6x \\leq -4" }
+      ],
+      "answer": "\\Rightarrow x \\leq -\\frac{2}{3}",
+      "answerMarks": ["B1ft"],
+      "check": {
+        "marks": ["B1ft"],
+        "answers": [{ "tex": "x \\leq -\\frac{2}{3}", "kind": "set", "scheme": "Interval(-oo, Rational(-2, 3))", "derive": "solveset(diff(x**3 + 2*x**2 - 8*x + 5, x, 2) <= 0, x, S.Reals)" }]
+      }
+    }
+  ]
+}

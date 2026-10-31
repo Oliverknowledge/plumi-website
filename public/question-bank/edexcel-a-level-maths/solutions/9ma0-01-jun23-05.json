@@ -1,0 +1,58 @@
+{
+  "id": "9ma0-01-jun23-05",
+  "q": "5",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A continuous curve \\(y = \\mathrm{f}(x)\\) has these values: at \\(x = 3, 3.2, 3.4, 3.6, 3.8, 4\\), \\(y = a, 16.8, b, 20.2, 18.7, 13.5\\), where \\(a\\) and \\(b\\) are constants. The trapezium rule with all these \\(y\\) values gives an area of 17.59 under the curve from \\(x = 3\\) to \\(x = 4\\). Show that \\(a + 2b = 51\\).",
+      "method": "Start with the strip width",
+      "steps": [
+        { "tex": "h = \\frac{4 - 3}{5} = 0.2", "why": "Six \\(y\\) values make five strips.", "marks": ["B1"] },
+        { "head": "Apply the trapezium rule" },
+        { "tex": "\\int_a^b y\\,\\mathrm{d}x \\approx \\frac{1}{2}h\\left\\{y_0 + y_n + 2(y_1 + y_2 + \\cdots + y_{n-1})\\right\\}", "check": false },
+        { "tex": "\\frac{1}{2}(0.2)\\left\\{a + 13.5 + 2(16.8 + b + 20.2 + 18.7)\\right\\} = 17.59", "why": "The two ends once, the middle values doubled.", "marks": ["M1"] },
+        { "head": "Tidy up the equation" },
+        { "tex": "\\Rightarrow 0.1\\left\\{a + 13.5 + 2(55.7 + b)\\right\\} = 17.59", "why": "\\(16.8 + 20.2 + 18.7 = 55.7\\)." },
+        { "tex": "\\Rightarrow a + 13.5 + 2(55.7 + b) = 175.9", "why": "Divide both sides by \\(0.1\\)." },
+        { "tex": "\\Rightarrow a + 13.5 + 111.4 + 2b = 175.9" },
+        { "tex": "\\Rightarrow a + 2b + 124.9 = 175.9" },
+        { "tex": "\\Rightarrow a + 2b = 175.9 - 124.9" }
+      ],
+      "answer": "\\Rightarrow a + 2b = 51",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["B1", "M1", "A1*"],
+        "vals": { "a": 5, "b": 23 },
+        "answers": [{ "tex": "a + 2b = 51", "kind": "equation", "scheme": "Eq(a + 2*b, 51)", "derive": "Eq(Rational(1, 10)*(a + Rational(27, 2) + 2*(Rational(84, 5) + b + Rational(101, 5) + Rational(187, 10))), Rational(1759, 100))" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The sum of all the \\(y\\) values in the table is 97.2. Find the value of \\(a\\) and the value of \\(b\\).",
+      "method": "Form a second equation",
+      "steps": [
+        { "tex": "a + 16.8 + b + 20.2 + 18.7 + 13.5 = 97.2" },
+        { "tex": "\\Rightarrow a + b + 69.2 = 97.2" },
+        { "tex": "\\Rightarrow a + b = 28" },
+        { "head": "Solve simultaneously" },
+        { "tex": "a + 2b = 51", "why": "From part (a)." },
+        { "tex": "a + b = 28" },
+        { "tex": "\\Rightarrow (a + 2b) - (a + b) = 51 - 28", "why": "Subtract the equations: \\(a\\) cancels." },
+        { "tex": "\\Rightarrow b = 23", "marks": ["M1", "A1"] },
+        { "head": "Finally, substitute back for a" },
+        { "tex": "a = 28 - b = 28 - 23 = 5" }
+      ],
+      "answer": "a = 5, \\quad b = 23",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "A1"],
+        "vals": { "a": 5, "b": 23 },
+        "answers": [
+          { "tex": "a = 5", "scheme": "5", "derive": "solve([Eq(a + 2*b, 51), Eq(a + b + Rational(692, 10), Rational(972, 10))], [a, b])[a]" },
+          { "tex": "b = 23", "scheme": "23", "derive": "solve([Eq(a + 2*b, 51), Eq(a + b + Rational(692, 10), Rational(972, 10))], [a, b])[b]" }
+        ]
+      }
+    }
+  ]
+}

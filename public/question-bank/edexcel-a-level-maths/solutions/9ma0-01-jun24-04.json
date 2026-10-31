@@ -1,0 +1,27 @@
+{
+  "id": "9ma0-01-jun24-04",
+  "q": "4",
+  "m": 3,
+  "parts": [
+    {
+      "label": "",
+      "ask": "Given that \\(y = x^2\\), use differentiation from first principles to show that \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 2x\\).",
+      "method": "Start from the definition of the derivative",
+      "steps": [
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0}\\frac{\\mathrm{f}(x+h) - \\mathrm{f}(x)}{h}", "why": "The gradient of the chord from \\(x\\) to \\(x + h\\), as \\(h\\) shrinks.", "check": false },
+        { "head": "Gradient of the chord for \\(y = x^2\\)" },
+        { "tex": "\\frac{(x+h)^2 - x^2}{h} = \\frac{x^2 + 2xh + h^2 - x^2}{h}", "why": "\\((x+h)^2 = x^2 + 2xh + h^2\\), not \\(x^2 + h^2\\).", "marks": ["M1"] },
+        { "tex": "= \\frac{2xh + h^2}{h}", "why": "The \\(x^2\\) terms cancel.", "marks": ["A1"] },
+        { "tex": "= \\frac{h(2x + h)}{h}" },
+        { "tex": "= 2x + h", "why": "Cancelling \\(h\\) is fine: \\(h \\neq 0\\) for a chord." },
+        { "head": "Finally, let \\(h \\to 0\\)" }
+      ],
+      "answer": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = \\lim_{h \\to 0}(2x + h) = 2x",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1", "A1*"],
+        "answers": [{ "tex": "2x", "scheme": "diff(x**2, x)" }]
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "id": "9ma0-32-jun23-04",
+  "q": "4",
+  "m": 10,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A particle \\(P\\) moves on a smooth horizontal plane with constant acceleration \\((2.4\\mathbf{i} + \\mathbf{j})\\) m s⁻². At \\(t = 0\\) it passes through \\(A\\) with velocity \\((-16\\mathbf{i} - 3\\mathbf{j})\\) m s⁻¹, and at \\(t = 5\\) s it passes through \\(B\\). Find the speed of \\(P\\) at \\(B\\).",
+      "method": "Velocity at B using suvat in vectors",
+      "steps": [
+        { "tex": "\\mathbf{v} = \\mathbf{u} + \\mathbf{a}t", "check": false },
+        { "tex": "\\mathbf{v}_B = (-16\\mathbf{i} - 3\\mathbf{j}) + 5(2.4\\mathbf{i} + \\mathbf{j})", "marks": ["M1"] },
+        { "tex": "= -16\\mathbf{i} - 3\\mathbf{j} + 12\\mathbf{i} + 5\\mathbf{j}" },
+        { "tex": "= -4\\mathbf{i} + 2\\mathbf{j}", "marks": ["A1"] },
+        { "head": "Speed is the magnitude of the velocity" },
+        { "tex": "|x\\mathbf{i} + y\\mathbf{j}| = \\sqrt{x^2 + y^2}", "check": false },
+        { "tex": "\\text{speed} = \\sqrt{(-4)^2 + 2^2}", "marks": ["M1"] },
+        { "tex": "= \\sqrt{16 + 4}" },
+        { "tex": "= \\sqrt{20}" },
+        { "tex": "= \\sqrt{4}\\sqrt{5}" }
+      ],
+      "answer": "\\text{speed} = 2\\sqrt{5} \\approx 4.47\\ \\text{m s}^{-1}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "M1", "A1"],
+        "answers": [{ "tex": "2\\sqrt{5}", "scheme": "2*sqrt(5)", "derive": "sqrt((-16 + 5*Rational(12, 5))**2 + (-3 + 5*1)**2)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The position vector of \\(A\\) is \\((44\\mathbf{i} - 10\\mathbf{j})\\) m. At \\(t = T\\) seconds, where \\(T > 5\\), \\(P\\) passes through \\(C\\), with position vector \\((4\\mathbf{i} + c\\mathbf{j})\\) m. Find the value of \\(T\\).",
+      "method": "Position vector of C, starting from A",
+      "steps": [
+        { "tex": "\\mathbf{r} = \\mathbf{r}_A + \\mathbf{u}t + \\frac{1}{2}\\mathbf{a}t^2", "why": "suvat gives the displacement, so add \\(A\\)'s position.", "check": false },
+        { "tex": "4\\mathbf{i} + c\\mathbf{j} = (44\\mathbf{i} - 10\\mathbf{j}) + (-16\\mathbf{i} - 3\\mathbf{j})T + \\frac{1}{2}(2.4\\mathbf{i} + \\mathbf{j})T^2", "check": { "vals": { "c": 10 } } },
+        { "head": "Equate the i components" },
+        { "tex": "4 = 44 - 16T + \\frac{1}{2}(2.4)T^2", "marks": ["M1", "A1"] },
+        { "tex": "4 = 44 - 16T + 1.2T^2" },
+        { "tex": "\\Rightarrow 0 = 1.2T^2 - 16T + 40" },
+        { "tex": "\\Rightarrow 0 = 3T^2 - 40T + 100", "why": "Multiply through by 2.5 to clear the decimal." },
+        { "tex": "\\Rightarrow 0 = (3T - 10)(T - 10)" },
+        { "text": "\\(T = \\frac{10}{3}\\) or \\(T = 10\\), but \\(T > 5\\), so reject \\(T = \\frac{10}{3}\\)." }
+      ],
+      "answer": "T = 10",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "A1"],
+        "vals": { "T": 10 },
+        "answers": [{ "tex": "T = 10", "scheme": "10", "derive": "solveset(Eq(4, 44 - 16*T + Rational(6, 5)*T**2), T, Interval.open(5, oo))" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find the value of \\(c\\).",
+      "method": "Equate the j components",
+      "steps": [
+        { "tex": "c = -10 + (-3)T + \\frac{1}{2}(1)T^2", "why": "Same vector equation as part (b). Keep the start position, \\(-10\\)." },
+        { "tex": "c = -10 + (-3)(10) + \\frac{1}{2}(1)(10)^2", "marks": ["M1", "M1"] },
+        { "tex": "c = -10 - 30 + \\frac{1}{2} \\times 100" },
+        { "tex": "c = -10 - 30 + 50" }
+      ],
+      "answer": "c = 10",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1"],
+        "vals": { "c": 10, "T": 10 },
+        "answers": [{ "tex": "c = 10", "scheme": "10", "derive": "-10 + (-3)*10 + Rational(1, 2)*1*10**2" }]
+      }
+    }
+  ]
+}

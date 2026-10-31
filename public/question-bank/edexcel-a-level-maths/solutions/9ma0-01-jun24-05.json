@@ -1,0 +1,52 @@
+{
+  "id": "9ma0-01-jun24-05",
+  "q": "5",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "\\(\\mathrm{f}(x) = \\dfrac{2x-3}{x^2+4}\\). Show that \\(\\mathrm{f}'(x) = \\dfrac{ax^2+bx+c}{(x^2+4)^2}\\), finding \\(a\\), \\(b\\) and \\(c\\).",
+      "method": "Use the quotient rule",
+      "steps": [
+        { "tex": "\\frac{\\mathrm{d}}{\\mathrm{d}x}\\left(\\frac{u}{v}\\right) = \\frac{vu' - uv'}{v^2}", "why": "From the formula book.", "check": false },
+        { "tex": "u = 2x - 3 \\Rightarrow u' = 2", "check": false },
+        { "tex": "v = x^2 + 4 \\Rightarrow v' = 2x", "check": false },
+        { "head": "Substitute into the quotient rule" },
+        { "tex": "\\mathrm{f}'(x) = \\frac{(x^2+4)(2) - (2x-3)(2x)}{(x^2+4)^2}", "marks": ["M1", "A1"] },
+        { "head": "Now tidy up the numerator" },
+        { "tex": "(x^2+4)(2) = 2x^2 + 8" },
+        { "tex": "(2x-3)(2x) = 4x^2 - 6x" },
+        { "tex": "2x^2 + 8 - (4x^2 - 6x) = 2x^2 + 8 - 4x^2 + 6x", "why": "The minus turns \\(-6x\\) into \\(+6x\\)." },
+        { "tex": "= -2x^2 + 6x + 8" }
+      ],
+      "answer": "\\mathrm{f}'(x) = \\frac{-2x^2 + 6x + 8}{(x^2+4)^2}, \\quad a = -2,\\ b = 6,\\ c = 8",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "A1"],
+        "answers": [{ "tex": "\\frac{-2x^2 + 6x + 8}{(x^2+4)^2}", "scheme": "(-2*x**2 + 6*x + 8)/(x**2 + 4)**2", "derive": "diff((2*x - 3)/(x**2 + 4), x)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence, using algebra, find the values of \\(x\\) for which f is decreasing.",
+      "method": "Decreasing means \\(\\mathrm{f}'(x) < 0\\)",
+      "steps": [
+        { "tex": "\\frac{-2x^2 + 6x + 8}{(x^2+4)^2} < 0", "check": false },
+        { "text": "The denominator \\((x^2+4)^2\\) is always positive, so we need the numerator to be negative:" },
+        { "tex": "-2x^2 + 6x + 8 < 0", "check": false },
+        { "head": "Find the critical values" },
+        { "tex": "-2x^2 + 6x + 8 = -2(x^2 - 3x - 4)", "why": "\"Using algebra\": show the factorising, not just calculator roots." },
+        { "tex": "= -2(x + 1)(x - 4)" },
+        { "text": "So the critical values are \\(x = -1\\) and \\(x = 4\\).", "marks": ["B1"] },
+        { "head": "Choose the right region" },
+        { "text": "\\(y = -2x^2 + 6x + 8\\) is an upside-down parabola, so it is negative outside its roots.", "why": "Or divide by \\(-2\\) and flip: \\((x+1)(x-4) > 0\\).", "marks": ["M1"] }
+      ],
+      "answer": "x < -1 \\ \\text{or}\\ x > 4",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1"],
+        "answers": [{ "tex": "x < -1 \\ \\text{or}\\ x > 4", "kind": "set", "scheme": "Union(Interval.open(-oo, -1), Interval.open(4, oo))", "derive": "solveset(diff((2*x - 3)/(x**2 + 4), x) < 0, x, S.Reals)" }]
+      }
+    }
+  ]
+}

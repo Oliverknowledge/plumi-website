@@ -1,0 +1,45 @@
+{
+  "id": "9ma0-01-jun24-02",
+  "q": "2",
+  "m": 4,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Find the first four terms of the binomial expansion of \\((1-9x)^{\\frac{1}{2}}\\), in ascending powers of \\(x\\).",
+      "method": "Quote the binomial expansion",
+      "steps": [
+        { "tex": "(1+x)^n = 1 + nx + \\frac{n(n-1)}{2!}x^2 + \\frac{n(n-1)(n-2)}{3!}x^3 + \\cdots", "why": "From the formula book.", "check": false },
+        { "text": "Here \\(n = \\tfrac{1}{2}\\), and \\(-9x\\) takes the place of \\(x\\)." },
+        { "head": "Substitute \\(n = \\tfrac{1}{2}\\) and \\(-9x\\)" },
+        { "tex": "(1-9x)^{\\frac{1}{2}} = 1 + \\tfrac{1}{2}(-9x) + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)}{2!}(-9x)^2 + \\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)\\left(-\\frac{3}{2}\\right)}{3!}(-9x)^3 + \\cdots", "why": "Keep \\(-9x\\) in brackets, so the power applies to the minus too.", "marks": ["M1", "A1"], "check": false },
+        { "head": "Simplify each term" },
+        { "tex": "\\tfrac{1}{2}(-9x) = -\\tfrac{9}{2}x" },
+        { "tex": "\\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)}{2}(-9x)^2 = -\\frac{1}{8}\\left(81x^2\\right) = -\\frac{81}{8}x^2" },
+        { "tex": "\\frac{\\frac{1}{2}\\left(-\\frac{1}{2}\\right)\\left(-\\frac{3}{2}\\right)}{6}(-9x)^3 = \\frac{1}{16}\\left(-729x^3\\right) = -\\frac{729}{16}x^3", "why": "\\((-9x)^3 = -729x^3\\): an odd power stays negative." }
+      ],
+      "answer": "(1-9x)^{\\frac{1}{2}} = 1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3 + \\cdots",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "A1"],
+        "answers": [{ "tex": "1 - \\frac{9}{2}x - \\frac{81}{8}x^2 - \\frac{729}{16}x^3", "scheme": "1 - 9*x/2 - 81*x**2/8 - 729*x**3/16", "derive": "series(sqrt(1 - 9*x), x, 0, 4).removeO()" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Give a reason why \\(x = -\\tfrac{2}{9}\\) should not be used in the expansion to approximate \\(\\sqrt{3}\\).",
+      "method": "Find the range of validity",
+      "steps": [
+        { "tex": "|-9x| < 1", "why": "The expansion only holds while the bracketed term has size below 1.", "check": false },
+        { "tex": "\\Rightarrow 9|x| < 1 \\Rightarrow |x| < \\frac{1}{9}", "check": false },
+        { "head": "Now test \\(x = -\\tfrac{2}{9}\\)" },
+        { "tex": "x = -\\frac{2}{9} \\Rightarrow |x| = \\frac{2}{9} > \\frac{1}{9}", "check": false }
+      ],
+      "answerText": "The expansion is only valid for \\(|x| < \\tfrac{1}{9}\\), and \\(x = -\\tfrac{2}{9}\\) is outside this range.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "reasoning: a statement about the range of validity"
+      }
+    }
+  ]
+}

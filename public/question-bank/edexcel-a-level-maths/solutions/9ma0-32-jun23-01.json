@@ -1,0 +1,45 @@
+{
+  "id": "9ma0-32-jun23-01",
+  "q": "1",
+  "m": 3,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A car starts from rest on a straight horizontal road and accelerates at a constant \\(3.2\\) m s⁻². Find its speed after 5 s.",
+      "method": "List the suvat values",
+      "steps": [
+        { "tex": "u = 0,\\quad a = 3.2,\\quad t = 5", "why": "\"From rest\" means \\(u = 0\\)." },
+        { "head": "Use the suvat equation without s" },
+        { "tex": "v = u + at", "check": false },
+        { "tex": "v = 0 + 3.2 \\times 5" },
+        { "tex": "v = 0 + 16" }
+      ],
+      "answer": "v = 16\\ \\text{m s}^{-1}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "v": 16, "u": 0, "a": "16/5", "t": 5 },
+        "answers": [{ "tex": "16", "scheme": "16", "derive": "0 + Rational(16, 5)*5" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find the distance travelled by the car in the first 5 s.",
+      "method": "List the suvat values",
+      "steps": [
+        { "tex": "u = 0,\\quad a = 3.2,\\quad t = 5", "why": "Use the given values, not the 16 from part (a)." },
+        { "head": "Use the suvat equation without v" },
+        { "tex": "s = ut + \\frac{1}{2}at^2", "check": false },
+        { "tex": "s = 0 \\times 5 + \\frac{1}{2} \\times 3.2 \\times 5^2", "marks": ["M1"] },
+        { "tex": "s = 0 + 1.6 \\times 25" }
+      ],
+      "answer": "s = 40\\ \\text{m}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "s": 40, "u": 0, "a": "16/5", "t": 5 },
+        "answers": [{ "tex": "40", "scheme": "40", "derive": "Rational(1, 2)*Rational(16, 5)*5**2" }]
+      }
+    }
+  ]
+}

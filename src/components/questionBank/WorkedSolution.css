@@ -1,0 +1,66 @@
+/*
+ * A worked solution (WorkedSolution.tsx), loaded with it when a student first opens one.
+ * Its heading and keys follow the theme, like the rest of the question's sheet; the working
+ * itself is a sheet of paper in both themes, as the scans are, in fixed ink: the working in
+ * blue pen, the marks in red, the method under green highlighter and the answers under yellow.
+ */
+.qb-sol { display: grid; gap: 10px; color: var(--lp-ink); }
+.qb-sol-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.qb-sol-title { font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-orange); margin: 0; }
+.qb-sol-hint { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--lp-ink-soft); }
+.qb-sol-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.qb-sol-btn { appearance: none; cursor: pointer; justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: #3e302b; background: #f2c96b; border: 2px solid #5b4741; border-radius: 10px; box-shadow: 0 3px 0 #5b4741; padding: 6px 14px; min-height: 40px; transition: transform .06s, box-shadow .06s; }
+.qb-sol-btn.is-quiet { color: var(--lp-ink); background: var(--lp-card-bg); border-color: var(--lp-line); box-shadow: 0 3px 0 var(--lp-shadow); }
+.qb-sol-btn:hover { filter: brightness(1.04); }
+.qb-sol-btn:active { transform: translateY(3px); box-shadow: 0 0 0 #5b4741; }
+.qb-sol-btn:focus-visible, .qb-sol-item:focus-visible { outline: 3px solid #2f6f69; outline-offset: 2px; }
+
+/* The sheet: a ruled page with a red margin, the part letters written in the margin. */
+.qb-sol-sheet { position: relative; display: grid; background: #fffdf8; color: #1d1a19; border: 2px solid #d6c9b4; border-radius: 8px; box-shadow: 4px 6px 0 rgba(91, 71, 65, .16); padding: 18px 18px 22px 58px;
+  background-image: linear-gradient(90deg, transparent 40px, #f1b8ab 40px, #f1b8ab 42px, transparent 42px), repeating-linear-gradient(to bottom, transparent 0 35px, #eef2f8 35px 36px); }
+.qb-sol-sheet-title { justify-self: start; margin: 0 0 6px; font: 700 26px/1.1 var(--f-hand); color: #1f3d8a; border-bottom: 3px solid #1f3d8a; }
+.qb-sol-part { display: grid; gap: 10px; padding-block: 12px 16px; }
+.qb-sol-part + .qb-sol-part { border-top: 2px dashed #e2d6c2; }
+.qb-sol-part-head { position: relative; margin: 0; font-weight: 400; }
+.qb-sol-label { position: absolute; left: -48px; top: -4px; font: 700 26px/1 var(--f-hand); color: #1f3d8a; }
+.qb-sol-label.is-long { left: -54px; top: 0; font-size: 19px; }
+.qb-sol-ask { display: block; font: 15px/1.5 "Times New Roman", Times, serif; color: #4a3a36; }
+.qb-sol-method.is-stage { grid-column: 1 / -1; margin-top: 8px; font-size: 21px; }
+.qb-sol-method { justify-self: start; margin: 0; padding: 0 4px 2px; font: 700 23px/1.15 var(--f-hand); color: #1d1a19; background: linear-gradient(transparent 68%, #8fd6b4 68%); }
+
+/* The working: one grid for the part, so every line's = sits in the same place, as by hand.
+   Column 1 is a line's left side, column 2 its "= …" or "⇒ …", column 3 the marks. */
+.qb-sol-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; row-gap: 4px; }
+.qb-sol-item { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; row-gap: 2px; border-radius: 6px; }
+.qb-sol-line { display: contents; }
+.qb-sol-l, .qb-sol-r, .qb-sol-w { padding-block: 3px; color: #1f3d8a; font-size: 17px; }
+.qb-sol-l { grid-column: 1; justify-self: end; white-space: nowrap; }
+.qb-sol-r, .qb-sol-w { min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.qb-sol-r { grid-column: 2; }
+.qb-sol-w { grid-column: 1 / 3; }
+.qb-sol .katex { font-size: 1.12em; }
+.qb-sol-text { grid-column: 1 / 3; margin: 4px 0 2px; font-size: 15.5px; font-weight: 600; line-height: 1.5; color: #1f3d8a; }
+.qb-sol-why { grid-column: 1 / -1; margin: 0 0 4px 6px; padding-left: 12px; border-left: 3px solid #f0c98a; font: 600 18px/1.25 var(--f-hand); color: #7a4b1f; }
+.qb-sol-why .katex { font-size: .95em; }
+.qb-sol-marks { grid-column: 3; display: flex; gap: 8px; justify-self: end; padding-left: 14px; }
+.qb-sol-mk { font: 700 21px/1 var(--f-hand); color: #c8372f; white-space: nowrap; }
+.qb-sol-mk::before { content: "✓ "; }
+.qb-sol-answer { grid-column: 1 / 3; justify-self: start; margin: 6px 0 0; padding: 3px 8px 5px; font-size: 16px; font-weight: 700; line-height: 1.5; color: #1d1a19; background: linear-gradient(transparent 12%, #ffe48a 12%, #ffe48a 92%, transparent 92%); max-width: 100%; overflow-x: auto; }
+
+.qb-sol-end { justify-self: end; margin: 6px 0 0; font: 700 26px/1 var(--f-hand); color: #1f3d8a; letter-spacing: -.1em; }
+
+@media (max-width: 700px) {
+  .qb-sol-sheet { padding: 14px 10px 18px 34px; background-image: linear-gradient(90deg, transparent 22px, #f1b8ab 22px, #f1b8ab 24px, transparent 24px), repeating-linear-gradient(to bottom, transparent 0 35px, #eef2f8 35px 36px); }
+  .qb-sol-label { left: -30px; font-size: 22px; }
+  .qb-sol-label.is-long { left: -33px; font-size: 15px; }
+  /* No room for columns: each line reads on, its marks under it. */
+  .qb-sol-steps, .qb-sol-item { display: block; }
+  .qb-sol-item + .qb-sol-item { margin-top: 6px; }
+  .qb-sol-line { display: block; }
+  .qb-sol-l, .qb-sol-r { display: inline; font-size: 16px; }
+  .qb-sol-w { display: block; font-size: 16px; }
+  .qb-sol-marks { padding-left: 0; }
+  .qb-sol-method { font-size: 21px; }
+}
+@media (prefers-reduced-motion: reduce) { .qb-sol-btn { transition: none; } }

@@ -1,0 +1,81 @@
+{
+  "id": "9ma0-02-jun23-13",
+  "q": "13",
+  "m": 13,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Find the first three terms, in ascending powers of \\(x\\), of the binomial expansion of \\((3 + x)^{-2}\\), each in simplest form. You must show all stages of your working.",
+      "method": "Take out a factor of \\(3^{-2}\\) first",
+      "steps": [
+        { "tex": "(3 + x)^{-2} = \\left(3\\left(1 + \\frac{x}{3}\\right)\\right)^{-2} = 3^{-2}\\left(1 + \\frac{x}{3}\\right)^{-2}", "why": "The bracket must start with 1." },
+        { "head": "Expand with the binomial formula" },
+        { "tex": "(1 + u)^n = 1 + nu + \\frac{n(n-1)}{2!}u^2 + \\ldots", "why": "Here \\(n = -2\\) and \\(u = \\tfrac{x}{3}\\).", "check": false },
+        { "tex": "3^{-2}\\left(1 + \\frac{x}{3}\\right)^{-2} = \\frac{1}{9}\\left(1 + (-2)\\left(\\frac{x}{3}\\right) + \\frac{(-2)(-3)}{2!}\\left(\\frac{x}{3}\\right)^2 + \\ldots\\right)", "marks": ["M1", "M1", "A1"], "check": false },
+        { "head": "Simplify each term" },
+        { "tex": "(-2)\\left(\\frac{x}{3}\\right) = -\\frac{2x}{3}" },
+        { "tex": "\\frac{(-2)(-3)}{2!}\\left(\\frac{x}{3}\\right)^2 = \\frac{6}{2} \\times \\frac{x^2}{9} = \\frac{x^2}{3}" },
+        { "text": "Put these back into the bracket, still times \\(\\tfrac{1}{9}\\):" },
+        { "tex": "\\frac{1}{9}\\left(1 - \\frac{2x}{3} + \\frac{x^2}{3}\\right) = \\frac{1}{9} - \\frac{1}{9} \\times \\frac{2x}{3} + \\frac{1}{9} \\times \\frac{x^2}{3}" }
+      ],
+      "answer": "= \\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1", "A1"],
+        "answers": [{ "tex": "\\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}", "scheme": "Rational(1, 9) - 2*x/27 + x**2/27", "derive": "series((3 + x)**-2, x, 0, 3).removeO()" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Using part (a) and algebraic integration, estimate \\(\\displaystyle\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x\\) to 4 significant figures.",
+      "method": "Write the integrand using part (a)",
+      "steps": [
+        { "tex": "\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x \\approx \\int_{0.2}^{0.4} 6x\\left(\\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}\\right)\\mathrm{d}x", "why": "\\(\\dfrac{6x}{(3+x)^2} = 6x(3+x)^{-2}\\).", "check": false },
+        { "head": "Multiply out the bracket" },
+        { "tex": "6x \\times \\frac{1}{9} = \\frac{6x}{9} = \\frac{2x}{3}" },
+        { "tex": "6x \\times \\frac{2x}{27} = \\frac{12x^2}{27} = \\frac{4x^2}{9}" },
+        { "tex": "6x \\times \\frac{x^2}{27} = \\frac{6x^3}{27} = \\frac{2x^3}{9}" },
+        { "tex": "\\Rightarrow \\int_{0.2}^{0.4} \\left(\\frac{2x}{3} - \\frac{4x^2}{9} + \\frac{2x^3}{9}\\right)\\mathrm{d}x", "marks": ["M1"], "check": false },
+        { "head": "Now integrate term by term" },
+        { "tex": "= \\left[\\frac{2x^2}{3 \\times 2} - \\frac{4x^3}{9 \\times 3} + \\frac{2x^4}{9 \\times 4}\\right]_{0.2}^{0.4}", "why": "Add one to each power, then divide by the new power.", "check": false },
+        { "tex": "= \\left[\\frac{x^2}{3} - \\frac{4x^3}{27} + \\frac{x^4}{18}\\right]_{0.2}^{0.4}", "marks": ["A1"], "check": false },
+        { "head": "Substitute the limits" },
+        { "tex": "x = 0.4: \\quad \\frac{(0.4)^2}{3} - \\frac{4(0.4)^3}{27} + \\frac{(0.4)^4}{18} = 0.053333\\ldots - 0.0094814\\ldots + 0.0014222\\ldots = 0.0452740\\ldots" },
+        { "tex": "x = 0.2: \\quad \\frac{(0.2)^2}{3} - \\frac{4(0.2)^3}{27} + \\frac{(0.2)^4}{18} = 0.013333\\ldots - 0.0011851\\ldots + 0.0000888\\ldots = 0.0122370\\ldots" },
+        { "tex": "0.0452740\\ldots - 0.0122370\\ldots = 0.0330370\\ldots", "why": "Top limit minus bottom limit. Exactly \\(\\tfrac{223}{6750}\\).", "marks": ["dM1"] }
+      ],
+      "answer": "\\approx 0.03304",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1"],
+        "answers": [{ "tex": "0.03304", "scheme": "Rational(223, 6750)", "derive": "integrate(6*x*(Rational(1, 9) - 2*x/27 + x**2/27), (x, Rational(1, 5), Rational(2, 5)))", "tol": 0.000005 }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Find, using algebraic integration, the exact value of \\(\\displaystyle\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x\\), in the form \\(a\\ln b + c\\).",
+      "method": "Integration by substitution, \\(u = 3 + x\\)",
+      "steps": [
+        { "tex": "u = 3 + x \\;\\Rightarrow\\; x = u - 3, \\quad \\frac{\\mathrm{d}u}{\\mathrm{d}x} = 1 \\;\\Rightarrow\\; \\mathrm{d}x = \\mathrm{d}u", "check": false },
+        { "tex": "x = 0.2 \\to u = 3.2, \\qquad x = 0.4 \\to u = 3.4", "why": "Change the limits too.", "check": false },
+        { "tex": "\\int_{0.2}^{0.4} \\frac{6x}{(3+x)^2}\\,\\mathrm{d}x = \\int_{3.2}^{3.4} \\frac{6(u - 3)}{u^2}\\,\\mathrm{d}u", "marks": ["M1"], "check": false },
+        { "head": "Split the fraction" },
+        { "tex": "\\frac{6(u - 3)}{u^2} = \\frac{6u}{u^2} - \\frac{18}{u^2} = \\frac{6}{u} - 18u^{-2}" },
+        { "head": "Now integrate" },
+        { "tex": "\\int_{3.2}^{3.4} \\left(\\frac{6}{u} - 18u^{-2}\\right)\\mathrm{d}u = \\left[6\\ln u - 18 \\times \\frac{u^{-1}}{-1}\\right]_{3.2}^{3.4}", "check": false },
+        { "tex": "= \\left[6\\ln u + \\frac{18}{u}\\right]_{3.2}^{3.4}", "why": "\\(-18 \\div (-1) = +18\\).", "marks": ["M1", "A1"], "check": false },
+        { "head": "Substitute the limits" },
+        { "tex": "\\left(6\\ln 3.4 + \\frac{18}{3.4}\\right) - \\left(6\\ln 3.2 + \\frac{18}{3.2}\\right) = 6\\ln 3.4 - 6\\ln 3.2 + \\frac{18}{3.4} - \\frac{18}{3.2}", "marks": ["ddM1"] },
+        { "tex": "= 6\\ln\\left(\\frac{3.4}{3.2}\\right) + \\frac{18}{3.4} - \\frac{18}{3.2}", "why": "\\(\\ln a - \\ln b = \\ln\\frac{a}{b}\\)." },
+        { "tex": "= 6\\ln\\left(\\frac{17}{16}\\right) + \\frac{90}{17} - \\frac{45}{8}", "why": "\\(\\frac{3.4}{3.2} = \\frac{34}{32}\\), \\(\\frac{18}{3.4} = \\frac{180}{34}\\), \\(\\frac{18}{3.2} = \\frac{180}{32}\\)." },
+        { "tex": "= 6\\ln\\left(\\frac{17}{16}\\right) + \\frac{720}{136} - \\frac{765}{136}", "why": "Common denominator \\(17 \\times 8 = 136\\)." }
+      ],
+      "answer": "= 6\\ln\\left(\\frac{17}{16}\\right) - \\frac{45}{136}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "M1", "A1", "ddM1", "A1"],
+        "answers": [{ "tex": "6\\ln\\left(\\frac{17}{16}\\right) - \\frac{45}{136}", "scheme": "6*log(Rational(17, 16)) - Rational(45, 136)", "derive": "integrate(6*x/(3 + x)**2, (x, Rational(1, 5), Rational(2, 5)))" }]
+      }
+    }
+  ]
+}

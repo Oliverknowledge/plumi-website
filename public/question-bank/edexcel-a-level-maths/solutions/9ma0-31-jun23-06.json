@@ -1,0 +1,152 @@
+{
+  "id": "9ma0-31-jun23-06",
+  "q": "6",
+  "m": 14,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A histogram shows the number of hours, \\(T\\), that 90 patients stay in hospital after an operation. Its bars are 0 to 4 hours (frequency density 2.5), 4 to 7 (3), 7 to 12 (4.2), 12 to 16 (4), 16 to 20 (3.5) and 20 to 40 (1). Use the histogram to estimate \\(\\mathrm{P}(10 < T < 30)\\).",
+      "method": "In a histogram, area is frequency",
+      "steps": [
+        { "tex": "\\text{frequency} = \\text{class width} \\times \\text{frequency density}", "check": false },
+        { "head": "Count the patients from 10 to 30 hours" },
+        { "text": "From 10 to 30 hours covers part of the 7 to 12 bar, all of the 12 to 16 and 16 to 20 bars, and part of the 20 to 40 bar." },
+        { "tex": "10 \\text{ to } 12: \\quad 2 \\times 4.2 = 8.4", "why": "Only 10 to 12 of the 7 to 12 bar counts: width 2." },
+        { "tex": "12 \\text{ to } 16: \\quad 4 \\times 4 = 16" },
+        { "tex": "16 \\text{ to } 20: \\quad 4 \\times 3.5 = 14" },
+        { "tex": "20 \\text{ to } 30: \\quad 10 \\times 1 = 10", "why": "Only 20 to 30 of the 20 to 40 bar: width 10." },
+        { "tex": "\\text{total} = 8.4 + 16 + 14 + 10 = 48.4", "marks": ["M1"] },
+        { "head": "Divide by all 90 patients" },
+        { "tex": "\\mathrm{P}(10 < T < 30) = \\frac{48.4}{90} = \\frac{121}{225}" },
+        { "tex": "= 0.53777\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(10 < T < 30) \\approx 0.538",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "0.538", "scheme": "0.535", "tol": 0.005, "derive": "(2*Rational(42, 10) + 4*4 + 4*Rational(35, 10) + 10*1)/90" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The 90 times have mean 14.9 hours and standard deviation 9.3 hours. Tomas suggests \\(T \\sim \\mathrm{N}(14.9,\\ 9.3^2)\\). With reference to the histogram, state, giving a reason, whether or not Tomas' model could be suitable.",
+      "method": "Compare the shapes",
+      "steps": [
+        { "text": "A normal distribution is symmetric about its mean, and bell shaped." },
+        { "text": "The histogram rises to a peak and then tails off slowly to the right: it is positively skewed.", "why": "Give a reason about shape: symmetry or bell shape." }
+      ],
+      "answerText": "Not suitable: the histogram is not symmetric (it is skewed), but a normal distribution is symmetric.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "reasoning: the shape of the histogram against a normal model"
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Xiang models the frequency polygon by \\(y = kx\\mathrm{e}^{-x}\\), \\(0 \\leq x \\leq 4\\), where \\(x\\) is in tens of hours. Use algebraic integration to show that \\(\\displaystyle\\int_0^n x\\mathrm{e}^{-x}\\,\\mathrm{d}x = 1 - (n+1)\\mathrm{e}^{-n}\\).",
+      "method": "Integration by parts",
+      "steps": [
+        { "tex": "\\int u\\frac{\\mathrm{d}v}{\\mathrm{d}x}\\,\\mathrm{d}x = uv - \\int v\\frac{\\mathrm{d}u}{\\mathrm{d}x}\\,\\mathrm{d}x", "check": false },
+        { "tex": "u = x \\quad\\Rightarrow\\quad \\frac{\\mathrm{d}u}{\\mathrm{d}x} = 1", "why": "Choose \\(u = x\\): it differentiates to 1.", "check": false },
+        { "tex": "\\frac{\\mathrm{d}v}{\\mathrm{d}x} = \\mathrm{e}^{-x} \\quad\\Rightarrow\\quad v = -\\mathrm{e}^{-x}", "marks": ["M1"], "check": false },
+        { "head": "Substitute into the formula" },
+        { "tex": "\\int x\\mathrm{e}^{-x}\\,\\mathrm{d}x = x\\left(-\\mathrm{e}^{-x}\\right) - \\int \\left(-\\mathrm{e}^{-x}\\right)(1)\\,\\mathrm{d}x", "marks": ["A1"], "check": false },
+        { "tex": "= -x\\mathrm{e}^{-x} + \\int \\mathrm{e}^{-x}\\,\\mathrm{d}x", "check": false },
+        { "tex": "= -x\\mathrm{e}^{-x} - \\mathrm{e}^{-x} + c", "check": false },
+        { "head": "Now apply the limits 0 and n" },
+        { "tex": "\\int_0^n x\\mathrm{e}^{-x}\\,\\mathrm{d}x = \\left[-x\\mathrm{e}^{-x} - \\mathrm{e}^{-x}\\right]_0^n", "check": false },
+        { "tex": "= \\left(-n\\mathrm{e}^{-n} - \\mathrm{e}^{-n}\\right) - \\left(-0 \\times \\mathrm{e}^{0} - \\mathrm{e}^{0}\\right)", "marks": ["dM1"] },
+        { "tex": "= \\left(-n\\mathrm{e}^{-n} - \\mathrm{e}^{-n}\\right) - \\left(0 - 1\\right)", "why": "Mind the double minus at the lower limit." },
+        { "tex": "= -n\\mathrm{e}^{-n} - \\mathrm{e}^{-n} + 1" },
+        { "tex": "= 1 - n\\mathrm{e}^{-n} - \\mathrm{e}^{-n}" }
+      ],
+      "answer": "= 1 - (n+1)\\mathrm{e}^{-n}",
+      "answerMarks": ["A1cso*"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1cso*"],
+        "answers": [{ "tex": "1 - (n+1)\\mathrm{e}^{-n}", "kind": "identity", "scheme": "1 - (n + 1)*exp(-n)", "derive": "integrate(x*exp(-x), (x, 0, n))" }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "Show that, for Xiang's model, \\(k = 99\\) to the nearest integer.",
+      "method": "Area under the curve = total frequency",
+      "steps": [
+        { "text": "The area under a frequency polygon is the total frequency: 90 patients." },
+        { "tex": "k\\int_0^4 x\\mathrm{e}^{-x}\\,\\mathrm{d}x = 90", "marks": ["M1"], "check": false },
+        { "head": "Use part (c) with n = 4" },
+        { "tex": "\\int_0^4 x\\mathrm{e}^{-x}\\,\\mathrm{d}x = 1 - (4 + 1)\\mathrm{e}^{-4} = 1 - 5\\mathrm{e}^{-4}" },
+        { "tex": "\\Rightarrow k\\left(1 - 5\\mathrm{e}^{-4}\\right) = 90", "marks": ["M1"], "check": { "vals": { "k": "90/(1 - 5*exp(-4))" } } },
+        { "head": "Solve for k" },
+        { "tex": "\\Rightarrow k = \\frac{90}{1 - 5\\mathrm{e}^{-4}}", "check": { "vals": { "k": "90/(1 - 5*exp(-4))" } } },
+        { "tex": "= \\frac{90}{0.90842\\ldots}" },
+        { "tex": "= 99.072\\ldots" }
+      ],
+      "answer": "k = 99 \\text{ to the nearest integer}",
+      "answerMarks": ["A1cso*"],
+      "check": {
+        "marks": ["M1", "M1", "A1cso*"],
+        "answers": [{ "tex": "k = 99", "scheme": "99", "tol": 0.5, "derive": "90/(1 - 5*exp(-4))" }]
+      }
+    },
+    {
+      "label": "e(i)",
+      "ask": "Estimate \\(\\mathrm{P}(10 < T < 30)\\) using Tomas' model, \\(T \\sim \\mathrm{N}(14.9,\\ 9.3^2)\\).",
+      "method": "State the distribution",
+      "steps": [
+        { "tex": "T \\sim \\mathrm{N}(14.9,\\ 9.3^2)", "check": false },
+        { "head": "Standardise both ends" },
+        { "tex": "z_1 = \\frac{10 - 14.9}{9.3} = -0.52688\\ldots" },
+        { "tex": "z_2 = \\frac{30 - 14.9}{9.3} = 1.6236\\ldots" },
+        { "head": "Find the probability between them" },
+        { "tex": "\\mathrm{P}(10 < T < 30) = \\mathrm{P}(-0.52688\\ldots < Z < 1.6236\\ldots)", "why": "Or normal cdf directly: lower 10, upper 30, \\(\\mu = 14.9\\), \\(\\sigma = 9.3\\)." },
+        { "tex": "= 0.94777\\ldots - 0.29913\\ldots" },
+        { "tex": "= 0.64863\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(10 < T < 30) \\approx 0.649",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "z_1": "-49/93", "z_2": "151/93" },
+        "answers": [{ "tex": "0.649", "scheme": "0.649", "tol": 0.0005, "derive": "(erf((30 - Rational(149, 10))/(Rational(93, 10)*sqrt(2))) - erf((10 - Rational(149, 10))/(Rational(93, 10)*sqrt(2))))/2" }]
+      }
+    },
+    {
+      "label": "e(ii)",
+      "ask": "Estimate \\(\\mathrm{P}(10 < T < 30)\\) using Xiang's curve \\(y = 99x\\mathrm{e}^{-x}\\) and the answer to part (c).",
+      "method": "Area under the curve, using (c)",
+      "steps": [
+        { "text": "\\(x\\) is in tens of hours, so 10 to 30 hours is \\(x = 1\\) to \\(x = 3\\)." },
+        { "tex": "99\\int_1^3 x\\mathrm{e}^{-x}\\,\\mathrm{d}x = 99\\left(\\int_0^3 x\\mathrm{e}^{-x}\\,\\mathrm{d}x - \\int_0^1 x\\mathrm{e}^{-x}\\,\\mathrm{d}x\\right)", "check": false },
+        { "tex": "= 99\\left[\\left(1 - 4\\mathrm{e}^{-3}\\right) - \\left(1 - 2\\mathrm{e}^{-1}\\right)\\right]", "why": "Part (c) with \\(n = 3\\), then \\(n = 1\\).", "marks": ["M1"] },
+        { "tex": "= 99\\left(0.80085\\ldots - 0.26424\\ldots\\right)" },
+        { "tex": "= 99 \\times 0.53661\\ldots" },
+        { "tex": "= 53.124\\ldots", "why": "This is a number of patients, not a probability." },
+        { "head": "Divide by the 90 patients" },
+        { "tex": "\\mathrm{P}(10 < T < 30) = \\frac{53.124\\ldots}{90}" },
+        { "tex": "= 0.59027\\ldots" }
+      ],
+      "answer": "\\mathrm{P}(10 < T < 30) \\approx 0.590",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "0.590", "scheme": "0.5905", "tol": 0.001, "derive": "99*((1 - 4*exp(-3)) - (1 - 2*exp(-1)))/90" }]
+      }
+    },
+    {
+      "label": "f",
+      "ask": "The researcher decides to use Xiang's curve to model \\(\\mathrm{P}(a < T < b)\\). State one limitation of Xiang's model.",
+      "method": "Look at the domain",
+      "steps": [
+        { "text": "The curve is only defined for \\(0 \\leq x \\leq 4\\), that is, up to 40 hours." }
+      ],
+      "answerText": "Some patients might stay in hospital longer than 40 hours, and the model cannot give probabilities for those times.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a limitation of the model, in context: no number to compare"
+      }
+    }
+  ]
+}

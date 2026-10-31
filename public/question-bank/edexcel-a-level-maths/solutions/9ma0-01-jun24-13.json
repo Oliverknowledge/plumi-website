@@ -1,0 +1,59 @@
+{
+  "id": "9ma0-01-jun24-13",
+  "q": "13",
+  "m": 8,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Given that \\(a > 0\\), use the substitution \\(x = a\\sin^2\\theta\\) to show that \\(\\displaystyle\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta\\).",
+      "method": "Start by differentiating the substitution",
+      "steps": [
+        { "tex": "x = a\\sin^2\\theta \\Rightarrow \\frac{\\mathrm{d}x}{\\mathrm{d}\\theta} = 2a\\sin\\theta\\cos\\theta", "why": "Chain rule: \\(\\sin^2\\theta = (\\sin\\theta)^2\\).", "marks": ["B1"], "check": false },
+        { "tex": "\\Rightarrow \\mathrm{d}x = 2a\\sin\\theta\\cos\\theta\\,\\mathrm{d}\\theta", "check": false },
+        { "head": "Write each part in terms of \\(\\theta\\)" },
+        { "tex": "x^{\\frac{1}{2}} = \\sqrt{a\\sin^2\\theta} = \\sqrt{a}\\sin\\theta" },
+        { "tex": "\\sqrt{a - x} = \\sqrt{a - a\\sin^2\\theta}" },
+        { "tex": "= \\sqrt{a(1 - \\sin^2\\theta)}" },
+        { "tex": "= \\sqrt{a\\cos^2\\theta} = \\sqrt{a}\\cos\\theta", "why": "\\(1 - \\sin^2\\theta = \\cos^2\\theta\\)." },
+        { "head": "Substitute everything in" },
+        { "tex": "\\int x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\int \\sqrt{a}\\sin\\theta \\cdot \\sqrt{a}\\cos\\theta \\cdot 2a\\sin\\theta\\cos\\theta\\,\\mathrm{d}\\theta", "marks": ["M1"], "check": false },
+        { "head": "Simplify the integrand" },
+        { "tex": "\\sqrt{a}\\sin\\theta \\cdot \\sqrt{a}\\cos\\theta \\cdot 2a\\sin\\theta\\cos\\theta = 2a^2\\sin^2\\theta\\cos^2\\theta", "why": "\\(\\sqrt{a} \\times \\sqrt{a} \\times 2a = 2a^2\\)." },
+        { "tex": "= 2a^2\\left(\\sin\\theta\\cos\\theta\\right)^2" },
+        { "tex": "= 2a^2\\left(\\tfrac{1}{2}\\sin 2\\theta\\right)^2", "why": "\\(\\sin 2\\theta = 2\\sin\\theta\\cos\\theta\\).", "marks": ["dM1"] },
+        { "tex": "= 2a^2 \\times \\tfrac{1}{4}\\sin^2 2\\theta = \\tfrac{1}{2}a^2\\sin^2 2\\theta" },
+        { "head": "Finally, change the limits" },
+        { "tex": "x = 0 \\Rightarrow a\\sin^2\\theta = 0 \\Rightarrow \\theta = 0", "check": false },
+        { "tex": "x = a \\Rightarrow \\sin^2\\theta = 1 \\Rightarrow \\theta = \\frac{\\pi}{2}", "check": false }
+      ],
+      "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["B1", "M1", "dM1", "A1*"],
+        "answers": [{ "tex": "\\frac{1}{2}a^2", "kind": "identity", "scheme": "Rational(1, 2)*a**2*sin(2*t)**2", "derive": "sqrt(a*sin(t)**2)*sqrt(a - a*sin(t)**2)*diff(a*sin(t)**2, t)", "note": "integrand after the substitution, checked at sample points with a > 0 and 0 < t < pi/2" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence use algebraic integration to show that \\(\\displaystyle\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = k\\pi a^2\\), finding \\(k\\).",
+      "method": "Use the double angle formula",
+      "steps": [
+        { "tex": "\\cos 2A = 1 - 2\\sin^2 A \\Rightarrow \\sin^2 A = \\frac{1 - \\cos 2A}{2}", "check": false },
+        { "tex": "\\Rightarrow \\sin^2 2\\theta = \\frac{1 - \\cos 4\\theta}{2}", "why": "With \\(A = 2\\theta\\), so \\(2A = 4\\theta\\)." },
+        { "tex": "\\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\sin^2 2\\theta\\,\\mathrm{d}\\theta = \\tfrac{1}{2}a^2\\int_0^{\\frac{\\pi}{2}} \\frac{1 - \\cos 4\\theta}{2}\\,\\mathrm{d}\\theta", "marks": ["M1"], "check": false },
+        { "tex": "= \\tfrac{1}{4}a^2\\int_0^{\\frac{\\pi}{2}} \\left(1 - \\cos 4\\theta\\right)\\mathrm{d}\\theta", "check": false },
+        { "head": "Now integrate term by term" },
+        { "tex": "= \\tfrac{1}{4}a^2\\left[\\theta - \\tfrac{1}{4}\\sin 4\\theta\\right]_0^{\\frac{\\pi}{2}}", "why": "\\(\\cos 4\\theta \\to \\tfrac{1}{4}\\sin 4\\theta\\): divide by the 4.", "marks": ["dM1", "A1"], "check": false },
+        { "head": "Substitute the limits" },
+        { "tex": "\\tfrac{1}{4}a^2\\left(\\frac{\\pi}{2} - \\tfrac{1}{4}\\sin 2\\pi\\right) - \\tfrac{1}{4}a^2\\left(0 - \\tfrac{1}{4}\\sin 0\\right) = \\tfrac{1}{4}a^2\\left(\\frac{\\pi}{2} - 0\\right) - \\tfrac{1}{4}a^2\\left(0 - 0\\right)", "why": "\\(\\sin 2\\pi = \\sin 0 = 0\\)." },
+        { "tex": "= \\tfrac{1}{4}a^2 \\times \\frac{\\pi}{2}" }
+      ],
+      "answer": "\\int_0^a x^{\\frac{1}{2}}\\sqrt{a-x}\\,\\mathrm{d}x = \\frac{1}{8}\\pi a^2, \\quad k = \\frac{1}{8}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "dM1", "A1", "A1"],
+        "answers": [{ "tex": "\\frac{1}{8}\\pi a^2", "scheme": "pi*a**2/8", "derive": "Rational(1, 2)*a**2*integrate(sin(2*t)**2, (t, 0, pi/2))" }]
+      }
+    }
+  ]
+}

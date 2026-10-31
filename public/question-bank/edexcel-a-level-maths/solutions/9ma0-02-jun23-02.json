@@ -1,0 +1,94 @@
+{
+  "id": "9ma0-02-jun23-02",
+  "q": "2",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a(i)",
+      "ask": "A sequence has \\(u_1 = 35\\) and \\(u_{n+1} = u_n + 7\\cos\\left(\\dfrac{n\\pi}{2}\\right) - 5(-1)^n\\). Show that \\(u_2 = 40\\).",
+      "method": "Put \\(n = 1\\) into the recurrence",
+      "steps": [
+        { "tex": "u_{n+1} = u_n + 7\\cos\\left(\\frac{n\\pi}{2}\\right) - 5(-1)^n", "check": false },
+        { "tex": "u_2 = u_1 + 7\\cos\\left(\\frac{\\pi}{2}\\right) - 5(-1)^1", "why": "\\(n = 1\\) everywhere, including the power. Radians." },
+        { "tex": "= 35 + 7\\cos\\left(\\frac{\\pi}{2}\\right) - 5(-1)^1" },
+        { "tex": "= 35 + 7(0) - 5(-1)" },
+        { "tex": "= 35 + 0 + 5" }
+      ],
+      "answer": "= 40",
+      "answerMarks": ["B1*"],
+      "check": {
+        "vals": { "u_1": 35, "u_2": 40 },
+        "marks": ["B1*"],
+        "answers": [{ "tex": "40", "scheme": "40", "derive": "35 + 7*cos(pi/2) - 5*(-1)**1" }]
+      }
+    },
+    {
+      "label": "a(ii)",
+      "ask": "Find the value of \\(u_3\\) and the value of \\(u_4\\).",
+      "method": "Put \\(n = 2\\) in to find \\(u_3\\)",
+      "steps": [
+        { "tex": "u_3 = u_2 + 7\\cos\\left(\\frac{2\\pi}{2}\\right) - 5(-1)^2" },
+        { "tex": "= 40 + 7\\cos\\left(\\frac{2\\pi}{2}\\right) - 5(-1)^2", "marks": ["M1"] },
+        { "tex": "= 40 + 7\\cos\\pi - 5(1)" },
+        { "tex": "= 40 + 7(-1) - 5" },
+        { "tex": "= 40 - 7 - 5" },
+        { "tex": "= 28" },
+        { "head": "Now \\(n = 3\\) to find \\(u_4\\)" },
+        { "tex": "u_4 = u_3 + 7\\cos\\left(\\frac{3\\pi}{2}\\right) - 5(-1)^3" },
+        { "tex": "= 28 + 7\\cos\\left(\\frac{3\\pi}{2}\\right) - 5(-1)^3" },
+        { "tex": "= 28 + 7(0) - 5(-1)" },
+        { "tex": "= 28 + 0 + 5" },
+        { "tex": "= 33" }
+      ],
+      "answer": "u_3 = 28, \\quad u_4 = 33",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "u_2": 40, "u_3": 28, "u_4": 33 },
+        "marks": ["M1", "A1"],
+        "answers": [
+          { "tex": "u_3 = 28", "scheme": "28", "derive": "40 + 7*cos(pi) - 5*(-1)**2" },
+          { "tex": "u_4 = 33", "scheme": "33", "derive": "28 + 7*cos(3*pi/2) - 5*(-1)**3" }
+        ]
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "Given that the sequence is periodic with order 4, write down the value of \\(u_5\\).",
+      "method": "Order 4: the terms repeat every 4",
+      "steps": [
+        { "tex": "u_5 = u_1", "why": "Four terms on from \\(u_1\\), so back to the start of the cycle." },
+        { "text": "Check with the recurrence, \\(n = 4\\): \\(u_5 = 33 + 7\\cos 2\\pi - 5(-1)^4 = 33 + 7 - 5 = 35\\)." }
+      ],
+      "answer": "u_5 = 35",
+      "answerMarks": ["B1"],
+      "check": {
+        "vals": { "u_1": 35, "u_5": 35 },
+        "marks": ["B1"],
+        "answers": [{ "tex": "35", "scheme": "35", "derive": "28 + 7*cos(3*pi/2) - 5*(-1)**3 + 7*cos(2*pi) - 5*(-1)**4" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Find the value of \\(\\displaystyle\\sum_{r=1}^{25} u_r\\).",
+      "method": "Count the complete cycles of 4",
+      "steps": [
+        { "tex": "25 = 6 \\times 4 + 1", "why": "Six full cycles of four terms, then one term left over." },
+        { "tex": "u_{25} = u_1 = 35", "why": "\\(u_{25}\\) is the first term of the seventh cycle." },
+        { "head": "Add up one cycle" },
+        { "tex": "u_1 + u_2 + u_3 + u_4 = 35 + 40 + 28 + 33" },
+        { "tex": "= 136" },
+        { "head": "Six cycles, then the extra term" },
+        { "tex": "\\sum_{r=1}^{25} u_r = 6(u_1 + u_2 + u_3 + u_4) + u_{25}", "check": false },
+        { "tex": "6(u_1 + u_2 + u_3 + u_4) + u_{25} = 6 \\times 136 + 35", "marks": ["M1"] },
+        { "tex": "= 816 + 35" }
+      ],
+      "answer": "= 851",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "u_1": 35, "u_2": 40, "u_3": 28, "u_4": 33, "u_{25}": 35 },
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "851", "scheme": "851", "derive": "6*(35 + 40 + 28 + 33) + 35" }]
+      }
+    }
+  ]
+}

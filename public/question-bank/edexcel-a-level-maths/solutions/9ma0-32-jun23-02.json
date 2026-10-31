@@ -1,0 +1,61 @@
+{
+  "id": "9ma0-32-jun23-02",
+  "q": "2",
+  "m": 4,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A particle \\(P\\) of mass 5 kg is pulled along a rough horizontal plane by a horizontal force of 28 N. The only resistance is friction, \\(F\\) N, acting the opposite way (Figure 1). Find the magnitude of the normal reaction of the plane on \\(P\\).",
+      "method": "Resolving vertically",
+      "steps": [
+        { "tex": "R - 5g = 0", "why": "Only \\(R\\) and the weight act vertically, and they balance." },
+        { "tex": "\\Rightarrow R = 5g" },
+        { "tex": "= 5 \\times 9.8" }
+      ],
+      "answer": "R = 49\\ \\text{N}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "g": 9.8, "R": 49 },
+        "answers": [{ "tex": "49", "scheme": "49", "derive": "5*Rational(49, 5)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "The particle accelerates along the plane at \\(1.4\\) m s⁻². Find the value of \\(F\\).",
+      "method": "Newton's second law along the plane",
+      "steps": [
+        { "tex": "\\text{resultant force} = ma", "check": false },
+        { "tex": "28 - F = 5 \\times 1.4", "why": "Friction acts against the 28 N pull.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 28 - F = 7" },
+        { "tex": "\\Rightarrow 28 - 7 = F" }
+      ],
+      "answer": "F = 21",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "F": 21 },
+        "answers": [{ "tex": "21", "scheme": "21", "derive": "28 - 5*Rational(7, 5)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "The coefficient of friction between \\(P\\) and the plane is \\(\\mu\\). Find \\(\\mu\\) to 2 significant figures.",
+      "method": "Friction is limiting",
+      "steps": [
+        { "tex": "F = \\mu R", "why": "\\(P\\) is sliding, so friction is at its maximum.", "check": false },
+        { "tex": "21 = \\mu \\times 49" },
+        { "tex": "\\Rightarrow \\mu = \\frac{21}{49}" },
+        { "tex": "= \\frac{3}{7}" },
+        { "tex": "= 0.428\\ldots", "why": "\\(g = 9.8\\) is to 2 s.f., so give 2 s.f." }
+      ],
+      "answer": "\\mu = 0.43",
+      "answerMarks": ["B1ft"],
+      "check": {
+        "marks": ["B1ft"],
+        "vals": { "\\mu": "3/7" },
+        "answers": [{ "tex": "0.43", "scheme": "0.43", "derive": "Rational(21, 49)", "tol": 0.005 }]
+      }
+    }
+  ]
+}

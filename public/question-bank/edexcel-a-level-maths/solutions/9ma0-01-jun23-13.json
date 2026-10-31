@@ -1,0 +1,87 @@
+{
+  "id": "9ma0-01-jun23-13",
+  "q": "13",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Roller coaster carriages do multiple circuits of a track. The maximum height of a carriage is 60 m, and a carriage starts a circuit 2 m above the horizontal ground. The height is modelled by \\(H = a - b(t - 20)^2\\), \\(t\\) seconds after the start of the first circuit, where \\(a\\) and \\(b\\) are positive constants. Find a complete equation for the model.",
+      "method": "Use the maximum height",
+      "steps": [
+        { "text": "\\(b > 0\\) and \\((t - 20)^2 \\geq 0\\), so \\(H \\leq a\\), with \\(H = a\\) when \\(t = 20\\)." },
+        { "tex": "a = 60", "marks": ["B1"] },
+        { "head": "Use the start: t = 0, H = 2" },
+        { "tex": "2 = 60 - b(0 - 20)^2" },
+        { "tex": "\\Rightarrow 2 = 60 - 400b", "why": "\\((-20)^2 = 400\\)." },
+        { "tex": "\\Rightarrow 400b = 60 - 2 = 58" },
+        { "tex": "\\Rightarrow b = \\frac{58}{400} = 0.145", "marks": ["M1"] }
+      ],
+      "answer": "H = 60 - 0.145(t - 20)^2",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1"],
+        "vals": { "a": 60, "b": "29/200" },
+        "answers": [{ "tex": "60 - 0.145(t - 20)^2", "scheme": "60 - Rational(29, 200)*(t - 20)**2", "derive": "60 - Rational(60 - 2, 400)*(t - 20)**2" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Use the model to determine the height of the carriage above the ground when \\(t = 40\\).",
+      "method": "Substitute t = 40",
+      "steps": [
+        { "tex": "H = 60 - 0.145(40 - 20)^2" },
+        { "tex": "= 60 - 0.145(20)^2" },
+        { "tex": "= 60 - 0.145 \\times 400" },
+        { "tex": "= 60 - 58", "why": "\\(t = 40\\) is as far after the peak as \\(t = 0\\) is before it." }
+      ],
+      "answer": "= 2\\ \\text{m}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": [{ "tex": "2\\ \\text{m}", "scheme": "2", "derive": "60 - Rational(29, 200)*(40 - 20)**2" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "An alternative model is \\(H = 29\\cos(9t + \\alpha)^\\circ + \\beta\\), \\(0 \\leq \\alpha < 360^\\circ\\), where \\(\\alpha\\) and \\(\\beta\\) are constants. Find a complete equation for this model.",
+      "method": "Use the maximum height",
+      "steps": [
+        { "text": "The largest value of \\(\\cos\\) is 1, so the greatest height is \\(29(1) + \\beta\\)." },
+        { "tex": "29 + \\beta = 60" },
+        { "tex": "\\Rightarrow \\beta = 60 - 29 = 31", "marks": ["M1"] },
+        { "head": "Use the start: t = 0, H = 2" },
+        { "tex": "2 = 29\\cos(9(0) + \\alpha) + 31" },
+        { "tex": "\\Rightarrow 2 = 29\\cos\\alpha + 31" },
+        { "tex": "\\Rightarrow 29\\cos\\alpha = -29" },
+        { "tex": "\\Rightarrow \\cos\\alpha = -1" },
+        { "tex": "\\Rightarrow \\alpha = 180", "why": "The only solution with \\(0 \\leq \\alpha < 360\\)." }
+      ],
+      "answer": "H = 29\\cos(9t + 180)^\\circ + 31",
+      "answerMarks": ["A1"],
+      "check": {
+        "deg": true,
+        "marks": ["M1", "A1"],
+        "vals": { "\\alpha": 180, "\\beta": 31 },
+        "answers": [{ "tex": "29\\cos(9t + 180)^\\circ + 31", "scheme": "29*cos(rad(9*t + 180)) + 31", "derive": "31 - 29*cos(rad(9*t))" }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "The carriage moves continuously for 2 minutes. Give a reason why the alternative model would be more appropriate.",
+      "method": "Try the quadratic model at 2 minutes",
+      "steps": [
+        { "tex": "H = 60 - 0.145(120 - 20)^2 = 60 - 0.145 \\times 10000 = 60 - 1450 = -1390", "why": "A negative height is impossible." },
+        { "head": "Now the cos model at 2 minutes" },
+        { "tex": "\\frac{360}{9} = 40", "why": "The period, in seconds: one circuit every 40 s." },
+        { "tex": "H = 29\\cos(9(120) + 180)^\\circ + 31 = 29\\cos(1260)^\\circ + 31 = 29(-1) + 31 = 2", "why": "After 3 full circuits it is back at the start." }
+      ],
+      "answerText": "The carriage does multiple circuits. The cos model is periodic, so it repeats the circuit; the quadratic goes up and down only once, then gives negative heights.",
+      "answerMarks": ["B1"],
+      "check": {
+        "deg": true,
+        "marks": ["B1"],
+        "answers": "reasoning: why a periodic model suits repeated circuits"
+      }
+    }
+  ]
+}

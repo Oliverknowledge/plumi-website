@@ -1,0 +1,61 @@
+{
+  "id": "9ma0-02-jun23-06",
+  "q": "6",
+  "m": 6,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Relative to \\(O\\), \\(A\\), \\(B\\), \\(C\\) and \\(D\\) have position vectors \\(12\\mathbf{i}\\), \\(16\\mathbf{j}\\), \\(50\\mathbf{i} + 136\\mathbf{j}\\) and \\(22\\mathbf{i} + 24\\mathbf{j}\\). Show that \\(AD\\) is parallel to \\(BC\\).",
+      "method": "Start by finding \\(\\overrightarrow{AD}\\) and \\(\\overrightarrow{BC}\\)",
+      "steps": [
+        { "tex": "\\overrightarrow{AD} = \\mathbf{d} - \\mathbf{a}", "why": "End minus start.", "check": false },
+        { "tex": "= (22\\mathbf{i} + 24\\mathbf{j}) - 12\\mathbf{i}", "check": false },
+        { "tex": "= 10\\mathbf{i} + 24\\mathbf{j}", "check": false },
+        { "tex": "\\overrightarrow{BC} = \\mathbf{c} - \\mathbf{b}", "check": false },
+        { "tex": "= (50\\mathbf{i} + 136\\mathbf{j}) - 16\\mathbf{j}", "why": "\\(B\\) is \\(16\\mathbf{j}\\): take it off the \\(\\mathbf{j}\\) part only.", "check": false },
+        { "tex": "= 50\\mathbf{i} + 120\\mathbf{j}", "marks": ["M1"], "check": false },
+        { "head": "Compare the two vectors" },
+        { "tex": "50 = 5 \\times 10, \\qquad 120 = 5 \\times 24" },
+        { "tex": "\\Rightarrow 50\\mathbf{i} + 120\\mathbf{j} = 5(10\\mathbf{i} + 24\\mathbf{j})", "check": false },
+        { "tex": "\\Rightarrow \\overrightarrow{BC} = 5\\overrightarrow{AD}", "check": false }
+      ],
+      "answerText": "\\(\\overrightarrow{BC}\\) is a multiple of \\(\\overrightarrow{AD}\\), so \\(AD\\) is parallel to \\(BC\\).",
+      "answerMarks": ["A1*cso"],
+      "check": {
+        "marks": ["M1", "A1*cso"],
+        "answers": "show that: the vectors 10i + 24j and 50i + 120j are multiples (the assert checks 50/10 = 120/24 = 5)",
+        "assert": "Rational(50, 10) == Rational(120, 24) == 5 and (22 - 12, 24 - 0) == (10, 24) and (50 - 0, 136 - 16) == (50, 120)"
+      }
+    },
+    {
+      "label": "b",
+      "ask": "\\(A\\), \\(B\\), \\(C\\), \\(D\\) are the vertices of a running track (a quadrilateral), with lengths in metres. A runner takes exactly 5 minutes to complete 2 laps. Calculate the runner's average speed in kilometres per hour.",
+      "method": "Find the other two sides as vectors",
+      "steps": [
+        { "tex": "\\overrightarrow{AB} = \\mathbf{b} - \\mathbf{a} = 16\\mathbf{j} - 12\\mathbf{i} = -12\\mathbf{i} + 16\\mathbf{j}", "check": false },
+        { "tex": "\\overrightarrow{CD} = \\mathbf{d} - \\mathbf{c} = (22\\mathbf{i} + 24\\mathbf{j}) - (50\\mathbf{i} + 136\\mathbf{j}) = -28\\mathbf{i} - 112\\mathbf{j}", "why": "\\(\\overrightarrow{BC}\\) and \\(\\overrightarrow{AD}\\) come from part (a).", "check": false },
+        { "head": "Length of each side" },
+        { "tex": "|x\\mathbf{i} + y\\mathbf{j}| = \\sqrt{x^2 + y^2}", "check": false },
+        { "tex": "|\\overrightarrow{AB}| = \\sqrt{(-12)^2 + 16^2} = \\sqrt{144 + 256} = \\sqrt{400} = 20", "marks": ["M1"] },
+        { "tex": "|\\overrightarrow{BC}| = \\sqrt{50^2 + 120^2} = \\sqrt{2500 + 14400} = \\sqrt{16900} = 130" },
+        { "tex": "|\\overrightarrow{CD}| = \\sqrt{(-28)^2 + (-112)^2} = \\sqrt{784 + 12544} = \\sqrt{13328} = 28\\sqrt{17}", "why": "\\(13328 = 784 \\times 17\\) and \\(\\sqrt{784} = 28\\)." },
+        { "tex": "|\\overrightarrow{DA}| = \\sqrt{10^2 + 24^2} = \\sqrt{100 + 576} = \\sqrt{676} = 26", "marks": ["A1"] },
+        { "head": "Distance run, in km" },
+        { "tex": "20 + 130 + 28\\sqrt{17} + 26 = 176 + 28\\sqrt{17} = 291.446\\ldots", "why": "One lap, in metres." },
+        { "tex": "2(176 + 28\\sqrt{17}) = 582.893\\ldots", "why": "Two laps." },
+        { "tex": "\\frac{582.893\\ldots}{1000} = 0.582893\\ldots", "why": "1000 m in a km." },
+        { "head": "Finally, speed = distance ÷ time" },
+        { "tex": "5\\ \\text{minutes} = \\frac{5}{60} = \\frac{1}{12}\\ \\text{hours}" },
+        { "tex": "\\frac{2(176 + 28\\sqrt{17})}{1000} \\div \\frac{5}{60} = 0.582893\\ldots \\div \\frac{1}{12}", "marks": ["dM1"] },
+        { "tex": "= 0.582893\\ldots \\times 12" },
+        { "tex": "= 6.9947\\ldots" }
+      ],
+      "answer": "\\approx 6.99\\ \\text{km/h}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "dM1", "A1"],
+        "answers": [{ "tex": "6.99", "scheme": "6.99", "derive": "2*(20 + 130 + sqrt(28**2 + 112**2) + 26)/1000/(Rational(5, 60))", "tol": 0.006 }]
+      }
+    }
+  ]
+}

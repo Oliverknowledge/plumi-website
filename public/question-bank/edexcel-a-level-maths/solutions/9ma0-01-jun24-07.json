@@ -1,0 +1,68 @@
+{
+  "id": "9ma0-01-jun24-07",
+  "q": "7",
+  "m": 8,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A tank 1.5 m tall starts full and leaks, with \\(\\dfrac{\\mathrm{d}H}{\\mathrm{d}t} = -0.12\\mathrm{e}^{-0.2t}\\). Show that \\(H = A\\mathrm{e}^{-0.2t} + B\\), finding \\(A\\) and \\(B\\).",
+      "method": "Integrate both sides with respect to \\(t\\)",
+      "steps": [
+        { "tex": "H = \\int -0.12\\mathrm{e}^{-0.2t}\\,\\mathrm{d}t", "check": false },
+        { "tex": "\\int \\mathrm{e}^{kt}\\,\\mathrm{d}t = \\frac{1}{k}\\mathrm{e}^{kt} + c", "why": "Divide by \\(k = -0.2\\), don't multiply.", "check": false },
+        { "tex": "\\Rightarrow H = -0.12 \\times \\frac{1}{-0.2}\\mathrm{e}^{-0.2t} + c" },
+        { "tex": "= 0.6\\mathrm{e}^{-0.2t} + c", "marks": ["M1"] },
+        { "head": "Use the starting values to find \\(c\\)" },
+        { "text": "The tank starts full: \\(H = 1.5\\) when \\(t = 0\\)." },
+        { "tex": "1.5 = 0.6\\mathrm{e}^{0} + c" },
+        { "tex": "\\Rightarrow 1.5 = 0.6 + c", "why": "\\(\\mathrm{e}^{0} = 1\\)." },
+        { "tex": "\\Rightarrow c = 1.5 - 0.6 = 0.9", "marks": ["dM1"] }
+      ],
+      "answer": "H = 0.6\\mathrm{e}^{-0.2t} + 0.9",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "c": 0.9 },
+        "marks": ["M1", "dM1", "A1"],
+        "answers": [{ "tex": "0.6\\mathrm{e}^{-0.2t} + 0.9", "scheme": "0.6*exp(-0.2*t) + 0.9", "derive": "integrate(-0.12*exp(-0.2*t), t) + 1.5 - integrate(-0.12*exp(-0.2*t), t).subs(t, 0)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Find the time taken for the depth to fall to 1.2 m, in hours and minutes to the nearest minute.",
+      "method": "Substitute \\(H = 1.2\\)",
+      "steps": [
+        { "tex": "1.2 = 0.6\\mathrm{e}^{-0.2t} + 0.9" },
+        { "tex": "\\Rightarrow 0.6\\mathrm{e}^{-0.2t} = 1.2 - 0.9 = 0.3", "marks": ["M1"] },
+        { "tex": "\\Rightarrow \\mathrm{e}^{-0.2t} = \\frac{0.3}{0.6} = \\frac{1}{2}" },
+        { "head": "Take natural logs of both sides" },
+        { "tex": "\\Rightarrow -0.2t = \\ln\\frac{1}{2}" },
+        { "tex": "\\Rightarrow t = -5\\ln\\frac{1}{2}", "why": "Dividing by \\(-0.2\\) is multiplying by \\(-5\\).", "marks": ["dM1"] },
+        { "tex": "= 5\\ln 2 = 3.4657\\ldots", "why": "\\(t\\) is in hours." },
+        { "head": "Convert to hours and minutes" },
+        { "tex": "0.4657\\ldots \\times 60 = 27.94\\ldots \\text{ minutes}", "why": "Turn the decimal part of an hour into minutes." }
+      ],
+      "answerText": "\\(t = 3\\) hours \\(28\\) minutes",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "t": "5*log(2)" },
+        "marks": ["M1", "dM1", "A1"],
+        "answers": [{ "text": "\\(t = 3\\) hours \\(28\\) minutes", "value": "3 + 28/60", "scheme": "5*log(2)", "tol": 0.0084 }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "In the long term the water falls to the level of the hole. Find the height of the hole above the bottom of the tank.",
+      "method": "Let \\(t \\to \\infty\\)",
+      "steps": [
+        { "tex": "t \\to \\infty \\Rightarrow \\mathrm{e}^{-0.2t} \\to 0", "why": "A negative power of \\(\\mathrm{e}\\) shrinks to zero as \\(t\\) grows.", "check": false },
+        { "tex": "\\Rightarrow H \\to 0.6(0) + 0.9 = 0.9", "marks": ["M1"], "check": false }
+      ],
+      "answerText": "\\(\\therefore\\) The hole is \\(0.9\\) m (90 cm) above the bottom of the tank.",
+      "answerMarks": ["A1ft"],
+      "check": {
+        "marks": ["M1", "A1ft"],
+        "answers": [{ "text": "\\(0.9\\) m", "value": "0.9", "scheme": "0.9", "derive": "limit(0.6*exp(-0.2*t) + 0.9, t, oo)" }]
+      }
+    }
+  ]
+}

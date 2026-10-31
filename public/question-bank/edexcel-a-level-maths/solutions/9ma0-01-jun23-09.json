@@ -1,0 +1,76 @@
+{
+  "id": "9ma0-01-jun23-09",
+  "q": "9",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The first three terms of a geometric sequence are \\(3k + 4\\), \\(12 - 3k\\) and \\(k + 16\\), where \\(k\\) is a constant. Show that \\(3k^2 - 62k + 40 = 0\\).",
+      "method": "The common ratio is the same",
+      "steps": [
+        { "tex": "r = \\frac{u_2}{u_1} = \\frac{u_3}{u_2}", "check": false },
+        { "tex": "\\frac{12 - 3k}{3k + 4} = \\frac{k + 16}{12 - 3k}", "marks": ["M1"] },
+        { "tex": "\\Rightarrow (12 - 3k)^2 = (3k + 4)(k + 16)", "why": "Cross-multiply." },
+        { "head": "Expand each side" },
+        { "tex": "(12 - 3k)^2 = (12 - 3k)(12 - 3k) = 144 - 36k - 36k + 9k^2 = 144 - 72k + 9k^2" },
+        { "tex": "(3k + 4)(k + 16) = 3k^2 + 48k + 4k + 64 = 3k^2 + 52k + 64" },
+        { "tex": "\\Rightarrow 144 - 72k + 9k^2 = 3k^2 + 52k + 64" },
+        { "head": "Collect everything on one side" },
+        { "tex": "\\Rightarrow 9k^2 - 3k^2 - 72k - 52k + 144 - 64 = 0" },
+        { "tex": "\\Rightarrow 6k^2 - 124k + 80 = 0", "why": "Now divide every term by 2." }
+      ],
+      "answer": "\\Rightarrow 3k^2 - 62k + 40 = 0",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "vals": { "k": 20 },
+        "answers": [{ "tex": "3k^2 - 62k + 40 = 0", "kind": "equation", "scheme": "Eq(3*k**2 - 62*k + 40, 0)", "derive": "Eq((12 - 3*k)**2 - (3*k + 4)*(k + 16), 0)" }]
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "The sequence converges. Find the value of \\(k\\), giving a reason for your answer.",
+      "method": "Solve the quadratic",
+      "steps": [
+        { "tex": "3k^2 - 62k + 40 = 0" },
+        { "tex": "\\Rightarrow (3k - 2)(k - 20) = 0", "why": "Check: \\(-60k - 2k = -62k\\) and \\((-2)(-20) = 40\\)." },
+        { "tex": "\\Rightarrow k = \\frac{2}{3} \\quad \\text{or} \\quad k = 20", "marks": ["M1"], "check": false },
+        { "head": "Find the common ratio for each" },
+        { "text": "When \\(k = 20\\):" },
+        { "tex": "r = \\frac{12 - 3(20)}{3(20) + 4} = \\frac{12 - 60}{60 + 4} = \\frac{-48}{64} = -\\frac{3}{4}" },
+        { "text": "When \\(k = \\tfrac{2}{3}\\):" },
+        { "tex": "r = \\frac{12 - 3\\left(\\frac{2}{3}\\right)}{3\\left(\\frac{2}{3}\\right) + 4} = \\frac{12 - 2}{2 + 4} = \\frac{10}{6} = \\frac{5}{3}", "check": { "vals": { "k": "2/3" } } },
+        { "head": "Use the convergence condition" },
+        { "tex": "\\text{Converges} \\iff |r| < 1", "check": false }
+      ],
+      "answerText": "\\(k = 20\\), because it gives \\(|r| = \\tfrac{3}{4} < 1\\), so the sequence converges. (\\(k = \\tfrac{2}{3}\\) gives \\(r = \\tfrac{5}{3} > 1\\), which diverges.)",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "k": 20 },
+        "answers": [{ "text": "\\(k = 20\\)", "value": "20", "scheme": "20", "derive": "Max(*solve(3*k**2 - 62*k + 40, k))" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Find the value of \\(S_\\infty\\).",
+      "method": "First term and common ratio",
+      "steps": [
+        { "tex": "a = 3(20) + 4 = 60 + 4 = 64, \\quad r = -\\frac{3}{4}", "marks": ["B1"] },
+        { "head": "Now the sum to infinity" },
+        { "tex": "S_\\infty = \\frac{a}{1 - r}", "check": false },
+        { "tex": "S_\\infty = \\frac{64}{1 - \\left(-\\frac{3}{4}\\right)}", "why": "Mind the double minus.", "marks": ["M1"] },
+        { "tex": "= \\frac{64}{1 + \\frac{3}{4}}" },
+        { "tex": "= \\frac{64}{\\frac{7}{4}}" },
+        { "tex": "= 64 \\times \\frac{4}{7}" }
+      ],
+      "answer": "= \\frac{256}{7}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["B1", "M1", "A1"],
+        "vals": { "a": 64, "r": "-3/4" },
+        "answers": [{ "tex": "\\frac{256}{7}", "scheme": "Rational(256, 7)", "derive": "(3*20 + 4)/(1 - Rational(12 - 3*20, 3*20 + 4))" }]
+      }
+    }
+  ]
+}

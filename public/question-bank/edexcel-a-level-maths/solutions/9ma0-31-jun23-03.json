@@ -1,0 +1,91 @@
+{
+  "id": "9ma0-31-jun23-03",
+  "q": "3",
+  "m": 7,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "Ben summarises the Daily Total Rainfall, \\(x\\) mm, in Leeming for 1987 from the large data set in a grouped frequency table. One column is headed \"tr\", with frequency 29. Explain how the data will need to be cleaned before Ben can calculate statistics such as the mean and standard deviation.",
+      "method": "Use your knowledge of the large data set",
+      "steps": [
+        { "text": "In the large data set, \"tr\" means a trace of rain: less than \\(0.05\\) mm." },
+        { "text": "\"tr\" is not a number, so it must be replaced with a numerical value before any calculation.", "why": "Don't delete these days: they are real days of data.", "marks": ["M1"] }
+      ],
+      "answerText": "Replace each \"tr\" with a numerical value between \\(0\\) and \\(0.05\\) mm, for example \\(0.025\\).",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "answers": "an explanation of cleaning the large data set: no number to compare"
+      }
+    },
+    {
+      "label": "b(i)",
+      "ask": "Using all 184 values, Ben estimates \\(\\sum x = 390\\) and \\(\\sum x^2 = 4336\\). Calculate an estimate for the mean Daily Total Rainfall.",
+      "method": "Mean from summary statistics",
+      "steps": [
+        { "tex": "\\bar{x} = \\frac{\\sum x}{n}", "check": false },
+        { "tex": "\\bar{x} = \\frac{390}{184} = \\frac{195}{92}" },
+        { "tex": "= 2.1195\\ldots" }
+      ],
+      "answer": "\\bar{x} = 2.12\\ \\text{mm}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "vals": { "\\bar{x}": "195/92" },
+        "answers": [{ "tex": "\\bar{x} = 2.12", "scheme": "2.12", "tol": 0.005, "derive": "Rational(390, 184)" }]
+      }
+    },
+    {
+      "label": "b(ii)",
+      "ask": "Calculate an estimate for the standard deviation of the Daily Total Rainfall.",
+      "method": "Mean of the squares minus the square of the mean",
+      "steps": [
+        { "tex": "\\sigma = \\sqrt{\\frac{\\sum x^2}{n} - \\bar{x}^2}", "check": false },
+        { "head": "Work out the two pieces" },
+        { "tex": "\\frac{4336}{184} = 23.565\\ldots" },
+        { "tex": "\\bar{x}^2 = \\left(\\frac{390}{184}\\right)^2 = 4.4925\\ldots", "why": "Square the unrounded mean, not \\(2.12\\).", "check": { "vals": { "x": "195/92" } } },
+        { "head": "Substitute into the formula" },
+        { "tex": "\\sigma = \\sqrt{\\frac{4336}{184} - \\left(\\frac{390}{184}\\right)^2}", "marks": ["M1"] },
+        { "tex": "= \\sqrt{23.565\\ldots - 4.4925\\ldots}" },
+        { "tex": "= \\sqrt{19.072\\ldots}" },
+        { "tex": "= 4.3672\\ldots" }
+      ],
+      "answer": "\\sigma = 4.37\\ \\text{mm}",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": { "\\sigma": "sqrt(Rational(4336, 184) - Rational(390, 184)**2)", "\\bar{x}": "195/92" },
+        "answers": [{ "tex": "\\sigma = 4.37", "scheme": "4.37", "tol": 0.005, "derive": "sqrt(Rational(4336, 184) - Rational(390, 184)**2)" }]
+      }
+    },
+    {
+      "label": "c(i)",
+      "ask": "Ben suggests using the mean from (b)(i) to estimate the annual mean Daily Total Rainfall in Leeming for 1987. Using your knowledge of the large data set, give a reason why these data would not be suitable.",
+      "method": "Use your knowledge of the large data set",
+      "steps": [
+        { "text": "The large data set records May to October only: that is why there are 184 days, not 365.", "why": "Name the months. \"Only 184 days\" alone scores nothing." }
+      ],
+      "answerText": "The data only cover May to October, so they are not representative of the whole year.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a reason from the large data set: no number to compare"
+      }
+    },
+    {
+      "label": "c(ii)",
+      "ask": "State, giving a reason, how you would expect the estimate in part (b)(i) to differ from the actual annual mean Daily Total Rainfall in Leeming for 1987.",
+      "method": "Think about the missing months",
+      "steps": [
+        { "text": "The missing months, November to April, are the winter months." },
+        { "text": "In the UK we would expect more rain in winter than in summer.", "why": "Say which months, their rain, and the effect on the estimate." }
+      ],
+      "answerText": "The winter months are missing, and we would expect more rain then, so \\(2.12\\) mm is likely to be an underestimate: the actual annual mean will be higher.",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "reasoning: the direction of the error, from the large data set"
+      }
+    }
+  ]
+}

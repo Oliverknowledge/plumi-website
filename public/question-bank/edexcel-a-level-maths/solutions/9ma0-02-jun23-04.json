@@ -1,0 +1,48 @@
+{
+  "id": "9ma0-02-jun23-04",
+  "q": "4",
+  "m": 4,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "The temperature of coffee, \\(H\\) °C, \\(t\\) minutes after it is poured, is modelled by \\(H = A\\mathrm{e}^{-Bt} + 30\\). Initially it was 85 °C. State the value of \\(A\\).",
+      "method": "\"Initially\" means \\(t = 0\\)",
+      "steps": [
+        { "tex": "H = A\\mathrm{e}^{-Bt} + 30", "check": false },
+        { "tex": "\\Rightarrow 85 = A\\mathrm{e}^{-B \\times 0} + 30", "why": "\\(t = 0\\), \\(H = 85\\)." },
+        { "tex": "\\Rightarrow 85 = A\\mathrm{e}^{0} + 30" },
+        { "tex": "\\Rightarrow 85 = A + 30", "why": "\\(\\mathrm{e}^0 = 1\\)." }
+      ],
+      "answer": "\\Rightarrow A = 85 - 30 = 55",
+      "answerMarks": ["B1"],
+      "check": {
+        "vals": { "A": 55, "B": "3/22" },
+        "marks": ["B1"],
+        "answers": [{ "tex": "55", "scheme": "55", "derive": "85 - 30" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Initially the coffee was cooling at a rate of 7.5 °C per minute. Find a complete equation linking \\(H\\) and \\(t\\), giving \\(B\\) to 3 decimal places.",
+      "method": "Start by differentiating \\(H\\)",
+      "steps": [
+        { "tex": "H = 55\\mathrm{e}^{-Bt} + 30", "check": false },
+        { "tex": "\\Rightarrow \\frac{\\mathrm{d}H}{\\mathrm{d}t} = 55 \\times (-B)\\mathrm{e}^{-Bt} + 0", "why": "\\(\\mathrm{e}^{kt} \\to k\\mathrm{e}^{kt}\\), with \\(k = -B\\)." },
+        { "tex": "= -55B\\mathrm{e}^{-Bt}", "marks": ["M1"] },
+        { "head": "Use the initial rate of cooling" },
+        { "tex": "t = 0: \\quad \\frac{\\mathrm{d}H}{\\mathrm{d}t} = -7.5", "why": "Cooling means \\(H\\) is falling: the rate is \\(-7.5\\), not \\(+7.5\\).", "check": false },
+        { "tex": "\\Rightarrow -55B\\mathrm{e}^{-B \\times 0} = -7.5" },
+        { "tex": "\\Rightarrow -55B = -7.5" },
+        { "tex": "\\Rightarrow B = \\frac{7.5}{55} = \\frac{15}{110} = \\frac{3}{22}", "marks": ["M1"] },
+        { "tex": "= 0.13636\\ldots" }
+      ],
+      "answer": "\\Rightarrow H = 55\\mathrm{e}^{-0.136t} + 30",
+      "answerMarks": ["A1cso"],
+      "check": {
+        "vals": { "B": "3/22" },
+        "marks": ["M1", "M1", "A1cso"],
+        "answers": [{ "tex": "55\\mathrm{e}^{-0.136t} + 30", "scheme": "55*exp(-0.136*t) + 30", "derive": "55*exp(-Rational(15, 2)/55*t) + 30", "tol": 0.05 }]
+      }
+    }
+  ]
+}

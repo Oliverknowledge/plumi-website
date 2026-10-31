@@ -325,7 +325,6 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     if (f.sort === "short") groups.sort((a, b) => total(a) - total(b));
     return f.sort === "mix" ? mix(groups, mixTopic, f.seed) : groups;
   }, [parts, matches, f.sort, f.seed, mixTopic, subject.papers, whole, questions]);
-  const mixedTopics = useMemo(() => (f.sort === "mix" && results ? new Set(results.map(g => mixTopic(g[0]))).size : 0), [f.sort, results, mixTopic]);
 
   /** What hiding keeps out of the list as it is now: parts, or in the whole-question view, questions with no part left showing. */
   const hiddenCount = useMemo(() => {
@@ -587,6 +586,16 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
                 ))}
               </div>
             ))}
+            {/* Topics picked: offer the mix right there, where a student revising "Topic 5" is looking (it was a
+                small link by the count, and the founder couldn't find it, 31 October 2026). */}
+            {f.topics.length > 0 && (
+              <div className="qb-mixtip">
+                <button type="button" className="lp-btn qb-mix-btn" onClick={() => { mixUp(); if (isPhone) showResults(); else toResults(); }}>
+                  <span aria-hidden="true">⤨</span> {f.sort === "mix" ? "Reshuffle" : "Mix them up"}
+                </button>
+                {f.sort !== "mix" && <p>A question from each sub-topic, in turn.</p>}
+              </div>
+            )}
           </fieldset>
         )}
 
@@ -797,15 +806,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
             <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
               <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
             </h2>
-            {results && results.length > 1 && (f.sort === "mix" ? (
-              <p className="qb-mix" role="status">
-                {mixedTopics > 1 ? <>Mixed: one from each of {mixedTopics} topics in turn</> : <>Mixed: one from each exam in turn</>}
-                <button type="button" className="qb-link" onClick={mixUp}>Reshuffle</button>
-                <button type="button" className="qb-link" onClick={() => update({ sort: "new" })}>Newest first</button>
-              </p>
-            ) : (
-              <button type="button" className="qb-link qb-mix-on" onClick={mixUp} title="A question from each topic in turn, in a random order">Mix them up</button>
-            ))}
+            {results && results.length > 1 && (
+              <button type="button" className="lp-btn qb-mix-btn" onClick={mixUp} title="A question from each topic in turn, in a random order">
+                <span aria-hidden="true">⤨</span> {f.sort === "mix" ? "Reshuffle" : "Mix them up"}
+              </button>
+            )}
           </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>

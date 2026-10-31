@@ -1,0 +1,89 @@
+{
+  "id": "9ma0-01-jun24-14",
+  "q": "14",
+  "m": 9,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "A balloon is modelled as a sphere whose radius \\(r\\) cm increases at a rate inversely proportional to \\(\\sqrt{r}\\). Write down a differential equation for this.",
+      "method": "Turn the words into an equation",
+      "steps": [
+        { "text": "The rate of increase of \\(r\\) is \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t}\\)." },
+        { "tex": "\\frac{\\mathrm{d}r}{\\mathrm{d}t} \\propto \\frac{1}{\\sqrt{r}}", "why": "Inversely proportional: one over \\(\\sqrt{r}\\).", "check": false },
+        { "text": "Replace \\(\\propto\\) with a constant of proportionality, \\(k\\)." }
+      ],
+      "answer": "\\frac{\\mathrm{d}r}{\\mathrm{d}t} = \\frac{k}{\\sqrt{r}}",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a model written from words: no number to compare"
+      }
+    },
+    {
+      "label": "b",
+      "ask": "At \\(t = 10\\) the radius is 16 cm and is increasing at 0.9 cm s⁻¹. Solve the differential equation to show that \\(r^{\\frac{3}{2}} = 5.4t + 10\\).",
+      "method": "Start by finding \\(k\\)",
+      "steps": [
+        { "text": "When \\(r = 16\\), \\(\\dfrac{\\mathrm{d}r}{\\mathrm{d}t} = 0.9\\):" },
+        { "tex": "0.9 = \\frac{k}{\\sqrt{16}}" },
+        { "tex": "\\Rightarrow 0.9 = \\frac{k}{4}" },
+        { "tex": "\\Rightarrow k = 0.9 \\times 4 = 3.6", "marks": ["B1"] },
+        { "head": "Separate the variables" },
+        { "tex": "\\frac{\\mathrm{d}r}{\\mathrm{d}t} = \\frac{3.6}{\\sqrt{r}}", "check": false },
+        { "tex": "\\Rightarrow \\int \\sqrt{r}\\,\\mathrm{d}r = \\int 3.6\\,\\mathrm{d}t", "why": "Multiply both sides by \\(\\sqrt{r}\\).", "marks": ["M1"], "check": false },
+        { "tex": "\\Rightarrow \\int r^{\\frac{1}{2}}\\,\\mathrm{d}r = \\int 3.6\\,\\mathrm{d}t", "check": false },
+        { "head": "Now integrate both sides" },
+        { "tex": "\\Rightarrow \\frac{r^{\\frac{3}{2}}}{\\frac{3}{2}} = 3.6t + c", "why": "Add 1 to the power, divide by the new power \\(\\tfrac{3}{2}\\)." },
+        { "tex": "\\Rightarrow \\frac{2}{3}r^{\\frac{3}{2}} = 3.6t + c", "marks": ["A1"] },
+        { "head": "Use \\(t = 10\\), \\(r = 16\\) to find \\(c\\)" },
+        { "tex": "\\frac{2}{3}(16)^{\\frac{3}{2}} = 3.6(10) + c" },
+        { "tex": "\\Rightarrow \\frac{2}{3}(64) = 36 + c", "why": "\\(16^{\\frac{3}{2}} = \\left(\\sqrt{16}\\right)^3 = 4^3 = 64\\)." },
+        { "tex": "\\Rightarrow \\frac{128}{3} = 36 + c" },
+        { "tex": "\\Rightarrow c = \\frac{128}{3} - \\frac{108}{3} = \\frac{20}{3}", "marks": ["dM1"] },
+        { "head": "Finally, make \\(r^{\\frac{3}{2}}\\) the subject" },
+        { "tex": "\\frac{2}{3}r^{\\frac{3}{2}} = 3.6t + \\frac{20}{3}" },
+        { "tex": "\\Rightarrow r^{\\frac{3}{2}} = \\frac{3}{2}\\left(3.6t + \\frac{20}{3}\\right)", "why": "Multiply both sides by \\(\\tfrac{3}{2}\\)." },
+        { "tex": "= \\frac{3}{2}(3.6t) + \\frac{3}{2}\\left(\\frac{20}{3}\\right)" }
+      ],
+      "answer": "r^{\\frac{3}{2}} = 5.4t + 10",
+      "answerMarks": ["A1*"],
+      "check": {
+        "vals": { "k": 3.6, "c": "20/3", "t": 10, "r": 16 },
+        "marks": ["B1", "M1", "A1", "dM1", "A1*"],
+        "answers": [{ "tex": "5.4t + 10", "scheme": "27*t/5 + 10", "derive": "Rational(3, 2)*(Rational(18, 5)*t + Rational(2, 3)*16**Rational(3, 2) - Rational(18, 5)*10)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "Hence find the radius when \\(t = 20\\), to the nearest millimetre.",
+      "method": "Substitute \\(t = 20\\)",
+      "steps": [
+        { "tex": "r^{\\frac{3}{2}} = 5.4(20) + 10 = 108 + 10 = 118" },
+        { "head": "Undo the power \\(\\tfrac{3}{2}\\)" },
+        { "tex": "\\Rightarrow r = 118^{\\frac{2}{3}}", "why": "Raise both sides to the power \\(\\tfrac{2}{3}\\).", "marks": ["M1"] },
+        { "tex": "= 24.057\\ldots", "why": "Nearest mm is 1 decimal place in cm." }
+      ],
+      "answer": "r = 24.1\\ \\text{cm}",
+      "answerMarks": ["A1"],
+      "check": {
+        "vals": { "r": "118**Rational(2, 3)" },
+        "marks": ["M1", "A1"],
+        "answers": [{ "tex": "24.1", "scheme": "24.1", "derive": "(Rational(27, 5)*20 + 10)**Rational(2, 3)", "tol": 0.05 }]
+      }
+    },
+    {
+      "label": "d",
+      "ask": "Suggest a limitation of the model.",
+      "method": "Think about a real balloon",
+      "steps": [
+        { "text": "In the model \\(r^{\\frac{3}{2}} = 5.4t + 10\\), \\(r\\) keeps growing for as long as \\(t\\) does." }
+      ],
+      "answerText": "A real balloon will burst, so the model cannot hold for large \\(t\\). (A balloon is also not a perfect sphere.)",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "a comment on the model: no number to compare"
+      }
+    }
+  ]
+}

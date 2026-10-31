@@ -1,0 +1,133 @@
+{
+  "id": "9ma0-01-jun23-15",
+  "q": "15",
+  "m": 13,
+  "parts": [
+    {
+      "label": "a",
+      "ask": "\\(\\mathrm{f}(x) = \\dfrac{7x\\mathrm{e}^x}{\\sqrt{\\mathrm{e}^{3x} - 2}}\\), \\(x > \\ln\\sqrt[3]{2}\\). Show that \\(\\mathrm{f}'(x) = \\dfrac{7\\mathrm{e}^x\\left(\\mathrm{e}^{3x}(2 - x) + Ax + B\\right)}{2(\\mathrm{e}^{3x} - 2)^{\\frac{3}{2}}}\\), where \\(A\\) and \\(B\\) are constants to be found.",
+      "method": "Differentiate the top: product rule",
+      "steps": [
+        { "tex": "u = 7x\\mathrm{e}^x", "check": false },
+        { "tex": "(pq)' = p'q + pq'", "check": false },
+        { "tex": "u' = 7 \\times \\mathrm{e}^x + 7x \\times \\mathrm{e}^x = 7\\mathrm{e}^x + 7x\\mathrm{e}^x", "marks": ["M1", "A1"] },
+        { "head": "Differentiate the bottom: chain rule" },
+        { "tex": "v = (\\mathrm{e}^{3x} - 2)^{\\frac{1}{2}}", "check": false },
+        { "tex": "v' = \\frac{1}{2}(\\mathrm{e}^{3x} - 2)^{-\\frac{1}{2}} \\times 3\\mathrm{e}^{3x} = \\frac{3}{2}\\mathrm{e}^{3x}(\\mathrm{e}^{3x} - 2)^{-\\frac{1}{2}}", "why": "Bring down the power, take one off, times the inside's derivative.", "marks": ["B1"] },
+        { "head": "Apply the quotient rule" },
+        { "tex": "\\mathrm{f}'(x) = \\frac{vu' - uv'}{v^2}", "check": false },
+        { "tex": "\\mathrm{f}'(x) = \\frac{(\\mathrm{e}^{3x} - 2)^{\\frac{1}{2}}(7x\\mathrm{e}^x + 7\\mathrm{e}^x) - 7x\\mathrm{e}^x \\times \\frac{3}{2}\\mathrm{e}^{3x}(\\mathrm{e}^{3x} - 2)^{-\\frac{1}{2}}}{\\mathrm{e}^{3x} - 2}", "why": "\\(v^2 = \\mathrm{e}^{3x} - 2\\).", "marks": ["dM1"] },
+        { "tex": "= \\frac{2(\\mathrm{e}^{3x} - 2)(7x\\mathrm{e}^x + 7\\mathrm{e}^x) - 21x\\mathrm{e}^x\\mathrm{e}^{3x}}{2(\\mathrm{e}^{3x} - 2)^{\\frac{3}{2}}}", "why": "Multiply top and bottom by \\(2(\\mathrm{e}^{3x} - 2)^{\\frac{1}{2}}\\) to clear the negative power." },
+        { "tex": "= \\frac{14\\mathrm{e}^x(x + 1)(\\mathrm{e}^{3x} - 2) - 21x\\mathrm{e}^x\\mathrm{e}^{3x}}{2(\\mathrm{e}^{3x} - 2)^{\\frac{3}{2}}}" },
+        { "head": "Now simplify the numerator" },
+        { "tex": "14\\mathrm{e}^x(x + 1)(\\mathrm{e}^{3x} - 2) - 21x\\mathrm{e}^x\\mathrm{e}^{3x} = 7\\mathrm{e}^x\\left(2(x + 1)(\\mathrm{e}^{3x} - 2) - 3x\\mathrm{e}^{3x}\\right)", "why": "Take out the common factor \\(7\\mathrm{e}^x\\)." },
+        { "tex": "= 7\\mathrm{e}^x\\left(2x\\mathrm{e}^{3x} - 4x + 2\\mathrm{e}^{3x} - 4 - 3x\\mathrm{e}^{3x}\\right)" },
+        { "tex": "= 7\\mathrm{e}^x\\left(2\\mathrm{e}^{3x} - x\\mathrm{e}^{3x} - 4x - 4\\right)", "why": "\\(2x\\mathrm{e}^{3x} - 3x\\mathrm{e}^{3x} = -x\\mathrm{e}^{3x}\\)." },
+        { "tex": "= 7\\mathrm{e}^x\\left(\\mathrm{e}^{3x}(2 - x) - 4x - 4\\right)" }
+      ],
+      "answer": "\\Rightarrow \\mathrm{f}'(x) = \\frac{7\\mathrm{e}^x\\left(\\mathrm{e}^{3x}(2 - x) - 4x - 4\\right)}{2(\\mathrm{e}^{3x} - 2)^{\\frac{3}{2}}}, \\quad A = -4,\\ B = -4",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1", "B1", "dM1", "A1"],
+        "vals": {"A": -4, "B": -4},
+        "answers": [{ "tex": "\\frac{7\\mathrm{e}^x\\left(\\mathrm{e}^{3x}(2 - x) - 4x - 4\\right)}{2(\\mathrm{e}^{3x} - 2)^{\\frac{3}{2}}}", "scheme": "7*exp(x)*(exp(3*x)*(2 - x) - 4*x - 4)/(2*(exp(3*x) - 2)**Rational(3, 2))", "derive": "diff(7*x*exp(x)/sqrt(exp(3*x) - 2), x)" }]
+      }
+    },
+    {
+      "label": "b",
+      "ask": "Hence show that the \\(x\\) coordinates of the turning points of the curve are solutions of \\(x = \\dfrac{2\\mathrm{e}^{3x} - 4}{\\mathrm{e}^{3x} + 4}\\).",
+      "method": "Turning points: set f'(x) = 0",
+      "steps": [
+        { "text": "A fraction is zero only when its numerator is zero, and \\(7\\mathrm{e}^x \\neq 0\\)." },
+        { "tex": "\\mathrm{e}^{3x}(2 - x) - 4x - 4 = 0" },
+        { "tex": "\\Rightarrow 2\\mathrm{e}^{3x} - x\\mathrm{e}^{3x} - 4x - 4 = 0" },
+        { "head": "Collect the x terms on one side" },
+        { "tex": "\\Rightarrow 2\\mathrm{e}^{3x} - 4 = x\\mathrm{e}^{3x} + 4x" },
+        { "tex": "\\Rightarrow 2\\mathrm{e}^{3x} - 4 = x(\\mathrm{e}^{3x} + 4)", "why": "Factor out \\(x\\), then divide by \\(\\mathrm{e}^{3x} + 4\\).", "marks": ["M1"] }
+      ],
+      "answer": "\\Rightarrow x = \\frac{2\\mathrm{e}^{3x} - 4}{\\mathrm{e}^{3x} + 4}",
+      "answerMarks": ["A1*"],
+      "check": {
+        "marks": ["M1", "A1*"],
+        "vals": {"x": "nsolve(2*exp(3*x) - 4 - x*(exp(3*x) + 4), x, 1.97)"},
+        "answers": [{ "tex": "\\frac{2\\mathrm{e}^{3x} - 4}{\\mathrm{e}^{3x} + 4}", "kind": "identity", "scheme": "(2*exp(3*x) - 4)/(exp(3*x) + 4)", "derive": "x + (exp(3*x)*(2 - x) - 4*x - 4)/(exp(3*x) + 4)" }]
+      }
+    },
+    {
+      "label": "c",
+      "ask": "The equation has two positive roots \\(\\alpha\\) and \\(\\beta\\), with \\(\\beta > \\alpha\\). Diagram 1 shows part of the S-shaped curve \\(y = \\dfrac{2\\mathrm{e}^{3x} - 4}{\\mathrm{e}^{3x} + 4}\\) and the line \\(y = x\\), crossing at \\(\\alpha\\) (below 1) and \\(\\beta\\) (above 1). Draw a staircase diagram to show that \\(x_{n+1} = \\dfrac{2\\mathrm{e}^{3x_n} - 4}{\\mathrm{e}^{3x_n} + 4}\\) with \\(x_1 = 1\\) can be used to approximate \\(\\beta\\).",
+      "method": "Start at x = 1",
+      "steps": [
+        { "text": "Go up from \\(x = 1\\) to the curve: that height is \\(x_2\\)." },
+        { "text": "Go across to the line \\(y = x\\), then up to the curve again: that height is \\(x_3\\)." },
+        { "text": "Repeat. The steps climb towards the crossing at \\(\\beta\\).", "why": "Between \\(\\alpha\\) and \\(\\beta\\) the curve is above the line." }
+      ],
+      "answerText": "At least two steps rising to the right, ending where the curve meets \\(y = x\\) at \\(\\beta\\): the iteration converges to \\(\\beta\\).",
+      "answerMarks": ["B1"],
+      "check": {
+        "marks": ["B1"],
+        "answers": "sketch: staircase from x = 1 converging to beta"
+      }
+    },
+    {
+      "label": "d(i)",
+      "ask": "Using the iteration formula with \\(x_1 = 1\\), find \\(x_2\\) to 3 decimal places.",
+      "method": "Substitute x = 1 into the formula",
+      "steps": [
+        { "tex": "x_{n+1} = \\frac{2\\mathrm{e}^{3x_n} - 4}{\\mathrm{e}^{3x_n} + 4}", "check": false },
+        { "tex": "x_2 = \\frac{2\\mathrm{e}^{3(1)} - 4}{\\mathrm{e}^{3(1)} + 4}", "marks": ["M1"] },
+        { "tex": "= \\frac{2\\mathrm{e}^{3} - 4}{\\mathrm{e}^{3} + 4}" },
+        { "tex": "= \\frac{36.171\\ldots}{24.085\\ldots}" },
+        { "tex": "= 1.50177\\ldots" }
+      ],
+      "answer": "x_2 = 1.502",
+      "answerMarks": ["A1"],
+      "check": {
+        "marks": ["M1", "A1"],
+        "vals": {"x_2": "(2*exp(3) - 4)/(exp(3) + 4)"},
+        "answers": [{ "tex": "x_2 = 1.502", "scheme": "1.502", "derive": "(2*exp(3) - 4)/(exp(3) + 4)", "tol": 0.0005 }]
+      }
+    },
+    {
+      "label": "d(ii)",
+      "ask": "Find \\(\\beta\\) to 3 decimal places.",
+      "method": "Keep iterating",
+      "steps": [
+        { "tex": "x_3 = \\frac{2\\mathrm{e}^{3(1.50177\\ldots)} - 4}{\\mathrm{e}^{3(1.50177\\ldots)} + 4} = 1.8730\\ldots", "why": "Use the full calculator value each time (the ANS key)." },
+        { "tex": "x_4 = 1.9570\\ldots" },
+        { "tex": "x_5 = 1.9665\\ldots" },
+        { "tex": "x_6 = 1.9674\\ldots" },
+        { "tex": "x_7 = 1.96756\\ldots" },
+        { "tex": "x_8 = 1.96756\\ldots" },
+        { "head": "Stop when the values settle" },
+        { "text": "\\(x_6\\), \\(x_7\\) and \\(x_8\\) all round to \\(1.968\\)." }
+      ],
+      "answer": "\\beta = 1.968",
+      "answerMarks": ["dB1"],
+      "check": {
+        "marks": ["dB1"],
+        "vals": {"x_3": "1.8730131028651595", "x_4": "1.9570853002461055", "x_5": "1.9665453154967745", "x_6": "1.9674712648300015", "x_7": "1.9675605236051217", "x_8": "1.9675691150746755", "\\beta": "1.96757002"},
+        "answers": [{ "tex": "\\beta = 1.968", "scheme": "1.968", "derive": "nsolve(2*exp(3*x) - 4 - x*(exp(3*x) + 4), x, 1.97)", "tol": 0.0005 }]
+      }
+    },
+    {
+      "label": "e",
+      "ask": "Using a suitable interval and a suitable function that should be stated, show that \\(\\alpha = 0.432\\) to 3 decimal places.",
+      "method": "State a function that is zero at α",
+      "steps": [
+        { "tex": "\\mathrm{h}(x) = \\frac{2\\mathrm{e}^{3x} - 4}{\\mathrm{e}^{3x} + 4} - x", "check": false },
+        { "text": "Test the bounds of 0.432 to 3 d.p.: \\(0.4315\\) and \\(0.4325\\)." },
+        { "head": "Look for a change of sign" },
+        { "tex": "\\mathrm{h}(0.4315) = \\frac{2\\mathrm{e}^{1.2945} - 4}{\\mathrm{e}^{1.2945} + 4} - 0.4315 = 0.43120\\ldots - 0.4315 = -0.000297\\ldots", "marks": ["M1"] },
+        { "tex": "\\mathrm{h}(0.4325) = \\frac{2\\mathrm{e}^{1.2975} - 4}{\\mathrm{e}^{1.2975} + 4} - 0.4325 = 0.43344\\ldots - 0.4325 = 0.000947\\ldots" },
+        { "text": "The sign changes, and h is continuous on \\([0.4315, 0.4325]\\), so \\(\\alpha\\) lies in this interval.", "why": "Say continuous: without it the graph could jump the axis." }
+      ],
+      "answerText": "So \\(\\alpha = 0.432\\) to 3 decimal places.",
+      "answerMarks": ["A1cao"],
+      "check": {
+        "marks": ["M1", "A1cao"],
+        "answers": [{ "text": "\\(\\alpha = 0.432\\)", "value": "0.432", "scheme": "0.432", "derive": "nsolve(2*exp(3*x) - 4 - x*(exp(3*x) + 4), x, 0.43)", "tol": 0.0005 }]
+      }
+    }
+  ]
+}
