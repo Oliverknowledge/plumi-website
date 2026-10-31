@@ -30,6 +30,7 @@ SUBJECTS = [
     ("gcse-physics", "GCSE", "Physics", ["aqa", "edexcel", "ocr", "eduqas", "wjec", "cie-igcse", "edexcel-igcse"]),
     ("gcse-english-language", "GCSE", "English Language", ["aqa"]),
     ("gcse-computer-science", "GCSE", "Computer Science", ["edexcel"]),
+    ("gcse-geography", "GCSE", "Geography", ["aqa"]),
 ]
 # slug -> (how the board is written in a heading, its label on its own, the qualification at A-Level, at GCSE)
 BOARDS = {
@@ -51,8 +52,9 @@ BANK_OWNED = {("a-level-biology", "aqa"), ("a-level-chemistry", "aqa"), ("a-leve
 MONTH = {"JAN": "January", "FEB": "February", "MAR": "March", "MAY": "May", "JUN": "June", "OCT": "October", "NOV": "November"}
 ROW_KINDS = ["qp", "ms", "er", "ins", "gt"]
 # Files a sitting comes with that aren't a paper, linked under "More": Pearson GCSE Computer Science's
-# Paper 2 is sat on screen, editing the code files in its zip.
-MORE = {"data": "Code files"}
+# Paper 2 is sat on screen, editing the code files in its zip; AQA GCSE Geography's Paper 3 is set on a
+# pre-release resources booklet, beside the sitting's insert (an OS map key).
+MORE = {"data": "Code files", "pm": "Resources booklet"}
 # What a board keeps from the public, said on its pages instead of linking elsewhere.
 NOTES = {
     "cie": "Cambridge publishes one recent sitting and its specimen papers openly. Earlier papers are on its School Support Hub, for schools.",
