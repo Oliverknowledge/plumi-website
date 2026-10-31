@@ -65,6 +65,8 @@ html[data-theme="dark"] .lp .lp-stamp, html[data-theme="dark"] .lp .pk-stamp {
   --lp-ink: #4a3a36; --lp-ink-soft: #6b5850; --lp-line: #5b4741; --lp-shadow: #5b4741; --lp-card-bg: #fdf9f1; --lp-paper-2: #efe5d0;
   --lp-blue: #3266a3; --lp-orange: #a8521c; --lp-gold: #f2c96b; color: #4a3a36;
 }
+/* Plumi's note on the marked page is paper too: darkened like the notes off the page, its page ink couldn't be read (31 October). */
+html[data-theme="dark"] .lp .lp-page .lp-note { background: #fff4dd; }
 
 /* ── The questions in dark (30 October). A question is a black-on-white scan, so it is inverted: white ink on the sheet's own dark,
    `screen` letting the scan's black fall away into the sheet. hue-rotate keeps a diagram's red red and its blue blue. The marked

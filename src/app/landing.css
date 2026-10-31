@@ -93,7 +93,7 @@
 .lp-page { background: #fffdf8; border: 2px solid #d6c9b4; border-radius: 6px; box-shadow: 6px 8px 0 rgba(91, 71, 65, .18); padding: 26px 30px 30px 64px; position: relative; font-family: "Times New Roman", Times, serif; color: #1d1a19; background-image: linear-gradient(90deg, transparent 44px, #f1b8ab 44px, #f1b8ab 46px, transparent 46px); }
 .lp-q { font-size: 17px; line-height: 1.4; padding-right: 64px; }
 .lp-part { display: grid; grid-template-columns: 34px 1fr 34px; margin-top: 16px; font-size: 17px; }
-.lp-part span:last-child { color: #8a8079; text-align: right; }
+.lp-part span:last-child { color: #736a63; text-align: right; }  /* 5.2:1 on the page (was #8a8079, 3.8:1) */
 .lp-hwl { font-family: var(--f-hand); color: #1f3d8a; font-size: 30px; font-weight: 600; line-height: 1.3; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .lp-ok, .lp-no { font-family: var(--f-hand); color: #d33a2f; font-weight: 700; font-size: 27px; display: inline-flex; align-items: center; gap: 4px; }
 .lp-ok > span { display: inline-flex; align-items: center; gap: 2px; margin-right: 4px; }
