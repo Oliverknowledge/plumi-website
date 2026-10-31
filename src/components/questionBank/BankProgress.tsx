@@ -185,7 +185,7 @@ export function BankProgress({ subject, onTopic, onTopics, board, lockedTopic, c
   };
 
   // The revision board stands in for the marking summary, on a desk's tab and in a phone's folded row.
-  const boardOn = look !== "now" && !!board && (bare === "overview" || (!bare && compact));
+  const boardOn = !!board &&(bare === "overview" || (!bare && compact));
   if (empty && !boardOn) {
     const nudge = (
       <>
@@ -297,7 +297,7 @@ export function BankProgress({ subject, onTopic, onTopics, board, lockedTopic, c
   );
 
   const topicBoard = boardOn && (
-    <TopicBoard look={look as Exclude<typeof look, "now">} subjects={[board!]} practise={practiseWith(onTopics && { slug: subject.slug, go: onTopics })} lockedTopic={lockedTopic} />
+    <TopicBoard look={look}subjects={[board!]} practise={practiseWith(onTopics && { slug: subject.slug, go: onTopics })} lockedTopic={lockedTopic} />
   );
   if (bare === "overview" && boardOn) return <div className="qb-prog is-bare">{again}{topicBoard}{foot}</div>;
   if (boardOn) {
