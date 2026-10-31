@@ -587,6 +587,16 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
                 ))}
               </div>
             ))}
+            {/* Topics picked: offer the mix right there, where a student revising "Topic 5" is looking (it was a
+                small link by the count, and the founder couldn't find it, 31 October 2026). */}
+            {f.topics.length > 0 && (
+              <div className="qb-mixtip">
+                <button type="button" className="lp-btn qb-mix-btn" onClick={() => { mixUp(); if (isPhone) showResults(); else toResults(); }}>
+                  <span aria-hidden="true">⤨</span> {f.sort === "mix" ? "Reshuffle" : "Mix them up"}
+                </button>
+                <p>{f.sort === "mix" ? "Mixed: one question from each sub-topic in turn." : "Revise all of it without doing every question: one from each sub-topic in turn, so the first few cover the lot."}</p>
+              </div>
+            )}
           </fieldset>
         )}
 
@@ -798,13 +808,13 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
               <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
             </h2>
             {results && results.length > 1 && (f.sort === "mix" ? (
-              <p className="qb-mix" role="status">
-                {mixedTopics > 1 ? <>Mixed: one from each of {mixedTopics} topics in turn</> : <>Mixed: one from each exam in turn</>}
-                <button type="button" className="qb-link" onClick={mixUp}>Reshuffle</button>
+              <div className="qb-mix">
+                <span role="status">{mixedTopics > 1 ? <>Mixed: one from each of {mixedTopics} topics in turn</> : <>Mixed: one from each exam in turn</>}</span>
+                <button type="button" className="lp-btn qb-mix-btn" onClick={mixUp}><span aria-hidden="true">⤨</span> Reshuffle</button>
                 <button type="button" className="qb-link" onClick={() => update({ sort: "new" })}>Newest first</button>
-              </p>
+              </div>
             ) : (
-              <button type="button" className="qb-link qb-mix-on" onClick={mixUp} title="A question from each topic in turn, in a random order">Mix them up</button>
+              <button type="button" className="lp-btn qb-mix-btn" onClick={mixUp} title="A question from each topic in turn, in a random order"><span aria-hidden="true">⤨</span> Mix them up</button>
             ))}
           </div>
           <form className="qb-range" onSubmit={downloadRange}>
