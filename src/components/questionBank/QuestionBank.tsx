@@ -19,7 +19,7 @@ const subscribeNarrow = (cb: () => void) => {
   return () => mq.removeEventListener("change", cb);
 };
 
-type Sort = "new" | "old" | "spec" | "marks" | "short";
+type Sort = "new" | "old" | "spec" | "marks" | "short" | "mix";
 type Calc = "" | "only" | "none";
 type View = "parts" | "whole";
 type Yr = "" | "12" | "13";
@@ -27,8 +27,9 @@ type Yr = "" | "12" | "13";
  * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions;
  * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all; `once` (GCSE) shows a question
  * printed on both tiers' papers once, as its Higher copy; `marks` the question types picked (markBands' ids); `again`
- * only what's come back to have another go at; `part` one question, from Redo in Your history. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; part: string; view: View; sort: Sort }
+ * only what's come back to have another go at; `part` one question, from Redo in Your history; `seed` the
+ * "mix" sort's shuffle, so a reload or a shared link keeps the same mix. */
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; part: string; view: View; sort: Sort; seed: string }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -58,7 +59,8 @@ function parse(search: string): Filters {
     once: u.get("tiers") === "once",
     marks: list("marks"), again: u.get("again") === "1", part: u.get("question") ?? "",
     view: u.get("view") === "whole" ? "whole" : "parts",
-    sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" ? sort : "new",
+    sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" || sort === "mix" ? sort : "new",
+    seed: u.get("seed") ?? "",
   };
 }
 function write(f: Filters) {
@@ -77,6 +79,7 @@ function write(f: Filters) {
   if (f.part) u.set("question", f.part);
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
+  if (f.sort === "mix" && f.seed) u.set("seed", f.seed);
   const qs = u.toString();
   window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
   urlListeners.forEach(l => l());
@@ -90,6 +93,54 @@ const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ?
 const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
 const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
+
+/** A seeded random number generator (mulberry32 over a string hash): the same seed gives the same mix. */
+function seeded(seed: string) {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return () => {
+    h = (h + 0x6d2b79f5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffled = <T,>(xs: T[], rnd: () => number) => {
+  const a = [...xs];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+};
+const newSeed = () => Math.random().toString(36).slice(2, 7);
+/**
+ * "Mix them up": rounds of one question from each topic, the topics in a new order each round, so the first
+ * few questions cover every spec point picked and the rest keep the spread ("I'm revising topic 5 and want all
+ * of it, but not all the questions: bits from each spec point", a student, 30 October 2026).
+ */
+function mix(groups: BankPart[][], topicOf: (p: BankPart) => string, seed: string) {
+  const rnd = seeded(seed || "plumi");
+  const pilesBy = (keyOf: (p: BankPart) => string) => {
+    const m = new Map<string, BankPart[][]>();
+    for (const g of groups) {
+      const k = keyOf(g[0]);
+      const pile = m.get(k);
+      if (pile) pile.push(g);
+      else m.set(k, [g]);
+    }
+    return m;
+  };
+  // A topic with no smaller topics in it (Edexcel Chemistry's Topic 5 is all "5.0") spreads over the exams instead.
+  let byTopic = pilesBy(topicOf);
+  if (byTopic.size === 1) byTopic = pilesBy(p => p.s);
+  const piles = [...byTopic.values()].map(pile => shuffled(pile, rnd));
+  const out: BankPart[][] = [];
+  for (let round = 0; out.length < groups.length; round++) {
+    for (const pile of shuffled(piles, rnd)) if (pile[round]) out.push(pile[round]);
+  }
+  return out;
+}
 
 type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "marks" | "done" | "q";
 
@@ -189,6 +240,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const forOption = (option?: string) => !opt || !option || option === opt;
 
   const bands = useMemo(() => (parts ? markBands(subject, parts) : []), [subject, parts]);
+  // The topic a question counts under in a mix: its first topic among those picked, so Topic 5 spreads over 5.1, 5.2...
+  const mixTopic = useCallback((p: BankPart) => p.t.find(t => !f.topics.length || f.topics.some(sel => t === sel || sectionOf.get(t) === sel)) ?? p.t[0] ?? "", [f.topics, sectionOf]);
   /**
    * Whether a part is in the list as far as history goes. Redo's one question always is;
    * "Have another go" is only what's due again; otherwise, with hiding on, what's new or
@@ -257,7 +310,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           : f.sort === "marks" ? (a, b) => (b.m ?? 0) - (a.m ?? 0) || byNew(a, b)
             : f.sort === "short" ? (a, b) => (a.m ?? 99) - (b.m ?? 99) || byNew(a, b)
               : byNew);
-    if (!whole || !questions) return sorted.map(p => [p]);
+    if (!whole || !questions) return f.sort === "mix" ? mix(sorted.map(p => [p]), mixTopic, f.seed) : sorted.map(p => [p]);
     // Whole questions: each question any of whose parts matches, all its parts, where its first match falls.
     const seen = new Set<string>();
     const groups: BankPart[][] = [];
@@ -270,8 +323,9 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     const total = (g: BankPart[]) => g.reduce((n, p) => n + (p.m ?? 0), 0);
     if (f.sort === "marks") groups.sort((a, b) => total(b) - total(a));
     if (f.sort === "short") groups.sort((a, b) => total(a) - total(b));
-    return groups;
-  }, [parts, matches, f.sort, subject.papers, whole, questions]);
+    return f.sort === "mix" ? mix(groups, mixTopic, f.seed) : groups;
+  }, [parts, matches, f.sort, f.seed, mixTopic, subject.papers, whole, questions]);
+  const mixedTopics = useMemo(() => (f.sort === "mix" && results ? new Set(results.map(g => mixTopic(g[0]))).size : 0), [f.sort, results, mixTopic]);
 
   /** What hiding keeps out of the list as it is now: parts, or in the whole-question view, questions with no part left showing. */
   const hiddenCount = useMemo(() => {
@@ -409,7 +463,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     ...(f.part ? [{ label: partLabel(f.part), clear: () => update({ part: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
+  function mixUp() {
+    update({ sort: "mix", seed: newSeed() });
+    track("bank_mixed", { subject: subject.slug, topics: f.topics.length, results: results?.length ?? 0, again: f.sort === "mix" ? 1 : 0 });
+  }
 
   // Topic groups, as GradeHunt and the specification both arrange them: each section split by year.
   const years = ([0, 1, 2, 3] as const).map(y => ({
@@ -603,12 +661,13 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           </div>
           <label className="qb-field">
             <span className="qb-label">Sort</span>
-            <select value={f.sort} onChange={e => update({ sort: e.target.value as Sort })}>
+            <select value={f.sort} onChange={e => { const sort = e.target.value as Sort; if (sort === "mix") mixUp(); else update({ sort }); }}>
               <option value="new">Newest first</option>
               <option value="old">Oldest first</option>
               <option value="spec">Spec order</option>
               <option value="marks">Most marks</option>
               <option value="short">Fewest marks</option>
+              <option value="mix">Mixed topics</option>
             </select>
           </label>
           <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
@@ -734,9 +793,20 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
       <section className="qb-results" aria-labelledby="qb-results-title">
         <div className="qb-bar">
-          <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
-            <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
-          </h2>
+          <div className="qb-bar-lead">
+            <h2 id="qb-results-title" ref={resultsRef} aria-live="polite" tabIndex={-1}>
+              <strong>{total.toLocaleString("en-GB")}</strong> {total === 1 ? "question" : "questions"}
+            </h2>
+            {results && results.length > 1 && (f.sort === "mix" ? (
+              <p className="qb-mix" role="status">
+                {mixedTopics > 1 ? <>Mixed: one from each of {mixedTopics} topics in turn</> : <>Mixed: one from each exam in turn</>}
+                <button type="button" className="qb-link" onClick={mixUp}>Reshuffle</button>
+                <button type="button" className="qb-link" onClick={() => update({ sort: "new" })}>Newest first</button>
+              </p>
+            ) : (
+              <button type="button" className="qb-link qb-mix-on" onClick={mixUp} title="A question from each topic in turn, in a random order">Mix them up</button>
+            ))}
+          </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
             <div>
