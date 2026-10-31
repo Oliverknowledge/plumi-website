@@ -6,9 +6,10 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = 3 + \\sqrt{x - 2}\\), \\(x \\in \\mathbb{R}\\), \\(x > 2\\). State the range of f.",
-      "method": "Smallest value of the square root",
+      "method": "Look at the square root first",
       "steps": [
-        { "text": "For \\(x > 2\\), \\(\\sqrt{x - 2} > 0\\), so \\(3 + \\sqrt{x - 2} > 3\\).", "why": "Strict: \\(x = 2\\) is not in the domain." }
+        { "text": "For \\(x > 2\\), \\(x - 2 > 0\\), so \\(\\sqrt{x - 2} > 0\\).", "why": "Strict: \\(x = 2\\) is not in the domain." },
+        { "text": "Adding 3 to both sides: \\(3 + \\sqrt{x - 2} > 3\\)." }
       ],
       "answer": "\\mathrm{f}(x) > 3",
       "answerMarks": ["B1"],
@@ -20,12 +21,14 @@
     {
       "label": "b",
       "ask": "Find \\(\\mathrm{f}^{-1}\\).",
-      "method": "Make \\(x\\) the subject",
+      "method": "Make x the subject",
       "steps": [
         { "tex": "y = 3 + \\sqrt{x - 2}" },
         { "tex": "\\Rightarrow y - 3 = \\sqrt{x - 2}", "why": "Undo in reverse order: subtract 3, then square." },
         { "tex": "\\Rightarrow (y - 3)^2 = x - 2" },
-        { "tex": "\\Rightarrow x = (y - 3)^2 + 2", "marks": ["M1"] }
+        { "tex": "\\Rightarrow x = (y - 3)^2 + 2", "marks": ["M1"] },
+        { "head": "Swap the letters, then the domain" },
+        { "text": "Write the inverse in terms of \\(x\\). Its domain is the range of f, from part (a)." }
       ],
       "answer": "\\mathrm{f}^{-1}(x) = (x - 3)^2 + 2, \\quad x > 3",
       "answerMarks": ["A1", "B1ft"],
@@ -41,9 +44,10 @@
     {
       "label": "c",
       "ask": "\\(\\mathrm{g}(x) = \\dfrac{15}{x - 3}\\), \\(x \\in \\mathbb{R}\\), \\(x \\neq 3\\). Find \\(\\mathrm{gf}(6)\\).",
-      "method": "Apply f first, then g",
+      "method": "Apply f first",
       "steps": [
-        { "tex": "\\mathrm{f}(6) = 3 + \\sqrt{6 - 2} = 5", "why": "\\(\\mathrm{gf}\\) means do f first." },
+        { "tex": "\\mathrm{f}(6) = 3 + \\sqrt{6 - 2} = 3 + \\sqrt{4} = 3 + 2 = 5", "why": "\\(\\mathrm{gf}\\) means do f first, then g." },
+        { "head": "Now apply g to the result" },
         { "tex": "\\mathrm{g}(5) = \\frac{15}{5 - 3}", "marks": ["M1"] }
       ],
       "answer": "= \\frac{15}{2}",
@@ -56,15 +60,20 @@
     {
       "label": "d",
       "ask": "Find the exact value of the constant \\(a\\) for which \\(\\mathrm{f}(a^2 + 2) = \\mathrm{g}(a)\\).",
-      "method": "Form an equation in \\(a\\)",
+      "method": "Form an equation in a",
       "steps": [
         { "tex": "3 + \\sqrt{a^2 + 2 - 2} = \\frac{15}{a - 3}" },
-        { "tex": "\\Rightarrow 3 + a = \\frac{15}{a - 3}", "why": "\\(\\sqrt{a^2} = |a|\\). The left side is over 3, so \\(\\dfrac{15}{a - 3} > 0\\): \\(a > 3\\) and \\(|a| = a\\)." },
-        { "tex": "\\Rightarrow (a + 3)(a - 3) = 15" },
+        { "tex": "\\Rightarrow 3 + \\sqrt{a^2} = \\frac{15}{a - 3}" },
+        { "tex": "\\Rightarrow 3 + a = \\frac{15}{a - 3}", "why": "Left side is over 3, so \\(a - 3 > 0\\); then \\(\\sqrt{a^2} = a\\)." },
+        { "head": "Clear the fraction and solve" },
+        { "tex": "\\Rightarrow (a + 3)(a - 3) = 15", "why": "Multiply both sides by \\(a - 3\\)." },
+        { "tex": "\\Rightarrow a^2 - 3a + 3a - 9 = 15" },
         { "tex": "\\Rightarrow a^2 - 9 = 15", "marks": ["M1"] },
-        { "tex": "\\Rightarrow a^2 = 24", "why": "Take the positive root: \\(a > 3\\)." }
+        { "tex": "\\Rightarrow a^2 = 24" },
+        { "tex": "\\Rightarrow a = \\sqrt{24}", "why": "Take the positive root: \\(a > 3\\)." },
+        { "tex": "= \\sqrt{4}\\sqrt{6}" }
       ],
-      "answer": "\\Rightarrow a = \\sqrt{24} = 2\\sqrt{6}",
+      "answer": "= 2\\sqrt{6}",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["M1", "A1"],

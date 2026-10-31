@@ -6,11 +6,17 @@
     {
       "label": "a",
       "ask": "The heights of adult men from region \\(A\\) are normally distributed with mean 175.4 cm and standard deviation 6.8 cm. Find the proportion of these men that are taller than 180 cm.",
-      "method": "Normal distribution",
+      "method": "State the distribution",
       "steps": [
-        { "tex": "H \\sim \\mathrm{N}(175.4,\\ 6.8^2)", "why": "\\(H\\): height in cm of a man from region \\(A\\).", "check": false },
-        { "tex": "z = \\frac{180 - 175.4}{6.8} = 0.6764\\ldots", "why": "Or normal cdf directly: lower 180, upper a huge number.", "check": { "vals": { "z": "23/34" } } },
-        { "tex": "\\mathrm{P}(H > 180) = \\mathrm{P}(Z > 0.6764\\ldots)" },
+        { "text": "Let \\(H\\) be the height, in cm, of a man from region \\(A\\)." },
+        { "tex": "H \\sim \\mathrm{N}(175.4,\\ 6.8^2)", "check": false },
+        { "head": "Write the probability wanted" },
+        { "tex": "\\text{proportion taller than 180 cm} = \\mathrm{P}(H > 180)", "check": false },
+        { "head": "Standardise" },
+        { "tex": "z = \\frac{x - \\mu}{\\sigma}", "check": false },
+        { "tex": "z = \\frac{180 - 175.4}{6.8} = \\frac{4.6}{6.8} = 0.67647\\ldots", "check": { "vals": { "z": "23/34" } } },
+        { "tex": "\\mathrm{P}(H > 180) = \\mathrm{P}(Z > 0.67647\\ldots)", "why": "Or normal cdf directly: lower 180, upper a huge number." },
+        { "tex": "= 1 - 0.75062\\ldots" },
         { "tex": "= 0.24937\\ldots" }
       ],
       "answer": "\\text{proportion} = 0.249",
@@ -23,18 +29,31 @@
     {
       "label": "b",
       "ask": "A student claims that the mean height of adult men from region \\(B\\) is different from that of region \\(A\\). A random sample of 52 men from region \\(B\\) has mean height 177.2 cm. Assume the standard deviation is 6.8 cm in both regions. Use a suitable test, at the 5% level of significance, to assess the student's claim. State your hypotheses clearly.",
-      "method": "Two-tailed test for a normal mean",
+      "method": "Start with the hypotheses",
       "steps": [
-        { "tex": "\\mathrm{H}_0: \\mu = 175.4 \\qquad \\mathrm{H}_1: \\mu \\neq 175.4", "why": "\"Different\" means two-tailed: \\(\\neq\\).", "marks": ["B1"], "check": false },
-        { "tex": "\\bar{S} \\sim \\mathrm{N}\\left(175.4,\\ \\frac{6.8^2}{52}\\right)", "why": "\\(\\bar{S}\\): sample mean, assuming \\(\\mathrm{H}_0\\). Variance \\(\\dfrac{\\sigma^2}{n}\\).", "marks": ["M1"], "check": false },
-        { "tex": "\\mathrm{P}(\\bar{S} > 177.2) = 0.02814\\ldots", "marks": ["A1"] },
-        { "text": "Two-tailed, so compare with half of 5%: 0.025.", "why": "Comparing with \\(0.05\\) here is the classic slip." }
+        { "tex": "\\mathrm{H}_0: \\mu = 175.4", "check": false },
+        { "tex": "\\mathrm{H}_1: \\mu \\neq 175.4", "why": "\"Different\" means two-tailed: \\(\\neq\\).", "marks": ["B1"], "check": false },
+        { "head": "The sample mean, assuming H0 is true" },
+        { "text": "Let \\(\\bar{S}\\) be the mean height of a sample of 52 men from region \\(B\\)." },
+        { "tex": "\\bar{S} \\sim \\mathrm{N}\\left(175.4,\\ \\frac{6.8^2}{52}\\right)", "why": "The sample mean has variance \\(\\dfrac{\\sigma^2}{n}\\).", "marks": ["M1"], "check": false },
+        { "tex": "\\frac{6.8^2}{52} = \\frac{46.24}{52} = 0.88923\\ldots" },
+        { "tex": "\\sqrt{0.88923\\ldots} = 0.94299\\ldots", "why": "This is the standard deviation of \\(\\bar{S}\\)." },
+        { "head": "Probability of a mean this high" },
+        { "tex": "z = \\frac{177.2 - 175.4}{0.94299\\ldots} = \\frac{1.8}{0.94299\\ldots} = 1.9088\\ldots", "why": "177.2 is above 175.4, so use the upper tail.", "check": { "vals": { "z": "1.8/sqrt(6.8**2/52)" } } },
+        { "tex": "\\mathrm{P}(\\bar{S} > 177.2) = \\mathrm{P}(Z > 1.9088\\ldots)" },
+        { "tex": "= 1 - 0.97185\\ldots" },
+        { "tex": "= 0.028142\\ldots", "marks": ["A1"] },
+        { "head": "Compare with the significance level" },
+        { "text": "Two-tailed at 5%: there is 2.5% in each tail.", "why": "Comparing with \\(0.05\\) here is the classic slip." },
+        { "tex": "0.0281 > 0.025", "check": false },
+        { "text": "The result is not significant, so do not reject \\(\\mathrm{H}_0\\)." }
       ],
-      "answerText": "\\(0.0281 > 0.025\\), so do not reject \\(\\mathrm{H}_0\\). There is insufficient evidence to support the student's claim that the mean height of men from region \\(B\\) is different from region \\(A\\).",
+      "answerText": "There is insufficient evidence at the 5% level to support the student's claim that the mean height of men from region \\(B\\) is different from region \\(A\\).",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["B1", "M1", "A1", "A1"],
-        "answers": [{ "text": "0.0281", "value": "0.0281", "scheme": "0.02814", "tol": 0.00005, "derive": "1 - (1 + erf((Rational(1772, 10) - Rational(1754, 10))/(Rational(68, 10)/sqrt(52)*sqrt(2))))/2" }]
+        "answers": "a conclusion in context to a hypothesis test: the probability is checked by assert",
+        "assert": "Abs(N(1 - (1 + erf((Rational(1772, 10) - Rational(1754, 10))/(Rational(68, 10)/sqrt(52)*sqrt(2))))/2) - Rational(28142, 1000000)) < Rational(1, 1000000) and N(1 - (1 + erf((Rational(1772, 10) - Rational(1754, 10))/(Rational(68, 10)/sqrt(52)*sqrt(2))))/2) > Rational(25, 1000)"
       }
     },
     {
@@ -42,7 +61,9 @@
       "ask": "Find the \\(p\\)-value for the test in part (b).",
       "method": "Double the tail: the test is two-tailed",
       "steps": [
-        { "tex": "2 \\times 0.02814\\ldots = 0.05628\\ldots", "why": "As extreme in either direction: both tails count." }
+        { "text": "The \\(p\\)-value counts results as extreme as 177.2 in either direction, so both tails count." },
+        { "tex": "p\\text{-value} = 2 \\times 0.028142\\ldots" },
+        { "tex": "= 0.056285\\ldots" }
       ],
       "answer": "p\\text{-value} = 0.0563",
       "answerMarks": ["B1ft"],

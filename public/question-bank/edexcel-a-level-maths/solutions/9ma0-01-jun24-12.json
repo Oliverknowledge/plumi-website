@@ -6,12 +6,18 @@
     {
       "label": "a",
       "ask": "Express \\(140\\cos\\theta - 480\\sin\\theta\\) as \\(K\\cos(\\theta + \\alpha)\\), where \\(K > 0\\) and \\(0 < \\alpha < 90^\\circ\\). Give \\(\\alpha\\) to 2 decimal places.",
-      "method": "Expand, then compare coefficients",
+      "method": "Expand \\(K\\cos(\\theta + \\alpha)\\)",
       "steps": [
-        { "tex": "140\\cos\\theta - 480\\sin\\theta = K\\cos\\theta\\cos\\alpha - K\\sin\\theta\\sin\\alpha", "why": "Formula book: \\(\\cos(A + B) = \\cos A\\cos B - \\sin A\\sin B\\).", "check": false },
-        { "tex": "\\Rightarrow K\\cos\\alpha = 140, \\quad K\\sin\\alpha = 480" },
-        { "tex": "\\Rightarrow K = \\sqrt{140^2 + 480^2} = \\sqrt{250\\,000} = 500", "why": "Square and add: \\(\\cos^2\\alpha + \\sin^2\\alpha = 1\\).", "marks": ["B1"] },
-        { "tex": "\\tan\\alpha = \\frac{480}{140} = \\frac{24}{7}", "why": "\\(\\sin\\) over \\(\\cos\\), so 480 goes on top.", "marks": ["M1"] },
+        { "tex": "K\\cos(\\theta + \\alpha) = K\\cos\\theta\\cos\\alpha - K\\sin\\theta\\sin\\alpha", "why": "Formula book: \\(\\cos(A + B) = \\cos A\\cos B - \\sin A\\sin B\\).", "check": false },
+        { "tex": "\\Rightarrow 140\\cos\\theta - 480\\sin\\theta = K\\cos\\theta\\cos\\alpha - K\\sin\\theta\\sin\\alpha", "check": false },
+        { "head": "Compare coefficients" },
+        { "tex": "K\\cos\\alpha = 140, \\quad K\\sin\\alpha = 480", "why": "The minus signs already match, so 480 is positive." },
+        { "head": "Square and add to find \\(K\\)" },
+        { "tex": "K^2\\cos^2\\alpha + K^2\\sin^2\\alpha = 140^2 + 480^2", "why": "\\(\\cos^2\\alpha + \\sin^2\\alpha = 1\\), so the left side is \\(K^2\\)." },
+        { "tex": "\\Rightarrow K^2 = 19\\,600 + 230\\,400 = 250\\,000" },
+        { "tex": "\\Rightarrow K = \\sqrt{250\\,000} = 500", "marks": ["B1"] },
+        { "head": "Divide to find \\(\\alpha\\)" },
+        { "tex": "\\tan\\alpha = \\frac{K\\sin\\alpha}{K\\cos\\alpha} = \\frac{480}{140} = \\frac{24}{7}", "why": "\\(\\sin\\) over \\(\\cos\\), so 480 goes on top.", "marks": ["M1"] },
         { "tex": "\\Rightarrow \\alpha = \\tan^{-1}\\left(\\frac{24}{7}\\right) = 73.739\\ldots^\\circ" }
       ],
       "answer": "140\\cos\\theta - 480\\sin\\theta = 500\\cos(\\theta + 73.74^\\circ)",
@@ -29,15 +35,20 @@
     {
       "label": "b(i)",
       "ask": "Rabbits: \\(R = A + 140\\cos(30t)^\\circ - 480\\sin(30t)^\\circ\\), \\(t\\) months after the start of the year. The maximum is 1500. Find a complete equation for the model.",
-      "method": "Use part (a)",
+      "method": "Use part (a) with \\(\\theta = 30t\\)",
       "steps": [
-        { "tex": "R = A + 140\\cos(30t)^\\circ - 480\\sin(30t)^\\circ = A + 500\\cos(30t + 73.74)^\\circ", "why": "Part (a) with \\(\\theta = 30t\\).", "check": false },
-        { "tex": "\\Rightarrow R_{\\max} = A + 500 = 1500 \\Rightarrow A = 1000", "why": "Greatest when the cosine is 1.", "check": { "vals": { "A": 1000 } } }
+        { "tex": "R = A + 140\\cos(30t)^\\circ - 480\\sin(30t)^\\circ", "check": false },
+        { "tex": "\\Rightarrow R = A + 500\\cos(30t + 73.74)^\\circ", "check": false },
+        { "head": "Now use the maximum" },
+        { "text": "The greatest value of the cosine is 1, so \\(R_{\\max} = A + 500\\)." },
+        { "tex": "A + 500 = 1500" },
+        { "tex": "\\Rightarrow A = 1500 - 500 = 1000" }
       ],
       "answer": "R = 1000 + 500\\cos(30t + 73.74)^\\circ",
       "answerMarks": ["B1ft"],
       "check": {
         "deg": true,
+        "vals": { "A": 1000 },
         "marks": ["B1ft"],
         "answers": [{ "tex": "1000 + 500\\cos(30t + 73.74)^\\circ", "scheme": "1000 + 140*cos(rad(30*t)) - 480*sin(rad(30*t))", "tol": 0.1 }]
       }
@@ -45,9 +56,10 @@
     {
       "label": "b(ii)",
       "ask": "Hence write down the minimum number of rabbits.",
-      "method": "Cosine at its least",
+      "method": "The cosine at its least",
       "steps": [
-        { "tex": "R_{\\min} = 1000 - 500", "why": "Least when the cosine is \\(-1\\).", "check": false }
+        { "text": "The least value of \\(\\cos(30t + 73.74)^\\circ\\) is \\(-1\\)." },
+        { "tex": "R_{\\min} = 1000 + 500(-1) = 1000 - 500" }
       ],
       "answerText": "The minimum is \\(500\\) rabbits.",
       "answerMarks": ["B1ft"],
@@ -59,11 +71,15 @@
     {
       "label": "c",
       "ask": "The actual number of rabbits is least in the middle of April. Comment on the model.",
-      "method": "Substitute mid-April",
+      "method": "Find \\(t\\) for the middle of April",
       "steps": [
-        { "text": "\\(t = 0\\) is the start of January, so mid-April is \\(t = 3.5\\).", "why": "Not \\(t = 4\\): that's the start of May." },
+        { "text": "\\(t = 0\\) is the start of January, so the start of April is \\(t = 3\\) and mid-April is \\(t = 3.5\\).", "why": "Not \\(t = 4\\): that's the start of May." },
+        { "head": "Substitute into the model" },
         { "tex": "R = 1000 + 500\\cos\\left(30(3.5) + 73.74\\right)^\\circ", "marks": ["M1"] },
-        { "tex": "= 1000 + 500\\cos(178.74^\\circ) = 500.1\\ldots" }
+        { "tex": "= 1000 + 500\\cos(105 + 73.74)^\\circ" },
+        { "tex": "= 1000 + 500\\cos(178.74^\\circ)" },
+        { "tex": "= 1000 + 500(-0.99975\\ldots)" },
+        { "tex": "= 500.1\\ldots" }
       ],
       "answerText": "At \\(t = 3.5\\) the model gives about \\(500\\), its minimum, so the model is reliable.",
       "answerMarks": ["A1"],
@@ -76,13 +92,18 @@
     {
       "label": "d",
       "ask": "Foxes: \\(F = 100 + 70\\sin(30t + 70)^\\circ\\), least at time \\(T\\) months. Find the number of rabbits at time \\(T\\).",
-      "method": "Find \\(T\\), then substitute it into \\(R\\)",
+      "method": "Find \\(T\\) first",
       "steps": [
         { "tex": "F = 100 + 70\\sin(30t + 70)^\\circ \\text{ is least when } \\sin(30t + 70)^\\circ = -1", "check": false },
         { "tex": "\\Rightarrow 30t + 70 = 270", "why": "\\(\\sin = -1\\) at \\(270^\\circ\\), not \\(90^\\circ\\) (the maximum).", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 30t = 200" },
         { "tex": "\\Rightarrow T = \\frac{200}{30} = \\frac{20}{3}", "marks": ["A1"] },
+        { "head": "Now substitute \\(T\\) into \\(R\\)" },
         { "tex": "R = 1000 + 500\\cos\\left(30 \\times \\frac{20}{3} + 73.74\\right)^\\circ", "marks": ["dM1"] },
-        { "tex": "= 1000 + 500\\cos(273.74^\\circ) = 1032.6\\ldots", "why": "Rabbits are counted: give a whole number." }
+        { "tex": "= 1000 + 500\\cos(200 + 73.74)^\\circ" },
+        { "tex": "= 1000 + 500\\cos(273.74^\\circ)" },
+        { "tex": "= 1000 + 500(0.06522\\ldots)" },
+        { "tex": "= 1032.6\\ldots", "why": "Rabbits are counted: give a whole number." }
       ],
       "answerText": "There are \\(1032\\) rabbits.",
       "answerMarks": ["A1"],

@@ -6,11 +6,12 @@
     {
       "label": "a",
       "ask": "A Venn diagram shows events \\(A\\), \\(B\\) and \\(C\\). \\(A\\) only is \\(0.13\\), \\(A \\cap B\\) is \\(0.25\\), \\(B\\) only is \\(0.05\\), \\(B \\cap C\\) is \\(0.3\\), \\(C\\) only is \\(p\\) and outside all three is \\(q\\). \\(A\\) and \\(C\\) do not overlap. Find \\(\\mathrm{P}(A)\\).",
-      "method": "Add the regions in circle \\(A\\)",
+      "method": "Add up the regions inside circle A",
       "steps": [
-        { "tex": "\\mathrm{P}(A) = 0.13 + 0.25", "why": "Count the overlap with \\(B\\) too: it is inside \\(A\\)." }
+        { "text": "Circle \\(A\\) is made of two regions: \\(A\\) only, and the overlap \\(A \\cap B\\).", "why": "The overlap with \\(B\\) is inside \\(A\\) too: count it." },
+        { "tex": "\\mathrm{P}(A) = 0.13 + 0.25" }
       ],
-      "answer": "\\mathrm{P}(A) = 0.38",
+      "answer": "= 0.38",
       "answerMarks": ["B1"],
       "check": {
         "marks": ["B1"],
@@ -20,14 +21,22 @@
     {
       "label": "b",
       "ask": "The events \\(B\\) and \\(C\\) are independent. Find the value of \\(p\\) and the value of \\(q\\).",
-      "method": "Independence, then the total of 1",
+      "method": "Use the independence of B and C",
       "steps": [
-        { "tex": "0.3 = (0.25 + 0.05 + 0.3)(0.3 + p)", "why": "Independent: \\(\\mathrm{P}(B \\cap C) = \\mathrm{P}(B) \\times \\mathrm{P}(C)\\).", "marks": ["M1"] },
-        { "tex": "\\Rightarrow 0.3 = 0.6(0.3 + p)" },
-        { "tex": "\\Rightarrow 0.3 + p = 0.5" },
-        { "tex": "\\Rightarrow p = 0.2", "marks": ["A1"] },
-        { "tex": "q = 1 - (0.13 + 0.25 + 0.05 + 0.3 + 0.2)", "why": "All the probabilities in the diagram add up to 1." },
-        { "tex": "= 1 - 0.93" }
+        { "tex": "\\mathrm{P}(B \\cap C) = \\mathrm{P}(B) \\times \\mathrm{P}(C)", "why": "This is what independent means.", "check": false },
+        { "head": "Read each probability off the diagram" },
+        { "tex": "\\mathrm{P}(B \\cap C) = 0.3" },
+        { "tex": "\\mathrm{P}(B) = 0.25 + 0.05 + 0.3 = 0.6" },
+        { "tex": "\\mathrm{P}(C) = 0.3 + p", "why": "\\(C\\) is the overlap with \\(B\\) plus \\(C\\) only." },
+        { "head": "Substitute and solve for p" },
+        { "tex": "0.3 = 0.6 \\times (0.3 + p)", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 0.3 = 0.18 + 0.6p" },
+        { "tex": "\\Rightarrow 0.6p = 0.12" },
+        { "tex": "\\Rightarrow p = \\frac{0.12}{0.6} = 0.2", "marks": ["A1"] },
+        { "head": "Finally, all the probabilities add up to 1" },
+        { "tex": "0.13 + 0.25 + 0.05 + 0.3 + 0.2 + q = 1" },
+        { "tex": "\\Rightarrow 0.93 + q = 1" },
+        { "tex": "\\Rightarrow q = 1 - 0.93 = 0.07" }
       ],
       "answer": "p = 0.2,\\quad q = 0.07",
       "answerMarks": ["B1ft"],
@@ -45,9 +54,15 @@
       "ask": "Find \\(\\mathrm{P}(A \\mid B')\\).",
       "method": "Conditional probability",
       "steps": [
-        { "tex": "\\mathrm{P}(A \\mid B') = \\frac{\\mathrm{P}(A \\cap B')}{\\mathrm{P}(B')} = \\frac{0.13}{1 - 0.6}", "why": "\\(A \\cap B'\\) is the part of \\(A\\) outside \\(B\\): just \\(0.13\\).", "marks": ["M1"] }
+        { "tex": "\\mathrm{P}(A \\mid B') = \\frac{\\mathrm{P}(A \\cap B')}{\\mathrm{P}(B')}", "check": false },
+        { "head": "Find the top and the bottom" },
+        { "tex": "\\mathrm{P}(A \\cap B') = 0.13", "why": "The part of \\(A\\) outside \\(B\\) is just \\(A\\) only." },
+        { "tex": "\\mathrm{P}(B') = 1 - 0.6 = 0.4", "why": "\\(\\mathrm{P}(B) = 0.6\\) from part (b)." },
+        { "head": "Divide" },
+        { "tex": "\\mathrm{P}(A \\mid B') = \\frac{0.13}{0.4}", "marks": ["M1"] },
+        { "tex": "= \\frac{13}{40}" }
       ],
-      "answer": "\\mathrm{P}(A \\mid B') = \\frac{13}{40} = 0.325",
+      "answer": "= 0.325",
       "answerMarks": ["A1"],
       "check": {
         "marks": ["M1", "A1"],

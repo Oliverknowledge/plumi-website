@@ -8,7 +8,9 @@
       "ask": "The curve \\(C\\), \\(y = \\mathrm{f}(x)\\), passes through \\(P(3, -10)\\) and has a turning point at \\(P\\). Given that \\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 2x^3 - 9x^2 + 5x + k\\), show that \\(k = 12\\).",
       "method": "At a turning point the gradient is zero",
       "steps": [
-        { "tex": "2(3)^3 - 9(3)^2 + 5(3) + k = 0", "why": "\\(\\dfrac{\\mathrm{d}y}{\\mathrm{d}x} = 0\\) at \\(x = 3\\). Show the 3 substituted.", "marks": ["M1"] },
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 2x^3 - 9x^2 + 5x + k", "check": false },
+        { "tex": "x = 3: \\quad 2(3)^3 - 9(3)^2 + 5(3) + k = 0", "why": "Show the 3 substituted: \\(k = 12\\) is given.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 2(27) - 9(9) + 15 + k = 0" },
         { "tex": "\\Rightarrow 54 - 81 + 15 + k = 0" },
         { "tex": "\\Rightarrow -12 + k = 0" }
       ],
@@ -23,18 +25,23 @@
     {
       "label": "b",
       "ask": "Hence find the coordinates of the point where \\(C\\) crosses the \\(y\\)-axis.",
-      "method": "Integrate, then use \\(P\\) to find the constant",
+      "method": "Integrate to find the equation of \\(C\\)",
       "steps": [
         { "tex": "y = \\int \\left(2x^3 - 9x^2 + 5x + 12\\right)\\mathrm{d}x", "check": false },
-        { "tex": "= \\frac{1}{2}x^4 - 3x^3 + \\frac{5}{2}x^2 + 12x + c", "marks": ["M1"] },
-        { "tex": "\\Rightarrow -10 = \\frac{1}{2}(3)^4 - 3(3)^3 + \\frac{5}{2}(3)^2 + 12(3) + c", "why": "\\(P(3, -10)\\) is on the curve.", "marks": ["dM1"] },
-        { "tex": "= 18 + c" },
-        { "tex": "\\Rightarrow c = -28", "why": "On the \\(y\\)-axis \\(x = 0\\), so \\(y = c\\)." }
+        { "tex": "y = \\frac{2x^4}{4} - \\frac{9x^3}{3} + \\frac{5x^2}{2} + 12x + c", "why": "Add one to each power, then divide by the new power.", "marks": ["M1"] },
+        { "tex": "y = \\frac{1}{2}x^4 - 3x^3 + \\frac{5}{2}x^2 + 12x + c" },
+        { "head": "Use \\(P(3, -10)\\) to find \\(c\\)" },
+        { "tex": "-10 = \\frac{1}{2}(3)^4 - 3(3)^3 + \\frac{5}{2}(3)^2 + 12(3) + c", "why": "\\(P\\) is on the curve.", "marks": ["dM1"] },
+        { "tex": "\\Rightarrow -10 = \\frac{81}{2} - 81 + \\frac{45}{2} + 36 + c" },
+        { "tex": "\\Rightarrow -10 = 18 + c" },
+        { "tex": "\\Rightarrow c = -28" },
+        { "head": "Finally, put \\(x = 0\\)" },
+        { "tex": "y = \\frac{1}{2}(0)^4 - 3(0)^3 + \\frac{5}{2}(0)^2 + 12(0) - 28 = -28", "why": "On the \\(y\\)-axis \\(x = 0\\), so \\(y = c\\).", "check": { "vals": { "y": -28 } } }
       ],
       "answer": "(0,\\ -28)",
       "answerMarks": ["A1"],
       "check": {
-        "vals": { "c": -28 },
+        "vals": { "x": 3, "y": -10, "c": -28 },
         "marks": ["M1", "dM1", "A1"],
         "answers": [{ "tex": "(0,\\ -28)", "kind": "point", "scheme": "(0, -28)", "derive": "Tuple(0, -10 - (Rational(1, 2)*3**4 - 3*3**3 + Rational(5, 2)*3**2 + 12*3))" }]
       }

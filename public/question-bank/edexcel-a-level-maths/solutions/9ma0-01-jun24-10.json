@@ -6,13 +6,16 @@
     {
       "label": "a",
       "ask": "The curve \\(y = 8x - x^{\\frac{5}{2}}\\), \\(x \\geq 0\\), crosses the \\(x\\)-axis at \\(A\\). Verify that the \\(x\\) coordinate of \\(A\\) is 4.",
-      "method": "Substitute and check",
+      "method": "Substitute \\(x = 4\\) and check \\(y = 0\\)",
       "steps": [
-        { "tex": "x = 4: \\quad y = 8(4) - 4^{\\frac{5}{2}} = 32 - 32 = 0", "why": "\\(4^{\\frac{5}{2}} = \\left(\\sqrt{4}\\right)^5 = 32\\): root first, then the power.", "check": { "vals": { "x": 4, "y": 0 } } }
+        { "tex": "y = 8(4) - 4^{\\frac{5}{2}}" },
+        { "tex": "= 32 - \\left(\\sqrt{4}\\right)^5", "why": "\\(4^{\\frac{5}{2}}\\): square root first, then the power 5." },
+        { "tex": "= 32 - 2^5 = 32 - 32 = 0" }
       ],
       "answerText": "\\(y = 0\\) when \\(x = 4\\), so the curve crosses the \\(x\\)-axis at \\(x = 4\\).",
       "answerMarks": ["B1"],
       "check": {
+        "vals": { "y": 0 },
         "marks": ["B1"],
         "answers": [{ "text": "\\(y = 0\\) when \\(x = 4\\)", "value": "0", "scheme": "0", "derive": "(8*x - x**Rational(5, 2)).subs(x, 4)" }]
       }
@@ -20,11 +23,17 @@
     {
       "label": "b",
       "ask": "\\(l_1\\) is the tangent to the curve at \\(A\\). Use calculus to show that \\(l_1\\) has equation \\(12x + y = 48\\).",
-      "method": "Differentiate, then \\(y - y_1 = m(x - x_1)\\)",
+      "method": "Differentiate to find the gradient",
       "steps": [
-        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 8 - \\frac{5}{2}x^{\\frac{3}{2}}", "marks": ["B1"], "check": false },
-        { "tex": "x = 4: \\quad m = 8 - \\frac{5}{2}(4)^{\\frac{3}{2}} = 8 - 20 = -12", "why": "\\(4^{\\frac{3}{2}} = \\left(\\sqrt{4}\\right)^3 = 8\\).", "check": { "vals": { "x": 4, "m": -12 } } },
-        { "tex": "\\Rightarrow y - 0 = -12(x - 4)", "why": "Tangent through \\(A(4, 0)\\) with gradient \\(-12\\).", "marks": ["M1"] },
+        { "tex": "y = 8x - x^{\\frac{5}{2}}", "check": false },
+        { "tex": "\\frac{\\mathrm{d}y}{\\mathrm{d}x} = 8 - \\frac{5}{2}x^{\\frac{3}{2}}", "why": "Multiply by the power, then take one off it.", "marks": ["B1"], "check": false },
+        { "head": "Gradient at \\(A(4, 0)\\)" },
+        { "tex": "x = 4: \\quad m = 8 - \\frac{5}{2}(4)^{\\frac{3}{2}}", "check": { "vals": { "x": 4, "m": -12 } } },
+        { "tex": "= 8 - \\frac{5}{2} \\times 8", "why": "\\(4^{\\frac{3}{2}} = \\left(\\sqrt{4}\\right)^3 = 8\\)." },
+        { "tex": "= 8 - 20 = -12" },
+        { "head": "Equation of the tangent" },
+        { "tex": "y - y_1 = m(x - x_1)", "check": false },
+        { "tex": "\\Rightarrow y - 0 = -12(x - 4)", "marks": ["M1"] },
         { "tex": "\\Rightarrow y = -12x + 48" }
       ],
       "answer": "12x + y = 48",
@@ -41,12 +50,21 @@
       "method": "Triangle minus the area under the curve",
       "steps": [
         { "text": "\\(R\\) is the triangle \\(OAB\\), where \\(B\\) is where \\(l_1\\) meets \\(l_2\\), minus the area under the curve from 0 to 4.", "why": "Curve and triangle both run from \\(O\\) to \\(A(4, 0)\\)." },
-        { "tex": "12x + 8x = 48 \\Rightarrow x = 2.4", "check": { "vals": { "x": 2.4 } } },
+        { "head": "Start by finding \\(B\\)" },
+        { "text": "Substitute \\(y = 8x\\) into \\(12x + y = 48\\):" },
+        { "tex": "12x + 8x = 48", "check": { "vals": { "x": 2.4 } } },
+        { "tex": "\\Rightarrow 20x = 48 \\Rightarrow x = 2.4", "check": { "vals": { "x": 2.4 } } },
         { "tex": "\\Rightarrow y = 8(2.4) = 19.2", "marks": ["M1"], "check": { "vals": { "y": 19.2 } } },
-        { "tex": "\\text{Triangle} = \\tfrac{1}{2} \\times 4 \\times 19.2 = \\frac{192}{5}", "why": "Height is \\(B\\)'s \\(y\\) coordinate: don't assume \\(B\\) is above \\(x = 2\\).", "marks": ["dM1"] },
+        { "head": "Area of triangle \\(OAB\\)" },
+        { "tex": "\\tfrac{1}{2} \\times 4 \\times 19.2 = 38.4 = \\frac{192}{5}", "why": "Base \\(OA = 4\\), height is \\(B\\)'s \\(y\\) coordinate.", "marks": ["dM1"] },
+        { "head": "Now integrate under the curve" },
         { "tex": "\\int_0^4 \\left(8x - x^{\\frac{5}{2}}\\right)\\mathrm{d}x = \\left[4x^2 - \\frac{2}{7}x^{\\frac{7}{2}}\\right]_0^4", "why": "Add 1 to the power, divide by the new power: \\(\\tfrac{7}{2}\\).", "marks": ["B1"], "check": false },
-        { "tex": "= 4(4)^2 - \\frac{2}{7}(4)^{\\frac{7}{2}} - 0 = 64 - \\frac{256}{7} = \\frac{192}{7}" },
-        { "tex": "R = \\frac{192}{5} - \\frac{192}{7} = \\frac{1344 - 960}{35}", "marks": ["ddM1"] }
+        { "tex": "\\left(4(4)^2 - \\frac{2}{7}(4)^{\\frac{7}{2}}\\right) - 0 = 64 - \\frac{2}{7} \\times 128", "why": "\\(4^{\\frac{7}{2}} = \\left(\\sqrt{4}\\right)^7 = 128\\)." },
+        { "tex": "= 64 - \\frac{256}{7}" },
+        { "tex": "= \\frac{448}{7} - \\frac{256}{7} = \\frac{192}{7}" },
+        { "head": "Finally, subtract" },
+        { "tex": "R = \\frac{192}{5} - \\frac{192}{7}", "marks": ["ddM1"] },
+        { "tex": "= \\frac{1344}{35} - \\frac{960}{35}" }
       ],
       "answer": "\\text{Area of } R = \\frac{384}{35}",
       "answerMarks": ["A1"],

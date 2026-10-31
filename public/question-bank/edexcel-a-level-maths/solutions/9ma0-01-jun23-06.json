@@ -6,10 +6,12 @@
     {
       "label": "a",
       "ask": "Given \\(a = \\log_2 x\\) and \\(b = \\log_2(x + 8)\\), express \\(\\log_2 \\sqrt{x}\\) in terms of \\(a\\) and/or \\(b\\).",
-      "method": "Power law of logs",
+      "method": "Write the root as a power",
       "steps": [
         { "tex": "\\log_2 \\sqrt{x} = \\log_2 x^{\\frac{1}{2}}" },
-        { "tex": "= \\frac{1}{2}\\log_2 x", "why": "Power law: the power comes out in front." }
+        { "head": "Use the power law" },
+        { "tex": "\\log_c x^k = k\\log_c x", "check": false },
+        { "tex": "\\log_2 x^{\\frac{1}{2}} = \\frac{1}{2}\\log_2 x" }
       ],
       "answer": "= \\frac{1}{2}a",
       "answerMarks": ["B1"],
@@ -21,10 +23,12 @@
     {
       "label": "b",
       "ask": "Express \\(\\log_2(x^2 + 8x)\\) in terms of \\(a\\) and/or \\(b\\).",
-      "method": "Addition law of logs",
+      "method": "Factorise inside the log",
       "steps": [
-        { "tex": "\\log_2(x^2 + 8x) = \\log_2\\left(x(x + 8)\\right)", "why": "Factorise so that \\(x\\) and \\(x + 8\\) appear." },
-        { "tex": "= \\log_2 x + \\log_2(x + 8)", "why": "The log of a product is a sum, not a product.", "marks": ["M1"] }
+        { "tex": "\\log_2(x^2 + 8x) = \\log_2\\left(x(x + 8)\\right)", "why": "Now \\(x\\) and \\(x + 8\\) both appear." },
+        { "head": "Use the addition law" },
+        { "tex": "\\log_c (pq) = \\log_c p + \\log_c q", "check": false },
+        { "tex": "\\log_2\\left(x(x + 8)\\right) = \\log_2 x + \\log_2(x + 8)", "why": "The log of a product is a sum, not a product.", "marks": ["M1"] }
       ],
       "answer": "= a + b",
       "answerMarks": ["A1"],
@@ -37,12 +41,17 @@
     {
       "label": "c",
       "ask": "Express \\(\\log_2\\left(8 + \\frac{64}{x}\\right)\\) in terms of \\(a\\) and/or \\(b\\), in simplest form.",
-      "method": "Single fraction, then the laws of logs",
+      "method": "Write it as a single fraction",
       "steps": [
-        { "tex": "\\log_2\\left(8 + \\frac{64}{x}\\right) = \\log_2\\left(\\frac{8x + 64}{x}\\right)", "marks": ["B1"] },
-        { "tex": "= \\log_2\\left(\\frac{8(x + 8)}{x}\\right)", "why": "Factor out 8 so that \\(x + 8\\) appears." },
-        { "tex": "= \\log_{2} 8 + \\log_2(x + 8) - \\log_2 x", "why": "Multiplying adds logs; dividing subtracts them." },
-        { "tex": "= 3 + \\log_2(x + 8) - \\log_2 x", "why": "\\(2^3 = 8\\), so \\(\\log_2 8 = 3\\).", "marks": ["M1"] }
+        { "tex": "8 + \\frac{64}{x} = \\frac{8x}{x} + \\frac{64}{x}" },
+        { "tex": "= \\frac{8x + 64}{x}" },
+        { "tex": "= \\frac{8(x + 8)}{x}", "why": "Factor out 8 so that \\(x + 8\\) appears." },
+        { "tex": "\\Rightarrow \\log_2\\left(8 + \\frac{64}{x}\\right) = \\log_2\\left(\\frac{8(x + 8)}{x}\\right)", "marks": ["B1"] },
+        { "head": "Split up with the laws of logs" },
+        { "tex": "\\log_c \\frac{pq}{r} = \\log_c p + \\log_c q - \\log_c r", "check": false },
+        { "tex": "\\log_2\\left(\\frac{8(x + 8)}{x}\\right) = \\log_{2} 8 + \\log_2(x + 8) - \\log_2 x", "why": "Multiplying adds logs; dividing subtracts them." },
+        { "tex": "= \\log_{2} \\left(2^3\\right) + \\log_2(x + 8) - \\log_2 x" },
+        { "tex": "= 3 + \\log_2(x + 8) - \\log_2 x", "why": "\\(\\log_2 2^3 = 3\\log_2 2 = 3\\).", "marks": ["M1"] }
       ],
       "answer": "= 3 + b - a",
       "answerMarks": ["A1"],

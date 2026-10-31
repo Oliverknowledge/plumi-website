@@ -8,11 +8,22 @@
       "ask": "Given that \\(\\log_2(x+3) + \\log_2(x+10) = 2 + 2\\log_2 x\\), show that \\(3x^2 - 13x - 30 = 0\\).",
       "method": "Use the log laws to make each side a single log",
       "steps": [
-        { "tex": "\\log_2(x+3) + \\log_2(x+10) = 2 + 2\\log_2 x" },
-        { "tex": "\\Rightarrow \\log_2\\left((x+3)(x+10)\\right) = \\log_2(4) + \\log_2(x^2)", "why": "\\(\\log a + \\log b = \\log ab\\), \\(k\\log a = \\log a^k\\), and \\(2 = \\log_2 4\\).", "marks": ["M1"] },
-        { "tex": "= \\log_2(4x^2)" },
-        { "tex": "\\Rightarrow (x+3)(x+10) = 4x^2", "why": "Same base both sides, so the insides are equal.", "marks": ["dM1"] },
-        { "tex": "\\Rightarrow x^2 + 13x + 30 = 4x^2" }
+        { "tex": "\\log_2 a + \\log_2 b = \\log_2(ab), \\qquad k\\log_2 a = \\log_2\\left(a^k\\right)", "check": false },
+        { "tex": "\\log_2(x+3) + \\log_2(x+10) = 2 + 2\\log_2 x", "check": false },
+        { "head": "Combine the left side" },
+        { "tex": "\\log_2(x+3) + \\log_2(x+10) = \\log_2\\left((x+3)(x+10)\\right)", "marks": ["M1"] },
+        { "head": "Write the right side as one log" },
+        { "tex": "2 = \\log_2(4)", "why": "\\(2^2 = 4\\)." },
+        { "tex": "2\\log_2 x = \\log_2\\left(x^2\\right)" },
+        { "tex": "\\Rightarrow 2 + 2\\log_2 x = \\log_2(4) + \\log_2\\left(x^2\\right)" },
+        { "tex": "= \\log_2\\left(4x^2\\right)" },
+        { "head": "Now remove the logs" },
+        { "tex": "\\log_2\\left((x+3)(x+10)\\right) = \\log_2\\left(4x^2\\right)" },
+        { "tex": "\\Rightarrow (x+3)(x+10) = 4x^2", "why": "Same base on both sides, so the insides are equal.", "marks": ["dM1"] },
+        { "head": "Expand and rearrange" },
+        { "tex": "\\Rightarrow x^2 + 10x + 3x + 30 = 4x^2" },
+        { "tex": "\\Rightarrow x^2 + 13x + 30 = 4x^2" },
+        { "tex": "\\Rightarrow 0 = 4x^2 - x^2 - 13x - 30" }
       ],
       "answer": "\\Rightarrow 3x^2 - 13x - 30 = 0",
       "answerMarks": ["A1*"],
@@ -28,7 +39,10 @@
       "method": "Factorise",
       "steps": [
         { "tex": "3x^2 - 13x - 30 = 0", "check": { "vals": { "x": 6 } } },
-        { "tex": "\\Rightarrow (3x + 5)(x - 6) = 0", "why": "Check the middle term: \\(-18x + 5x = -13x\\).", "check": { "vals": { "x": 6 } } }
+        { "tex": "3 \\times (-30) = -90 = -18 \\times 5", "why": "Two numbers that multiply to \\(-90\\) and add to \\(-13\\).", "check": { "vals": {} } },
+        { "tex": "\\Rightarrow 3x^2 - 18x + 5x - 30 = 0", "check": { "vals": { "x": 6 } } },
+        { "tex": "\\Rightarrow 3x(x - 6) + 5(x - 6) = 0", "check": { "vals": { "x": 6 } } },
+        { "tex": "\\Rightarrow (3x + 5)(x - 6) = 0", "check": { "vals": { "x": 6 } } }
       ],
       "answer": "\\Rightarrow x = 6 \\ \\text{or}\\ x = -\\frac{5}{3}",
       "answerMarks": ["B1"],
@@ -45,7 +59,8 @@
       "ask": "Hence state which of the roots in part (b)(i) is not a solution of \\(\\log_2(x+3) + \\log_2(x+10) = 2 + 2\\log_2 x\\), giving a reason.",
       "method": "Put each root back into the logs",
       "steps": [
-        { "text": "At \\(x = -\\tfrac{5}{3}\\), the term \\(\\log_2 x\\) becomes \\(\\log_2\\left(-\\tfrac{5}{3}\\right)\\).", "why": "Not \"logs can't be negative\": the inside must be positive." }
+        { "text": "At \\(x = 6\\): the insides are \\(6 + 3 = 9\\), \\(6 + 10 = 16\\) and \\(6\\), all positive, so every log exists." },
+        { "text": "At \\(x = -\\tfrac{5}{3}\\): the term \\(\\log_2 x\\) becomes \\(\\log_2\\left(-\\tfrac{5}{3}\\right)\\).", "why": "Not \"logs can't be negative\": the inside must be positive." }
       ],
       "answerText": "\\(x = -\\tfrac{5}{3}\\) is not a solution, because \\(\\log_2\\left(-\\tfrac{5}{3}\\right)\\) is the log of a negative number, which is not real.",
       "answerMarks": ["B1"],

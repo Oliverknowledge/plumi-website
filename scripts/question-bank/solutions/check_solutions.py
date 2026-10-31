@@ -150,8 +150,11 @@ def to_sympy(piece: str, deg: bool):
         return None
     e = e.subs({sp.Symbol("e"): sp.E, sp.Symbol("pi"): sp.pi})
     if deg:
-        e = e.replace(lambda n: isinstance(n, TRIG), lambda n: n.func(n.args[0] * sp.pi / 180))
-        e = e.replace(lambda n: isinstance(n, INVTRIG), lambda n: n * 180 / sp.pi)
+        try:
+            e = e.replace(lambda n: isinstance(n, TRIG), lambda n: n.func(n.args[0] * sp.pi / 180))
+            e = e.replace(lambda n: isinstance(n, INVTRIG), lambda n: n * 180 / sp.pi)
+        except Exception:  # noqa: BLE001  SymPy can trip over its own assumptions here; report the line as unread
+            return None
     return e
 
 
@@ -370,7 +373,7 @@ def tex_jobs(qid, sol):
         key = path.rsplit(".", 1)[-1]
         if key in ("tex", "answer"):
             jobs.append({"where": f"{qid} {path}", "tex": s, "display": True})
-        elif key in ("ask", "why", "text", "answerText", "method"):
+        elif key in ("ask", "why", "text", "head", "answerText", "method"):
             if s.count("\\(") != s.count("\\)"):
                 jobs.append({"where": f"{qid} {path}", "tex": "\\unbalancedInlineMath", "display": False})
             for m in re.finditer(r"\\\((.+?)\\\)", s):
@@ -429,7 +432,8 @@ def check_solution(path: Path, parts_by_id: dict, rep: Report):
             sw = f"{where} step {i + 1}"
             step_check = step.get("check", True)
             if "tex" not in step:
-                carry = None
+                if "head" not in step:  # a stage heading doesn't break the chain; a sentence does
+                    carry = None
                 continue
             if step_check is False:
                 rep.unchecked.append(f"{sw}: {step['tex']} (a formula or statement, not a calculation)")

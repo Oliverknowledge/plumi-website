@@ -6,13 +6,20 @@
     {
       "label": "a",
       "ask": "The first 3 terms of a geometric sequence are \\(3^{4k-5}\\), \\(9^{7-2k}\\), \\(3^{2(k-1)}\\). Using algebra, prove that \\(k = \\tfrac{5}{2}\\).",
-      "method": "Equal ratios, then a common base of 3",
+      "method": "Equal ratios between consecutive terms",
       "steps": [
-        { "tex": "\\left(9^{7-2k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "why": "Equal ratios \\(\\tfrac{u_2}{u_1} = \\tfrac{u_3}{u_2}\\) give \\(u_2^{\\,2} = u_1 u_3\\)." },
-        { "tex": "\\Rightarrow \\left(3^{14-4k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "why": "Write \\(9 = 3^2\\), so \\(9^{7-2k} = 3^{14-4k}\\).", "marks": ["M1"] },
-        { "tex": "\\Rightarrow 3^{28-8k} = 3^{6k-7}", "why": "Multiplying powers of 3: add the indices." },
+        { "tex": "\\frac{9^{7-2k}}{3^{4k-5}} = \\frac{3^{2(k-1)}}{9^{7-2k}}", "why": "Geometric: \\(\\tfrac{u_2}{u_1} = \\tfrac{u_3}{u_2}\\)." },
+        { "tex": "\\Rightarrow \\left(9^{7-2k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "why": "Cross-multiply." },
+        { "head": "Write everything as a power of 3" },
+        { "tex": "9^{7-2k} = \\left(3^2\\right)^{7-2k} = 3^{14-4k}" },
+        { "tex": "\\Rightarrow \\left(3^{14-4k}\\right)^2 = 3^{4k-5} \\times 3^{2(k-1)}", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 3^{28-8k} = 3^{4k-5+2k-2}", "why": "Power of a power: multiply. Product of powers: add." },
+        { "tex": "\\Rightarrow 3^{28-8k} = 3^{6k-7}" },
+        { "head": "Now compare the powers" },
         { "tex": "\\Rightarrow 28 - 8k = 6k - 7" },
-        { "tex": "\\Rightarrow 14k = 35", "marks": ["dM1"] }
+        { "tex": "\\Rightarrow 28 + 7 = 6k + 8k" },
+        { "tex": "\\Rightarrow 35 = 14k" },
+        { "tex": "\\Rightarrow k = \\frac{35}{14}", "marks": ["dM1"] }
       ],
       "answer": "k = \\frac{5}{2}",
       "answerMarks": ["A1*"],
@@ -25,12 +32,16 @@
     {
       "label": "b",
       "ask": "Hence find the sum to infinity of the sequence.",
-      "method": "Sum to infinity",
+      "method": "Find the first term and the common ratio",
       "steps": [
-        { "tex": "a = 3^{4\\left(\\frac{5}{2}\\right) - 5} = 3^5 = 243" },
-        { "tex": "u_2 = 9^{7 - 2\\left(\\frac{5}{2}\\right)} = 9^2 = 81" },
-        { "tex": "\\Rightarrow r = \\frac{81}{243} = \\frac{1}{3}", "why": "\\(|r| < 1\\), so the sum to infinity exists.", "marks": ["M1"] },
-        { "tex": "S_\\infty = \\frac{243}{1 - \\frac{1}{3}} = 243 \\times \\frac{3}{2}", "why": "Formula book: \\(S_\\infty = \\dfrac{a}{1-r}\\).", "marks": ["M1"] }
+        { "tex": "a = 3^{4\\left(\\frac{5}{2}\\right) - 5} = 3^{10 - 5} = 3^5 = 243" },
+        { "tex": "u_2 = 9^{7 - 2\\left(\\frac{5}{2}\\right)} = 9^{7 - 5} = 9^2 = 81" },
+        { "tex": "r = \\frac{u_2}{a} = \\frac{81}{243} = \\frac{1}{3}", "why": "\\(|r| < 1\\), so the sum to infinity exists.", "marks": ["M1"] },
+        { "head": "Sum to infinity" },
+        { "tex": "S_\\infty = \\frac{a}{1-r}", "why": "From the formula book.", "check": false },
+        { "tex": "S_\\infty = \\frac{243}{1 - \\frac{1}{3}}", "marks": ["M1"] },
+        { "tex": "= \\frac{243}{\\frac{2}{3}}" },
+        { "tex": "= 243 \\times \\frac{3}{2}" }
       ],
       "answer": "S_\\infty = \\frac{729}{2} = 364.5",
       "answerMarks": ["A1"],

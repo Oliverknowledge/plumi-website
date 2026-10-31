@@ -6,13 +6,15 @@
     {
       "label": "a",
       "ask": "A cuboid tank has a base 20 m by 10 m and height 5 m. At time \\(t\\) minutes the water is \\(h\\) m deep and its volume is \\(V\\) m³. In the model, the sides have negligible thickness and the rate of change of \\(V\\) is inversely proportional to \\(\\sqrt{h}\\). Show that \\(\\dfrac{\\mathrm{d}h}{\\mathrm{d}t} = \\dfrac{\\lambda}{\\sqrt{h}}\\), where \\(\\lambda\\) is a constant.",
-      "method": "Connected rates of change (the chain rule)",
+      "method": "Start with the volume of water",
       "steps": [
         { "tex": "V = 20 \\times 10 \\times h = 200h" },
         { "tex": "\\Rightarrow \\frac{\\mathrm{d}V}{\\mathrm{d}h} = 200", "marks": ["B1"], "check": false },
-        { "tex": "\\frac{\\mathrm{d}V}{\\mathrm{d}t} = \\frac{k}{\\sqrt{h}}", "why": "Inversely proportional: a constant \\(k\\) divided by \\(\\sqrt{h}\\).", "check": false },
+        { "head": "Write the proportion as an equation" },
+        { "tex": "\\frac{\\mathrm{d}V}{\\mathrm{d}t} \\propto \\frac{1}{\\sqrt{h}} \\;\\Rightarrow\\; \\frac{\\mathrm{d}V}{\\mathrm{d}t} = \\frac{k}{\\sqrt{h}}", "why": "Inversely proportional: a constant \\(k\\) divided by \\(\\sqrt{h}\\).", "check": false },
+        { "head": "Now use the chain rule" },
         { "tex": "\\frac{\\mathrm{d}h}{\\mathrm{d}t} = \\frac{\\mathrm{d}h}{\\mathrm{d}V} \\times \\frac{\\mathrm{d}V}{\\mathrm{d}t}", "why": "\\(\\dfrac{\\mathrm{d}h}{\\mathrm{d}V} = \\dfrac{1}{200}\\), the reciprocal of \\(\\dfrac{\\mathrm{d}V}{\\mathrm{d}h}\\).", "check": false },
-        { "tex": "= \\frac{1}{200} \\times \\frac{k}{\\sqrt{h}}", "marks": ["M1"], "check": false },
+        { "tex": "= \\frac{1}{200} \\times \\frac{k}{\\sqrt{h}}", "marks": ["M1"] },
         { "tex": "= \\frac{k}{200\\sqrt{h}}", "why": "Don't call both constants \\(\\lambda\\): say \\(\\lambda = \\tfrac{k}{200}\\)." }
       ],
       "answer": "\\frac{\\mathrm{d}h}{\\mathrm{d}t} = \\frac{\\lambda}{\\sqrt{h}}, \\quad \\text{where } \\lambda = \\frac{k}{200}",
@@ -26,17 +28,29 @@
     {
       "label": "b",
       "ask": "Initially the water is 1.44 m deep, and exactly 8 minutes later it is 3.24 m deep. Use the model to find an equation \\(h^{\\frac{3}{2}} = At + B\\), where \\(A\\) and \\(B\\) are constants to be found.",
-      "method": "Separate the variables, then use the two conditions",
+      "method": "Separate the variables",
       "steps": [
-        { "tex": "\\int h^{\\frac{1}{2}}\\,\\mathrm{d}h = \\int \\lambda\\,\\mathrm{d}t", "why": "Multiply both sides by \\(\\sqrt{h}\\) to separate.", "marks": ["M1"], "check": false },
+        { "tex": "\\frac{\\mathrm{d}h}{\\mathrm{d}t} = \\frac{\\lambda}{\\sqrt{h}}", "check": false },
+        { "tex": "\\Rightarrow \\sqrt{h}\\,\\mathrm{d}h = \\lambda\\,\\mathrm{d}t", "why": "Multiply both sides by \\(\\sqrt{h}\\).", "check": false },
+        { "tex": "\\Rightarrow \\int h^{\\frac{1}{2}}\\,\\mathrm{d}h = \\int \\lambda\\,\\mathrm{d}t", "marks": ["M1"], "check": false },
+        { "tex": "\\Rightarrow \\frac{h^{\\frac{3}{2}}}{\\frac{3}{2}} = \\lambda t + c" },
         { "tex": "\\Rightarrow \\frac{2}{3}h^{\\frac{3}{2}} = \\lambda t + c", "marks": ["A1"] },
-        { "tex": "\\frac{2}{3}(1.44)^{\\frac{3}{2}} = \\lambda \\times 0 + c", "why": "Initially means \\(t = 0\\), \\(h = 1.44\\).", "check": { "vals": { "c": "144/125" } } },
-        { "tex": "\\Rightarrow c = \\frac{2}{3}(1.728) = 1.152", "why": "\\(1.44^{\\frac{3}{2}} = \\left(\\sqrt{1.44}\\right)^3 = 1.2^3\\).", "marks": ["dM1"] },
-        { "tex": "\\frac{2}{3}(3.24)^{\\frac{3}{2}} = 8\\lambda + 1.152", "check": { "vals": { "lambda": "171/500" } } },
-        { "tex": "\\Rightarrow 3.888 = 8\\lambda + 1.152 \\;\\Rightarrow\\; \\lambda = \\frac{2.736}{8} = 0.342", "marks": ["ddM1"] },
-        { "tex": "\\Rightarrow \\frac{2}{3}h^{\\frac{3}{2}} = 0.342t + 1.152" }
+        { "head": "Use \\(t = 0\\), \\(h = 1.44\\) to find \\(c\\)" },
+        { "tex": "\\frac{2}{3}(1.44)^{\\frac{3}{2}} = \\lambda \\times 0 + c", "why": "Initially means \\(t = 0\\)." },
+        { "tex": "(1.44)^{\\frac{3}{2}} = \\left(\\sqrt{1.44}\\right)^3 = 1.2^3 = 1.728" },
+        { "tex": "\\Rightarrow c = \\frac{2}{3} \\times 1.728 = 1.152", "marks": ["dM1"] },
+        { "head": "Use \\(t = 8\\), \\(h = 3.24\\) to find \\(\\lambda\\)" },
+        { "tex": "\\frac{2}{3}(3.24)^{\\frac{3}{2}} = 8\\lambda + 1.152" },
+        { "tex": "(3.24)^{\\frac{3}{2}} = \\left(\\sqrt{3.24}\\right)^3 = 1.8^3 = 5.832" },
+        { "tex": "\\Rightarrow \\frac{2}{3} \\times 5.832 = 8\\lambda + 1.152" },
+        { "tex": "\\Rightarrow 3.888 = 8\\lambda + 1.152" },
+        { "tex": "\\Rightarrow 8\\lambda = 3.888 - 1.152 = 2.736" },
+        { "tex": "\\Rightarrow \\lambda = \\frac{2.736}{8} = 0.342", "marks": ["ddM1"] },
+        { "head": "Finally, make \\(h^{\\frac{3}{2}}\\) the subject" },
+        { "tex": "\\frac{2}{3}h^{\\frac{3}{2}} = 0.342t + 1.152" },
+        { "tex": "\\Rightarrow h^{\\frac{3}{2}} = \\frac{3}{2}(0.342t + 1.152)", "why": "Multiply both sides by \\(\\tfrac{3}{2}\\)." }
       ],
-      "answer": "h^{\\frac{3}{2}} = 0.513t + 1.728",
+      "answer": "\\Rightarrow h^{\\frac{3}{2}} = 0.513t + 1.728",
       "answerMarks": ["A1"],
       "check": {
         "vals": { "lambda": "171/500", "c": "144/125", "t": 8, "h": "81/25" },
@@ -49,12 +63,15 @@
       "ask": "Hence find the time taken, from when water started flowing in, for the tank to be completely full.",
       "method": "Full means \\(h = 5\\)",
       "steps": [
-        { "tex": "5^{\\frac{3}{2}} = 0.513t + 1.728", "why": "The tank is 5 m high.", "marks": ["M1"], "check": { "vals": { "t": "(5**Rational(3, 2) - Rational(1728, 1000))/Rational(513, 1000)" } } },
-        { "tex": "\\Rightarrow t = \\frac{5^{\\frac{3}{2}} - 1.728}{0.513} = \\frac{9.45233\\ldots}{0.513} = 18.4256\\ldots", "check": { "vals": { "t": "(5**Rational(3, 2) - Rational(1728, 1000))/Rational(513, 1000)" } } }
+        { "tex": "5^{\\frac{3}{2}} = 0.513t + 1.728", "why": "The tank is 5 m high.", "marks": ["M1"] },
+        { "tex": "\\Rightarrow 0.513t = 5^{\\frac{3}{2}} - 1.728" },
+        { "tex": "= 11.1803\\ldots - 1.728 = 9.45233\\ldots" },
+        { "tex": "\\Rightarrow t = \\frac{9.45233\\ldots}{0.513} = 18.4256\\ldots" }
       ],
       "answer": "t = 18.4\\ \\text{minutes}",
       "answerMarks": ["A1"],
       "check": {
+        "vals": { "t": "(5**Rational(3, 2) - Rational(1728, 1000))/Rational(513, 1000)" },
         "marks": ["M1", "A1"],
         "answers": [{ "tex": "18.4", "scheme": "18.4", "derive": "(5**Rational(3, 2) - Rational(1728, 1000))/Rational(513, 1000)", "tol": 0.05 }]
       }

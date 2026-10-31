@@ -6,10 +6,12 @@
     {
       "label": "a",
       "ask": "\\(\\mathrm{f}(x) = 4x^3 + 5x^2 - 10x + 4a\\), where \\(a\\) is a positive constant. Given that \\((x - a)\\) is a factor of \\(\\mathrm{f}(x)\\), show that \\(a(4a^2 + 5a - 6) = 0\\).",
-      "method": "Factor theorem",
+      "method": "Use the factor theorem",
       "steps": [
-        { "tex": "\\mathrm{f}(a) = 4a^3 + 5a^2 - 10a + 4a = 0", "why": "\\((x - a)\\) is a factor, so \\(\\mathrm{f}(a) = 0\\)." },
-        { "tex": "\\Rightarrow 4a^3 + 5a^2 - 6a = 0" }
+        { "tex": "(x - a) \\ \\text{is a factor} \\Rightarrow \\mathrm{f}(a) = 0", "check": false },
+        { "tex": "\\mathrm{f}(a) = 4a^3 + 5a^2 - 10a + 4a = 0", "why": "Replace every \\(x\\) with \\(a\\)." },
+        { "head": "Collect terms and factorise" },
+        { "tex": "\\Rightarrow 4a^3 + 5a^2 - 6a = 0", "why": "\\(-10a + 4a = -6a\\)." }
       ],
       "answer": "\\Rightarrow a(4a^2 + 5a - 6) = 0",
       "answerMarks": ["M1", "A1*"],
@@ -22,11 +24,13 @@
     {
       "label": "b(i)",
       "ask": "Hence find the value of \\(a\\).",
-      "method": "Factorise, then use \\(a > 0\\)",
+      "method": "Factorise the quadratic",
       "steps": [
-        { "tex": "4a^2 + 5a - 6 = (4a - 3)(a + 2) = 0", "check": { "vals": { "a": "3/4" } } },
-        { "tex": "\\Rightarrow a = \\frac{3}{4} \\ \\text{or}\\ a = -2", "check": false },
-        { "text": "\\(a\\) is positive, so reject \\(a = -2\\) (and \\(a = 0\\))." }
+        { "tex": "a(4a^2 + 5a - 6) = 0", "check": { "vals": { "a": "3/4" } } },
+        { "tex": "\\Rightarrow a(4a - 3)(a + 2) = 0", "why": "Check: \\(4a \\times a = 4a^2\\), \\(8a - 3a = 5a\\), \\(-3 \\times 2 = -6\\).", "check": { "vals": { "a": "3/4" } } },
+        { "tex": "\\Rightarrow a = 0, \\quad a = \\frac{3}{4} \\quad \\text{or} \\quad a = -2", "check": false },
+        { "head": "Use the fact that a is positive" },
+        { "text": "\\(a > 0\\), so reject \\(a = 0\\) and \\(a = -2\\)." }
       ],
       "answer": "a = \\frac{3}{4}",
       "answerMarks": ["B1"],
@@ -39,13 +43,18 @@
     {
       "label": "b(ii)",
       "ask": "Use algebra to find the exact solutions of \\(\\mathrm{f}(x) = 3\\).",
-      "method": "Factor out \\(x\\), then the quadratic formula",
+      "method": "Substitute a = 3/4 and simplify",
       "steps": [
-        { "tex": "4x^3 + 5x^2 - 10x + 4\\left(\\frac{3}{4}\\right) = 3", "why": "Put in \\(a = \\tfrac{3}{4}\\).", "check": { "vals": { "x": 0 } } },
+        { "tex": "\\mathrm{f}(x) = 4x^3 + 5x^2 - 10x + 4\\left(\\frac{3}{4}\\right) = 4x^3 + 5x^2 - 10x + 3" },
+        { "tex": "4x^3 + 5x^2 - 10x + 3 = 3", "why": "Now set \\(\\mathrm{f}(x) = 3\\).", "check": { "vals": { "x": 0 } } },
         { "tex": "\\Rightarrow 4x^3 + 5x^2 - 10x = 0", "marks": ["M1"], "check": { "vals": { "x": 0 } } },
-        { "tex": "\\Rightarrow x(4x^2 + 5x - 10) = 0", "why": "Factor out \\(x\\). Dividing by \\(x\\) would lose \\(x = 0\\).", "check": { "vals": { "x": 0 } } },
-        { "tex": "\\Rightarrow x = 0 \\ \\text{or}\\ 4x^2 + 5x - 10 = 0", "marks": ["B1"], "check": false },
-        { "tex": "x = \\frac{-5 \\pm \\sqrt{5^2 - 4(4)(-10)}}{2(4)}", "why": "Quadratic formula: this one doesn't factorise." },
+        { "head": "Take out the common factor x" },
+        { "tex": "\\Rightarrow x(4x^2 + 5x - 10) = 0", "why": "Never divide by \\(x\\): it loses the root \\(x = 0\\).", "check": { "vals": { "x": 0 } } },
+        { "tex": "\\Rightarrow x = 0 \\quad \\text{or} \\quad 4x^2 + 5x - 10 = 0", "marks": ["B1"], "check": false },
+        { "head": "Solve the quadratic by formula" },
+        { "tex": "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}", "check": false },
+        { "tex": "x = \\frac{-5 \\pm \\sqrt{5^2 - 4(4)(-10)}}{2(4)}", "why": "Here \\(a = 4\\), \\(b = 5\\), \\(c = -10\\)." },
+        { "tex": "= \\frac{-5 \\pm \\sqrt{25 + 160}}{8}" },
         { "tex": "= \\frac{-5 \\pm \\sqrt{185}}{8}" }
       ],
       "answer": "x = 0, \\quad x = \\frac{-5 + \\sqrt{185}}{8}, \\quad x = \\frac{-5 - \\sqrt{185}}{8}",
