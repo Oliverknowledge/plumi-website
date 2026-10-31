@@ -285,43 +285,18 @@
 
 /* ── Your marking (BankProgress.tsx) ─────────────────────────────────────── */
 .lp .qb-prog { display: grid; gap: 20px; padding: 20px 22px 18px; box-shadow: 0 6px 0 var(--lp-shadow); }
-.qb-prog-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .qb-tabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--lp-paper-2); border: 2px solid rgb(91 71 65 / .35); border-radius: 12px; }
 .lp .qb-tabs button { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 12px; border: 0; border-radius: 9px; background: none; font-family: var(--f-px); font-weight: 600; font-size: 14.5px; color: var(--lp-ink-soft); }
 .lp .qb-tabs button:hover { color: var(--lp-ink); }
 .lp .qb-tabs button.is-on { background: var(--lp-card-bg); color: var(--lp-ink); box-shadow: 0 0 0 2px var(--lp-line), 0 2px 0 2px var(--lp-shadow); }
 .lp .qb-tabs button:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
 .qb-tabs-n { font-family: var(--f-body); font-size: 12px; font-weight: 800; min-width: 20px; padding: 0 6px; border-radius: 999px; background: rgb(91 71 65 / .1); text-align: center; }
-.lp .qb-prog-head h2, .lp .qb-prog-empty h2 { font-size: 24px; font-weight: 700; line-height: 1.15; margin: 0; }
+.lp .qb-prog-empty h2 { font-size: 24px; font-weight: 700; line-height: 1.15; margin: 0; }
 .lp .qb-prog-streak { margin-left: auto; font-family: var(--f-px); font-weight: 600; font-size: 14px; background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 999px; padding: 2px 12px 2px 30px; position: relative; box-shadow: 0 2px 0 var(--lp-shadow); white-space: nowrap; }
 /* A pixel flame. */
 .qb-prog-streak::before { content: ""; position: absolute; left: 10px; top: 50%; width: 12px; height: 14px; margin-top: -8px;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23d9702f' d='M2 0h1v1h1v1h1v4H4v1H1V6H0V3h1V2h1z'/%3E%3Cpath fill='%23fff4dd' d='M2 4h2v2H2z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
 
-.qb-prog-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px 28px; align-items: center; }
-.qb-prog-side { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px 18px; align-items: stretch; }
-.qb-ring { position: relative; flex: none; width: 136px; height: 136px; display: grid; place-items: center; align-content: center; }
-.qb-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.qb-ring circle { fill: none; stroke-width: 13; }
-.qb-ring-track { stroke: var(--lp-paper-2); }
-.qb-ring-fill { stroke: var(--lp-orange); stroke-linecap: round; transition: stroke-dasharray .6s cubic-bezier(.3, .7, .2, 1); }
-.qb-ring::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 2px dashed var(--lp-line); opacity: .2; pointer-events: none; }
-.qb-ring-n { position: relative; font-family: var(--f-hand); font-weight: 700; font-size: 44px; line-height: .9; color: var(--lp-ink); transform: rotate(-3deg); }
-.qb-ring-n i { font-style: normal; font-size: 26px; margin-left: 1px; }
-.qb-ring-of { position: relative; margin-top: 2px; font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; color: var(--lp-ink-soft); }
-.qb-ring.is-small { width: 54px; height: 54px; }
-.qb-ring.is-small circle { stroke-width: 16; }
-.qb-ring.is-small::after { display: none; }
-.qb-ring.is-small .qb-ring-n { font-size: 22px; transform: none; }
-.qb-ring.is-small .qb-ring-n i { font-size: 13px; }
-
-.qb-stats { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.qb-stats div { display: grid; align-content: center; gap: 2px; padding: 10px 12px; background: #fff; border: 2px solid rgb(91 71 65 / .22); border-radius: 12px; min-width: 0; }
-.qb-stats dd { margin: 0; font-family: var(--f-px); font-weight: 700; font-size: 28px; line-height: 1.05; color: var(--lp-ink); font-variant-numeric: tabular-nums; }
-.qb-stats dd small { font-size: 15px; color: var(--lp-ink-soft); }
-.qb-stats dt { font-size: 12.5px; font-weight: 700; line-height: 1.25; color: var(--lp-ink-soft); }
-.qb-stats div.is-needs { background: #fdecea; border-color: #e8a9a4; }
-.qb-stats div.is-needs dd { color: #b8403a; }
 
 /* The last two weeks, a tile a day: reads the same with one answer or fifty. */
 .qb-fortnight { margin: 0; display: grid; align-content: center; gap: 10px; padding: 10px 14px 8px; background: #fff; border: 2px solid rgb(91 71 65 / .22); border-radius: 12px; min-width: 0; }
@@ -399,17 +374,113 @@
 .qb-prog-row-text b { color: #b8403a; }
 .qb-prog-body { display: grid; gap: 18px; padding: 14px 16px 16px; }
 
+/* The share of marks: a number over a pixel bar. */
+.qb-score { display: grid; justify-items: start; align-content: center; gap: 7px; }
+.qb-score b { font-family: var(--f-px); font-weight: 700; font-size: 40px; line-height: .85; color: var(--lp-ink); font-variant-numeric: tabular-nums; }
+.qb-score b i { font-style: normal; font-size: 22px; margin-left: 2px; color: var(--lp-ink-soft); }
+.qb-score-bar { display: flex; gap: 3px; padding: 3px; background: var(--lp-paper-2); border: 2px solid var(--lp-line); border-radius: 6px; }
+.qb-score-bar i { width: 11px; height: 14px; border-radius: 2px; background: rgb(91 71 65 / .12); }
+.qb-score-bar i.is-on { background: var(--lp-gold); box-shadow: inset 0 -4px 0 var(--lp-orange); }
+.qb-score small { font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); white-space: nowrap; }
+.qb-score.is-small { grid-auto-flow: column; align-items: center; gap: 8px; }
+.qb-score.is-small b { font-size: 21px; }
+.qb-score.is-small b i { font-size: 13px; }
+.qb-score.is-small .qb-score-bar { gap: 2px; padding: 2px; border-radius: 5px; }
+.qb-score.is-small .qb-score-bar i { width: 6px; height: 11px; }
+.qb-score.is-small .qb-score-bar i.is-on { box-shadow: inset 0 -3px 0 var(--lp-orange); }
+
+/* Every topic in one bar, by how it's going: it opens the topic map. */
+.lp .qb-statebar { appearance: none; cursor: pointer; display: grid; align-content: center; gap: 8px; width: 100%; min-width: 0; padding: 0; text-align: left; background: none; border: 0; font: inherit; color: var(--lp-ink); }
+.qb-statebar-head { display: flex; align-items: baseline; gap: 10px; font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
+.qb-statebar-head .qb-label { font-size: 14px; }
+.qb-statebar-more { margin-left: auto; font-family: var(--f-px); font-weight: 600; font-size: 13px; color: var(--lp-blue); }
+.qb-statebar-more::after { content: " ▸"; }
+.qb-statebar[aria-expanded="true"] .qb-statebar-more::after { content: " ▾"; }
+.lp .qb-statebar:hover .qb-statebar-more { text-decoration: underline; }
+.qb-statebar-bar { display: flex; height: 20px; overflow: hidden; background: var(--lp-paper-2); border: 2px solid var(--lp-line); border-radius: 6px; }
+.qb-statebar-bar i { display: block; min-width: 5px; }
+.qb-statebar-bar i + i { border-left: 2px solid var(--lp-line); }
+.qb-statebar-bar i.is-early { background: transparent; }
+:is(.qb-statebar-bar, .qb-statebar-key) i.is-strong { background: var(--lp-strong); }
+:is(.qb-statebar-bar, .qb-statebar-key) i.is-developing { background: var(--lp-dev); }
+:is(.qb-statebar-bar, .qb-statebar-key) i.is-rusty { background: var(--lp-rusty); }
+:is(.qb-statebar-bar, .qb-statebar-key) i.is-needs { background: var(--lp-needs); }
+.qb-statebar-key { display: flex; flex-wrap: wrap; gap: 3px 14px; font-size: 13px; font-weight: 700; color: var(--lp-ink-soft); }
+.qb-statebar-key > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.qb-statebar-key i { width: 11px; height: 11px; border: 2px solid var(--lp-line); border-radius: 3px; }
+
+/* The Your marking tab: score · topics · fortnight in one row, then what to practise, then the map. */
+.lp .qb-prog.is-bare { gap: 14px; padding: 16px 20px 18px; box-shadow: none; }
+.qb-prog.is-bare > * { min-width: 0; }
+.qb-glance { display: grid; grid-template-columns: auto minmax(0, 1.5fr) minmax(220px, 1fr); align-items: center; gap: 12px 0; }
+.qb-glance.is-unscored { grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); }
+.qb-glance > * + * { margin-left: 22px; padding-left: 22px; border-left: 2px dashed #d8c8ad; align-self: stretch; }
+.lp .qb-glance .qb-fortnight { padding: 0 0 0 22px; background: none; border-width: 0 0 0 2px; border-style: dashed; border-color: #d8c8ad; border-radius: 0; gap: 8px; }
+.qb-glance .qb-fortnight-days i { max-width: 18px; border-radius: 4px; }
+.qb-glance .qb-fortnight-days span { font-size: 9.5px; }
+.lp .qb-prog.is-bare .qb-again { padding: 6px 8px 6px 10px; font-size: 14px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .qb-prog.is-bare .qb-again-n { min-width: 26px; height: 26px; font-size: 14px; }
+.lp .qb-prog.is-bare .qb-again-go { min-height: 32px; font-size: 14px; }
+.qb-prog.is-bare .qb-weak { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.qb-prog.is-bare .qb-weak > .qb-label { font-size: 14px; }
+.qb-prog.is-bare .qb-weak ul { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.qb-prog.is-bare .qb-weak li { flex: 0 1 auto; padding: 4px 4px 4px 8px; gap: 8px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .qb-prog.is-bare .qb-weak .qb-sq { width: 22px; height: 22px; font-size: 12px; }
+.qb-prog.is-bare .qb-weak-name { font-size: 14px; }
+.qb-prog.is-bare .qb-weak-name small { display: inline; margin-left: 6px; font-size: 12.5px; }
+.lp .qb-prog.is-bare .qb-weak .qb-key { min-height: 32px; padding: 2px 10px; font-size: 13.5px; }
+/* The map's own summary line gives way to the bar, which opens it. */
+.qb-glance ~ .qb-prog-more > .qb-prog-sum { display: none; }
+.qb-glance ~ .qb-prog-more[open] { padding-top: 14px; border-top: 2px dashed #d8c8ad; }
+.lp .qb-glance ~ .qb-prog-more .qb-map .qb-sq { width: 22px; height: 22px; font-size: 11px; border-radius: 5px; }
+.qb-glance ~ .qb-prog-more .qb-map-squares { gap: 5px; }
+
+/* ── On a desk, one card: Find questions · Your marking · History (QuestionBank.tsx) ── */
+.lp .qb-onecard { padding: 0; box-shadow: 0 6px 0 var(--lp-shadow); margin-bottom: 8px; }
+.qb-onecard, .qb-onecard > * { min-width: 0; }
+.qb-onecard-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 14px; border-bottom: 2px dashed #d8c8ad; }
+.lp .qb-onecard .qb-tabs button { min-height: 36px; padding: 3px 14px; font-size: 15.5px; }
+.qb-badge { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; }
+.lp .qb-badge .qb-prog-streak { margin-left: 0; }
+/* Its filters: topics as one wrapping row of keys, everything else one toolbar. */
+.qb-onecard .qb-desk-body { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 14px 18px 16px; }
+.qb-onecard .qb-yearswitch { flex: 1 1 100%; margin-bottom: 0; }
+.qb-onecard .qb-topics { flex: 1 1 100%; gap: 8px; padding-bottom: 14px; border-bottom: 2px dashed #e6d9c3; }
+.qb-onecard .qb-topics legend { margin-bottom: 0; }
+.qb-onecard :is(.qb-topics legend, .qb-types) .qb-hint { display: none; }
+.qb-onecard .qb-year { gap: 6px; }
+.qb-onecard .qb-year:only-of-type .qb-year-label { display: none; }
+.qb-onecard .qb-tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+.lp .qb-onecard .qb-tile { flex: none; max-width: 100%; border-radius: 10px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.lp .qb-onecard .qb-tile .qb-check { align-items: center; padding: 6px 10px; font-size: 14.5px; }
+.lp .qb-onecard .qb-tile .qb-box { margin-top: 0; }
+.lp .qb-onecard .qb-open { width: 32px; font-size: 18px; }
+.qb-onecard :is(.qb-row-controls, .qb-row-toggles) { display: contents; }
+.qb-onecard .qb-types { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; }
+.lp .qb-onecard .qb-type { min-height: 36px; padding: 3px 11px; font-size: 14px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.qb-onecard .qb-field { display: flex; align-items: center; gap: 8px; }
+.qb-onecard :is(.qb-field, .qb-types) > .qb-label { font-size: 13.5px; white-space: nowrap; }
+.qb-onecard .qb-field select { width: auto; min-height: 36px; padding-top: 5px; padding-bottom: 5px; font-size: 14px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.qb-onecard .qb-multi summary { min-height: 36px; max-width: 190px; padding-top: 5px; padding-bottom: 5px; font-size: 14px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.qb-onecard .qb-search { flex: 1 1 220px; }
+.qb-onecard .qb-search input { min-height: 36px; padding: 5px 12px; font-size: 14px; box-shadow: 0 2px 0 var(--lp-shadow); }
+.qb-onecard .qb-calc label { font-size: 14px; }
+.qb-onecard .qb-subs { flex: 1 1 100%; }
+
 @media (max-width: 980px) {
-  .qb-prog-side { grid-template-columns: minmax(0, 1fr); }
+  .qb-glance { grid-template-columns: auto minmax(0, 1fr); }
+  .qb-glance.is-unscored { grid-template-columns: minmax(0, 1fr); }
+  .qb-glance > .qb-fortnight { grid-column: 1 / -1; }
+  .lp .qb-glance .qb-fortnight { margin-left: 0; padding: 12px 0 0; border-width: 2px 0 0; }
 }
 @media (max-width: 620px) {
   .qb-map { grid-template-columns: minmax(0, 1fr); }
   .lp .qb-map .qb-sq { width: 32px; height: 32px; }
-  .lp .qb-prog-body .qb-stats dd { font-size: 20px; }
+  .qb-score.is-small { grid-auto-flow: row; gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .qb-ink { animation: none; }
-  .qb-ring-fill, .lp .qb-sq, .lp .qb-self-key { transition: none; }
+  .lp .qb-sq, .lp .qb-self-key { transition: none; }
 }
 
 /* ── Question type (lib/markBands) ───────────────────────────────────────── */

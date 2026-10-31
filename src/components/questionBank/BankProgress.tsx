@@ -8,35 +8,65 @@ import { dailyCounts, partStatus, ROUGH, standing, STATE_LABEL, STATE_ORDER, str
 import { InkScore } from "./SelfMark";
 
 /**
- * "Your marking": what self-marking has added up to, above the bank. A ring for the
- * share of marks you've earned, where you're dropping marks (the topics to practise
- * next), the last fortnight in this subject, and the topic map the app draws: one
- * square a topic, coloured by how it's going.
+ * "Your marking": what self-marking has added up to. On a desk it is two tabs of the bank's one
+ * card (QuestionBank.tsx), `bare`: Your marking (the share of marks you've earned over a pixel
+ * bar, every topic in one bar by how it's going, which opens the topic map the app draws, the
+ * last fortnight, and where you're dropping marks) and History (every question marked here,
+ * newest first, with Redo). Questions missed a few days ago are offered back ("Have another
+ * go"), which the bank's list then shows on their own.
  *
- * Two tabs once there's something to show: Overview, and History, every question marked in
- * this subject, newest first, with Redo. Questions missed a few days ago are offered back
- * ("Have another go"), which the bank's list then shows on their own.
- *
- * Before the first mark it is one line and a nudge to the first question. On a phone
- * the whole panel folds to a single row (a small ring and what needs attention), so
- * the questions are still on the first screen. Nothing renders on the server, because
- * what it shows lives in this browser.
+ * Before the first mark it is one line and a nudge to the first question. On a phone it is
+ * its own card folded to a single row (the score and what needs attention), so the questions
+ * are still on the first screen. Nothing renders on the server, because what it shows lives
+ * in this browser.
  */
 
 const noop = () => () => {};
 const DAYS = 14;
 const GLYPH: Record<TopicState, string> = { needs: "!", developing: "", rusty: "~", early: "", strong: "✓" };
 
-function Ring({ share, small }: { share: number; small?: boolean }) {
+/**
+ * The share of marks as a number over a pixel bar: ten cells, filled to the nearest tenth,
+ * the marks behind it underneath.
+ */
+function Score({ share, scored, outOf, small }: { share: number; scored?: number; outOf?: number; small?: boolean }) {
   const pct = Math.round(share * 100);
+  const on = Math.round(share * 10);
   return (
-    <span className={`qb-ring${small ? " is-small" : ""}`} role="img" aria-label={`${pct}% of the marks you’ve tried`}>
-      <svg viewBox="0 0 120 120" aria-hidden="true">
-        <circle className="qb-ring-track" cx="60" cy="60" r="50" />
-        <circle className="qb-ring-fill" cx="60" cy="60" r="50" pathLength="100" strokeDasharray={`${pct} 100`} />
-      </svg>
-      <span className="qb-ring-n" aria-hidden="true">{pct}<i>%</i></span>
-      {!small && <span className="qb-ring-of" aria-hidden="true">of your marks</span>}
+    <span className={`qb-score${small ? " is-small" : ""}`} role="img" aria-label={`${pct}% of the marks you’ve tried${outOf ? `: ${scored} of ${outOf}` : ""}`}>
+      <b aria-hidden="true">{pct}<i>%</i></b>
+      <span className="qb-score-bar" aria-hidden="true">{Array.from({ length: 10 }, (_, i) => <i key={i} className={i < on ? "is-on" : ""} />)}</span>
+      {!small && outOf ? <small aria-hidden="true">{scored} of {outOf} marks</small> : null}
+    </span>
+  );
+}
+
+const BAR_ORDER: TopicState[] = ["strong", "developing", "rusty", "needs", "early"];
+const BAR_WORD: Record<TopicState, string> = { strong: "strong", developing: "developing", rusty: "rusty", needs: "need attention", early: "not yet" };
+
+/** The topic map folded to one bar: every topic, by how it's going. Opens the map. */
+function StateBar({ tally, tried, total, open, onToggle }: { tally: Record<TopicState, number>; tried: number; total: number; open: boolean; onToggle: () => void }) {
+  return (
+    <button type="button" className="qb-statebar" aria-expanded={open} onClick={onToggle}>
+      <span className="qb-statebar-head"><span className="qb-label">Your topics</span><span>{tried} of {total} tried</span><span className="qb-statebar-more" aria-hidden="true">{open ? "Hide map" : "Map"}</span></span>
+      <span className="qb-statebar-bar" aria-hidden="true">{BAR_ORDER.map(s => tally[s] > 0 && <i key={s} className={`is-${s}`} style={{ flexGrow: tally[s] }} />)}</span>
+      <span className="qb-statebar-key">{BAR_ORDER.filter(s => s !== "early" && tally[s]).map(s => <span key={s}><i className={`is-${s}`} aria-hidden="true" />{tally[s]} {BAR_WORD[s]}</span>)}</span>
+    </button>
+  );
+}
+
+/** For the bank card's header: the score and the streak, small. */
+export function MarkingBadge({ subject }: { subject: BankSubject }) {
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
+  const store = useBankMarks();
+  const t = useMemo(() => subjectTotals(store.subjects[subject.slug]), [store, subject.slug]);
+  const run = useMemo(() => streak(store), [store]);
+  // Only "Got it / Partly / Missed" marks: no share to show, but the streak still counts.
+  if (!mounted || (t.share === null && run < 2)) return null;
+  return (
+    <span className="qb-badge">
+      {t.share !== null && <Score share={t.share} small />}
+      {run > 1 && <span className="qb-prog-streak" title="Days in a row you’ve marked at least one question">{run}-day streak</span>}
     </span>
   );
 }
@@ -88,8 +118,10 @@ function History({ subject, bank, parts, onRedo }: { subject: BankSubject; bank:
   );
 }
 
-export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, onAgain, onRedo }: {
+export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, onAgain, onRedo, bare }: {
   subject: BankSubject; onTopic?: (code: string) => void; lockedTopic?: string; compact?: boolean;
+  /** Just a tab's contents, for the bank card that holds the tabs: "overview" or "history". */
+  bare?: "overview" | "history";
   /** The bank's parts, for naming the questions in History (null while they load). */
   parts?: BankPart[] | null;
   /** Show only the questions due to have another go at. */
@@ -99,7 +131,6 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
 }) {
   const mounted = useSyncExternalStore(noop, () => true, () => false);
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<"overview" | "history">("overview");
   const store = useBankMarks();
   const bank = store.subjects[subject.slug];
 
@@ -125,7 +156,8 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
   }, [subject, bank]);
 
   const days = useMemo(() => dailyCounts(store, DAYS, subject.slug), [store, subject.slug]);
-  const run = useMemo(() => streak(store), [store]);
+  // The Your marking tab opens onto the map; the phone's folded card keeps it folded.
+  const mapOpen = userOpen ?? !compact;
   if (!mounted) return null;
 
   const empty = view.questions === 0;
@@ -147,8 +179,8 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
   };
 
   if (empty) {
-    return (
-      <section className="lp-card qb-prog is-empty" aria-labelledby="qb-prog-title">
+    const nudge = (
+      <>
         <div className="qb-prog-empty">
           <div>
             <h2 id="qb-prog-title">Mark yourself and watch your map fill in</h2>
@@ -166,17 +198,12 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
             ))}
           </div>
         )}
-      </section>
+      </>
     );
+    return bare
+      ? <div className="qb-prog is-bare is-empty">{nudge}</div>
+      : <section className="lp-card qb-prog is-empty" aria-labelledby="qb-prog-title">{nudge}</section>;
   }
-
-  const stats = (
-    <dl className="qb-stats">
-      <div><dd>{view.questions.toLocaleString("en-GB")}</dd><dt>{view.questions === 1 ? "question" : "questions"} marked</dt></div>
-      <div><dd>{view.tried}<small>/{view.total}</small></dd><dt>topics tried</dt></div>
-      <div className={view.tally.needs ? "is-needs" : ""}><dd>{view.tally.needs}</dd><dt>need attention</dt></div>
-    </dl>
-  );
 
   const fortnightStrip = (
     <figure className="qb-fortnight">
@@ -226,7 +253,7 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
   );
 
   const map = (
-    <details className="qb-prog-more" open={userOpen ?? !compact} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== (userOpen ?? !compact)) setUserOpen(o); }}>
+    <details className="qb-prog-more" open={mapOpen} onToggle={e => { const o = (e.currentTarget as HTMLDetailsElement).open; if (o !== mapOpen) setUserOpen(o); }}>
       <summary className="qb-prog-sum">
         <span>Your topic map</span>
         <span className="qb-prog-sum-hint">{view.tried} of {view.total} topics tried{view.tally.early === view.total ? " · two answers on a topic colour its square in" : ""}</span>
@@ -253,54 +280,36 @@ export function BankProgress({ subject, onTopic, lockedTopic, compact, parts, on
     </p>
   );
 
-  if (compact) {
-    return (
-      <details className="lp-card qb-prog is-compact">
-        <summary className="qb-prog-row">
-          {view.share !== null && <Ring share={view.share} small />}
-          <span className="qb-prog-row-text">
-            <strong>Your marking</strong>
-            <span>{view.questions} marked{view.tally.needs ? <> · <b>{view.tally.needs} need attention</b></> : null}</span>
-          </span>
-        </summary>
-        {/* The row already says how many and what needs attention: open straight onto what to practise. */}
-        <div className="qb-prog-body">
-          {again}
-          {weak}
-          <details className="qb-prog-more">
-            <summary className="qb-prog-sum"><span>Your history</span><span className="qb-prog-sum-hint">{view.questions} {view.questions === 1 ? "question" : "questions"}</span></summary>
-            {history}
-          </details>
-          {map}
-          {foot}
-        </div>
-      </details>
-    );
-  }
+  const glance = (
+    <div className={`qb-glance${view.share === null ? " is-unscored" : ""}`}>
+      {view.share !== null && <Score share={view.share} scored={view.scored} outOf={view.outOf} />}
+      <StateBar tally={view.tally} tried={view.tried} total={view.total} open={mapOpen} onToggle={() => setUserOpen(!mapOpen)} />
+      {fortnightStrip}
+    </div>
+  );
+
+  if (bare) return <div className="qb-prog is-bare">{bare === "history" ? <>{again}{history}{foot}</> : <>{glance}{again}{weak}{map}{foot}</>}</div>;
 
   return (
-    <section className="lp-card qb-prog" aria-labelledby="qb-prog-title">
-      <header className="qb-prog-head">
-        <h2 id="qb-prog-title">Your marking</h2>
-        <div className="qb-tabs" role="tablist" aria-label="Your marking">
-          <button type="button" role="tab" aria-selected={tab === "overview"} className={tab === "overview" ? "is-on" : ""} onClick={() => setTab("overview")}>Overview</button>
-          <button type="button" role="tab" aria-selected={tab === "history"} className={tab === "history" ? "is-on" : ""} onClick={() => setTab("history")}>History <span className="qb-tabs-n">{view.questions}</span></button>
-        </div>
-        {run > 1 && <span className="qb-prog-streak" title="Days in a row you’ve marked at least one question">{run}-day streak</span>}
-      </header>
-      {tab === "history" ? <>{again}{history}{foot}</> : <>
-      <div className="qb-prog-top">
-        {view.share !== null && <Ring share={view.share} />}
-        <div className="qb-prog-side">
-          {stats}
-          {fortnightStrip}
-        </div>
+    <details className="lp-card qb-prog is-compact">
+      <summary className="qb-prog-row">
+        {view.share !== null && <Score share={view.share} small />}
+        <span className="qb-prog-row-text">
+          <strong>Your marking</strong>
+          <span>{view.questions} marked{view.tally.needs ? <> · <b>{view.tally.needs} need attention</b></> : null}</span>
+        </span>
+      </summary>
+      {/* The row already says how many and what needs attention: open straight onto what to practise. */}
+      <div className="qb-prog-body">
+        {again}
+        {weak}
+        <details className="qb-prog-more">
+          <summary className="qb-prog-sum"><span>Your history</span><span className="qb-prog-sum-hint">{view.questions} {view.questions === 1 ? "question" : "questions"}</span></summary>
+          {history}
+        </details>
+        {map}
+        {foot}
       </div>
-      {again}
-      {weak}
-      {map}
-      {foot}
-      </>}
-    </section>
+    </details>
   );
 }

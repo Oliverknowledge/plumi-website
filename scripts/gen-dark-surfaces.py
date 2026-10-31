@@ -13,7 +13,8 @@ FILES = ["question-bank.css", "question-bank-hub.css", "pages.css", "past-papers
 SKIP = re.compile(r"\bimg\b|\.qb-sheet|\.lp-sp-paper|\.lp-sp-screen|\.lp-page\b|\.lp-stamp|\.pk-stamp|\.qb-zoom-inner|\.qb-sq|\.lp-meter|\.lp-ring")
 CARD = "var(--lp-card-bg)"
 MAP = {"#fff": CARD, "#ffffff": CARD, "#fffdf8": CARD, "#fdf9f1": CARD, "#fffdf6": CARD, "#fcfcf9": CARD,
-       "#fff4dd": "#3a2f25", "#fffbf1": "#332a24", "#fff1c2": "#4a3d22", "#dff0ee": "#23423f", "#f9dcd5": "#4a2b27"}
+       "#fff4dd": "#3a2f25", "#fffbf1": "#332a24", "#fff1c2": "#4a3d22", "#dff0ee": "#23423f", "#f9dcd5": "#4a2b27",
+       "#fde3c4": "#4a3424", "#fdecea": "#4a2b27", "#f8e3a8": "#5a4720"}
 BG = re.compile(r"(background(?:-color)?)\s*:\s*(#[0-9a-fA-F]{3,6})(?![0-9a-fA-F])([^;}]*)")
 
 
