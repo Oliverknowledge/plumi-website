@@ -223,16 +223,27 @@ def fmt_point(p):
     return ", ".join(f"{k}={float(v):.3f}" for k, v in p.items())
 
 
-def check_line(where, tex, vals, deg, rep: Report):
+def check_line(where, tex, vals, deg, rep: Report, carry=None):
+    """Check one line. A line that starts with = (or \\approx) carries on from the last piece
+    of the line before (`carry`); returns this line's last piece for the next one."""
     rep.counts["lines"] += 1
-    for chain in statements(tex):
+    continues = tex.lstrip().startswith(("=", "\\approx"))
+    last = None
+    for i, chain in enumerate(statements(tex)):
         parsed = [(raw, to_sympy(raw, deg)) for raw in chain]
+        if i == 0 and continues and not chain[0]:
+            if carry:
+                parsed[0] = carry
+            else:
+                rep.skipped.append(f"{where}: carries on from a line that could not be read")
         for raw, e in parsed:
             if e is None and raw:
                 rep.skipped.append(f"{where}: could not read \"{raw}\"")
         for (ra, a), (rb, b) in zip(parsed, parsed[1:]):
             if a is not None and b is not None:
                 compare_pieces(where, ra, rb, a, b, vals, rep)
+        last = parsed[-1] if parsed[-1][1] is not None else None
+    return last
 
 
 # ---------- answers ----------
@@ -413,18 +424,21 @@ def check_solution(path: Path, parts_by_id: dict, rep: Report):
         total += sum(int(re.search(r"\d", m).group()) for m in tagged)
 
         part_vals = symbol_values(check.get("vals"))
+        carry = None  # the last piece of the line before, for a line that starts with =
         for i, step in enumerate(part["steps"]):
             sw = f"{where} step {i + 1}"
             step_check = step.get("check", True)
             if "tex" not in step:
+                carry = None
                 continue
             if step_check is False:
                 rep.unchecked.append(f"{sw}: {step['tex']} (a formula or statement, not a calculation)")
+                carry = None
                 continue
             vals = {**part_vals, **symbol_values(step_check.get("vals") if isinstance(step_check, dict) else None)}
-            check_line(sw, step["tex"], vals, deg, rep)
+            carry = check_line(sw, step["tex"], vals, deg, rep, carry)
         if part.get("answer"):
-            check_line(f"{where} answer", part["answer"], part_vals, deg, rep)
+            check_line(f"{where} answer", part["answer"], part_vals, deg, rep, carry)
         check_answers(where, part, rep)
         if "assert" in check:
             try:

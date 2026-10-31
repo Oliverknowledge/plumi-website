@@ -28,18 +28,24 @@
 .qb-sol-ask { display: block; font: 15px/1.5 "Times New Roman", Times, serif; color: #4a3a36; }
 .qb-sol-method { justify-self: start; margin: 0; padding: 0 4px 2px; font: 700 23px/1.15 var(--f-hand); color: #1d1a19; background: linear-gradient(transparent 68%, #8fd6b4 68%); }
 
-.qb-sol-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.qb-sol-item { display: grid; gap: 4px; border-radius: 6px; }
-.qb-sol-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; }
-.qb-sol-m { min-width: 0; overflow-x: auto; overflow-y: hidden; padding-block: 3px; color: #1f3d8a; font-size: 17px; scrollbar-width: thin; }
+/* The working: one grid for the part, so every line's = sits in the same place, as by hand.
+   Column 1 is a line's left side, column 2 its "= …" or "⇒ …", column 3 the marks. */
+.qb-sol-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; row-gap: 4px; }
+.qb-sol-item { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; row-gap: 2px; border-radius: 6px; }
+.qb-sol-line { display: contents; }
+.qb-sol-l, .qb-sol-r, .qb-sol-w { padding-block: 3px; color: #1f3d8a; font-size: 17px; }
+.qb-sol-l { grid-column: 1; justify-self: end; white-space: nowrap; }
+.qb-sol-r, .qb-sol-w { min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.qb-sol-r { grid-column: 2; }
+.qb-sol-w { grid-column: 1 / 3; }
 .qb-sol .katex { font-size: 1.12em; }
-.qb-sol-text { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.5; color: #1f3d8a; }
-.qb-sol-why { margin: 0 0 0 6px; padding-left: 12px; border-left: 3px solid #f0c98a; font: 600 19px/1.25 var(--f-hand); color: #7a4b1f; }
+.qb-sol-text { grid-column: 1 / 3; margin: 4px 0 2px; font-size: 15.5px; font-weight: 600; line-height: 1.5; color: #1f3d8a; }
+.qb-sol-why { grid-column: 1 / -1; margin: 0 0 4px 6px; padding-left: 12px; border-left: 3px solid #f0c98a; font: 600 18px/1.25 var(--f-hand); color: #7a4b1f; }
 .qb-sol-why .katex { font-size: .95em; }
-.qb-sol-marks { display: flex; gap: 8px; justify-self: end; }
+.qb-sol-marks { grid-column: 3; display: flex; gap: 8px; justify-self: end; padding-left: 14px; }
 .qb-sol-mk { font: 700 21px/1 var(--f-hand); color: #c8372f; white-space: nowrap; }
 .qb-sol-mk::before { content: "✓ "; }
-.qb-sol-answer { justify-self: start; margin: 0; padding: 3px 8px 5px; font-size: 16px; font-weight: 700; line-height: 1.5; color: #1d1a19; background: linear-gradient(transparent 12%, #ffe48a 12%, #ffe48a 92%, transparent 92%); max-width: 100%; overflow-x: auto; }
+.qb-sol-answer { grid-column: 1 / 3; justify-self: start; margin: 6px 0 0; padding: 3px 8px 5px; font-size: 16px; font-weight: 700; line-height: 1.5; color: #1d1a19; background: linear-gradient(transparent 12%, #ffe48a 12%, #ffe48a 92%, transparent 92%); max-width: 100%; overflow-x: auto; }
 
 .qb-sol-end { justify-self: end; margin: 6px 0 0; font: 700 26px/1 var(--f-hand); color: #1f3d8a; letter-spacing: -.1em; }
 
@@ -47,9 +53,13 @@
   .qb-sol-sheet { padding: 14px 10px 18px 34px; background-image: linear-gradient(90deg, transparent 22px, #f1b8ab 22px, #f1b8ab 24px, transparent 24px), repeating-linear-gradient(to bottom, transparent 0 35px, #eef2f8 35px 36px); }
   .qb-sol-label { left: -30px; font-size: 22px; }
   .qb-sol-label.is-long { left: -33px; font-size: 15px; }
-  .qb-sol-line { grid-template-columns: minmax(0, 1fr); }
-  .qb-sol-marks { justify-self: start; }
-  .qb-sol-m { font-size: 16px; }
+  /* No room for columns: each line reads on, its marks under it. */
+  .qb-sol-steps, .qb-sol-item { display: block; }
+  .qb-sol-item + .qb-sol-item { margin-top: 6px; }
+  .qb-sol-line { display: block; }
+  .qb-sol-l, .qb-sol-r { display: inline; font-size: 16px; }
+  .qb-sol-w { display: block; font-size: 16px; }
+  .qb-sol-marks { padding-left: 0; }
   .qb-sol-method { font-size: 21px; }
 }
 @media (prefers-reduced-motion: reduce) { .qb-sol-btn { transition: none; } }
