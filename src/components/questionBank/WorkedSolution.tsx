@@ -1,20 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { Kalam } from "next/font/google";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import "./WorkedSolution.css";
 
 /**
- * A worked solution, written out line by line in the spirit of MadAsMaths and tied to
- * the board's own marks (public/question-bank/<slug>/solutions/<id>.json, checked by
- * scripts/question-bank/solutions/check_solutions.py). Loaded only when a student opens
- * it (QuestionRow), with KaTeX, so the bank's pages carry none of this until then.
+ * A worked solution, set out the way MadAsMaths writes theirs (madasmaths.com, the IYGB
+ * practice paper solutions): one sheet of squared paper per question, everything in blue
+ * pen, the maths included; the question's title across the top; a) b) in the margin;
+ * each stage under a heading in capitals, underlined in coloured marker; the working
+ * down the page on ⇒ arrows or lined-up = signs; small capital notes under a line; the
+ * answer after ∴, underlined in highlighter and closed with //.
  *
- * It opens one step at a time: each part shows its method, then "Next step" reveals the
- * working a line at a time, then the answer. "Show every step" lays the whole solution
- * out at once.
+ * The solution data (public/question-bank/<slug>/solutions/<id>.json, checked by
+ * scripts/question-bank/solutions/check_solutions.py) also carries the board's marks for
+ * each line; MadAsMaths' sheets have none, so they aren't drawn. Loaded only when a
+ * student opens it (QuestionRow), with KaTeX, so the bank's pages carry none of this.
  */
+
+// MadAsMaths' pen: upright print handwriting, the maths in it too.
+const pen = Kalam({ subsets: ["latin"], weight: ["400", "700"], display: "swap", variable: "--qb-sol-pen" });
 
 interface Step { tex?: string; text?: string; why?: string; marks?: string[] }
 interface Part { label: string; ask?: string; method: string; steps: Step[]; answer?: string; answerText?: string; answerMarks?: string[] }
@@ -27,13 +34,15 @@ function solutionFor(slug: string, id: string) {
   return solutions[`${slug}/${id}`];
 }
 
-/** KaTeX's HTML for one piece of maths. A line of working is set full size but may still wrap after = or +. */
+/** Each sheet's headings are underlined in one marker colour, as MadAsMaths' pages are: it changes from question to question. */
+const MARKERS = ["#f28b1e", "#e3262d", "#1fae55", "#2b6fd6"];
+
 function mathHtml(tex: string, display = false) {
   return katex.renderToString(display ? `\\displaystyle ${tex}` : tex, { throwOnError: false, output: "htmlAndMathml" });
 }
 
-function Maths({ tex, className }: { tex: string; className?: string }) {
-  return <span className={className} dangerouslySetInnerHTML={{ __html: mathHtml(tex, true) }} />;
+function Maths({ tex }: { tex: string }) {
+  return <span dangerouslySetInnerHTML={{ __html: mathHtml(tex, true) }} />;
 }
 
 /** Prose with inline \( ... \) maths. */
@@ -46,8 +55,8 @@ const RELATIONS = ["=", "\\Rightarrow", "\\approx", "\\equiv", "\\leq", "\\geq",
 
 /**
  * A line of working split at its first relation outside braces, "f'(x)" | "= 1 + …", so the
- * lines of a part line up on their = signs as they would by hand. A line that carries on
- * ("= …", "⇒ …") has nothing on the left. A long left side isn't split: it would push
+ * lines of a part line up on their = signs, as MadAsMaths' do. A line that carries on
+ * ("= …") has nothing on the left. A long left side isn't split: it would push
  * every other line across.
  */
 function splitAtRelation(tex: string): [string, string] | null {
@@ -68,11 +77,14 @@ function splitAtRelation(tex: string): [string, string] | null {
   return null;
 }
 
-/** A part's letter as written in the margin: "a)", "(ii)", "b(i)". */
-const marginLabel = (label: string) => (/^[ivx]+$/.test(label) ? `(${label})` : label.includes("(") ? label : `${label})`);
-
-function Working({ tex }: { tex: string }) {
-  const split = splitAtRelation(tex);
+/**
+ * A line of working. Only a chain lines up, as MadAsMaths writes it: a line that the next
+ * carries on with "= …" (`chain`) is split at its =, and the "= …" lines sit under it. Every
+ * other line, ⇒ lines included, starts at the left of the working.
+ */
+function Working({ tex, chain }: { tex: string; chain: boolean }) {
+  const carries = /^\s*=/.test(tex);
+  const split = carries ? ["", tex.trim()] as [string, string] : chain ? splitAtRelation(tex) : null;
   if (!split) return <span className="qb-sol-w"><Maths tex={tex} /></span>;
   return <>
     <span className="qb-sol-l">{split[0] && <Maths tex={split[0]} />}</span>
@@ -80,60 +92,29 @@ function Working({ tex }: { tex: string }) {
   </>;
 }
 
-function Marks({ marks }: { marks?: string[] }) {
-  if (!marks?.length) return null;
+/** A part's letter as written in the margin: "a)", "ii)", "b(i)". */
+const marginLabel = (label: string) => (label.includes("(") ? label : `${label})`);
+
+/** The answer, after ∴ unless the working already leads into it with ⇒ or "So". */
+function Answer({ part }: { part: Part }) {
+  const tex = part.answer;
+  const leads = tex ? /^\s*\\Rightarrow/.test(tex) : /^(so|thus|therefore|hence)\b/i.test(part.answerText ?? "");
   return (
-    <span className="qb-sol-marks">
-      {marks.map((m, i) => <span key={i} className="qb-sol-mk" aria-label={`earns ${m}`}>{m}</span>)}
-    </span>
+    <p className="qb-sol-answer">
+      <span className="qb-sol-sr">Answer: </span>
+      {!leads && <span className="qb-sol-therefore" aria-hidden="true">∴ </span>}
+      <span className="qb-sol-hl">{tex ? <Maths tex={tex} /> : <Prose text={part.answerText ?? ""} />}</span>
+      <span className="qb-sol-done" aria-hidden="true">{"//"}</span>
+    </p>
   );
 }
 
-/** The things a part reveals in turn: its working, then its answer. */
-function partItems(part: Part) {
-  const items: { key: string; node: ReactNode; kind: "step" | "answer" }[] = part.steps.map((s, i) => ({
-    key: `s${i}`, kind: "step",
-    node: (
-      <>
-        <div className="qb-sol-line">
-          {s.tex ? <Working tex={s.tex} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}
-          <Marks marks={s.marks} />
-        </div>
-        {s.why && <p className="qb-sol-why"><Prose text={s.why} /></p>}
-      </>
-    ),
-  }));
-  items.push({
-    key: "answer", kind: "answer",
-    node: (
-      <div className="qb-sol-line">
-        <p className="qb-sol-answer">
-          <span className="qb-sol-sr">Answer: </span>
-          {part.answer ? <Maths tex={part.answer} /> : <Prose text={part.answerText ?? ""} />}
-        </p>
-        <Marks marks={part.answerMarks} />
-      </div>
-    ),
-  });
-  return items;
-}
-
-export function WorkedSolution({ slug, id, question }: { slug: string; id: string; question: string }) {
+export function WorkedSolution({ slug, id, question, title }: { slug: string; id: string; question: string; title: string }) {
   const [solution, setSolution] = useState<Solution | null | undefined>(undefined);
-  const [stepwise, setStepwise] = useState(true);
-  // How many of each part's items are showing, one step at a time.
-  const [shown, setShown] = useState<number[]>([]);
-  const [said, setSaid] = useState("");
-  const nextRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const endRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     let live = true;
-    solutionFor(slug, id).then(s => {
-      if (!live) return;
-      setSolution(s);
-      if (s) setShown(s.parts.map(() => 0));
-    });
+    solutionFor(slug, id).then(s => { if (live) setSolution(s); });
     return () => { live = false; };
   }, [slug, id]);
 
@@ -141,74 +122,33 @@ export function WorkedSolution({ slug, id, question }: { slug: string; id: strin
   if (solution === undefined) return <div className="qb-sol" aria-busy="true"><p className="qb-sol-hint">Opening the worked solution…</p></div>;
   if (solution === null) return <div className="qb-sol"><p className="qb-sol-hint">The worked solution didn’t load. Try again in a moment.</p></div>;
 
-  const parts = solution.parts.map(partItems);
-  const total = parts.reduce((n, items) => n + items.length, 0);
-
-  function reveal(p: number) {
-    const count = Math.min(parts[p].length, (shown[p] ?? 0) + 1);
-    setShown(s => s.map((n, i) => (i === p ? count : n)));
-    const item = parts[p][count - 1];
-    const label = solution!.parts[p].label;
-    const where = label ? `Part ${label}: ` : "";
-    setSaid(item.kind === "answer" ? `${where}the answer is showing.` : `${where}step ${count} of ${solution!.parts[p].steps.length} is showing.`);
-    if (count === parts[p].length) {
-      // This part is done: carry on to the next part's key, or to the end of this one.
-      requestAnimationFrame(() => (nextRefs.current.slice(p + 1).find(Boolean) ?? endRefs.current[p])?.focus());
-    }
-  }
-
-  function setMode(on: boolean) {
-    setStepwise(on);
-    setShown(solution!.parts.map(() => 0));
-    setSaid(on ? "Showing one step at a time." : `Showing every step: ${total} in all.`);
-  }
-
+  const marker = MARKERS[(parseInt(question, 10) || 0) % MARKERS.length];
   return (
-    <section className="qb-sol" aria-labelledby={headingId}>
-      <div className="qb-sol-bar">
-        <h3 id={headingId} className="qb-sol-title">Worked solution</h3>
-        <button type="button" className="qb-sol-btn is-quiet" aria-pressed={!stepwise} onClick={() => setMode(!stepwise)}>
-          {stepwise ? "Show every step" : "One step at a time"}
-        </button>
-      </div>
-      <p className="qb-sol-hint">
-        {stepwise ? "Try each step yourself before you reveal it." : "Every step is showing."} Marks are the ones in Pearson’s mark scheme, on the line that earns them.
-      </p>
+    <section className={`qb-sol ${pen.variable}`} aria-labelledby={headingId} style={{ "--qb-sol-marker": marker } as CSSProperties}>
       <div className="qb-sol-sheet">
-        <p className="qb-sol-sheet-title" aria-hidden="true">Question {question}</p>
-        {solution.parts.map((part, p) => {
-          const items = parts[p];
-          const count = stepwise ? (shown[p] ?? 0) : items.length;
-          const partHead = part.label ? `Part (${part.label})` : `Question ${question}`;
-          return (
-            <section key={part.label || p} className="qb-sol-part" aria-labelledby={`${headingId}-${p}`}>
-              <h4 id={`${headingId}-${p}`} className="qb-sol-part-head">
-                {part.label ? <span className={`qb-sol-label${part.label.length > 2 ? " is-long" : ""}`} aria-hidden="true">{marginLabel(part.label)}</span> : null}
-                <span className="qb-sol-sr">{partHead}</span>
-                {part.ask && <span className="qb-sol-ask"><Prose text={part.ask} /></span>}
-              </h4>
-              <p className="qb-sol-method"><span className="qb-sol-sr">Method: </span><Prose text={part.method} /></p>
-              <ol className="qb-sol-steps">
-                {items.slice(0, count).map((item, i) => (
-                  <li key={item.key} className={`qb-sol-item is-${item.kind}`}
-                    tabIndex={i === items.length - 1 ? -1 : undefined}
-                    ref={i === items.length - 1 ? el => { endRefs.current[p] = el; } : undefined}>
-                    {item.node}
-                  </li>
-                ))}
-              </ol>
-              {count < items.length && (
-                <button type="button" className="qb-sol-btn" ref={el => { nextRefs.current[p] = el; }} onClick={() => reveal(p)}
-                  aria-label={`Next step${part.label ? ` in part ${part.label}` : ""} (${count} of ${items.length} shown)`}>
-                  Next step
-                </button>
-              )}
-            </section>
-          );
-        })}
-        {(!stepwise || parts.every((items, p) => (shown[p] ?? 0) >= items.length)) && <p className="qb-sol-end" aria-hidden="true">{"//"}</p>}
+        <p className="qb-sol-page" aria-hidden="true">– 1 –</p>
+        <h3 id={headingId} className="qb-sol-title">
+          <span className="qb-sol-sr">Worked solution: </span>{title} – Question {question}
+        </h3>
+        {solution.parts.map((part, p) => (
+          <section key={part.label || p} className="qb-sol-part" aria-labelledby={`${headingId}-${p}`}>
+            <h4 id={`${headingId}-${p}`} className="qb-sol-head">
+              {part.label && <span className="qb-sol-label" aria-hidden="true">{marginLabel(part.label)}</span>}
+              {part.label && <span className="qb-sol-sr">Part ({part.label}): </span>}
+              <span className="qb-sol-stage"><Prose text={part.method} /></span>
+            </h4>
+            <div className="qb-sol-steps">
+              {part.steps.map((s, i) => (
+                <div key={i} className="qb-sol-item">
+                  {s.tex ? <Working tex={s.tex} chain={/^\s*=/.test(part.steps[i + 1]?.tex ?? "")} /> : <p className="qb-sol-text"><Prose text={s.text ?? ""} /></p>}
+                  {s.why && <p className="qb-sol-why"><Prose text={s.why} /></p>}
+                </div>
+              ))}
+            </div>
+            <Answer part={part} />
+          </section>
+        ))}
       </div>
-      <p className="qb-sol-sr" role="status" aria-live="polite">{said}</p>
     </section>
   );
 }

@@ -221,7 +221,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
-        {open.sol && withSolution.map(p => <WorkedSolution key={`${p.id}-sol`} slug={subject.slug} id={p.id} question={p.l} />)}
+        {open.sol && withSolution.map(p => <WorkedSolution key={`${p.id}-sol`} slug={subject.slug} id={p.id} question={p.l}
+          title={`${subject.board} – ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}`} />)}
         {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
         {!embed && pdfOnly.map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>

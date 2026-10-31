@@ -1,65 +1,70 @@
 /*
- * A worked solution (WorkedSolution.tsx), loaded with it when a student first opens one.
- * Its heading and keys follow the theme, like the rest of the question's sheet; the working
- * itself is a sheet of paper in both themes, as the scans are, in fixed ink: the working in
- * blue pen, the marks in red, the method under green highlighter and the answers under yellow.
+ * A worked solution (WorkedSolution.tsx), set out as MadAsMaths' handwritten solutions are:
+ * squared paper, blue pen for everything (the maths too, in the pen's face), headings in
+ * capitals underlined in one marker colour per sheet (--qb-sol-marker), answers underlined
+ * in yellow highlighter and closed with //. The sheet is paper in both themes, as the
+ * scans of the papers are.
  */
-.qb-sol { display: grid; gap: 10px; color: var(--lp-ink); }
-.qb-sol-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
-.qb-sol-title { font-family: var(--f-px); font-weight: 600; font-size: 17px; color: var(--lp-orange); margin: 0; }
-.qb-sol-hint { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--lp-ink-soft); }
+.qb-sol { --qb-sol-ink: #1c3fa8; --qb-sol-grid: 24px; }
+.qb-sol-hint { margin: 0; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
 .qb-sol-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-.qb-sol-btn { appearance: none; cursor: pointer; justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: #3e302b; background: #f2c96b; border: 2px solid #5b4741; border-radius: 10px; box-shadow: 0 3px 0 #5b4741; padding: 6px 14px; min-height: 40px; transition: transform .06s, box-shadow .06s; }
-.qb-sol-btn.is-quiet { color: var(--lp-ink); background: var(--lp-card-bg); border-color: var(--lp-line); box-shadow: 0 3px 0 var(--lp-shadow); }
-.qb-sol-btn:hover { filter: brightness(1.04); }
-.qb-sol-btn:active { transform: translateY(3px); box-shadow: 0 0 0 #5b4741; }
-.qb-sol-btn:focus-visible, .qb-sol-item:focus-visible { outline: 3px solid #2f6f69; outline-offset: 2px; }
+/* Squared paper: a faint grey grid on white, as the IYGB solution sheets are written on. */
+.qb-sol-sheet { position: relative; display: grid; gap: 10px; padding: 14px 22px 30px 26px; background-color: #fff; color: var(--qb-sol-ink);
+  background-image: linear-gradient(#e3e6ec 1px, transparent 1px), linear-gradient(90deg, #e3e6ec 1px, transparent 1px);
+  background-size: var(--qb-sol-grid) var(--qb-sol-grid); background-position: -1px -1px;
+  border: 1px solid #d7dbe2; border-radius: 4px; box-shadow: 0 2px 6px rgba(40, 50, 70, .12);
+  font-family: var(--qb-sol-pen), "Bradley Hand", cursive; font-size: 18px; line-height: 1.45; }
 
-/* The sheet: a ruled page with a red margin, the part letters written in the margin. */
-.qb-sol-sheet { position: relative; display: grid; background: #fffdf8; color: #1d1a19; border: 2px solid #d6c9b4; border-radius: 8px; box-shadow: 4px 6px 0 rgba(91, 71, 65, .16); padding: 18px 18px 22px 58px;
-  background-image: linear-gradient(90deg, transparent 40px, #f1b8ab 40px, #f1b8ab 42px, transparent 42px), repeating-linear-gradient(to bottom, transparent 0 35px, #eef2f8 35px 36px); }
-.qb-sol-sheet-title { justify-self: start; margin: 0 0 6px; font: 700 26px/1.1 var(--f-hand); color: #1f3d8a; border-bottom: 3px solid #1f3d8a; }
-.qb-sol-part { display: grid; gap: 10px; padding-block: 12px 16px; }
-.qb-sol-part + .qb-sol-part { border-top: 2px dashed #e2d6c2; }
-.qb-sol-part-head { position: relative; margin: 0; font-weight: 400; }
-.qb-sol-label { position: absolute; left: -48px; top: -4px; font: 700 26px/1 var(--f-hand); color: #1f3d8a; }
-.qb-sol-label.is-long { left: -54px; top: 0; font-size: 19px; }
-.qb-sol-ask { display: block; font: 15px/1.5 "Times New Roman", Times, serif; color: #4a3a36; }
-.qb-sol-method { justify-self: start; margin: 0; padding: 0 4px 2px; font: 700 23px/1.15 var(--f-hand); color: #1d1a19; background: linear-gradient(transparent 68%, #8fd6b4 68%); }
+/* The pen writes the maths too: KaTeX's letters and digits in the pen's face, upright as by hand.
+   Its big brackets, integral signs and roots keep KaTeX's own shapes; Greek falls back to KaTeX. */
+.qb-sol .katex { font-family: var(--qb-sol-pen), KaTeX_Main, serif; font-size: 1.12em; }
+.qb-sol .katex .mathnormal, .qb-sol .katex .mathit, .qb-sol .katex .mathrm, .qb-sol .katex .textrm, .qb-sol .katex .mainrm, .qb-sol .katex .mop {
+  font-family: var(--qb-sol-pen), KaTeX_Math, KaTeX_Main, serif; font-style: normal; }
+.qb-sol .katex { text-transform: none; }
 
-/* The working: one grid for the part, so every line's = sits in the same place, as by hand.
-   Column 1 is a line's left side, column 2 its "= …" or "⇒ …", column 3 the marks. */
-.qb-sol-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr) auto; row-gap: 4px; }
-.qb-sol-item { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; row-gap: 2px; border-radius: 6px; }
-.qb-sol-line { display: contents; }
-.qb-sol-l, .qb-sol-r, .qb-sol-w { padding-block: 3px; color: #1f3d8a; font-size: 17px; }
+.qb-sol-page { justify-self: center; margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .1em; }
+.qb-sol .qb-sol-title { justify-self: center; margin: 0 0 8px; padding: 0 4px 2px; text-align: center; font: 700 21px/1.3 var(--qb-sol-pen), cursive;
+  color: var(--qb-sol-ink); text-transform: uppercase; letter-spacing: .02em; border-bottom: 2px solid var(--qb-sol-ink); }
+
+.qb-sol-part { position: relative; display: grid; gap: 8px; padding: 6px 0 14px 46px; }
+.qb-sol-head { margin: 0; font: inherit; }
+.qb-sol-label { position: absolute; left: 0; top: 0; font-size: 28px; font-weight: 700; line-height: 1.1; }
+
+/* A stage heading: capitals, underlined in the sheet's marker. */
+.qb-sol-stage { display: inline; padding-bottom: 3px; text-transform: uppercase; font-size: 17px; letter-spacing: .03em;
+  background: linear-gradient(transparent calc(100% - 4px), var(--qb-sol-marker) calc(100% - 4px));
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* The working: one grid for the part, so every line's = sits in the same place. */
+.qb-sol-steps { display: grid; grid-template-columns: max-content minmax(0, 1fr); row-gap: 2px; padding-left: 8px; }
+.qb-sol-item { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; }
+.qb-sol-l, .qb-sol-r, .qb-sol-w { padding-block: 3px; }
 .qb-sol-l { grid-column: 1; justify-self: end; white-space: nowrap; }
 .qb-sol-r, .qb-sol-w { min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
 .qb-sol-r { grid-column: 2; }
-.qb-sol-w { grid-column: 1 / 3; }
-.qb-sol .katex { font-size: 1.12em; }
-.qb-sol-text { grid-column: 1 / 3; margin: 4px 0 2px; font-size: 15.5px; font-weight: 600; line-height: 1.5; color: #1f3d8a; }
-.qb-sol-why { grid-column: 1 / -1; margin: 0 0 4px 6px; padding-left: 12px; border-left: 3px solid #f0c98a; font: 600 18px/1.25 var(--f-hand); color: #7a4b1f; }
-.qb-sol-why .katex { font-size: .95em; }
-.qb-sol-marks { grid-column: 3; display: flex; gap: 8px; justify-self: end; padding-left: 14px; }
-.qb-sol-mk { font: 700 21px/1 var(--f-hand); color: #c8372f; white-space: nowrap; }
-.qb-sol-mk::before { content: "✓ "; }
-.qb-sol-answer { grid-column: 1 / 3; justify-self: start; margin: 6px 0 0; padding: 3px 8px 5px; font-size: 16px; font-weight: 700; line-height: 1.5; color: #1d1a19; background: linear-gradient(transparent 12%, #ffe48a 12%, #ffe48a 92%, transparent 92%); max-width: 100%; overflow-x: auto; }
+.qb-sol-w { grid-column: 1 / -1; }
+/* A sentence in the working, in capitals as MadAsMaths writes every word. */
+.qb-sol-text { grid-column: 1 / -1; margin: 6px 0 2px; text-transform: uppercase; font-size: 16px; letter-spacing: .03em; }
+/* A small note under a line. */
+.qb-sol-why { grid-column: 1 / -1; margin: 0 0 4px 18px; text-transform: uppercase; font-size: 13.5px; letter-spacing: .03em; line-height: 1.4; }
+.qb-sol-why .katex { font-size: 1em; }
 
-.qb-sol-end { justify-self: end; margin: 6px 0 0; font: 700 26px/1 var(--f-hand); color: #1f3d8a; letter-spacing: -.1em; }
+/* The answer: ∴, underlined in yellow highlighter, then //. */
+.qb-sol-answer { margin: 6px 0 0 8px; font-size: 18px; }
+.qb-sol-therefore { font-weight: 700; margin-right: 4px; }
+.qb-sol-hl { padding: 0 3px 4px; background: linear-gradient(transparent calc(100% - 6px), #f5d90a calc(100% - 6px));
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.qb-sol-answer .qb-sol-hl:not(:has(.katex)) { text-transform: uppercase; font-size: 16px; letter-spacing: .03em; }
+.qb-sol-done { display: inline-block; margin-left: 14px; font-size: 26px; font-weight: 400; letter-spacing: -.18em; transform: rotate(8deg) translateY(-6px); }
 
 @media (max-width: 700px) {
-  .qb-sol-sheet { padding: 14px 10px 18px 34px; background-image: linear-gradient(90deg, transparent 22px, #f1b8ab 22px, #f1b8ab 24px, transparent 24px), repeating-linear-gradient(to bottom, transparent 0 35px, #eef2f8 35px 36px); }
-  .qb-sol-label { left: -30px; font-size: 22px; }
-  .qb-sol-label.is-long { left: -33px; font-size: 15px; }
-  /* No room for columns: each line reads on, its marks under it. */
-  .qb-sol-steps, .qb-sol-item { display: block; }
-  .qb-sol-item + .qb-sol-item { margin-top: 6px; }
-  .qb-sol-line { display: block; }
-  .qb-sol-l, .qb-sol-r { display: inline; font-size: 16px; }
-  .qb-sol-w { display: block; font-size: 16px; }
-  .qb-sol-marks { padding-left: 0; }
-  .qb-sol-method { font-size: 21px; }
+  .qb-sol-sheet { padding: 10px 10px 22px 12px; font-size: 16px; }
+  .qb-sol-title { font-size: 17px; }
+  .qb-sol-part { padding-left: 32px; }
+  .qb-sol-label { font-size: 22px; }
+  /* No room for columns: each line reads on. */
+  .qb-sol-steps, .qb-sol-item { display: block; padding-left: 0; }
+  .qb-sol-l, .qb-sol-r { display: inline; }
+  .qb-sol-w { display: block; }
 }
-@media (prefers-reduced-motion: reduce) { .qb-sol-btn { transition: none; } }
