@@ -615,6 +615,30 @@ def table_rules(page):
     return dict(sorted(ys.items()))
 
 
+def carried(found, doc):
+    """A row carried over a page repeats its label there ("*7(d)", often over "contd"): one row, not two.
+    Read as two, the first ended where the second began and the second was dropped as a copy, so a 6-mark
+    question kept its levels grid and lost the indicative content overleaf (a student, 30 October 2026).
+    A repeat that opens with the same words is the whole row printed twice, a misprint shown once; and the
+    label as printed must match, pieces and all: OCR sets "35 | (c) | (ii)" in three columns, which the
+    reader takes as 35(c), so 35(c)(i) and the 35(c)(ii) over the page only look like one label.
+    ms_carryover.py recuts the crops cut before this."""
+    def short(l):
+        return len(l["text"].strip()) <= 16 and MS_LABEL.match(l["text"].strip())
+
+    def printed(pg, y):
+        return "".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: l["x0"]) if abs(l["y0"] - y) < 3 and l["x0"] < 160 and short(l)).replace(" ", "")
+
+    def opening(pg, y):
+        words = " ".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: (round(l["y0"]), l["x0"]))
+                         if y - 2 <= l["y0"] <= y + 25 and not short(l) and not re.match(r"(?i)\(?cont", l["text"].strip()))
+        return re.sub(r"\W+", "", words.lower())[:60]
+
+    def repeat(a, b):
+        return a[2] == b[2] and b[0] > a[0] and printed(a[0], a[3]) == printed(b[0], b[3]) and opening(a[0], a[3]) != opening(b[0], b[3])
+    return [f for n, f in enumerate(found) if not (n and repeat(found[n - 1], f))]
+
+
 def ms_tables(doc):
     """{(q, letter, roman): [(page, rect)], ...} plus each one's text and any MCQ answer letter."""
     found = []  # (page, top, key, label_y)
@@ -769,6 +793,7 @@ def ms_tables(doc):
         garbled = garbled or FIGURES and letter == pletter and roman != after and any(f[2] == found[n][2] for f in found[n + 1:])
         if (letter is None and roman == after) or (letter == pletter and garbled):
             found[n] = (found[n][0], found[n][1], (q, pletter, after), found[n][3])
+    found = carried(found, doc)
     out = {}
     # A multiple-choice key's rows can be a single line each, "7  C  1": such a row runs from its own
     # line to the next, where a taller row starts a little above its label.
