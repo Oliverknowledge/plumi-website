@@ -75,13 +75,13 @@
       "method": "Keep iterating",
       "steps": [
         { "tex": "x_3 = \\frac{2\\mathrm{e}^{3(1.50177\\ldots)} - 4}{\\mathrm{e}^{3(1.50177\\ldots)} + 4} = 1.8730\\ldots", "why": "Use the full calculator value each time (the ANS key)." },
-        { "tex": "x_4 = 1.9570\\ldots, \\quad x_5 = 1.9665\\ldots, \\quad x_6 = 1.9674\\ldots, \\quad x_7 = 1.96756\\ldots", "why": "Stop when the values agree to 3 d.p." }
+        { "tex": "x_4 = 1.9570\\ldots, \\quad x_5 = 1.9665\\ldots, \\quad x_6 = 1.9674\\ldots, \\quad x_7 = 1.96756\\ldots, \\quad x_8 = 1.96756\\ldots", "why": "Stop when the values agree to 3 d.p." }
       ],
       "answer": "\\beta = 1.968",
       "answerMarks": ["dB1"],
       "check": {
         "marks": ["dB1"],
-        "vals": { "x_3": "1.8730131028651595", "x_4": "1.9570853002461055", "x_5": "1.9665453154967745", "x_6": "1.9674712648300015", "x_7": "1.9675605236051217", "\\beta": "1.96757002" },
+        "vals": { "x_3": "1.8730131028651595", "x_4": "1.9570853002461055", "x_5": "1.9665453154967745", "x_6": "1.9674712648300015", "x_7": "1.9675605236051217", "x_8": "1.9675691150746755","\\beta": "1.96757002" },
         "answers": [{ "tex": "\\beta = 1.968", "scheme": "1.968", "derive": "nsolve(2*exp(3*x) - 4 - x*(exp(3*x) + 4), x, 1.97)", "tol": 0.0005 }]
       }
     },

@@ -27,8 +27,8 @@
       "method": "Simultaneous equations",
       "steps": [
         { "tex": "a + 16.8 + b + 20.2 + 18.7 + 13.5 = 97.2" },
-        { "tex": "\\Rightarrow a + b = 28", "why": "Solve this with \\(a + 2b = 51\\) from part (a).", "marks": ["M1"] },
-        { "tex": "\\Rightarrow (a + 2b) - (a + b) = 51 - 28 \\Rightarrow b = 23", "why": "Subtract the equations: \\(a\\) cancels.", "marks": ["A1"] },
+        { "tex": "\\Rightarrow a + b = 28", "why": "Solve this with \\(a + 2b = 51\\) from part (a)." },
+        { "tex": "\\Rightarrow (a + 2b) - (a + b) = 51 - 28 \\Rightarrow b = 23", "why": "Subtract the equations: \\(a\\) cancels.", "marks": ["M1", "A1"] },
         { "tex": "\\Rightarrow a = 28 - b = 28 - 23" }
       ],
       "answer": "a = 5, \\quad b = 23",

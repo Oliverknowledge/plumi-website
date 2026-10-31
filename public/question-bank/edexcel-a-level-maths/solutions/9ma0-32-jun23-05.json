@@ -63,7 +63,7 @@
       "ask": "The model does not include air resistance. State one other limitation of the model.",
       "method": "What the model leaves out",
       "steps": [
-        { "text": "The model treats the ball as a particle, a point with no size." }
+        { "text": "Air resistance is excluded, so name something else real that the model leaves out. One clear limitation is enough.", "why": "Extra, wrong limitations can cost the mark." }
       ],
       "answerText": "The model ignores the spin of the ball.",
       "answerMarks": ["B1"],

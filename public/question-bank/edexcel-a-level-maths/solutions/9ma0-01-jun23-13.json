@@ -9,9 +9,9 @@
       "method": "Use the maximum, then the start",
       "steps": [
         { "tex": "a = 60", "why": "\\(b > 0\\), so \\(H\\) is greatest when \\(t = 20\\): then \\(H = a\\).", "marks": ["B1"] },
-        { "tex": "2 = 60 - b(0 - 20)^2", "why": "The start: \\(t = 0\\), \\(H = 2\\).", "marks": ["M1"] },
+        { "tex": "2 = 60 - b(0 - 20)^2", "why": "The start: \\(t = 0\\), \\(H = 2\\)." },
         { "tex": "\\Rightarrow 400b = 58" },
-        { "tex": "\\Rightarrow b = 0.145" }
+        { "tex": "\\Rightarrow b = 0.145", "marks": ["M1"] }
       ],
       "answer": "H = 60 - 0.145(t - 20)^2",
       "answerMarks": ["A1"],

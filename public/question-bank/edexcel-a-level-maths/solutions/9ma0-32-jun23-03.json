@@ -59,7 +59,7 @@
       "ask": "Find the value of \\(t\\) when the acceleration of \\(P\\) is perpendicular to \\(\\mathbf{i}\\).",
       "method": "The \\(\\mathbf{i}\\) component is zero",
       "steps": [
-        { "tex": "2t - 3 = 0", "why": "Perpendicular to \\(\\mathbf{i}\\): only the \\(\\mathbf{i}\\) component is zero.", "marks": ["M1"] }
+        { "tex": "2t - 3 = 0", "why": "Perpendicular to \\(\\mathbf{i}\\): the \\(\\mathbf{i}\\) component must be zero.", "marks": ["M1"] }
       ],
       "answer": "t = 1.5",
       "answerMarks": ["A1"],

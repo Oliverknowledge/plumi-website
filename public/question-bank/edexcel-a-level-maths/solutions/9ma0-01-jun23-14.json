@@ -9,12 +9,12 @@
       "method": "Proof by exhaustion: \\(n\\) even, then \\(n\\) odd",
       "steps": [
         { "text": "\\(n\\) even: let \\(n = 2k\\), where \\(k\\) is an integer." },
-        { "tex": "(2k + 1)^3 - (2k)^3 = 8k^3 + 12k^2 + 6k + 1 - 8k^3", "why": "Expand fully: the \\(k^3\\) terms cancel.", "marks": ["M1"] },
-        { "tex": "= 12k^2 + 6k + 1" },
+        { "tex": "(2k + 1)^3 - (2k)^3 = 8k^3 + 12k^2 + 6k + 1 - 8k^3", "why": "Expand fully: the \\(k^3\\) terms cancel." },
+        { "tex": "= 12k^2 + 6k + 1", "marks": ["M1"] },
         { "tex": "= 2(6k^2 + 3k) + 1", "why": "Two times an integer, plus 1: odd.", "marks": ["A1"] },
         { "text": "\\(n\\) odd: let \\(n = 2k + 1\\)." },
-        { "tex": "(2k + 2)^3 - (2k + 1)^3 = 8k^3 + 24k^2 + 24k + 8 - (8k^3 + 12k^2 + 6k + 1)", "why": "Keep the bracket: the minus applies to every term.", "marks": ["dM1"] },
-        { "tex": "= 12k^2 + 18k + 7" },
+        { "tex": "(2k + 2)^3 - (2k + 1)^3 = 8k^3 + 24k^2 + 24k + 8 - (8k^3 + 12k^2 + 6k + 1)", "why": "Keep the bracket: the minus applies to every term." },
+        { "tex": "= 12k^2 + 18k + 7", "marks": ["dM1"] },
         { "tex": "= 2(6k^2 + 9k + 3) + 1" }
       ],
       "answerText": "In both cases \\((n + 1)^3 - n^3\\) is one more than an even number, so it is odd for all \\(n \\in \\mathbb{N}\\).",

@@ -8,8 +8,8 @@
       "ask": "Find the first three terms, in ascending powers of \\(x\\), of the binomial expansion of \\((3 + x)^{-2}\\), each in simplest form. You must show all stages of your working.",
       "method": "Binomial expansion: take out a factor of \\(3^{-2}\\) first",
       "steps": [
-        { "tex": "(3 + x)^{-2} = 3^{-2}\\left(1 + \\frac{x}{3}\\right)^{-2}", "why": "The bracket must start with 1. The 3 comes out as \\(3^{-2}\\).", "marks": ["M1"] },
-        { "tex": "= \\frac{1}{9}\\left(1 + (-2)\\left(\\frac{x}{3}\\right) + \\frac{(-2)(-3)}{2!}\\left(\\frac{x}{3}\\right)^2 + \\ldots\\right)", "why": "Formula book: \\((1 + x)^n = 1 + nx + \\frac{n(n-1)}{2!}x^2 + \\ldots\\), with \\(n = -2\\).", "marks": ["M1", "A1"], "check": false },
+        { "tex": "(3 + x)^{-2} = 3^{-2}\\left(1 + \\frac{x}{3}\\right)^{-2}", "why": "The bracket must start with 1. The 3 comes out as \\(3^{-2}\\)." },
+        { "tex": "= \\frac{1}{9}\\left(1 + (-2)\\left(\\frac{x}{3}\\right) + \\frac{(-2)(-3)}{2!}\\left(\\frac{x}{3}\\right)^2 + \\ldots\\right)", "why": "Formula book: \\((1 + x)^n = 1 + nx + \\frac{n(n-1)}{2!}x^2 + \\ldots\\), with \\(n = -2\\).", "marks": ["M1", "M1", "A1"], "check": false },
         { "tex": "= \\frac{1}{9}\\left(1 - \\frac{2x}{3} + \\frac{x^2}{3}\\right)" }
       ],
       "answer": "= \\frac{1}{9} - \\frac{2x}{27} + \\frac{x^2}{27}",

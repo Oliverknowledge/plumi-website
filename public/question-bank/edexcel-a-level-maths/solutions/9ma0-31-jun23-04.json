@@ -28,7 +28,7 @@
         { "tex": "\\mathrm{H}_0: \\mu = 175.4 \\qquad \\mathrm{H}_1: \\mu \\neq 175.4", "why": "\"Different\" means two-tailed: \\(\\neq\\).", "marks": ["B1"], "check": false },
         { "tex": "\\bar{S} \\sim \\mathrm{N}\\left(175.4,\\ \\frac{6.8^2}{52}\\right)", "why": "\\(\\bar{S}\\): sample mean, assuming \\(\\mathrm{H}_0\\). Variance \\(\\dfrac{\\sigma^2}{n}\\).", "marks": ["M1"], "check": false },
         { "tex": "\\mathrm{P}(\\bar{S} > 177.2) = 0.02814\\ldots", "marks": ["A1"] },
-        { "text": "Two-tailed, so compare with half of 5%: \\(0.02814\\ldots > 0.025\\). Not significant.", "why": "Comparing with \\(0.05\\) here is the classic slip." }
+        { "text": "Two-tailed, so compare with half of 5%: 0.025.", "why": "Comparing with \\(0.05\\) here is the classic slip." }
       ],
       "answerText": "\\(0.0281 > 0.025\\), so do not reject \\(\\mathrm{H}_0\\). There is insufficient evidence to support the student's claim that the mean height of men from region \\(B\\) is different from region \\(A\\).",
       "answerMarks": ["A1"],

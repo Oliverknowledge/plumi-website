@@ -9,10 +9,10 @@
       "method": "Factor theorem",
       "steps": [
         { "tex": "\\mathrm{f}(a) = 4a^3 + 5a^2 - 10a + 4a = 0", "why": "\\((x - a)\\) is a factor, so \\(\\mathrm{f}(a) = 0\\)." },
-        { "tex": "\\Rightarrow 4a^3 + 5a^2 - 6a = 0", "marks": ["M1"] }
+        { "tex": "\\Rightarrow 4a^3 + 5a^2 - 6a = 0" }
       ],
       "answer": "\\Rightarrow a(4a^2 + 5a - 6) = 0",
-      "answerMarks": ["A1*"],
+      "answerMarks": ["M1", "A1*"],
       "check": {
         "marks": ["M1", "A1*"],
         "vals": { "a": "3/4" },
