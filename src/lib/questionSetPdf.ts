@@ -183,14 +183,15 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
 
   const num = (p: BankPart) => (opts.numbers?.has(p.id) ? `${opts.numbers.get(p.id)} · ` : "");
   const labelFor = (p: BankPart) => `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
-  // Each question's start (its setup, before part .1) goes in once, above its first part. A start several
+  // Each question's start (its setup, before part .1) goes in once, above its first part, unnumbered: the
+  // list number is its first part's, and printed twice it read as two questions (Discord, 1 November 2026). A start several
   // questions share (AQA Economics: a context's extracts, for questions 01–04) goes in once for them all.
   const stemsDone = new Set<string>();
   for (const p of parts) {
     const stem = stemImage(p);
     if (p.st && !stemsDone.has(stem)) {
       stemsDone.add(stem);
-      crops.push(want({ part: p, kind: "stem", label: `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));
+      crops.push(want({ part: p, kind: "stem", label: `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }

@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
+import { usePhotoScan } from "@/lib/photoScan";
 import { isEssaySubject } from "@/lib/markBands";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
@@ -83,6 +84,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; sol?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
+  const photo = usePhotoScan();
   const part = parts[0];
   const many = parts.length > 1;
   const q = questionOf(part.l);
@@ -195,10 +197,10 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stem && stemOpen && <img className="qb-img" src={stemImage(stem, subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stem && stemOpen && <img {...photo} className="qb-img" src={stemImage(stem, subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
             {stemOpen && earlier.map(p => (
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+              <img key={p.id} {...photo} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
                 alt={`Question ${p.l}: ${p.x}`} />
             ))}
           </div>
@@ -208,7 +210,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,
             zoomable(p, "qp",
               // eslint-disable-next-line @next/next/no-img-element
-              <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
+              <img key={p.id} {...photo} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
                 alt={`${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}: ${p.x}`} />),
             // Multiple choice marks itself from the letter picked, before the key is shown.
             !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
@@ -233,7 +235,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               <p className="qb-note-label">{p.msq ? <>Mark scheme for question {questionOf(p.l)}: find {inWholeNames} in it</> : <>Mark scheme for {p.l}</>}</p>
               <div className="qb-scroll">{zoomable(p, "ms",
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>
+                <img {...photo} className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
