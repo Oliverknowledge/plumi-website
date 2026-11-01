@@ -62,7 +62,7 @@ export function SeatCard({ session, snap, handleRef }: { session: LibrarySession
         <>
           <div className="lb-row">
             <button type="button" className="btn gold" onClick={sit}>Sit down</button>
-            <span className="lb-hint">or tap a seat</span>
+            <span className="lb-hint">or tap a seat, or press E near one</span>
           </div>
           {running && <p className="lb-hint" data-testid="seat-walking">{clock}Walking about. Your clock keeps running.</p>}
         </>

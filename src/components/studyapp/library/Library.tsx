@@ -150,7 +150,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     return (
       <main className="wrap lb lb-full" data-testid="library" data-full="1" data-drawer={drawer ?? undefined}>
         <div className="lb-fstage">
-          <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." you={you} />
+          <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. W A S D or the arrow keys walk, E sits down, Enter or Space also sit." you={you} />
         </div>
         <div className="lb-hud lb-hud-l">
           <AppLink className="btn lb-hbtn" href="/study" aria-label="Back to your desk">{"\u2190"} Desk</AppLink>
@@ -214,7 +214,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
       ) : (
         <div className="lb-grid">
           <section className="card lb-stage" aria-label="The library floor">
-            <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." you={you} />
+            <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. W A S D or the arrow keys walk, E sits down, Enter or Space also sit." you={you} />
             {snap.phase === "live" && (
               <span className="lb-live"><i className="dot" aria-hidden="true" />{here} here{revising !== null && revising > here ? ` \u00b7 ${revising} in all` : ""}</span>
             )}

@@ -351,3 +351,36 @@ Now a library request is marked (`friendship.via_lobby`) and:
 - The iPad: nothing in `Sources/` was changed or built.
 - That 6/15/8 are the right numbers for real students (no student has used this; CLAUDE.md evidence level 1 and 2 are
   empty). A recipient-side switch ("no requests from the library") is the obvious next control and is **not built**.
+
+## Movement and seats (founder, 1 November)
+
+Library mode only; the homepage's `hero` and `friends` modes keep their tile steps and their seat behaviour (checked, below).
+
+- **The maths is `src/lib/studyapp/library/walk.ts`** (pure, over a walkable-mask function, tested by `walk.test.ts` on the real
+  `layout.json` rows; the engine loads it with `import()` only when the library mounts, so the homepage chunk does not carry it).
+  A person's feet are an 8 x 6 px box on the same 16 px grid the engine always used (tile `(tx, ty)` holds feet with x in
+  `[16 tx, 16 tx + 16)` and y in `[16 ty + 4, 16 ty + 20)`).
+- **Keys.** W A S D and the arrows, 8 directions at one speed (`LIVE_SPEED`, 70 px/s: two keys are normalised), continuous,
+  sliding along walls and furniture, with up to 5 px of help round a corner so a one-tile gap is not missed. E, Enter and Space sit
+  in the chair that is near; E stands you up. They work with the canvas focused and with nothing focused (the room on screen, no
+  open dialog), never with Ctrl, Meta or Alt, never while an input, textarea, select or contenteditable has focus (the prompt hides
+  too), and a window blur or a hidden tab releases every key. Seated, only W A S D and E act when the canvas is not focused (the
+  arrows keep scrolling the page, so a student does not stand up out of a timed session by accident). Reduced motion: a press is
+  one tile hop, as before. Facing follows the dominant axis with hysteresis (a diagonal keeps its face until the other axis wins by a third).
+- **Tap to walk.** An 8-connected A* route that never cuts a wall's corner, pulled into straight runs by line-of-sight against the
+  footprint (1 px clear): across open floor it is one straight line, diagonals included. The feet land where the tap did. Any key
+  cancels it at once.
+- **On the wire (unchanged format).** While a key is held `youNow().path` is a look-ahead of the next half second (at most two
+  points, bent by walls); the engine announces your place at most every 110 ms (over the 100 ms floor in `lobbyWatch.send`) and once
+  more when you stop. Remote walks of any shape are faced by each leg (`facing`). `session.ts` needed no change.
+- **Seats.** Every free seat in the 76-seat table (reachable from the door) shows a yellow ring, drawn in art pixels above the
+  chair and below anyone in front (z = the seat's own sort + .005), pulsing two frames (none under reduced motion). It is hidden
+  while anyone (web, iPad from the lobby, you, including on the way) holds the seat. The seat `sitNearby` would take (the nearest free
+  one within 20 px) is shaded and its ring brighter, with a bobbing "E" keycap over it (a fine pointer only; a phone has the dock's
+  buttons); seated, an "E STAND" pill sits under you. One prompt at a time, drawn over everything in art pixels so it follows the
+  camera and zoom. Hovering a free chair brightens it; tapping a ring sits there.
+- **Dev only:** `window.__plumiLibrary` (the room's handle) exists in development for the browser tests and is compiled out of a production build.
+
+**Homepage unchanged.** The production site was built from the original and from the new `cafeScene.ts` (two copies of the
+source), run with a seeded `Math.random` and reduced motion, and the `toDataURL` of both canvases on `/` (the hero 569 x 394 and
+the friends window 204 x 150) hashed identically, before and after a tap and arrow-key hops.

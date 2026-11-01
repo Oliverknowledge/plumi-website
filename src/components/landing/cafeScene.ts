@@ -15,6 +15,9 @@
  * Browser only, and loaded with import() after first paint (CafeScene in LandingClient.tsx).
  */
 
+/** Library mode's free movement: the pure maths (src/lib/studyapp/library/walk.ts), loaded only when the library mounts, so the homepage's chunk never carries it. */
+type Walk = typeof import("@/lib/studyapp/library/walk");
+
 type Dir = "right" | "back" | "left" | "front";
 const DIRS: readonly Dir[] = ["right", "back", "left", "front"];
 
@@ -113,6 +116,7 @@ interface Person {
   rev?: number;                   // library mode: the last news about their place that was acted on
   sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
+  moving?: boolean;               // library mode, you: walking under the keys (not along a path)
 }
 
 const SUBJECTS = ["Physics", "Maths", "Chemistry", "Biology"];
@@ -207,6 +211,31 @@ export interface LibraryHandle extends CafeHandle {
 
 /** How fast everyone in the library walks, in art pixels a second: LibraryScene.speed (140 points a second) over two. */
 const LIVE_SPEED = 70;
+/** While you walk under the keys your place goes out about this often (room seconds): over the wire's 100 ms floor, so no step is held back. */
+const YOU_GAP = 0.11;
+/** A free chair is "near" when its standing place or its seat is within this many art pixels of your feet. */
+const NEAR_SEAT = 20;
+/** Where a chair's ring is centred, from the sprite's top left (the iPad's `LibraryChair`: spriteH * 0.62 down, 64 points there). */
+const RING = { x: 8, y: 20 } as const;
+const KEY_MOVES: Record<string, [number, number]> = {
+  KeyW: [0, -1], ArrowUp: [0, -1], KeyS: [0, 1], ArrowDown: [0, 1], KeyA: [-1, 0], ArrowLeft: [-1, 0], KeyD: [1, 0], ArrowRight: [1, 0],
+};
+const KEY_DIR: Record<string, Dir> = { "0,-1": "back", "0,1": "front", "-1,0": "left", "1,0": "right" };
+/** Inputs a person types into (a checkbox, a button or a slider is not one). */
+const NOT_TEXT = /^(checkbox|radio|button|submit|reset|image|range|color|file)$/;
+/** Widgets that keep the arrow keys and letters for themselves. */
+const OWN_KEYS = '[role="menu"],[role="menubar"],[role="listbox"],[role="tablist"],[role="radiogroup"],[role="slider"],[role="tree"],[role="grid"],[role="spinbutton"],input[type="range"],input[type="radio"]';
+function typingIn(el: Element | null): boolean {
+  if (!el) return false;
+  if (el instanceof HTMLInputElement) return !NOT_TEXT.test(el.type);
+  if (el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return true;
+  return (el as HTMLElement).isContentEditable === true || !!el.closest('[role="textbox"],[role="combobox"],[role="searchbox"]');
+}
+/** The 3 x 5 letters of the key prompt's words. */
+const GLYPH: Record<string, string[]> = {
+  E: ["111", "100", "111", "100", "111"], S: ["011", "100", "010", "001", "110"], T: ["111", "010", "010", "010", "010"],
+  A: ["010", "101", "111", "101", "101"], N: ["111", "101", "101", "101", "101"], D: ["110", "101", "101", "101", "110"],
+};
 
 /** The friends' window: the fire under the gallery, its armchairs, and a table for two either side (art pixels,
  * the window's shape). Where each friend sits, by the seat nearest each point. */
@@ -226,8 +255,11 @@ export async function mountCafe(canvas: HTMLCanvasElement, overlay: HTMLElement,
 
 /** Mounts the study app's Grand Library: this room with real people in it (see `LiveHooks`). */
 export async function mountLibrary(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: Omit<CafeOptions, "mode">): Promise<LibraryHandle> {
-  const A = await loadAssets();
-  return new Cafe(canvas, overlay, A, { ...opts, mode: "library" }) as unknown as LibraryHandle;
+  const [A, W] = await Promise.all([loadAssets(), import("@/lib/studyapp/library/walk")]);
+  const handle = new Cafe(canvas, overlay, A, { ...opts, mode: "library" }, W) as unknown as LibraryHandle;
+  // in development only (compiled out of a production build): the page's tests read where you stand through it
+  if (process.env.NODE_ENV !== "production") (window as unknown as { __plumiLibrary?: LibraryHandle }).__plumiLibrary = handle;
+  return handle;
 }
 
 class Cafe implements CafeHandle {
@@ -275,14 +307,29 @@ class Cafe implements CafeHandle {
   private libSeats: Set<Spot> | null = null;          // library mode: the chairs you and others may take
   private byIpad = new Map<number, Spot>();
   private ipadOf = new Map<Spot, number>();
+  // library mode only: free movement, the seats' rings and the key prompt
+  private grid: ReturnType<Walk["gridOf"]> | null = null;
+  private ringSeats: Spot[] = [];                      // the chairs one can reach from the door: each shows a ring while free
+  private keysDown = new Set<string>();
+  private heading: [number, number] = [0, 0];          // the unit direction you are walking under the keys
+  private lastYou = -1;                                // when your place was last announced (room time)
+  private youOwed = false;                             // a step that has not been announced yet
+  private hoverSeat: Spot | null = null;               // the free chair under the mouse
+  private libArt: { rings: Record<"idle" | "near", HTMLCanvasElement[]>; key: HTMLCanvasElement; stand: HTMLCanvasElement } | null = null;
+  private shown = "";                                  // what is on the canvas's data attributes
+  private keyHints = false;                            // a keyboard is likely (a fine pointer): the key prompts show; on a phone or tablet the dock's buttons do the same
+  private promptBox: [number, number, number, number] | null = null;   // where the key prompt was drawn, in art pixels
   looks: number;
   look = 0;
 
-  constructor(private canvas: HTMLCanvasElement, private overlay: HTMLElement, private a: Assets, private o: CafeOptions) {
+  constructor(private canvas: HTMLCanvasElement, private overlay: HTMLElement, private a: Assets, private o: CafeOptions, private W?: Walk) {
     this.L = a.L;
     this.spots = a.L.spots.map(s => ({ ...s, who: null }));
     this.cn = { ...LP_CLASSES, ...o.cls };
     this.live = o.mode === "library" ? o.live : undefined;
+    if (this.W && !this.live) this.W = undefined;
+    if (this.W) this.grid = this.W.gridOf(this.L.walk, this.L.cols);
+    if (this.W) this.keyHints = typeof matchMedia === "function" && !matchMedia("(pointer: coarse)").matches;
     if (this.live) this.libraryTable();
     this.looks = a.L.people.choose;
     this.scene = document.createElement("canvas");
@@ -398,7 +445,9 @@ class Cafe implements CafeHandle {
       [you.x, you.y] = this.feet(inside);
     } else {
       you.doing = "enter"; you.alpha = 0;
-      you.path = [this.feet(d.tile), ...(this.route(d.tile, inside) ?? []).map(t => this.feet(t))];
+      you.path = this.W
+        ? [this.feet(d.tile), ...(this.W.plan(this.grid!, this.feet(d.tile), inside) ?? []).map(([x, y]) => [x, y] as [number, number])]
+        : [this.feet(d.tile), ...(this.route(d.tile, inside) ?? []).map(t => this.feet(t))];
     }
     this.label(you, "You", this.cn.you);
   }
@@ -465,8 +514,9 @@ class Cafe implements CafeHandle {
   }
 
   /** Stand up (if sitting) and walk to a tile, then on to `end` (a seat's own place), if given. */
-  private go(p: Person, tile: [number, number], end?: [number, number]): boolean {
+  private go(p: Person, tile: [number, number], end?: [number, number], dest?: [number, number]): boolean {
     if (p.at && p.spot) { p.x = this.feet(p.spot.tile)[0]; p.y = this.feet(p.spot.tile)[1]; p.at = false; }
+    if (this.W) return this.goFree(p, tile, end, dest);
     const here = this.tileOf(p.x, p.y);
     const start: [number, number] = this.walkable(...here) ? here : this.nearestTile(p.x, p.y);
     const tiles = this.route(start, tile);
@@ -475,6 +525,17 @@ class Cafe implements CafeHandle {
     const [sx, sy] = this.feet(start);
     if (Math.abs(sx - p.x) > 1 || Math.abs(sy - p.y) > 1) p.path.push([sx, sy]);
     p.path.push(...tiles.map(t => this.feet(t)));
+    if (end) p.path.push(end);
+    if (p.doing !== "enter" && p.doing !== "leave") p.doing = "walk";
+    return true;
+  }
+
+  /** Library mode: an 8-connected route to a tile (and on to `dest`, a point in it), pulled into a few straight runs. */
+  private goFree(p: Person, tile: [number, number], end?: [number, number], dest?: [number, number]): boolean {
+    const path = this.W!.plan(this.grid!, [p.x, p.y], tile, dest);
+    if (!path) return false;
+    p.moving = false;
+    p.path = path.map(([x, y]) => [x, y] as [number, number]);
     if (end) p.path.push(end);
     if (p.doing !== "enter" && p.doing !== "leave") p.doing = "walk";
     return true;
@@ -508,6 +569,7 @@ class Cafe implements CafeHandle {
     const t = this.t;
     for (const p of [...this.people]) {
       if (p.remote && p.doing !== "leave" && p.alpha < 1) p.alpha = Math.min(1, p.alpha + dt * 2.5);
+      if (this.W && p === this.you && this.keyStep(p, dt)) continue;
       if (p.path.length) this.walk(p, dt);
       else if (p.doing === "walk" || p.doing === "enter") this.arrive(p);
       else if (p.doing === "leave") {
@@ -530,6 +592,7 @@ class Cafe implements CafeHandle {
       if (seated.length) this.pop(pick(seated), pick(POPS));
     }
     if (this.held && this.you && !this.you.path.length) this.nudge(this.held);
+    if (this.youOwed && this.t - this.lastYou >= YOU_GAP) this.announce();
     this.status();
   }
 
@@ -537,7 +600,7 @@ class Cafe implements CafeHandle {
     let left = p.speed * dt;
     while (left > 0 && p.path.length) {
       const [tx, ty] = p.path[0], dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
-      if (Math.abs(dx) > .01 || Math.abs(dy) > .01) p.dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "front" : "back");
+      if (Math.abs(dx) > .01 || Math.abs(dy) > .01) p.dir = this.W ? this.W.facing(dx, dy, p.dir) : Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "front" : "back");
       if (d <= left) { p.x = tx; p.y = ty; p.path.shift(); left -= d; }
       else { p.x += dx / d * left; p.y += dy / d * left; left = 0; }
     }
@@ -628,6 +691,7 @@ class Cafe implements CafeHandle {
   private sitNearby() {
     const you = this.you;
     if (!you || you.at) return;
+    if (this.W) { const s = this.nearSeat(); if (s) this.takeSeat(you, s); return; }
     const [tx, ty] = this.tileOf(you.x, you.y);
     const s = this.free().find(x => x.tile[0] === tx && x.tile[1] === ty);
     if (s && this.sendTo(you, s)) this.youChanged();
@@ -657,7 +721,7 @@ class Cafe implements CafeHandle {
     if (!you || !this.playable) { this.draw(); return; }
     this.yourSubject = null;
     // a free seat?
-    const seat = this.spots.find(s => (s.role === "seat" || s.role === "sofa") && this.canSit(s) && ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36);
+    const seat = this.W ? this.seatAt_(ax, ay) : this.spots.find(s => (s.role === "seat" || s.role === "sofa") && this.canSit(s) && ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36);
     if (seat && (!seat.who || seat.who === you)) {
       if (seat.who === you && you.at) return;
       if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); this.youChanged(); return; }
@@ -665,7 +729,7 @@ class Cafe implements CafeHandle {
       return;
     }
     const from = this.walkable(...this.tileOf(you.x, you.y)) ? this.tileOf(you.x, you.y) : this.nearestTile(you.x, you.y);
-    const to = this.nearest(from, ax, ay);
+    const to = this.W ? this.W.nearestTile(this.grid!, from, ax, ay) as [number, number] | null : this.nearest(from, ax, ay);
     if (!to) return;
     if (this.o.reduced) {
       this.release(you); you.doing = "idle";
@@ -674,7 +738,11 @@ class Cafe implements CafeHandle {
       return;
     }
     this.release(you);
-    this.go(you, to);
+    if (this.W) {
+      // the feet land where the tap did, when that is floor in the tile reached; else the tile's middle
+      const c = this.W.cellOf(ax, ay);
+      this.go(you, to, undefined, c[0] === to[0] && c[1] === to[1] ? [ax, ay] : undefined);
+    } else this.go(you, to);
     this.youChanged();
   }
 
@@ -842,7 +910,7 @@ class Cafe implements CafeHandle {
     for (const [p, el] of this.labels) {
       const [x, y] = this.spriteAt(p);
       el.style.transform = at(x + 8, y + 5, el);
-      el.style.opacity = String(this.card && this.cardFor === p ? 0 : p.alpha);
+      el.style.opacity = String(this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha);
     }
     for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
     if (this.card && this.cardFor) {
@@ -867,7 +935,7 @@ class Cafe implements CafeHandle {
 
   private frame(p: Person, tick: number): number {
     const R = this.L.people.rows, d = DIRS.indexOf(p.dir);
-    if (p.path.length) return R.walk + d * 6 + (Math.floor(tick / 2) + p.phase) % 6;
+    if (p.path.length || p.moving) return R.walk + d * 6 + (Math.floor(tick / 2) + p.phase) % 6;
     if (p.at && p.spot) {
       const s = p.spot;
       if (s.pose === "sit") return R.sit + (s.face === "right" ? 0 : 6) + (Math.floor(tick / 8) + p.phase) % 6;
@@ -908,11 +976,13 @@ class Cafe implements CafeHandle {
         sc.globalAlpha = 1;
       } });
     }
+    if (this.W) this.addRings(items, tick, near);
     items.sort((p, q) => p.z - q.z);
     for (const it of items) it.draw();
     sc.drawImage(this.lamp, 0, 0);
     if (this.fire) { sc.globalAlpha = (.30 + .04 * (Math.floor(tick / 3) % 3)) / .38; sc.drawImage(this.fire, 0, 0); sc.globalAlpha = 1; }
     if (!this.o.reduced) this.notes(tick);
+    if (this.W) this.drawPrompt(tick);
     // to the screen, by whole pixels
     const { ctx, canvas } = this;
     ctx.imageSmoothingEnabled = false;
@@ -1035,25 +1105,29 @@ class Cafe implements CafeHandle {
       const h = p && !p.you ? p : null;
       this.canvas.style.cursor = h ? "pointer" : "";
       if (h !== this.hover) { this.hover = h; if (this.o.reduced) this.draw(); }
+      if (this.W) this.pointAtSeat(h ? null : this.seatAt_(...at(e)));
     });
-    on(this.canvas, "pointerleave", () => { this.hover = null; this.canvas.style.cursor = ""; if (this.o.reduced) this.draw(); });
-    const KEYS: Record<string, Dir> = { ArrowRight: "right", ArrowLeft: "left", ArrowUp: "back", ArrowDown: "front" };
-    on(this.canvas, "keydown", ev => {
-      const e = ev as KeyboardEvent;
-      if (!this.playable) return;
-      const d = KEYS[e.key];
-      if (d) {
-        e.preventDefault();
-        this.held = d;
-        if (this.o.reduced) { this.nudgeNow(d); return; }
-        if (this.you && !this.you.path.length) this.nudge(d);
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        this.sitNearby();
-      }
-    });
-    on(this.canvas, "keyup", ev => { if (KEYS[(ev as KeyboardEvent).key] === this.held) this.held = null; });
-    on(this.canvas, "blur", () => { this.held = null; });
+    on(this.canvas, "pointerleave", () => { this.hover = null; this.canvas.style.cursor = ""; if (this.W) this.pointAtSeat(null); if (this.o.reduced) this.draw(); });
+    if (this.W) this.bindWalk(on);
+    if (!this.W) {
+      const KEYS: Record<string, Dir> = { ArrowRight: "right", ArrowLeft: "left", ArrowUp: "back", ArrowDown: "front" };
+      on(this.canvas, "keydown", ev => {
+        const e = ev as KeyboardEvent;
+        if (!this.playable) return;
+        const d = KEYS[e.key];
+        if (d) {
+          e.preventDefault();
+          this.held = d;
+          if (this.o.reduced) { this.nudgeNow(d); return; }
+          if (this.you && !this.you.path.length) this.nudge(d);
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          this.sitNearby();
+        }
+      });
+      on(this.canvas, "keyup", ev => { if (KEYS[(ev as KeyboardEvent).key] === this.held) this.held = null; });
+      on(this.canvas, "blur", () => { this.held = null; });
+    }
     const io = new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; if (this.visible) this.start(); else this.stop(); });
     io.observe(this.canvas);
     this.cleanup.push(() => io.disconnect());
@@ -1074,6 +1148,255 @@ class Cafe implements CafeHandle {
   }
 
 
+  /* ---------- library mode: free movement, seat rings, the key prompt ---------- */
+
+  /** Keys and focus. The room takes W A S D and the arrows (and E, Enter, Space) while it has the page's attention. */
+  private bindWalk(on: (el: EventTarget, ev: string, fn: (e: Event) => void) => void) {
+    const clear = () => { this.keysDown.clear(); };
+    on(window, "keydown", ev => {
+      const e = ev as KeyboardEvent, code = e.code, move = KEY_MOVES[code], sit = code === "Enter" || code === "Space" || code === "KeyE";
+      if (!this.you || this.dead || !(move || sit)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      const el = e.target instanceof Element ? e.target : document.body;
+      if (typingIn(el)) { clear(); return; }
+      const onCanvas = el === this.canvas, bare = el === document.body || el === document.documentElement;
+      if (!onCanvas) {
+        if (el.closest(OWN_KEYS)) return;
+        if (bare) {
+          // nothing has focus: the room has the keys while it is on screen and nothing modal is open
+          if (!this.visible || document.hidden || document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return;
+          // seated, the arrows stay the page's (to scroll); W A S D and E are the room's
+          if (this.seated && code.startsWith("Arrow")) return;
+        } else if ((code === "Enter" || code === "Space") && el.closest('button,a,summary,[role="button"],[role="link"],[tabindex]')) return;   // they act on what has focus
+      }
+      if (move) {
+        e.preventDefault();
+        if (this.o.reduced) { this.keysDown.add(code); this.nudgeNow(KEY_DIR[move.join()]); this.keysDown.delete(code); return; }
+        if (e.repeat && this.keysDown.has(code)) return;
+        this.keysDown.add(code);
+        this.takeOff();
+        return;
+      }
+      if (code === "KeyE") {
+        if (this.seated) { e.preventDefault(); this.stand(); }
+        else if (this.nearSeat()) { e.preventDefault(); this.sitNearby(); }
+        return;
+      }
+      // Enter and Space: sit in the chair that is near. On the canvas they always belong to the room; elsewhere only when they do something.
+      if (onCanvas || this.nearSeat()) { e.preventDefault(); this.sitNearby(); }
+    });
+    on(window, "keyup", ev => { this.keysDown.delete((ev as KeyboardEvent).code); });
+    on(window, "blur", clear);
+    on(document, "visibilitychange", () => { if (document.hidden) clear(); });
+    on(document, "focusin", ev => { if (typingIn(ev.target as Element | null)) clear(); if (this.o.reduced) this.draw(); });
+    on(document, "focusout", () => { if (this.o.reduced) this.draw(); });
+  }
+
+  /** You press a walking key: whatever you were doing (a walk to a tap, the way to a chair, sitting) gives way. */
+  private takeOff() {
+    const you = this.you;
+    if (!you || you.doing === "enter") return;
+    const wasSeated = you.at, wasWalking = you.path.length > 0;
+    if (wasWalking) { you.path = []; you.doing = "idle"; }
+    this.release(you);
+    if (wasSeated) {
+      you.at = false; you.doing = "idle";
+      const [x, y] = this.feet(this.nearestTile(you.x, you.y));
+      you.x = x; you.y = y;
+    }
+    if (wasSeated || wasWalking) this.announce();      // you got up, or the walk you were on is off
+  }
+
+  /** The direction the held keys ask for: [-1..1, -1..1] (opposite keys cancel). */
+  private keyAxes(): [number, number] {
+    const ax = new Set([...this.keysDown].filter(c => KEY_MOVES[c]).map(c => KEY_MOVES[c].join()));
+    return [(ax.has("1,0") ? 1 : 0) - (ax.has("-1,0") ? 1 : 0), (ax.has("0,1") ? 1 : 0) - (ax.has("0,-1") ? 1 : 0)];
+  }
+
+  /** One frame of walking under the keys: true when it moved you (or pushed on a wall), so the path logic leaves you be. */
+  private keyStep(p: Person, dt: number): boolean {
+    const W = this.W!, g = this.grid!;
+    const [kx, ky] = this.keyAxes();
+    if ((kx === 0 && ky === 0) || p.doing === "enter" || p.at || p.path.length || p.spot) {
+      if (p.moving) this.stopMoving(p);
+      return false;
+    }
+    const [hx, hy] = W.heading(kx, ky);
+    this.heading = [hx, hy];
+    if (!W.fits(g, p.x, p.y)) [p.x, p.y] = W.settle(g, p.x, p.y);
+    const [nx, ny] = W.slide(g, p.x, p.y, hx * LIVE_SPEED * dt, hy * LIVE_SPEED * dt);
+    const dx = nx - p.x, dy = ny - p.y;
+    if (Math.hypot(dx, dy) < 1e-6) {
+      // pushing on a wall: face it, and stand
+      p.dir = W.facing(hx, hy, p.dir);
+      if (p.moving) this.stopMoving(p);
+      return true;
+    }
+    p.x = nx; p.y = ny;
+    p.dir = W.facing(dx, dy, p.dir);
+    p.moving = true; p.doing = "walk";
+    this.youTold();
+    return true;
+  }
+
+  private stopMoving(p: Person) {
+    p.moving = false; p.doing = "idle";
+    this.heading = [0, 0];
+    this.youTold();        // where you ended: at once, or as soon as the wire's 100 ms floor allows
+  }
+
+  /** Your place changed: tell the visit, at most every `YOU_GAP`. */
+  private youTold() {
+    if (this.t - this.lastYou >= YOU_GAP) this.announce(); else this.youOwed = true;
+  }
+  private announce() {
+    this.youOwed = false;
+    this.lastYou = this.t;
+    this.youChanged();
+  }
+
+  /** The free chair one would sit in now (what Enter, Space and E take): the nearest within `NEAR_SEAT`, when one is standing free and not already going to one. */
+  private nearSeat(): Spot | null {
+    const you = this.you, W = this.W;
+    if (!you || !W || you.at || you.spot || you.path.length || you.doing === "enter" || you.alpha < .5) return null;
+    let best: Spot | null = null, bd = NEAR_SEAT;
+    for (const s of this.ringSeats) {
+      if (s.who) continue;
+      const [cx, cy] = W.centreOf(s.tile);
+      const d = Math.min(Math.hypot(you.x - cx, you.y - cy), Math.hypot(you.x - (s.x + 8), you.y - (s.y + 31)));
+      if (d < bd) { bd = d; best = s; }
+    }
+    return best;
+  }
+
+  /** The chair a tap at an art pixel would take: the nearest ring among the chairs whose place is under it, that are free or yours. */
+  private seatAt_(ax: number, ay: number): Spot | null {
+    let best: Spot | null = null, bd = Infinity;
+    for (const s of this.spots) {
+      if (!(s.role === "seat" || s.role === "sofa") || !this.canSit(s) || (s.who && s.who !== this.you)) continue;
+      if (!(ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36)) continue;
+      const d = Math.hypot(ax - (s.x + RING.x), ay - (s.y + RING.y));
+      if (d < bd) { bd = d; best = s; }
+    }
+    return best;
+  }
+
+  /** The chair under the mouse, if it shows a ring (free and reachable): it lights up. */
+  private pointAtSeat(s: Spot | null) {
+    if (s && (s.who || !this.ringSeats.includes(s))) s = null;
+    if (s === this.hoverSeat) return;
+    this.hoverSeat = s;
+    if (this.o.reduced) this.draw();
+  }
+
+  private get typingNow() { return typingIn(document.activeElement); }
+
+  /** Draws each free chair's ring into the depth order: above the chair's own art, below anyone standing in front of it. */
+  private addRings(items: { z: number; draw: () => void }[], tick: number, near: (x: number, y: number, w: number, h: number) => boolean) {
+    const art = (this.libArt ??= this.buildArt());
+    const lit = this.nearSeat(), frame = this.o.reduced ? 0 : Math.floor(tick / 5) % 2;
+    let n = 0;
+    for (const s of this.ringSeats) {
+      if (s.who) continue;
+      n++;
+      if (!near(s.x - 4, s.y, 24, 32)) continue;
+      const on = s === lit || s === this.hoverSeat;
+      const img = art.rings[on ? "near" : "idle"][frame], w = img.width, h = img.height;
+      items.push({ z: s.sort + .005, draw: () => this.sc.drawImage(img, Math.round(s.x + RING.x - w / 2 + .5), Math.round(s.y + RING.y - h / 2 + .5)) });
+    }
+    const prompt = this.promptFor(lit);
+    const mark = `${n}|${prompt}|${lit ? this.ipadOf.get(lit) ?? "" : ""}`;
+    if (mark !== this.shown) {
+      this.shown = mark;
+      this.canvas.dataset.rings = String(n);
+      this.canvas.dataset.prompt = prompt;
+      this.canvas.dataset.near = lit ? String(this.ipadOf.get(lit) ?? "") : "";
+    }
+  }
+
+  /** What the one key prompt says: "sit" beside a chair, "stand" while you sit, nothing otherwise (or while typing). */
+  private promptFor(lit: Spot | null): "" | "sit" | "stand" {
+    if (!this.keyHints || this.typingNow || !this.you || this.you.alpha < .5) return "";
+    if (this.seated) return "stand";
+    return lit ? "sit" : "";
+  }
+
+  /** The "E" keycap over the chair you could sit in (it bobs), or "E stand" by you while you sit: over everything, in art pixels, so it scales and follows the camera. */
+  private drawPrompt(tick: number) {
+    const art = this.libArt, you = this.you;
+    if (!art || !you) return;
+    const kind = this.promptFor(this.nearSeat());
+    this.promptBox = null;
+    if (!kind) return;
+    const bob = this.o.reduced ? 0 : [0, 0, -1, -1][Math.floor(tick / 3) % 4];
+    let img: HTMLCanvasElement, x: number, y: number;
+    if (kind === "stand") {
+      const s = you.spot!;
+      img = art.stand; x = s.x + 8 - Math.floor(img.width / 2); y = s.y + 33 + bob;
+    } else {
+      const s = this.nearSeat()!;
+      img = art.key; x = s.x + RING.x - Math.floor(img.width / 2); y = s.y + RING.y - 6 - img.height - 2 + bob;
+    }
+    x = Math.min(Math.max(x, this.camX + 2), this.camX + this.viewW - img.width - 2);
+    y = Math.min(Math.max(y, this.camY + 2), this.camY + this.viewH - img.height - 2);
+    this.sc.drawImage(img, Math.round(x), Math.round(y));
+    this.promptBox = [Math.round(x), Math.round(y), img.width, img.height];
+  }
+
+  /** Whether your own name tag would sit on the key prompt (then the tag steps aside, so the prompt reads). */
+  private tagOnPrompt(p: Person, el: HTMLElement): boolean {
+    const b = this.promptBox;
+    if (!b || p !== this.you) return false;
+    const s = this.k / this.dpr, [x, y] = this.spriteAt(p), w = (this.widths.get(el) ?? 40) / s, h = 22 / s;
+    return x + 8 + w / 2 > b[0] && x + 8 - w / 2 < b[0] + b[2] && y + 5 > b[1] && y + 5 - h < b[1] + b[3];
+  }
+
+  /** The ring, the keycap and the "E stand" pill, drawn once in art pixels. */
+  private buildArt() {
+    const px = (w: number, h: number, paint: (c: CanvasRenderingContext2D) => void) => {
+      const cv = document.createElement("canvas");
+      cv.width = w; cv.height = h;
+      paint(cv.getContext("2d")!);
+      return cv;
+    };
+    const GOLD = "242,201,107", BRIGHT = "255,217,90", EDGE = "74,46,16";
+    /** A ring of radius r about the middle pixel, with a dark edge outside it and a soft fill within; `shade` lays a translucent disc of the ring's yellow under the chair. */
+    const ring = (r: number, bright: boolean, shade: boolean) => px(19, 19, c => {
+      const img = c.createImageData(19, 19), d = img.data, col = bright ? BRIGHT : GOLD;
+      for (let y = 0; y < 19; y++) for (let x = 0; x < 19; x++) {
+        const dist = Math.hypot(x - 9, y - 9), i = (y * 19 + x) * 4;
+        let rgb = "", a = 0;
+        if (Math.abs(dist - r) <= .62) { rgb = col; a = bright ? 1 : .92; }
+        else if (Math.abs(dist - (r + 1.15)) <= .55) { rgb = EDGE; a = .5; }
+        else if (dist < r - .62) { rgb = col; a = bright ? .40 : .24; }
+        else if (shade && dist < 9.2) { rgb = BRIGHT; a = dist < 7.2 ? .36 : .24; }
+        if (!rgb) continue;
+        const [R, G, B] = rgb.split(",").map(Number);
+        d[i] = R; d[i + 1] = G; d[i + 2] = B; d[i + 3] = Math.round(a * 255);
+      }
+      c.putImageData(img, 0, 0);
+    });
+    /** The keycap: a cream cap with a dark edge and the letter drawn in 3 x 5 pixels. */
+    const cap = (c: CanvasRenderingContext2D, x: number, y: number) => {
+      c.fillStyle = "#22304d"; c.fillRect(x, y, 9, 10);
+      c.fillStyle = "#c9c0a8"; c.fillRect(x + 1, y + 1, 7, 8);
+      c.fillStyle = "#fffdf5"; c.fillRect(x + 1, y + 1, 7, 7);
+      c.fillStyle = "#22304d";
+      GLYPH.E.forEach((row, j) => [...row].forEach((v, i) => { if (v === "1") c.fillRect(x + 3 + i, y + 2 + j, 1, 1); }));
+      c.clearRect(x, y, 1, 1); c.clearRect(x + 8, y, 1, 1); c.clearRect(x, y + 9, 1, 1); c.clearRect(x + 8, y + 9, 1, 1);
+    };
+    const key = px(9, 10, c => cap(c, 0, 0));
+    const word = "STAND", textW = word.length * 4 - 1, W = 9 + 2 + textW + 3;
+    const stand = px(W, 10, c => {
+      c.fillStyle = "#22304d"; c.fillRect(5, 1, W - 5, 8);
+      c.clearRect(W - 1, 1, 1, 1); c.clearRect(W - 1, 8, 1, 1);
+      cap(c, 0, 0);
+      c.fillStyle = "#fffdf5";
+      [...word].forEach((ch, k) => GLYPH[ch].forEach((row, j) => [...row].forEach((v, i) => { if (v === "1") c.fillRect(11 + k * 4 + i, 2 + j, 1, 1); })));
+    });
+    return { rings: { idle: [ring(4, false, false), ring(4.7, false, false)], near: [ring(4.9, true, true), ring(5.6, true, true)] }, key, stand };
+  }
+
   /* ---------- library mode: real people in the room (LiveHooks) ---------- */
 
   /** Whether a chair is one you and others may take: in the library, only the iPad's seats (the rest are scenery there). */
@@ -1087,6 +1410,11 @@ class Cafe implements CafeHandle {
       if (!spot) continue;
       this.libSeats.add(spot);
       if (d.ipad !== null) { this.byIpad.set(d.ipad, spot); this.ipadOf.set(spot, d.ipad); }
+    }
+    // a ring only where one can get to: the chair's own tile is on the floor one can walk from the door
+    if (this.W) {
+      const here = new Set(this.W.reach(this.grid!, this.L.door.tile));
+      this.ringSeats = [...this.libSeats].filter(s => here.has(s.tile[1] * this.L.cols + s.tile[0]));
     }
   }
 
@@ -1114,6 +1442,12 @@ class Cafe implements CafeHandle {
     if (!you) return null;
     if (you.at && you.spot) return { x: you.spot.x, y: you.spot.y, seat: this.ipadOf.get(you.spot) ?? null, path: [], walking: false };
     const [x, y] = this.spriteAt(you);
+    if (this.W && you.moving) {
+      // walking under the keys: the next half second, a couple of points, so others carry on along it (and not through a wall)
+      const [hx, hy] = this.heading;
+      const path = this.W.ahead(this.grid!, you.x, you.y, hx, hy, LIVE_SPEED, [.25, .5]).map(([fx, fy]) => [fx - 8, fy - 31] as ArtPoint);
+      return { x, y, seat: null, path, walking: true };
+    }
     return { x, y, seat: null, path: you.path.map(([fx, fy]) => [fx - 8, fy - 31] as ArtPoint), walking: you.path.length > 0 };
   }
 
