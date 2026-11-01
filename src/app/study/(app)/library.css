@@ -155,3 +155,66 @@
 .pa .lb-pop, .pa .lb-live .dot { animation: none; }
 .pa .lb-room canvas { transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FULL SCREEN (the default when Study opens; "Exit full screen" gives the notebook page back)
+   The room fills the window; a few buttons float over it; chat, people and libraries live in a drawer.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pa .lb.lb-full { position: fixed; inset: 0; z-index: 50; max-width: none; margin: 0; padding: 0; background: #2a1d1a; overflow: hidden; }
+.pa .lb-fstage, .pa .lb-fstage .lb-room { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; aspect-ratio: auto; }
+.pa .lb-full .lb-room canvas { cursor: pointer; }
+
+.pa .lb-hud { position: absolute; z-index: 3; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; top: calc(12px + env(safe-area-inset-top, 0px)); pointer-events: none; }
+.pa .lb-hud > * { pointer-events: auto; }
+.pa .lb-hud-l { left: calc(12px + env(safe-area-inset-left, 0px)); }
+.pa .lb-hud-r { right: calc(12px + env(safe-area-inset-right, 0px)); justify-content: flex-end; }
+.pa .lb-hbtn { min-height: 38px; padding: 0 13px; font-size: 15px; position: relative; text-decoration: none; }
+.pa .lb-hbtn.is-on { background: var(--navy); border-color: var(--navy); color: #f5f9ff; box-shadow: 0 3px 0 #141d33; }
+.pa .lb-hcount { margin-left: 2px; font: 800 12px var(--f-body); background: var(--gold); color: var(--ink); border-radius: 8px; padding: 1px 6px; }
+.pa .lb-unread { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 10px; background: var(--red-pen); color: #fff; font: 800 11px var(--f-body); }
+.pa .lb-hpill { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 13px; background: rgba(255, 253, 246, .96); border: 2px solid var(--ink); border-radius: 12px; font: 800 13.5px var(--f-body); box-shadow: 0 3px 0 var(--ink); }
+.pa .lb-hpill small { font: 800 12px var(--f-body); color: var(--soft); }
+.pa .lb-hpill.is-quiet { border-style: dashed; color: var(--soft); box-shadow: none; }
+.pa .lb-hpill .dot { width: 9px; height: 9px; border-radius: 50%; background: #2e9d57; }
+
+/* your seat, floating at the bottom left */
+.pa .lb-dock { position: absolute; z-index: 3; left: calc(12px + env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: min(400px, calc(100% - 24px)); }
+.pa .lb-dock .lb-seat { box-shadow: 0 4px 0 var(--ink); background: rgba(255, 253, 246, .97); padding: 12px 14px 14px; gap: 10px; }
+.pa .lb-dock .lb-head h2 { font-size: 18px; }
+
+/* the drawer */
+.pa .lb-drawer { position: absolute; z-index: 4; top: 0; right: 0; bottom: 0; width: min(390px, 100%); display: flex; flex-direction: column; background: var(--paper); border-left: 3px solid var(--ink); box-shadow: -6px 0 0 rgba(34, 48, 77, .18); transform: translateX(104%); visibility: hidden; transition: transform .22s ease-out, visibility 0s .22s; padding-top: env(safe-area-inset-top, 0px); }
+.pa .lb-drawer.is-open { transform: none; visibility: visible; transition: transform .22s ease-out; }
+.pa .lb-tabs { display: flex; align-items: center; gap: 6px; padding: 12px 12px 10px; border-bottom: 2px solid var(--ink); background: var(--card2); }
+.pa .lb-tabs button[role="tab"] { height: 36px; padding: 0 14px; border: 2px solid transparent; border-radius: 10px; background: transparent; color: var(--ink); font: 600 15px var(--f-px); cursor: pointer; }
+.pa .lb-tabs button[role="tab"]:hover { background: #fff3cf; }
+.pa .lb-tabs button[role="tab"].on { background: var(--navy); color: #f5f9ff; }
+.pa .lb-x { margin-left: auto; width: 36px; height: 36px; border: 2px solid var(--ink); border-radius: 10px; background: var(--card); font: 700 20px/1 var(--f-body); color: var(--ink); cursor: pointer; }
+.pa .lb-dbody { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; overscroll-behavior: contain; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+.pa .lb-dbody > .lb-card { border-width: 2px; box-shadow: 0 3px 0 var(--ink); }
+.pa .lb-dbody .lb-chat { flex: 1; min-height: 0; }
+.pa .lb-dbody .lb-msgs { height: auto; flex: 1; min-height: 160px; max-height: none; }
+.pa .lb-dbody .lb-people { max-height: none; }
+
+/* a person's card: their numbers at a glance */
+.pa .lb-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.pa .lb-stats > div { padding: 7px 8px; background: var(--card2); border: 2px solid var(--line); border-radius: 10px; min-width: 0; }
+.pa .lb-stats dt { font: 800 10.5px var(--f-body); text-transform: uppercase; letter-spacing: .05em; color: var(--soft); }
+.pa .lb-stats dd { margin: 2px 0 0; font: 600 16px/1.15 var(--f-px); overflow-wrap: anywhere; }
+.pa .lb-tag.lb-plat { background: #e1ecfb; border-color: var(--accent); color: #1f4aa8; }
+
+/* with the drawer open the buttons sit beside it, not under it */
+.pa .lb-full[data-drawer] .lb-hud-r { right: calc(390px + 12px + env(safe-area-inset-right, 0px)); }
+
+/* phones: the drawer takes the whole width, the buttons shrink to fit */
+@media (max-width: 700px) {
+.pa .lb-hbtn { min-height: 36px; padding: 0 10px; font-size: 14px; }
+.pa .lb-hud-r { left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(60px + env(safe-area-inset-top, 0px)); justify-content: flex-start; }
+.pa .lb-drawer { width: 100%; border-left: 0; }
+.pa .lb-full[data-drawer] .lb-hud-r { right: auto; }
+.pa .lb-dock { right: calc(12px + env(safe-area-inset-right, 0px)); width: auto; }
+.pa .lb-stats dd { font-size: 14.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+.pa .lb-drawer, .pa .lb-drawer.is-open { transition: none; }
+}

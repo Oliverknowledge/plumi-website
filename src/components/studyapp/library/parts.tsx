@@ -12,6 +12,7 @@ import {
 } from "@/lib/social/lobby";
 import type { MessageReportReason, UserReportReason } from "@/lib/social/types";
 import { useNow } from "@/lib/studyapp/clock";
+import { platformOf } from "@/lib/studyapp/library/platform";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
 
 /** The panel beside the room: your seat, who is here, the libraries, the chat. Everything short; nothing a student cannot act on. */
@@ -115,6 +116,7 @@ function PersonCard({ session, person, now, onClose, onPullUp }: { session: Libr
   const [asking, setAsking] = useState<"report" | "block" | null>(null);
   const tag = focusTag(person, now);
   const name = shownName(person);
+  const platform = platformOf(person);
   return (
     <div className="lb-pcard" role="group" aria-label={name}>
       <div className="lb-ptop">
@@ -123,12 +125,18 @@ function PersonCard({ session, person, now, onClose, onPullUp }: { session: Libr
           <b>{name}</b>
           <div className="lb-tags">
             {person.isFriend && <span className="lb-tag">Friend</span>}
+            {platform && <span className="lb-tag lb-plat" data-testid="person-platform">On {platform}</span>}
             {person.pro && <span className="lb-tag lb-pro">Plumi Pro</span>}
           </div>
         </div>
         <button type="button" className="btn ghost icon" aria-label="Close" onClick={onClose}>{"×"}</button>
       </div>
-      <p className="lb-line">{[tag, person.streak > 0 ? `${person.streak} day streak` : null, person.level > 0 ? `Level ${person.level}` : null].filter(Boolean).join(" · ") || "In the library"}</p>
+      <dl className="lb-stats" data-testid="person-stats">
+        <div><dt>Day streak</dt><dd>{person.streak === 1 ? "1 day" : `${person.streak} days`}</dd></div>
+        <div><dt>Level</dt><dd>{person.level > 0 ? person.level : "New"}</dd></div>
+        <div><dt>Right now</dt><dd>{tag ?? (person.seated ? "Sitting" : "Standing")}</dd></div>
+      </dl>
+      {person.groups.length > 0 && <p className="lb-line">In {person.groups.map((g) => g.name).join(", ")}</p>}
       {asking === null && (
         <div className="lb-row">
           {person.seated && <button type="button" className="btn gold" onClick={() => onPullUp(person.id)}>Pull up a chair</button>}
