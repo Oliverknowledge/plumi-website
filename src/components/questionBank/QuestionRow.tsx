@@ -182,11 +182,6 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         {listen && (
           <div className="qb-listen">
             <p className="qb-note-label">The recording for question {q}</p>
-            <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
-          </div>
-        )}        {listen && (
-          <div className="qb-listen">
-            <p className="qb-note-label">The recording for question {q}</p>
             {parts.some(p => p.auw) && <p className="qb-listen-note">AQA publishes only the whole paper’s recording for this sitting: question {q} starts after its number is read out.</p>}
             <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
           </div>

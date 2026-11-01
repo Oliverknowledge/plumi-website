@@ -185,7 +185,6 @@ export interface BankPart {
   /** Asks for a calculation; in a bank with `calcPapers`, sits on a paper that allows a calculator. */
   calc?: 1;
   /** A listening question's recording, relative to the papers base (AQA languages: its tracks joined, scripts/question-bank/aqa_languages/audio_languages.py). */
-  au?: string;  /** A listening question's recording, relative to the papers base (AQA languages: its tracks joined, scripts/question-bank/aqa_languages/audio_languages.py). */
   au?: string;
   /** `au` is the whole paper's recording, where AQA publishes no tracks (GCSE languages, November 2020). */
   auw?: 1;
