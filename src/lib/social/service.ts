@@ -1,11 +1,11 @@
 import { READS, RPC, type Api, type Filter, type Row } from "./api";
 import * as chat from "./chatRules";
-import { fail, failureFor, ok, type Failure, type Result } from "./failure";
+import { fail, failureFor, isMissingFunction, ok, type Failure, type Result } from "./failure";
 import { parseCode } from "./friendCode";
 import { check as libraryCheck, type Said } from "./librarySpam";
 import {
-  byMessageTime, lobbyDecode, sanitised, type LibraryMessage, type LobbyEmote, type LobbyEmoteOutcome, type LobbyJoin, type LobbyMe,
-  type LobbyPerson, type LobbyServers,
+  byMessageTime, lobbyDecode, sanitised, type LibraryMessage, type LobbyAskOutcome, type LobbyEmote, type LobbyEmoteOutcome,
+  type LobbyFriendRequest, type LobbyJoin, type LobbyMe, type LobbyPerson, type LobbyPlatform, type LobbyServers,
 } from "./lobby";
 import {
   MAX_TILE, REACTION_KINDS,
@@ -130,8 +130,15 @@ export function createSocial(api: Api) {
 
   const rpc = async (key: keyof typeof RPC, args: Record<string, unknown> = {}) => {
     const { data, error } = await api.rpc(RPC[key].name, args);
-    return error ? { failure: failureFor(error), data: null } : { failure: null, data };
+    return error ? { failure: failureFor(error), data: null, missing: isMissingFunction(error) } : { failure: null, data, missing: false };
   };
+
+  /**
+   * What this project can do that the migrations after 0123 added, learned from its answers and never assumed:
+   * `null` is "not known yet", `false` is "the function is not there" (the migration is not applied), `true` is "it answered".
+   */
+  let asking: boolean | null = null;
+  let joinsWithPlatform = true;
 
   async function read(table: string, columns: string, filters: Filter[] = []): Promise<{ rows: Row[]; failure: Failure | null }> {
     const { data, error } = await api.select(table, columns, filters);
@@ -179,8 +186,19 @@ export function createSocial(api: Api) {
     return { people: found, failure: null };
   }
 
-  return {
+  const service = {
     get configured() { return api.configured; },
+    /**
+     * Whether "Add friend" in the library can work on this project (0125 applied): null until a call has told us,
+     * false when the function is missing, true once it has answered. A screen shows the button unless this is false.
+     */
+    get canRequestFriends(): boolean | null { return asking; },
+    /** Asks the server once (a read of your own open requests) whether library friend requests exist here; null if it could not tell (offline, signed out). */
+    probeFriendRequests: async (): Promise<boolean | null> => {
+      if (asking !== null) return asking;
+      await service.lobbyFriendRequests();
+      return asking;
+    },
 
     /* Profile */
     loadProfile: () => run<SocialProfile | null>(async (me) => {
@@ -383,10 +401,19 @@ export function createSocial(api: Api) {
      * `want` asks for a server; when it is full the usual pick is made and `wantedFull` says so. Without
      * `want` the call is the two-argument one, so a server before 0121 still answers.
      */
-    joinLobby: (tile: { x: number; y: number }, want?: number | null) => run<LobbyJoin>(async () => {
+    joinLobby: (tile: { x: number; y: number }, want?: number | null, platform: LobbyPlatform | null = "web") => run<LobbyJoin>(async () => {
       const args: Record<string, unknown> = { x: clampTile(tile.x), y: clampTile(tile.y) };
       if (want !== undefined && want !== null) args.want = Math.floor(want);
-      const r = await rpc("lobbyJoin", args);
+      // This visit's device (0124). A project before 0124 does not know the name and refuses the whole call, so the
+      // join is made again without it, and not tried with it again.
+      if (platform && joinsWithPlatform) args.platform = platform;
+      let r = await rpc("lobbyJoin", args);
+      if (r.failure && "platform" in args && r.failure.kind === "unavailable") {
+        if (r.missing) joinsWithPlatform = false;
+        const without = { ...args };
+        delete without.platform;
+        r = await rpc("lobbyJoin", without);
+      }
       if (r.failure) return fail(r.failure);
       const j = lobbyDecode.join(r.data);
       return j ? ok(j) : fail({ kind: "unavailable" });
@@ -413,6 +440,30 @@ export function createSocial(api: Api) {
       const r = await rpc("lobbyPeople", { shard });
       if (r.failure) return fail(r.failure);
       return ok(Array.isArray(r.data) ? (r.data as Row[]).flatMap((row) => { const p = lobbyDecode.person(row); return p ? [sanitised(p)] : []; }) : []);
+    }),
+    /**
+     * "Add friend" on someone you can see in the library (0125). The server answers with a word, and `not_here` is the
+     * one answer for every way of not being reachable (left, hidden, blocked, never there), so this passes it on as it
+     * is. A malformed id never leaves the browser. A project without the migration is `unavailable`, and
+     * `canRequestFriends` turns false so a screen can stop offering the button.
+     */
+    sendLobbyFriendRequest: (personId: string) => run<LobbyAskOutcome>(async () => {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(personId)) return ok("not_here");
+      const r = await rpc("sendLobbyFriendRequest", { person: personId.toLowerCase() });
+      if (r.missing) asking = false;
+      if (r.failure) return fail(r.failure);
+      const outcome = lobbyDecode.ask(r.data);
+      if (!outcome) return fail({ kind: "unavailable" });
+      asking = true;
+      return ok(outcome);
+    }),
+    /** Your own open requests made in the library, both ways, every person as their nickname. Incoming ones are answered with `respondToFriendRequest`; an outgoing one is taken back with `removeFriend`. */
+    lobbyFriendRequests: () => run<LobbyFriendRequest[]>(async () => {
+      const r = await rpc("lobbyFriendRequests");
+      if (r.missing) asking = false;
+      if (r.failure) return fail(r.failure);
+      asking = true;
+      return ok(Array.isArray(r.data) ? (r.data as Row[]).flatMap((row) => { const q = lobbyDecode.friendRequest(row); return q ? [q] : []; }) : []);
     }),
     /** A wave or a high five over your own head. */
     lobbyEmote: (kind: LobbyEmote) => run<LobbyEmoteOutcome>(async () => {
@@ -443,6 +494,7 @@ export function createSocial(api: Api) {
     reportLibraryMessage: (messageId: string, reason: MessageReportReason, block: boolean) =>
       write("reportLibraryMessage", { message: Number(messageId) || 0, reason, block }),
   };
+  return service;
 }
 
 export type SocialService = ReturnType<typeof createSocial>;

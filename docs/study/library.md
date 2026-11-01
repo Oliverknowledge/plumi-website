@@ -246,3 +246,108 @@ PGHOST=localhost PGPORT=5545 PGUSER=postgres PGDATABASE=postgres npm run social:
   library by name) and a quiet state for signed out, not joined and off.
 - A Next.js dev server cannot be started on a second port in the same project directory ("Another next dev server is
   already running"); use the running one, or a copy of the source.
+
+## Adding friends and platform (founder, 1 November)
+
+Two additions, both server-side first: **"Add friend" on someone you meet in a library**, and **what device someone is
+on**. The migrations are `0124_lobbyPlatform.sql` and `0125_lobbyFriendRequests.sql` in the app repo (`Supabase/migrations`),
+tested by `tools/social-check/friends_platform_test.sql` (121 assertions, wired into `run.sh`). The iPad half is a spec,
+not code: `docs/study/ipad-changes-friends-platform.md` (**not compiled or run**).
+
+### Platform: why on the presence row
+
+`lobby_presence.platform` (`'ipad' | 'web' | NULL`, a CHECK keeps the set that small), set by `lobby_join(x, y, want, platform)`
+and returned by `lobby_people`. The alternative was a key in `social_profile.avatar` (`set_avatar`). That is last-writer-wins:
+a student on the iPad in the morning and the website at night is whatever signed in last, and stays wrong after the tab
+closes. A presence row is deleted when its owner leaves or goes quiet, and **every join overwrites it** (a join that says
+nothing clears it), so "the device they are on right now" is true by construction and nothing needs expiring.
+
+- Additive. `lobby_join` gains a fourth, optional argument; `x, y, want` are unchanged, so an old build calling
+  `lobby_join(x, y)` or `(x, y, want)` works (the three-argument function is dropped in the same transaction, as 0121 did,
+  because two overloads would make a call without `platform` ambiguous). `lobby_people` gains `platform` and
+  `friend_request` as the last two columns; both clients read columns by name.
+- An unknown value is stored as NULL, never refused: a label must never be the reason a student cannot enter the library.
+- Self-reported (a student can claim `ipad` from a laptop), like the Pro tag. Nothing decides anything on it. Shown only to
+  students who can already see that person in `lobby_people`.
+- The web reports `web` itself: `createSocial(...).joinLobby(tile, want, platform = "web")`. `session.ts` needs no change for
+  this. If the project has not had 0124 the join is made again without it (and not tried with it again).
+- `platformOf` (`src/lib/studyapp/library/platform.ts`) now reads the server's value first; the avatar-key inference is only
+  the fallback for an iPad build that does not say.
+
+### Add friend: the rules the server enforces
+
+`send_lobby_friend_request(person uuid) -> sent | now_friends | already_friends | already_asked | rate_limited | not_here`.
+
+1. **Both here.** Both students have a `lobby_presence` row in the same shard refreshed within 30 seconds, both visible, both
+   with friends turned on, neither blocking nor reporting the other (`report_user` blocks). That is exactly the set
+   `lobby_people` shows, so the button reaches nobody the card did not (the test asks every person `lobby_people` returned).
+2. **Limits per sender** (all independent of the target, so none is an oracle): 6 attempts an hour, 15 a day, 8 open library
+   requests at once. Every attempt counts, misses included, before the lookup. The ledger is the existing `social_rate`.
+3. **A "no" is not a nudge.** The same person once a week (`lobby_friend_ask`, a ledger that survives the decline, which deletes
+   the friendship row, and survives turning friends off and on). Asking again says `already_asked`, the same word as while the
+   request is open, so a decline is not revealed.
+4. **Asking back is the acceptance** (`now_friends`), as `send_friend_request` does.
+5. **Pauses.** Two chat messages hidden by reports in two hours (0120's mute), or three different students reporting you in a
+   week (`social_report` or `library_message_report`, one student counted once): `rate_limited` until it passes.
+6. **Words, not exceptions.** `not_here` is the one answer for yourself, a made-up id, null, someone who left, went quiet,
+   hid, is in another library, never turned friends on, or blocked or was blocked or reported. The test asks for all of them
+   and asserts one value. The sender's own state (hidden, left, quiet) also gives `not_here`.
+7. Cancelling is the existing `remove_friend("user")` (it deletes a pending request either way round). Accepting or declining
+   is the existing `respond_friend_request`. Requests nobody answers for 14 days stop counting and the sender's own are swept.
+
+Why these numbers: an honest student makes one to three friends in a session, so 6 an hour and 15 a day are far above use and
+well below what a stranger-facing door should allow one account; 8 open means one account can never have more than 8
+strangers waiting on it; a week is the cooldown `request_to_join` already uses. They are in one function,
+`lobby_ask_limit(kind)`, so changing one is a one-line migration.
+
+### What the recipient sees (the privacy rule)
+
+Before 0125, a request's recipient could read the requester's whole `social_profile` row (`has_pending_request`): display
+name, colour, avatar **and friend code**. For a request that began in a library that hands a stranger a real name and a code.
+Now a library request is marked (`friendship.via_lobby`) and:
+
+- `has_pending_request` is false for it: the recipient cannot read the requester's profile;
+- the `friendship` SELECT policy hides a pending library request from **both** sides' table reads, so an app that does not
+  know about it never lists it and never offers Accept on a blank "Someone";
+- `lobby_friend_requests()` is the read: the caller's own open library requests, both directions, as **nickname, colour, look,
+  streak, level** (what the library shows a stranger). No display name, no friend code, no email: the function has no such
+  column, and the test searches its whole output for the name, the code and the email;
+- on Accept it is an ordinary accepted friendship, and from then on everything friends see applies. That is the moment the
+  real name is shared, by the recipient's choice.
+
+### Threat model: a malicious or curious student
+
+| They try | Why it fails |
+|---|---|
+| Probe user ids to find who is online, who blocked them, who is hidden | One word, `not_here`, for all of it; every attempt is counted (7th in the hour is refused); and an id the library does not show them gives nothing a `lobby_people` read would not |
+| Learn a stranger's real name or friend code through a request | The recipient's profile read is closed for library requests, the table read hides them, and `lobby_friend_requests` has no such column. A request to them shows the asker's nickname only |
+| Ask from outside the library, or after leaving or hiding | The gate needs both fresh rows in one shard; hiding or leaving removes the row |
+| Flood many students | 6/h, 15/day, 8 open, one ask per pair per week, pauses after reports; one account cannot hold more than 8 open at once |
+| Keep asking after a no | The pair ledger: `already_asked` for a week, whatever happened to the request |
+| Enumerate through the new reads | `lobby_friend_requests` returns the caller's own rows only; `lobby_people`'s new `friend_request` is the caller's own request with someone already shown; the ledger table is unreadable |
+| Accept someone else's request | `respond_friend_request` only changes a row addressed to the caller; the test has a third student try |
+| Race two asks | An advisory lock per sender and per pair; a lost insert race answers `already_asked` |
+| Claim to be on a different device | They can. It is a label |
+| Make many accounts | **Not addressed here.** Each needs an email sign-in and friends turned on; the limits are per account |
+
+### Rollout order
+
+1. Apply `0124` then `0125` (each is one transaction and idempotent), then `NOTIFY pgrst, 'reload schema'` (they do it).
+2. Run `npm run social:contract` against the project, or paste `supabase/checks/social_applied.sql`: it checks both migrations
+   and `lobby_join(platform, want, x, y)`, `send_lobby_friend_request(person)`, `lobby_friend_requests()`.
+3. Deploy the web. It is safe **before** step 1 too (the join drops `platform` and tries again; `canRequestFriends` goes
+   false and the button is not drawn), but nothing shows until the migration is on.
+4. Ship the iPad update. **Until then an iPad student cannot see or answer a library request** (their old app lists none and
+   shows nothing of the requester). That is the safe default; to show "Someone" with Accept instead, drop the
+   `NOT (via_lobby AND status = 'pending')` from the policy (not recommended).
+
+### Not verified
+
+- Against a real Supabase project, real PostgREST or a real browser. Verified on a plain Postgres 16 with the app's
+  `social-check` stand-ins for `auth` and Realtime, as every other social migration here. The Supabase image's default
+  privileges are handled the same way as the earlier migrations (REVOKE then GRANT per function) but not exercised.
+- The error shape for a missing function (`PGRST202` / 404 / "Could not find the function") is from PostgREST's documentation
+  and the e2e's stand-in, not seen from a live project.
+- The iPad: nothing in `Sources/` was changed or built.
+- That 6/15/8 are the right numbers for real students (no student has used this; CLAUDE.md evidence level 1 and 2 are
+  empty). A recipient-side switch ("no requests from the library") is the obvious next control and is **not built**.

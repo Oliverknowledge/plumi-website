@@ -12,6 +12,7 @@ import {
 } from "@/lib/social/lobby";
 import type { MessageReportReason, UserReportReason } from "@/lib/social/types";
 import { useNow } from "@/lib/studyapp/clock";
+import { friendButton } from "@/lib/studyapp/library/friendRequest";
 import { platformOf } from "@/lib/studyapp/library/platform";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
 
@@ -114,6 +115,8 @@ export function WhoHere({ session, snap, picked, onPick, onPullUp }: { session: 
 
 function PersonCard({ session, person, now, onClose, onPullUp }: { session: LibrarySession; person: LobbyPerson; now: number; onClose: () => void; onPullUp: (id: string) => void }) {
   const [asking, setAsking] = useState<"report" | "block" | null>(null);
+  const [askLine, setAskLine] = useState<string | null>(null);
+  const fb = friendButton(person);
   const tag = focusTag(person, now);
   const name = shownName(person);
   const platform = platformOf(person);
@@ -139,11 +142,19 @@ function PersonCard({ session, person, now, onClose, onPullUp }: { session: Libr
       {person.groups.length > 0 && <p className="lb-line">In {person.groups.map((g) => g.name).join(", ")}</p>}
       {asking === null && (
         <div className="lb-row">
+          {session.canRequestFriends && (fb === "add" || fb === "received") && (
+            <button type="button" className="btn gold" data-testid="person-add-friend"
+              onClick={async () => { setAskLine((await session.addFriend(person.id)).line); }}>
+              {fb === "received" ? "Accept friend request" : "Add friend"}
+            </button>
+          )}
+          {session.canRequestFriends && fb === "sent" && <span className="lb-tag" data-testid="person-request-sent">Friend request sent</span>}
           {person.seated && <button type="button" className="btn gold" onClick={() => onPullUp(person.id)}>Pull up a chair</button>}
           <button type="button" className="btn ghost" onClick={() => setAsking("report")}>Report</button>
           <button type="button" className="btn ghost" onClick={() => setAsking("block")}>Block</button>
         </div>
       )}
+      {askLine && <p className="lb-line" role="status" data-testid="person-ask-line">{askLine}</p>}
       {asking === "report" && (
         <div className="lb-ask" role="group" aria-label="Why are you reporting them?">
           <span className="lbl">Why?</span>

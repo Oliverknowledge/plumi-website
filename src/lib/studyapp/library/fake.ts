@@ -1,6 +1,6 @@
 import { fail, ok, type Result } from "../../social/failure";
 import { check as libraryCheck } from "../../social/librarySpam";
-import { sanitised, LOBBY_CAP, type LibraryMessage, type LobbyEmote, type LobbyEmoteOutcome, type LobbyJoin, type LobbyPerson, type LobbyServers } from "../../social/lobby";
+import { sanitised, LOBBY_CAP, type LibraryMessage, type LobbyEmote, type LobbyAskOutcome, type LobbyEmoteOutcome, type LobbyJoin, type LobbyPerson, type LobbyServers } from "../../social/lobby";
 import type { LobbyChannel, LobbyRealtime } from "./lobbyWatch";
 import { presenceFields, type FloorPresence } from "./room";
 import { LIBRARY_TILE } from "./room";
@@ -95,6 +95,8 @@ export class FakeLibraryWorld {
   messages: Msg[] = [];
   reports: { message: number; by: string; reason: string; block: boolean }[] = [];
   userReports: { user: string; by: string; reason: string }[] = [];
+  /** Open friend requests made in the library, as "from>to". */
+  asked = new Set<string>();
   private nextId = 1;
   /** Calls that should fail, by name: a test of "the network went", never an error on screen. */
   failing = new Set<string>();
@@ -167,6 +169,16 @@ export class FakeLibraryWorld {
         return ok(true);
       }),
       leaveLobby: () => gate("leaveLobby", () => { self().shard = null; return ok(undefined); }),
+      canRequestFriends: true,
+      probeFriendRequests: async () => true,
+      sendLobbyFriendRequest: (id) => gate("sendLobbyFriendRequest", () => {
+        const s = self(), t = this.students.get(id);
+        if (!t || t === s || !s.visible || !t.visible || s.shard === null || s.shard !== t.shard || this.blockedEither(s, t)) return ok<LobbyAskOutcome>("not_here");
+        if (s.friends.has(id)) return ok<LobbyAskOutcome>("already_friends");
+        if (this.asked.has(`${me}>${id}`)) return ok<LobbyAskOutcome>("already_asked");
+        this.asked.add(`${me}>${id}`);
+        return ok<LobbyAskOutcome>("sent");
+      }),
       lobbyPeople: (shard) => gate("lobbyPeople", () => {
         const s = self();
         if (!s.visible || s.shard !== shard) return notMember<LobbyPerson[]>();
@@ -175,6 +187,7 @@ export class FakeLibraryWorld {
           avatar: x.avatar ?? (x.pro ? { pro: "1" } : null), x: LIBRARY_TILE.x, y: LIBRARY_TILE.y, seated: x.seated, subjectId: x.subject, focusSince: x.focusSince,
           streak: x.streak, level: x.level, groups: [], emote: x.emoteAt !== null && this.now() - x.emoteAt < 10_000 ? x.emote : null,
           emoteAt: x.emoteAt !== null && this.now() - x.emoteAt < 10_000 ? x.emoteAt : null, updatedAt: x.beat, pro: x.avatar ? x.avatar.pro === "1" : x.pro,
+          platform: x.avatar?.outfit ? "ipad" : null, friendRequest: this.asked.has(`${me}>${x.id}`) ? "sent" : this.asked.has(`${x.id}>${me}`) ? "received" : null,
         })));
       }),
       lobbyEmote: (kind) => gate("lobbyEmote", () => {

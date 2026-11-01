@@ -7,6 +7,7 @@ import {
 import type { MessageReportReason, UserReportReason } from "../../social/types";
 import type { LiveSummary } from "../live";
 import { composeRemotes, labelFor, type HeardFloor, type RemoteState } from "./compose";
+import { friendRequestFromLobby, type FriendAsk } from "./friendRequest";
 import { watchLobby, type LobbyRealtime, type LobbySignal, type LobbyWatch } from "./lobbyWatch";
 import { LIBRARY_TILE, type FloorPresence } from "./room";
 
@@ -32,7 +33,8 @@ export type Phase = "idle" | "joining" | "live" | "hidden" | "unavailable";
 
 export type LibrarySocial = Pick<SocialService,
   "joinLobby" | "lobbyServers" | "setLobbyPosition" | "leaveLobby" | "lobbyPeople" | "lobbyEmote" | "libraryMessages" |
-  "sendLibraryMessage" | "reportLibraryMessage" | "block" | "reportUser" | "setLobbyVisible" | "setAvatar">;
+  "sendLibraryMessage" | "reportLibraryMessage" | "block" | "reportUser" | "setLobbyVisible" | "setAvatar" |
+  "sendLobbyFriendRequest" | "probeFriendRequests" | "canRequestFriends">;
 
 export interface Snapshot {
   phase: Phase;
@@ -188,6 +190,7 @@ export class LibrarySession {
     // The server forgets what you were doing when you join (seated and the timer are cleared): say it again if the room still has you in a seat.
     const seated = this.floorNow()?.seat != null;
     this.set({ phase: "live", shard, nickname, people: [], messages: [], chatLoaded: false, live: false, seated, ...(seated ? {} : { subject: null, focusSince: null }) });
+    void this.d.social.probeFriendRequests();          // does the server have "Add friend" yet (0125)? Asked once; the card hides the button until it says yes
     const rt = this.d.realtime?.() ?? null;
     if (rt) {
       this.watch = watchLobby(rt, {
@@ -403,6 +406,17 @@ export class LibrarySession {
     if (r.value === "not_in_lobby") { await this.rejoin(this.gen); return; }
     const line = emoteLine(r.value);
     if (line) this.say(line);
+  }
+
+  /** Whether to offer "Add friend" at all: not once the server has said it does not have it (a project without 0125). */
+  get canRequestFriends(): boolean { return this.d.social.canRequestFriends !== false; }
+
+  /** "Add friend" on someone's card (0125). The card shows the line; the server's answer is the one that counts. */
+  async addFriend(id: string): Promise<FriendAsk> {
+    const asked = await friendRequestFromLobby(this.d.social, id);
+    if (asked.settled) this.set({ people: this.s.people.map((p) => p.id === id
+      ? { ...p, friendRequest: asked.nowFriends ? null : "sent", isFriend: p.isFriend || asked.nowFriends } : p) });
+    return asked;
   }
 
   /** Sends a chat message. The browser checks it first (`librarySpam`), the server's answer is the one that counts. */

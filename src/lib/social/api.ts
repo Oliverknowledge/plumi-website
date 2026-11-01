@@ -63,7 +63,9 @@ export const RPC = {
   lobbyMe: { name: "lobby_me", args: [] },
   setLobbyVisible: { name: "set_lobby_visible", args: ["visible"] },
   regenerateNickname: { name: "regenerate_nickname", args: [] },
-  lobbyJoin: { name: "lobby_join", args: ["x", "y", "want"] },
+  // `platform` (0124) is the device this visit is on, 'web' from here. The service drops it and tries again if the project has not
+  // had 0124 yet, so an older server still lets a student in.
+  lobbyJoin: { name: "lobby_join", args: ["x", "y", "want", "platform"] },
   lobbyServers: { name: "lobby_servers", args: [] },
   lobbySetPosition: { name: "lobby_set_position", args: ["shard", "x", "y", "seated", "subject", "focus_since"] },
   lobbyLeave: { name: "lobby_leave", args: [] },
@@ -72,6 +74,9 @@ export const RPC = {
   libraryMessages: { name: "library_messages", args: ["shard", "since"] },
   sendLibraryMessage: { name: "send_library_message", args: ["shard", "body"] },
   reportLibraryMessage: { name: "report_library_message", args: ["message", "reason", "block"] },
+  // Asking someone met in the library to be friends (0125). Accepting is respond_friend_request; cancelling is remove_friend.
+  sendLobbyFriendRequest: { name: "send_lobby_friend_request", args: ["person"] },
+  lobbyFriendRequests: { name: "lobby_friend_requests", args: [] },
 } as const;
 
 export type RpcKey = keyof typeof RPC;

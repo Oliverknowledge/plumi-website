@@ -33,7 +33,9 @@ migrations(m, what, ok) AS (VALUES
     ('0121', 'library servers (lobby_servers, a shard of 60)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_servers'))),
     ('0122', 'the ceiling of 300 libraries (lobby_max_shard)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_max_shard'))),
     ('0123', 'library spam rule for every script (a sentence in Chinese or Arabic is not spam)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam' AND p.prosrc LIKE '%uFE00%'))),
-    ('0118', 'public groups and asking to join one (request_to_join)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'request_to_join')))
+    ('0118', 'public groups and asking to join one (request_to_join)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'request_to_join'))),
+    ('0124', 'the device a student is on, in the library (lobby_presence.platform, lobby_join(..., platform))', (EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='lobby_presence' AND column_name='platform'))),
+    ('0125', 'asking someone in the library to be friends (send_lobby_friend_request, friendship.via_lobby)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'send_lobby_friend_request') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='friendship' AND column_name='via_lobby')))
 ),
 want_rpc(key, fn, args) AS (VALUES
     ('optIn', 'social_opt_in', ARRAY['colour', 'display_name']::text[]),
@@ -67,7 +69,7 @@ want_rpc(key, fn, args) AS (VALUES
     ('lobbyMe', 'lobby_me', ARRAY[]::text[]),
     ('setLobbyVisible', 'set_lobby_visible', ARRAY['visible']::text[]),
     ('regenerateNickname', 'regenerate_nickname', ARRAY[]::text[]),
-    ('lobbyJoin', 'lobby_join', ARRAY['want', 'x', 'y']::text[]),
+    ('lobbyJoin', 'lobby_join', ARRAY['platform', 'want', 'x', 'y']::text[]),
     ('lobbyServers', 'lobby_servers', ARRAY[]::text[]),
     ('lobbySetPosition', 'lobby_set_position', ARRAY['focus_since', 'seated', 'shard', 'subject', 'x', 'y']::text[]),
     ('lobbyLeave', 'lobby_leave', ARRAY[]::text[]),
@@ -75,7 +77,9 @@ want_rpc(key, fn, args) AS (VALUES
     ('lobbyEmote', 'lobby_emote', ARRAY['kind']::text[]),
     ('libraryMessages', 'library_messages', ARRAY['shard', 'since']::text[]),
     ('sendLibraryMessage', 'send_library_message', ARRAY['body', 'shard']::text[]),
-    ('reportLibraryMessage', 'report_library_message', ARRAY['block', 'message', 'reason']::text[])
+    ('reportLibraryMessage', 'report_library_message', ARRAY['block', 'message', 'reason']::text[]),
+    ('sendLobbyFriendRequest', 'send_lobby_friend_request', ARRAY['person']::text[]),
+    ('lobbyFriendRequests', 'lobby_friend_requests', ARRAY[]::text[])
 ),
 have AS (
   SELECT p.proname AS fn, p.oid,

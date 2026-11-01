@@ -34,6 +34,8 @@ const MIGRATIONS: { m: string; what: string; test: string }[] = [
   { m: "0122", what: "the ceiling of 300 libraries (lobby_max_shard)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_max_shard')" },
   { m: "0123", what: "library spam rule for every script (a sentence in Chinese or Arabic is not spam)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam' AND p.prosrc LIKE '%uFE00%')" },
   { m: "0118", what: "public groups and asking to join one (request_to_join)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'request_to_join')" },
+  { m: "0124", what: "the device a student is on, in the library (lobby_presence.platform, lobby_join(..., platform))", test: "EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='lobby_presence' AND column_name='platform')" },
+  { m: "0125", what: "asking someone in the library to be friends (send_lobby_friend_request, friendship.via_lobby)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'send_lobby_friend_request') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='friendship' AND column_name='via_lobby')" },
 ];
 
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;

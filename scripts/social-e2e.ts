@@ -6,7 +6,7 @@
  *
  * It needs a Postgres with the app's social migrations applied (the app repo's tools/social-check/run.sh
  * builds one in Docker and leaves it running with SOCIAL_CHECK_KEEP=1; any local cluster loaded with
- * Supabase/migrations 0102 to 0123 and tools/social-check/{auth,realtime}_setup.sql works).
+ * Supabase/migrations 0102 to 0125 and tools/social-check/{auth,realtime}_setup.sql works).
  *
  * HOW IT TALKS TO THE DATABASE. A transport (`PsqlApi`) stands where the browser's Supabase client stands:
  * `rpc` runs `SELECT ... FROM public.<fn>(arg := ...)` and `select` runs the table read with the same
@@ -28,6 +28,9 @@ import { studentFacing } from "../src/lib/social/failure";
 import { createSocial } from "../src/lib/social/service";
 import { FakeRealtimeHub } from "../src/lib/studyapp/library/fake";
 import { LIBRARY_TILE } from "../src/lib/studyapp/library/room";
+import { askLine } from "../src/lib/social/failure";
+import { platformOf } from "../src/lib/studyapp/library/platform";
+import { friendRequester } from "../src/lib/studyapp/library/friendRequest";
 import { LibrarySession } from "../src/lib/studyapp/library/session";
 import { readFileSync } from "node:fs";
 import { personOf, type PeopleCatalogue } from "../src/lib/studyapp/library/people/look";
@@ -119,7 +122,7 @@ const refused = (r: { ok: boolean; failure?: unknown }, reason: string) => asser
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * The Grand Library on the real schema (0117 to 0123): the lobby, positions, emotes, servers, hiding, and the chat with
+ * The Grand Library on the real schema (0117 to 0123; 0124 and 0125 are in theLibraryFriends): the lobby, positions, emotes, servers, hiding, and the chat with
  * its filters, pace, reports and blocks, then the web's own visit (`LibrarySession`) on top of it.
  */
 async function theLibrary(w: { alex: ReturnType<typeof createSocial>; bea: ReturnType<typeof createSocial>; cal: ReturnType<typeof createSocial>; raw: (id: string) => Api; ids: { A: string; B: string; C: string } }) {
@@ -371,6 +374,99 @@ async function theWardrobe(w: { alex: ReturnType<typeof createSocial>; bea: Retu
   value(await alex.leaveLobby()); value(await bea.leaveLobby());
 }
 
+/**
+ * Asking someone you meet in the library to be friends (0125) and the device they are on (0124), on the real schema:
+ * three students in one library, a request, a nickname-only view until it is accepted, the real name after, every
+ * refusal as the one word `not_here`, the limit, and a project that has not had the migration.
+ */
+async function theLibraryFriends() {
+  const [D, E, F] = [randomUUID(), randomUUID(), randomUUID()];
+  assert.ok(psql(`INSERT INTO auth.users (id, aud, role, email) VALUES ('${D}','authenticated','authenticated','${D}@e2e.test'),('${E}','authenticated','authenticated','${E}@e2e.test'),('${F}','authenticated','authenticated','${F}@e2e.test');`).ok);
+  const dee = createSocial(PsqlApi(D)), eve = createSocial(PsqlApi(E)), fay = createSocial(PsqlApi(F));
+  const raw = (id: string) => PsqlApi(id);
+  const tile = { x: LIBRARY_TILE.x, y: LIBRARY_TILE.y };
+  value(await dee.optIn("Dee Dawn", 1)); value(await eve.optIn("Eve Ellis", 2)); value(await fay.optIn("Fay Frost", 3));
+  assert.ok(psql("DELETE FROM public.lobby_presence;").ok);
+  const gather = async (want?: number | null) => {
+    const jd = value(await dee.joinLobby(tile, want));
+    value(await eve.joinLobby(tile, jd.shard)); value(await fay.joinLobby(tile, jd.shard, "ipad"));
+    return jd.shard!;
+  };
+  const shard = await gather();
+  const nick = Object.fromEntries(await Promise.all([[D, dee], [E, eve], [F, fay]].map(async ([id, svc]) => [id as string, value(await (svc as typeof dee).lobbyMe()).nickname])));
+
+  // The device, from the server: the website reports `web` itself, an updated iPad says `ipad`.
+  const seen = value(await dee.lobbyPeople(shard));
+  assert.deepEqual(seen.map((p) => [p.id === E ? "eve" : "fay", p.platform, platformOf(p)]).sort(), [["eve", "web", "Web"], ["fay", "ipad", "iPad"]]);
+  ok("each student's library visit states its device (the web says web by itself); lobby_people returns it and the card reads Web or iPad");
+  value(await eve.joinLobby(tile, shard, null));
+  assert.equal(value(await dee.lobbyPeople(shard)).find((p) => p.id === E)!.platform, null);
+  value(await eve.joinLobby(tile, shard));
+  ok("a join that says nothing (an older iPad) leaves it unknown rather than stale, and the next web join says web again");
+
+  // Asking, and what each side sees.
+  assert.deepEqual(await dee.sendLobbyFriendRequest(E), { ok: true, value: "sent" });
+  assert.deepEqual(await dee.sendLobbyFriendRequest(E), { ok: true, value: "already_asked" });
+  ok("Dee asks Eve in the library: sent; asking again while it is open: already_asked");
+  const incoming = value(await eve.lobbyFriendRequests());
+  assert.deepEqual(incoming.map((r) => [r.userId === D, r.direction, r.nickname]), [[true, "incoming", nick[D]]]);
+  assert.doesNotMatch(JSON.stringify(incoming), /Dee|Dawn|friend_code|e2e\.test/);
+  const profile = await raw(E).select("social_profile", "user_id,display_name,friend_code,colour,avatar", [["eq", "user_id", D]]);
+  assert.deepEqual(profile, { data: [], error: null });
+  assert.deepEqual(value(await eve.loadFriends()), { friends: [], requests: [] });
+  ok("Eve sees Dee only as her nickname: the profile read, the friends read and the request read hold neither her name nor her friend code");
+  assert.deepEqual(value(await dee.lobbyFriendRequests()).map((r) => [r.userId === E, r.direction, r.nickname]), [[true, "outgoing", nick[E]]]);
+  assert.equal(value(await eve.lobbyPeople(shard)).find((p) => p.id === D)!.friendRequest, "received");
+  assert.equal(value(await dee.lobbyPeople(shard)).find((p) => p.id === E)!.friendRequest, "sent");
+  assert.equal(value(await dee.lobbyPeople(shard)).find((p) => p.id === F)!.friendRequest, null);
+  ok("each card knows about the open request, and nobody else's");
+  value(await eve.respondToFriendRequest(D, true));
+  assert.deepEqual(value(await eve.loadFriends()).friends.map((f) => f.displayName), ["Dee Dawn"]);
+  assert.deepEqual(value(await dee.loadFriends()).friends.map((f) => f.displayName), ["Eve Ellis"]);
+  assert.deepEqual(value(await eve.lobbyFriendRequests()), []);
+  const eveAsSeenByDee = value(await dee.lobbyPeople(shard)).find((p) => p.id === E)!;
+  assert.deepEqual([eveAsSeenByDee.isFriend, eveAsSeenByDee.displayName, eveAsSeenByDee.friendRequest], [true, "Eve Ellis", null]);
+  assert.deepEqual(await dee.sendLobbyFriendRequest(E), { ok: true, value: "already_friends" });
+  ok("when Eve accepts, they are friends: real names both ways, the request is gone, and asking again says already_friends");
+
+  // Every way of not being reachable is the one word. (A scratch database: start the hour's count again.)
+  assert.ok(psql("DELETE FROM public.social_rate WHERE action = 'lobby_friend_ask';").ok);
+  assert.deepEqual(await dee.sendLobbyFriendRequest(D), { ok: true, value: "not_here" });
+  const unknown = await dee.sendLobbyFriendRequest(randomUUID());
+  assert.deepEqual(unknown, { ok: true, value: "not_here" });
+  value(await fay.setLobbyVisible(false));
+  const hidden = await dee.sendLobbyFriendRequest(F);
+  value(await fay.setLobbyVisible(true)); value(await fay.joinLobby(tile, shard, "ipad")); value(await dee.joinLobby(tile, shard)); value(await eve.joinLobby(tile, shard));
+  value(await fay.block(D));
+  const blocked = await dee.sendLobbyFriendRequest(F);
+  assert.deepEqual([hidden, blocked], [unknown, unknown]);
+  assert.ok(!value(await dee.lobbyPeople(shard)).some((p) => p.id === F), "and the library no longer shows Fay to Dee");
+  ok("self, a made-up id, a hidden student and a student who blocked you all answer exactly not_here: the same word, the same line");
+  assert.equal(askLine("not_here"), "They’re not around right now");
+
+  // The limit.
+  assert.ok(psql("DELETE FROM public.social_rate WHERE action = 'lobby_friend_ask';").ok);
+  for (let i = 0; i < 6; i++) assert.deepEqual(await dee.sendLobbyFriendRequest(E), { ok: true, value: "already_friends" }, `attempt ${i + 1}`);
+  assert.deepEqual(await dee.sendLobbyFriendRequest(E), { ok: true, value: "rate_limited" });
+  assert.deepEqual(await fay.sendLobbyFriendRequest(E), { ok: true, value: "sent" }, "another student has their own allowance");
+  ok("six attempts an hour, misses included: the seventh is rate_limited, and one student's limit is not another's");
+  const lines = Array.from(new Set(["sent", "now_friends", "already_friends", "already_asked", "rate_limited", "not_here"] as const)).map(askLine);
+  assert.ok(lines.every((l) => !/[\u2014\u2013_]/.test(l)));
+
+  // A project before 0125: the function is not there. The service says so and the page hides the button.
+  const older: Api = { ...PsqlApi(D), rpc: async (name, args) => (name === "send_lobby_friend_request" || name === "lobby_friend_requests"
+    ? { data: null, error: { message: `Could not find the function public.${name}(person) in the schema cache`, code: "PGRST202", status: 404 } }
+    : PsqlApi(D).rpc(name, args)) };
+  const before = createSocial(older);
+  const asker = friendRequester(before);
+  assert.equal(asker.canRequestFriends(), true, "offered until the project says otherwise");
+  assert.equal(await asker.probe(), false);
+  assert.equal(asker.canRequestFriends(), false);
+  assert.equal((await asker.ask(E)).outcome, "unavailable");
+  ok("a project without the migration: the web finds out once, hides the button, and shows no error");
+  value(await dee.leaveLobby()); value(await eve.leaveLobby()); value(await fay.leaveLobby());
+}
+
 async function main() {
   const [A, B, C] = [randomUUID(), randomUUID(), randomUUID()];
   assert.ok(psql(`INSERT INTO auth.users (id, aud, role, email) VALUES ('${A}','authenticated','authenticated','${A}@e2e.test'),('${B}','authenticated','authenticated','${B}@e2e.test'),('${C}','authenticated','authenticated','${C}@e2e.test');`).ok);
@@ -485,6 +581,7 @@ async function main() {
 
   await theLibrary({ alex, bea, cal, raw, ids: { A, B, C } });
   await theWardrobe({ alex, bea, cal, raw, ids: { A, B, C } });
+  await theLibraryFriends();
 
   // Leaving
   value(await bea.leaveGroup(g.id));

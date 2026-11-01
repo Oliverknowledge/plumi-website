@@ -1,3 +1,5 @@
+import type { LobbyAskOutcome } from "./lobby";
+
 /**
  * Every call returns a Result, never throws at a view: a student must never see an error. A failure is
  * a value the screen turns into a quiet state (the last loaded list, one short line, or nothing). This
@@ -48,6 +50,22 @@ export function studentFacing(reason: Refusal): string {
   }
 }
 
+/**
+ * One short line for each answer to "Add friend" in the library (`send_lobby_friend_request`, 0125). Plain words, the
+ * student's own, and not one of them says why: `not_here` is the same line whether the person left, hid, or
+ * blocked them, because the server does not say either.
+ */
+export function askLine(outcome: LobbyAskOutcome): string {
+  switch (outcome) {
+    case "sent": return "Friend request sent";
+    case "now_friends": return "You’re friends now";
+    case "already_friends": return "You’re already friends";
+    case "already_asked": return "You already asked them";
+    case "rate_limited": return "That’s enough requests for now. Try again later";
+    case "not_here": return "They’re not around right now";
+  }
+}
+
 /** A failure that means "keep showing what you last loaded". */
 export const isTransient = (f: Failure) => f.kind === "offline" || f.kind === "unavailable" || f.kind === "signedOut";
 
@@ -83,6 +101,16 @@ export function raised(message: string): Failure | null {
     case "message_muted": return { kind: "refused", reason };
     default: return { kind: "refused", reason: "other" };
   }
+}
+
+/**
+ * True when the server has no such function: the project has not had the migration yet (PostgREST: PGRST202, a 404,
+ * "Could not find the function ... in the schema cache"; Postgres: 42883). Not a student's problem: the caller
+ * hides the feature instead of showing an error.
+ */
+export function isMissingFunction(error: ApiError): boolean {
+  return error.code === "PGRST202" || error.code === "42883" || error.status === 404
+    || /could not find the function|function .* does not exist|not found in the schema cache/i.test(error.message);
 }
 
 /** What supabase-js (PostgREST) hands back when a call fails. */

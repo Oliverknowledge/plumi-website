@@ -15,3 +15,17 @@ test("an explicit platform key wins, if the server ever carries one", () => {
   assert.equal(platformOf({ avatar: { plat: "web" } }), "Web");
   assert.equal(platformOf({ avatar: { plat: "ipad", outfit: "01" } }), "iPad");
 });
+test("what the server says wins over the avatar, whichever way they disagree", () => {
+  const wardrobe = { body: "03", outfit: "12", hair: "40" };
+  assert.equal(platformOf({ avatar: wardrobe, platform: "web" }), "Web", "dressed on an iPad, but on the web right now");
+  assert.equal(platformOf({ avatar: null, platform: "ipad" }), "iPad");
+  assert.equal(platformOf({ avatar: { plat: "web" }, platform: "ipad" }), "iPad");
+});
+test("a platform the server did not say, or one off the list, falls back to the old reading", () => {
+  const wardrobe = { body: "03", outfit: "12" };
+  assert.equal(platformOf({ avatar: wardrobe, platform: null }), "iPad");
+  assert.equal(platformOf({ avatar: wardrobe, platform: undefined }), "iPad");
+  assert.equal(platformOf({ avatar: wardrobe, platform: "android" as never }), "iPad");
+  assert.equal(platformOf({ avatar: null, platform: "android" as never }), null);
+  assert.equal(platformOf({ avatar: { top: "hoodie" }, platform: null }), null);
+});

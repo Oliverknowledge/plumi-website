@@ -42,6 +42,21 @@ export function emoteLine(outcome: LobbyEmoteOutcome): string | null {
 
 export interface LobbyGroupTag { id: string; name: string; emblem: number }
 
+/**
+ * The device a student is on RIGHT NOW (0124): a tiny set the server enforces, set at each join and gone when they
+ * leave. Whatever the client says it is, so a courtesy label and never a safety signal. Unknown is null.
+ */
+export type LobbyPlatform = "ipad" | "web";
+export const LOBBY_PLATFORMS: readonly LobbyPlatform[] = ["ipad", "web"];
+export const PLATFORM_TITLE: Record<LobbyPlatform, "iPad" | "Web"> = { ipad: "iPad", web: "Web" };
+
+/** The answers to "Add friend" in the library (`send_lobby_friend_request`, 0125). Words, not errors; `not_here` is the same for every way of not being reachable. */
+export type LobbyAskOutcome = "sent" | "now_friends" | "already_friends" | "already_asked" | "rate_limited" | "not_here";
+export const LOBBY_ASK_OUTCOMES: readonly LobbyAskOutcome[] = ["sent", "now_friends", "already_friends", "already_asked", "rate_limited", "not_here"];
+
+/** Your own open request with someone you can see: you asked them, or they asked you. Nothing about anyone else's. */
+export type LobbyRequestState = "sent" | "received";
+
 /** One other student in the shard, as `lobby_people` returns them. Times are epoch milliseconds. */
 export interface LobbyPerson {
   id: string;
@@ -65,6 +80,30 @@ export interface LobbyPerson {
   updatedAt: number;
   /** The yellow Pro nametag (a cosmetic flag the app reports about itself: a badge, never an entitlement). */
   pro: boolean;
+  /**
+   * The device they are on now (0124). Null when they did not say (an app build from before it) and undefined when the
+   * server is older than 0124; both read as "unknown". Optional so a place that builds a person by hand need not know of it.
+   */
+  platform?: LobbyPlatform | null;
+  /** Whether you and they have an open friend request between you (0125); null or undefined for neither. */
+  friendRequest?: LobbyRequestState | null;
+}
+
+/**
+ * One of your own open requests made in the library (`lobby_friend_requests`, 0125). The other student is only ever
+ * their nickname and the look a stranger sees: no real name, no friend code, whichever way the request goes.
+ */
+export interface LobbyFriendRequest {
+  /** The other student's id: `respond_friend_request`'s `from_user` for an incoming one, `remove_friend`'s `user` to take back an outgoing one. */
+  userId: string;
+  direction: "incoming" | "outgoing";
+  nickname: string;
+  colour: number;
+  avatar: SocialAvatar | null;
+  streak: number;
+  level: number;
+  /** Epoch milliseconds. */
+  createdAt: number;
 }
 
 export interface LobbyServer { shard: number; here: number; friends: number }
@@ -116,10 +155,15 @@ export function sanitised(p: LobbyPerson): LobbyPerson {
   const out = { ...p };
   if (!p.isFriend) out.displayName = null;
   if (!NICKNAME.test(out.nickname)) out.nickname = "Someone";
+  if (out.platform && !LOBBY_PLATFORMS.includes(out.platform)) out.platform = null;
+  if (out.friendRequest && out.friendRequest !== "sent" && out.friendRequest !== "received") out.friendRequest = null;
   if (out.subjectId && !subjectName(out.subjectId)) out.subjectId = null;
   if (!out.seated) out.focusSince = null;
   return out;
 }
+
+/** Can the card offer "Add friend": someone who is not yet a friend and has no open request either way. (The server still decides.) */
+export const canAsk = (p: LobbyPerson) => !p.isFriend && !p.friendRequest;
 
 /** The name over their head and on their card: a friend's real name, everyone else's nickname. */
 export const shownName = (p: LobbyPerson) => (p.isFriend && p.displayName ? p.displayName : p.nickname);
@@ -169,6 +213,12 @@ const num = (v: unknown): number | null => {
 const ms = (v: unknown): number | null => { const s = str(v); const t = s ? Date.parse(s) : NaN; return Number.isFinite(t) ? t : null; };
 const whole = (v: unknown, fallback = 0) => { const n = num(v); return n === null ? fallback : Math.max(0, Math.floor(n)); };
 
+/** A platform as the server sends it: one of the two known, in any case; anything else is unknown. */
+export function platformOfRow(v: unknown): LobbyPlatform | null {
+  const w = typeof v === "string" ? v.trim().toLowerCase() : "";
+  return LOBBY_PLATFORMS.find((p) => p === w) ?? null;
+}
+
 function avatarOf(v: unknown): SocialAvatar | null {
   if (!v || typeof v !== "object" || Array.isArray(v)) return null;
   const out: SocialAvatar = {};
@@ -190,7 +240,23 @@ export const lobbyDecode = {
       colour: ((whole(row.colour) % 16) + 16) % 16, avatar, x: whole(row.x), y: whole(row.y), seated: row.seated === true,
       subjectId: str(row.subject_id), focusSince: ms(row.focus_since), streak: whole(row.streak), level: whole(row.level),
       groups, emote, emoteAt: emote ? ms(row.emote_at) : null, updatedAt: ms(row.updated_at) ?? 0, pro: avatar?.pro === "1",
+      platform: platformOfRow(row.platform), friendRequest: row.friend_request === "sent" || row.friend_request === "received" ? row.friend_request : null,
     };
+  },
+  /** One `lobby_friend_requests` row. Only the nickname and the look are read: a name or a code sent by mistake is not picked up. */
+  friendRequest(row: Row): LobbyFriendRequest | null {
+    const id = str(row.user_id), nickname = str(row.nickname);
+    const direction = row.direction === "incoming" || row.direction === "outgoing" ? row.direction : null;
+    if (!id || !nickname || !direction) return null;
+    return {
+      userId: id.toLowerCase(), direction, nickname: NICKNAME.test(nickname) ? nickname : "Someone", colour: ((whole(row.colour) % 16) + 16) % 16,
+      avatar: avatarOf(row.avatar), streak: whole(row.streak), level: whole(row.level), createdAt: ms(row.created_at) ?? 0,
+    };
+  },
+  /** `send_lobby_friend_request`'s word; null for anything else (an unknown word is not guessed at). */
+  ask(data: unknown): LobbyAskOutcome | null {
+    const w = typeof data === "string" ? data.trim().toLowerCase() : "";
+    return LOBBY_ASK_OUTCOMES.find((o) => o === w) ?? null;
   },
   servers(data: unknown): LobbyServers | null {
     if (!data || typeof data !== "object" || Array.isArray(data)) return null;

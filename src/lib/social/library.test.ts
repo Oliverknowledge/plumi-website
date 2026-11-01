@@ -8,10 +8,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { RPC, type Api } from "./api";
-import { failureFor, studentFacing } from "./failure";
+import { askLine, failureFor, studentFacing } from "./failure";
 import * as spam from "./librarySpam";
 import {
-  EMOTE_TITLE, LOBBY_CAP, SEAT_SUBJECTS, byMessageTime, emoteLine, emoteOf, focusClock, focusMinutes, focusTag, listPeople, listedServers, lobbyDecode, lobbyHall,
+  EMOTE_TITLE, LOBBY_ASK_OUTCOMES, LOBBY_CAP, canAsk, SEAT_SUBJECTS, byMessageTime, emoteLine, emoteOf, focusClock, focusMinutes, focusTag, listPeople, listedServers, lobbyDecode, lobbyHall,
   mergeMessages, sanitised, shardOfHall, shownName, subjectName, totalHere, type LibraryMessage, type LobbyPerson, type LobbyServers,
 } from "./lobby";
 import { createSocial } from "./service";
@@ -235,17 +235,19 @@ describe("the service's lobby calls", () => {
       assert.ok(RPC[key].name in byName, `${key} was not called`);
       assert.deepEqual(Object.keys(byName[RPC[key].name]).sort(), [...RPC[key].args].sort(), `${key} (${RPC[key].name})`);
     }
-    assert.deepEqual(byName.lobby_join, { x: 65, y: 34, want: 3 });
+    assert.deepEqual(byName.lobby_join, { x: 65, y: 34, want: 3, platform: "web" });
     assert.deepEqual(byName.lobby_set_position, { shard: 2, x: 65, y: 34, seated: true, subject: "physics", focus_since: new Date(T).toISOString() });
     assert.deepEqual(byName.report_library_message, { message: 12, reason: "bullying", block: true });
     assert.deepEqual(byName.library_messages, { shard: 2, since: new Date(T).toISOString() });
   });
-  it("joins with two arguments unless a server is chosen, so a server before 0121 still answers", async () => {
+  it("joins without `want` unless a server is chosen, so a server before 0121 still answers, and says it is the web (0124)", async () => {
     const f = fake({ lobby_join: { shard: 1, nickname: "Quiet Otter", visible: true } });
     await f.social.joinLobby({ x: 65, y: 34 });
-    assert.deepEqual(f.calls[0].args, { x: 65, y: 34 });
+    assert.deepEqual(f.calls[0].args, { x: 65, y: 34, platform: "web" });
     await f.social.joinLobby({ x: 999, y: -4 }, null);
-    assert.deepEqual(f.calls[1].args, { x: 255, y: 0 }, "a tile is clamped, not refused");
+    assert.deepEqual(f.calls[1].args, { x: 255, y: 0, platform: "web" }, "a tile is clamped, not refused");
+    await f.social.joinLobby({ x: 65, y: 34 }, 2, null);
+    assert.deepEqual(f.calls[2].args, { x: 65, y: 34, want: 2 }, "a caller that wants to say nothing sends no platform");
   });
   it("sends no subject or focus start unless seated", async () => {
     const f = fake({ lobby_set_position: "ok" });
@@ -280,5 +282,145 @@ describe("the service's lobby calls", () => {
   it("is quiet signed out", async () => {
     const api: Api = { configured: true, userId: () => null, rpc: async () => ({ data: null, error: null }), select: async () => ({ data: [], error: null }) };
     assert.deepEqual(await createSocial(api).lobbyPeople(1), { ok: false, failure: { kind: "signedOut" } });
+  });
+});
+
+/* ── The device a student is on (0124) ──────────────────────────────── */
+
+describe("the device a student is on (0124)", () => {
+  const row = (o: Record<string, unknown> = {}) => ({ user_id: "AAAA-1", nickname: "Quiet Otter", display_name: null, is_friend: false, colour: 5, seated: false, ...o });
+  it("reads ipad and web in any case, and nothing else", () => {
+    assert.equal(lobbyDecode.person(row({ platform: "ipad" }))!.platform, "ipad");
+    assert.equal(lobbyDecode.person(row({ platform: " WEB " }))!.platform, "web");
+    for (const bad of ["android", "", null, undefined, 3, {}, ["ipad"], "ipad; drop table"]) assert.equal(lobbyDecode.person(row({ platform: bad }))!.platform, null, String(bad));
+    assert.equal(lobbyDecode.person(row())!.platform, null, "an older server sends no column at all");
+  });
+  it("keeps a platform through `sanitised`, and drops one that is not on the list", () => {
+    assert.equal(sanitised(person({ platform: "web" })).platform, "web");
+    assert.equal(sanitised(person({ platform: "android" as never })).platform, null);
+    assert.equal(sanitised(person()).platform, undefined, "a hand-made person with none stays as it was");
+  });
+  it("joins saying `web`, and again without it when the project has not had 0124, and then stops sending it", async () => {
+    const calls: Record<string, unknown>[] = [];
+    const api: Api = {
+      configured: true, userId: () => "me",
+      async rpc(_n, args = {}) {
+        calls.push(args);
+        return "platform" in args
+          ? { data: null, error: { message: "Could not find the function public.lobby_join(platform, x, y) in the schema cache", code: "PGRST202", status: 404 } }
+          : { data: { shard: 1, nickname: "Quiet Otter", visible: true, cap: 60 }, error: null };
+      },
+      async select() { return { data: [], error: null }; },
+    };
+    const social = createSocial(api);
+    const first = await social.joinLobby({ x: 65, y: 34 });
+    assert.ok(first.ok && first.value.shard === 1, "the student still gets in");
+    assert.deepEqual(calls, [{ x: 65, y: 34, platform: "web" }, { x: 65, y: 34 }]);
+    await social.joinLobby({ x: 65, y: 34 });
+    assert.deepEqual(calls.slice(2), [{ x: 65, y: 34 }], "once learned, it is not tried again");
+  });
+  it("does not give up on the platform for a hiccup that is not a missing function", async () => {
+    let n = 0;
+    const calls: Record<string, unknown>[] = [];
+    const api: Api = {
+      configured: true, userId: () => "me",
+      async rpc(_n, args = {}) {
+        calls.push(args);
+        n++;
+        return n === 1 ? { data: null, error: { message: "upstream hiccup", status: 502 } } : { data: { shard: 1, nickname: "Quiet Otter", visible: true }, error: null };
+      },
+      async select() { return { data: [], error: null }; },
+    };
+    const social = createSocial(api);
+    assert.ok((await social.joinLobby({ x: 1, y: 1 })).ok);
+    await social.joinLobby({ x: 1, y: 1 });
+    assert.deepEqual(calls.map((c) => "platform" in c), [true, false, true], "retried once without, and the next join says it again");
+  });
+});
+
+/* ── Asking someone in the library to be friends (0125) ─────────────── */
+
+describe("asking someone in the library to be friends (0125)", () => {
+  const ID = "0f9b2d9c-6a7e-4c0e-9d3b-1a2b3c4d5e6f";
+  it("calls send_lobby_friend_request with exactly `person`, and reads each word", async () => {
+    for (const word of ["sent", "now_friends", "already_friends", "already_asked", "rate_limited", "not_here"] as const) {
+      const f = fake({ send_lobby_friend_request: word });
+      assert.deepEqual(await f.social.sendLobbyFriendRequest(ID.toUpperCase()), { ok: true, value: word });
+      assert.deepEqual(f.calls, [{ name: "send_lobby_friend_request", args: { person: ID } }]);
+      assert.deepEqual(Object.keys(f.calls[0].args), [...RPC.sendLobbyFriendRequest.args]);
+    }
+  });
+  it("never sends an id that is not an id: that is just 'not here'", async () => {
+    const f = fake();
+    for (const bad of ["", "me", "../../x", "1; drop table friendship", "0f9b2d9c-6a7e-4c0e-9d3b"]) assert.deepEqual(await f.social.sendLobbyFriendRequest(bad), { ok: true, value: "not_here" }, bad);
+    assert.equal(f.calls.length, 0);
+  });
+  it("does not guess at a word it does not know", async () => {
+    for (const data of ["pending", "blocked", "", null, { status: "sent" }, 1]) assert.deepEqual(await fake({ send_lobby_friend_request: data }).social.sendLobbyFriendRequest(ID), { ok: false, failure: { kind: "unavailable" } }, String(data));
+  });
+  it("says it cannot be done on a project without 0125, so the button can be hidden, and not before it knows", async () => {
+    const api: Api = {
+      configured: true, userId: () => "me",
+      async rpc() { return { data: null, error: { message: "Could not find the function public.send_lobby_friend_request(person) in the schema cache", code: "PGRST202", status: 404 } }; },
+      async select() { return { data: [], error: null }; },
+    };
+    const social = createSocial(api);
+    assert.equal(social.canRequestFriends, null, "unknown before any call");
+    assert.deepEqual(await social.sendLobbyFriendRequest(ID), { ok: false, failure: { kind: "unavailable" } });
+    assert.equal(social.canRequestFriends, false);
+    const probe = createSocial(api);
+    assert.equal(await probe.probeFriendRequests(), false);
+    assert.equal(probe.canRequestFriends, false);
+  });
+  it("is true once the server has answered, and a hiccup does not turn it off", async () => {
+    const ok = fake({ send_lobby_friend_request: "not_here" });
+    await ok.social.sendLobbyFriendRequest(ID);
+    assert.equal(ok.social.canRequestFriends, true, "not_here is an answer");
+    const flaky = createSocial({ configured: true, userId: () => "me", rpc: async () => ({ data: null, error: { message: "Failed to fetch" } }), select: async () => ({ data: [], error: null }) });
+    assert.deepEqual(await flaky.sendLobbyFriendRequest(ID), { ok: false, failure: { kind: "offline" } });
+    assert.equal(flaky.canRequestFriends, null);
+    assert.equal(await flaky.probeFriendRequests(), null, "could not tell");
+  });
+  it("raises nothing for a student who has not turned friends on: a quiet failure", async () => {
+    assert.deepEqual(await fake({}, { send_lobby_friend_request: "social:not_opted_in" }).social.sendLobbyFriendRequest(ID), { ok: false, failure: { kind: "notOptedIn" } });
+  });
+  it("reads the open requests as nicknames only, whatever the server sends with them", async () => {
+    const f = fake({
+      lobby_friend_requests: [
+        { user_id: "AAAA-1", direction: "incoming", nickname: "Quiet Otter", colour: 21, avatar: { hat: "cap", n: 3 }, streak: 4, level: 2, created_at: "2026-11-01T12:00:00Z",
+          display_name: "Ada Lovelace", friend_code: "ABCD2345", email: "ada@example.com" },
+        { user_id: "BBBB-2", direction: "outgoing", nickname: "ada lovelace", colour: 3, streak: 0, level: 0, created_at: "2026-11-01T12:01:00Z" },
+        { user_id: "CCCC-3", direction: "sideways", nickname: "Kind Fox" },
+        { nickname: "Kind Fox", direction: "incoming" },
+      ],
+    });
+    const r = await f.social.lobbyFriendRequests();
+    assert.ok(r.ok);
+    assert.equal(r.value.length, 2, "a row with an unknown direction, or no id, is dropped");
+    assert.deepEqual(r.value[0], { userId: "aaaa-1", direction: "incoming", nickname: "Quiet Otter", colour: 5, avatar: { hat: "cap" }, streak: 4, level: 2, createdAt: Date.parse("2026-11-01T12:00:00Z") });
+    assert.doesNotMatch(JSON.stringify(r.value), /Ada|Lovelace|ABCD2345|example\.com|friend_code|display_name/i);
+    assert.equal(r.value[1].nickname, "Someone", "a nickname that is not two plain words is never shown");
+    assert.deepEqual(f.calls, [{ name: "lobby_friend_requests", args: {} }]);
+  });
+  it("reads your own open request on a card, and offers Add friend only where it can work", async () => {
+    const f = fake({ lobby_people: [
+      { user_id: "a", nickname: "Quiet Otter", is_friend: false, friend_request: "sent" },
+      { user_id: "b", nickname: "Kind Fox", is_friend: false, friend_request: "received" },
+      { user_id: "c", nickname: "Brave Wren", is_friend: false, friend_request: "somebody else" },
+      { user_id: "d", nickname: "Calm Hare", is_friend: true, display_name: "Dee" },
+    ] });
+    const r = await f.social.lobbyPeople(1);
+    assert.ok(r.ok);
+    assert.deepEqual(r.value.map((p) => p.friendRequest), ["sent", "received", null, null]);
+    assert.deepEqual(r.value.map(canAsk), [false, false, true, false]);
+  });
+  it("has one short plain line per answer, with no rule, no code, no em dash, and no reason in the one for 'not here'", () => {
+    for (const o of LOBBY_ASK_OUTCOMES) {
+      const line = askLine(o);
+      assert.ok(line.length > 0 && line.length <= 50, `${o}: ${line}`);
+      assert.doesNotMatch(line, /[_\u2014\u2013]|block|hid|report|rate|limit|server|error|code/i, `${o}: ${line}`);
+    }
+    assert.equal(askLine("not_here"), "They’re not around right now");
+    assert.equal(new Set(LOBBY_ASK_OUTCOMES.map(askLine)).size, 6, "six answers, six lines");
   });
 });
