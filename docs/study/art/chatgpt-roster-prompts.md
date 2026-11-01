@@ -131,3 +131,90 @@ friendly eyes, no sharp teeth, no claws that look dangerous. Keep the same colou
 I run each sheet through the fox pipeline (remove the magenta, find the 24 frames, snap to one pixel grid and one palette,
 align the feet and centre), build the same row format the room uses, add each animal as a "Character" in the wardrobe,
 and make recolours (a different scarf or hoodie colour) in code so one drawing gives many students their own look.
+
+---
+
+## ONE-SESSION VERSION (a single chat for the whole roster)
+
+ChatGPT makes one image per reply, so this sets up the whole roster once and then you just say **next**.
+Attach the fox sheet (`docs/study/art/source/fox-sheet-01.png`) to this first message.
+
+```
+You are my pixel-art sprite artist for the rest of this chat. We are making a ROSTER of 14 original animal characters
+for a study app, all in EXACTLY the same style, camera, size and proportions as the attached fox sheet (the fox is the
+reference; it is NOT one of the 14). I will paste this brief once and then say "next".
+
+HOW WE WORK
+- Make ONE sprite sheet per reply, for the next character in the roster below, starting with number 1.
+- After each image write ONE short line (the character's name) and stop. Do not ask me questions and do not describe
+  the image at length. Wait for me to say "next". If I say "redo", redo the same character with my fix.
+- Draw every sheet FRESH from the attached fox reference and this written spec, never from the previous sheet, so errors
+  do not build up. Before drawing each one, silently re-check the SIZE ENVELOPE and the CAMERA below.
+
+SHEET LAYOUT (same as the fox sheet)
+- Canvas 1536 wide by 1024 tall, a grid of 6 columns by 4 rows, every cell 256 by 256.
+- Row 1: DOWN (walking toward the camera). Row 2: LEFT (true side profile facing left). Row 3: UP (walking away, seen
+  from behind). Row 4: RIGHT (true side profile facing right). 6 frames per row: a smooth 6-frame walk cycle.
+- Perfectly flat solid magenta #FF00FF background. No shadows, labels, grid lines or floor props.
+
+SIZE ENVELOPE (identical for all 14, and identical to the fox)
+- Each character is centred in its own cell with at least 24 pixels of empty magenta on every side. Nothing touches a cell
+  edge or overlaps the next cell.
+- The SAME size in all 24 frames: about 195 pixels tall from feet to the top of the ears/crest/horns, at most 170 wide
+  including the tail. Feet on the same baseline in every cell. The head stays in place (bobs one art pixel at most); only
+  legs, arms, tail and ears/crest move.
+
+CAMERA AND STYLE (identical to the fox)
+- 3/4 top-down camera about 40 degrees above the horizon: the top of the head and base of the tail are visible. NOT flat
+  front-on or side-on, NOT straight bird's-eye.
+- True pixel art: hard stair-step edges, no anti-aliasing, blur or gradients, chunky blocks of identical size, a 1-pixel
+  dark warm brown outline (#3B2A2E, never pure black), at most 16 colours per character, 3 tones per material, light from
+  the top-left, plum-tinted shadows, warm highlights.
+- Cute chibi, about 2 heads tall, short legs, readable paws, the same simple face language as the fox (two small dark dot
+  eyes, tiny nose, rosy cheeks where it suits). Every character walks UPRIGHT on two legs with the same body plan as the
+  fox (head, body, two arms, two legs, a tail if it suits) so they all share one animation.
+
+HARD RULES
+- Original designs only: no existing character, mascot or franchise. Friendly and school-safe: no weapons, blood or scary
+  faces, no logos or text on clothes. Each has a clear silhouette, a distinctive main colour that is NOT cream, and one
+  outfit item that makes it recognisable at tiny size.
+
+THE ROSTER (in this order)
+1. Rex, the studious T-Rex (the cool one): a chunky chibi T-Rex, deep teal-green with a lighter cream belly, a big head
+   with a wide friendly grin and two small teeth, tiny comic arms held up to a huge pair of red over-ear headphones, a
+   sturdy tail that swishes, a row of small orange back spikes, a mustard-yellow varsity-style hoodie (no logo) with the hood
+   down, round tortoiseshell glasses on the snout. As tall as the fox: big head, strong legs, tiny arms. Confident stomp.
+2. Bruno, the bear: round honey-brown bear with a pale muzzle, small round ears, a chunky orange knitted scarf wrapped
+   twice, a green satchel across the chest, a contented sleepy face.
+3. Maple, the badger: charcoal-grey fur, the classic white face stripes, a sharp little snout, a mustard cardigan with big
+   pockets, two small books under one arm, round gold glasses.
+4. Poppy, the red panda: rust-orange fur, a white-ringed striped tail, a cream face mask with dark tear marks, a teal
+   puffer vest, a tiny pencil tucked behind one ear.
+5. Axel, the axolotl: soft coral-pink body, three feathery gill fronds on each side of the head (these are the "ears"), a
+   wide gentle smile, a lilac raincoat with the hood down, small webbed hands.
+6. Cappy, the capybara: a mellow brown capybara, boxy head, tiny ears, a calm half-closed-eyed face, a mint-green bucket
+   hat, a cosy oatmeal sweater, a very relaxed waddling walk.
+7. Pip, the penguin: midnight-blue back, white belly, orange beak and feet, a red-and-cream striped beanie with a pompom,
+   a tiny backpack, a happy waddle with flippers swinging.
+8. Olive, the owl: round warm-brown owl, big amber eyes, tuft ears, cream chest feathers, a forest-green coat, a small
+   lantern-like satchel, upright on small chunky talon feet.
+9. Finn, the frog: bright moss-green frog, huge friendly eyes on top of the head, a pale yellow belly, a sunny yellow
+   raincoat, red wellington boots, a bouncy walk.
+10. Sunny, the sloth: pale tan fur with the dark eye-patches, a long slow smile, a dusty-rose hoodie, long arms, an
+    unhurried swaying walk, a tiny leaf tucked behind one ear.
+11. Ember, the mini dragon: a small plum-purple dragon with cream belly scales, little round horns, tiny folded wings, a tail
+    with a flame-orange tip, a navy scarf. Friendly: no fire, no sharp teeth.
+12. Trix, the triceratops: a chunky olive-green triceratops with a rounded coral frill, three short ROUNDED horns (no sharp
+    points), a gentle smile, an indigo duffle coat, stubby legs, a heavy-footed happy stomp.
+13. Rusty, the raccoon: slate-grey fur, the masked eyes, a ringed tail, a burnt-orange hoodie, one fingerless glove, a
+    mischievous but kind grin.
+14. Wren, the hedgehog: soft sand-brown with a cream face, a back of short quills drawn as a clean scalloped shape (no sharp
+    spikes), a sage-green knit cardigan, a small lantern.
+
+Start now with number 1, Rex. Return one PNG, no text except the character's name.
+```
+
+**Keeping a long chat honest.** The first sheets are usually the best; consistency can slip by 10 to 14 characters.
+If a sheet comes out the wrong size or angle, say: "Redo [name]: the same size as the fox reference (about 195 px tall in a
+256 px cell, centred, 24 px margin), 3/4 top-down camera, true pixel art." If it keeps drifting, start a fresh chat and
+re-attach the fox sheet plus the last good sheet, then continue the roster from where you left off.
