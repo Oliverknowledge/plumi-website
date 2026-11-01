@@ -268,14 +268,10 @@
 .pa .deck-empty { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; min-height: 190px; padding: 14px 16px; border: 2px dashed #b9c6da; border-radius: 10px; background: #fffdf6; font-size: 14px; font-weight: 700; color: var(--soft); }
 .pa .deck-empty b { font: 600 20px var(--f-px); color: var(--ink); }
 
-/* ── desk: the scene as a banner above the greeting (our art is not the artifact's, so the greeting sits under it) ── */
-.pa .scene { height: auto; display: block; background: #fbf7ee; }
-.pa .scene > img.art { position: static; display: block; width: 100%; height: clamp(120px, 17vw, 224px); max-width: 100%; object-fit: cover; object-position: 50% 0; border-bottom: 2px solid var(--wood-ink); image-rendering: pixelated; }
-.pa .greet { position: static; max-width: none; padding: 16px 24px 20px; gap: 6px; background: #fbf7ee; }
+/* ── desk: the artifact's scene (an animated GIF, 381 by 76 art pixels) at the right of a wall made from its own left edge,
+   with the greeting written over it. The wall tile is that first 32 pixel column of the GIF. */
+.pa .scene { background-image: url(/study/scene/desk-wall.png); }
 .pa .greet.pending > * { visibility: hidden; }
-.pa .greet h1 { font-size: clamp(30px, 4.4vw, 45px); }
-.pa .greet p { font-size: clamp(19px, 2.4vw, 22px); }
-@media (max-width: 760px) { .pa .greet { position: static; padding: 14px 16px 16px; background: #fbf7ee; border: 0; border-radius: 0; left: auto; top: auto; } .pa .greet h1 { font-size: 32px; } .pa .examchip { display: inline-flex; } }
 .pa .exam-wrap { position: relative; display: inline-flex; }
 .pa button.examchip { cursor: pointer; font-family: var(--f-body); color: #5b4741; }
 .pa button.examchip:hover { background: #fff1c2; }

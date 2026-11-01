@@ -6,13 +6,13 @@ import { useNow } from "@/lib/studyapp/clock";
 import { continueTarget, examDays } from "@/lib/studyapp/model";
 import { quoteFor } from "@/lib/studyapp/quotes";
 import { actions, useApp } from "@/lib/studyapp/store";
-import { dayOf, greeting, isEvening, longDate } from "@/lib/studyapp/time";
+import { dayOf, greeting, longDate } from "@/lib/studyapp/time";
 import { DeckCard } from "./DeckCard";
 import { LibraryCard } from "./LibraryCard";
 import { TodoCard } from "./TodoCard";
 
 /**
- * The Desk: your desk by the window (the room changes with the time), a greeting and the day's line, where to
+ * The Desk: your desk by the window, a greeting and the day's line, where to
  * carry on, how long until your exam, then the to-do list on notebook paper with the library and your flashcards
  * beside it. Everything is the student's own and saved on this device; nothing here is a placeholder.
  */
@@ -59,7 +59,7 @@ export function Desk() {
     <main className="wrap desk">
       <section className="scene card" aria-label="Your desk">
         {/* eslint-disable-next-line @next/next/no-img-element -- pixel art, drawn with nearest-neighbour scaling */}
-        <img className="art" src={now && isEvening(now) ? "/study/scene/desk-evening.png" : "/study/scene/desk-day.png"} alt="A cosy desk by a window: a lamp, a laptop, tea, a pinboard and shelves of books" width={1296} height={264} />
+        <img className="art" src="/study/scene/desk-scene.gif" alt="A cosy desk by a window at sunrise: a lamp, an open notebook, tea, a pinboard and books" width={381} height={76} />
         <div className={`greet${now ? "" : " pending"}`}>
           <span className="lbl">{now ? longDate(now) : " "}</span>
           <h1>{now ? greeting(now) : "Hello."}</h1>
