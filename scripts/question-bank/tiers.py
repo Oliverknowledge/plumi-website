@@ -53,7 +53,7 @@ def tier_of(paper):
 def tiered(slug):
     meta = json.load(open(os.path.join(ROOT, "src", "content", "questionBank", f"{slug}.json")))
     tiers = {tier_of(p) for p in meta["papers"]}
-    return meta.get("level") == "GCSE" and {"H", "F"} <= tiers
+    return meta.get("level") in ("GCSE", "IGCSE") and {"H", "F"} <= tiers
 
 
 def pairs(slug):

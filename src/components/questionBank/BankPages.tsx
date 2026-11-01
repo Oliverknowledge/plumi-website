@@ -66,13 +66,13 @@ const LEVELS = [
 const FIRST = ["Maths", "Further Maths", "Biology", "Chemistry", "Physics", "Combined Science"];
 const BOARDS = ["AQA", "Edexcel", "OCR", "OCR MEI", "Eduqas", "WJEC", "CAIE"];
 const variant = (s: BankSubject) => s.subject.match(/ ([AB])$/)?.[1];
-/** The name on a board's key: "AQA", "OCR B", "Cambridge IGCSE". */
+/** The name on a board's key: "AQA", "OCR B", "Cambridge IGCSE", "Edexcel International GCSE". */
 const boardKey = (s: BankSubject) =>
-  [s.board === "CAIE" ? (s.level === "IGCSE" ? "Cambridge IGCSE" : "Cambridge") : s.board, variant(s)].filter(Boolean).join(" ");
+  [s.board === "CAIE" ? (s.level === "IGCSE" ? "Cambridge IGCSE" : "Cambridge") : s.level === "IGCSE" ? `${s.board} International GCSE` : s.board, variant(s)].filter(Boolean).join(" ");
 /** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
 const findText = (s: BankSubject) => [
   s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
-  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 3" ? "applied diploma vocational" : "",
   s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
 ].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
