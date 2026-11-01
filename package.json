@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "og": "tsx scripts/build-og-image.ts",
     "og:lofi": "tsx scripts/build-og-lofi.ts",
+    "study:tokens": "tsx scripts/study-tokens.ts",
+    "study:contrast": "tsx scripts/study-contrast.ts",
     "seo:map": "tsx scripts/build-keyword-map.ts",
     "papers:fetch": "for b in aqa edexcel ocr wjec cie; do python3 scripts/past-papers/boards/$b.py || exit 1; done",
     "papers:build": "python3 scripts/past-papers/build.py",
