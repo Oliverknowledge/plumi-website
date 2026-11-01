@@ -5,7 +5,7 @@ import { CosyPage } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
 import { boardPapers, display } from "@/content/pastPapers";
 import {
-  baseSubject, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
+  baseSubject, bankLevel, bankOwner, bankPapersPath, bankPath, bankSubjects, bankTitle, bankTopicPath, bankYears, paperName, seriesLabel, topicName,
   type BankPart, type BankSubject, type BankTopic,
 } from "@/content/questionBank";
 import { packFor, packPath } from "@/content/practicePacks";
@@ -45,7 +45,7 @@ function Credit({ subject }: { subject?: BankSubject }) {
   return (
     <p className="pp-credit">
       Questions, mark schemes and examiner’s reports are © {owner}, from their published past papers. Plumi isn’t affiliated with any exam board.
-      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${library.level} ${library.subject} paper` : "Full past papers"}</Link>{pack
+      Want whole papers? <Link href={library ? bankPapersPath(library) : "/past-papers"}>{library ? `Every ${library.board} ${bankLevel(library)} ${library.subject} paper` : "Full past papers"}</Link>{pack
         ? <>, or <Link href={packPath(pack.slug)}>our free {pack.board}-style practice pack</Link>.</>
         : "."}
     </p>
@@ -72,7 +72,7 @@ const boardKey = (s: BankSubject) =>
 /** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
 const findText = (s: BankSubject) => [
   s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
-  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate international" : s.level === "Level 3" ? "applied diploma vocational" : "",
   s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
 ].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
@@ -162,16 +162,16 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
       {!topic && <OtherBoards subject={subject} />}
       <h1>
         {topic
-          ? <>{topic.title}: <em>{display(`${subject.board} ${subject.level} ${subject.subject}`)} questions</em></>
+          ? <>{topic.title}: <em>{display(`${subject.board} ${bankLevel(subject)} ${subject.subject}`)} questions</em></>
           : <>{display(title)} <em>questions by topic</em></>}
       </h1>
       <p className="lp-lead">
         {topic
-          ? `Every ${subject.board} ${subject.level} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${bankYears(subject)}, with its mark scheme and examiner’s report.`
+          ? `Every ${subject.board} ${bankLevel(subject)} ${subject.subject} exam question on ${topicName(topic)}${topic.points ? ` (specification points ${topic.points})` : ""}, ${bankYears(subject)}, with its mark scheme and examiner’s report.`
           : subject.scope
             // Cambridge (CAIE) keeps its archive for schools: say plainly what's public, and so here.
             ? `Every question from the ${subject.board} ${subject.level === "IGCSE" ? "IGCSE" : "AS & A Level"} ${subject.fullName ?? subject.subject} papers Cambridge International publishes, ${subject.scope}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Cambridge keeps its other papers on its School Support Hub, for schools. Filter by topic or paper, open the mark scheme under any question, and download a set as a PDF.`
-            : `Every question from every ${subject.board} ${subject.level} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
+            : `Every question from every ${subject.board} ${bankLevel(subject)} ${subject.fullName ?? subject.subject} paper, ${subject.firstYear}–${subject.lastYear}, ${subject.reportsBy === "question" ? "question by question" : "part by part"}. Filter by topic, paper or year, open the mark scheme under any question, and download a set as a PDF.`}
         {!topic && subject.note ? ` ${subject.note}` : null}
       </p>
     </header>
@@ -181,7 +181,7 @@ function Hero({ subject, topic }: { subject: BankSubject; topic?: BankTopic }) {
 export function BankSubjectPage({ subject }: { subject: BankSubject }) {
   const name = `${bankTitle(subject)} Questions by Topic`;
   return (
-    <CosyPage after={<PageStructuredData path={bankPath(subject.slug)} name={name} description={`Every ${subject.board} ${subject.level} ${subject.subject} exam question by topic, with mark schemes and examiner's reports.`} type="CollectionPage"
+    <CosyPage after={<PageStructuredData path={bankPath(subject.slug)} name={name} description={`Every ${subject.board} ${bankLevel(subject)} ${subject.subject} exam question by topic, with mark schemes and examiner's reports.`} type="CollectionPage"
       breadcrumb={[{ name: "Question bank", path: "/question-bank" }, { name: bankTitle(subject), path: bankPath(subject.slug) }]} />}>
       <article className="pp qb-page">
         <Hero subject={subject} />
@@ -204,7 +204,7 @@ export function BankTopicPage({ subject, topic, parts, index }: { subject: BankS
   const path = bankTopicPath(subject.slug, topic.slug);
   const siblings = subject.topics.filter(t => t.section === topic.section && t.slug !== topic.slug && t.count > 0);
   return (
-    <CosyPage after={<PageStructuredData path={path} name={`${topic.title}: ${subject.board} ${subject.level} ${subject.subject} Exam Questions`} description={`Every ${subject.board} ${subject.level} ${subject.subject} question on ${topic.title}, with mark schemes.`} type="CollectionPage"
+    <CosyPage after={<PageStructuredData path={path} name={`${topic.title}: ${bankTitle(subject)} Exam Questions`} description={`Every ${bankTitle(subject)} question on ${topic.title}, with mark schemes.`} type="CollectionPage"
       breadcrumb={[{ name: "Question bank", path: "/question-bank" }, { name: bankTitle(subject), path: bankPath(subject.slug) }, { name: topic.title, path }]} />}>
       <article className="pp qb-page">
         <Hero subject={subject} topic={topic} />
