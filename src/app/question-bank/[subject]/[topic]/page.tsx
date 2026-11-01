@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { BankTopicPage } from "@/components/questionBank/BankPages";
-import { bankSubject, bankSubjects, bankTopic, bankTopicPath, bankYears, type BankPart } from "@/content/questionBank";
+import { bankLevel, bankSubject, bankSubjects, bankTopic, bankTopicPath, bankYears, type BankPart } from "@/content/questionBank";
 import { pastPaperMetadata } from "@/lib/pastPaperMeta";
 
 type Params = Promise<{ subject: string; topic: string }>;
@@ -66,8 +66,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { s, t } = found;
   return pastPaperMetadata(bankTopicPath(s.slug, t.slug), {
     // A topic with a hand-written short name (GCSE's longer ones) uses it rather than a cut-off title.
-    title: topicTitle(t.short ?? t.title, s.board, s.level, s.subject),
-    description: topicDescription(t.count, s.board, s.level, s.subject, t.title, bankYears(s)),
+    title: topicTitle(t.short ?? t.title, s.board, bankLevel(s), s.subject),
+    description: topicDescription(t.count, s.board, bankLevel(s), s.subject, t.title, bankYears(s)),
   });
 }
 

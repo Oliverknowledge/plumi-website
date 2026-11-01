@@ -20,7 +20,7 @@ rebuilding a bank leaves it alone (as practicals.json is). After a new series, s
 again, read the new batches, and merge: what was read before is kept.
 
 Further Maths (split-further, merge-further; .work/fm-years) is read the same way against each
-board's own AS Further Maths specification (Pearson 8FM0, OCR H235, OCR MEI H635, kept as text in
+board's own AS Further Maths specification (Pearson 8FM0, OCR H235, OCR MEI H635, AQA 7366, kept as text in
 .work/fm-years/spec/): a question is Year 12 when the AS core pure, and the AS paper of the same
 option (a Further Statistics question against AS Further Statistics), cover every part, alongside
 Year 12 Maths. Every AS paper question is Year 12. Cambridge's 9231 has no AS, so it isn't split.
@@ -38,7 +38,7 @@ BANKS = READ + list(SECOND_YEAR)
 FM_WORK = os.path.join(HERE, ".work", "fm-years")
 # Each Further Maths bank and its board's AS specification, as text, for the reader.
 FM = {"edexcel-a-level-further-maths": "spec/edexcel-as-fm.txt", "ocr-a-level-further-maths": "spec/ocr-as-fm.txt",
-      "ocr-mei-a-level-further-maths": "spec/mei-as-fm.txt"}
+      "ocr-mei-a-level-further-maths": "spec/mei-as-fm.txt", "aqa-a-level-further-maths": "spec/aqa-as-fm.txt"}
 FM_SIZE = 180
 
 

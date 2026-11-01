@@ -89,8 +89,10 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
-  // A question on the paper's sources (English Language) is read with them open: they're printed in the insert.
-  const insert = whole?.ins && parts.some(p => /\bsources?\b|\bextract\b|\blines? \d/i.test(p.x)) ? whole.ins : undefined;
+  // A question on the paper's sources or extracts (English Language; at A-Level its "Text A", History) is read with them open: they're printed in the insert.
+  // (Edexcel's GCSE names them "Text 1" and "Text 2", or just "the writer".)
+  const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextracts?\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
+  const insertTexts = parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
@@ -157,7 +159,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           )}
           {!withScheme.length && !schemePdf && <span className="qb-noms">No published mark scheme</span>}
           {insert && (
-            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The sources for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Sources (insert) ↗</a>
+            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The ${insertTexts ? "texts" : "sources"} for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>{insertTexts ? "Texts" : "Sources"} (insert) ↗</a>
           )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
@@ -175,7 +177,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           <div className="qb-stem">
             {!many && (
               <button type="button" className="qb-link" aria-expanded={!!open.stem} onClick={() => flip("stem")}>
-                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : `how question ${q} starts`}
+                {/* (History's stem is the sources and interpretations the question is set on) */}
+                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : subject.subject === "History" ? `the sources for question ${q}` : `how question ${q} starts`}
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}

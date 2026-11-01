@@ -71,6 +71,32 @@ them. The brief is the Edexcel one above, with these differences:
 - Core practicals get the content topic they sit in (the osmosis practical is
   "Diffusion, osmosis and active transport").
 
+## Edexcel GCSE Combined Science
+
+`edexcel_combined/tag_combined.py split` writes batches for Pearson Edexcel's GCSE Combined
+Science (1SC0) to `.work/edexcel-combined/tag/`, one science to a batch, and `merge` collects
+them. As "Edexcel GCSE sciences" above, with these differences:
+
+- Codes carry the science: `B6.2` is the second group of Biology Topic 6, `P10.3` the third
+  of Physics Topic 10. Choose from the batch's own science (`biology-topics.txt` and so on).
+- Each line's `paper` names its science, paper and tier ("Chemistry Paper 2 Higher").
+- 1SC0 leaves out the separate sciences' own statements, so some topics a 1BI0, 1CH0 or 1PH0
+  question would get aren't here; take the nearest one the question really tests.
+- Parts also printed on a separate science's paper of the same sitting have been tagged from
+  that bank already (`carried.json`) and aren't in the batches.
+## Edexcel International GCSE sciences
+
+`edexcel_igcse/tag_igcse.py split` writes batches for Pearson Edexcel's International GCSE
+Biology (4BI1), Chemistry (4CH1) and Physics (4PH1) to `.work/edexcel-igcse/tag/`, and `merge`
+collects them. The brief is the Edexcel one above, with these differences:
+
+- Codes are the specification's lettered sub-topics: `2e` is "2(e) Nutrition". Choose from
+  these, never a topic number on its own.
+- Each line has a `paper`. Both papers can test any topic; Paper 2 adds the statements the
+  specification sets in bold (2.36B, 1.20C, 5.6P), still under the same sub-topics.
+- Physics's "Units" sub-topics are left out: a question on a unit gets the sub-topic that uses it.
+- Practicals get the content sub-topic they sit in.
+
 ## OCR sciences
 
 `ocr/tag_ocr.py split` writes batches for OCR's A-Level Biology A, Chemistry A
@@ -203,6 +229,37 @@ The brief is the one at the top, with these differences:
   demand-side `4.4.2` and supply-side policies `4.4.3` (AD/AS and the impact on
   firms) vs policy instruments `2.6.2` (Theme 2: the instruments themselves);
   exchange rates `2.4.4` vs exchange rate changes `3.1.5`.
+
+## Edexcel Business
+
+`edexcel_business/tag_business.py split` writes batches of Pearson Edexcel A-Level (9BS0)
+Business parts to `.work/edexcel-business/tag/`, and `merge` collects them. The brief is
+the one at the top, with these differences:
+
+- `business-topics.txt` lists the specification's sub-topics: `code | topic | title
+  — what the specification says under it`. Codes have three numbers (`1.3.3`, `4.2.5`);
+  choose from these, never a topic like `1.3`. There is no AS split.
+- Each line has its `paper` ("A-Level 1"). Paper 1 is drawn from Themes 1 and 4, Paper 2
+  from Themes 2 and 3, and Paper 3 (a context announced the year before, then unseen
+  extracts) from all four: prefer a code from the paper's own themes where one fits.
+- `question` is the part's own words, then the extracts it is set on (cut short). Judge
+  by what the part asks and its scheme, not by the extract's industry.
+- Give a second code only for a 12-, 16- or 20-mark part that genuinely needs two topics
+  ("evaluate these two options": tag what the options are, organic growth `3.2.3` against
+  a takeover `3.2.2`, say).
+- Where things live: market mapping, differentiation and adding value `1.1.3`; elasticity
+  calculations `1.2.4` and `1.2.5`; the design mix `1.3.1`; pricing strategies `1.3.3`;
+  leadership styles `1.4.5`; private limited companies, franchises and flotation `1.5.4`;
+  opportunity cost and trade-offs `1.5.5`; limited liability `2.1.3`; break-even `2.2.3`;
+  current and acid test ratios, working capital `2.3.2`; profit margins `2.3.1`; inflation,
+  interest and exchange rates for a UK business `2.5.1`; Ansoff and Porter's strategic
+  matrix `3.1.2`; PESTLE and Five Forces `3.1.4`; gearing and ROCE `3.5.2`; investment
+  appraisal (payback, ARR, NPV) `3.3.2`; decision trees `3.3.3`; critical path `3.3.4`;
+  stakeholders against shareholders `3.4.3`; ethics in a UK business `3.4.4`, in a
+  multinational `4.4.2`; exchange rates for a business competing abroad `4.2.5`; joint
+  ventures and global mergers `4.2.4`; choosing a country to sell in `4.2.2` or to produce
+  in `4.2.3`; glocalisation and global marketing strategy `4.3.1`; cultural mistakes
+  abroad `4.3.3`.
 
 ## Edexcel Geography
 
@@ -364,6 +421,52 @@ the top, with these differences:
   between data sets, statistics, anomalies; `3.3.2.5` conclusions; `3.3.2.6` evaluating
   methods, data or conclusions, and how the enquiry could be improved. A skill can be second.
 
+## AQA GCSE Business
+
+`aqa_gcse_business/tag_gcse_business.py split` writes batches of AQA GCSE Business (8132)
+parts to `.work/aqa-gcse-business/tag/`, and `merge` collects them. The brief is the one at
+the top, with these differences:
+
+- `gcse-business-topics.txt` lists one topic per line: `code | area | title — the
+  specification's words`. Codes have three numbers (`3.6.2`); never an area like `3.6`.
+- **Each line says which codes it may take** (`allowed`): Paper 1 takes 3.1 Business in the
+  real world, 3.2 Influences on business, 3.3 Business operations and 3.4 Human resources;
+  Paper 2 takes 3.1, 3.2, 3.5 Marketing and 3.6 Finance. merge rejects anything else.
+- `question` is the part's own words, `items` the start of the case it is set on. Judge by
+  what the part asks and its scheme, not by the business in the items. Multiple-choice parts
+  carry their answer as `scheme` ("Answer: B").
+- 9- and 12-mark questions often weigh two options: give the topic the decision is about
+  first, and a second only when the scheme needs both in equal measure.
+- Where things live: enterprise, entrepreneurs, factors of production, opportunity cost,
+  business failure `3.1.1`; sole traders, partnerships, ltd and plc, limited liability, not
+  for profit `3.1.2`; aims and objectives, measuring success `3.1.3`; stakeholders and their
+  conflicts `3.1.4`; location `3.1.5`; business plans `3.1.6`; organic and external growth,
+  mergers, takeovers, franchising, economies and diseconomies of scale, going public `3.1.7`;
+  e-commerce, digital communication `3.2.1`; ethics, the environment, sustainability, Fair
+  Trade `3.2.2`; interest rates, unemployment, consumer income, inflation, the economic cycle
+  `3.2.3`; globalisation, exchange rates, imports and exports, multinationals, tariffs and
+  trade blocs `3.2.4`; employment, health and safety and consumer law, the minimum wage
+  `3.2.5`; competition, market share, uncertainty and risk `3.2.6`; job, batch and flow
+  production, automation, productivity `3.3.1`; stock control, JIT and JIC, bar gate charts,
+  suppliers, logistics, procurement `3.3.2`; quality control and assurance, TQM `3.3.3`;
+  customer service, product knowledge, after-sales `3.3.4`; organisational charts, tall and
+  flat structures, spans of control, chains of command, delayering, centralisation,
+  communication, contracts (full-time, part-time, zero hours, flexible hours, temporary,
+  freelance) `3.4.1`; recruitment, job descriptions and person specifications, internal and
+  external recruitment, selection `3.4.2`; financial and non-financial motivation, retention
+  `3.4.3`; induction, on-the-job and off-the-job training, appraisal `3.4.4`; customer needs
+  and wants `3.5.1`; segmentation `3.5.2`; primary and secondary research, sampling,
+  qualitative and quantitative data `3.5.3`; price, product, promotion, place, product life
+  cycle, extension strategies, Boston matrix, branding, the marketing mix together `3.5.4`;
+  sources of finance, loans, overdrafts, share capital, crowdfunding `3.6.1`; cash flow,
+  cash-flow forecasts, net cash flow, opening and closing balances `3.6.2`; revenue, costs,
+  profit, interest, break-even, average rate of return, unit costs `3.6.3`; income statements,
+  statements of financial position, gross and net profit margins, analysing financial
+  performance `3.6.4`. A calculation takes the topic of what it calculates (a closing balance
+  `3.6.2`; a break-even output or ARR `3.6.3`; a net profit margin `3.6.4`; a percentage
+  change in sales, `3.6.3` on Paper 2, or the topic it measures on Paper 1, a labour turnover
+  or productivity figure `3.4.3` or `3.3.1`).
+
 ## AQA Business
 
 `aqa_business/tag_business.py split` writes batches of AQA A-Level (7132) and AS (7131)
@@ -467,6 +570,43 @@ them. The brief is the one at the top, with these differences:
 - An essay weighing two theories against each other in equal measure (moral realism
   against anti-realism, substance against property dualism) gets both; otherwise one.
 
+## AQA Religious Studies
+
+`aqa_rs/tag_rs.py split` writes AQA's A-Level Religious Studies (7062) parts to
+`.work/aqa-rs/tag/`, one batch per area a part can be on: `batch-1A.jsonl` (Paper 1
+questions 01–02, Philosophy of religion), `batch-1B.jsonl` (Paper 1 questions 03–04,
+Ethics and religion) and `batch-A.jsonl` … `batch-E.jsonl` (Paper 2, Buddhism, Christianity,
+Hinduism, Islam, Judaism). `merge` collects them, keeping only codes from the batch's own
+topics file. The brief is the one at the top, with these differences:
+
+- `rs-<area>-topics.txt` lists one topic per line: `code | section | title — what the
+  specification says under it`. Paper 1's codes are `1A.1` (Arguments for the existence
+  of God) to `1B.7` (Bentham and Kant); a religion's are its letter and 1–11 (`B.2` God,
+  `D.9` Islam, migration and religious pluralism, `A.10` The dialogue between Buddhism and
+  philosophy, `A.11` … and ethics). A Paper 2 batch's file also lists Paper 1's topics.
+- Each line is a part: `knowledge` (x.1, "Examine…", 10 marks), `evaluation` (x.2, a
+  claim to evaluate, 15 marks) or `dialogue` (Paper 2's 25-mark essays, questions 03–06).
+- Paper 1 and Paper 2's two-part questions: one code, the topic the part asks about. A
+  theory applied to an issue ("Situation ethics cannot justify blood sports", "Natural
+  Moral Law applied to cloning") is the issue's topic (`1B.2` human, `1B.3` animal life
+  and death) then `1B.1`; meta-ethical questions on Utilitarianism or Divine Command
+  Theory are `1B.4`; reward, punishment and moral responsibility are `1B.5`.
+- A dialogue essay always gets two codes: its dialogue (03–04 the religion's `.10`,
+  05–06 its `.11`), then the topic it debates, a Paper 1 one where it is one (miracles
+  `1A.5`, religious experience `1A.3`, conscience `1B.6`, Bentham or Kant `1B.7`), or
+  else the religion's own (sources of authority `.1`, science `.7`, the truth claims of
+  other religions `.9`, marriage and sexuality `.6`). So a student revising Miracles finds
+  Paper 1's questions and every religion's dialogue essay on it.
+- Where the specification puts it, not where it sounds: wealth, materialism and the
+  thinkers set against secularisation (Batchelor and Brazier, Roy and Saraswati, Ramadan
+  and Ash-Sharabasi) are `.8`; celibacy, marriage, women's ordination and Hampson and
+  Ruether are `.6`; war, ahimsa, stewardship and jihad are `.4`; paths of Yoga, puja,
+  prayer and worship are `.5`; Maybaum and Rubenstein are `E.9`; concepts of Buddha and
+  Anicca are `A.2`.
+
+The 288 parts of November 2020 to June 2025 were tagged on 31 October 2026 by Claude,
+following these rules, with the specification's text to hand for each placement.
+
 ## Cambridge International (CAIE)
 
 `caie/tag_caie.py split` writes batches for CAIE AS & A Level Biology 9700,
@@ -545,6 +685,45 @@ these differences:
 - One code nearly always: a second only where the part plainly asks about two sections
   (a comparison of Natural Law with Situation Ethics, say).
 
+## AQA GCSE Religious Studies
+
+`aqa_gcse_rs/tag_gcse_rs.py split` writes AQA's GCSE Religious Studies A (8062) parts to
+`.work/aqa-gcse-rs/tag/`, one batch per section, and `merge` collects them. The brief is the one
+at the top, with these differences:
+
+- `topics-<section>.txt` lists the section's topics: `code | section | title — what the
+  specification says under it`. A part's section is fixed by its paper and question (Component
+  1's question 1 is its religion's beliefs and teachings, `CH1`, question 2 its practices, `CH2`;
+  2A's questions 1-6 are themes A-F, `TA`-`TF`; 2B's 7 and 8 are St Mark's Gospel, `TG` and
+  `TH`), so choose only from the batch's own file.
+- A topic is one of the specification's bullet points ("The Trinity", "Pilgrimage: Lourdes and
+  Iona", "Just war theory"). The multiple-choice part (`.1`) is the topic its question asks
+  about; for "Which one of the following is not an aim of punishment?" that is the aims of
+  punishment, not the topic of the odd one out (the scheme's "Answer: A Addiction"). A 12-mark statement to evaluate is the topic the
+  statement is about, not every topic an answer might draw on.
+- Themes G and H: a question about a passage (the paralysed man, the Transfiguration) is the
+  heading the specification lists it under (`TG.1`-`TG.3`, `TH.1`-`TH.3`); a question about what
+  Jesus' titles, his miracles or the Kingdom of God mean, or the authority of the Gospel, is the
+  "Significance" topic for it.
+- One code nearly always: a second only where the part plainly needs two topics.
+## AQA GCSE History
+
+`aqa_gcse_history/tag_gcse_history.py split` writes AQA's GCSE History (8145) questions to
+`.work/aqa-gcse-history/tag/`, one batch per option (`batch-1AB.jsonl`, Germany), and `merge`
+collects them. The brief is the one at the top, with these differences:
+
+- `topics-<option>.txt` lists the option's topics: `code | option | part | title — what the
+  specification says under it`. A question's option is its paper (8145/1A/B is 1AB), so choose
+  only from the batch's own file. A topic is one of the specification's bullets ("Weimar
+  democracy"), under its part ("Part one: Germany and the growth of democracy").
+- Every question is one part. `sources` is its sources or interpretations; judge by the question
+  and the scheme's examples, which say what period and issue the answer is about.
+- Paper 2 Section B's question 4 (`2B?` batches, `"question": 4`) is on the year's historic site:
+  always `<option>.site`. A thematic study's question that spans its whole period ("Has war been
+  the main factor in the development of surgery?") gets the bullet whose content it is most
+  about, and a second only where it plainly needs two.
+- One code nearly always.
+
 ## Eduqas GCSE Religious Studies and History
 
 `eduqas_gcse/tag_eduqas_gcse.py split rs` (or `history`) writes Eduqas's GCSE Religious Studies
@@ -567,6 +746,24 @@ differences:
   period and issue the answer is about. A thematic study's (2E-2H) question 6 is on its
   historic site: always `<option>.site`. A thematic question that spans the whole period
   ("how has the nature of criminal activity changed") is the key question it names.
+- One code nearly always: a second only where the part plainly needs two topics.
+
+## Edexcel GCSE History
+
+`edexcel_gcse_history/tag_gcse_history.py split` writes Pearson Edexcel's GCSE History (1HI0)
+parts to `.work/edexcel-gcse-history/tag/`, one batch per option (`10`, `P4`, `B1`, `31`), and
+`merge` collects them. The brief is the one at the top, with these differences:
+
+- `topics-<option>.txt` lists the option's topics: `code | option | title — what the specification
+  says under it`. A part's option is its paper, so choose only from the batch's own file.
+- Paper 2 and Paper 3: a topic is one of the option's key topics ("B1.2 William I in power:
+  securing the kingdom, 1066–87"). Judge by the events, people and dates the question names and
+  by the scheme's indicative content.
+- Paper 1 (options 10 to 13): Section A, questions 1 and 2, is always the historic environment
+  (`<option>.site`) and is tagged by the script, not sent out. A Section B question is tagged to
+  the period or periods its dates cover ("in the years c1700–c1900" is `.3`; "c1500–c1700 … c1900–
+  present" is `.2` and `.4`). One that spans more than two periods ("c1000–present") takes the two
+  its stimulus points and indicative content dwell on.
 - One code nearly always: a second only where the part plainly needs two topics.
 
 ## WJEC
@@ -817,6 +1014,28 @@ brief is the one at the top, with these differences:
   the UN, NATO, IMF, World Bank, WTO, G7/G20 and poverty `GLO.2`; human rights courts, intervention
   and the environment `GLO.3`.
 
+## Edexcel History
+
+`edexcel_history/tag_history.py split` writes Pearson Edexcel's A-Level History (9HI0) questions to
+`.work/edexcel-history/tag/batch-NN.jsonl`, and `merge` collects `batch-NN.answers.json`
+(`{"<id>": ["2H.1.2"], ...}`, one or two codes, the main one first). The brief is the one at the top,
+with these differences:
+
+- Each line is one whole question (an essay or a source question), with its `option` ("1H", "2H.1",
+  "37.2"), its `section` (A, B or C) and the `topics` it may be tagged to: **choose only from those**.
+  What each topic covers is given (`topicText`) on the first line of the batch that can use it.
+- Paper 1's Sections A and B are tagged to the option's four themes (`1H.1` to `1H.4`). Its Section C
+  (the interpretations question) is tagged without asking, so it isn't in the batches.
+- Paper 2's questions are tagged to the option's four key topics (`2H.1.1` to `2H.1.4`).
+- Paper 3's Sections A and B are tagged to its aspects in depth (`37.1.K1` to `37.1.K5`), Section C
+  to its aspects in breadth (`37.1.T1`, `37.1.T2`).
+- Dates are the strongest evidence for key topics: a question on "the years 1935–38" sits in the key
+  topic whose dates hold them. Where a question's years run across two key topics, give both, the
+  one holding most of its years first. Themes span the whole period: tag by what the question is about
+  (government, religion, economy, society…), not by its dates.
+- A source question is tagged by the enquiry it sets ("…to investigate X"), read against the source's
+  date, not by every topic the source touches.
+
 ## Year 12 or Year 13 (A-Level Maths)
 
 `maths_years.py split` writes every question from the full A-Level Maths papers (Edexcel
@@ -892,7 +1111,7 @@ content, so all theirs are 13.
 ## Year 12 or Year 13 (A-Level Further Maths)
 
 `maths_years.py split-further` writes every question from the full A-Level Further Maths
-papers (Pearson 9FM0, OCR Y540-Y545, OCR MEI Y420-Y436) to
+papers (Pearson 9FM0, OCR Y540-Y545, OCR MEI Y420-Y436, AQA 7367) to
 `.work/fm-years/batch-NN.jsonl`, one board per batch, each line with its `course`,
 `paper`, `text` (the question, then its mark scheme) and `as_spec`, that board's AS
 Further Maths specification as text. A reader writes `batch-NN.answers.json`,
@@ -915,13 +1134,16 @@ equations, the mean value of a function, integration with partial fractions or i
 trig/hyperbolic results), or Year 2 Maths (the chain, product or quotient rule, integration
 by parts or substitution, radians in calculus, and the rest of that list above). Check the
 `as_spec` file for what the AS covers: boards differ, and an option's AS paper covers less
-than its A-Level paper at OCR and MEI. When it's a real toss-up, answer 13.
+than its A-Level paper at OCR and MEI (and at AQA, whose AS Mechanics has no centres of mass,
+whose AS Statistics has no exponential or t-distribution, and whose AS pure stops before
+hyperbolic calculus, differential equations and numerical methods). When it's a real toss-up, answer 13.
 
-## GCSE Maths (AQA, Edexcel and OCR Higher)
+## GCSE Maths (AQA, Edexcel and OCR, both tiers)
 
-`gcse_maths/tag_gcse_maths.py split` writes batches for the three GCSE Maths Higher
+`gcse_maths/tag_gcse_maths.py split` writes batches for the three GCSE Maths
 banks together (AQA 8300, Pearson Edexcel 1MA1, OCR J560) to `.work/gcse-maths/tag/`,
-and `merge` collects them into each board's `tags.json`. The brief is the one at the
+and `merge` collects them into each board's `tags.json`: batches 1 to 31 are the Higher
+papers, 32 to 65 the Foundation ones (split leaves out what is already tagged). The brief is the one at the
 top, with these differences:
 
 - Maths is tagged a whole question at a time, as the other maths banks are: one to
@@ -1013,6 +1235,30 @@ is the one at the top, with these differences:
   privity and intention to create legal relations `3C.2`, exclusion clauses `3C.3`, liquidated
   damages and penalty clauses `3C.6`.
 
+## OCR Religious Studies
+
+`ocr_rs/tag_ocr_rs.py split` writes the OCR A-Level Religious Studies (H573) questions to
+`.work/ocr-rs/tag/`, and `merge` collects them. The 136 questions of November 2021 to June 2025
+were tagged on 1 November 2026 by reading each question against the specification's content.
+The brief is the one at the top, with these differences:
+
+- `rs-topics.txt` lists the specification's topics: `code | section | title [AS] or [A-Level
+  only] — what is taught`. A section is a component (`P` philosophy of religion, `E` religion
+  and ethics) or a religion for Developments in religious thought (`C` Christianity, `I` Islam,
+  `J` Judaism, `B` Buddhism, `H` Hinduism); the code is the section and the topic's place in it
+  (`P5` Religious experience). Choose only from the paper's own section.
+- Each line is one 40-mark essay, with its `paper` ("Developments in Islamic thought").
+- One code nearly always: a second only where the essay plainly sets two topics against each
+  other (utilitarianism applied to sexual ethics is `E9` then `E4`; euthanasia judged by
+  situation ethics `E5` then `E2`), the topic the question is about first.
+- Placings that aren't obvious from the titles: the Prime Mover and the cave are `P1`; divine
+  power and Anselm's four-dimensionalism `P7`; meta-ethics and intuitionism `E7`; whistle-blowing
+  `E6`; Rubenstein, Fackenheim and Berkovitz `J11`; Plaskow, Adler and same-sex relationships
+  `J10`; the Sunni and Shi'a succession `I2`; maslaha `I10`; 9/11 `I12`; secularism in the
+  Muslim world `I11`; the Dalai Lama `B10`; upaya, the paramitas and the arhat and bodhisattva
+  paths `B7`; Zen and Pure Land `B9`; Vaishnavism, Shaivism and Shaktism `H1`; the monkey and cat
+  analogies `H4`; Neo-Vedanta `H7` with `H8`.
+
 ## Edexcel GCSE Computer Science
 
 `edexcel_cs/tag_cs.py split` writes batches of Pearson Edexcel GCSE Computer Science (1CP2)
@@ -1035,3 +1281,245 @@ with these differences:
   skill and, where the question is as much about a second, that one too (reading a file
   `6.4.2` with validation `6.4.3`; fixing errors `6.1.5`; "identify the constant / the
   selection construct" `6.2.1`).
+
+## AQA Level 2 Further Maths
+
+`aqa_l2_further_maths/tag_l2fm.py split` writes batches for AQA's Level 2 Certificate
+in Further Mathematics (8365) to `.work/aqa-l2fm/tag/`, and `merge` collects them into
+`.work/aqa-l2fm/tags.json`. The brief is GCSE Maths', with these differences:
+
+- `l2fm-topics.txt` lists the specification's statements, one per line: `code | area |
+  title: what the specification says`. Codes run `1.1`-`1.3`, `2.1`-`2.22`, `3.1`-`3.9`,
+  `4.1`-`4.9`, `5.1`-`5.4`, `6.1`-`6.10`; choose from these.
+- Tag the technique the marks are for, not the setting: a tangent to a curve is `4.4`
+  even when the curve is a circle's equation solved for y; the stationary points of a
+  cubic are `4.7`, and `4.8` only when they answer a problem in context (a box's
+  greatest volume); a matrix question is `5.1` when it is only multiplying, `5.3` or
+  `5.4` when it is about the transformation. Solving a trigonometric equation that needs
+  an identity first takes `6.10` then `6.9`.
+## OCR GCSE Computer Science
+
+`ocr_gcse_cs/tag_ocr_gcse_cs.py split` writes batches of OCR GCSE Computer Science (J277)
+parts to `.work/ocr-gcse-cs/tag/`, and `merge` collects them. The brief is the one at the top,
+with these differences:
+
+- `cs-topics.txt` lists one topic per line: `code | section | title — the specification's
+  words`. The codes are the specification's sub topics (`1.3.2`, `2.1.3`); choose from these,
+  never a section like `1.3`. The specification's 1.2.4 Data storage is four topics here:
+  `1.2.4a` numbers (binary, hexadecimal, binary addition, overflow, shifts), `1.2.4b`
+  characters (character sets, ASCII, Unicode), `1.2.4c` images and `1.2.4d` sound.
+- Each line has a `paper`. Paper 1 tests 1.x only, Paper 2 tests 2.x only; merge drops a code
+  from the wrong paper.
+- A file size or storage capacity calculation is `1.2.3`, unless the part is about what
+  changes an image's or a sound's size or quality (`1.2.4c`, `1.2.4d`).
+- On Paper 2, writing, completing or correcting a program is `2.1.2` when it is about the
+  algorithm (inputs, processes, outputs; trace tables; flowcharts; fixing logic or syntax
+  errors), `2.2.1` when it is about the constructs themselves (variables, constants,
+  operators, selection, iteration), `2.2.3` for string handling, files, arrays, SQL, sub
+  programs and random numbers, and `2.3.1` for validation, authentication and maintainable
+  code. A search or sort, traced or written, is `2.1.3`. Add a second code only where the
+  part is as much about another of these.
+- A truth table or logic diagram is `2.4.1`; test data and test plans `2.3.2`; IDE tools,
+  translators and language levels `2.5.1` or `2.5.2`.
+## AQA Politics
+
+`aqa_politics/tag_politics.py split` writes the AQA A-Level Politics (7152) questions to
+`.work/aqa-politics/tag/`, and `merge` collects them. The brief is the one at the top, with
+these differences:
+
+- `politics-topics.txt` lists the specification's 32 topics: `code | section | title — the
+  specification's words`. Codes are the specification's own four-part numbers (`3.1.2.2`
+  Elections and referendums); choose from these, never a section like `3.1.2`.
+- **Choose only from the line's `sections`**: Paper 1 is the UK (`3.1.1` government, `3.1.2`
+  politics), Paper 2 the USA (`3.2.1`) and comparative politics (`3.2.2`), Paper 3 the core
+  ideologies (`3.3.1`) and the other ideologies (`3.3.2`).
+- Each line is a whole question with its `marks`, its own words and the start of its
+  scheme's indicative content. Question 04 is set on extracts; tag by what it asks.
+- Paper 3 questions name their ideology in a heading after the label ("Socialism"): that
+  ideology is the code, alone.
+- Paper 2: a question about the USA alone is a `3.2.1` topic. A question comparing the USA
+  and the UK (Section A's third question, "structural theory...", and the Section C essays)
+  is the matching `3.2.2` topic first (constitutions `3.2.2.1`, executives `3.2.2.2`,
+  judiciaries `3.2.2.3`, electoral and party systems `3.2.2.4`, pressure groups `3.2.2.5`,
+  civil rights `3.2.2.6`), then the US topic it turns on.
+- Paper 1: party funding, ideology and party systems are `3.1.2.3`; electoral systems,
+  referendums and voting behaviour `3.1.2.2`; rights, participation and the franchise
+  `3.1.2.1`; Brexit and the EU's impact `3.1.2.5`; the Supreme Court and judicial
+  independence `3.1.1.4`; the Commons, Lords, backbenchers and select committees `3.1.1.2`.
+
+## AQA Law
+
+`aqa_law/tag_law.py split` writes the AQA A-Level Law (7162) questions to `.work/aqa-law/tag/`,
+and `merge` collects them. The brief is the one at the top, with these differences:
+
+- `law-topics.txt` lists the specification's topics: `code | section | title — what is
+  taught`. The specification doesn't number them, so the codes are the section's (`NL` the
+  nature of law, `LM` law making, `LS` the legal system, `CR` criminal law, `TO` tort, `CO`
+  contract, `HR` human rights) and the topic's place in it: `CR.4` is fatal offences.
+- **Choose only from the line's `sections`**: every paper sets the nature of law, law making
+  and the legal system, with criminal law (Paper 1), tort (Paper 2), contract (Paper 3A) or
+  human rights (Paper 3B).
+- Questions 01-05 are multiple choice; the scheme's line is the right answer. Tag the topic
+  the right answer turns on.
+- Problem questions ("Advise...", "Consider the liability of..."): tag by what the scenario
+  raises. A 30-mark question that also asks about the legal system or the nature of law
+  ("Assess the ways in which Gary may obtain legal advice", "...the role law plays in
+  society") takes the substantive topic first and that topic second.
+- The 15-mark essays ("Examine what is meant by 'justice'. Discuss the extent to which the
+  rules on anticipatory breach achieve justice") take the substantive topic first and the
+  nature-of-law topic (`NL.2`-`NL.5`) second. A question on the section's theory ("the
+  principles of correspondence and maximum certainty", "fault in tort") is the section's
+  theory topic (`CR.2`, `TO.2`, `CO.2`, `HR.2`).
+- Common calls: loss of control and diminished responsibility are `CR.4`; consent and
+  self-defence `CR.9`, insanity, automatism and intoxication `CR.8`; causation, mens rea and
+  omissions `CR.3`; attempts `CR.7`; magistrates, juries, sentencing and appeals `LS.2`;
+  barristers, solicitors, legal executives and judges `LS.3`; legal aid and advice `LS.4`;
+  ADR and the civil courts `LS.1`; by-laws and statutory instruments `LM.2`; consideration,
+  offer and acceptance `CO.3`; frustration and breach `CO.8`; misrepresentation and
+  economic duress `CO.7`; police powers, public order and protest are the Convention article
+  they engage: the right to life `HR.7` (Article 2, never `HR.6`, which is the Convention as a
+  whole), arrest, detention and stop and search `HR.8` (Article 5), privacy `HR.9` (Article 8), speech
+  `HR.10` (Article 10), protest `HR.11` (Article 11).
+## OCR GCSE Gateway sciences
+
+`ocr_gcse/tag_ocr_gcse.py split` writes batches for OCR's GCSE Gateway Biology A (J247),
+Chemistry A (J248), Physics A (J249) and Combined Science A (J250) to `.work/ocr-gcse/tag/`,
+and `merge` collects them. The brief is the one at the top, with these differences:
+
+- `<subject>-topics.txt` lists one sub-topic per line: `code | topic | title — what the
+  specification says under it`. Codes look like `B1.2`, `C5.3`, `P4.1`; choose from these,
+  never a topic like `B1`. Combined Science A's lines have all three sciences' codes: a
+  Biology paper's question takes a `B` code, a Chemistry paper's a `C` and a Physics paper's a `P`.
+- Each line has a `paper` ("Paper 3 Higher"; "Chemistry Paper 9 Higher"). Tag by what the
+  part tests, not by which paper it is on.
+- The practical skills topic (B7, C7, P9) has no codes here: practical questions get the
+  content topic they sit in.
+- Foundation and Higher papers share questions; tag each copy on its own.
+## AQA GCSE Computer Science
+
+`aqa_gcse_cs/tag_gcse_cs.py split` writes batches of AQA GCSE Computer Science (8525) parts to
+`.work/aqa-gcse-cs/tag/`, and `merge` collects them. The brief is the one at the top, with
+these differences:
+
+- `cs-topics.txt` lists one topic per line: `code | section | title — the specification's
+  words`. The codes are the specification's numbered headings (`3.2.6`, `3.6.2.1`), plus
+  `3.5a` to `3.5e` (networks, which the specification doesn't number: types of network,
+  star and bus topologies, protocols, network security, the TCP/IP model) and `3.8` (ethical, legal and environmental
+  impacts). Choose from these, never a section like `3.2`.
+- Paper 1 is set in three languages with the same questions; only the Python paper (1B) is
+  batched, and merge copies each part's tags to its C# and VB.NET copies by series and label.
+- Paper 1 (`paper` 1) is algorithms and programming: tracing an algorithm or saying what it
+  outputs is `3.1.1`; a search or sort `3.1.3`/`3.1.4`; writing a program, tag what it mainly
+  uses (`3.2.2` iteration and selection, `3.2.6` arrays and records, `3.2.10` subroutines,
+  `3.2.11` validation and authentication, `3.2.8` strings, `3.2.9` random numbers); a trace
+  table or the purpose of an algorithm `3.1.1`; types of error and testing `3.2.11`.
+- Paper 2 (`paper` 2) is everything else: binary, hex, shifts and units `3.3.x`; a file
+  size calculation for an image or sound `3.3.6`/`3.3.7`; Huffman or RLE `3.3.8`; logic
+  gates and truth tables `3.4.2`; SQL `3.7.2`; a long answer on threats and protection
+  `3.6.2` with `3.6.3`.
+## Edexcel GCSE Business
+
+`edexcel_gcse_business/tag_gcse_business.py split` writes batches of Pearson Edexcel GCSE
+Business (1BS0) parts to `.work/edexcel-gcse-business/tag/`, and `merge` collects them. The
+brief is the one at the top, with these differences:
+
+- `business-topics.txt` lists one sub-topic per line: `code | topic | title — the
+  specification's content`. The codes are the specification's numbered sub-topics (`1.3.2`
+  revenues, costs and profits, `2.2.2` price); choose from these, never a topic like `1.3`.
+- **Each line says which codes it may take first** (`first`): Paper 1 tests Theme 1
+  (`1.x.x`), Paper 2 Theme 2 (`2.x.x`). merge rejects any other first code. A second code may
+  come from either theme, and only when the part needs it as much as the first (a Paper 2
+  question on financing growth: `2.1.1` with `1.3.4`).
+- Sections B and C are set on a case study, at the end of `setup`: it tells you the business,
+  not the topic. Tag the concept the part asks about ("Justify which one of these two options",
+  overdraft or trade credit, is `1.3.4` sources of finance).
+- Calculations go to the content they calculate: total costs, break even and margin of safety
+  `1.3.2`, net cash flow and closing balances `1.3.3`, interest `1.3.2`, gross and net profit
+  and their margins and average rate of return `2.4.1`, a percentage change or average read off
+  a table or chart `2.4.2` (or the content the figure is about, on Paper 1). Multiple choice
+  questions are tagged by the term they test.
+## OCR Psychology and Sociology
+
+`ocr_psychology/tag_ocr_psychology.py split` and `ocr_sociology/tag_ocr_sociology.py split` write the
+OCR A-Level Psychology (H567) and Sociology (H580) questions to `.work/ocr-psychology/tag/` and
+`.work/ocr-sociology/tag/`, and `merge` collects them. The questions of November 2021 to June 2025
+were tagged on 1 November 2026 by reading each question and the start of its scheme. The brief is the
+one at the top, with these differences:
+
+- `<subject>-topics.txt` lists the topics: `code | section [option: id] | title — what it covers`. The
+  specifications don't number their content, so the codes are the section's and the topic's place in
+  it: Psychology `1` research methods, `2A` core studies (a key theme and its two studies), `2B` areas,
+  perspectives and debates, `2C` practical applications, `3A` issues in mental health, `3B`-`3E` the
+  Paper 3 options; Sociology `1A` socialisation, culture and identity, `1B`-`1D` Paper 1's options, `2A`
+  research methods, `2B` social inequalities, `3A` globalisation and the digital social world, `3B`-`3D`
+  Paper 3's options.
+- Each line has its `paper` and, for an option's question, its `option`: an option's question takes
+  its option's topics, and merge drops a code from another paper's sections (Psychology Paper 2 may use
+  research methods and Paper 3 research methods or the debates; nothing else crosses papers).
+- Psychology: a question about a core study is that study's key theme (`2A.x`), even when it asks about
+  its method, unless it is plainly about a research method in general; a question comparing a study's
+  area or a debate with evidence from core studies is the area or debate (`2B.x`). Paper 1's questions
+  on its study go to the skill they test (sampling `1.6`, a statistical test `1.11`). An option's
+  question goes to the topic its key research or application belongs to; its "Discuss…" question about a
+  debate or issue (ethnocentrism, usefulness) takes the option's topic first.
+- Sociology: the essay questions take the content topic first and a theory or method second only when
+  the question names it ("Assess Marxist views of the nuclear family" is `1B.3`). Paper 2's source
+  questions take the method they ask about (`2A.x`); Section B takes the inequality or the theory.
+## AQA A-Level Further Maths
+
+`aqa_further_maths/tag_further_maths.py split` writes batches for AQA A-Level (7367)
+and AS (7366) Further Mathematics to `.work/aqa-further-maths/tag/`, and `merge` collects
+them. The brief is AQA A-Level Maths's, with these differences:
+
+- Codes are the specification's: `A` (Proof) to `J` (Numerical methods) for the
+  compulsory pure content, `MA`-`ME` Mechanics, `SA`-`SH` Statistics and `DA`-`DG`
+  Discrete. Choose from these, never a statement like `C3` or `MB2`.
+- Each line's `paper` says which content it holds: Papers 1 and 2 and AS Paper 1 are
+  compulsory pure (A-J); Paper 3 and AS Paper 2 are one option each (Mechanics,
+  Statistics or Discrete), so their questions take that option's codes. An option
+  question takes a pure code only when some of its marks are for further pure maths
+  (solving a second order differential equation in a mechanics question takes `I`
+  after its mechanics code).
+- Year 1 Maths content in a question (differentiation in a pure question, a normal
+  distribution in a statistics one) is not a Further Maths topic: tag the Further
+  Maths content it is set in.
+## OCR History A
+
+`ocr_history/tag_ocr_history.py split` writes the OCR A-Level History A (H505) questions to
+`.work/ocr-history/tag/`, and `merge` collects them. The brief is the one at the top, with these
+differences:
+
+- `history-topics.txt` lists every unit's key topics: `code | unit | [kind] title — what learners
+  should have studied`. The specification doesn't number them, so the codes are the unit's and
+  the topic's place in it (`Y106.3` is Henry VIII and Wolsey). `kind` is `enquiry` (a Unit 1
+  unit's enquiry topic), `period` (its British period study, or a Unit 2 unit), `theme` (a Unit 3
+  unit's thematic study) or `depth` (its three in-depth interpretation topics).
+- A question only tests its own unit, so each line carries `topics`, the codes it may choose
+  from: a Unit 1 source question (Question 1) its enquiry topic's, a Unit 1 essay its period
+  study's, a Unit 3 interpretations question (Question 1) its depth studies, a Unit 3 essay its
+  thematic study's, a Unit 2 question its unit's. merge keeps only those codes.
+- Tag by what the question asks and its scheme's indicative content, not by every source or
+  passage it prints. A source question on one key topic is that topic; an interpretations
+  question is the one depth study its passages debate.
+- Unit 3 essays span the whole period ("How far do you agree with this view of the period
+  1855–1964?"): give the thematic key topic the question is about, and a second only when the
+  question names two strands (government and the economy, say).
+- Unit 2 (a) questions weigh two factors and (b) questions are essays; give each the key topic
+  its period falls in, and a second where its dates or factors genuinely cross two.
+## Edexcel International GCSE Maths (4MA1)
+
+`edexcel_igcse_maths/tag_igcse_maths.py split` writes batches for Pearson Edexcel's International GCSE
+Mathematics A (both tiers) to `.work/edexcel-igcse-maths/tag/`, and `merge` collects them into `tags.json`.
+The brief is the GCSE Maths one above, with these differences:
+
+- `igcse-maths-topics.txt` lists the 4MA1 specification's own topics, one per line: `code | area | title —
+  what the specification says` (Foundation content, then what the Higher tier adds). Codes run `1.1`-`1.11`,
+  `2.1`-`2.8`, `3.1`-`3.4`, `4.1`-`4.11`, `5.1`-`5.2`, `6.1`-`6.3`; choose from these, never an area like `4`.
+- Both papers of both tiers allow a calculator; each line's `paper` says its tier. Topics marked "Higher tier
+  only" (2.5 Proportion, 3.2 Function notation, 3.4 Calculus, 5.1 Vectors) never fit a Foundation question.
+- Tag what is being tested: a percentage change or compound interest is `1.6`; Pythagoras or trigonometry
+  in any shape `4.8`; area and perimeter `4.9`, volume and surface area `4.10`; similar shapes `4.11`; a
+  missing angle from parallel lines or polygons `4.1` or `4.2`, with `4.6` only for a circle theorem; sets and
+  Venn diagrams `1.5` (probability from a Venn diagram `6.3` first); upper and lower bounds `1.8`;
+  transformations of shapes `5.2`; a graph to draw or read, and transformations of graphs (y = f(x + a), y = af(x))
+  `3.3`; differentiation and kinematics `3.4`.

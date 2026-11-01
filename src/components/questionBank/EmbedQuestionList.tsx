@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { enterEmbedMode, track } from "@/lib/analytics";
 import { embedAppStoreHref, isAppleTouchDevice, partnerFromSearch, sortNewest, withEmbedParams } from "@/lib/embed";
-import { bankDataPath, bankOwner, bankTopicPath, topicName, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
+import { bankDataPath, bankOwner, bankTitle, bankTopicPath, topicName, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
 import { QuestionRow } from "./QuestionRow";
 
 const PAGE = 20;
@@ -99,7 +99,7 @@ export function EmbedQuestionList({ subject, topic, initial, total }: { subject:
       <main id="main" className="embed-main">
         <div className="embed-title">
           <h1>{topicName(topic)}</h1>
-          <p>{subject.board} {subject.level} {subject.subject} · {count} {count === 1 ? "question" : "questions"}</p>
+          <p>{bankTitle(subject)} · {count} {count === 1 ? "question" : "questions"}</p>
         </div>
         <ol className="qb-rows">
           {list.slice(0, shown).map((p, i) => (

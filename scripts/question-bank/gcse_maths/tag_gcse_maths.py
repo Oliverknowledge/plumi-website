@@ -4,13 +4,15 @@
     python3 scripts/question-bank/gcse_maths/tag_gcse_maths.py merge
     # reads scripts/question-bank/.work/gcse-maths/<board>/parts.json for aqa, edexcel and ocr
 
-tag_maths.py's sibling for the three GCSE Maths Higher banks; the brief is tag.md's,
+tag_maths.py's sibling for the three GCSE Maths banks; the brief is tag.md's,
 with its GCSE Maths section. split writes .work/gcse-maths/tag/gcse-maths-topics.txt
 (one line per DfE statement, N1 to S6, with its area and what the specification says)
 and batch-NN-gcse-maths.jsonl, one whole question per line with its board and paper,
 its words, the start of its scheme and the path of its crop (the papers' maths fonts
 can come out garbled as text); each batch is tagged into batch-NN-gcse-maths.tags.json,
-and merge collects them into <board>/tags.json for build_gcse_maths.py.
+and merge collects them into <board>/tags.json for build_gcse_maths.py. split leaves out the
+questions a board's tags.json already has, numbering its batches on from the last, so a new
+paper or tier (Foundation, 1 November 2026) is tagged without the rest again.
 """
 import glob, json, os, re, sys
 
@@ -21,8 +23,8 @@ WORK = os.path.abspath(os.path.join(HERE, "..", ".work", "gcse-maths"))
 TAG = os.path.join(WORK, "tag")
 BOARDS = ("aqa", "edexcel", "ocr")
 NOISE = re.compile(r"Do not write outside the box|Turn over ►?|Question \d+ continues on the next page|DO NOT WRITE IN THIS AREA|\.{4,}|_{4,}", re.I)
-# Which paper allows a calculator: AQA and Pearson Papers 2 and 3, OCR Papers 4 and 6.
-CALCULATOR = {"83002H", "83003H", "1ma12h", "1ma13h", "j56004", "j56006"}
+# Which paper allows a calculator: AQA and Pearson Papers 2 and 3 of either tier, OCR Papers 1, 3, 4 and 6.
+CALCULATOR = {"83002H", "83003H", "83002F", "83003F", "1ma12h", "1ma13h", "1ma12f", "1ma13f", "j56001", "j56003", "j56004", "j56006"}
 
 
 def clip(s, n):
@@ -31,7 +33,8 @@ def clip(s, n):
 
 
 def paper(board, comp):
-    name = {"aqa": f"AQA Paper {comp[4]}H", "edexcel": f"Edexcel Paper {comp[4]}H", "ocr": f"OCR Paper {comp[-1]}"}[board]
+    tier = ("Higher" if comp[-1] in "456" else "Foundation") if board == "ocr" else "Higher" if comp[-1] in "hH" else "Foundation"
+    name = {"aqa": f"AQA Paper {comp[4]}", "edexcel": f"Edexcel Paper {comp[4]}", "ocr": f"OCR Paper {comp[-1]}"}[board] + f" {tier}"
     return f"{name} ({'calculator' if comp in CALCULATOR else 'non-calculator'})"
 
 
@@ -43,23 +46,29 @@ def split():
     open(os.path.join(TAG, "gcse-maths-topics.txt"), "w").write("\n".join(lines) + "\n")
     rows = []
     for board in BOARDS:
+        path = os.path.join(WORK, board, "tags.json")
+        done = json.load(open(path)) if os.path.exists(path) else {}
         for p in json.load(open(os.path.join(WORK, board, "parts.json"))):
-            if p.get("qp"):
+            if p.get("qp") and p["id"] not in done:
                 rows.append({"id": p["id"], "paper": paper(board, p["component"]), "marks": p["marks"],
                              "question": clip(p["text"], 1200), "scheme": clip(p.get("msText", ""), 500),
                              "image": os.path.join(WORK, board, "img", p["qp"])})
-    n = 0
+    n = max([int(re.match(r"batch-(\d+)", os.path.basename(f)).group(1)) for f in glob.glob(os.path.join(TAG, "batch-*.jsonl"))] or [0])
+    first = n + 1
     for i in range(0, len(rows), SIZE):
         n += 1
         with open(os.path.join(TAG, f"batch-{n:02d}-gcse-maths.jsonl"), "w") as f:
             for r in rows[i:i + SIZE]:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    print(f"{n} batches of {len(rows)} questions in {TAG}", file=sys.stderr)
+    print(f"batches {first} to {n}: {len(rows)} questions in {TAG}", file=sys.stderr)
 
 
 def merge():
     valid = {t["code"] for t in json.load(open(os.path.join(WORK, "spec.json")))["topics"]}
-    tags, missing = {b: {} for b in BOARDS}, []
+    tags, missing = {}, []
+    for b in BOARDS:  # what's tagged already stays (a batch's answers win)
+        path = os.path.join(WORK, b, "tags.json")
+        tags[b] = json.load(open(path)) if os.path.exists(path) else {}
     prefix = {"8300": "aqa", "1ma1": "edexcel", "j560": "ocr"}
     for path in sorted(glob.glob(os.path.join(TAG, "batch-*.jsonl"))):
         out = path.replace(".jsonl", ".tags.json")
