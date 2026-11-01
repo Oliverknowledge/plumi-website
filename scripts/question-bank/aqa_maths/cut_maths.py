@@ -44,6 +44,9 @@ QP_LABEL = re.compile(r"^(\d{1,2})\s*(?:\(([a-h])\))?\s*(?:\(([ivx]{1,4})\))?$")
 # June 2018 prints a question's later parts without its number: "(b)", "(d)(i)".
 MS_LABEL = re.compile(r"^(\d{1,2})?\s*(?:\(?([a-h])\)?)?\s*(?:\(([ivx]{1,4})\))?(?=\s|$)")
 HEADINGS = re.compile(r"Marking instructions", re.I)
+# Where the scheme's Q column ends: its labels start left of MS_LABEL_X, its row rules left of MS_RULE_X.
+# (Further Maths' older schemes, June 2019 and November 2020 Papers 1 and 2, sit further right: cut_further_maths.py.)
+MS_LABEL_X, MS_RULE_X = 75, 70
 ANSWER_LINE = re.compile(r"^_{10,}")
 SECTION = re.compile(r"^(Section [A-C]|END OF QUESTIONS)\s*$")
 # The papers' maths fonts put symbols at Latin-1 and control codes in the text layer, each
@@ -181,7 +184,7 @@ def header_bottom(page):
 def row_top(page, y):
     """A label's row starts at the table rule above it; with the column headings when they sit right over it."""
     rules = sorted({round(d["rect"].y0) for d in page.get_drawings()
-                    if d["rect"].height < 3 and d["rect"].width > 20 and d["rect"].x0 < 70})
+                    if d["rect"].height < 3 and d["rect"].width > 20 and d["rect"].x0 < MS_RULE_X})
     above = [r for r in rules if r <= y + 2]
     # Some schemes draw no rule between a question's rows: then the row starts just above its label.
     top = above[-1] - 1 if above and y - above[-1] < 20 else y - 6
@@ -211,7 +214,7 @@ def ms_labels(doc):
             t = s["text"].strip()
             m = MS_LABEL.match(t)
             bold = BOLD.search(s["font"]) or re.match(r"\d{1,2}\([a-h]\)", t)  # November 2020 Paper 1 prints "13(c)" in regular
-            if m and (m.group(1) or (q and (m.group(2) or m.group(3)))) and x < 75 and bold and 60 < y < page.rect.height - 50:
+            if m and (m.group(1) or (q and (m.group(2) or m.group(3)))) and x < MS_LABEL_X and bold and 60 < y < page.rect.height - 50:
                 if out and out[-1][0] == i and m.group(1) is None and out[-1][3] is None and out[-1][4] is None and 0 < y - out[-1][1] < 18:
                     out[-1] = (i, out[-1][1], out[-1][2], m.group(2), m.group(3))  # "14" over "(a)(i)": one label on two lines
                     continue

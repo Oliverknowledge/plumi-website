@@ -892,7 +892,7 @@ content, so all theirs are 13.
 ## Year 12 or Year 13 (A-Level Further Maths)
 
 `maths_years.py split-further` writes every question from the full A-Level Further Maths
-papers (Pearson 9FM0, OCR Y540-Y545, OCR MEI Y420-Y436) to
+papers (Pearson 9FM0, OCR Y540-Y545, OCR MEI Y420-Y436, AQA 7367) to
 `.work/fm-years/batch-NN.jsonl`, one board per batch, each line with its `course`,
 `paper`, `text` (the question, then its mark scheme) and `as_spec`, that board's AS
 Further Maths specification as text. A reader writes `batch-NN.answers.json`,
@@ -915,7 +915,9 @@ equations, the mean value of a function, integration with partial fractions or i
 trig/hyperbolic results), or Year 2 Maths (the chain, product or quotient rule, integration
 by parts or substitution, radians in calculus, and the rest of that list above). Check the
 `as_spec` file for what the AS covers: boards differ, and an option's AS paper covers less
-than its A-Level paper at OCR and MEI. When it's a real toss-up, answer 13.
+than its A-Level paper at OCR and MEI (and at AQA, whose AS Mechanics has no centres of mass,
+whose AS Statistics has no exponential or t-distribution, and whose AS pure stops before
+hyperbolic calculus, differential equations and numerical methods). When it's a real toss-up, answer 13.
 
 ## GCSE Maths (AQA, Edexcel and OCR Higher)
 
@@ -1035,3 +1037,22 @@ with these differences:
   skill and, where the question is as much about a second, that one too (reading a file
   `6.4.2` with validation `6.4.3`; fixing errors `6.1.5`; "identify the constant / the
   selection construct" `6.2.1`).
+
+## AQA A-Level Further Maths
+
+`aqa_further_maths/tag_further_maths.py split` writes batches for AQA A-Level (7367)
+and AS (7366) Further Mathematics to `.work/aqa-further-maths/tag/`, and `merge` collects
+them. The brief is AQA A-Level Maths's, with these differences:
+
+- Codes are the specification's: `A` (Proof) to `J` (Numerical methods) for the
+  compulsory pure content, `MA`-`ME` Mechanics, `SA`-`SH` Statistics and `DA`-`DG`
+  Discrete. Choose from these, never a statement like `C3` or `MB2`.
+- Each line's `paper` says which content it holds: Papers 1 and 2 and AS Paper 1 are
+  compulsory pure (A-J); Paper 3 and AS Paper 2 are one option each (Mechanics,
+  Statistics or Discrete), so their questions take that option's codes. An option
+  question takes a pure code only when some of its marks are for further pure maths
+  (solving a second order differential equation in a mechanics question takes `I`
+  after its mechanics code).
+- Year 1 Maths content in a question (differentiation in a pure question, a normal
+  distribution in a statistics one) is not a Further Maths topic: tag the Further
+  Maths content it is set in.
