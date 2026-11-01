@@ -90,7 +90,9 @@ const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x 
 const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
 const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
-const words = (q: string) => q.toLowerCase().match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
+/** Accents folded away, so "benevolat" finds "bénévolat" and "nino" finds "niño" (French and Spanish). */
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const words = (q: string) => fold(q.toLowerCase()).match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
 /** A seeded random number generator (mulberry32 over a string hash): the same seed gives the same mix. */
 function seeded(seed: string) {
@@ -212,7 +214,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const needText = useCallback(() => {
     if (text || loadingText.current) return;
     loadingText.current = true;
-    fetch(bankDataPath(subject.slug, "text")).then(r => r.json()).then(setText).catch(() => { loadingText.current = false; });
+    fetch(bankDataPath(subject.slug, "text")).then(r => r.json()).then((t: Record<string, string>) => setText(Object.fromEntries(Object.entries(t).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
   }, [subject.slug, text]);
   useEffect(() => { if (f.q) needText(); }, [f.q, needText]);
 
@@ -272,7 +274,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       (skip === "yr" || !f.yr || !year13 || (f.yr === "13") === year13.has(p.id)) &&
       // On both tiers, once: a Foundation part goes when its Higher twin's paper is in view too.
       (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.id)))) &&
-      (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
+      (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => fold(p.x.toLowerCase()).includes(w))));
   }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, f.part, f.marks, opt, picked, text, sectionOf, optionOf, practicals, year13, twins, twinPaper, bands, visible]);
 
   // Every part of each question, in order, for the whole-question view.
@@ -686,7 +688,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
             <label htmlFor="qb-q" className="qb-label">Search</label>
             <input id="qb-q" type="search" value={query} enterKeyHint="search"
-              placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
+              placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : subject.subject === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.subject === "French" ? "bénévolat, \"La Haine\"" : subject.subject === "Spanish" ? "inmigración, \"Bernarda Alba\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : "capacitor, \"half-life\""}
               onChange={e => setTyped(e.target.value)} onFocus={needText} />
           </form>
           {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
