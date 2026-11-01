@@ -92,7 +92,10 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   // A question on the paper's sources or extracts (English Language; at A-Level its "Text A", History) is read with them open: they're printed in the insert.
   // (Edexcel's GCSE names them "Text 1" and "Text 2", or just "the writer".)
   const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextracts?\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
-  const insertTexts = parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
+  // A language paper's insert is a reading text, whatever the question's own words.
+  const insertTexts = subject.subject === "French" || subject.subject === "Spanish" || parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
+  // A listening question's recording, and its transcript to check against afterwards (AQA languages).
+  const listen = parts.find(p => p.au)?.au;
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
@@ -161,6 +164,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           {insert && (
             <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The ${insertTexts ? "texts" : "sources"} for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>{insertTexts ? "Texts" : "Sources"} (insert) ↗</a>
           )}
+          {listen && whole?.tr && (
+            <a className="qb-key" href={`${papersBase}/${whole.tr}`} target="_blank" rel="noopener" title={`What the recording says, for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Transcript ↗</a>
+          )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
               {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
@@ -173,6 +179,12 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
 
       <div className="qb-sheet">
         {inSet && <span className="qb-stamp" aria-hidden="true">In your set</span>}
+        {listen && (
+          <div className="qb-listen">
+            <p className="qb-note-label">The recording for question {q}</p>
+            <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
+          </div>
+        )}
         {(stem || earlier.length > 0) && (
           <div className="qb-stem">
             {!many && (
