@@ -7,10 +7,11 @@ import { site } from "@/config/site";
 import { studyEntry } from "@/lib/studyapp/routing";
 
 /**
- * "Log in" and "Get started" in the website's header: both go to the web app, study.tryplumi.app. Log in opens
- * the app (a signed-in student lands on the Desk, anyone else on its sign-in page); Get started opens its
- * sign-up page. The app is a different address from the website, so a plain link, not a client navigation.
- * On localhost or a preview they stay on the same host, under /study (lib/studyapp/routing.studyEntry).
+ * "Get started", top right of the website's header, goes to the web app, study.tryplumi.app (founder, 1 November
+ * 2026: one button, not "Sign in" and "Get started"). Its sign-up page doubles as the way in: a student who is
+ * already signed in (the session is shared by both hosts, lib/sessionStorage) is passed straight on to the Desk.
+ * A different address from the website, so a plain link, not a client navigation. On localhost or a preview it
+ * stays on the same host, under /study (lib/studyapp/routing.studyEntry).
  */
 const never = () => () => {};
 const host = () => window.location.hostname;
@@ -29,11 +30,7 @@ export function OpenApp() {
 export function StudyEntry() {
   const hostname = useHostname();
   return (
-    <>
-      <Link className="lp-acct-in" href={studyEntry("login", hostname)} prefetch={false} data-testid="header-login"
-        onClick={() => noteCtaClick("header", "web_app", "Log in", site.studyDomain)}>Log in</Link>
-      <Link className="lp-btn lp-navbtn lp-acct-start" href={studyEntry("start", hostname)} prefetch={false} data-testid="header-get-started"
-        onClick={() => noteCtaClick("header", "web_app", "Get started", site.studyDomain)}>Get started</Link>
-    </>
+    <Link className="lp-btn lp-navbtn lp-acct-start" href={studyEntry("start", hostname)} prefetch={false} data-testid="header-get-started"
+      onClick={() => noteCtaClick("header", "web_app", "Get started", site.studyDomain)}>Get started</Link>
   );
 }

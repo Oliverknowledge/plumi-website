@@ -27,9 +27,10 @@ One deployment serves two sites, told apart by host in `src/proxy.ts` (decisions
 | `study.tryplumi.app` | The app, at `/`, `/library`, `/flashcards` (rewritten from `/study/...`; the prefix is never shown). Also `/sign-in`, `/sign-up`, `/auth/callback`. Marketing pages redirect to tryplumi.app. `/robots.txt` disallows everything. |
 | localhost, previews | Unchanged: the app is under `/study/...`. `study.localhost:<port>` imitates the app host on a laptop. |
 
-- Marketing header: **Log in** goes to `study.tryplumi.app` (signed in: the Desk; signed out: its sign-in page);
-  **Get started** goes to its `/sign-up`. A signed-in student sees an avatar with "Open the app". On a phone the bar
-  keeps "Log in" only.
+- Marketing header: one button, top right, **Get started**, to `study.tryplumi.app/sign-up` (founder, 1 November 2026:
+  no separate "Sign in"). A student who is already signed in (the session is shared, below) is passed straight on to the
+  Desk, and the website shows their initial with an "Open the app" row in its menu instead. As the bar narrows the
+  Discord link, the gaps and the Android icon give way, and on a phone the wordmark does, so Get started always fits.
 - The app is behind a sign-in gate (`components/studyapp/AuthGate.tsx`): signed out, it replaces the URL with
   `/sign-in?next=<where you were>` and returns there afterwards. It is a door, not a lock: the session lives in the
   browser, so the check runs there, and anything shared (friends, library, chat) is locked by Supabase row-level
@@ -45,10 +46,25 @@ One deployment serves two sites, told apart by host in `src/proxy.ts` (decisions
    to the redirect allow-list. Without it Google and emailed-link sign-in on the app's host will be refused; codes and
    passwords still work.
 2. `study.tryplumi.app` must be attached to this same Vercel project (it is the host the proxy looks for).
-3. **Two sessions, not one.** A browser keeps its session per address, so signing in on `study.tryplumi.app` does not
-   sign you in on `tryplumi.app` and the other way round. The question bank's "keep your marks on every device" still
-   signs in on `tryplumi.app`. One session across both would need the Supabase session stored in a cookie shared on
-   `.tryplumi.app`; that is a separate, security-sensitive change and was not made.
+
+### One sign-in for both hosts (`src/lib/sessionStorage.ts`)
+
+The Supabase session is a cookie for `.tryplumi.app`, not localStorage (which is per address, so the website and the app
+could not see each other's). Signing in, or out, on either is signing in or out on both. Anywhere else (localhost,
+previews) it is an ordinary cookie for that host.
+
+- Everyone already signed in on the website has their localStorage session moved into the cookie the first time it is read:
+  nobody is signed out by the change.
+- A session is 2 to 3 KB and a cookie holds about 4 KB, so it is stored as base64url chunks (`plumi-auth.0`, `.1`, ...), written
+  `Secure; SameSite=Lax; Max-Age=400 days`, and re-written on each token refresh.
+- **Costs, stated plainly.** It cannot be `HttpOnly`, because the browser client has to read it, so script on any
+  `.tryplumi.app` host can read it (localStorage was one host's script only; ad and analytics tags run on the website).
+  The browser also sends it with every request to those hosts; nothing server-side reads it. A tab on the other host is not
+  told live when you sign out here; it finds out on its next load. Two hosts can both try to refresh an expiring token at
+  once (the browser lock is per host); Supabase's refresh-token reuse window covers it, but it has not been exercised under load.
+- Tested: 12 unit tests for the cookie jar behaviour (chunking, stale chunks, migration, domains, size per cookie) and a
+  browser test that serves both hostnames from one server: sign in on the website, open the app (already signed in), sign
+  out in the app (the website signs out), Get started, "Open the app".
 
 ## Decisions taken from the founder's answers
 
@@ -78,7 +94,7 @@ Do not market them as exam-accurate until someone qualified has gone through the
 
 ## Verification (run on this branch)
 
-- `npm run app:test`: SRS, model, host routing and invite tests (57 at the time of writing).
+- `npm run app:test`: SRS, model, host routing, invite and session-cookie tests (69 at the time of writing).
 - Playwright against a dev server, fake clock: Desk script (28 checks) and Flashcards script (25 checks):
   greeting, three-link nav, tasks, exam countdown, starter deck, flip and grade by keyboard, 10-card cap,
   learning steps and return after 11 minutes, import and export, persistence across reload, no horizontal

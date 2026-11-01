@@ -18,7 +18,7 @@ import { footerLinks, pageLinks, sectionLinks } from "@/content/nav";
  * landing.css (the homepage's sections) and pages.css (subject, intent and legal pages).
  */
 
-/** The header: logo, the free practice, the homepage's sections, the Discord, your account, and the download key. */
+/** The header: logo, the free practice, the homepage's sections, the Discord, the download keys, and top right "Get started" (or your account). */
 export function CosyHeader({ home = false }: { home?: boolean }) {
   return (
     <header className="lp-nav">
@@ -33,10 +33,10 @@ export function CosyHeader({ home = false }: { home?: boolean }) {
             : <Link key={id} href={`/#${id}`}>{label}</Link>)}
           <DiscordButton placement="header" label="Discord" className="lp-nav-discord" />
         </nav>
-        <AccountButton />
         <AndroidHeaderButton />
         <HeaderDownload download="Try on iPad" className="lp-btn lp-navbtn" appleMark />
         <ThemeToggle />
+        <AccountButton />
       </div>
     </header>
   );

@@ -257,8 +257,18 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
   .lp-signin-card { border-radius: 18px 18px 0 0; border-bottom: 0; padding-bottom: max(20px, env(safe-area-inset-bottom)); box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) { .lp-join-badge { transition: none; } }
-/* "Get started" sits beside "Log in" in the header; "Open the app" is a row in the signed-in menu. */
-.lp .lp-acct-start { margin-left: 6px; padding: 6px 14px; font-size: 15px; white-space: nowrap; }
+/* "Get started", top right of the header; "Open the app" is a row in the signed-in menu. */
+.lp .lp-acct-start { margin-left: 0; white-space: nowrap; }
 .lp .lp-acct-app { justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 14.5px; color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 10px; padding: 6px 14px; box-shadow: 0 3px 0 var(--lp-shadow); text-decoration: none; }
-/* On a phone the bar has room for "Log in" only; the sign-in page it opens has the sign-up link. */
-@media (max-width: 620px) { .lp .lp-acct-start { display: none; } }
+@media (max-width: 620px) { .lp .lp-acct-start { font-size: 13px; padding: 5px 10px; } }
+/* The account slot is the last thing in the bar now, so the first key (not it) takes the free space. */
+.lp .lp-nav .lp-wrap > .lp-acct, .lp .lp-nav .lp-wrap > .lp-navbtn + .lp-navbtn { margin-left: 0; }
+/* "Get started" needs room in the bar: as it narrows, the Discord link (also in the footer) goes first, then the gaps
+   shrink, then the Android icon (the hero has its waitlist link), so nothing runs off the edge down to a phone. */
+@media (max-width: 1240px) { .lp .lp-nav nav a.lp-nav-discord { display: none; } }
+@media (max-width: 1100px) { .lp-nav .lp-wrap { gap: 12px; } }
+@media (max-width: 1040px) { .lp .lp-nav .lp-wrap > .aw-header { display: none; } }
+@media (max-width: 560px) { .lp-nav .lp-wrap { gap: 8px; } }
+/* On a phone the wordmark gives way to the feather, so "Send to iPad" and "Get started" both fit. */
+@media (max-width: 440px) { .lp .lp-nav .lp-logo { font-size: 0; } }
+@media (max-width: 440px) { .lp-nav .lp-wrap { gap: 6px; } .lp .lp-nav .lp-navbtn { padding-inline: 10px; } }

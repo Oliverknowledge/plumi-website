@@ -3,6 +3,7 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
+import { browserSessionStorage } from "@/lib/sessionStorage";
 import { isStudyHostname } from "@/lib/studyapp/routing";
 
 /**
@@ -10,8 +11,9 @@ import { isStudyHostname } from "@/lib/studyapp/routing";
  * as the iPad app. A student who signs in with the same Google account or email on both
  * is one person: their marks, their place in the Grand Library and (later) friends follow them.
  *
- * Everything here runs in the browser, so every page stays static: no cookies are read
- * on the server and nothing in the shared layout changes. With no project configured
+ * The session is kept in a cookie shared by tryplumi.app and study.tryplumi.app (lib/sessionStorage), so
+ * signing in on one is signing in on both. Everything here runs in the browser, so every page stays static:
+ * no cookies are read on the server and nothing in the shared layout changes. With no project configured
  * (NEXT_PUBLIC_PLUMI_SUPABASE_URL and _KEY), accounts are simply off and the site works
  * as before, saving to this browser only.
  *
@@ -37,7 +39,7 @@ let client: SupabaseClient | null = null;
 export function supabase(): SupabaseClient | null {
   if (!accountsOn || typeof window === "undefined") return null;
   client ??= createClient(URL!, KEY!, {
-    auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "plumi-auth" },
+    auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "plumi-auth", storage: browserSessionStorage() },
   });
   return client;
 }
