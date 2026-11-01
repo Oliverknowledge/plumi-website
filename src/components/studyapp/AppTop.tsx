@@ -8,7 +8,9 @@ import { signInHref, signOut, useAccount } from "@/lib/account";
 import { canonicalPath, useAppHref } from "@/lib/studyapp/host";
 import { useNow } from "@/lib/studyapp/clock";
 import { useLiveSummary } from "@/lib/studyapp/live";
+import { useRoomFull } from "@/lib/studyapp/library/roomOpen";
 import { useDueCount } from "@/lib/studyapp/store";
+import { TimerChip } from "./timer/TimerChip";
 
 /**
  * The top bar: Plumi, then the three places (Desk, Study, Flashcards), then the student. Study is the Grand
@@ -29,6 +31,7 @@ export function AppTop() {
   const now = useNow();
   const due = useDueCount(now);
   const friends = live.state === "ready" ? live.friendsIn.length : 0;
+  const covered = useRoomFull();       // the full-screen library covers this bar and carries its own timer chip
 
   return (
     <header className="top" data-testid="app-top">
@@ -50,6 +53,7 @@ export function AppTop() {
             );
           })}
         </nav>
+        {!covered && <TimerChip where="top" />}
         <Account />
       </div>
     </header>

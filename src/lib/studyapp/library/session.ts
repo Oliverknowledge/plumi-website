@@ -29,6 +29,9 @@ import { LIBRARY_TILE, type FloorPresence } from "./room";
  * A student never sees an error: a failed read keeps what was last good; a failed write says one quiet line.
  */
 
+/** What the study timer publishes to the library: focusing on `subject` since `since` (epoch ms), or null when it is not. */
+export type TimerFocus = { subject: string | null; since: number } | null;
+
 export type Phase = "idle" | "joining" | "live" | "hidden" | "unavailable";
 
 export type LibrarySocial = Pick<SocialService,
@@ -110,6 +113,8 @@ export class LibrarySession {
   private chatReads = 0;
   private seq = 0;
   private stopped = false;
+  /** What the study timer says you are doing (see `followTimer`); remembered while you stand, applied when you sit. */
+  private timer: TimerFocus | null = null;
 
   private now: () => number;
   private me: string;
@@ -376,8 +381,32 @@ export class LibrarySession {
     if (seated !== this.s.seated) {
       this.statusDirty = true;
       this.set(seated ? { seated } : { seated, focusSince: null, subject: null });
+      if (seated) this.applyTimer();               // sitting down while the timer runs: you are focusing again, since the work began
     }
     this.watch?.changed();
+  }
+
+  /**
+   * The study timer drives your focus (one-way: the timer tells the visit, never the other way). Work running
+   * while you are seated is "focusing since the work began"; paused, on a break, waiting or stopped is not.
+   * Standing up does not stop the timer, it only stops publishing it: the focus is remembered here and
+   * published again when you sit. The server calls are the ones `startFocus` and `stopFocus` already make.
+   */
+  followTimer(focus: TimerFocus) {
+    this.timer = focus;
+    this.applyTimer();
+  }
+  private applyTimer() {
+    if (!this.s.seated) return;
+    const f = this.timer;
+    if (f) {
+      if (this.s.focusSince === f.since && this.s.subject === f.subject) return;
+      this.statusDirty = true;
+      this.set({ subject: f.subject, focusSince: f.since });
+    } else if (this.s.focusSince !== null) {
+      this.statusDirty = true;
+      this.set({ focusSince: null });
+    }
   }
 
   /** Start the timer: what you are on, and when you began. Only while seated. */

@@ -9,8 +9,11 @@ import { totalHere } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
 import { publishLive } from "@/lib/studyapp/live";
 import { enterBrowserFullscreen, enterBrowserFullscreenIfJustTapped, exitBrowserFullscreen } from "@/lib/studyapp/library/fullscreen";
-import { markRoom } from "@/lib/studyapp/library/roomOpen";
+import { markFull, markRoom } from "@/lib/studyapp/library/roomOpen";
 import { LibrarySession } from "@/lib/studyapp/library/session";
+import { libraryFocus } from "@/lib/studyapp/timer";
+import { timer } from "@/lib/studyapp/timerStore";
+import { TimerChip } from "@/components/studyapp/timer/TimerChip";
 import type { LibraryDriver } from "./driver";
 import { Chat, SeatCard, Servers, WhoHere } from "./parts";
 import { RoomCanvas } from "./RoomCanvas";
@@ -62,6 +65,14 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     return () => { stopScene?.(); session.leave(); markRoom(false); };
   }, [session, scene]);
 
+  // The study timer drives what the others see (one way: the timer tells the visit). Work running while you are seated is
+  // "focusing since the work began"; paused, a break, waiting or stopped is not. Standing up keeps the timer and stops publishing it.
+  useEffect(() => {
+    const follow = () => session.followTimer(libraryFocus(timer.snapshot().doc.session, Date.now()));
+    follow();
+    return timer.subscribe(follow);
+  }, [session]);
+
   // Full screen: the page's own layout, plus the browser's when it lets us. Leaving the page lets go of both.
   useEffect(() => {
     enterBrowserFullscreenIfJustTapped();
@@ -79,6 +90,14 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     window.addEventListener("keydown", esc);
     return () => { root.style.overflow = was; window.removeEventListener("keydown", esc); };
   }, [full, drawer]);
+
+  // While the room covers the top bar, the top bar's timer chip steps aside (this toolbar carries one), so there is only ever one.
+  const covering = full && snap.phase !== "hidden";
+  useEffect(() => {
+    if (!covering) return;
+    markFull(true);
+    return () => markFull(false);
+  }, [covering]);
 
   const messages = snap.messages.length;
   const unread = drawer === "chat" ? 0 : Math.max(0, messages - seen);
@@ -139,6 +158,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           {snap.phase === "live" && !snap.live && <span className="lb-hpill is-quiet" title="Steps may take a few seconds to show">Catching up</span>}
         </div>
         <div className="lb-hud lb-hud-r" role="toolbar" aria-label="Library">
+          <TimerChip where="hud" />
           <button type="button" className={`btn lb-hbtn${drawer === "chat" ? " is-on" : ""}`} aria-pressed={drawer === "chat"} data-testid="open-chat" onClick={() => open(drawer === "chat" ? null : "chat")}>
             Chat{unread > 0 && <b className="lb-unread" aria-label={`${unread} new`}>{unread > 9 ? "9+" : unread}</b>}
           </button>

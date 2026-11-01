@@ -37,3 +37,18 @@ export function dueLabel(dueISO: string, todayISO: string): string {
   if (d < 7) return weekdayShort(dueISO);
   return shortDate(dueISO);
 }
+
+/** The instant a London day begins (midnight in UK time, so 23:00 UTC the evening before in summer). `iso` is YYYY-MM-DD. */
+export function startOfDay(iso: string): number {
+  const utc = noon(iso) - 12 * 3_600_000;
+  for (const back of [3_600_000, 0]) {
+    const t = utc - back;
+    if (dayOf(t) === iso && dayOf(t - 1) !== iso) return t;
+  }
+  return utc;
+}
+/** The first day of the week (Monday, as in the UK) that holds `iso`. */
+export function weekStartOf(iso: string): string {
+  const dow = new Date(noon(iso)).getUTCDay();
+  return addDays(iso, -((dow + 6) % 7));
+}

@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { VT323 } from "next/font/google";
 import { AuthGate } from "@/components/studyapp/AuthGate";
 import { AppTop } from "@/components/studyapp/AppTop";
+import { TimerEffects } from "@/components/studyapp/timer/TimerEffects";
 import { Toaster } from "@/components/studyapp/toast";
 import "./app.css";
+import "./timer.css";
 
 /**
  * The study app: Desk, Study (the Grand Library) and Flashcards, at study.tryplumi.app. One deliberate light
@@ -23,6 +25,7 @@ export default function StudyAppLayout({ children }: { children: React.ReactNode
       <AuthGate>
         <AppTop />
         {children}
+        <TimerEffects />
         <Toaster />
       </AuthGate>
     </div>

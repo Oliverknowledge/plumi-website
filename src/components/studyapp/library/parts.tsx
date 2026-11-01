@@ -7,11 +7,14 @@ import { colourOf } from "@/lib/library";
 import * as spam from "@/lib/social/librarySpam";
 import { MAX_LENGTH, tidy } from "@/lib/social/chatRules";
 import {
-  EMOTE_TITLE, LOBBY_CAP, LOBBY_EMOTES, SEAT_SUBJECTS, focusClock, focusTag, listedServers, shownName, subjectName,
+  EMOTE_TITLE, LOBBY_CAP, LOBBY_EMOTES, SEAT_SUBJECTS, focusTag, listedServers, shownName, subjectName,
   type LibraryMessage, type LobbyPerson,
 } from "@/lib/social/lobby";
 import type { MessageReportReason, UserReportReason } from "@/lib/social/types";
 import { useNow } from "@/lib/studyapp/clock";
+import { face, settled } from "@/lib/studyapp/timer";
+import { timer, useTimer } from "@/lib/studyapp/timerStore";
+import { describe, viewOf, type View } from "@/components/studyapp/timer/TimerPanel";
 import { friendButton } from "@/lib/studyapp/library/friendRequest";
 import { platformOf } from "@/lib/studyapp/library/platform";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
@@ -28,50 +31,59 @@ const REPORT_MESSAGE: { id: MessageReportReason; label: string }[] = [
 /* ── Your seat ───────────────────────────────────────────────────────── */
 
 const SUBJECT_KEY = "plumi-library-subject";
+/** What this browser chose before the timer remembered it (the seat card's old per-browser key): only a fallback. */
 function savedSubject(): string | null | undefined {
   try { const v = window.localStorage.getItem(SUBJECT_KEY); return v === null ? undefined : v === "" ? null : v; } catch { return undefined; }
 }
 
+/**
+ * Your seat. The focus control here is the study timer, the same one as the chip: Start focus starts it with the
+ * settings the student last chose (so a Pomodoro student gets a Pomodoro here), Stop stops it, and the library
+ * is told by the timer, not by this card (see `useTimerFollow`). Standing up does not stop it.
+ */
 export function SeatCard({ session, snap, handleRef }: { session: LibrarySession; snap: Snapshot; handleRef: RefObject<LibraryHandle | null> }) {
   const now = useNow(1000);
-  // What you are on: what you last chose (per browser), until you choose.
-  const [chosen, setChosen] = useState<string | null | undefined>(undefined);
-  const subject = chosen !== undefined ? chosen : snap.subject !== null ? snap.subject : savedSubject();
-  const timing = snap.seated && snap.focusSince !== null;
-  const elapsed = timing && now ? (now - snap.focusSince!) / 1000 : 0;
-
-  const choose = (id: string | null) => {
-    setChosen(id);
-    try { window.localStorage.setItem(SUBJECT_KEY, id ?? ""); } catch { /* fine without */ }
-    if (timing) session.setSubject(id);
-  };
+  const { doc, ready } = useTimer();
+  const view: View = ready && now ? viewOf(doc.session, now) : "setup";
+  const running = view !== "setup" && doc.session ? settled(doc.session, now) : null;
+  // What you are on: the timer's, which is what you last chose (anywhere in the app), else the old per-browser choice.
+  const subject = running ? running.subject : doc.subject !== undefined ? doc.subject : savedSubject();
   const sit = () => { if (!handleRef.current?.sit()) toast("No free seat close by. Tap one in the room"); };
+  const title = !snap.seated ? "You’re standing" : view === "work" ? "Focusing" : view === "paused" ? "Paused" : view === "break" ? "On a break" : view === "over" ? "Back to it?" : "You’re sitting";
+  const clock = running && view !== "over" && now ? <b className="lb-clock" aria-live="off" data-testid="seat-clock">{face(running, now)}</b> : null;
 
   return (
     <section className="card lb-card lb-seat" aria-label="Your seat">
       <div className="lb-head">
-        <h2>{snap.seated ? (timing ? "Focusing" : "You’re sitting") : "You’re standing"}</h2>
+        <h2>{title}</h2>
         {snap.nickname && <span className="lb-me">as <b>{snap.nickname}</b></span>}
       </div>
       {!snap.seated ? (
-        <div className="lb-row">
-          <button type="button" className="btn gold" onClick={sit}>Sit down</button>
-          <span className="lb-hint">or tap a seat</span>
-        </div>
+        <>
+          <div className="lb-row">
+            <button type="button" className="btn gold" onClick={sit}>Sit down</button>
+            <span className="lb-hint">or tap a seat</span>
+          </div>
+          {running && <p className="lb-hint" data-testid="seat-walking">{clock}Walking about. Your clock keeps running.</p>}
+        </>
       ) : (
         <>
           <div className="lb-chips" role="group" aria-label="What are you on?">
             {SEAT_SUBJECTS.map((s) => (
-              <button key={s.label} type="button" className="chip" aria-pressed={subject === s.id && subject !== undefined} onClick={() => choose(s.id)}>{s.label}</button>
+              <button key={s.label} type="button" className="chip" aria-pressed={subject === s.id && subject !== undefined} onClick={() => timer.setSubject(s.id)}>{s.label}</button>
             ))}
           </div>
           <div className="lb-row">
-            {timing ? <b className="lb-clock" aria-live="off">{focusClock(elapsed)}</b> : null}
-            {timing
-              ? <button type="button" className="btn" onClick={() => session.stopFocus()}>Stop</button>
-              : <button type="button" className="btn gold" disabled={subject === undefined} onClick={() => session.startFocus(subject ?? null)}>Start focus</button>}
+            {clock}
+            {view === "setup" && <button type="button" className="btn gold" disabled={subject === undefined} onClick={() => timer.start({ subject: subject ?? null })} data-testid="seat-start">Start focus</button>}
+            {view === "work" && <button type="button" className="btn" onClick={() => timer.pause()}>Pause</button>}
+            {view === "paused" && <button type="button" className="btn gold" onClick={() => timer.resume()}>Resume</button>}
+            {view === "break" && <button type="button" className="btn gold" onClick={() => timer.endBreak()}>End break</button>}
+            {view === "over" && <button type="button" className="btn gold" onClick={() => timer.endBreak()} data-testid="seat-continue">Continue studying</button>}
+            {view !== "setup" && <button type="button" className="btn" onClick={() => timer.stop()} data-testid="seat-stop">Stop</button>}
             <button type="button" className="btn ghost" onClick={() => handleRef.current?.stand()}>Stand up</button>
           </div>
+          {view === "setup" && <p className="lb-hint" data-testid="seat-mode">{describe(doc.settings)}, from the timer in the corner</p>}
         </>
       )}
       <div className="lb-row lb-emotes">

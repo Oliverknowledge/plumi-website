@@ -7,6 +7,8 @@ import { continueTarget, examDays } from "@/lib/studyapp/model";
 import { quoteFor } from "@/lib/studyapp/quotes";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { dayOf, greeting, longDate } from "@/lib/studyapp/time";
+import { formatStudied } from "@/lib/studyapp/timer";
+import { useTimer, workedToday } from "@/lib/studyapp/timerStore";
 import { DeckCard } from "./DeckCard";
 import { LibraryCard } from "./LibraryCard";
 import { TodoCard } from "./TodoCard";
@@ -50,6 +52,18 @@ function ExamChip() {
   );
 }
 
+/** The day's study from the timer's log, quietly. No number until the store has loaded; "0m" is true after that. */
+function StudiedToday() {
+  const { doc, ready } = useTimer();
+  const now = useNow(1000);                // the same second as the timer's card, so the two never disagree
+  const known = ready && now > 0;
+  return (
+    <span className={`studied${known ? "" : " pending"}`} data-testid="studied-today" aria-hidden={known ? undefined : true}>
+      Studied today <b>{known ? formatStudied(workedToday(doc, now)) : "0m"}</b>
+    </span>
+  );
+}
+
 export function Desk() {
   const { data } = useApp();
   const now = useNow();
@@ -67,6 +81,7 @@ export function Desk() {
           <div className="acts">
             <AppLink className="cont" href={next.href} data-testid="continue">{next.label}<i><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#3f322e" /></svg></i></AppLink>
             <ExamChip />
+            <StudiedToday />
           </div>
         </div>
       </section>

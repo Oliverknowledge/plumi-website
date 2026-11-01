@@ -1,0 +1,106 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   STUDY TIMER: the chip (top bar and the library's toolbar), its card, the desk's "Studied today", and the
+   screen-reader line. Same tokens as app.css. Contrast measured with scripts/study-contrast.ts's method:
+   white on --red-pen 5.1:1, ink on the green 5.0:1, ink on the teal 8+:1, --soft and --mute on the card >= 4.5:1.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pa .tm-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.pa .tm { position: relative; flex: none; margin-right: 8px; }
+.pa .tm-chipbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 44px; min-height: 40px; padding: 0 13px;
+  border: 2px solid var(--ink); border-radius: 20px; box-shadow: 0 3px 0 var(--ink); cursor: pointer; white-space: nowrap;
+  font: 600 16px var(--f-px); line-height: 1; transition: transform .08s, box-shadow .08s;
+}
+.pa .tm-chipbtn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.pa .tm-chipbtn.is-idle { background: var(--red-pen); color: #fff; }
+.pa .tm-chipbtn.is-idle:hover { background: #a8352f; }
+.pa .tm-chipbtn.is-run { background: #8ccf74; color: var(--ink); }
+.pa .tm-chipbtn.is-run:hover { background: #7ec465; }
+.pa .tm-chipbtn.is-rest { background: #9fdcd8; color: var(--ink); }
+.pa .tm-chipbtn.is-rest:hover { background: #8ed2ce; }
+.pa .tm-dot { width: 11px; height: 11px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+.pa .tm-face { font: 400 25px/1 var(--f-digit); font-variant-numeric: tabular-nums; letter-spacing: .02em; min-width: 3ch; text-align: center; }
+.pa .tm-word { font: 800 12px var(--f-body); text-transform: uppercase; letter-spacing: .06em; }
+.pa .tm-chipbtn.is-idle .tm-word:first-child, .pa .tm-chipbtn.is-idle .tm-dot + .tm-word { font: 600 16px var(--f-px); text-transform: none; letter-spacing: 0; }
+.pa .tm-ask-word { font: 600 15px var(--f-px); text-transform: none; letter-spacing: 0; animation: tm-nudge 1.6s ease-in-out infinite; }
+@keyframes tm-nudge { 50% { transform: translateY(-2px); } }
+
+/* the card */
+.pa .tm-pop { position: absolute; z-index: 40; top: calc(100% + 12px); right: 0; width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 100px); overflow-y: auto; display: grid; gap: 12px; padding: 14px; outline: none; background: var(--card); overscroll-behavior: contain; }
+.pa .tm-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pa .tm-top h2 { margin: 0; font: 600 22px var(--f-px); }
+.pa .tm-top .btn.icon { width: 44px; height: 44px; font: 400 26px/1 var(--f-body); }
+.pa .tm-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 3px; border: 2px solid var(--ink); border-radius: 12px; background: var(--card2); }
+.pa .tm-kind { display: grid; gap: 1px; justify-items: center; align-content: center; min-height: 52px; padding: 4px 2px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; }
+.pa .tm-kind b { font: 600 16px var(--f-px); }
+.pa .tm-kind small { font: 800 11px var(--f-body); color: var(--soft); }
+.pa .tm-kind:hover { background: #fff3cf; }
+.pa .tm-kind[aria-pressed="true"] { background: var(--navy); color: #f5f9ff; }
+.pa .tm-kind[aria-pressed="true"] small { color: #d9e4f7; }
+.pa .tm-step { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; }
+.pa .tm-step .lbl { display: block; }
+.pa .tm-val { font: 400 28px/1 var(--f-digit); font-variant-numeric: tabular-nums; }
+.pa .tm-pm { width: 44px; height: 44px; min-height: 44px; font: 600 24px/1 var(--f-body); }
+.pa .tm-subjects { display: flex; flex-wrap: wrap; gap: 6px; }
+.pa .tm-chip { height: 40px; padding: 0 12px; cursor: pointer; font-family: inherit; font-size: 13.5px; }
+.pa .tm-chip[aria-pressed="true"] { background: var(--gold); }
+.pa .tm-chip:hover { background: #fff3cf; }
+.pa .tm-chip[aria-pressed="true"]:hover { background: var(--gold); }
+.pa .tm-label { height: 44px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; font: 700 15px var(--f-body); color: var(--ink); width: 100%; }
+.pa .tm-label::placeholder { color: var(--mute); opacity: 1; }
+.pa .tm-go { width: 100%; min-height: 48px; font-size: 20px; }
+.pa .tm-done { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border: 2px dashed var(--line); border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--soft); }
+.pa .tm-done b { font: 600 17px var(--f-px); color: var(--ink); }
+.pa .tm-done .btn { margin-left: auto; min-height: 40px; }
+
+.pa .tm-head { display: grid; gap: 2px; }
+.pa .tm-phase { font: 600 22px var(--f-px); }
+.pa .tm-sub { font-size: 13.5px; font-weight: 800; color: var(--soft); overflow-wrap: anywhere; }
+.pa .tm-big { margin: 0; font: 400 76px/1 var(--f-digit); font-variant-numeric: tabular-nums; text-align: center; padding-block: 4px; }
+.pa .tm-big.tm-ask { font: 600 clamp(28px, 9vw, 38px)/1.1 var(--f-px); padding-block: 12px; }
+.pa .tm-bar { height: 10px; border: 2px solid var(--ink); border-radius: 6px; background: #fff; overflow: hidden; }
+.pa .tm-bar i { display: block; height: 100%; background: #8ccf74; }
+.pa .tm-tip { margin: 0; text-align: center; font: 700 15px var(--f-body); color: var(--soft); }
+.pa .tm-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.pa .tm-acts .btn { flex: 1 1 auto; min-height: 46px; }
+.pa .tm-acts .btn.ghost { flex: 0 0 auto; }
+.pa .tm-totals { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; margin: 0; padding-top: 10px; border-top: 2px dashed var(--line); font-size: 13.5px; font-weight: 700; color: var(--soft); }
+.pa .tm-totals b { color: var(--ink); font-weight: 900; font-variant-numeric: tabular-nums; }
+.pa .tm-opts { display: flex; flex-wrap: wrap; gap: 2px 8px; margin: 0 -6px -6px; }
+.pa .tm-opt { min-height: 40px; font-size: 13.5px; }
+.pa .tm-opt[aria-pressed="true"] { color: var(--ink); }
+
+/* in the library's toolbar: a card where the drawer opens, so the two never fight over the corner */
+.pa .lb-hud.lb-hud-r { z-index: 5; }
+.pa .tm-hud { margin-right: 0; }
+.pa .tm-hud .tm-pop { position: fixed; top: calc(64px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); max-height: calc(100dvh - 88px - env(safe-area-inset-top, 0px)); box-shadow: 0 4px 0 var(--ink), 0 14px 30px rgba(20, 29, 51, .28); }
+
+/* the desk's quiet figure, beside the exam chip */
+.pa .studied { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 11px; background: rgba(251, 247, 238, .85); border: 2px solid #d3c3b0; font-size: 13px; font-weight: 800; color: #5b4741; white-space: nowrap; }
+.pa .studied b { font: 900 14px var(--f-body); color: var(--wood-text); font-variant-numeric: tabular-nums; }
+.pa .studied.pending { visibility: hidden; }
+
+/* phones: the card is a sheet under the bar, never wider than the screen */
+@media (max-width: 700px) {
+.pa .tm { margin-right: 4px; }
+.pa .tm-top-card, .pa .tm-top .tm-pop { position: fixed; }
+.pa .tm-top .tm-pop { top: calc(74px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; width: auto; max-width: 400px; margin-inline: auto; max-height: calc(100dvh - 90px - env(safe-area-inset-top, 0px)); }
+.pa .tm-hud .tm-pop { top: calc(108px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; width: auto; max-width: 400px; margin-inline: auto; max-height: calc(100dvh - 124px - env(safe-area-inset-top, 0px)); }
+.pa .tm-big { font-size: 68px; }
+}
+.pa .tm-short { display: none; }
+@media (max-width: 520px) {
+.pa .tm-chipbtn { padding: 0 10px; }
+.pa .tm-face { font-size: 23px; }
+.pa .tm-word { font-size: 11px; }
+}
+/* the narrowest phones: the colour and the card say work or break, so the chip keeps only the clock and stays clear of the tabs */
+@media (max-width: 440px) {
+.pa .tm-phase-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pa .tm-ask-word .tm-long { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pa .tm-ask-word .tm-short { display: inline; }
+.pa .tm-face { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+.pa .tm-ask-word { animation: none; }
+}

@@ -192,6 +192,103 @@ describe("what you are doing", () => {
     assert.equal(a.snapshot().focusSince, null);
   });
 
+  describe("when the study timer drives the focus", () => {
+    const MIN = 60_000;
+    type Floor = { x: number; y: number; seat: number | null; path: [number, number][] };
+    async function seated(floorRef: { f: Floor }) {
+      const r = rig();
+      const a = r.make(A), b = r.make(B);
+      a.attachRoom(() => floorRef.f);
+      await a.start(); await b.start();
+      return { r, a, b };
+    }
+    const SEAT: Floor = { x: 728, y: 708, seat: 9, path: [] };
+    const STAND: Floor = { x: 100, y: 100, seat: null, path: [] };
+
+    it("work running while seated is focusing since the work began, and others see the minutes", async () => {
+      const floor: { f: Floor } = { f: SEAT };
+      const { r, a, b } = await seated(floor);
+      a.roomChanged();
+      const since = r.clock.now() - 12 * MIN;                      // the work phase began twelve minutes ago
+      a.followTimer({ subject: "physics", since });
+      assert.deepEqual([a.snapshot().seated, a.snapshot().subject, a.snapshot().focusSince], [true, "physics", since]);
+      await a.tick();
+      r.clock.advance(6000); await b.tick();
+      const p = b.snapshot().people[0];
+      assert.equal(p.focusSince, since);
+      assert.equal(b.describe(p.id)?.tag, "Physics · 12 min");
+    });
+
+    it("paused, on a break or stopped is not focusing, and the server is told", async () => {
+      const floor: { f: Floor } = { f: SEAT };
+      const { r, a } = await seated(floor);
+      a.roomChanged();
+      a.followTimer({ subject: "maths", since: r.clock.now() });
+      await a.tick();
+      a.followTimer(null);                                          // a break began
+      assert.equal(a.snapshot().focusSince, null);
+      assert.equal(a.snapshot().seated, true, "still sitting");
+      await a.tick();
+      assert.equal(r.world.students.get(A)!.focusSince, null);
+      const resumed = r.clock.now() - 3 * MIN;
+      a.followTimer({ subject: "maths", since: resumed });          // back to work
+      await a.tick();
+      assert.equal(r.world.students.get(A)!.focusSince, resumed);
+    });
+
+    it("standing up stops publishing but not the timer: sitting again resumes the focus", async () => {
+      const floor: { f: Floor } = { f: SEAT };
+      const { r, a } = await seated(floor);
+      a.roomChanged();
+      const since = r.clock.now() - 5 * MIN;
+      a.followTimer({ subject: "chemistry", since });
+      floor.f = STAND; a.roomChanged();
+      assert.deepEqual([a.snapshot().seated, a.snapshot().focusSince, a.snapshot().subject], [false, null, null]);
+      a.followTimer({ subject: "chemistry", since });               // the timer carries on and says the same
+      assert.equal(a.snapshot().focusSince, null, "nothing is published while you stand");
+      floor.f = SEAT; a.roomChanged();
+      assert.deepEqual([a.snapshot().seated, a.snapshot().subject, a.snapshot().focusSince], [true, "chemistry", since]);
+      void r;
+    });
+
+    it("a timer that began before you sat is picked up when you do, and one that ended while you stood is not", async () => {
+      const floor: { f: Floor } = { f: STAND };
+      const { r, a } = await seated(floor);
+      a.followTimer({ subject: "biology", since: r.clock.now() - MIN });
+      assert.equal(a.snapshot().focusSince, null);
+      floor.f = SEAT; a.roomChanged();
+      assert.equal(a.snapshot().subject, "biology");
+      floor.f = STAND; a.roomChanged();
+      a.followTimer(null);
+      floor.f = SEAT; a.roomChanged();
+      assert.equal(a.snapshot().focusSince, null);
+    });
+
+    it("keeps following when you move to another library", async () => {
+      const floor: { f: Floor } = { f: SEAT };
+      const { r, a } = await seated(floor);
+      a.roomChanged();
+      const since = r.clock.now() - 2 * MIN;
+      a.followTimer({ subject: "physics", since });
+      await a.switchTo(2);
+      assert.equal(a.snapshot().focusSince, since);
+      assert.equal(r.world.students.get(A)!.shard, 2);
+    });
+
+    it("saying the same thing again changes nothing and tells nobody", async () => {
+      const floor: { f: Floor } = { f: SEAT };
+      const { r, a } = await seated(floor);
+      a.roomChanged();
+      const f = { subject: "maths", since: r.clock.now() - MIN };
+      a.followTimer(f);
+      let heard = 0;
+      a.subscribe(() => { heard++; });
+      a.followTimer({ ...f });
+      a.followTimer({ ...f });
+      assert.equal(heard, 0);
+    });
+  });
+
   it("an emote shows over your head and is rate limited quietly", async () => {
     const r = rig();
     const a = r.make(A), b = r.make(B);
