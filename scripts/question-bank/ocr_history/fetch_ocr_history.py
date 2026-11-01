@@ -13,7 +13,8 @@ sample assessment materials are left out, and so is the AS (H105), which has its
 OCR lists November 2021 and June 2022 on; earlier series are on Teach Cambridge (OCR's teacher
 login) only. OCR lists no papers for Y211. A file that doesn't name its own unit on its first pages is
 left out: OCR's June 2025 Y314 question paper link serves a Y303 mark scheme, and its Y222 mark
-scheme link Y221's. Writes
+scheme link Y221's. A file listed twice for one slot is placed by the series it prints (OCR lists
+Y105's June 2025 report under June 2024 as well). Writes
 <work-dir>/pdf/<component>-<kind>-<series>.pdf (OCR's files, unmodified) and <work-dir>/manifest.json
 in fetch_ocr.py's shape, with `r2` the key the bank uploads each whole paper to
 (ocr/OCR-Y101-01-QP-JUN24.pdf, the library's naming). Downloads in threads.
@@ -68,15 +69,35 @@ def main():
         want.append({"component": comp, "spec": spec, "kind": kind, "series": series, "title": title.strip() if kind == "qp" else "",
                      "source": SITE + r["href"] if r["href"].startswith("/") else r["href"], "file": f"{comp}-{kind}-{series.lower()}.pdf",
                      "r2": f"ocr/OCR-{spec}-{num}-{kind.upper()}-{series}.pdf"})
+    # A file listed twice for one slot (Y105's June 2025 report is listed under June 2024 too) is
+    # fetched under a name of its own, and placed by the series it prints.
+    names = [f["file"] for f in want]
+    for n, f in enumerate(want):
+        if f["file"] in names[:n]:
+            f["file"] = f["file"].replace(".pdf", f"-{re.search(r'/Images/(\d+)', f['source']).group(1)}.pdf")
     with ThreadPoolExecutor(6) as pool:
         got = [f for f in pool.map(download, want) if f]
-    out = []
+    out, taken = [], {(f["component"], f["kind"], f["series"]) for f in got if not re.search(r"-\d+\.pdf$", f["file"])}
     for f in got:  # (read one at a time: PyMuPDF isn't thread-safe)
         doc = pymupdf.open(os.path.join(PDF, f["file"]))
-        if f["spec"] in " ".join(doc[i].get_text() for i in range(min(3, len(doc)))):
-            out.append(f)
-        else:
+        text = " ".join(doc[i].get_text() for i in range(min(3, len(doc))))
+        if f["spec"] not in text:
             print(f"  not {f['spec']}'s: {f['source']} (listed as {f['spec']} {f['kind']} {f['series']})", file=sys.stderr)
+            continue
+        if re.search(r"-\d+\.pdf$", f["file"]):
+            said = {("JUN" if m.group(1) in ("Summer", "June") else "NOV") + m.group(2)[2:]
+                    for m in re.finditer(r"\b(Summer|June|Autumn|November) (20\d\d)\b", text)}
+            series = said.pop() if len(said) == 1 else None
+            if not series or (f["component"], f["kind"], series) in taken:
+                print(f"  listed twice, left out: {f['source']} (listed as {f['spec']} {f['kind']} {f['series']})", file=sys.stderr)
+                continue
+            name = f"{f['component']}-{f['kind']}-{series.lower()}.pdf"
+            os.replace(os.path.join(PDF, f["file"]), os.path.join(PDF, name))
+            print(f"  listed as {f['series']}, is {series}: {f['source']}", file=sys.stderr)
+            spec, num = f["component"].upper().split("-")
+            f = {**f, "series": series, "file": name, "r2": f"ocr/OCR-{spec}-{num}-{f['kind'].upper()}-{series}.pdf"}
+            taken.add((f["component"], f["kind"], series))
+        out.append(f)
     json.dump(out, open(os.path.join(WORK, "manifest.json"), "w"), indent=1)
     print(f"{len(out)} files ({sum(f['bytes'] for f in out) / 1e6:.0f} MB) in {PDF}; series listed: " + ", ".join(sorted(headings)), file=sys.stderr)
 

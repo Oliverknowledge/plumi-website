@@ -1376,7 +1376,7 @@ History A (H505) unit papers that OCR publishes on its own site: November 2021 a
 June 2025. That is 1,071 questions from 284 papers across 57 units: Unit 1, the British period
 study and enquiry (Y101-Y113), Unit 2, the non-British period study (Y201-Y224; OCR lists no
 papers for Y211), and Unit 3, the thematic study and historical interpretations (Y301-Y321).
-1,067 questions have their mark scheme cropped with its levels grid; 551 have examiner's comments
+1,067 questions have their mark scheme cropped with its levels grid; 554 have examiner's comments
 (OCR publishes reports for about half the units each year).
 
 - **Units as papers, unit groups as options.** Each unit is a paper ("Y106 · England 1485-1558:
@@ -1416,6 +1416,8 @@ papers for Y211), and Unit 3, the thematic study and historical interpretations 
 **Gaps:**
 - OCR's page lists only November 2021 and June 2022 to June 2025. Earlier series are on Teach
   Cambridge (teachers' login) only and are not fetched; no mirror is used.
+- OCR lists Y105's June 2025 report under June 2024 as well; the fetcher places it by the series it
+  prints.
 - Two of OCR's June 2025 links serve the wrong file: Y314's question paper link is a Y303 mark
   scheme, and Y222's mark scheme link is Y221's. So Y314 June 2025 is left out, and Y222 June 2025's
   four questions have no scheme crop (and no whole scheme to link).
