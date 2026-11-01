@@ -73,6 +73,7 @@ html[data-theme="dark"] .lp .lp-page .lp-note { background: #fff4dd; }
    screenshots of the app are not inverted, only exam scans. ── */
 html[data-theme="dark"] .lp .qb-sheet { background: #272120; border-color: #4a3f39; box-shadow: 4px 0 0 rgba(0, 0, 0, .3); }
 html[data-theme="dark"] .lp .qb-row.is-in-set .qb-sheet { background: #2e2622; }
+html[data-theme="dark"] .lp .qb-listen { background: #2e2622; border-color: #4a3f39; color-scheme: dark; }
 html[data-theme="dark"] .lp .qb-row + .qb-row .qb-sheet, html[data-theme="dark"] .lp .qb-row:first-child .qb-sheet, html[data-theme="dark"] .lp .qb-row:last-child .qb-sheet { border-color: #4a3f39; }
 html[data-theme="dark"] .lp .qb-img, html[data-theme="dark"] .lp .qb-stem img, html[data-theme="dark"] .lp .qb-reveal-ms img,
 html[data-theme="dark"] .lp .qb-zoom-inner img { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; background: transparent; border-color: #4a3f39; }

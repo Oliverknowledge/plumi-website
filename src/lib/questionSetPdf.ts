@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -152,7 +152,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const msCrops = new Map<BankPart, Crop>();
   const run = limited(6);
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
-  const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(partImage(c.part.id, c.kind, subject.cropVersion)).catch(() => null))); return c; };
+  const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(c.kind === "stem" ? stemImage(c.part, subject.cropVersion) : partImage(c.part.id, c.kind, subject.cropVersion)).catch(() => null))); return c; };
 
   async function place({ kind, label }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind !== "stem") {
@@ -187,7 +187,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   // questions share (AQA Economics: a context's extracts, for questions 01–04) goes in once for them all.
   const stemsDone = new Set<string>();
   for (const p of parts) {
-    const stem = partImage(p.id, "stem");
+    const stem = stemImage(p);
     if (p.st && !stemsDone.has(stem)) {
       stemsDone.add(stem);
       crops.push(want({ part: p, kind: "stem", label: `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));

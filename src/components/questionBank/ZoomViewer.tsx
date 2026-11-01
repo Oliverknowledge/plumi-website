@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
-import { paperName, partImage, seriesLabel, type BankPart, type BankSubject } from "@/content/questionBank";
+import { paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 import { AnswerReadBack } from "./AnswerBox";
 import { ChoicePick, SelfMark } from "./SelfMark";
 
@@ -90,7 +90,7 @@ export function ZoomViewer() {
             <Stage key={`${part.id}-${kind}`}>
               {kind === "qp" && part.st && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={partImage(part.id, "stem", subject.cropVersion)} alt={`The start of question ${part.l}`} draggable={false} />
+                <img src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} draggable={false} />
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={partImage(part.id, kind, subject.cropVersion)} alt={kind === "qp" ? `Question ${part.l}: ${part.x}` : `Mark scheme for ${part.l}`} draggable={false} />

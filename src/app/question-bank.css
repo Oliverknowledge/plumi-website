@@ -140,6 +140,10 @@
 .lp .qb-img { display: block; width: 100%; height: auto; image-rendering: auto; }
 .qb-stem { display: grid; gap: 8px; }
 .qb-stem img { border: 2px dashed #e2d6c2; border-radius: 8px; }
+/* A listening question's recording (AQA languages), on the paper above the question. */
+.qb-listen { display: grid; gap: 6px; padding: 10px 12px; background: #fdf9f1; border: 2px dashed #e2d6c2; border-radius: 8px; }
+.qb-listen audio { width: 100%; }
+.qb-listen-note { font-size: 13px; font-weight: 600; color: var(--lp-ink-soft); }
 .qb-swipe { display: none; font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); }
 
 /* notes: the mark scheme on the paper, the examiner's report in the margin */
