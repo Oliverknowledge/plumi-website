@@ -89,9 +89,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
-  // A question on the paper's sources (English Language; at A-Level its "Text A") is read with them open: they're printed in the insert.
+  // A question on the paper's sources or extracts (English Language; at A-Level its "Text A", History) is read with them open: they're printed in the insert.
   // (Edexcel's GCSE names them "Text 1" and "Text 2", or just "the writer".)
-  const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextract\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
+  const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextracts?\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
   const insertTexts = parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
