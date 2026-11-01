@@ -384,3 +384,85 @@ Library mode only; the homepage's `hero` and `friends` modes keep their tile ste
 **Homepage unchanged.** The production site was built from the original and from the new `cafeScene.ts` (two copies of the
 source), run with a seeded `Math.random` and reduced motion, and the `toDataURL` of both canvases on `/` (the hero 569 x 394 and
 the friends window 204 x 150) hashed identically, before and after a tap and arrow-key hops.
+
+## Friends list (founder, 1 November)
+
+The People tab is now a scrollable panel: **Requests** (only when there are some), **Friends** (all of them), **In the library**
+(everyone else in the room, you first), each person with their head. Web only; the iPad has its own People screen. No migration, no new
+server function: it reads what the web already could (`loadFriends`, `lobby_friend_requests`) and writes what it already could
+(`respondToFriendRequest`, `removeFriend`).
+
+| | |
+|---|---|
+| `components/studyapp/library/People.tsx` | The panel (`WhoHere`): sections, rows, request rows, the small card for a friend who is not here, empty and loading states. |
+| `components/studyapp/library/Head.tsx` | `Head`: a person's head in a rounded tile in their colour, sizes 32, 40, 56. |
+| `lib/studyapp/library/people/headCrop.ts` | The crop and the whole-number scaling (pure, tested on the real art). |
+| `lib/studyapp/library/friends.ts` | `buildFriends`, `buildRequests`, `friendStatus`, `inHeldOrder`, `keepSame` (pure). |
+| `lib/studyapp/library/session.ts` | `Snapshot.friends`, `Snapshot.requests`, `refreshFriends`, `answerRequest`, `removeFriend`. |
+| `lib/studyapp/library/fake.ts`, `demo.ts` | The scripted world has friends in another library, one studying elsewhere (presence), one quiet, and two requests (one by friend code, one from the library). `/study/library/demo?people=40&friends=30` adds a crowd; `?friends=none` is the empty state. |
+
+### The head
+
+The front-facing idle frame (frame 18 of the 78) cropped to the **whole head and the top of the shoulders**: the full 16 px frame
+width by 16 rows from row 7 (the chibi head is rows 8 to 21). The tips of the two tallest hairstyles are left out (03 and 26 by one
+row, 11's two thin tufts by three); `people/headCrop.test.ts` goes over every hairstyle in the catalogue. It is drawn from the SAME
+built row the room uses (`peopleStore()`, graded as the room's art is), never a second copy of the layers: a person already in the
+room costs nothing extra; a friend who is not in the room is built once, by the store, like anyone else.
+
+- **Crisp at 1x, 2x and 3x.** The picture is made at the *device's* resolution at the largest whole-number scale that fits (40 css px:
+  2x at 1x, 5x at 2x, 7x at 3x) and shown 1:1, so the browser never stretches it. Checked in Chromium at all three ratios: the
+  picture is 40, 80 and 120 device px and every art pixel is a whole 2x2, 5x5 or 7x7 block.
+- **Caching.** One PNG data URL per look and size (400 kept), shared by every row, card and tile showing that look. A 16 x 16 crop is
+  read from the row once (1 KB). Nothing is painted again when a list updates.
+- **Placeholder and failure.** A neutral tile until the row is built; if the layers never load, or a row will not build, the tile is the
+  person's colour with their initial. Nothing says why.
+
+### What the lists hold (the privacy rules; `friends.test.ts` and `session.test.ts` hold them)
+
+- **Friends are only accepted friends**, by the name they gave you. Anyone you blocked this visit is gone from the lists at once and
+  stays gone after the next read.
+- **A request from the library is a nickname** and "from the library": `lobby_friend_requests` has no name and no code column (0125).
+  If the same person also appears in the ordinary requests, the library's version wins, so a real name cannot arrive by the other list.
+  An ordinary request (someone typed your friend code) shows the name that person gave, as the iPad does (see "Not verified").
+- **A stranger is a nickname** everywhere, as before (`sanitised`); no friend code is shown or held anywhere. A removed friend's name
+  leaves the room's list at once (they are a nickname again).
+- **Nothing asks the server about people who are not friends or in the room.** The new reads are the two above, with no ids.
+
+### Reading and refreshing
+
+Once on joining (not again when you switch library), every 60 s while the visit is live, at once when the People tab opens (not twice
+within 3 s), and after any friend action (accept, not now, remove, adding back someone who asked). A failed read keeps the last good
+list and says nothing; a first read that cannot be answered falls back to the friends the room itself marks. Friends are joined to
+the room by lowercase user id on every read of the room (2 to 5 s), so a friend who sits down or starts a timer changes at once.
+
+**Order.** Friends in this library first (a lit row; "In this library, Chemistry 24 min", "sitting" or "standing"), then those
+studying elsewhere (only from a *fresh* presence, that is one with an end still ahead: "Studying Maths now", "On a break"), then the rest
+by name with no second line. Nothing is invented: no "online", no last seen. The day streak is shown only while it can be alive
+(counted today or yesterday, London days) or from the room.
+
+**Steady under a finger.** While a pointer is down on the panel and for 350 ms after it scrolls, the lists keep the order they had
+(`inHeldOrder`); a row never moves under a tap. Rows are memoised and the session hands back the same row objects when a read changed
+nothing (`keepSame`), so a quiet list does no DOM work.
+
+### Checked
+
+`npm run library:test` (friends, session, headCrop added), `npm run app:test`, `npm run social:test`, `tsc`, `eslint`. In Chromium against the demo
+page: sections and order; Accept and Not now; a friend who is not here; a friend here opens their card and selects them on the map;
+Remove behind a confirm; heads non-blank, different for different avatars, the derived person for no avatar; 1x, 2x, 3x crispness;
+scrolling with sticky headers (35 friends, 44 in the room); the order held under a pointer; keyboard (Tab, Enter, Space, focus ring);
+reduced motion; no horizontal overflow at 1280, 390 and the windowed layout; no console errors. With 82 heads in the panel: all drawn
+within about 0.8 s of opening the tab (one 150 to 240 ms task while the rows are built, once), 60 fps while scrolling the whole list,
+and no DOM changes in 10 s of idle (the room reading every 2 to 5 s).
+
+### Not verified
+
+- **Real data.** Nothing here ran against a real Supabase project: not `loadFriends` over real RLS, not `lobby_friend_requests`, not
+  `study_presence` (so how often presence is still fresh for real friends is unknown), not the iPad writing any of it.
+- **An ordinary request shows the sender's real name.** That is what the iPad's request list does and what the server allows
+  (`has_pending_request`), because the sender typed your friend code. If the founder wants those to read as "someone" too, it is one
+  line in `buildRequests`. A library request never does.
+- **Safari and a real iPad.** `color-mix()` (the tile tint) and `image-rendering: pixelated` are in Safari 16.2+ and 10+; the sticky
+  headers and `overscroll-behavior` were only seen in Chromium. Touch scrolling was emulated, not done on a device.
+- **No student has used it** (CLAUDE.md evidence levels 1 and 2 are empty). The row heights, the order and the wording are the
+  founder's brief, not observed student behaviour.
+

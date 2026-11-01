@@ -3,11 +3,10 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import type { LibraryHandle } from "@/components/landing/cafeScene";
 import { toast } from "@/components/studyapp/toast";
-import { colourOf } from "@/lib/library";
 import * as spam from "@/lib/social/librarySpam";
 import { MAX_LENGTH, tidy } from "@/lib/social/chatRules";
 import {
-  EMOTE_TITLE, LOBBY_CAP, LOBBY_EMOTES, SEAT_SUBJECTS, focusTag, listedServers, shownName, subjectName,
+  EMOTE_TITLE, LOBBY_CAP, LOBBY_EMOTES, SEAT_SUBJECTS, focusTag, listedServers, shownName,
   type LibraryMessage, type LobbyPerson,
 } from "@/lib/social/lobby";
 import type { MessageReportReason, UserReportReason } from "@/lib/social/types";
@@ -15,6 +14,7 @@ import { useNow } from "@/lib/studyapp/clock";
 import { face, settled } from "@/lib/studyapp/timer";
 import { timer, useTimer } from "@/lib/studyapp/timerStore";
 import { describe, viewOf, type View } from "@/components/studyapp/timer/TimerPanel";
+import { Head } from "./Head";
 import { friendButton } from "@/lib/studyapp/library/friendRequest";
 import { platformOf } from "@/lib/studyapp/library/platform";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
@@ -95,37 +95,10 @@ export function SeatCard({ session, snap, handleRef }: { session: LibrarySession
   );
 }
 
-/* ── Who is here ─────────────────────────────────────────────────────── */
+/* ── Who is here ─────────────────────────────────────────────────────────
+   The panel itself is People.tsx (requests, friends, the room); a person's card is here, shared by it. */
 
-export function WhoHere({ session, snap, picked, onPick, onPullUp }: { session: LibrarySession; snap: Snapshot; picked: string | null; onPick: (id: string | null) => void; onPullUp: (id: string) => void }) {
-  const now = useNow(1000);
-  const friends = snap.people.filter((p) => p.isFriend).length;
-  const open = snap.people.find((p) => p.id === picked) ?? null;
-  return (
-    <section className="card lb-card" aria-label="Who is here">
-      <div className="lb-head">
-        <h2>Who’s here</h2>
-        <span className="lb-count">{snap.people.length + 1}{friends ? ` · ${friends} friend${friends === 1 ? "" : "s"}` : ""}</span>
-      </div>
-      {open && <PersonCard key={open.id} session={session} person={open} now={now} onClose={() => onPick(null)} onPullUp={onPullUp} />}
-      <ul className="lb-people">
-        <li className="lb-person is-you"><i style={{ background: "var(--gold)" }} aria-hidden="true" /><span className="lb-pn">You</span><span className="lb-pt">{snap.seated ? (snap.focusSince !== null ? `${subjectName(snap.subject) ?? "Focusing"}` : "Sitting") : "Standing"}</span></li>
-        {snap.people.map((p) => (
-          <li key={p.id}>
-            <button type="button" className={`lb-person${p.id === picked ? " is-picked" : ""}`} aria-pressed={p.id === picked} onClick={() => onPick(p.id === picked ? null : p.id)}>
-              <i style={{ background: colourOf(p.colour) }} aria-hidden="true" />
-              <span className="lb-pn">{shownName(p)}{p.isFriend && <small>Friend</small>}{p.pro && <small className="lb-pro">Pro</small>}</span>
-              <span className="lb-pt">{focusTag(p, now) ?? (p.seated ? "Sitting" : "")}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {snap.people.length === 0 && <p className="lb-empty">Just you for now</p>}
-    </section>
-  );
-}
-
-function PersonCard({ session, person, now, onClose, onPullUp }: { session: LibrarySession; person: LobbyPerson; now: number; onClose: () => void; onPullUp: (id: string) => void }) {
+export function PersonCard({ session, person, now, onClose, onPullUp }: { session: LibrarySession; person: LobbyPerson; now: number; onClose: () => void; onPullUp: (id: string) => void }) {
   const [asking, setAsking] = useState<"report" | "block" | null>(null);
   const [askLine, setAskLine] = useState<string | null>(null);
   const fb = friendButton(person);
@@ -135,7 +108,7 @@ function PersonCard({ session, person, now, onClose, onPullUp }: { session: Libr
   return (
     <div className="lb-pcard" role="group" aria-label={name}>
       <div className="lb-ptop">
-        <i style={{ background: colourOf(person.colour) }} aria-hidden="true" />
+        <Head avatar={person.avatar} colour={person.colour} id={person.id} size={56} label={name} />
         <div>
           <b>{name}</b>
           <div className="lb-tags">
