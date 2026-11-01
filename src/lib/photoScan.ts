@@ -53,11 +53,17 @@ function markPhoto(img: HTMLImageElement) {
   if (photo) img.dataset.photo = "";
 }
 
+/**
+ * Off (1 November 2026): the file host answers a request without an Origin header with neither CORS
+ * headers nor `Vary: Origin`, and browsers keep that copy a year; a crop someone had already seen was then
+ * reused for the CORS request, failed its check and showed broken. Asking for CORS needs its own URL first.
+ */
+const ENABLED = false;
 const noop = () => () => {};
 const onOurSite = () => /(^|\.)tryplumi\.app$/.test(window.location.hostname);
 
 /** Props for a question crop's <img>: on tryplumi.app, ask for CORS and mark photographs once loaded. */
 export function usePhotoScan() {
-  const scan = useSyncExternalStore(noop, onOurSite, () => false);
+  const scan = useSyncExternalStore(noop, onOurSite, () => false) && ENABLED;
   return scan ? { crossOrigin: "anonymous" as const, onLoad: (e: SyntheticEvent<HTMLImageElement>) => markPhoto(e.currentTarget) } : {};
 }
