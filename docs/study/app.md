@@ -66,6 +66,16 @@ previews) it is an ordinary cookie for that host.
   browser test that serves both hostnames from one server: sign in on the website, open the app (already signed in), sign
   out in the app (the website signs out), Get started, "Open the app".
 
+## Lofi record player (`components/studyapp/Vinyl.tsx`, `lib/studyapp/music.ts`)
+
+A record in the bottom-right corner of every page, ported from the founder's personal site. It sits in the app's layout,
+so the music carries on between Desk, Study and Flashcards. Lofi only: 12 songs from Lofi Girl's "beats to relax/study to",
+in a fresh order every visit (the list is `LOFI` in `music.ts`). They play through Spotify's embedded player, so
+students logged in to Spotify in that browser hear whole songs and everyone else hears 30-second previews (they're told
+once). It never starts by itself: only a tap on the record. ⏮ / ⏭ skip, songs run on into the next, and the Spotify card
+can be tucked away (remembered on the device). Over the full-screen library it gets chalk lines, steps aside for the
+drawer, and rises above the seat card on a phone.
+
 ## Decisions taken from the founder's answers
 
 1. **Study = the Grand Library room**, not a subject page.
