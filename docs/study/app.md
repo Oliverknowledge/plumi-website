@@ -16,6 +16,40 @@ The Subjects UI is going to change, so nothing was built for it.
 Visual source: the founder's artifact (`#desk`), ported to `src/app/study/(app)/app.css`, every selector
 under `.pa`, light-only, mapped onto the site's fonts (Pixelify cut, Nunito, Caveat, VT323).
 
+## Hosts, log in and the sign-in gate
+
+One deployment serves two sites, told apart by host in `src/proxy.ts` (decisions and tests in
+`src/lib/studyapp/routing.ts`):
+
+| Host | What it serves |
+|---|---|
+| `tryplumi.app` | The marketing site. Its old `/study`, `/study/library`, `/study/flashcards` redirect to the app's host. |
+| `study.tryplumi.app` | The app, at `/`, `/library`, `/flashcards` (rewritten from `/study/...`; the prefix is never shown). Also `/sign-in`, `/sign-up`, `/auth/callback`. Marketing pages redirect to tryplumi.app. `/robots.txt` disallows everything. |
+| localhost, previews | Unchanged: the app is under `/study/...`. `study.localhost:<port>` imitates the app host on a laptop. |
+
+- Marketing header: **Log in** goes to `study.tryplumi.app` (signed in: the Desk; signed out: its sign-in page);
+  **Get started** goes to its `/sign-up`. A signed-in student sees an avatar with "Open the app". On a phone the bar
+  keeps "Log in" only.
+- The app is behind a sign-in gate (`components/studyapp/AuthGate.tsx`): signed out, it replaces the URL with
+  `/sign-in?next=<where you were>` and returns there afterwards. It is a door, not a lock: the session lives in the
+  browser, so the check runs there, and anything shared (friends, library, chat) is locked by Supabase row-level
+  security, not by this. With accounts off (no Supabase project configured) the gate lets the app open.
+- Links inside the app are written as `/study/...` and turned into the host's own form by `AppLink` / `useAppHref`.
+- **Invite links** are written on `tryplumi.app` (`/f/<code>`, `/g/<code>`: `inviteUrl`); `plumi.app` is not ours.
+  The iPad still writes `plumi.app` links, which go nowhere and need changing in the iPad repo; the web app accepts both
+  when reading one. The site does not serve `/f/` or `/g/` yet.
+
+### Before this works in production (not done from code)
+
+1. Supabase, Authentication, URL configuration: add `https://study.tryplumi.app/auth/callback` (and `https://study.tryplumi.app/**`)
+   to the redirect allow-list. Without it Google and emailed-link sign-in on the app's host will be refused; codes and
+   passwords still work.
+2. `study.tryplumi.app` must be attached to this same Vercel project (it is the host the proxy looks for).
+3. **Two sessions, not one.** A browser keeps its session per address, so signing in on `study.tryplumi.app` does not
+   sign you in on `tryplumi.app` and the other way round. The question bank's "keep your marks on every device" still
+   signs in on `tryplumi.app`. One session across both would need the Supabase session stored in a cookie shared on
+   `.tryplumi.app`; that is a separate, security-sensitive change and was not made.
+
 ## Decisions taken from the founder's answers
 
 1. **Study = the Grand Library room**, not a subject page.
@@ -44,7 +78,7 @@ Do not market them as exam-accurate until someone qualified has gone through the
 
 ## Verification (run on this branch)
 
-- `npm run app:test`: SRS and model unit tests (41 at the time of writing).
+- `npm run app:test`: SRS, model, host routing and invite tests (57 at the time of writing).
 - Playwright against a dev server, fake clock: Desk script (28 checks) and Flashcards script (25 checks):
   greeting, three-link nav, tasks, exam countdown, starter deck, flip and grade by keyboard, 10-card cap,
   learning steps and return after 11 minutes, import and export, persistence across reload, no horizontal
@@ -60,7 +94,4 @@ Do not market them as exam-accurate until someone qualified has gone through the
 - The Desk scene is a static crop (day until 18:00, evening 18:00 to 05:00 London), not animated.
 - No analytics are collected by these pages.
 - Not yet verified on a real iPad browser or Safari. Chromium only.
-- Host rewrite for `study.tryplumi.app` is not done on purpose: until the app is ready the subdomain would
-  just serve the marketing site. Pages live under `/study/*` on the main domain.
-- Undecided for the founder: invite-link domain (plumi.app or tryplumi.app); App Review 1.2 moderation
-  contact for user-generated chat.
+- Undecided for the founder: App Review 1.2 moderation contact for user-generated chat.

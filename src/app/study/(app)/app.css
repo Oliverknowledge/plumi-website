@@ -283,3 +283,7 @@
 .pa .exam-form { position: absolute; z-index: 40; top: calc(100% + 8px); left: 0; display: grid; gap: 6px; width: min(300px, calc(100vw - 48px)); padding: 14px; }
 .pa .exam-form input { height: 38px; padding: 0 10px; border: 2px solid var(--ink); border-radius: 9px; background: #fff; font: 700 15px var(--f-body); color: var(--ink); }
 .pa .exam-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* Waiting at the door (AuthGate): a calm page, not a flash of the app. */
+.pa .gate { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; }
+.pa .gate p { font: 800 16px var(--f-body); color: var(--soft); }

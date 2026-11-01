@@ -35,6 +35,8 @@ export const site = {
   name: "Plumi",
   domain: "https://tryplumi.app",
   alternateDomain: "https://plumi.study",
+  /** The web app (Desk, Study, Flashcards): its own host, served by this same project (src/proxy.ts). */
+  studyDomain: "https://study.tryplumi.app",
   tagline: "Your handwriting. Read, understood, visualised.",
   description:
     "Plumi is an AI study notebook for STEM at A-Level and GCSE (Maths, Physics, Chemistry and Biology) that reads your handwritten working, marks it and tutors you on the page.",
@@ -228,7 +230,7 @@ export const appIsLive: boolean = launchMode === "appStore";
  * counting clicks on a label is how a funnel silently resets itself the day
  * somebody rewrites a button.
  */
-export type CtaKind = "discord" | "launch_notify" | "app_store";
+export type CtaKind = "discord" | "launch_notify" | "app_store" | "web_app";
 export function primaryCtaKind(): CtaKind {
   return launchMode === "appStore" ? "app_store" : "discord";
 }

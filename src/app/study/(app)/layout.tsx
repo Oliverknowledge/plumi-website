@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { VT323 } from "next/font/google";
+import { AuthGate } from "@/components/studyapp/AuthGate";
 import { AppTop } from "@/components/studyapp/AppTop";
 import { Toaster } from "@/components/studyapp/toast";
 import "./app.css";
@@ -19,9 +20,11 @@ export const viewport: Viewport = { themeColor: "#f2f7fd", colorScheme: "light" 
 export default function StudyAppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={`pa ${digit.variable}`}>
-      <AppTop />
-      {children}
-      <Toaster />
+      <AuthGate>
+        <AppTop />
+        {children}
+        <Toaster />
+      </AuthGate>
     </div>
   );
 }

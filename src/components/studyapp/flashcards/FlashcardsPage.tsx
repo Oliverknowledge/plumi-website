@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { AppLink } from "@/components/studyapp/AppLink";
 import { dueNow } from "@/lib/studyapp/model";
 import { useNow } from "@/lib/studyapp/clock";
 import { useApp } from "@/lib/studyapp/store";
@@ -30,7 +30,7 @@ export function FlashcardsPage() {
     <main className="wrap fcp">
       <div className="ph">
         <div>
-          <div className="crumb"><Link href="/study">Desk</Link> <span>&rsaquo;</span> Flashcards</div>
+          <div className="crumb"><AppLink href="/study">Desk</AppLink> <span>&rsaquo;</span> Flashcards</div>
           <h1>Flashcards<em>{!ready || !now ? " " : due === 0 ? "Nothing due right now" : `${due} due today`}</em></h1>
         </div>
         <div className="seg" role="tablist" aria-label="Flashcards">

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { AppLink } from "@/components/studyapp/AppLink";
 import { useNow } from "@/lib/studyapp/clock";
 import { leftToday, subjectColour, tasksFor, weekChoices, type Task, type TodoTab } from "@/lib/studyapp/model";
 import { actions, useApp } from "@/lib/studyapp/store";
@@ -23,7 +23,7 @@ function Row({ t, today, play }: { t: Task; today: string; play: boolean }) {
       {t.subject && <span className="stk" style={{ background: subjectColour(t.subject) }}>{t.subject}</span>}
       <span className="due">{dueLabel(t.due, today)}</span>
       {play && !t.done
-        ? <Link className="play" href="/study/library" aria-label={`Study: ${t.text}`}><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#22304d" /></svg></Link>
+        ? <AppLink className="play" href="/study/library" aria-label={`Study: ${t.text}`}><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#22304d" /></svg></AppLink>
         : <span style={{ width: 32, flex: "none" }} />}
       <button type="button" className="rm" onClick={() => actions.removeTask(t.id)} aria-label={`Remove: ${t.text}`}>&times;</button>
     </div>

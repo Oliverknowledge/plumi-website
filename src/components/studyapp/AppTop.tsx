@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { signInHref, signOut, useAccount } from "@/lib/account";
+import { canonicalPath, useAppHref } from "@/lib/studyapp/host";
 import { useNow } from "@/lib/studyapp/clock";
 import { useLiveSummary } from "@/lib/studyapp/live";
 import { useDueCount } from "@/lib/studyapp/store";
@@ -21,7 +22,9 @@ const TABS = [
 ] as const;
 
 export function AppTop() {
-  const path = usePathname() ?? "/study";
+  // /library on study.tryplumi.app and /study/library everywhere else are the same place.
+  const path = canonicalPath(usePathname() ?? "/");
+  const to = useAppHref();
   const live = useLiveSummary();
   const now = useNow();
   const due = useDueCount(now);
@@ -30,7 +33,7 @@ export function AppTop() {
   return (
     <header className="top" data-testid="app-top">
       <div className="wrap">
-        <Link className="brand" href="/study" aria-label="Plumi, Desk">
+        <Link className="brand" href={to("/study")} aria-label="Plumi, Desk">
           <Image src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={36} height={36} unoptimized />
           <span>plumi</span>
         </Link>
@@ -40,7 +43,7 @@ export function AppTop() {
             const badge = t.label === "Study" ? friends : t.label === "Flashcards" ? (now ? due : 0) : 0;
             const title = t.label === "Study" ? `${friends} friend${friends === 1 ? "" : "s"} in the library now` : `${due} card${due === 1 ? "" : "s"} due`;
             return (
-              <Link key={t.href} className={`tab${on ? " on" : ""}`} href={t.href} aria-current={on ? "page" : undefined} data-testid={`tab-${t.label.toLowerCase()}`}>
+              <Link key={t.href} className={`tab${on ? " on" : ""}`} href={to(t.href)} aria-current={on ? "page" : undefined} data-testid={`tab-${t.label.toLowerCase()}`}>
                 {t.label}
                 {badge > 0 && <span className="badge" title={title}>{badge > 99 ? "99+" : badge}</span>}
               </Link>
@@ -58,7 +61,7 @@ function Account() {
   const { ready, user, email, name } = useAccount();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
-  const path = usePathname() ?? "/study";
+  const path = usePathname() ?? "/";
   useEffect(() => {
     if (!open) return;
     const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };

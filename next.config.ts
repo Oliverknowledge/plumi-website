@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
    * 127.0.0.1 is localhost's twin with its own storage: a signed-out window onto
    * the dev server, for trying /sign-in without signing out (development only).
    */
-  allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud", "127.0.0.1"],
+  allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud", "127.0.0.1", "study.localhost"],
   async headers() {
     return [
       {

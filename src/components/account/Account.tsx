@@ -6,10 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { signInHref, signOut, useAccount, type SignInReason } from "@/lib/account";
 import { startSync } from "@/lib/bankSync";
 import { JoinLibrarySheet, LibraryMenuRow } from "@/components/account/JoinLibrary";
+import { OpenApp, StudyEntry } from "@/components/account/StudyEntry";
 
 /**
- * The account, in the header of every page: "Sign in" (to /sign-in, coming back here) or
- * your initial with a small menu, and the Grand Library's "Join the library"
+ * The account, in the header of every page: "Log in" and "Get started" (to the web app, study.tryplumi.app:
+ * components/account/StudyEntry) or your initial with a small menu, and the Grand Library's "Join the library"
  * (components/account/JoinLibrary). Rendered only in the browser; with accounts switched
  * off (no project configured) it renders nothing at all. It also starts the marks sync
  * (lib/bankSync), once, wherever the student is on the site.
@@ -17,7 +18,6 @@ import { JoinLibrarySheet, LibraryMenuRow } from "@/components/account/JoinLibra
 
 export function AccountButton() {
   const account = useAccount();
-  const path = usePathname();
   const [menu, setMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => { if (account.on) startSync(); }, [account.on]);
@@ -28,25 +28,21 @@ export function AccountButton() {
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, [menu]);
-  if (!account.on || !account.ready) return <JoinLibrarySheet />;
+  // Signed out, or not known yet: the way into the web app (study.tryplumi.app), which has the sign-in page.
+  if (!account.on || !account.ready || !account.user) return <div className="lp-acct"><StudyEntry /><JoinLibrarySheet /></div>;
 
   const initial = (account.name ?? account.email ?? "?").trim().charAt(0).toUpperCase();
   return (
     <div className="lp-acct" ref={ref}>
-      {account.user ? (
-        <>
-          <button type="button" className="lp-acct-me" aria-expanded={menu} aria-label="Your account" onClick={() => setMenu(m => !m)}>{initial}</button>
-          {menu && (
-            <div className="lp-acct-menu" role="menu">
-              <p className="lp-acct-who">{account.name ?? "Signed in"}<small>{account.email}</small></p>
-              <p className="lp-acct-note">Your marks are saved to your account.</p>
-              <LibraryMenuRow onAction={() => setMenu(false)} />
-              <button type="button" role="menuitem" className="lp-acct-out" onClick={() => { setMenu(false); void signOut(); }}>Sign out</button>
-            </div>
-          )}
-        </>
-      ) : (
-        <Link className="lp-acct-in" href={signInHref("header", path)} prefetch={false}>Sign in</Link>
+      <button type="button" className="lp-acct-me" aria-expanded={menu} aria-label="Your account" onClick={() => setMenu(m => !m)}>{initial}</button>
+      {menu && (
+        <div className="lp-acct-menu" role="menu">
+          <p className="lp-acct-who">{account.name ?? "Signed in"}<small>{account.email}</small></p>
+          <p className="lp-acct-note">Your marks are saved to your account.</p>
+          <OpenApp />
+          <LibraryMenuRow onAction={() => setMenu(false)} />
+          <button type="button" role="menuitem" className="lp-acct-out" onClick={() => { setMenu(false); void signOut(); }}>Sign out</button>
+        </div>
       )}
       <JoinLibrarySheet />
     </div>

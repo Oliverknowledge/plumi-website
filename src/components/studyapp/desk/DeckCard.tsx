@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AppLink } from "@/components/studyapp/AppLink";
 import { useNow } from "@/lib/studyapp/clock";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { FlipCard, useReview, useReviewKeys, waitLine } from "../flashcards/review";
@@ -31,14 +31,14 @@ export function DeckCard() {
         <div className="deck-empty" data-testid="deck-caught-up">
           <b>All caught up.</b>
           <span>{done > 0 ? `${done} reviewed this visit. ` : ""}{waitLine(review.waitUntil, now) || "The next card comes back tomorrow."}</span>
-          <Link className="btn" href="/study/flashcards">Open Flashcards</Link>
+          <AppLink className="btn" href="/study/flashcards">Open Flashcards</AppLink>
         </div>
       ) : (
         <div className="deck-empty" data-testid="deck-none">
           <b>No cards yet.</b>
           <span>Start with a ready-made deck, or make your own.</span>
           <button type="button" className="btn gold" onClick={() => actions.addStarters(["chem-carbonyls"])}>Add the Carbonyls deck</button>
-          <Link className="btn ghost" href="/study/flashcards">Choose decks</Link>
+          <AppLink className="btn ghost" href="/study/flashcards">Choose decks</AppLink>
         </div>
       )}
     </section>

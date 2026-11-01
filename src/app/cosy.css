@@ -257,3 +257,8 @@ a.lp-book-link:active .lp-book { transform: translateY(3px); box-shadow: 0 3px 0
   .lp-signin-card { border-radius: 18px 18px 0 0; border-bottom: 0; padding-bottom: max(20px, env(safe-area-inset-bottom)); box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) { .lp-join-badge { transition: none; } }
+/* "Get started" sits beside "Log in" in the header; "Open the app" is a row in the signed-in menu. */
+.lp .lp-acct-start { margin-left: 6px; padding: 6px 14px; font-size: 15px; white-space: nowrap; }
+.lp .lp-acct-app { justify-self: start; font-family: var(--f-px); font-weight: 600; font-size: 14.5px; color: var(--lp-ink); background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 10px; padding: 6px 14px; box-shadow: 0 3px 0 var(--lp-shadow); text-decoration: none; }
+/* On a phone the bar has room for "Log in" only; the sign-in page it opens has the sign-up link. */
+@media (max-width: 620px) { .lp .lp-acct-start { display: none; } }

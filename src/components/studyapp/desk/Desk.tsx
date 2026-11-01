@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { AppLink } from "@/components/studyapp/AppLink";
 import { useNow } from "@/lib/studyapp/clock";
 import { continueTarget, examDays } from "@/lib/studyapp/model";
 import { quoteFor } from "@/lib/studyapp/quotes";
@@ -65,7 +65,7 @@ export function Desk() {
           <h1>{now ? greeting(now) : "Hello."}</h1>
           <p>{q ? <>&ldquo;{q.text}&rdquo; <small>{q.by}</small></> : " "}</p>
           <div className="acts">
-            <Link className="cont" href={next.href} data-testid="continue">{next.label}<i><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#3f322e" /></svg></i></Link>
+            <AppLink className="cont" href={next.href} data-testid="continue">{next.label}<i><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#3f322e" /></svg></i></AppLink>
             <ExamChip />
           </div>
         </div>

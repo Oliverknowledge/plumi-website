@@ -16,10 +16,16 @@ export function parseCode(raw: string): string | null {
 export const displayCode = (code: string) => `${code.slice(0, 4)}-${code.slice(4)}`;
 
 /**
- * Invite links, as the iPad writes them (SocialInvite.swift): https://plumi.app/f/<code> for a friend,
- * /g/<code> for a group. The site does not serve those paths yet (see docs/study/multiplayer.md).
+ * Invite links: /f/<code> for a friend, /g/<code> for a group. The iPad writes them on plumi.app
+ * (SocialInvite.swift), a domain we do not own, so any host is accepted when reading one; the web app
+ * writes them on tryplumi.app (`inviteUrl`). The site does not serve those paths yet (docs/study/multiplayer.md).
  */
 export type Invite = { kind: "friend" | "group"; code: string };
+
+/** The link to share for a code, on the domain we own. */
+export function inviteUrl(kind: Invite["kind"], code: string, origin = "https://tryplumi.app") {
+  return `${origin}/${kind === "friend" ? "f" : "g"}/${code}`;
+}
 
 export function parseInvite(url: string): Invite | null {
   let parsed: URL;
