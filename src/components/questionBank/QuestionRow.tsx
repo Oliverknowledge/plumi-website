@@ -9,7 +9,7 @@ import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
 import { isEssaySubject } from "@/lib/markBands";
 import {
-  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
+  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
 
@@ -184,6 +184,12 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             <p className="qb-note-label">The recording for question {q}</p>
             <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
           </div>
+        )}        {listen && (
+          <div className="qb-listen">
+            <p className="qb-note-label">The recording for question {q}</p>
+            {parts.some(p => p.auw) && <p className="qb-listen-note">AQA publishes only the whole paper’s recording for this sitting: question {q} starts after its number is read out.</p>}
+            <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
+          </div>
         )}
         {(stem || earlier.length > 0) && (
           <div className="qb-stem">
@@ -194,7 +200,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stem && stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stem && stemOpen && <img className="qb-img" src={stemImage(stem, subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
             {stemOpen && earlier.map(p => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
