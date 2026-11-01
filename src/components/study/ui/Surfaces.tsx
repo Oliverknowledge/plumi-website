@@ -56,10 +56,10 @@ export function MarkChip({ code, state = "none" }: { code: string; state?: MarkS
 
 /** What Plumi says, in the first person, short and kind. Never longer than two lines. */
 export function Says({
-  pose = "idle", children, height = 96, side = "right", stacked,
-}: { pose?: MascotPose; children: ReactNode; height?: number; side?: "left" | "right"; /** bubble above, Plumi beneath */ stacked?: boolean }) {
+  pose = "idle", children, height = 96, side = "right", stacked, center,
+}: { pose?: MascotPose; children: ReactNode; height?: number; side?: "left" | "right"; /** bubble above, Plumi beneath */ stacked?: boolean; /** centre the pair */ center?: boolean }) {
   return (
-    <div className={join("st-says", stacked && "st-says--stacked")} style={stacked ? undefined : { flexDirection: side === "left" ? "row-reverse" : "row" }}>
+    <div className={join("st-says", stacked && "st-says--stacked", center && "st-says--center")} style={stacked ? undefined : { flexDirection: side === "left" ? "row-reverse" : "row" }}>
       <div className={join("st-bubble", side === "left" && "st-bubble--left")}>{children}</div>
       <Mascot pose={pose} height={height} />
     </div>

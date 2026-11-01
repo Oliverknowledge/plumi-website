@@ -34,7 +34,7 @@
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
 }
-.st { min-height: 100dvh; }
+.st { min-height: 100dvh; display: flow-root; }
 .st *, .st *::before, .st *::after { box-sizing: border-box; }
 .st img { max-width: 100%; }
 .st :focus-visible { outline: 3px solid var(--st-focus); outline-offset: 3px; }
@@ -293,6 +293,7 @@ button.st-tile::before { content: ""; position: absolute; inset: -3px; }
 /* Bubble above, Plumi beneath and to the side: for a card with room only in height. */
 .st-says--stacked { flex-direction: column; align-items: flex-end; gap: 6px; }
 .st-says--stacked .st-bubble { max-width: 25ch; }
+.st-says--center { align-items: center; }
 
 /* ── Pixel icons ────────────────────────────────────────────────────────── */
 .st-icon { display: inline-block; flex: none; vertical-align: middle; image-rendering: pixelated; }
@@ -349,3 +350,81 @@ button.st-tile::before { content: ""; position: absolute; inset: -3px; }
 /* One thing on the screen: a centred column. */
 .st-solo { max-width: 640px; margin-inline: auto; width: 100%; }
 .st-slot--locked .st-slot-tint .st-icon { color: var(--st-ink-3); }
+
+/* ── App shells: where the five places live ─────────────────────────────── */
+.st-app { display: grid; min-height: 100dvh; background: var(--st-ground); }
+.st-app--side, .st-app--panels { grid-template-columns: 256px minmax(0, 1fr); }
+.st-app--rail { grid-template-columns: 96px minmax(0, 1fr); }
+.st-app--subjects { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+.st-app-body { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 0; }
+.st-col { min-width: 0; display: flex; flex-direction: column; }
+.st-col > .st-page { flex: 1; }
+
+/* The left sidebar: wordmark, five places, then whatever the screen wants pinned. */
+.st-side { position: sticky; top: 0; align-self: start; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 18px 14px; background: var(--st-card); border-right: var(--st-bw) solid var(--st-line); }
+.st-side-nav { display: flex; flex-direction: column; gap: 4px; }
+.st-side-link, .st-rail-link, .st-tab-link { display: flex; align-items: center; gap: 12px; color: var(--st-ink); text-decoration: none; font-family: var(--st-font-pixel); font-weight: 600; font-size: 17px; font-variant-ligatures: none; border-radius: var(--st-r-sm); }
+.st-side-link { min-height: 48px; padding: 0 12px; }
+.st a.st-side-link, .st a.st-rail-link, .st a.st-tab-link { color: var(--st-ink); }
+.st-side-link:hover, .st-rail-link:hover { background: var(--st-ground-deep); }
+.st-side-link[aria-current="page"], .st-rail-link[aria-current="page"] { background: var(--st-sel-bg); color: var(--st-sel-fg); }
+.st a.st-side-link[aria-current="page"], .st a.st-rail-link[aria-current="page"], .st a.st-tab-link[aria-current="page"] { color: var(--st-sel-fg); }
+.st-side-extra { display: flex; flex-direction: column; gap: 14px; margin-top: auto; }
+.st-side-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* The icon rail: icons over a small Nunito label. */
+.st-rail { position: sticky; top: 0; align-self: start; height: 100dvh; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; background: var(--st-card); border-right: var(--st-bw) solid var(--st-line); }
+.st-rail-link { flex-direction: column; justify-content: center; gap: 4px; width: 76px; min-height: 64px; padding: 6px 2px; font-family: var(--st-font-body); font-weight: 800; font-size: 12px; text-align: center; line-height: 1.1; }
+.st-rail-gap { flex: 1; }
+
+/* The top bar of a shell with a side column: search, then the streak and the student. */
+.st-topbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px var(--st-gutter); }
+.st-topbar .st-field { flex: 1 1 220px; max-width: 420px; min-height: 44px; }
+.st-topbar-end { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+
+/* The character: Plumi as the student's own, with what it is wearing. */
+.st-character { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.st-character--row { flex-direction: row; text-align: left; align-items: center; }
+.st-wearing { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--st-ink-2); }
+.st-portrait { display: grid; place-items: center; width: 64px; height: 64px; background: var(--st-mint); border: var(--st-bw) solid var(--st-line); border-radius: var(--st-r-lg); overflow: hidden; }
+.st-portrait .st-mascot { height: 56px; margin-top: 6px; }
+
+/* Right-hand panel. */
+.st-main3 { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--st-s-xl); align-items: start; }
+
+/* A list of things you can pick: notebooks in a sidebar, work to resume. */
+.st-subnav { display: flex; flex-direction: column; gap: 10px; padding: 18px 14px; background: var(--st-card); border-right: var(--st-bw) solid var(--st-line); }
+.st-subrow { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; color: var(--st-ink); text-decoration: none; background: var(--st-tab-off); border: var(--st-bw) solid var(--st-line); border-radius: var(--st-r-md); }
+.st a.st-subrow { color: var(--st-ink); }
+.st-subrow[aria-current="page"] { background: var(--st-card); box-shadow: 0 var(--st-sh-md) 0 var(--st-shadow); }
+.st-subrow-top { display: flex; align-items: center; gap: 10px; }
+.st-recent { display: flex; align-items: center; gap: 12px; min-height: var(--st-touch); padding: 8px 0; }
+.st-recent-title { font-weight: 800; line-height: 1.2; }
+
+/* The bottom tab bar, for phones. */
+.st-phone { width: 390px; max-width: 100%; margin: var(--st-s-xxl) auto; display: flex; flex-direction: column; min-height: 800px; background: var(--st-ground); border: var(--st-bw) solid var(--st-line); border-radius: 36px; box-shadow: 0 var(--st-sh-lg) 0 var(--st-shadow); overflow: hidden; }
+.st-phone-body { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 18px 16px; }
+.st-tabbar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; padding: 8px 6px 12px; background: var(--st-card); border-top: var(--st-bw) solid var(--st-line); }
+.st-tab-link { flex-direction: column; justify-content: center; gap: 3px; min-height: 56px; padding: 4px 0; font-family: var(--st-font-body); font-weight: 800; font-size: 11px; line-height: 1.1; }
+.st-tab-link[aria-current="page"] { background: var(--st-sel-bg); color: var(--st-sel-fg); }
+
+@media (max-width: 960px) {
+  .st-main3 { grid-template-columns: minmax(0, 1fr); }
+  .st-app-body { grid-template-columns: minmax(0, 1fr); }
+  .st-subnav { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: var(--st-bw) solid var(--st-line); }
+  .st-subnav .st-subrow { min-width: 200px; }
+  .st-subnav .st-side-extra { display: none; }
+}
+@media (max-width: 820px) {
+  .st-app--side, .st-app--panels, .st-app--rail { grid-template-columns: minmax(0, 1fr); }
+  .st-side, .st-rail { position: static; height: auto; flex-direction: row; align-items: center; overflow-x: auto; border-right: 0; border-bottom: var(--st-bw) solid var(--st-line); padding: 10px var(--st-gutter); }
+  .st-side-nav { flex-direction: row; }
+  .st-side-link { white-space: nowrap; }
+  .st-side-extra, .st-side-foot, .st-rail-gap { display: none; }
+  .st-rail-link { flex: none; }
+}
+@media (max-width: 440px) { .st-phone { border-radius: 0; border-width: 0; box-shadow: none; margin: 0 auto; } }
+
+.st-app--subjects > .st-header { max-width: none; width: 100%; }
+.st-rail-streak { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; font-size: 18px; }
+@media (max-width: 820px) { .st-rail-streak { display: none; } }
