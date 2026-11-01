@@ -1035,3 +1035,19 @@ with these differences:
   skill and, where the question is as much about a second, that one too (reading a file
   `6.4.2` with validation `6.4.3`; fixing errors `6.1.5`; "identify the constant / the
   selection construct" `6.2.1`).
+
+## OCR GCSE Gateway sciences
+
+`ocr_gcse/tag_ocr_gcse.py split` writes batches for OCR's GCSE Gateway Biology A (J247),
+Chemistry A (J248), Physics A (J249) and Combined Science A (J250) to `.work/ocr-gcse/tag/`,
+and `merge` collects them. The brief is the one at the top, with these differences:
+
+- `<subject>-topics.txt` lists one sub-topic per line: `code | topic | title — what the
+  specification says under it`. Codes look like `B1.2`, `C5.3`, `P4.1`; choose from these,
+  never a topic like `B1`. Combined Science A's lines have all three sciences' codes: a
+  Biology paper's question takes a `B` code, a Chemistry paper's a `C` and a Physics paper's a `P`.
+- Each line has a `paper` ("Paper 3 Higher"; "Chemistry Paper 9 Higher"). Tag by what the
+  part tests, not by which paper it is on.
+- The practical skills topic (B7, C7, P9) has no codes here: practical questions get the
+  content topic they sit in.
+- Foundation and Higher papers share questions; tag each copy on its own.
