@@ -59,7 +59,7 @@ function Credit({ subject }: { subject?: BankSubject }) {
  * a book's boards go AQA, Edexcel, OCR, then the rest, the way most students sit them.
  */
 const LEVELS = [
-  { id: "gcse", name: "GCSE & IGCSE", jump: "GCSE", match: (s: BankSubject) => s.level === "GCSE" || s.level === "IGCSE" },
+  { id: "gcse", name: "GCSE & IGCSE", jump: "GCSE", match: (s: BankSubject) => s.level === "GCSE" || s.level === "IGCSE" || s.level === "Level 2" },
   { id: "a-level", name: display("A-Level"), jump: display("A-Level"), match: (s: BankSubject) => s.level === "A-Level" },
   { id: "level-3", name: "Level 3 vocational", jump: "Level 3", match: (s: BankSubject) => s.level === "Level 3" },
 ];
@@ -72,7 +72,7 @@ const boardKey = (s: BankSubject) =>
 /** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
 const findText = (s: BankSubject) => [
   s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
-  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 3" ? "applied diploma vocational" : "",
   s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
 ].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
