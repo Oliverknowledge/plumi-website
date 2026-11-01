@@ -71,7 +71,7 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
       .then(([m, you]) => m.mountLibrary(cv, ov, {
         reduced,
         look: savedLook(),
-        youSheet: you ? { sheet: you.sheet, phones: you.phones } : null,
+        youSheet: you ? { sheet: you.sheet, phones: you.phones, frameW: you.frame.w } : null,
         cls: { nm: "lb-nm", timer: "lb-nm", you: "lb-nm is-you", pop: "lb-pop", tick: "is-tick", ink: "is-ink", who: "lb-who" },
         live: {
           seats: seatTable,
@@ -88,9 +88,9 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
         // Everyone as themselves: a person whose row is built wears it; the rest wear the premade look until it is.
         const remotes = (): LiveRemote[] => session.remotes().map((r) => {
           const d = store.row(store.lookOf(r.avatar, r.colour, r.id));
-          return d ? { ...r, sheet: d.sheet, phones: d.phones } : r;
+          return d ? { ...r, sheet: d.sheet, phones: d.phones, frameW: d.frame.w } : r;
         });
-        const dressYou = () => { const d = store.row(lookOfYou()); if (d) h.dressYou(d.sheet, d.phones); };
+        const dressYou = () => { const d = store.row(lookOfYou()); if (d) h.dressYou(d.sheet, d.phones, d.frame.w); };
         redress.current = () => { dressYou(); h.setRemotes(remotes()); };
         offs.push(() => { redress.current = () => {}; });
         offs.push(store.subscribe(() => { dressYou(); h.setRemotes(remotes()); }));

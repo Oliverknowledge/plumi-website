@@ -152,6 +152,51 @@ look return after the iPad is next opened.
 schema: an iPad avatar reads back, the merged avatar is accepted exactly and changes only what was chosen, the whole
 avatar is replaced, an invented key is refused, and another student's `lobby_people` returns it).
 
+## Characters (a fox, experiment)
+
+A student can be a **Person** (the layered wardrobe above) or a **Fox**. The fox is one animal as it is drawn: no skin, hair or
+outfit yet ("Foxes come as they are for now"), free for everyone (the web has no ink).
+
+**On the wire: `body: "fox"`.** `set_avatar` takes any `^[a-z0-9_-]{1,24}$` in `body`, so there is no migration. Choosing the fox
+writes `body: "fox"` into the avatar the student already has and touches nothing else (`mergeAvatar`: `pro`, the old keys and the
+person keys stay, so an iPad, which does not know the fox, draws the person those keys make: `known` maps the unknown body to the
+first skin). Choosing Person again writes the six person keys over it. `people/look.ts` `SPECIES` lists the animals; `personOf`
+checks the species BEFORE the iPad-port `known()` mapping and returns the person look with `species: "fox"` (`lookKey` makes the
+fox its own row). Any other unknown `body` is mapped to a skin as before. `platform.ts`: a `body` that names an animal is not proof
+of an iPad (and neither are the person keys beside it); the inference then says nothing, the server's value still wins.
+
+**Art.** `docs/study/art/source/fox-sheet-01.png` (ChatGPT, 1536 x 1024, magenta) is turned into `public/library/characters/fox.png`
+(24 frames of 24 x 32, down, left, up, right x 6 steps) and `fox.json` by `python3 tools/art/fox_sheet.py`; `tools/art/check_fox.py`
+asserts the invariants (also run from `fox.test.ts`). 8x previews: `docs/study/art/fox-processed-8x.png`. Method: magenta test (green
+far below red and blue) not a colour match; 24 connected components; ONE 16 colour k-means palette (Lab, fixed seed) over the fox's
+interior; one scale (8.1 source px per art px) for every frame; each frame's grid is shifted so its feet land on row 31 and its
+centre of mass on column 12; a cell is fox when half of it is; the 1 px outline is DRAWN (the silhouette's edge ring, the source
+outline is half an art pixel thick) and interior cells take a weighted vote of palette indices, eyes, nose and blush boosted
+(plain averaging, `--method area`, washes the eyes out). A person's art is 24 rows tall in a 16 x 32 frame; the fox is 25 to 28.
+
+**The engine row** (`people/fox.ts`): the 78 frames in a person's order, each `FOX_W` = 34 wide (24 of art and 5 empty columns each
+side). Walk 24 to 47 are the strip's own frames; idle 0 to 23 is the frame with the feet together (narrowest bottom rows) with a
+1 px breath (upper rows move, feet stay) and a tail swish; sit 48 to 59 is that frame lowered `SIT_DROP` (1) row, with the legs
+falling off the bottom, and moved `SIT_BACK` (5) px away from the desk it faces (the room's desks cover the face of anything that
+sits against them); phone, read and stool reuse the front and back sit. Nothing is redrawn by hand.
+
+**Per-row frame width** (`cafeScene.ts`, library mode only; every change is additive and defaults to the old 16): `Person.fw`,
+`LiveRemote.frameW`, `youSheet.frameW`, `dressYou(sheet, phones, frameW)`. The feet stay at the middle of the frame, so the wire
+(sprite top left of a 16 wide sprite) and the seat table are unchanged; `spriteAt` shifts a wide frame left by `(fw - 16) / 2`, the
+name tag and card use `half(p)` and `crown(p)`, hit-testing takes the middle 22 px, and the hover outline's ghost canvas takes `fw`.
+
+**For a friends list or card (`Head.tsx`, not on this branch):** `DrawnPerson` (`people/store.ts`) now has `frame: { w, h }` and
+`head: { x, y, w, h }`, the head's box in the front idle frame, which is frame index 18 of the row (`FRONT_IDLE`). Crop
+`sheet` at `x = FRONT_IDLE * frame.w + head.x`, `y = head.y`, `w = head.w`, `h = head.h`. A person's is 16 x 32 with the head
+`PERSON_HEAD` (approximate, the layers' heads are all in one place); the fox's is 34 x 32, found from the art (ears down to the
+sweater). `store.peek(look)` / `row(look)` / `make(look)` return it for both kinds; look from `store.lookOf(avatar, colour, id)`.
+
+**Limits (say so).** The fox has no outfits, hats or colours. An iPad student sees a person for a fox (the nearest skin, their own
+keys). A fox saved over a student's body loses the previous skin on the server (Person again then uses the keys they have, or the id's
+person). The seated and idle poses are the walk art moved, not drawn: the legs are cut, the face sits at the desk's edge, and a
+standing fox is a little taller than a person (ears). The source art is not consistent frame to frame (the eye, the cheek, the
+sweater's ribs are redrawn each frame), so some shimmer remains at 24 x 32. Not run against a real iPad or server.
+
 ## Safety (students are 13 to 18)
 
 - Nothing is shared until the student joins (`LibraryPage`: signed out and not-joined states touch no lobby call).

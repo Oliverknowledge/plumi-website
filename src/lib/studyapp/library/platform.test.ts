@@ -29,3 +29,11 @@ test("a platform the server did not say, or one off the list, falls back to the 
   assert.equal(platformOf({ avatar: null, platform: "android" as never }), null);
   assert.equal(platformOf({ avatar: { top: "hoodie" }, platform: null }), null);
 });
+test("a fox is not proof of an iPad: the website writes body \"fox\", the iPad cannot", () => {
+  assert.equal(platformOf({ avatar: { body: "fox" } }), null);
+  assert.equal(platformOf({ avatar: { body: "fox", eyes: "02", outfit: "10_01", hair: "05_01", acc: "none", phones: "teal" } }), null, "the person keys it kept are not proof either");
+  assert.equal(platformOf({ avatar: { body: "03" } }), "iPad", "a skin still is");
+  assert.equal(platformOf({ avatar: { body: "fox" }, platform: "web" }), "Web", "what the server says still wins");
+  assert.equal(platformOf({ avatar: { body: "fox" }, platform: "ipad" }), "iPad");
+  assert.equal(platformOf({ avatar: { body: "fox", plat: "web" } }), "Web");
+});

@@ -116,6 +116,7 @@ interface Person {
   rev?: number;                   // library mode: the last news about their place that was acted on
   sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
+  fw?: number;                    // library mode: the width of one frame of `sheet`, when it is not the people's 16 (the fox's is 34); the feet stay under the middle
   moving?: boolean;               // library mode, you: walking under the keys (not along a path)
 }
 
@@ -149,7 +150,7 @@ export interface CafeOptions {
   /** Class names for labels and pops (library mode brings its own, so the homepage's stylesheet is not needed). */
   cls?: Partial<CafeClasses>;
   /** Library mode only: you, drawn from your own avatar (see `LiveRemote.sheet`), from the first frame. */
-  youSheet?: { sheet: CanvasImageSource; phones: boolean } | null;
+  youSheet?: { sheet: CanvasImageSource; phones: boolean; frameW?: number } | null;
 }
 export interface CafeHandle {
   destroy(): void;
@@ -171,6 +172,8 @@ export interface LiveRemote {
   sheet?: CanvasImageSource | null;
   /** Whether that drawn person wears headphones. */
   phones?: boolean;
+  /** The width of one frame of `sheet` (default 16, a person's; the fox's is 34). The feet are under the middle of the frame, so the engine's places (all of them the 16 wide sprite's) are unchanged. */
+  frameW?: number;
   /** Which piece of news about their place this is: the room acts on each once, so a walk is not restarted every time the list is read. */
   rev: number;
 }
@@ -204,10 +207,13 @@ export interface LibraryHandle extends CafeHandle {
   /** A short word over someone's head ("Wave"), or yours (`"you"`). */
   say(who: string, text: string): void;
   /** Draw you as this person (your avatar changed, or the art came late); null goes back to the premade look. */
-  dressYou(sheet: CanvasImageSource | null, phones?: boolean): void;
+  dressYou(sheet: CanvasImageSource | null, phones?: boolean, frameW?: number): void;
   /** Whether you are in a seat. */
   readonly seated: boolean;
 }
+
+/** A frame width other than the people's 16, or undefined for the people's: everything that is not a wide frame takes the exact old paths. */
+const wide = (w: number | undefined): number | undefined => (w !== undefined && w > 16 && w <= 64 ? Math.round(w) : undefined);
 
 /** How fast everyone in the library walks, in art pixels a second: LibraryScene.speed (140 points a second) over two. */
 const LIVE_SPEED = 70;
@@ -437,7 +443,7 @@ class Cafe implements CafeHandle {
     // the visitor comes in at the entrance and walks up the runner into the reading hall's middle aisle
     const d = L.door, you = this.person(this.look, d.x, d.y, "back");
     you.you = true; you.speed = this.live ? LIVE_SPEED : 36; you.who = "You";
-    if (this.live && this.o.youSheet) { you.sheet = this.o.youSheet.sheet; you.sheetPhones = this.o.youSheet.phones; }
+    if (this.live && this.o.youSheet) { you.sheet = this.o.youSheet.sheet; you.sheetPhones = this.o.youSheet.phones; you.fw = wide(this.o.youSheet.frameW); }
     this.you = you;
     this.people.push(you);
     const inside = this.nearest(d.tile, d.x - 8, d.y - 150) ?? d.tile;
@@ -701,7 +707,8 @@ class Cafe implements CafeHandle {
   private hit(ax: number, ay: number): Person | null {
     return [...this.people].sort((a, b) => this.z(b) - this.z(a)).find(p => {
       const [x, y] = this.spriteAt(p), tall = p.at && p.spot?.pose === "stool" ? 20 : 32;
-      return ax >= x + 2 && ax < x + 14 && ay >= y + 4 && ay < y + tall && p.alpha > .5;
+      const fw = p.fw ?? 16, pad = p.fw ? Math.max(1, (fw - 22) / 2) : 2;      // a wide frame (the fox's) has empty columns at the sides: its body is the middle 22
+      return ax >= x + pad && ax < x + fw - pad && ay >= y + 4 && ay < y + tall && p.alpha > .5;
     }) ?? null;
   }
 
@@ -885,14 +892,15 @@ class Cafe implements CafeHandle {
     this.widths.set(el, el.offsetWidth);
     const [x, y] = this.spriteAt(p);
     const labelled = this.labels.has(p);
-    this.pops.push({ el, x: x + 8, y: y + (labelled ? -8 : 4), born: this.t });
+    this.pops.push({ el, x: x + this.half(p), y: y + (labelled ? -8 : 4), born: this.t });
     setTimeout(() => { el.remove(); this.pops = this.pops.filter(q => q.el !== el); }, 1700);
     this.place();
   }
 
   private onScreen(p: Person) {
     const [x, y] = this.spriteAt(p);
-    return x + 8 >= this.camX + 24 && x + 8 < this.camX + this.viewW - 24 && y >= this.camY + 8 && y + 20 < this.camY + this.viewH;
+    const m = x + this.half(p);
+    return m >= this.camX + 24 && m < this.camX + this.viewW - 24 && y >= this.camY + 8 && y + 20 < this.camY + this.viewH;
   }
 
   /** Where each label sits: over its person's head, in CSS pixels over the canvas. */
@@ -909,14 +917,14 @@ class Cafe implements CafeHandle {
     this.showCard();
     for (const [p, el] of this.labels) {
       const [x, y] = this.spriteAt(p);
-      el.style.transform = at(x + 8, y + 5, el);
+      el.style.transform = at(x + this.half(p), y + this.crown(p), el);
       el.style.opacity = String(this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha);
     }
     for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
     if (this.card && this.cardFor) {
       // over their head, or under their feet when there isn't room above
       const [x, y] = this.spriteAt(this.cardFor), el = this.card, half = el.offsetWidth / 2;
-      const px = Math.min(Math.max((x + 8 - this.camX) * s + this.offX / this.dpr, half + 4), ow - half - 4);
+      const px = Math.min(Math.max((x + this.half(this.cardFor) - this.camX) * s + this.offX / this.dpr, half + 4), ow - half - 4);
       const above = (y + 3 - this.camY) * s + this.offY / this.dpr;
       const below = (y + 32 - this.camY) * s + this.offY / this.dpr + 10;
       el.style.transform = above - el.offsetHeight >= 4
@@ -926,10 +934,17 @@ class Cafe implements CafeHandle {
   }
 
   /* ---------- drawing ---------- */
+  /** The top left of the frame drawn for a person. A frame wider than the people's 16 (the fox's) is centred on the same feet, so it starts further left. */
   private spriteAt(p: Person): [number, number] {
-    if (p.at && p.spot) return [p.spot.x, p.spot.y];
-    return [Math.round(p.x) - 8, Math.round(p.y) - 31];
+    const sh = p.fw ? (p.fw - 16) / 2 : 0;
+    if (p.at && p.spot) return [p.spot.x - sh, p.spot.y];
+    return [Math.round(p.x) - 8 - sh, Math.round(p.y) - 31];
   }
+
+  /** Half a frame: where the feet are across the frame (8 for a person). */
+  private half(p: Person) { return p.fw ? p.fw / 2 : 8; }
+  /** Where the name tag meets the sprite: just above a person's head, the fox's ears are higher. */
+  private crown(p: Person) { return p.fw ? 2 : 5; }
 
   private z(p: Person) { return p.at && p.spot ? p.spot.sort : p.y; }
 
@@ -967,12 +982,13 @@ class Cafe implements CafeHandle {
     for (const p of this.people) {
       if (p.alpha <= 0) continue;
       const [x, y] = this.spriteAt(p), f = this.frame(p, tick);
-      if (!near(x, y, 16, 32)) continue;
+      const fw = p.fw ?? 16;
+      if (!near(x, y, fw, 32)) continue;
       items.push({ z: this.z(p) + .01, draw: () => {
         const [img, sy] = this.art(p);
-        if (p === lit && !p.you) this.outline(f, img, sy, x, y);
+        if (p === lit && !p.you) this.outline(f, img, sy, x, y, fw);
         sc.globalAlpha = p.alpha;
-        sc.drawImage(img, f * 16, sy, 16, 32, x, y, 16, 32);
+        sc.drawImage(img, f * fw, sy, fw, 32, x, y, fw, 32);
         sc.globalAlpha = 1;
       } });
     }
@@ -999,15 +1015,15 @@ class Cafe implements CafeHandle {
   }
 
   /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
-  private outline(f: number, img: CanvasImageSource, sy: number, x: number, y: number) {
+  private outline(f: number, img: CanvasImageSource, sy: number, x: number, y: number, fw = 16) {
     const g = this.ghost, gc = g.getContext("2d")!;
-    if (g.width !== 16) { g.width = 16; g.height = 32; }
+    if (g.width !== fw) { g.width = fw; g.height = 32; }
     gc.globalCompositeOperation = "source-over";
-    gc.clearRect(0, 0, 16, 32);
-    gc.drawImage(img, f * 16, sy, 16, 32, 0, 0, 16, 32);
+    gc.clearRect(0, 0, fw, 32);
+    gc.drawImage(img, f * fw, sy, fw, 32, 0, 0, fw, 32);
     gc.globalCompositeOperation = "source-in";
     gc.fillStyle = "#fff";
-    gc.fillRect(0, 0, 16, 32);
+    gc.fillRect(0, 0, fw, 32);
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) this.sc.drawImage(g, x + dx, y + dy);
   }
 
@@ -1056,7 +1072,7 @@ class Cafe implements CafeHandle {
     if (this.playable && this.you && this.viewW < this.L.w - 1) {
       // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
       const [x, y] = this.spriteAt(this.you);
-      cx = x + 8; cy = y + 18 - this.viewH * .2;
+      cx = x + this.half(this.you); cy = y + 18 - this.viewH * .2;
     } else {
       cx = this.region.x + this.region.w / 2; cy = this.region.y + this.region.h / 2;
     }
@@ -1348,7 +1364,8 @@ class Cafe implements CafeHandle {
     const b = this.promptBox;
     if (!b || p !== this.you) return false;
     const s = this.k / this.dpr, [x, y] = this.spriteAt(p), w = (this.widths.get(el) ?? 40) / s, h = 22 / s;
-    return x + 8 + w / 2 > b[0] && x + 8 - w / 2 < b[0] + b[2] && y + 5 > b[1] && y + 5 - h < b[1] + b[3];
+    const m = x + this.half(p), t = y + this.crown(p);
+    return m + w / 2 > b[0] && m - w / 2 < b[0] + b[2] && t > b[1] && t - h < b[1] + b[3];
   }
 
   /** The ring, the keycap and the "E stand" pill, drawn once in art pixels. */
@@ -1428,10 +1445,10 @@ class Cafe implements CafeHandle {
 
   private youChanged() { this.live?.onYou?.(); }
 
-  dressYou(sheet: CanvasImageSource | null, phones = false) {
+  dressYou(sheet: CanvasImageSource | null, phones = false, frameW?: number) {
     const you = this.you;
     if (!you || !this.live) return;
-    you.sheet = sheet; you.sheetPhones = phones;
+    you.sheet = sheet; you.sheetPhones = phones; you.fw = sheet ? wide(frameW) : undefined;
     this.draw();
   }
 
@@ -1441,7 +1458,7 @@ class Cafe implements CafeHandle {
     const you = this.you;
     if (!you) return null;
     if (you.at && you.spot) return { x: you.spot.x, y: you.spot.y, seat: this.ipadOf.get(you.spot) ?? null, path: [], walking: false };
-    const [x, y] = this.spriteAt(you);
+    const [sx, y] = this.spriteAt(you), x = sx + (you.fw ? (you.fw - 16) / 2 : 0);       // on the wire a sprite is the 16 wide one's top left
     if (this.W && you.moving) {
       // walking under the keys: the next half second, a couple of points, so others carry on along it (and not through a wall)
       const [hx, hy] = this.heading;
@@ -1516,7 +1533,7 @@ class Cafe implements CafeHandle {
         this.people.push(p);
       }
       p.look = r.look;
-      p.sheet = r.sheet ?? null; p.sheetPhones = r.phones ?? false;
+      p.sheet = r.sheet ?? null; p.sheetPhones = r.phones ?? false; p.fw = r.sheet ? wide(r.frameW) : undefined;
       this.place_(p, r);
     }
     for (const [id, p] of [...this.remotes]) {

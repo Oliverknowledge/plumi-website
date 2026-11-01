@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { STARTER, personOf, type PeopleCatalogue, type PersonLook } from "./look";
 import {
-  AVATAR_KEYS, FREE_ITEMS, SLOTS, STARTER_LOOK, currentOutsideFree, isWorn, itemsIn, mergeAvatar, randomLook, validAvatarValue, variants, withVariant, worn, type Item,
+  AVATAR_KEYS, CHARACTERS, FREE_ITEMS, SLOTS, STARTER_LOOK, asCharacter, characterOf, currentOutsideFree, isWorn, itemsIn, mergeAvatar, randomLook, validAvatarValue, variants, withVariant, worn, type Item,
 } from "./wardrobe";
 
 const cat = JSON.parse(readFileSync(new URL("../../../../../public/library/people-layers.json", import.meta.url), "utf8")) as PeopleCatalogue;
@@ -166,5 +166,53 @@ describe("the avatar that is saved (set_avatar replaces it whole)", () => {
   it("a save then a read gives the same person back", () => {
     const l: PersonLook = { body: "05", eyes: "04", outfit: "04_02", hair: "12_03", accessory: null, phones: "red" };
     assert.deepEqual(personOf(cat, mergeAvatar(current, l), 0, "u1"), l);
+  });
+});
+
+describe("the character: person or fox", () => {
+  const current: Record<string, string> = { body: "01", eyes: "01", outfit: "10_01", hair: "05_01", acc: "none", phones: "teal", pro: "1", feather: "blue", top: "hoodie", colour: "#7cc6c2", hat: "headphones", hat_colour: "#5aa6a4", glasses: "none" };
+  const look = personOf(cat, current, 0, "u1");
+  it("offers two characters, both free", () => {
+    assert.deepEqual(CHARACTERS.map((c) => c.id), ["person", "fox"]);
+    assert.deepEqual(CHARACTERS.map((c) => c.title), ["Person", "Fox"]);
+    assert.ok(CHARACTERS.every((c) => !/\u2014/.test(c.title)));
+  });
+  it("a fox changes body and nothing else: pro, the older keys and the person keys stay", () => {
+    const next = mergeAvatar(current, asCharacter(look, "fox"));
+    assert.deepEqual(next, { ...current, body: "fox" });
+    assert.equal(validAvatarValue(next.body), true, "the server accepts it (^[a-z0-9_-]{1,24}$)");
+    for (const [k, v] of Object.entries(next)) { assert.ok(AVATAR_KEYS.has(k), k); assert.ok(validAvatarValue(v), `${k}=${v}`); }
+  });
+  it("a fox for a student who never dressed adds only body: no key is invented", () => {
+    assert.deepEqual(mergeAvatar(null, asCharacter(STARTER_LOOK, "fox")), { body: "fox" });
+    assert.deepEqual(mergeAvatar({ pro: "1" }, asCharacter(STARTER_LOOK, "fox")), { pro: "1", body: "fox" });
+  });
+  it("is read back as the fox, and a refused value around it does not stop the save", () => {
+    const saved = mergeAvatar({ ...current, sneaky: "x" } as Record<string, string>, asCharacter(look, "fox"));
+    assert.equal("sneaky" in saved, false);
+    assert.equal(personOf(cat, saved, 0, "u1").species, "fox");
+    assert.equal(characterOf(personOf(cat, saved, 0, "u1")), "fox");
+  });
+  it("choosing Person again puts back the person that was being dressed (the look keeps it behind the fox)", () => {
+    const dressed: PersonLook = { ...look, hair: "03_02", outfit: "02_01" };
+    const fox = asCharacter(dressed, "fox");
+    assert.equal(characterOf(fox), "fox");
+    assert.deepEqual(asCharacter(fox, "person"), dressed);
+    assert.equal(mergeAvatar(current, asCharacter(fox, "person")).hair, "03_02");
+    assert.equal(mergeAvatar(current, asCharacter(fox, "person")).body, dressed.body, "the skin comes back");
+  });
+  it("from a saved fox, Person writes the whole person over body: fox", () => {
+    const saved = mergeAvatar(current, asCharacter(look, "fox"));
+    const back = mergeAvatar(saved, asCharacter(personOf(cat, saved, 0, "u1"), "person"));
+    assert.notEqual(back.body, "fox");
+    assert.equal(characterOf(personOf(cat, back, 0, "u1")), "person");
+    assert.equal(back.pro, "1");
+  });
+  it("reset and random are people, and they replace a saved fox", () => {
+    assert.equal(characterOf(STARTER_LOOK), "person");
+    assert.equal(characterOf(randomLook(cat)), "person");
+    const saved = mergeAvatar(current, asCharacter(look, "fox"));
+    assert.equal(mergeAvatar(saved, STARTER_LOOK).body, STARTER_LOOK.body);
+    assert.notEqual(mergeAvatar(saved, randomLook(cat)).body, "fox");
   });
 });

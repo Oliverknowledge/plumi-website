@@ -22,7 +22,9 @@ const AVATARS: Record<number, Record<string, string>> = {
   2: { body: "05", eyes: "03", outfit: "04_02", hair: "06_03", acc: "15_glasses_01", phones: "teal" },
   3: { body: "01", eyes: "05", outfit: "24_01", hair: "19_04", acc: "none", phones: "none" },
   4: { body: "07", eyes: "01", outfit: "02_01", hair: "12_06", acc: "none", phones: "lilac" },
-  5: { body: "04", eyes: "06", outfit: "10_02", hair: "05_01", acc: "none", phones: "cream", pro: "1" },
+  // two foxes: one saved over a person's keys (what an iPad would still draw as that person), one with nothing else
+  5: { body: "fox", eyes: "06", outfit: "10_02", hair: "05_01", acc: "none", phones: "cream", pro: "1" },
+  6: { body: "fox" },
   7: { feather: "pink", top: "hoodie", colour: "#5a86bf", hat: "none", glasses: "round" },
 };
 

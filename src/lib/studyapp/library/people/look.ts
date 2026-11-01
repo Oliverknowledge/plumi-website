@@ -22,7 +22,22 @@ export interface PersonLook {
   accessory: string | null;
   /** "red", "cream", "black", "teal", "lilac", or null for no headphones. */
   phones: string | null;
+  /**
+   * An animal instead of a person ("fox", see `SPECIES`). Set when the avatar's `body` names one. The rest of the look
+   * is still the person the student would be (the nearest person for an iPad that does not know the animal, the
+   * wardrobe's Person tab, the avatar keys that are kept), but the room draws the animal.
+   */
+  species?: string | null;
 }
+
+/**
+ * The values of an avatar's `body` that are an animal, not a skin ("01" to "07"). The server takes any identifier in
+ * `body` (`set_avatar`: `^[a-z0-9_-]{1,24}$`), so no migration: the web writes `body: "fox"` and the person keys stay,
+ * and an iPad that does not know the animal falls back to the person (`known` maps an unknown body to the first one).
+ */
+export const SPECIES: readonly string[] = ["fox"];
+/** The animal a `body` value names, or null for a skin or anything else (an unknown value is treated as before: `known` maps it to a skin). */
+export const speciesOf = (body: string | null | undefined): string | null => (typeof body === "string" && SPECIES.includes(body) ? body : null);
 
 export interface CataloguePart { id: string; colour?: string }
 /** lz_people.json, the parts of it a browser needs. */
@@ -167,17 +182,20 @@ export function legacyLook(cat: PeopleCatalogue, avatar: AvatarKeys | null | und
  */
 export function personOf(cat: PeopleCatalogue, avatar: AvatarKeys | null | undefined, colour: number, id: string): PersonLook {
   const legacy = legacyLook(cat, avatar, colour, id);
-  if (!avatar || (get(avatar, "outfit") === undefined && get(avatar, "hair") === undefined)) return legacy;
+  // THE SPECIES CHECK comes before `known` (the iPad's nearest-part mapping): "fox" is not a skin to be mapped to the first one.
+  const species = speciesOf(get(avatar, "body"));
+  if (!avatar || (get(avatar, "outfit") === undefined && get(avatar, "hair") === undefined)) return species ? { ...legacy, species } : legacy;
   const look = { ...legacy };
   const v = (k: string) => get(avatar, k);
-  if (v("body") !== undefined) look.body = v("body")!;
+  if (v("body") !== undefined && species === null) look.body = v("body")!;
   if (v("eyes") !== undefined) look.eyes = v("eyes")!;
   if (v("outfit") !== undefined) look.outfit = v("outfit")!;
   if (v("hair") !== undefined) look.hair = v("hair")!;
   if (v("acc") !== undefined) look.accessory = v("acc") === "none" ? null : v("acc")!;
   if (v("phones") !== undefined) look.phones = v("phones") === "none" ? null : v("phones")!;
-  return known(cat, look);
+  const person = known(cat, look);
+  return species ? { ...person, species } : person;
 }
 
-/** A key for caching a drawn row: the same look is the same row. */
-export const lookKey = (l: PersonLook) => [l.body, l.eyes, l.outfit, l.hair, l.accessory ?? "-", l.phones ?? "-"].join("|");
+/** A key for caching a drawn row: the same look is the same row. An animal is its own row whatever person is behind it. */
+export const lookKey = (l: PersonLook) => (l.species ? `~${l.species}` : [l.body, l.eyes, l.outfit, l.hair, l.accessory ?? "-", l.phones ?? "-"].join("|"));

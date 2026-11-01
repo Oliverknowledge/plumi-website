@@ -1,5 +1,6 @@
 import type { LobbyPerson } from "@/lib/social/lobby";
 import { PLATFORM_TITLE, platformOfRow } from "@/lib/social/lobby";
+import { speciesOf } from "./people/look";
 
 /**
  * What a student is on, said only when it is known.
@@ -13,6 +14,11 @@ import { PLATFORM_TITLE, platformOfRow } from "@/lib/social/lobby";
  * who has them plays on iPad. A student without them might be on the web, on an iPad that has not been updated, or one
  * who never dressed their person: nothing is said. A `plat` key in the avatar ("ipad" or "web"), if one ever exists, is
  * read before the wardrobe keys.
+ *
+ * AN ANIMAL IS NOT A SKIN. The web wardrobe saves `body: "fox"` for a student who chose the fox, and `body` is one of the
+ * wardrobe keys above: read as proof it would call a web student an iPad one. A `body` that names an animal can only have
+ * been written by the website (the iPad's skins are "01" to "07"), so it is not proof of an iPad, and the person keys beside
+ * it do not prove one either (they are only what the avatar had before). The inference then says nothing.
  */
 export type Platform = "iPad" | "Web";
 
@@ -23,5 +29,6 @@ export function platformOf(p: Pick<LobbyPerson, "avatar"> & Partial<Pick<LobbyPe
   if (!a) return null;
   if (a.plat === "ipad") return "iPad";
   if (a.plat === "web") return "Web";
+  if (speciesOf(a.body) !== null) return null;
   return a.outfit !== undefined || a.hair !== undefined || a.body !== undefined ? "iPad" : null;
 }

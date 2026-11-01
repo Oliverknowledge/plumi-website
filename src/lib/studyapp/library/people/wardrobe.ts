@@ -1,4 +1,4 @@
-import { known, lookKey, personOf, type AvatarKeys, type PeopleCatalogue, type PersonLook } from "./look";
+import { known, lookKey, personOf, speciesOf, type AvatarKeys, type PeopleCatalogue, type PersonLook } from "./look";
 
 /**
  * The web wardrobe's data and rules: what a student may put on here, and how a choice becomes the avatar that is saved.
@@ -14,7 +14,7 @@ import { known, lookKey, personOf, type AvatarKeys, type PeopleCatalogue, type P
  * SAVING. `set_avatar` REPLACES the whole avatar (migration 0120: UPDATE social_profile SET avatar = $1), and accepts
  * only these keys, each a short identifier or a #rrggbb colour. So a save starts from the avatar the student has now
  * and changes only body, eyes, outfit, hair, acc and phones ("none" when empty, as RoomAvatar.avatar writes them):
- * `pro` and every older key stay as they were, and no key is ever invented.
+ * `pro` and every older key stay as they were, and no key is ever invented. A fox changes `body` alone.
  */
 
 export type Slot = "skin" | "eyes" | "hair" | "outfit" | "glasses" | "phones";
@@ -40,6 +40,24 @@ export const SLOTS: readonly { slot: Slot; title: string }[] = [
 ];
 
 export const itemsIn = (slot: Slot) => FREE_ITEMS.filter((i) => i.slot === slot);
+
+/**
+ * THE CHARACTER. A student is a Person (the layered wardrobe above) or a Fox. A fox is one animal as it is drawn (no skin,
+ * hair or outfit yet: nothing to choose), written as `body: "fox"` (the server takes any identifier there) beside every
+ * key the avatar already has, so an iPad, which does not know the fox, draws the person those keys make. Both are free:
+ * the web has no ink. The look keeps the person fields while the fox is chosen, so choosing Person again puts back the
+ * person that was being dressed (the `body` the server kept is gone once the fox is saved: after that the person is the
+ * one the other keys, or the id, make).
+ */
+export type Character = "person" | "fox";
+export const CHARACTERS: readonly { id: Character; title: string }[] = [{ id: "person", title: "Person" }, { id: "fox", title: "Fox" }];
+export const characterOf = (look: PersonLook): Character => (speciesOf(look.species) === "fox" ? "fox" : "person");
+/** The look as this character, keeping the person fields behind it. */
+export function asCharacter(look: PersonLook, c: Character): PersonLook {
+  const { species: _gone, ...person } = look;
+  void _gone;
+  return c === "fox" ? { ...person, species: "fox" } : person;
+}
 
 /** Everyone's first look (PersonLook.starter): what Reset goes back to. */
 export const STARTER_LOOK: PersonLook = { body: "02", eyes: "01", outfit: "10_01", hair: "05_01", accessory: null, phones: "teal" };
@@ -130,6 +148,9 @@ export const validAvatarValue = (v: unknown): v is string => typeof v === "strin
 export function mergeAvatar(current: AvatarKeys | null | undefined, look: PersonLook): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(current ?? {})) if (AVATAR_KEYS.has(k) && validAvatarValue(v)) out[k] = v;
+  // A fox changes `body` and nothing else: every other key stays exactly as it is (the person keys too, so an iPad draws that person).
+  const fox = speciesOf(look.species);
+  if (fox) { out.body = fox; return out; }
   out.body = look.body; out.eyes = look.eyes; out.outfit = look.outfit; out.hair = look.hair;
   out.acc = look.accessory ?? "none"; out.phones = look.phones ?? "none";
   return out;

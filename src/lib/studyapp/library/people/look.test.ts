@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { STARTER, derived, hexColour, known, legacyLook, lookKey, personOf, stableHash, type PeopleCatalogue } from "./look";
+import { STARTER, SPECIES, derived, hexColour, known, legacyLook, lookKey, personOf, speciesOf, stableHash, type PeopleCatalogue } from "./look";
 
 const cat = JSON.parse(readFileSync(new URL("../../../../../public/library/people-layers.json", import.meta.url), "utf8")) as PeopleCatalogue;
 const has = (look: ReturnType<typeof personOf>) => {
@@ -102,5 +102,41 @@ describe("personOf (RoomAvatar.person)", () => {
       { outfit: "7".repeat(100_000), hair: "x".repeat(100_000) },
     ];
     for (const av of hostile) for (const colour of [0, -1, 15, 99, Number.NaN]) has(personOf(cat, av, colour, "id"));
+  });
+});
+
+describe("an animal (body: \"fox\")", () => {
+  const person = { body: "03", eyes: "02", outfit: "12_03", hair: "29_04", acc: "none", phones: "red" };
+  it("names the species only for a species id, never for a skin or an invented value", () => {
+    assert.deepEqual(SPECIES, ["fox"]);
+    assert.equal(speciesOf("fox"), "fox");
+    for (const v of ["03", "01", "", "Fox", "wolf", undefined, null]) assert.equal(speciesOf(v as string), null, String(v));
+  });
+  it("is the fox for you and everyone, with or without the person keys, and the person behind it is the nearest one", () => {
+    const a = personOf(cat, { ...person, body: "fox" }, 3, "u1");
+    assert.equal(a.species, "fox");
+    has(a);                                                       // a fox still carries a person every iPad could draw
+    assert.deepEqual({ ...a, species: undefined }, { ...personOf(cat, { ...person, body: "03" }, 3, "u1"), body: a.body, species: undefined } as never, "the person keys are read as they were");
+    const bare = personOf(cat, { body: "fox" }, 3, "u1");
+    assert.equal(bare.species, "fox");
+    has(bare);
+    assert.deepEqual({ ...bare, species: undefined }, { ...legacyLook(cat, { body: "fox" }, 3, "u1"), species: undefined } as never, "no person keys: the person the id makes");
+  });
+  it("is checked before the iPad's nearest-part mapping: an unknown body that is not an animal is mapped as before", () => {
+    const wolf = personOf(cat, { ...person, body: "wolf" }, 3, "u1");
+    assert.equal(wolf.species, undefined);
+    assert.equal(wolf.body, known(cat, { ...STARTER, body: "wolf" }).body);
+    has(wolf);
+    assert.equal(personOf(cat, { ...person, body: "05" }, 3, "u1").species, undefined);
+    assert.equal("species" in personOf(cat, person, 3, "u1"), false, "a person has no species key at all");
+  });
+  it("is its own row whatever person is behind it, and a person's key is unchanged", () => {
+    const a = personOf(cat, { ...person, body: "fox" }, 3, "u1"), b = personOf(cat, { body: "fox", hair: "01_01", outfit: "02_01" }, 1, "u2");
+    assert.equal(lookKey(a), lookKey(b));
+    assert.notEqual(lookKey(a), lookKey(personOf(cat, person, 3, "u1")));
+    assert.equal(lookKey(STARTER), [STARTER.body, STARTER.eyes, STARTER.outfit, STARTER.hair, "-", STARTER.phones].join("|"));
+  });
+  it("survives `known` (the species is not a part to be mapped)", () => {
+    assert.equal(known(cat, { ...STARTER, species: "fox" }).species, "fox");
   });
 });

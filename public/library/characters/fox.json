@@ -1,0 +1,68 @@
+{
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "note": "the feet's bottom row; the centre of mass of each frame is on column x"
+  },
+  "palette": [
+    "#230703",
+    "#3e0e12",
+    "#472413",
+    "#76273b",
+    "#764c30",
+    "#a03a55",
+    "#9d6333",
+    "#9b7f64",
+    "#9bb4c4",
+    "#d2b797",
+    "#e2b780",
+    "#f6af9b",
+    "#f2d197",
+    "#f5ddab",
+    "#f9f1cf",
+    "#fdf7c5"
+  ],
+  "outline": "#230703",
+  "sourceScale": 8.1,
+  "method": "vote",
+  "source": "docs/study/art/source/fox-sheet-01.png",
+  "tool": "tools/art/fox_sheet.py"
+}
