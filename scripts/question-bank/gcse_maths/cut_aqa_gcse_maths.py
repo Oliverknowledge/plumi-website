@@ -77,10 +77,15 @@ def qp_regions(doc):
     return out
 
 
+# A rule that starts in the scheme's Q column and reaches past this is the rule over a label's cell:
+# 8300's column ends at x 92-99 (Level 2 Further Maths', aqa_l2_further_maths/, at x 84-100).
+Q_COLUMN_END = 90
+
+
 def row_top(page, y):
     """The rule over the label's cell in the Q column, or the headings sitting right over it."""
     rules = sorted({round(d["rect"].y0) for d in page.get_drawings()
-                    if d["rect"].height < 3 and d["rect"].x0 < 70 and d["rect"].x1 > 90})
+                    if d["rect"].height < 3 and d["rect"].x0 < 70 and d["rect"].x1 > Q_COLUMN_END})
     above = [r for r in rules if r <= y + 2]
     top = above[-1] - 1 if above else y - 6
     for ht, hb in cut_maths.headers(page):
