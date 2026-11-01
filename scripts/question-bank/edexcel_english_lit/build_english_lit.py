@@ -70,11 +70,13 @@ def build(slug, board, subject_name, specs, spec, papers, note, work, is_as, ext
         comp = p["component"].replace("-", "")
         row = {"id": p["id"], "p": comp, "s": p["series"], "l": p["label"], "m": p["marks"],
                "t": [p["text_code"]] if p["text_code"] in valid else [], "w": p["w"], "h": p["h"],
-               "x": own_words(p["text"], p["label"])[:160]}
+               "x": (p.get("own") or own_words(p["text"], p["label"]))[:160]}
         if p["or"]:
             row["or"] = 1
         if p.get("stem"):
             row["st"] = 1
+        if p.get("src"):
+            row["src"] = 1  # read with the paper's insert (Eduqas GCSE English Language)
         if p.get("ms"):
             row["ms"] = 1
         if p.get("er"):
