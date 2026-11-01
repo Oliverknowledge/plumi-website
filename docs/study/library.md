@@ -466,3 +466,74 @@ and no DOM changes in 10 s of idle (the room reading every 2 to 5 s).
 - **No student has used it** (CLAUDE.md evidence levels 1 and 2 are empty). The row heights, the order and the wording are the
   founder's brief, not observed student behaviour.
 
+
+## Entry screen (the front door, 1 November 2026)
+
+Founder: "when the user presses on Study there should be like an enter button and a really nice entry into the app that
+feels super premium, like lofi.town has". Study now opens on a door, and the student walks in.
+
+**What it is.** One full-viewport scene for every state of Study before the room: Enter, signed out, the join card, the
+waiting moment (`Front.tsx` `FrontScene`; `EntryScreen.tsx`; `LibraryFront.tsx` owns the flow; `Cards.tsx` restyled;
+`entry.css`). The picture is the room's own art (`bg.png`, which Enter needs anyway, so it costs nothing extra), seen
+out of focus from the doorway at a whole multiple of its pixels, lit by the room's own lamps (the `lights` of
+`layout.json`, three CSS layers with a fire and candle flicker) for the student's hour (dawn 05 to 08, day 08 to 17,
+evening 17 to 20, night 20 to 05, their own clock; the season only colours the dust), with light beams by day, dust
+motes, a vignette and grain. The scene leans a little toward the pointer (art slowest, lettering the other way); off for
+reduced motion and for touch. "The Grand Library" is a CSS logotype in the site's pixel face (three stacked copies:
+deep outline and drop, gold edge, cream face), always two lines, sized from the stage's width and the window's height,
+Plumi (`plumi-welcoming.svg`) perched on its corner. One key, ENTER with a return glyph, a pixel keycap that goes down
+when pressed. Log out top right, Back to Desk top left, nothing else.
+
+**Why ENTER, and not "Enter the library".** It is the one word that is also the key that presses it, it fits at 320px,
+and the lettering above already says where. The accessible name is "Enter the Grand Library".
+
+**When the door shows.** Every time Study is opened after a load, and after more than 10 minutes away from the room
+(`QUICK_RETURN_MS`). A student who was in the room and stepped out to the Desk or Flashcards for less than that comes
+straight back: the same scene is only a 0.4 s veil lifting off the room, no key, no new press (the Study tab tap is the
+gesture, as before). A reload always shows the door: it forgot the browser's full screen and the sound, and the press is
+what asks for both again. The tab's memory is `entryMemory` (module state, so a reload resets it).
+
+**Pressing Enter** (click, tap, Enter or Space; with nothing else focused the keys press it too, and the key has focus on
+arrival): the browser's full screen is requested (`enterBrowserFullscreen`, best effort), the key's "thock" and a soft
+three-note bell are made with WebAudio (`entrySound.ts`, only from this press; no WebAudio, silence), and only then does
+the room mount, which is when the student joins the lobby. On the door nobody is announced. `door` then `press`
+(the key is down, the lettering steps back, the camera leans in, the room draws behind) then `go` (the scene rushes
+toward the student and loses its blur while the light grows and the door fades; the room comes forward out of it) then
+`in`. About 1.0 to 1.3 s: 0.3 s press, 0.7 s walk, and the walk waits for the room to be drawn (at most 4 s). Any tap or
+key during it lets the student straight in. Reduced motion: a 0.22 s cross-fade, no zoom, no parallax, no drift, no
+dust. The room is `.lb-full` (z 50, dark `#2a1d1a`) under the door (z 52), so there is never a white or notebook frame.
+The top bar and the record player are hidden while any front-door screen is up, by CSS only (`.pa:has(.en) .top, .rp`),
+so `Vinyl.tsx` is untouched and any music already playing carries on.
+
+**Preload while the door is up** (`preload.ts`, `preloadRoom` in `entry.ts`, tested): the room engine chunk and the
+walking maths, `layout.json`, `bg.png`, `pieces.png`, `anims.png`, `people.png` (fetched and decoded and held), then
+the people layers and this student's own person built (`peopleStore`). A failed file is retried next time.
+`lobby_*` is never called by it.
+
+**The two lines** under the key come from `lobby_servers` read once (counts only; `LibrarySocial.lobbyServers`, as the
+Desk's beacon does) and `lobby_me` for "hidden": "N students studying right now" (the servers' total), "N friends
+are in" (the sum of `friends`; the server never says who), and "You're hidden, so nobody will see you". Names ("Maya and
+Josh are in") only when the room published them in the last two minutes and the count still agrees, which in practice
+is only just after leaving the room. Nothing is shown until the server answers, and the space is already reserved, so
+nothing moves. Unknown means no line, never a number.
+
+**Fallbacks.** Art fails or is slow: a wine-and-amber glow with the beams and dust, the key at once. No WebAudio:
+silence. Reduced motion: above. 320px: the lettering is 22% of the width and wraps nowhere; landscape phones lose
+Plumi and "The" and put the two lines side by side; 2560 and very tall screens scale with the window. The card states
+(`Plaque`) scroll inside the stage if a phone is too short.
+
+**Dev views** (no Supabase): `/study/library/demo?entry=1` (the door; `&tod=dawn|day|evening|night`, `&live=none|quiet`,
+`&hidden=1`), `?entry=signedout`, `?entry=join`, `?entry=wait`, `?entry=quick` (back from a step out). Without `entry`
+the demo opens the room as before.
+
+**Measured** (headless Chromium on a laptop-class CPU with software rendering and a development server, so slower than a
+device): Enter to the first drawn room frame (`performance.measure("plumi:enter-to-room")`, press to `data-ready` and one
+frame) 320 to 500 ms; Enter to the door gone 1.3 to 1.6 s (the blurred scene animates at about 15 fps in software; the
+design time is 1.0 s); after Enter the only request is the engine's own `layout.json`. Not verified: Safari (`:has`,
+`cqi`, `-webkit-text-stroke` on three stacked copies, `backdrop-filter`), a real iPad or phone, a slow network, the
+real Supabase `lobby_servers` and `lobby_me` answers (the demo is scripted), and what the three stacked copies of the
+lettering cost on a low-end phone.
+
+**Tests.** `src/lib/studyapp/library/entry.test.ts` (27): when the door shows, the hour and season, both lines' wording,
+the preload order and that it never throws, the lamplight against `layout.json`, the art's cover scale at 11 window
+sizes, the transition's timing rules.

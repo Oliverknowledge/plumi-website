@@ -1,0 +1,344 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE FRONT DOOR OF THE GRAND LIBRARY (components/studyapp/library/Front.tsx, EntryScreen.tsx, Cards.tsx)
+
+   One scene for every state of Study before the room: the Enter screen, signed out, the join card, the waiting
+   moment. The library's candle-lit tables (the sign-in page's art) fill the window, lit for the student's own hour,
+   with dust in the air; "The Grand Library" is a chunky pixel logotype with Plumi on top of it; one big pixel key.
+   Every rule is scoped under .pa. Notes: docs/study/library.md, "Entry screen".
+
+   Layers, back to front:  art (still, then the animated door fades in over it) / tint / light beams / dust / glow /
+   vignette / grain, then the top bar, then the stage (lettering, key, lines). The art leans a little toward the pointer
+   (--px, --py: -1 to 1), the lettering the other way. Size: the lettering sets --en-fs from the stage's own width, and
+   everything in the column is in em of it, so 320px and 2560px are the same picture.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pa {
+  --en-ink: #2a0f1b;          /* the deep outline: the art's burgundy, nearly black */
+  --en-cream: #fff1d3;
+  --en-gold: #f6cd70;
+  --en-gold-hi: #ffe29a;
+  --en-gold-lo: #a65d17;
+  --en-wood: #5a3a2c;         /* text on the plaque (cream): 8:1 */
+}
+
+.pa .en-flow { display: contents; }
+
+/* while the door is up the notebook's chrome is not part of the picture: the top bar steps out, the record player too
+   (it comes back, fading in, when the door goes; its music is not touched) */
+.pa:has(.en) .top { visibility: hidden; }
+.pa .rp { transition: right .2s ease-out, bottom .2s ease-out, opacity .5s ease-out; }
+.pa:has(.en) .rp { opacity: 0; visibility: hidden; pointer-events: none; transition: none; }
+
+.pa .en {
+  position: fixed; inset: 0; z-index: 52; overflow: hidden; isolation: isolate;
+  background: #1c0911; color: var(--en-cream);
+  font-family: var(--f-body); -webkit-font-smoothing: antialiased;
+  --en-grade: brightness(.9) contrast(1.06) saturate(1.15);
+  --en-tint: linear-gradient(180deg, rgba(255, 240, 200, .34), rgba(120, 50, 60, .2));
+  --en-glow: rgba(255, 224, 160, .42);
+  --en-beam: .8;
+  --en-lamp: .3;
+  --en-mote: #ffe6a8;
+  --en-k: 2;
+  touch-action: manipulation;
+}
+@media (min-width: 1700px) { .pa .en { --en-k: 3; } }
+
+/* the hour (the student's own clock; the demo can force one with ?tod=) */
+.pa .en[data-tod="dawn"] { --en-grade: brightness(.72) contrast(1.08) saturate(1.1) hue-rotate(8deg); --en-tint: linear-gradient(180deg, rgba(255, 196, 200, .4), rgba(96, 74, 150, .34)); --en-glow: rgba(255, 204, 176, .46); --en-beam: .65; --en-lamp: .7; }
+.pa .en[data-tod="evening"] { --en-grade: brightness(.62) contrast(1.14) saturate(1.4) sepia(.12); --en-tint: linear-gradient(180deg, rgba(255, 120, 56, .5), rgba(130, 28, 66, .38)); --en-glow: rgba(255, 164, 80, .5); --en-beam: .55; --en-lamp: .85; }
+.pa .en[data-tod="night"] { --en-grade: brightness(.58) contrast(1.2) saturate(1.2) hue-rotate(-6deg); --en-tint: linear-gradient(180deg, rgba(34, 44, 160, .7), rgba(74, 14, 64, .4)); --en-glow: rgba(255, 166, 80, .3); --en-beam: 0; --en-lamp: 1; }
+/* the season is only the colour of the dust */
+.pa .en[data-season="spring"] { --en-mote: #ffc9da; }
+.pa .en[data-season="summer"] { --en-mote: #fff1a0; }
+.pa .en[data-season="autumn"] { --en-mote: #ffb765; }
+.pa .en[data-season="winter"] { --en-mote: #e8f3ff; }
+
+/* ── the scene ── */
+.pa .en-world, .pa .en-world > * { position: absolute; inset: 0; pointer-events: none; }
+.pa .en-world { overflow: hidden; background: radial-gradient(90% 80% at 50% 46%, #6b2433, #2a0f1b); }
+/* the camera: the room's art at a whole multiple of its pixels, the doorway's view of it (art point 480, 250 sits just above
+   the middle of the window), leaning toward the pointer */
+.pa .en-cam {
+  inset: auto; left: 50%; top: 46%;
+  width: calc(960px * var(--en-k)); height: calc(656px * var(--en-k));
+  margin: calc(-250px * var(--en-k)) 0 0 calc(-480px * var(--en-k));
+  translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -10px);
+  transform-origin: 50% 38%;
+  will-change: translate, scale;
+}
+.pa .en-cam > * { position: absolute; inset: 0; }
+/* out of focus, like a room seen from the doorway: the lettering and the key are the only sharp things */
+.pa .en-art {
+  background: url(/library/bg.png) 0 0 / 100% 100% no-repeat;
+  filter: blur(calc(var(--en-k) * 1.4px)) var(--en-grade);
+  image-rendering: pixelated;
+}
+/* the room's own lamps, lit where the room lights them (public/library/layout.json), flickering a little */
+.pa .en-lamps { mix-blend-mode: screen; opacity: var(--en-lamp); filter: blur(calc(var(--en-k) * 1px)); }
+.pa .en-lamps.is-tables { animation: en-candle 4.6s ease-in-out infinite; }
+.pa .en-lamps.is-fire { animation: en-fire 3.1s linear infinite; }
+@keyframes en-candle { 0%, 100% { opacity: calc(var(--en-lamp) * .8); } 50% { opacity: var(--en-lamp); } }
+@keyframes en-fire { 0% { opacity: calc(var(--en-lamp) * .9); } 12% { opacity: var(--en-lamp); } 27% { opacity: calc(var(--en-lamp) * .78); } 44% { opacity: calc(var(--en-lamp) * .98); } 61% { opacity: calc(var(--en-lamp) * .84); } 80% { opacity: var(--en-lamp); } 100% { opacity: calc(var(--en-lamp) * .9); } }
+.pa .en-tint { background: var(--en-tint); mix-blend-mode: soft-light; }
+.pa .en-glow {
+  background: radial-gradient(52% 46% at 50% 50%, var(--en-glow), transparent 74%);
+  mix-blend-mode: screen; transform-origin: 50% 52%; animation: en-breathe 7s ease-in-out infinite;
+}
+.pa .en-vignette {
+  background:
+    radial-gradient(72% 68% at 50% 48%, transparent 18%, rgba(14, 3, 10, .6) 62%, rgba(8, 1, 6, .96) 100%),
+    linear-gradient(180deg, rgba(14, 3, 9, .55) 0, transparent 20%, transparent 70%, rgba(14, 3, 9, .6) 100%);
+}
+.pa .en-grain {
+  opacity: .1; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+@keyframes en-breathe { 0%, 100% { opacity: .78; scale: 1; } 50% { opacity: 1; scale: 1.07; } }
+
+/* light through the tall windows: slow soft beams (not at night) */
+.pa .en-beams { opacity: var(--en-beam); mix-blend-mode: screen; overflow: hidden; }
+.pa .en-beams i {
+  position: absolute; top: -25%; width: 16vmax; height: 150%;
+  background: linear-gradient(180deg, rgba(255, 228, 164, .62), rgba(255, 228, 164, .12) 55%, rgba(255, 228, 164, 0) 85%);
+  filter: blur(16px); rotate: 17deg; transform-origin: 50% 0; animation: en-sway 16s ease-in-out infinite alternate;
+}
+.pa .en-beams i:nth-child(1) { left: 6%; }
+.pa .en-beams i:nth-child(2) { left: 38%; width: 11vmax; animation-delay: -6s; animation-duration: 21s; }
+.pa .en-beams i:nth-child(3) { left: 70%; animation-delay: -11s; }
+@keyframes en-sway { from { rotate: 14deg; translate: -2vw 0; } to { rotate: 21deg; translate: 3vw 0; } }
+
+/* dust in the lamplight: square motes (it is pixel art), rising slowly and swaying, each its own pace */
+.pa .en-motes { overflow: hidden; }
+.pa .en-motes i {
+  position: absolute; left: var(--x); bottom: -12px; width: var(--s); height: var(--s);
+  background: var(--en-mote); box-shadow: 0 0 calc(var(--s) * 2.5) var(--en-mote); opacity: 0;
+  animation: en-rise var(--d) linear var(--w) infinite;
+}
+@keyframes en-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: var(--o); }
+  50% { transform: translate(calc(var(--dx) * -.4), -52vh); }
+  88% { opacity: var(--o); }
+  100% { transform: translate(var(--dx), -106vh); opacity: 0; }
+}
+@media (max-width: 600px) { .pa .en-motes i:nth-child(n+17) { display: none; } }
+
+/* ── the controls at the top ── */
+.pa .en-bar {
+  position: absolute; z-index: 3; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+.pa .en-bar > * { pointer-events: auto; }
+.pa .en-pill {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  background: var(--en-cream); color: var(--en-ink); border: 3px solid var(--en-ink); border-radius: 999px;
+  font: 700 17px/1 var(--f-px); letter-spacing: .02em; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 4px 0 var(--en-ink), 0 12px 24px rgba(0, 0, 0, .38);
+  transition: transform .1s, box-shadow .1s, background .15s;
+}
+.pa .en-pill:hover { background: #fffaf0; transform: translateY(-1px); }
+.pa .en-pill:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--en-ink), 0 4px 10px rgba(0, 0, 0, .3); }
+.pa .en :focus-visible { outline: 3px solid var(--en-cream); outline-offset: 3px; }
+
+/* ── the stage ── */
+.pa .en-stage {
+  position: absolute; inset: 0; z-index: 2; display: flex; overflow-y: auto; overscroll-behavior: contain; container-type: inline-size;
+  padding: calc(74px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  translate: calc(var(--px, 0) * 7px) calc(var(--py, 0) * 5px);
+  scrollbar-width: none;
+}
+.pa .en-stage::-webkit-scrollbar { display: none; }
+.pa .en-col {
+  --en-fs: min(22cqi, 16vh);
+  width: 100%; margin: auto; display: flex; flex-direction: column; align-items: center; gap: .22em; font-size: var(--en-fs);
+}
+@media (max-height: 560px) { .pa .en-col { --en-fs: min(12cqi, 16vh); } }
+
+/* with a plaque under it the lettering is smaller, so the whole card is on the screen */
+.pa .en-col:has(.en-plaque) { --en-fs: min(16cqi, 9.6vh); gap: .3em; }
+
+/* ── the lettering ── */
+.pa .en-mark { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; padding-top: .8em; }
+.pa .en-title { margin: 0; display: flex; flex-direction: column; align-items: center; text-align: center; font: 700 1em/.92 var(--f-px); text-transform: uppercase; letter-spacing: .02em; }
+.pa .en-the {
+  display: flex; align-items: center; gap: .6em; font-size: .24em; letter-spacing: .46em; margin: 0 0 .5em .46em; color: var(--en-cream);
+  text-shadow: 0 .08em 0 var(--en-ink), .07em 0 0 var(--en-ink), -.07em 0 0 var(--en-ink), 0 -.07em 0 var(--en-ink), .07em .07em 0 var(--en-ink), -.07em .07em 0 var(--en-ink), .07em -.07em 0 var(--en-ink), -.07em -.07em 0 var(--en-ink), 0 .3em .4em rgba(0, 0, 0, .5);
+}
+.pa .en-the::before, .pa .en-the::after { content: ""; width: 3em; height: .16em; background: linear-gradient(90deg, transparent, var(--en-gold)); box-shadow: 0 0 0 .07em var(--en-ink); border-radius: 1px; }
+.pa .en-the::after { background: linear-gradient(270deg, transparent, var(--en-gold)); }
+.pa .en-word { position: relative; display: grid; }
+.pa .en-l { grid-area: 1 / 1; display: block; text-align: center; white-space: normal; }
+/* the deep outline, and a heavy drop under it */
+.pa .en-l-ink {
+  color: var(--en-ink); -webkit-text-stroke: .2em var(--en-ink);
+  text-shadow: 0 .07em 0 var(--en-ink), 0 .14em 0 var(--en-ink), 0 .2em 0 var(--en-ink), 0 .26em 0 var(--en-ink), 0 .34em .24em rgba(0, 0, 0, .55), 0 .55em .9em rgba(0, 0, 0, .5);
+}
+/* the gold edge: the thickness of the letters, stacked a hair at a time */
+.pa .en-l-gold {
+  color: #b86f1c; -webkit-text-stroke: .05em #b86f1c;
+  text-shadow: 0 .02em 0 #b86f1c, 0 .04em 0 #ac6417, 0 .06em 0 #ac6417, 0 .08em 0 #9a5512, 0 .1em 0 #9a5512, 0 .12em 0 #8a4a10, 0 .14em 0 #8a4a10;
+}
+.pa .en-l-face {
+  color: var(--en-cream); -webkit-text-stroke: .03em #f6c25c;
+  background: linear-gradient(180deg, #fffdf6 0, #fff3d6 42%, #ffd98e 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+/* always two lines: GRAND over LIBRARY, the logotype's shape at every width */
+.pa .en-l .w { display: block; white-space: nowrap; }
+.pa .en-l .sp { display: none; }
+
+/* Plumi, perched on the corner of the lettering, waving */
+.pa .en-plumi { position: absolute; z-index: 2; top: -.1em; right: max(0px, calc(50% - 2.55em)); width: min(1.5em, 1.3em + 8cqi); aspect-ratio: 1; animation: en-float 5.2s ease-in-out infinite; pointer-events: none; }
+.pa .en-plumi img { position: relative; width: 100%; height: 100%; display: block; image-rendering: pixelated; filter: drop-shadow(0 .035em 0 rgba(42, 15, 27, .7)) drop-shadow(0 .12em .14em rgba(0, 0, 0, .45)); }
+.pa .en-shadow { position: absolute; z-index: -1; inset: 6% 0 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 214, 140, .45), transparent); animation: en-breathe 5.2s ease-in-out infinite; }
+@keyframes en-float { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-.04em) rotate(1.5deg); } }
+.pa .en-mark.is-small { padding-top: .5em; }
+.pa .en-mark.is-small .en-plumi { width: min(1.3em, 1.1em + 8cqi); }
+
+/* little four-point sparkles round the lettering */
+.pa .en-spark { position: absolute; inset: 0; pointer-events: none; }
+.pa .en-spark i { position: absolute; width: .13em; height: .13em; animation: en-twinkle 3.6s steps(1, end) infinite; }
+.pa .en-spark i::before, .pa .en-spark i::after { content: ""; position: absolute; background: var(--en-cream); box-shadow: 0 0 .1em rgba(255, 226, 160, .9); }
+.pa .en-spark i::before { left: 40%; top: 0; width: 20%; height: 100%; }
+.pa .en-spark i::after { top: 40%; left: 0; height: 20%; width: 100%; }
+.pa .en-spark i:nth-child(1) { left: 2%; top: 52%; }
+.pa .en-spark i:nth-child(2) { right: 3%; top: 40%; animation-delay: -1.2s; font-size: .8em; }
+.pa .en-spark i:nth-child(3) { right: 17%; bottom: -3%; animation-delay: -2.4s; font-size: .6em; }
+.pa .en-spark i:nth-child(4) { left: 21%; bottom: -8%; animation-delay: -.6s; font-size: .7em; }
+@keyframes en-twinkle { 0%, 100% { opacity: 0; scale: .4; } 18% { opacity: 1; scale: 1; } 42% { opacity: 1; scale: .75; } 60% { opacity: 0; scale: .4; } }
+
+/* ── the key ── */
+.pa .en-cta { position: relative; display: flex; flex-direction: column; align-items: center; margin: .34em 0 92px; }
+.pa .en-key {
+  --kh: 1em; position: relative; display: inline-block; margin: 0 0 .12em; padding: 0 0 .1em; border: 0; background: none; font-size: .74em; color: var(--en-ink);
+  text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent; max-width: 100%;
+}
+.pa .en-key::before { /* the glow it breathes */
+  content: ""; position: absolute; inset: -.45em -.7em; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255, 196, 96, .42), transparent); animation: en-breathe 3.6s ease-in-out infinite;
+}
+.pa .en-key-cap {
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: .24em; min-width: min(3.9em, calc(100vw - 48px)); height: var(--kh); padding: 0 .5em;
+  border-radius: .17em;
+  background: linear-gradient(180deg, var(--en-gold-hi) 0 46%, var(--en-gold) 46% 100%);
+  box-shadow: inset 0 .035em 0 rgba(255, 255, 255, .8), inset 0 -.06em 0 rgba(166, 93, 23, .38), inset .035em 0 0 rgba(255, 255, 255, .3);
+  transition: transform .09s cubic-bezier(.3, .7, .4, 1), box-shadow .09s;
+}
+.pa .en-key::after { /* the side of the key, and the outline round all of it */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: var(--kh); border-radius: .17em; pointer-events: none;
+  box-shadow: 0 .1em 0 0 var(--en-gold-lo), 0 .1em 0 .05em var(--en-ink), 0 0 0 .05em var(--en-ink), 0 .34em .6em rgba(0, 0, 0, .5);
+  transition: transform .09s cubic-bezier(.3, .7, .4, 1), box-shadow .09s;
+}
+.pa .en-key-cap::after { /* a glint that passes now and then */
+  content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 22%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent); transform: skewX(-18deg); animation: en-glint 6s ease-in-out 1.2s infinite;
+}
+@keyframes en-glint { 0%, 70% { left: -40%; } 100% { left: 130%; } }
+.pa .en-key-label { font: 700 .46em/1 var(--f-px); letter-spacing: .16em; margin-right: -.16em; text-transform: uppercase; text-shadow: 0 .05em 0 rgba(255, 255, 255, .6); white-space: nowrap; }
+.pa .en-key-glyph { width: .44em; height: .33em; flex: none; }
+.pa .en-key:hover .en-key-cap { filter: brightness(1.06); }
+.pa .en-key:active .en-key-cap, .pa .en-key.is-down .en-key-cap { transform: translateY(.085em); box-shadow: inset 0 .035em 0 rgba(255, 255, 255, .5), inset 0 -.04em 0 rgba(166, 93, 23, .5); }
+.pa .en-key:active::after, .pa .en-key.is-down::after { box-shadow: 0 .015em 0 0 var(--en-gold-lo), 0 .015em 0 .05em var(--en-ink), 0 0 0 .05em var(--en-ink), 0 .1em .2em rgba(0, 0, 0, .45); }
+.pa .en-key:active::before, .pa .en-key.is-down::before { animation: none; opacity: 1; scale: 1.2; }
+.pa .en-key:focus-visible { outline: 0; }
+.pa .en-key:focus-visible::after { outline: 4px solid var(--en-cream); outline-offset: .12em; }
+.pa .en-key:disabled { cursor: default; filter: saturate(.4) brightness(.8); }
+.pa .en-key.is-ghost { visibility: hidden; }
+.pa .en-key.is-small { font-size: 46px; }
+.pa .en-key.is-small .en-key-cap { min-width: 3.5em; }
+.pa .en-key.is-small .en-key-label { font-size: .44em; }
+.pa .en-key.is-small::before { display: none; }
+
+/* ── the two true lines under the key (reserved space, so nothing moves when they arrive) ── */
+.pa .en-live { position: absolute; top: calc(100% + 10px); left: 50%; translate: -50% 0; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: min(92vw, 560px); font-size: 16px; }
+.pa .en-line {
+  margin: 0; display: inline-flex; align-items: center; gap: 9px; padding: 7px 16px 8px; border-radius: 999px; text-align: center;
+  background: rgba(24, 6, 14, .76); border: 1.5px solid rgba(255, 233, 190, .2); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  color: var(--en-cream); font: 700 16px/1.25 var(--f-body); text-shadow: 0 1px 0 rgba(0, 0, 0, .5);
+  animation: en-in .6s ease-out both;
+}
+.pa .en-line:nth-child(2) { animation-delay: .12s; }
+.pa .en-line:nth-child(3) { animation-delay: .24s; }
+.pa .en-line.is-quiet { background: rgba(24, 6, 14, .76); font-weight: 600; font-size: 14.5px; color: #f3dcc0; }
+.pa .en-line i { width: 9px; height: 9px; flex: none; border-radius: 50%; background: #7ee2a2; box-shadow: 0 0 0 0 rgba(126, 226, 162, .7); animation: en-ping 2.4s ease-out infinite; }
+@keyframes en-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
+@keyframes en-ping { 0% { box-shadow: 0 0 0 0 rgba(126, 226, 162, .6); } 70%, 100% { box-shadow: 0 0 0 9px rgba(126, 226, 162, 0); } }
+
+/* ── the plaque (signed out, and the join card): a parchment sign under the lettering ── */
+.pa .en-plaque {
+  width: min(100%, 460px); margin-top: .12em; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 24px 22px; text-align: center;
+  font-size: 16px; color: var(--en-ink); background: linear-gradient(180deg, #fff7e0, #f8e6bd);
+  border: 3px solid var(--en-ink); border-radius: 18px; box-shadow: 0 6px 0 var(--en-ink), 0 24px 48px rgba(0, 0, 0, .5);
+}
+.pa .en-plaque h2 { margin: 0; font: 700 26px/1.1 var(--f-px); color: var(--en-ink); text-wrap: balance; }
+.pa .en-plaque p { margin: 0; font: 700 15.5px/1.4 var(--f-body); color: var(--en-wood); text-wrap: balance; }
+.pa .en-plaque .lb-hint { font-size: 13.5px; color: var(--en-wood); }
+.pa .en-plaque .lbl { color: var(--en-wood); align-self: flex-start; }
+.pa .en-plaque .lb-name { gap: 8px; }
+.pa .en-plaque .lb-name input { background: #fffdf6; border: 2px solid var(--en-ink); color: var(--en-ink); }
+.pa .en-plaque .lb-name input::placeholder { color: #7a5a48; }
+.pa .en-plaque .lb-badge { border-color: var(--en-ink); }
+.pa .en-plaque .btn.ghost { color: var(--en-wood); font-family: var(--f-body); }
+.pa .en-plaque .btn.ghost:hover { background: rgba(90, 58, 44, .1); color: var(--en-ink); }
+.pa .en-plaque .lb-rule { align-self: stretch; text-align: left; margin: -4px 0 0; color: var(--en-wood); }
+.pa .en-plaque .lb-rule.bad { color: #a32d24; }
+.pa .en-plaque .lb-colours { align-self: stretch; text-align: left; }
+.pa .en-plaque .lb-swatch { border-color: var(--en-ink); }
+.pa .en-plaque .lb-swatch:has(input:checked) { box-shadow: 0 0 0 3px #fff7e0, 0 0 0 5px var(--en-ink); }
+.pa .en-plaque :focus-visible { outline: 3px solid var(--en-ink); outline-offset: 3px; }
+.pa .en-plaque .en-key :focus-visible, .pa .en-plaque .en-key:focus-visible::after { outline-color: var(--en-ink); }
+.pa .en-plaque .en-key { margin-top: 6px; }
+@media (max-width: 400px) { .pa .en-plaque { padding: 18px 16px 18px; } }
+
+/* ── going in ──
+   press: the key is down, the lettering and the lines step back, the scene leans in a little.
+   go:    the scene rushes toward the student and the light grows while the door fades; the room comes forward out of it. */
+.pa .en-mark, .pa .en-live, .pa .en-bar, .pa .en-plaque { transition: opacity .3s ease-out, scale .38s cubic-bezier(.2, .7, .3, 1); }
+.pa .en[data-stage="press"] .en-mark, .pa .en[data-stage="go"] .en-mark { opacity: 0; scale: 1.07; }
+.pa .en[data-stage="press"] .en-live, .pa .en[data-stage="go"] .en-live,
+.pa .en[data-stage="press"] .en-bar, .pa .en[data-stage="go"] .en-bar { opacity: 0; }
+.pa .en[data-stage="press"] .en-cam { scale: 1.1; transition: scale .35s cubic-bezier(.2, .7, .3, 1); }
+.pa .en[data-stage="press"] .en-art, .pa .en[data-stage="go"] .en-art { transition: filter .7s ease-out; }
+.pa .en[data-stage="press"] .en-plaque, .pa .en[data-stage="go"] .en-plaque { opacity: 0; scale: .97; }
+.pa .en[data-stage="go"] { opacity: 0; transition: opacity .57s cubic-bezier(.4, 0, .7, 1) .13s; }
+.pa .en[data-stage="go"] .en-cam { scale: 1.8; transition: scale .7s cubic-bezier(.5, 0, .85, .4); }
+.pa .en[data-stage="go"] .en-art { filter: blur(0) var(--en-grade); }
+.pa .en[data-stage="go"] .en-glow { scale: 2.8; opacity: 1; transition: scale .75s cubic-bezier(.5, 0, .85, .4); animation: none; }
+.pa .en[data-stage="go"] .en-vignette { opacity: .6; transition: opacity .6s; }
+.pa .en[data-stage="go"] .en-stage { pointer-events: none; }
+/* back from a short step out: no key, only the scene, lifting off the room */
+.pa .en.is-quick .en-stage, .pa .en.is-quick .en-bar { opacity: 0; transition: none; }
+.pa .en.is-quick[data-stage="go"] { transition-duration: .42s; transition-delay: 0s; }
+.pa .en.is-quick[data-stage="go"] .en-cam { scale: 1.25; transition-duration: .42s; }
+
+/* the room, already loaded behind the door, comes forward as the door goes */
+.pa .en-flow[data-phase="entering"] > .lb-full { opacity: 0; scale: .9; transform-origin: 50% 74%; }
+.pa .en-flow[data-phase="entering"][data-stage="go"] > .lb-full { opacity: 1; scale: 1; transition: opacity .66s ease-out .08s, scale .8s cubic-bezier(.2, .7, .25, 1); }
+.pa .en-flow[data-quick][data-phase="entering"] > .lb-full { scale: 1; }
+.pa .en-flow[data-quick][data-phase="entering"][data-stage="go"] > .lb-full { transition-duration: .4s; transition-delay: 0s; }
+
+@media (prefers-reduced-motion: reduce) {
+.pa .en *, .pa .en *::before, .pa .en *::after { animation: none !important; }
+.pa .en-motes, .pa .en-beams i:nth-child(n+2) { display: none; }
+.pa .en-cam, .pa .en-stage { translate: none; }
+.pa .en[data-stage="press"] .en-cam, .pa .en[data-stage="go"] .en-cam, .pa .en[data-stage="go"] .en-glow { scale: 1; transition: none; }
+.pa .en[data-stage="press"] .en-mark, .pa .en[data-stage="go"] .en-mark, .pa .en[data-stage="press"] .en-plaque, .pa .en[data-stage="go"] .en-plaque { scale: 1; }
+.pa .en[data-stage="go"] { transition: opacity .22s linear; }
+.pa .en-flow[data-phase="entering"] > .lb-full { scale: 1; }
+.pa .en-flow[data-phase="entering"][data-stage="go"] > .lb-full { transition: opacity .22s linear; }
+.pa .en-pill, .pa .en-key-cap, .pa .en-key::after { transition: none; }
+}
+
+/* a landscape phone: the lettering and the key only */
+@media (max-height: 560px) {
+.pa .en-plumi { display: none; }
+.pa .en-the { display: none; }
+.pa .en-col { gap: .1em; }
+.pa .en-cta { margin: .2em 0 50px; }
+.pa .en-key { font-size: .8em; }
+.pa .en-live { flex-direction: row; flex-wrap: wrap; justify-content: center; width: max(80vw, 300px); }
+.pa .en-stage { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
+.pa .en-plaque { padding: 14px 18px; gap: 8px; }
+.pa .en-plaque h2 { font-size: 22px; }
+.pa .en-mark.is-small { display: none; }
+}

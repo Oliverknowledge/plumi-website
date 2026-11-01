@@ -1,37 +1,31 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useId, useState } from "react";
-import { signInHref } from "@/lib/account";
+import { signInHref, signOut } from "@/lib/account";
 import { COLOUR_NAMES, LIBRARY_COLOURS, colourOf, generatedName, joinLibrary, nameProblem, suggestedName } from "@/lib/library";
+import { FrontScene, Key, KeyLink, Plaque, Wordmark } from "./Front";
 
 /**
- * The library before you are in it: for someone signed out (what it is, and a way in), and for a signed-in student
- * who has not joined (a name and a colour: the iPad's card at the library's door). Nothing is shared with anyone
- * until a student joins, and a student can leave again from the page.
+ * The library before you are in it, in the same scene as the Enter screen (Front.tsx): for someone signed out (what it
+ * is, and a way in), and for a signed-in student who has not joined (a name and a colour: the iPad's card at the
+ * library's door). Nothing is shared with anyone until a student joins, and a student can leave again from the page.
  */
-
-function Door() {
-  return <Image className="lb-door" src="/library/library-door-still.webp" alt="" width={640} height={360} unoptimized priority />;
-}
 
 export function SignedOutCard({ accountsOn }: { accountsOn: boolean }) {
   return (
-    <main className="wrap lb lb-solo" data-testid="library-signed-out">
-      <header className="ph"><div><div className="crumb">Study</div><h1>The Grand Library</h1></div></header>
-      <section className="card lb-gate">
-        <Door />
-        <div className="lb-gate-body">
+    <FrontScene testid="library-signed-out">
+      <div className="en-col">
+        <Wordmark small />
+        <Plaque>
           <h2>Study with real students</h2>
-          <p>Walk in, take a seat and start a timer. Friends and strangers on iPad and the web are in the same room.</p>
+          <p>Take a seat and start a timer, in a room shared with iPad students.</p>
           {accountsOn
-            ? <Link className="btn gold" href={signInHref("library", "/study/library")}>Sign in</Link>
+            ? <KeyLink label="Sign in" href={signInHref("library", "/study/library")} small testid="front-signin" />
             : <p className="lb-hint">Opens when accounts are switched on.</p>}
           <p className="lb-hint">Nothing is shared until you join.</p>
-        </div>
-      </section>
-    </main>
+        </Plaque>
+      </div>
+    </FrontScene>
   );
 }
 
@@ -62,11 +56,10 @@ export function JoinCard({ accountName }: { accountName: string | null }) {
   }
 
   return (
-    <main className="wrap lb lb-solo" data-testid="library-join">
-      <header className="ph"><div><div className="crumb">Study</div><h1>The Grand Library</h1></div></header>
-      <form className="card lb-gate" onSubmit={submit}>
-        <Door />
-        <div className="lb-gate-body">
+    <FrontScene testid="library-join" onLogOut={() => void signOut()}>
+      <div className="en-col">
+        <Wordmark small />
+        <Plaque as="form" onSubmit={submit}>
           <h2>Join the library</h2>
           <p>Friends see your name, everyone else a nickname.</p>
           <label htmlFor={ids.name} className="lbl">Your name</label>
@@ -87,20 +80,22 @@ export function JoinCard({ accountName }: { accountName: string | null }) {
               ))}
             </div>
           </fieldset>
-          <button type="submit" className="btn gold" disabled={busy || !!problem || !name.trim()}>{busy ? "Joining…" : fallback ? `Join as ${name.trim()}` : "Join"}</button>
+          <Key type="submit" small label={busy ? "Joining…" : fallback ? `Join as ${name.trim()}` : "Join"} disabled={busy || !!problem || !name.trim()} testid="join-library" />
           <p className="lb-hint">You can leave any time from this page.</p>
-        </div>
-      </form>
-    </main>
+        </Plaque>
+      </div>
+    </FrontScene>
   );
 }
 
-/** While the account is still being read: the page's frame, nothing claimed. */
+/** While the account is still being read: the same scene and lettering, nothing claimed, and the key's place held so nothing moves. */
 export function Waiting() {
   return (
-    <main className="wrap lb lb-solo" aria-busy="true">
-      <header className="ph"><div><div className="crumb">Study</div><h1>The Grand Library</h1></div></header>
-      <section className="card lb-gate lb-wait" aria-hidden="true"><Door /></section>
-    </main>
+    <FrontScene busy>
+      <div className="en-col">
+        <Wordmark />
+        <div className="en-cta" aria-hidden="true"><span className="en-key is-ghost"><span className="en-key-cap" /></span></div>
+      </div>
+    </FrontScene>
   );
 }
