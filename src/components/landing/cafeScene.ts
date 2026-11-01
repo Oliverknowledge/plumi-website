@@ -111,6 +111,8 @@ interface Person {
   remote?: boolean;
   known?: boolean;                // library mode: they have said where they stand
   rev?: number;                   // library mode: the last news about their place that was acted on
+  sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
+  sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
 }
 
 const SUBJECTS = ["Physics", "Maths", "Chemistry", "Biology"];
@@ -142,6 +144,8 @@ export interface CafeOptions {
   live?: LiveHooks;
   /** Class names for labels and pops (library mode brings its own, so the homepage's stylesheet is not needed). */
   cls?: Partial<CafeClasses>;
+  /** Library mode only: you, drawn from your own avatar (see `LiveRemote.sheet`), from the first frame. */
+  youSheet?: { sheet: CanvasImageSource; phones: boolean } | null;
 }
 export interface CafeHandle {
   destroy(): void;
@@ -159,6 +163,10 @@ export interface LiveSeat { ipad: number | null; spot: number | null; x: number;
 /** Someone else, as the controller tells the engine: where they stand, the seat they sit in, the walk they are on. */
 export interface LiveRemote {
   id: string; look: number; pos: ArtPoint | null; seat: number | null; path: ArtPoint[]; seated: boolean;
+  /** This person drawn from their avatar: one row of people.png's 78 frames (1248 x 32). While it is absent (the layers are loading, or failed) they wear the premade `look`. */
+  sheet?: CanvasImageSource | null;
+  /** Whether that drawn person wears headphones. */
+  phones?: boolean;
   /** Which piece of news about their place this is: the room acts on each once, so a walk is not restarted every time the list is read. */
   rev: number;
 }
@@ -191,6 +199,8 @@ export interface LibraryHandle extends CafeHandle {
   select(id: string | null): void;
   /** A short word over someone's head ("Wave"), or yours (`"you"`). */
   say(who: string, text: string): void;
+  /** Draw you as this person (your avatar changed, or the art came late); null goes back to the premade look. */
+  dressYou(sheet: CanvasImageSource | null, phones?: boolean): void;
   /** Whether you are in a seat. */
   readonly seated: boolean;
 }
@@ -380,6 +390,7 @@ class Cafe implements CafeHandle {
     // the visitor comes in at the entrance and walks up the runner into the reading hall's middle aisle
     const d = L.door, you = this.person(this.look, d.x, d.y, "back");
     you.you = true; you.speed = this.live ? LIVE_SPEED : 36; you.who = "You";
+    if (this.live && this.o.youSheet) { you.sheet = this.o.youSheet.sheet; you.sheetPhones = this.o.youSheet.phones; }
     this.you = you;
     this.people.push(you);
     const inside = this.nearest(d.tile, d.x - 8, d.y - 150) ?? d.tile;
@@ -890,9 +901,10 @@ class Cafe implements CafeHandle {
       const [x, y] = this.spriteAt(p), f = this.frame(p, tick);
       if (!near(x, y, 16, 32)) continue;
       items.push({ z: this.z(p) + .01, draw: () => {
-        if (p === lit && !p.you) this.outline(f, p.look, x, y);
+        const [img, sy] = this.art(p);
+        if (p === lit && !p.you) this.outline(f, img, sy, x, y);
         sc.globalAlpha = p.alpha;
-        sc.drawImage(a.people, f * 16, p.look * 32, 16, 32, x, y, 16, 32);
+        sc.drawImage(img, f * 16, sy, 16, 32, x, y, 16, 32);
         sc.globalAlpha = 1;
       } });
     }
@@ -911,13 +923,18 @@ class Cafe implements CafeHandle {
     this.place();
   }
 
+  /** Where a person's frames are: their own drawn row (library mode, from their avatar) or their row of the premade sheet. */
+  private art(p: Person): [CanvasImageSource, number] {
+    return p.sheet ? [p.sheet, 0] : [this.a.people, p.look * 32];
+  }
+
   /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
-  private outline(f: number, look: number, x: number, y: number) {
+  private outline(f: number, img: CanvasImageSource, sy: number, x: number, y: number) {
     const g = this.ghost, gc = g.getContext("2d")!;
     if (g.width !== 16) { g.width = 16; g.height = 32; }
     gc.globalCompositeOperation = "source-over";
     gc.clearRect(0, 0, 16, 32);
-    gc.drawImage(this.a.people, f * 16, look * 32, 16, 32, 0, 0, 16, 32);
+    gc.drawImage(img, f * 16, sy, 16, 32, 0, 0, 16, 32);
     gc.globalCompositeOperation = "source-in";
     gc.fillStyle = "#fff";
     gc.fillRect(0, 0, 16, 32);
@@ -929,7 +946,7 @@ class Cafe implements CafeHandle {
     const phones = this.L.people.phones, sc = this.sc;
     let i = 0;
     for (const p of this.people) {
-      if (p.doing !== "sit" || !phones[p.look] || p.you) continue;
+      if (p.doing !== "sit" || !(p.sheet ? p.sheetPhones : phones[p.look]) || p.you) continue;
       const ph = (tick + i * 23 + p.phase * 7) % 90;
       i++;
       if (ph >= 30) continue;
@@ -1083,6 +1100,13 @@ class Cafe implements CafeHandle {
 
   private youChanged() { this.live?.onYou?.(); }
 
+  dressYou(sheet: CanvasImageSource | null, phones = false) {
+    const you = this.you;
+    if (!you || !this.live) return;
+    you.sheet = sheet; you.sheetPhones = phones;
+    this.draw();
+  }
+
   get seated() { const s = this.you?.spot; return !!this.you?.at && !!s && (s.role === "seat" || s.role === "sofa"); }
 
   youNow(): LiveYou | null {
@@ -1158,6 +1182,7 @@ class Cafe implements CafeHandle {
         this.people.push(p);
       }
       p.look = r.look;
+      p.sheet = r.sheet ?? null; p.sheetPhones = r.phones ?? false;
       this.place_(p, r);
     }
     for (const [id, p] of [...this.remotes]) {

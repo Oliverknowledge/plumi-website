@@ -32,7 +32,7 @@ export type Phase = "idle" | "joining" | "live" | "hidden" | "unavailable";
 
 export type LibrarySocial = Pick<SocialService,
   "joinLobby" | "lobbyServers" | "setLobbyPosition" | "leaveLobby" | "lobbyPeople" | "lobbyEmote" | "libraryMessages" |
-  "sendLibraryMessage" | "reportLibraryMessage" | "block" | "reportUser" | "setLobbyVisible">;
+  "sendLibraryMessage" | "reportLibraryMessage" | "block" | "reportUser" | "setLobbyVisible" | "setAvatar">;
 
 export interface Snapshot {
   phase: Phase;
@@ -124,6 +124,9 @@ export class LibrarySession {
   /** Called when the floor changes (a step heard, or who is here): read `remotes()` and tell the room. */
   readonly onFloor = (cb: () => void) => { this.floorListeners.add(cb); return () => { this.floorListeners.delete(cb); }; };
   readonly onEvent = (cb: (e: SessionEvent) => void) => { this.eventListeners.add(cb); return () => { this.eventListeners.delete(cb); }; };
+
+  /** Your own id (lowercase, as the server writes it): the seed for the person you are drawn as when your avatar names none. */
+  get meId() { return this.me; }
 
   remotes(): RemoteState[] { return composeRemotes(this.s.people, this.floor, this.gone, this.now()); }
   describe = (id: string) => {

@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AppLink } from "@/components/studyapp/AppLink";
 import type { LibraryHandle } from "@/components/landing/cafeScene";
 import { toast } from "@/components/studyapp/toast";
-import { leaveLibrary } from "@/lib/library";
+import { leaveLibrary, rememberAvatar, useLibrary } from "@/lib/library";
 import { totalHere } from "@/lib/social/lobby";
+import type { SocialAvatar } from "@/lib/social/types";
 import { publishLive } from "@/lib/studyapp/live";
 import { enterBrowserFullscreen, enterBrowserFullscreenIfJustTapped, exitBrowserFullscreen } from "@/lib/studyapp/library/fullscreen";
 import { markRoom } from "@/lib/studyapp/library/roomOpen";
@@ -13,9 +14,11 @@ import { LibrarySession } from "@/lib/studyapp/library/session";
 import type { LibraryDriver } from "./driver";
 import { Chat, SeatCard, Servers, WhoHere } from "./parts";
 import { RoomCanvas } from "./RoomCanvas";
+import { Wardrobe } from "./Wardrobe";
 import { useSnapshot } from "./useVisit";
 
-type Tab = "chat" | "people" | "libraries";
+type Tab = "chat" | "people" | "libraries" | "outfit";
+const TAB_TITLE: Record<Tab, string> = { chat: "Chat", people: "People", libraries: "Libraries", outfit: "Outfit" };
 
 /**
  * The Grand Library, live: the room with real students in it, your seat, who is here, the libraries and the chat.
@@ -41,6 +44,15 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
   const [full, setFull] = useState(true);
   const [drawer, setDrawer] = useState<Tab | null>(null);
   const [seen, setSeen] = useState(0);
+  const [outfitOpen, setOutfitOpen] = useState(false);       // the notebook layout's wardrobe card
+
+  // Who you are drawn as: the avatar you dressed (the profile's, or what you just saved), else the person your id makes.
+  const lib = useLibrary();
+  const [saved, setSaved] = useState<SocialAvatar | null | undefined>(undefined);
+  const avatar = saved !== undefined ? saved : driver.mine ? driver.mine.avatar : lib.profile?.avatar ?? null;
+  const colour = driver.mine?.colour ?? lib.profile?.colour ?? 0;
+  const you = { avatar, colour };
+  const dressed = (a: Record<string, string>) => { setSaved(a); rememberAvatar(a); };
 
   const scene = driver.scene;
   useEffect(() => {
@@ -119,7 +131,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     return (
       <main className="wrap lb lb-full" data-testid="library" data-full="1" data-drawer={drawer ?? undefined}>
         <div className="lb-fstage">
-          <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." />
+          <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." you={you} />
         </div>
         <div className="lb-hud lb-hud-l">
           <AppLink className="btn lb-hbtn" href="/study" aria-label="Back to your desk">{"\u2190"} Desk</AppLink>
@@ -133,20 +145,22 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           <button type="button" className={`btn lb-hbtn${drawer === "people" ? " is-on" : ""}`} aria-pressed={drawer === "people"} data-testid="open-people" onClick={() => open(drawer === "people" ? null : "people")}>
             People<span className="lb-hcount">{here}</span>
           </button>
+          <button type="button" className={`btn lb-hbtn${drawer === "outfit" ? " is-on" : ""}`} aria-pressed={drawer === "outfit"} data-testid="open-outfit" onClick={() => open(drawer === "outfit" ? null : "outfit")}>Outfit</button>
           <button type="button" className={`btn lb-hbtn${drawer === "libraries" ? " is-on" : ""}`} aria-pressed={drawer === "libraries"} data-testid="open-libraries" onClick={() => open(drawer === "libraries" ? null : "libraries")}>Libraries</button>
           <button type="button" className="btn lb-hbtn" data-testid="exit-full" onClick={exitFull}>{"\u2922"} Exit full screen</button>
         </div>
         <div className="lb-dock"><SeatCard session={session} snap={snap} handleRef={handle} /></div>
         <aside className={`lb-drawer${drawer ? " is-open" : ""}`} aria-label="Library panel" aria-hidden={drawer ? undefined : true} inert={drawer ? undefined : true} data-testid="drawer">
           <div className="lb-tabs" role="tablist">
-            {(["chat", "people", "libraries"] as const).map((t) => (
-              <button key={t} type="button" role="tab" aria-selected={drawer === t} className={drawer === t ? "on" : undefined} onClick={() => open(t)}>{t === "chat" ? "Chat" : t === "people" ? "People" : "Libraries"}</button>
+            {(["chat", "people", "outfit", "libraries"] as const).map((t) => (
+              <button key={t} type="button" role="tab" aria-selected={drawer === t} className={drawer === t ? "on" : undefined} onClick={() => open(t)}>{TAB_TITLE[t]}</button>
             ))}
             <button type="button" className="lb-x" aria-label="Close panel" onClick={() => open(null)}>{"\u00d7"}</button>
           </div>
           <div className="lb-dbody">
             {drawer === "chat" && <Chat session={session} snap={snap} me={driver.me} />}
             {drawer === "people" && <WhoHere session={session} snap={snap} picked={picked} onPick={pick} onPullUp={pullUp} />}
+            {drawer === "outfit" && <Wardrobe social={driver.social} avatar={avatar} colour={colour} me={driver.me} onSaved={dressed} />}
             {drawer === "libraries" && <><Servers session={session} snap={snap} />{leaveBlock}</>}
           </div>
         </aside>
@@ -161,7 +175,12 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           <div className="crumb">Study</div>
           <h1>The Grand Library{snap.shard !== null && <em>Library {snap.shard}</em>}</h1>
         </div>
-        {snap.phase !== "hidden" && <button type="button" className="btn" data-testid="enter-full" onClick={goFull}>{"\u2922"} Full screen</button>}
+        {snap.phase !== "hidden" && (
+          <div className="lb-hbtns">
+            <button type="button" className="btn" data-testid="open-outfit" aria-pressed={outfitOpen} onClick={() => setOutfitOpen((v) => !v)}>Outfit</button>
+            <button type="button" className="btn" data-testid="enter-full" onClick={goFull}>{"\u2922"} Full screen</button>
+          </div>
+        )}
       </header>
 
       {snap.phase === "hidden" ? (
@@ -173,7 +192,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
       ) : (
         <div className="lb-grid">
           <section className="card lb-stage" aria-label="The library floor">
-            <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." />
+            <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. With this focused, arrow keys walk and Enter sits." you={you} />
             {snap.phase === "live" && (
               <span className="lb-live"><i className="dot" aria-hidden="true" />{here} here{revising !== null && revising > here ? ` \u00b7 ${revising} in all` : ""}</span>
             )}
@@ -182,6 +201,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           </section>
           {/* The panel comes straight after the room in reading and tab order, and is placed beside it by the grid */}
           <div className="lb-side">
+            {outfitOpen && <div className="lb-slot lb-s-outfit"><Wardrobe social={driver.social} avatar={avatar} colour={colour} me={driver.me} onSaved={dressed} /></div>}
             <div className="lb-slot lb-s-seat"><SeatCard session={session} snap={snap} handleRef={handle} /></div>
             <div className="lb-slot lb-s-who"><WhoHere session={session} snap={snap} picked={picked} onPick={pick} onPullUp={pullUp} /></div>
             <div className="lb-slot lb-s-servers"><Servers session={session} snap={snap} /></div>

@@ -1,3 +1,4 @@
+import type { SocialAvatar } from "@/lib/social/types";
 import type { LobbyRealtime } from "@/lib/studyapp/library/lobbyWatch";
 import type { LibrarySocial } from "@/lib/studyapp/library/session";
 
@@ -11,6 +12,8 @@ export interface LibraryDriver {
   realtime: () => LobbyRealtime | null;
   /** Your id, as the server and the Realtime topics spell it. */
   me: string;
+  /** Your colour and avatar when the page already holds them (the demo's); else the signed-in profile's. */
+  mine?: { avatar: SocialAvatar | null; colour: number };
   /** Called once the room is up (the demo starts its scripted students here), and returns what to stop. */
   scene?: () => (() => void) | void;
 }

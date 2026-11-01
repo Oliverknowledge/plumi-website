@@ -29,6 +29,9 @@ import { createSocial } from "../src/lib/social/service";
 import { FakeRealtimeHub } from "../src/lib/studyapp/library/fake";
 import { LIBRARY_TILE } from "../src/lib/studyapp/library/room";
 import { LibrarySession } from "../src/lib/studyapp/library/session";
+import { readFileSync } from "node:fs";
+import { personOf, type PeopleCatalogue } from "../src/lib/studyapp/library/people/look";
+import { itemsIn, mergeAvatar, worn } from "../src/lib/studyapp/library/people/wardrobe";
 
 const host = process.env.PGHOST ?? "";
 if (!(host === "localhost" || host === "127.0.0.1" || host === "::1" || host.startsWith("/"))) {
@@ -316,6 +319,58 @@ async function theLibrary(w: { alex: ReturnType<typeof createSocial>; bea: Retur
   ok("leaving the page leaves the library: nobody is left standing in an empty room");
 }
 
+
+/** The web wardrobe against the real schema: a merged avatar is accepted exactly, the whole avatar is replaced, and another student is sent it. */
+async function theWardrobe(w: { alex: ReturnType<typeof createSocial>; bea: ReturnType<typeof createSocial>; cal: ReturnType<typeof createSocial>; raw: (id: string) => Api; ids: { A: string; B: string; C: string } }) {
+  const { alex, bea, cal, raw, ids: { A } } = w;
+  const cat = JSON.parse(readFileSync(new URL("../public/library/people-layers.json", import.meta.url), "utf8")) as PeopleCatalogue;
+  const tile = { x: LIBRARY_TILE.x, y: LIBRARY_TILE.y };
+  const readAvatar = async (id: string) => {
+    const r = await raw(id).select("social_profile", "display_name,colour,avatar", [["eq", "user_id", id]]);
+    return (r.data?.[0]?.avatar ?? null) as Record<string, string> | null;
+  };
+  // What the iPad saved (RoomAvatar.avatar): a hairstyle and outfit the web does not give out, glasses, lilac headphones, the Pro badge, and the older keys.
+  const iPad = { body: "03", eyes: "02", outfit: "24_02", hair: "17_05", acc: "15_glasses_01", phones: "lilac", pro: "1", top: "hoodie", colour: "#7cc6c2", hat: "headphones", hat_colour: "#aa96d2", glasses: "round" };
+  assert.equal((await raw(A).rpc("set_avatar", { avatar: iPad })).error, null);
+  assert.deepEqual(await readAvatar(A), iPad);
+  ok("an avatar the iPad saved reads back through the profile read the web uses");
+
+  // The web wardrobe: read it, put on a free hairstyle, merge, save.
+  const before = (await readAvatar(A))!;
+  const draft = worn(cat, personOf(cat, before, 1, A), itemsIn("hair").find((i) => i.value === "05")!);
+  const merged = mergeAvatar(before, draft);
+  assert.deepEqual(value(await alex.setAvatar(merged)), undefined);
+  const after = await readAvatar(A);
+  assert.deepEqual(after, merged);
+  assert.deepEqual({ ...after, hair: before.hair }, before, "only the hair changed: the outfit, glasses, headphones, pro and every older key are as the iPad left them");
+  assert.ok(after!.hair.startsWith("05_") && after!.pro === "1" && after!.outfit === "24_02" && after!.acc === "15_glasses_01" && after!.phones === "lilac");
+  ok("set_avatar accepts exactly the merged avatar; it changes the hair and nothing else (pro, the outfit dressed on iPad and every older key stay)");
+
+  // set_avatar REPLACES the whole avatar: why the web merges
+  assert.deepEqual(value(await cal.setAvatar({ body: "02", pro: "1", top: "hoodie" })), undefined);
+  assert.deepEqual(value(await cal.setAvatar({ body: "04" })), undefined);
+  assert.deepEqual(await readAvatar(w.ids.C), { body: "04" });
+  ok("set_avatar replaces the whole avatar (a save that sent only the body would have dropped pro and the rest)");
+
+  // A key the server does not know, or a value it dislikes, is refused and changes nothing
+  assert.ok(!(await alex.setAvatar({ ...merged, sneaky: "x" })).ok);
+  assert.ok(!(await alex.setAvatar({ ...merged, hair: "Spiky Hair!" })).ok);
+  assert.deepEqual(await readAvatar(A), merged);
+  ok("an invented key or an unfit value is refused, and the saved avatar is untouched");
+
+  // Another student is sent it
+  const ja = value(await alex.joinLobby(tile));
+  const jb = value(await bea.joinLobby(tile, ja.shard));
+  assert.equal(jb.shard, ja.shard);
+  value(await alex.setLobbyPosition(ja.shard!, tile, { seated: false }));
+  const seenByBea = value(await bea.lobbyPeople(ja.shard!)).find((p) => p.id === A)!;
+  assert.deepEqual(seenByBea.avatar, merged);
+  assert.equal(seenByBea.pro, true);
+  assert.deepEqual(personOf(cat, seenByBea.avatar, seenByBea.colour, seenByBea.id), draft);
+  ok("lobby_people sends another student the saved avatar, and the web draws them as the person that makes (Spiky hair, the iPad's outfit, glasses, lilac headphones)");
+  value(await alex.leaveLobby()); value(await bea.leaveLobby());
+}
+
 async function main() {
   const [A, B, C] = [randomUUID(), randomUUID(), randomUUID()];
   assert.ok(psql(`INSERT INTO auth.users (id, aud, role, email) VALUES ('${A}','authenticated','authenticated','${A}@e2e.test'),('${B}','authenticated','authenticated','${B}@e2e.test'),('${C}','authenticated','authenticated','${C}@e2e.test');`).ok);
@@ -429,6 +484,7 @@ async function main() {
   ok("a reaction reaches its recipient, is marked seen, and nobody else sees it");
 
   await theLibrary({ alex, bea, cal, raw, ids: { A, B, C } });
+  await theWardrobe({ alex, bea, cal, raw, ids: { A, B, C } });
 
   // Leaving
   value(await bea.leaveGroup(g.id));

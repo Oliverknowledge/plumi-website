@@ -85,6 +85,8 @@ interface Student {
   visible: boolean; shard: number | null; seated: boolean; subject: string | null; focusSince: number | null; beat: number;
   emote: LobbyEmote | null; emoteAt: number | null; emoteLast: number; streak: number; level: number;
   said: number[]; reportedHidden: number;
+  /** social_profile.avatar */
+  avatar: Record<string, string> | null;
 }
 interface Msg { id: number; shard: number; sender: string; body: string; at: number; hidden: boolean; reporters: Set<string> }
 
@@ -103,7 +105,7 @@ export class FakeLibraryWorld {
   add(id: string, o: Partial<Student> & { nickname: string; display: string }): Student {
     const s: Student = {
       id, colour: 0, friends: new Set(), blocked: new Set(), pro: false, visible: true, shard: null, seated: false, subject: null, focusSince: null,
-      beat: 0, emote: null, emoteAt: null, emoteLast: -Infinity, streak: 0, level: 1, said: [], reportedHidden: 0, ...o,
+      beat: 0, emote: null, emoteAt: null, emoteLast: -Infinity, streak: 0, level: 1, said: [], reportedHidden: 0, avatar: null, ...o,
     };
     this.students.set(id, s);
     return s;
@@ -170,9 +172,9 @@ export class FakeLibraryWorld {
         if (!s.visible || s.shard !== shard) return notMember<LobbyPerson[]>();
         return ok(this.inShard(shard).filter((x) => x.id !== me && !this.blockedEither(s, x)).map((x) => sanitised({
           id: x.id, nickname: x.nickname, displayName: s.friends.has(x.id) ? x.display : null, isFriend: s.friends.has(x.id), colour: x.colour,
-          avatar: x.pro ? { pro: "1" } : null, x: LIBRARY_TILE.x, y: LIBRARY_TILE.y, seated: x.seated, subjectId: x.subject, focusSince: x.focusSince,
+          avatar: x.avatar ?? (x.pro ? { pro: "1" } : null), x: LIBRARY_TILE.x, y: LIBRARY_TILE.y, seated: x.seated, subjectId: x.subject, focusSince: x.focusSince,
           streak: x.streak, level: x.level, groups: [], emote: x.emoteAt !== null && this.now() - x.emoteAt < 10_000 ? x.emote : null,
-          emoteAt: x.emoteAt !== null && this.now() - x.emoteAt < 10_000 ? x.emoteAt : null, updatedAt: x.beat, pro: x.pro,
+          emoteAt: x.emoteAt !== null && this.now() - x.emoteAt < 10_000 ? x.emoteAt : null, updatedAt: x.beat, pro: x.avatar ? x.avatar.pro === "1" : x.pro,
         })));
       }),
       lobbyEmote: (kind) => gate("lobbyEmote", () => {
@@ -219,6 +221,14 @@ export class FakeLibraryWorld {
       }),
       block: (id) => gate("block", () => { self().blocked.add(id); return ok(undefined); }),
       reportUser: (id, reason) => gate("reportUser", () => { this.userReports.push({ user: id, by: me, reason }); return ok(undefined); }),
+      // set_avatar (0120): replaces the whole avatar; only these keys, each an identifier or a #rrggbb colour, at most 1024 bytes
+      setAvatar: (avatar) => gate("setAvatar", () => {
+        const allowed = ["feather", "top", "colour", "shade", "accent", "legs", "shoe", "hat", "hat_colour", "scarf", "glasses", "body", "eyes", "outfit", "hair", "acc", "phones", "pro"];
+        const entries = Object.entries(avatar ?? {});
+        if (JSON.stringify(avatar).length > 1024 || entries.some(([k, v]) => !allowed.includes(k) || typeof v !== "string" || !(/^[a-z0-9_-]{1,24}$/.test(v) || /^#[0-9a-f]{6}$/.test(v)))) return fail({ kind: "unavailable" });
+        self().avatar = { ...avatar };
+        return ok(undefined);
+      }),
       setLobbyVisible: (visible) => gate("setLobbyVisible", () => { const s = self(); s.visible = visible; if (!visible) s.shard = null; return ok(undefined); }),
     };
   }

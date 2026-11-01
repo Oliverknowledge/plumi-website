@@ -15,10 +15,21 @@ const seat = (i: number) => ({ x: IPAD_SEATS[i][0], y: IPAD_SEATS[i][1], seat: i
 /** A tile of the ground floor's open row (y 34 in the layout's grid) as a sprite top-left on the wire: x = tile * 32, y = tile row * 32 - 38. */
 const row = (tx: number, ty = 34) => ({ x: tx * 32, y: ty * 32 - 38 });
 
+/** You, dressed on the iPad: blue hair (a hairstyle the web does not give out), a shirt, red headphones, and Pro. */
+const ME_AVATAR: Record<string, string> = { body: "03", eyes: "02", outfit: "12_03", hair: "29_04", acc: "none", phones: "red", pro: "1", feather: "blue", top: "hoodie", colour: "#7cc6c2", hat: "headphones", hat_colour: "#e0605a", glasses: "none" };
+/** Who else is here, dressed: a different person each, one with only the old keys, some with none at all (drawn from their id). */
+const AVATARS: Record<number, Record<string, string>> = {
+  2: { body: "05", eyes: "03", outfit: "04_02", hair: "06_03", acc: "15_glasses_01", phones: "teal" },
+  3: { body: "01", eyes: "05", outfit: "24_01", hair: "19_04", acc: "none", phones: "none" },
+  4: { body: "07", eyes: "01", outfit: "02_01", hair: "12_06", acc: "none", phones: "lilac" },
+  5: { body: "04", eyes: "06", outfit: "10_02", hair: "05_01", acc: "none", phones: "cream", pro: "1" },
+  7: { feather: "pink", top: "hoodie", colour: "#5a86bf", hat: "none", glasses: "round" },
+};
+
 export function demoDriver(): LibraryDriver {
   const world = new FakeLibraryWorld();
   const hub = new FakeRealtimeHub();
-  world.add(DEMO_ME, { nickname: "Quiet Otter", display: "You", colour: 1 });
+  world.add(DEMO_ME, { nickname: "Quiet Otter", display: "You", colour: 1, avatar: ME_AVATAR });
   const cast = [
     { id: uuid(2), nickname: "Bold Fox", display: "Maya", colour: 2, friend: true, subject: "chemistry", seatIdx: 9, mins: 24 },
     { id: uuid(3), nickname: "Calm Heron", display: "Josh", colour: 3, friend: true, subject: null, seatIdx: null, mins: 0 },
@@ -28,7 +39,7 @@ export function demoDriver(): LibraryDriver {
     { id: uuid(7), nickname: "Snowy Owl", display: "Owl", colour: 7, friend: false, subject: "biology", seatIdx: 49, mins: 5 },
   ];
   for (const c of cast) {
-    world.add(c.id, { nickname: c.nickname, display: c.display, colour: c.colour, pro: c.pro ?? false, streak: 3 + c.colour * 2, level: 4 + c.colour });
+    world.add(c.id, { nickname: c.nickname, display: c.display, colour: c.colour, pro: c.pro ?? false, avatar: AVATARS[Number(c.id.slice(-2))] ?? null, streak: 3 + c.colour * 2, level: 4 + c.colour });
     if (c.friend) world.befriend(DEMO_ME, c.id);
   }
   // another library with a few in it, for the picker
@@ -38,6 +49,7 @@ export function demoDriver(): LibraryDriver {
     social: world.social(DEMO_ME),
     realtime: () => hub.client(DEMO_ME),
     me: DEMO_ME,
+    mine: { avatar: ME_AVATAR, colour: 1 },
     scene() {
       const t0 = Date.now();
       const bots = new Map<string, FakeBot>();

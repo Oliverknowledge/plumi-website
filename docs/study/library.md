@@ -80,16 +80,77 @@ seconds behind and says "Catching up".
   (the iPad's 140 points: `LibraryScene.speed`, `LibraryScene.swift:128`). The iPad eases in and out; the web does
   not, so a long walk can differ by a fraction of a second. A new `move` re-places someone more than 24 pixels (48
   points) off, as `remoteHeard` does (`LibraryScene.swift:298`).
-- **Looks.** NOT the same. A student's look is picked from their id on each client (`lookFor`, the iPad's hash) from
-  that client's own cast; the iPad's people sheet and this site's `people.png` are different, restyled sheets (no
-  frame matches), so the same student may wear a different look on the other client. Cosmetic: nothing identifies a
-  student by it.
+- **Looks.** Everyone is drawn as the person they dressed (see "People and the wardrobe" below). Someone whose
+  avatar names no person, or whose layers have not loaded yet, wears a premade look from `people.png` picked from
+  their id (`lookFor`, the iPad's hash over this site's own cast). Cosmetic: nothing identifies a student by it.
 - **Ambient crowd.** The iPad draws anonymous decorative students ("less NPCs for each real person", `LibraryScene`
   `seatTheCrowd`). The web draws only real people and the two staff, so what is on screen is who is here. Counts never
   include decoration on either side.
 - **Not verified.** Agreement is by reading the iPad's code and by tests of the pure format; **no iPad build ran
   against this**, so a real iPad seeing a real web student walk is unproven. The one thing to check first on a device:
   a web student sits in seat N, an iPad student sees them in the same chair.
+
+## People and the wardrobe
+
+**Drawn as themselves.** The iPad dresses a person from LimeZu layers (body, eyes, outfit, hair, accessory,
+headphones; app repo `PixelPeople.swift`, `RoomAvatar.swift`). The site ships the same layers
+(`public/library/people-layers.bin` + `.json` = the app's `lz_people.bin/.json`, loaded only by the Study page, 0.6 MB),
+and `src/lib/studyapp/library/people/` builds each student's 78 frames from them:
+
+| | |
+|---|---|
+| `look.ts` | `PersonLook`, `known` (unknown part -> nearest known), `derived` and `personOf` (= `RoomAvatar.person`): the iPad's FNV-1a hash, so an avatar with no person is the same derived person as on every iPad. |
+| `png.ts`, `layers.ts` | Reads the indexed PNGs itself (a canvas would premultiply the alpha-92 shadow pixels). |
+| `sheet.ts` | Layers over one another, the book, `lengthen` 1.25, the Plumi headphones, the colour grade the web art is baked with, laid out as the engine's 78 frames. The mapping is written at the top of the file. |
+| `store.ts` | Browser adapter: fetch once, build a row per distinct look, cache (80), tell subscribers. A row not built yet answers null and the room keeps the premade person. |
+| `wardrobe.ts` | The free set, `worn`, `mergeAvatar`. `components/studyapp/library/Wardrobe.tsx` is the panel. |
+
+**The mapping was found, not assumed.** `people.png` was cut from the same pack by `scripts/cafe-hero/export_library.py`.
+Its 36 looks were reproduced from their parts (the crowd generator's seed), composed with this code, and compared:
+all 36 x 78 frames have the identical outline; all but at most 12 of 512 pixels agree (the rest are the soft hair
+shadows: the iPad restyles each layer before laying them over each other, the web cast restyled the finished picture, so
+a shadow over skin is lighter there). `people/sheet.test.ts` holds this. Idle 0-23 and walk 24-47 are layer rows 0 and
+1; sit 48-59, phone 60-65 and read 66-71 (with a book) are row 2; the stool frames (72-77) are the "back" idle frames,
+lengthened a second time and cut to rows 4 to 23.
+
+**What the iPad itself does.** Its Grand Library scene draws only *you* from your wardrobe look (`LibraryArt.dress`).
+Other people there are drawn from the library sheet's rows (`LibraryScene.pick`, a hash of their id). The web draws
+everyone from their avatar, which is what the iPad's own cards, chat dots and hall do (`RoomAvatar.person`). So a
+web student's outfit reaches iPad students in cards and lists now, and in the iPad's library scene only when that
+scene starts drawing others from avatars. Not a web fix.
+
+**The wardrobe offers only the free starter set.** Most parts cost ink earned by studying (some unlock by streak or
+focus hours); ownership is kept on the iPad and `set_avatar` does not check it. The web has no ink and does not go
+round that economy: it offers the items with `price == 0` and no unlock in `RoomStore.swift` `WardrobeItem.all`
+(7 skins, 7 eyes, 6 hairstyles, 5 outfits, no glasses, no headphones, teal, red) and the colours of the style worn
+(free on the iPad too: `setVariant`). A part dressed on the iPad outside that set stays on, shown as "Current", until
+the student picks another in that slot. `wardrobe.test.ts` parses the Swift source to hold the list and the titles
+to the iPad's when the app repo is beside this one. The iPad's titles are used as they are (skin 01 is "Fair" there,
+though the art's first body is the darkest: not changed here).
+
+**Saving.** `set_avatar` REPLACES the avatar (0120: `UPDATE social_profile SET avatar = $1`) and takes only
+feather, top, colour, shade, accent, legs, shoe, hat, hat_colour, scarf, glasses, body, eyes, outfit, hair, acc,
+phones, pro, each an identifier or `#rrggbb`. So a save starts from the avatar read from `social_profile`
+(`library.ts`, `useLibrary().profile.avatar`) and changes only body, eyes, outfit, hair, acc and phones ("none" when
+empty); `pro` and every older key stay. A key or value the server would refuse is left out of the merge rather than
+failing the save. A failed save says one plain line and keeps the choice on screen. After a save the room redraws you
+at once; the avatar is also remembered in the profile store.
+
+**How fast a friend sees it.** `lobby_people` returns `social_profile.avatar`, and the visit reads it every 2 s
+(every 5 s while the floor is live; `PEOPLE_EVERY_MS`, `PEOPLE_LIVE_EVERY_MS`), so a web friend's room changes within
+5 s of the save landing. An iPad friend reads on `lobbyReadEvery`/`liveReadEvery` (2 s and 5 s), but draws the person in
+cards and lists, not in its library scene (above).
+
+**Known conflict, not solved: two devices, one avatar.** The iPad also writes the avatar (`SocialModel.publishAvatar`,
+every poll, only when it differs from what *that process* last sent; `lastSentAvatar` is in memory). The server keeps
+whichever saved last. The iPad never reads its own avatar back from the server (`avatarSource` is its local
+`RoomStore.look`), so a web change is never pulled into the iPad's wardrobe, and the iPad sends its own look again at
+its next launch or whenever its look changes, replacing the web's. A student who dresses on both will see the iPad's
+look return after the iPad is next opened.
+
+**Checked.** `npm run library:test` (people/ added), and `social:e2e` section "the wardrobe" (5 checks on the real
+schema: an iPad avatar reads back, the merged avatar is accepted exactly and changes only what was chosen, the whole
+avatar is replaced, an invented key is refused, and another student's `lobby_people` returns it).
 
 ## Safety (students are 13 to 18)
 
@@ -110,7 +171,7 @@ seconds behind and says "Catching up".
 ## Tests and what they prove
 
 ```bash
-npm run library:test         # 73 tests: room.test.ts 17, session.test.ts 29, social/library.test.ts 27
+npm run library:test         # room, session, social/library and people/ (look, sheet, wardrobe, flow)
 npm run social:test          # 54 (the earlier suite; one assertion updated, see below)
 npm run app:test             # 57 (the lead's)
 npm run library:seats -- --check   # ipadSeats.ts matches the app's lib_world.json

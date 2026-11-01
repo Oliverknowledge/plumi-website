@@ -1,4 +1,5 @@
 import { focusTag, shownName, type LobbyPerson } from "../../social/lobby";
+import type { SocialAvatar } from "../../social/types";
 import { lookFor, toArt, type FloorPresence, type Pt } from "./room";
 
 /**
@@ -19,7 +20,10 @@ export const GONE_FOR_MS = 35_000;
 
 /** The shape the room takes (cafeScene.ts LiveRemote): positions in art pixels, the seat as the iPad numbers it. */
 export interface RemoteState {
-  id: string; look: number; pos: Pt | null; seat: number | null; path: Pt[]; seated: boolean;
+  id: string; look: number;
+  /** What they dressed as and who they are, for drawing them as themselves (people/): the avatar the server sent, their colour, their id above. */
+  avatar: SocialAvatar | null; colour: number;
+  pos: Pt | null; seat: number | null; path: Pt[]; seated: boolean;
   /** Which piece of floor news this is (0 for none): the room acts on each once, so a walk heard once is not restarted every time the list is read. */
   rev: number;
 }
@@ -32,7 +36,7 @@ export function composeRemotes(people: readonly LobbyPerson[], floor: ReadonlyMa
     const heard = floor.get(p.id);
     const fresh = heard && now - heard.at < FLOOR_FRESH_MS ? heard.floor : null;
     out.push({
-      id: p.id, look: lookFor(p.id), seated: p.seated || fresh?.seat != null,
+      id: p.id, look: lookFor(p.id), avatar: p.avatar, colour: p.colour, seated: p.seated || fresh?.seat != null,
       pos: fresh ? toArt([fresh.x, fresh.y]) : null,
       seat: fresh?.seat ?? null,
       path: fresh ? fresh.path.map(toArt) : [],

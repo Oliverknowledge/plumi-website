@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { onUser, supabase } from "@/lib/account";
 import { track } from "@/lib/analytics";
+import type { SocialAvatar } from "@/lib/social/types";
 
 /**
  * "Join the library": the step that puts a signed-in student in the Grand Library, the
@@ -62,22 +63,37 @@ export function suggestedName(signInName: string | null) {
 
 /* ── The student's place in the library, as a store ────────────────────── */
 
-export interface LibraryProfile { name: string; colour: number }
+export interface LibraryProfile {
+  name: string;
+  colour: number;
+  /** The cosmetic keys the student dressed with (`social_profile.avatar`: body, eyes, outfit, hair, acc, phones, pro and the older keys), or null if none are saved. Draws them in the Grand Library. */
+  avatar?: SocialAvatar | null;
+}
 type State = { checked: boolean; profile: LibraryProfile | null };
 let state: State = { checked: false, profile: null };
 const listeners = new Set<() => void>();
 let started = false;
 let user: string | null = null;
 
+/** Strings only, as the social service reads an avatar; null when there is nothing. */
+function avatarOf(v: unknown): SocialAvatar | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const out: SocialAvatar = {};
+  for (const [k, val] of Object.entries(v)) if (typeof val === "string") out[k] = val;
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 function set(next: State) { state = next; listeners.forEach(l => l()); }
 
 async function load(uid: string) {
   const sb = supabase();
   if (!sb) return;
-  const { data, error } = await sb.from("social_profile").select("display_name,colour").eq("user_id", uid).maybeSingle();
+  // The avatar column came with the app's 0108; a server without it answers an error, so ask again without it (the same ladder as the social service's profile read).
+  let { data, error } = await sb.from("social_profile").select("display_name,colour,avatar").eq("user_id", uid).maybeSingle();
+  if (error) ({ data, error } = await sb.from("social_profile").select("display_name,colour").eq("user_id", uid).maybeSingle());
   if (user !== uid) return;
   if (error) { set({ checked: true, profile: null }); return; }
-  set({ checked: true, profile: data ? { name: data.display_name as string, colour: data.colour as number } : null });
+  set({ checked: true, profile: data ? { name: data.display_name as string, colour: data.colour as number, avatar: avatarOf((data as { avatar?: unknown }).avatar) } : null });
 }
 
 function subscribe(cb: () => void) {
@@ -97,6 +113,11 @@ const SERVER: State = { checked: false, profile: null };
 /** Whether the signed-in student has joined, and as whom. `checked` is false until the server has said. */
 export const useLibrary = () => useSyncExternalStore(subscribe, () => state, () => SERVER);
 
+/** The avatar the student just saved, so the room draws it at once without another read. */
+export function rememberAvatar(avatar: SocialAvatar) {
+  if (state.profile) set({ checked: true, profile: { ...state.profile, avatar } });
+}
+
 /** Join (or change name and colour). The server's refusal of a name comes back as `refused`. */
 export async function joinLibrary(name: string, colour: number): Promise<{ ok: true } | { ok: false; refused: boolean; message: string }> {
   const sb = supabase();
@@ -111,7 +132,7 @@ export async function joinLibrary(name: string, colour: number): Promise<{ ok: t
     return { ok: false, refused, message: refused ? "Try another name" : "That didn’t go through. Check your connection and try again." };
   }
   const joined = state.profile === null;
-  set({ checked: true, profile: { name: (data?.display_name as string) ?? clean, colour: (data?.colour as number) ?? colour } });
+  set({ checked: true, profile: { name: (data?.display_name as string) ?? clean, colour: (data?.colour as number) ?? colour, avatar: state.profile?.avatar ?? null } });
   if (joined) track("library_joined", { colour });
   return { ok: true };
 }
