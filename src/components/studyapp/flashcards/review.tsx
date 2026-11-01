@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNow } from "@/lib/studyapp/clock";
-import { dueNow, type Card } from "@/lib/studyapp/model";
+import { dueNow, type Card, type Scope } from "@/lib/studyapp/model";
 import { GRADES, previewLabel, type Grade } from "@/lib/studyapp/srs";
 import { actions, useApp } from "@/lib/studyapp/store";
 
@@ -20,6 +20,8 @@ export interface Review {
   shown: boolean;
   /** Cards reviewed this visit, and cards still due (including the one on show). */
   done: number;
+  /** How many times each grade (Again, Hard, Good, Easy) was given this visit. */
+  counts: readonly [number, number, number, number];
   remaining: number;
   /** When the next learning card comes due, if nothing is due now. */
   waitUntil: number | null;
@@ -30,14 +32,19 @@ export interface Review {
   previews: string[];
 }
 
-export function useReview(deckId?: string): Review {
+/** `scope`: undefined for everything due, a deck id, or several deck ids (a mix or a session). */
+export function useReview(scope?: Scope): Review {
   const { ready, data } = useApp();
   const now = useNow(1000);
   const [pinned, setPinned] = useState<string | null>(null);
   const [shownId, setShownId] = useState<string | null>(null);
-  const [done, setDone] = useState(0);
+  const [counts, setCounts] = useState<[number, number, number, number]>([0, 0, 0, 0]);
+  const done = counts[0] + counts[1] + counts[2] + counts[3];
+  // Deck ids never hold a comma, so a list can travel as one string and keep the memo below from re-running on every render.
+  const scopeKey = scope === undefined ? "*" : typeof scope === "string" ? scope : scope.join(",");
+  const deckScope = useMemo(() => (scopeKey === "*" ? undefined : scopeKey.split(",")), [scopeKey]);
 
-  const q = useMemo(() => (ready && now ? dueNow(data, now, deckId) : { ids: [] as string[], nextAt: null as number | null }), [ready, data, now, deckId]);
+  const q = useMemo(() => (ready && now ? dueNow(data, now, deckScope) : { ids: [] as string[], nextAt: null as number | null }), [ready, data, now, deckScope]);
   const cardId = pinned && q.ids.includes(pinned) ? pinned : q.ids[0] ?? null;
   const card = cardId ? data.cards.find((c) => c.id === cardId) ?? null : null;
   const shown = !!card && shownId === card.id;
@@ -48,13 +55,13 @@ export function useReview(deckId?: string): Review {
     actions.grade(card.id, g);
     setPinned(null);
     setShownId(null);
-    setDone((n) => n + 1);
+    setCounts((c) => { const next: [number, number, number, number] = [c[0], c[1], c[2], c[3]]; next[g - 1]++; return next; });
   }, [card, shownId]);
 
   const previews = useMemo(() => (card && now ? GRADES.map((g) => previewLabel(card.sch, g.grade, now)) : ["", "", "", ""]), [card, now]);
   return {
-    ready, card, deckTitle: card ? data.decks.find((d) => d.id === card.deckId)?.title ?? "" : "", shown, done, remaining: q.ids.length,
-    waitUntil: q.nextAt, totalCards: data.cards.filter((c) => !deckId || c.deckId === deckId).length, show, grade, previews,
+    ready, card, deckTitle: card ? data.decks.find((d) => d.id === card.deckId)?.title ?? "" : "", shown, done, counts, remaining: q.ids.length,
+    waitUntil: q.nextAt, totalCards: deckScope ? data.cards.filter((c) => deckScope.includes(c.deckId)).length : data.cards.length, show, grade, previews,
   };
 }
 
@@ -75,6 +82,8 @@ export function useReviewKeys(review: Review, enabled = true) {
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // A focused button or link keeps its own Space (it presses it); only elsewhere does Space turn the card over.
+      if (e.key === " " && /^(BUTTON|A|SUMMARY)$/.test(t?.tagName ?? "")) return;
       if (e.key === " " && review.card && !review.shown) { e.preventDefault(); review.show(); }
       else if (/^[1-4]$/.test(e.key) && review.shown) { e.preventDefault(); review.grade(Number(e.key) as Grade); }
     };

@@ -29,7 +29,15 @@ export interface DayLog { n: number; right: number; fresh: number }
 
 export interface Last { kind: "cards" | "library" | "task"; label: string; href: string; at: number }
 
+/** A named mix of decks a student can run again: "Chemistry week". Device-only, like everything else here. */
+export interface Session { id: string; name: string; deckIds: string[] }
+
 export interface AppData {
+  /**
+   * Still 1 on purpose: `sessions` was added without changing the shape of anything that was already here, so a save
+   * written before it has none (read as an empty list) and a tab still running the older site ignores it instead of
+   * discarding the whole save, which a version bump would make it do.
+   */
   v: 1;
   tasks: Task[];
   exam: Exam | null;
@@ -39,9 +47,11 @@ export interface AppData {
   last: Last | null;
   /** New cards a day. */
   perDay: number;
+  /** Saved mixes of decks (Flashcards, "My sessions"). */
+  sessions: Session[];
 }
 
-export const EMPTY: AppData = { v: 1, tasks: [], exam: null, decks: [], cards: [], log: {}, last: null, perDay: NEW_PER_DAY };
+export const EMPTY: AppData = { v: 1, tasks: [], exam: null, decks: [], cards: [], log: {}, last: null, perDay: NEW_PER_DAY, sessions: [] };
 
 let counter = 0;
 export function makeId(prefix: string, now: number): string {
@@ -147,7 +157,13 @@ export function renameDeck(data: AppData, id: string, title: string): AppData {
 }
 
 export function deleteDeck(data: AppData, id: string): AppData {
-  return { ...data, decks: data.decks.filter((d) => d.id !== id), cards: data.cards.filter((c) => c.deckId !== id) };
+  return {
+    ...data,
+    decks: data.decks.filter((d) => d.id !== id),
+    cards: data.cards.filter((c) => c.deckId !== id),
+    // A deck that is gone leaves every session; a session left with no decks goes with it.
+    sessions: data.sessions.map((s) => ({ ...s, deckIds: s.deckIds.filter((d) => d !== id) })).filter((s) => s.deckIds.length > 0),
+  };
 }
 
 export function addCard(data: AppData, deckId: string, front: string, back: string, now: number): AppData {
@@ -155,6 +171,35 @@ export function addCard(data: AppData, deckId: string, front: string, back: stri
   if (!f || !b || !data.decks.some((d) => d.id === deckId)) return data;
   const card: Card = { id: makeId("c", now), deckId, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null };
   return { ...data, cards: [...data.cards, card] };
+}
+
+/** Many cards at once (an import): one pass, in the order given, and the same limits as `addCard`. Pairs that are empty once trimmed are skipped. */
+export function addCards(data: AppData, deckId: string, pairs: readonly (readonly [string, string])[], now: number): AppData {
+  if (!data.decks.some((d) => d.id === deckId)) return data;
+  const made: Card[] = [];
+  for (const [front, back] of pairs) {
+    const f = clip(front, 400), b = clip(back, 800);
+    if (f && b) made.push({ id: makeId("c", now), deckId, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null });
+  }
+  return made.length ? { ...data, cards: [...data.cards, ...made] } : data;
+}
+
+/** Where an import goes: a deck that exists, or a new one (named, with a subject). */
+export type ImportTarget = { deckId: string } | { title: string; subject: string | null };
+
+export function importInto(data: AppData, target: ImportTarget, pairs: readonly (readonly [string, string])[], now: number): { data: AppData; deckId: string | null; added: number } {
+  let next = data;
+  let deckId: string;
+  if ("deckId" in target) deckId = target.deckId;
+  else {
+    const made = addDeck(data, target.title, now, target.subject);
+    if (!made.deck) return { data, deckId: null, added: 0 };
+    next = made.data; deckId = made.deck.id;
+  }
+  const after = addCards(next, deckId, pairs, now);
+  // A new deck with nothing in it is not left behind.
+  if (after.cards.length === data.cards.length && !("deckId" in target)) return { data, deckId: null, added: 0 };
+  return { data: after, deckId, added: after.cards.length - data.cards.length };
 }
 
 /** Edit the words of a card; its schedule is kept (fixing a typo does not reset what a student has learned). */
@@ -221,9 +266,13 @@ export function gradeCard(data: AppData, cardId: string, grade: Grade, now: numb
   };
 }
 
-/** What is due now, optionally for one deck. */
-export function dueNow(data: AppData, now: number, deckId?: string) {
-  return queue(data.cards.map((c) => ({ id: c.id, deckId: c.deckId, sch: c.sch, createdAt: c.createdAt })), now, dayLog(data, dayOf(now)).fresh, data.perDay, deckId);
+/** Which decks a review covers: everything (undefined), one deck (its id) or several (their ids). */
+export type Scope = string | readonly string[] | undefined;
+
+/** What is due now, optionally for one deck or a mix of decks. The day's new-card allowance is shared by the whole mix. */
+export function dueNow(data: AppData, now: number, scope?: Scope) {
+  const pool = scope === undefined ? data.cards : typeof scope === "string" ? data.cards.filter((c) => c.deckId === scope) : (() => { const ids = new Set(scope); return data.cards.filter((c) => ids.has(c.deckId)); })();
+  return queue(pool.map((c) => ({ id: c.id, deckId: c.deckId, sch: c.sch, createdAt: c.createdAt })), now, dayLog(data, dayOf(now)).fresh, data.perDay);
 }
 
 /** Per-deck counts for the Decks page. */
@@ -260,12 +309,68 @@ export function exportDeck(data: AppData, deckId: string): string {
   return data.cards.filter((c) => c.deckId === deckId).map((c) => `${flat(c.front)}\t${flat(c.back)}`).join("\n");
 }
 
+/* ── Sessions: saved mixes of decks ──────────────────────────────────── */
+
+export const SESSION_NAME_MAX = 40;
+const MAX_SESSIONS = 50;
+const sessionName = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, SESSION_NAME_MAX).trim();
+
+/** A session from the decks ticked (the ones that exist, once each). Needs a name and at least one deck. */
+export function addSession(data: AppData, name: string, deckIds: readonly string[], now: number): { data: AppData; session: Session | null } {
+  const n = sessionName(name);
+  const live = new Set(data.decks.map((d) => d.id));
+  const ids = [...new Set(deckIds)].filter((id) => live.has(id));
+  if (!n || ids.length === 0 || data.sessions.length >= MAX_SESSIONS) return { data, session: null };
+  const session: Session = { id: makeId("s", now), name: n, deckIds: ids };
+  return { data: { ...data, sessions: [...data.sessions, session] }, session };
+}
+
+export function renameSession(data: AppData, id: string, name: string): AppData {
+  const n = sessionName(name);
+  return n ? { ...data, sessions: data.sessions.map((s) => (s.id === id ? { ...s, name: n } : s)) } : data;
+}
+
+export const deleteSession = (data: AppData, id: string): AppData => ({ ...data, sessions: data.sessions.filter((s) => s.id !== id) });
+
+/** A starting name for a session made of these decks: "Carbonyls + Mechanics", or "Carbonyls + 2 more" when that would be long. */
+export function suggestSessionName(titles: readonly string[]): string {
+  const short = titles.map((t) => (t.includes(" · ") ? t.slice(t.indexOf(" · ") + 3) : t).trim()).filter(Boolean);
+  if (short.length === 0) return "";
+  const full = short.join(" + ");
+  if (full.length <= SESSION_NAME_MAX) return full;
+  return sessionName(`${short[0]} + ${short.length - 1} more`);
+}
+
+/** The subjects the student has decks in, in the app's subject order; null (no subject) last, if any deck has none. */
+export function subjectsInUse(data: AppData): (string | null)[] {
+  const order = (s: string) => { const i = (SUBJECTS as readonly string[]).indexOf(s); return i < 0 ? SUBJECTS.length : i; };
+  const named = [...new Set(data.decks.map((d) => d.subject).filter((s): s is string => !!s))].sort((a, b) => order(a) - order(b) || a.localeCompare(b));
+  return data.decks.some((d) => !d.subject) ? [...named, null] : named;
+}
+
 /** What "Continue" on the Desk offers: where the student last was, else the most useful next thing. */
 export function continueTarget(data: AppData, now: number): { label: string; href: string } {
   const due = dueNow(data, now);
   if (data.last && now - data.last.at < 14 * 86_400_000 && !(data.last.kind === "cards" && due.ids.length === 0)) return { label: `Continue · ${data.last.label}`, href: data.last.href };
   if (due.ids.length > 0) return { label: `Start · ${due.ids.length} flashcard${due.ids.length === 1 ? "" : "s"}`, href: "/study/flashcards" };
   return { label: "Enter the Grand Library", href: "/study/library" };
+}
+
+/** Saved sessions as read from storage: names tidied, decks that no longer exist dropped, empty or repeated sessions dropped. A save from before sessions existed has none. */
+function cleanSessions(raw: unknown, deckIds: ReadonlySet<string>): Session[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: Session[] = [];
+  for (const s of raw as Partial<Session>[]) {
+    if (!s || typeof s !== "object" || typeof s.id !== "string" || typeof s.name !== "string" || !Array.isArray(s.deckIds) || seen.has(s.id)) continue;
+    const name = sessionName(s.name);
+    const ids = [...new Set(s.deckIds.filter((d): d is string => typeof d === "string" && deckIds.has(d)))];
+    if (!name || ids.length === 0) continue;
+    seen.add(s.id);
+    out.push({ id: s.id, name, deckIds: ids });
+    if (out.length >= MAX_SESSIONS) break;
+  }
+  return out;
 }
 
 /** A tidy copy of whatever was in storage; anything unreadable becomes empty rather than breaking the page. */
@@ -285,5 +390,6 @@ export function sanitise(raw: unknown): AppData {
     log: r.log && typeof r.log === "object" ? r.log : {},
     last: r.last && typeof r.last.label === "string" && typeof r.last.href === "string" ? r.last : null,
     perDay: typeof r.perDay === "number" && r.perDay >= 0 && r.perDay <= 200 ? r.perDay : NEW_PER_DAY,
+    sessions: cleanSessions(r.sessions, ids),
   };
 }

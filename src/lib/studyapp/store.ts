@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  addCard, addDeck, addStarters, addTask, deleteCard, deleteDeck, dueNow, EMPTY, editCard, gradeCard, importCards, removeTask, renameDeck,
-  sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type Last,
+  addCard, addDeck, addSession, addStarters, addTask, deleteCard, deleteDeck, deleteSession, dueNow, EMPTY, editCard, gradeCard, importCards, importInto,
+  removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last,
 } from "./model";
 import type { Grade } from "./srs";
 
@@ -78,6 +78,19 @@ export const actions = {
   importCards: (deckId: string, text: string): { added: number; skipped: number } => {
     let out = { added: 0, skipped: 0 };
     change((d) => { const r = importCards(d, deckId, text, now()); out = { added: r.added, skipped: r.skipped }; return r.data; });
+    return out;
+  },
+  addSession: (name: string, deckIds: readonly string[]): string | null => {
+    let id: string | null = null;
+    change((d) => { const r = addSession(d, name, deckIds, now()); id = r.session?.id ?? null; return r.data; });
+    return id;
+  },
+  renameSession: (id: string, name: string) => change((d) => renameSession(d, id, name)),
+  deleteSession: (id: string) => change((d) => deleteSession(d, id)),
+  /** Cards read from a file or pasted text, into a deck that exists or a new one. */
+  importInto: (target: ImportTarget, pairs: readonly (readonly [string, string])[]): { deckId: string | null; added: number } => {
+    let out: { deckId: string | null; added: number } = { deckId: null, added: 0 };
+    change((d) => { const r = importInto(d, target, pairs, now()); out = { deckId: r.deckId, added: r.added }; return r.data; });
     return out;
   },
   grade: (cardId: string, grade: Grade) => change((d) => gradeCard(d, cardId, grade, now())),

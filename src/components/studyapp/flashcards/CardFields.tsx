@@ -37,7 +37,7 @@ export function CardFields({
     <div className="cardfields">
       <div className="cf-grid">
         <label htmlFor={`${idPrefix}-front`} className="lbl">Front (the question)</label>
-        <textarea id={`${idPrefix}-front`} ref={frontEl} value={front} maxLength={400} rows={2} onChange={(e) => setFront(e.target.value)} onFocus={() => setActive("front")} onKeyDown={keys} data-testid={`${idPrefix}-front`} />
+        <textarea id={`${idPrefix}-front`} data-autofocus ref={frontEl} value={front} maxLength={400} rows={2} onChange={(e) => setFront(e.target.value)} onFocus={() => setActive("front")} onKeyDown={keys} data-testid={`${idPrefix}-front`} />
         <label htmlFor={`${idPrefix}-back`} className="lbl">Back (the answer)</label>
         <textarea id={`${idPrefix}-back`} ref={backEl} value={back} maxLength={800} rows={3} onChange={(e) => setBack(e.target.value)} onFocus={() => setActive("back")} onKeyDown={keys} data-testid={`${idPrefix}-back`} />
       </div>

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  addCard, addDeck, addStarters, addTask, continueTarget, deckStats, deleteCard, deleteDeck, dueNow, EMPTY, editCard, examDays, exportDeck, gradeCard, importCards,
+  addCard, addCards, addDeck, addSession, addStarters, deleteSession, importInto, renameSession, subjectsInUse, suggestSessionName, addTask, continueTarget, deckStats, deleteCard, deleteDeck, dueNow, EMPTY, editCard, examDays, exportDeck, gradeCard, importCards,
   leftToday, parseCards, reviewStreak, sanitise, setExam, setPerDay, subjectIn, tasksFor, toggleTask, weekChoices, type AppData,
 } from "./model";
 import { QUOTES, quoteFor } from "./quotes";
@@ -233,5 +233,117 @@ describe("settings, streak and export", () => {
     const text = exportDeck(data, deckId);
     assert.equal(text, "Line one line two\tTab inside\nPlain q\tPlain a");
     assert.equal(importCards(data, deckId, text, T).added, 2);
+  });
+});
+
+describe("sessions: saved mixes of decks", () => {
+  const two = () => {
+    let data = EMPTY;
+    const a = addDeck(data, "Chemistry · Carbonyls", T, "Chemistry"); data = a.data;
+    const b = addDeck(data, "Physics · Mechanics", T, "Physics"); data = b.data;
+    const c = addDeck(data, "Loose cards", T); data = c.data;
+    for (const d of [a.deck!, b.deck!]) data = addCard(data, d.id, `q ${d.id}`, "a", T);
+    return { data, a: a.deck!.id, b: b.deck!.id, c: c.deck!.id };
+  };
+  it("saves the ticked decks under a tidy name of at most 40 characters", () => {
+    const { data, a, b } = two();
+    const r = addSession(data, "   Week   one    mix  ", [a, b], T);
+    assert.equal(r.session?.name, "Week one mix");
+    assert.deepEqual(r.session?.deckIds, [a, b]);
+    const long = addSession(data, "x".repeat(80), [a], T);
+    assert.equal(long.session?.name.length, 40);
+    assert.equal(addSession(data, "x".repeat(39) + " " + "y", [a], T).session?.name, "x".repeat(39), "trimmed again after the cut");
+  });
+  it("needs a name and at least one deck that exists, and counts each deck once", () => {
+    const { data, a } = two();
+    assert.equal(addSession(data, "  ", [a], T).session, null);
+    assert.equal(addSession(data, "Mix", [], T).session, null);
+    assert.equal(addSession(data, "Mix", ["nope"], T).session, null);
+    assert.deepEqual(addSession(data, "Mix", [a, a, "nope"], T).session?.deckIds, [a]);
+    assert.equal(addSession(data, "Mix", [a], T).data.sessions.length, 1);
+  });
+  it("renames and deletes", () => {
+    const { data, a } = two();
+    const made = addSession(data, "Old", [a], T);
+    const id = made.session!.id;
+    assert.equal(renameSession(made.data, id, "  New name ").sessions[0].name, "New name");
+    assert.equal(renameSession(made.data, id, "   ").sessions[0].name, "Old", "a blank name changes nothing");
+    assert.equal(deleteSession(made.data, id).sessions.length, 0);
+  });
+  it("loses a deck that is deleted, and itself when it is left with none", () => {
+    const { data, a, b } = two();
+    const s1 = addSession(data, "Both", [a, b], T);
+    const s2 = addSession(s1.data, "Just chem", [a], T);
+    const after = deleteDeck(s2.data, a);
+    assert.deepEqual(after.sessions.map((s) => [s.name, s.deckIds]), [["Both", [b]]]);
+  });
+  it("reviews due cards across just those decks, sharing the day's new-card allowance", () => {
+    const { data, a, b } = two();
+    assert.equal(dueNow(data, T).ids.length, 2);
+    assert.equal(dueNow(data, T, [a]).ids.length, 1);
+    assert.equal(dueNow(data, T, [a, b]).ids.length, 2);
+    assert.equal(dueNow(data, T, []).ids.length, 0);
+    assert.equal(dueNow(data, T, a).ids.length, 1, "a single id still works");
+    assert.equal(dueNow({ ...data, perDay: 1 }, T, [a, b]).ids.length, 1, "one allowance for the whole mix");
+  });
+  it("suggests a name from the deck titles", () => {
+    assert.equal(suggestSessionName(["Chemistry · Carbonyls", "Physics · Mechanics"]), "Carbonyls + Mechanics");
+    assert.equal(suggestSessionName(["Chemistry · Organic reaction mechanisms", "Physics · Forces and motion", "Maths · Calculus"]), "Organic reaction mechanisms + 2 more");
+    assert.equal(suggestSessionName([]), "");
+  });
+  it("lists the subjects the student has decks in, in the app's order, with no-subject last", () => {
+    const { data } = two();
+    assert.deepEqual(subjectsInUse(data), ["Chemistry", "Physics", null]);
+    assert.deepEqual(subjectsInUse(EMPTY), []);
+  });
+  it("comes back from storage, and an older save without sessions loses nothing", () => {
+    const { data, a, b } = two();
+    const saved = addSession(data, "Mix", [a, b], T).data;
+    assert.deepEqual(sanitise(JSON.parse(JSON.stringify(saved))), saved);
+    const old = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+    delete old.sessions;
+    const read = sanitise(old);
+    assert.deepEqual(read.sessions, []);
+    assert.deepEqual({ ...read, sessions: data.sessions }, data, "everything else is exactly as it was");
+  });
+  it("tidies hostile sessions: wrong types, long names, gone decks, repeats", () => {
+    const { data, a } = two();
+    const raw = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+    raw.sessions = [
+      null, 5, { id: 1 }, { id: "s1", name: "ok", deckIds: "x" }, { id: "s2", name: "  ", deckIds: [a] }, { id: "s3", name: "gone", deckIds: ["nope"] },
+      { id: "s4", name: "y".repeat(90), deckIds: [a, a, 7, "nope"] }, { id: "s4", name: "repeat", deckIds: [a] },
+    ];
+    const got = sanitise(raw).sessions;
+    assert.equal(got.length, 1);
+    assert.equal(got[0].name.length, 40);
+    assert.deepEqual(got[0].deckIds, [a]);
+    assert.deepEqual(sanitise({ ...raw, sessions: "nope" }).sessions, []);
+  });
+});
+
+describe("adding many cards at once", () => {
+  it("keeps the order, the limits and the new schedule", () => {
+    const { data, deckId } = withDeck();
+    const out = addCards(data, deckId, [["a", "1"], ["b".repeat(900), "2".repeat(900)], ["  ", "x"], ["c", ""]], T);
+    assert.equal(out.cards.length, 2);
+    assert.equal(out.cards[0].front, "a");
+    assert.equal(out.cards[1].front.length, 400);
+    assert.equal(out.cards[1].back.length, 800);
+    assert.ok(out.cards.every((c) => c.sch.state === "new" && c.deckId === deckId));
+    assert.equal(new Set(out.cards.map((c) => c.id)).size, 2);
+    assert.equal(addCards(data, "nope", [["a", "b"]], T), data);
+  });
+  it("imports into a new deck or an existing one, and leaves no empty deck behind", () => {
+    const made = withDeck();
+    const into = importInto(made.data, { deckId: made.deckId }, [["a", "b"]], T);
+    assert.equal(into.added, 1);
+    const fresh = importInto(made.data, { title: "  From Anki  ", subject: "Biology" }, [["a", "b"], ["c", "d"]], T);
+    assert.equal(fresh.added, 2);
+    const deck = fresh.data.decks.find((d) => d.id === fresh.deckId)!;
+    assert.deepEqual([deck.title, deck.subject], ["From Anki", "Biology"]);
+    const none = importInto(made.data, { title: "Empty", subject: null }, [["", ""]], T);
+    assert.equal(none.deckId, null);
+    assert.equal(none.data, made.data);
+    assert.equal(importInto(made.data, { title: "  ", subject: null }, [["a", "b"]], T).added, 0);
   });
 });

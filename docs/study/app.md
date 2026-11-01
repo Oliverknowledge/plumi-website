@@ -10,7 +10,7 @@ The Subjects UI is going to change, so nothing was built for it.
 |---|---|---|
 | `/study` | Desk: greeting, today's scene, to-do, exam countdown, library card, flashcard card | `src/app/study/(app)/page.tsx`, `src/components/studyapp/desk/` |
 | `/study/library` | Study: the Grand Library room with real people | `src/components/studyapp/library/`, `docs/study/library.md` |
-| `/study/flashcards` | Review, Decks, deck editor, starter decks | `src/components/studyapp/flashcards/` |
+| `/study/flashcards` | The iPad's two-pane page: subject toggle, My sessions, decks to tick and mix, the wooden desk, Import. See below | `src/components/studyapp/flashcards/` |
 | `/study/design`, `/dashboards`, `/shells` | Design system and exploration pages (kept, in the `(system)` route group) | `src/app/study/(system)/` |
 
 Visual source: the founder's artifact (`#desk`), ported to `src/app/study/(app)/app.css`, every selector
@@ -86,6 +86,31 @@ SM-2 family. Learning steps 1 min and 10 min, graduating interval 1 day, Easy 4 
 half the previous interval. New cards are capped at 10 per day (per-deck setting). The four grade buttons
 show the real next interval. A flipped card is pinned: time passing never swaps it for another.
 
+## Flashcards page (laid out like the iPad's)
+
+Left column (330px; above the desk on a phone): the subject toggle (All subjects, plus a segment per subject the student has
+decks in), MY SESSIONS, the decks with a tick box each ("Tick to mix", due count, a quiet stat line), then the dashed
+buttons: Import, + New deck, From my notes, From my mistakes. Right: a wooden desk (CSS only) with "+ Card", a pill
+(what is being reviewed, "N due" or "Done"), a fill-the-screen button (Escape leaves), the card, the four grades BELOW the
+card (with the real interval under each), and four colour counters for this session. The grades are never inside the card.
+
+- **What is on the desk:** decks ticked in the list (a mix) win; else the deck or session that was clicked; else everything due
+  in the chosen subject. Clicking a deck's name reviews it; its "..." button opens the editor (add, edit, delete, import into it,
+  copy out, rename, delete) in the desk's place. Counters reset whenever that changes.
+- **Sessions** (`AppData.sessions`: `{id, name, deckIds[]}`, device only): "+ New session" turns the ticked decks into a named
+  mix (name trimmed, at most 40 characters). Rename or delete from the pencil. Deleting a deck removes it from every session, and
+  a session left with no decks goes too. The document is still `v: 1`: the field is additive, a save without it reads as no
+  sessions, and a tab on the older site ignores it instead of discarding the save.
+- **Import** (`src/lib/studyapp/ankiImport.ts`): a file (.txt, .csv, .tsv) or pasted text. Reads Anki's "Notes in Plain Text"
+  (`#separator`, `#html`, and the guid, notetype, deck and tags columns are skipped), detects a separator when none is
+  declared, handles quoted fields, turns `<br>` and block tags into line breaks and `<sup>`/`<sub>` into superscript and
+  subscript characters, strips every other tag, decodes entities once, makes cloze notes into a question and answer, and
+  drops invisible direction-changing characters. Output is plain text and cards are only ever rendered as text. Limits: 1 MB,
+  5000 cards, cards cut to 400 and 800 characters (the preview says how many). `.apkg` packages are refused with how to export
+  plain text from Anki.
+- **From my notes / From my mistakes** need the iPad's notebook and marking. They are shown disabled with an "On iPad" hint,
+  not faked.
+
 ## Starter decks
 
 Four decks of ten cards (`starterDecks.ts`): Chemistry Carbonyls, Physics Mechanics, Maths Differentiation,
@@ -95,7 +120,7 @@ Do not market them as exam-accurate until someone qualified has gone through the
 ## Verification (run on this branch)
 
 - `npm run app:test`: SRS, model, host routing, invite and session-cookie tests (69 at the time of writing).
-- Playwright against a dev server, fake clock: Desk script (28 checks) and Flashcards script (25 checks):
+- Playwright against a dev server, fake clock: Desk script (28 checks) and Flashcards scripts (see the branch report):
   greeting, three-link nav, tasks, exam countdown, starter deck, flip and grade by keyboard, 10-card cap,
   learning steps and return after 11 minutes, import and export, persistence across reload, no horizontal
   overflow at 1280 and 390, no console errors.
