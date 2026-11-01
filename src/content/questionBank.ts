@@ -179,11 +179,12 @@ export interface BankPart {
   k?: string;
   /** Where its start (`st`) is, when its id doesn't say: a question with no parts showing the start it shares with the one before (GCSE languages: questions 02 to 04 set on question 01's options) has "<its id>-stem.webp". See stemImage. */
   sk?: string;
-  /** A Listening question's recording, relative to the papers base: AQA's track for the question ("audio/8658lh-jun24-07.mp3"), or with `auw` the whole paper's. */
-  au?: string;
-  auw?: 1;
   /** Asks for a calculation; in a bank with `calcPapers`, sits on a paper that allows a calculator. */
   calc?: 1;
+  /** A listening question's recording, relative to the papers base (AQA languages: its tracks joined, scripts/question-bank/aqa_languages/audio_languages.py). */
+  au?: string;
+  /** `au` is the whole paper's recording, where AQA publishes no tracks (GCSE languages, November 2020). */
+  auw?: 1;
   /** The opening words, for alt text and the static topic pages. */
   x: string;
 }
@@ -201,8 +202,8 @@ export interface BankSubject {
   topics: BankTopic[];
   papers: BankPaper[];
   series: BankSeries[];
-  /** The whole papers we host for each sitting: { "74051-JUN23": { qp, ms, er } }, and its insert (`ins`) where its questions read sources printed apart (English Language's sources, GCSE Geography's Paper 3 pre-release resources booklet), and the code files (`code`, a zip) a paper sat on screen opens (Edexcel GCSE Computer Science Paper 2). */
-  wholes: Record<string, Partial<Record<"qp" | "ms" | "er" | "ins" | "code", string>>>;
+  /** The whole papers we host for each sitting: { "74051-JUN23": { qp, ms, er } }, and its insert (`ins`) where its questions read sources printed apart (English Language's sources, GCSE Geography's Paper 3 pre-release resources booklet), and the code files (`code`, a zip) a paper sat on screen opens (Edexcel GCSE Computer Science Paper 2), and the transcript (`tr`) of a listening paper's recording (AQA languages). */
+  wholes: Record<string, Partial<Record<"qp" | "ms" | "er" | "ins" | "code" | "tr", string>>>;
   /**
    * Papers a student chooses between, one per option (Eduqas Religious Studies: Component 1 is a paper per
    * religion; AQA Religious Studies: Paper 2 is a paper per religion; Eduqas GCSE Religious Studies' Component 3 is a paper per religion; Eduqas GCSE History's

@@ -12,7 +12,7 @@ and public/question-bank/aqa-gcse-<language>/{parts,text,reports}.json. What dif
     bank's "Specification" filter (options).
   - A question with no parts that shares the start of the one before (cut_gcse_languages.share_leads) has it
     under its own name, which its id doesn't give (the site strips a part off an id for its start): "sk".
-  - A Listening part carries its recording ("au", "audio/<file>.mp3" on R2), "auw" when it is the
+  - A Listening part carries its recording ("au", "aqa/audio/<file>.mp3" on R2), "auw" when it is the
     whole paper's.
   - A choice of writing tasks marks its alternatives "or", and each paper's parts, a choice counted
     once, must add up to its marks less any question left out for copyright (cut_gcse_languages.py).
@@ -112,9 +112,9 @@ def main():
                 row["er"] = 1
                 reports.setdefault(f"{p['set']}-{p['question']}", p["er"])
             if p.get("audio"):
-                row["au"] = f"audio/{p['audio']}"
+                row["au"] = f"aqa/audio/{p['audio']}"
             elif p.get("audioWhole"):
-                row["au"], row["auw"] = f"audio/{p['audioWhole']}", 1
+                row["au"], row["auw"] = f"aqa/audio/{p['audioWhole']}", 1
             rows.append(row)
             search = p["text"] + " " + p.get("msText", "") + (" " + " ".join(titles[c] for c in t) if p["spec"] == "8638" else "")
             text[p["id"]] = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", search).lower()).strip()

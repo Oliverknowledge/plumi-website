@@ -11,7 +11,7 @@ Reads the bucket and keys from .env.local (never committed):
     NEXT_PUBLIC_PAPERS_URL=https://papers.tryplumi.app   # the bucket's public domain
 
 Uploads <work-dir>/pdf/*.pdf to aqa/ (or --pdf-prefix), <work-dir>/img/*.webp to bank/ and any
-<work-dir>/audio/*.mp3 to audio/, each
+<work-dir>/audio-out/*.mp3 (a languages bank's listening recordings) to aqa/audio/, each
 with its content type and a year-long immutable cache (file names change when
 contents do). Skips anything already there with the same size, so re-runs are cheap.
 --checksum skips only what is already there byte for byte (its ETag, an MD5 for these
@@ -57,10 +57,10 @@ def main():
         for obj in page.get("Contents", []):
             existing[obj["Key"]] = obj["ETag"].strip('"') if CHECKSUM else obj["Size"]
     jobs = []
-    # <work-dir>/audio: Listening papers' recordings (aqa_gcse_languages), where a bank has them.
-    for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp"), ("audio", "audio/", "audio/mpeg"))[1 if CROPS_ONLY else 0:]:
+    # A languages bank's listening recordings, one per question (aqa_languages/audio_languages.py), where there are any.
+    for folder, prefix, ctype in (("pdf", PDF_PREFIX, "application/pdf"), ("img", "bank/", "image/webp"), ("audio-out", "aqa/audio/", "audio/mpeg"))[1 if CROPS_ONLY else 0:]:
         d = os.path.join(WORK, folder)
-        if not os.path.isdir(d):
+        if folder == "audio-out" and not os.path.isdir(d):
             continue
         for name in sorted(os.listdir(d)):
             path = os.path.join(d, name)

@@ -33,7 +33,7 @@ cut.py, imported unchanged and patched here, as aqa_gcse_cs/cut_gcse_cs.py patch
     search text, leaving the English questions and instructions.
   - Listening parts carry their recording ("audio"): AQA's tracked recordings number their
     tracks by question (track 007 is question 07, as the transcripts list them), re-encoded
-    here at 48 kbps mono to <work-dir>/audio/<component>-<series>-07.mp3; the specimens' dictation
+    here at 48 kbps mono to <work-dir>/audio-out/<component>-<series>-07.mp3 (R2: aqa/audio/); the specimens' dictation
     is a track per sentence, after the last question's, joined into one. Where AQA publishes
     only the whole recording (November 2020), every part carries that ("audioWhole").
 """
@@ -49,7 +49,7 @@ import cut  # noqa: E402
 import pymupdf  # noqa: E402
 
 WORK, IMG, ONLY = cut.WORK, cut.IMG, cut.ONLY
-AUDIO = os.path.join(WORK, "audio")
+AUDIO = os.path.join(WORK, "audio-out")  # upload_r2.py sends it to aqa/audio/
 TOTAL = {"L": {"F": 40, "H": 50}, "R": {"F": 60, "H": 60}, "W": {"F": 50, "H": 60}}
 TOTAL_NEW = {"L": {"F": 40, "H": 50}, "R": {"F": 50, "H": 50}, "W": {"F": 50, "H": 50}}
 REMOVED = re.compile(r"cannot\s+be\s+reproduced|has\s+been\s+removed\s+due|not\s+reproduced\s+here\s+due", re.I)

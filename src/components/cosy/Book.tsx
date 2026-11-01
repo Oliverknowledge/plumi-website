@@ -7,7 +7,7 @@ import type { CSSProperties, ReactNode } from "react";
  * paper library's front doors in place of the spiral notebook cards. The look is in cosy.css (.lp-book).
  */
 
-/** Each subject's colour: the homepage shelf's four, the app's lilac for Further Maths (and IGCSE Additional Maths), a rose for Psychology, a teal for Economics, a parchment for Philosophy, a slate for Computer Science, an apricot for Combined Science, a sage for Sociology, a claret for Business, a leather tan for English Literature, a terracotta for English Language, a moss green for Geography, a law-report indigo for Law, a navy for Politics, a candle gold for Religious Studies, a brick red for History, and a cornflower, a saffron and a jade for French, Spanish and Bengali. */
+/** Each subject's colour: the homepage shelf's four, the app's lilac for Further Maths (and IGCSE Additional Maths), a rose for Psychology, a teal for Economics, a parchment for Philosophy, a slate for Computer Science, an apricot for Combined Science, a sage for Sociology, a claret for Business, a leather tan for English Literature, a terracotta for English Language, a moss green for Geography, a law-report indigo for Law, a navy for Politics, a candle gold for Religious Studies and a brick red for History. */
 export const subjectColours: Record<string, string> = {
   Physics: "#f2c96b",
   Maths: "#6a9bd0",
@@ -30,9 +30,8 @@ export const subjectColours: Record<string, string> = {
   Law: "#8a93c4",
   Politics: "#7f8fb8",
   History: "#c98a6b",
-  French: "#8fb0dc", // a cornflower blue
-  Spanish: "#e0a07a", // a saffron orange
-  Bengali: "#7fbfa8", // a jade green
+  French: "#8fb0dc",
+  Spanish: "#e0a07a",
 };
 
 export function Book({ subject, kicker, plate, children, as: Tag = "div", className = "", ...rest }: {

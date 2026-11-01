@@ -4020,7 +4020,8 @@ Added 1 November 2026: `/question-bank/aqa-gcse-french`, `/question-bank/aqa-gcs
 `/question-bank/aqa-gcse-bengali`, on the GCSE shelf. Every file is AQA's own, from the five
 specifications' assessment-resources pages. Whole papers are on R2 under AQA's names, normalised
 (`aqa/AQA-8658RH-QP-JUN24.pdf`), the crops under `bank/8658*`, `bank/8698*`, `bank/8652*`,
-`bank/8692*` and `bank/8638*`, and the Listening recordings under `audio/` (`audio/8658lh-jun24-07.mp3`).
+`bank/8692*` and `bank/8638*`, and the Listening recordings under `aqa/audio/` (`aqa/audio/8658lh-jun24-07.mp3`,
+beside the A-Level languages' `aqa/audio/76521-…`).
 
 - **3,409 parts:** French 1,177 (42 papers), Spanish 1,232 (42), Bengali 1,000 (36). Every part has its
   own scheme crop; every paper adds up to its marks, less the left-out questions below. 3,385 parts are
@@ -4038,7 +4039,8 @@ specifications' assessment-resources pages. Whole papers are on R2 under AQA's n
   per question (track 007 is question 07, as the transcripts number them). Each Listening part plays
   its question's track, re-encoded at 48 kbps mono (`au`); November 2020 has only the whole recording,
   which those parts play (`auw`). The 2026 specimens' dictation (Section B, unnumbered) is cut as the
-  question after the last, its five sentence tracks joined. `QuestionRow` shows an audio player.
+  question after the last, its five sentence tracks joined. The player (`.qb-listen` in `QuestionRow`) is the
+  A-Level languages bank's (PR #132), with a note for a whole-paper recording.
 - **Writing schemes** are each question's own Part 2 section: the levels grids, then the option's own
   bullet notes and model answer (the other option's are left out). Choices of task ("Either 01.1 or
   01.2") mark the alternatives `or`. Foundation Question 1's sentences share their question's scheme
@@ -4060,7 +4062,7 @@ specifications' assessment-resources pages. Whole papers are on R2 under AQA's n
   (cut.py imported and patched: Bengali and specimen labels, Writing schemes, titles printed above a
   question's first part, marks printed beside the next label, copyright-removed questions, audio),
   `spec_gcse_languages.py`, `tag_gcse_languages.py`, `build_gcse_languages.py`; `upload_r2.py` uploads
-  `<work-dir>/audio` too.
+  `<work-dir>/audio-out` to `aqa/audio/` (as the A-Level languages bank does).
 
 ```bash
 python3 scripts/question-bank/aqa_gcse_languages/fetch_gcse_languages.py

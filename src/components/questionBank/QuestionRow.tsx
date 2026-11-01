@@ -92,7 +92,10 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   // A question on the paper's sources or extracts (English Language; at A-Level its "Text A", History) is read with them open: they're printed in the insert.
   // (Edexcel's GCSE names them "Text 1" and "Text 2", or just "the writer".)
   const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextracts?\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
-  const insertTexts = parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
+  // A language paper's insert is a reading text, whatever the question's own words.
+  const insertTexts = subject.subject === "French" || subject.subject === "Spanish" || parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
+  // A listening question's recording, and its transcript to check against afterwards (AQA languages).
+  const listen = parts.find(p => p.au)?.au;
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
@@ -106,8 +109,6 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const pdfOnly = parts.filter(p => p.msf && !p.ms && !p.k);
   const schemePdf = pdfOnly[0]?.msf;
   const stem = parts.find(p => p.st);
-  // A Listening question is answered from its recording: AQA's track for the question, or the whole paper's where AQA publishes no tracks.
-  const recordings = [...new Map(parts.filter(p => p.au).map(p => [p.au as string, p])).values()];
   const stemOpen = open.stem || many;
   const earlier = many ? [] : before;
 
@@ -163,6 +164,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           {insert && (
             <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The ${insertTexts ? "texts" : "sources"} for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>{insertTexts ? "Texts" : "Sources"} (insert) ↗</a>
           )}
+          {listen && whole?.tr && (
+            <a className="qb-key" href={`${papersBase}/${whole.tr}`} target="_blank" rel="noopener" title={`What the recording says, for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Transcript ↗</a>
+          )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
               {inSet ? "✓ In your set" : setFull ? "Set full" : "+ Add to set"}
@@ -175,6 +179,13 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
 
       <div className="qb-sheet">
         {inSet && <span className="qb-stamp" aria-hidden="true">In your set</span>}
+        {listen && (
+          <div className="qb-listen">
+            <p className="qb-note-label">The recording for question {q}</p>
+            {parts.some(p => p.auw) && <p className="qb-listen-note">AQA publishes only the whole paper’s recording for this sitting: question {q} starts after its number is read out.</p>}
+            <audio controls preload="none" src={`${papersBase}/${listen}`} aria-label={`The recording for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${q}`} />
+          </div>
+        )}
         {(stem || earlier.length > 0) && (
           <div className="qb-stem">
             {!many && (
@@ -192,12 +203,6 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             ))}
           </div>
         )}
-        {recordings.map(p => (
-          <div key={p.au} className="qb-audio">
-            <p className="qb-note-label">{p.auw ? `The whole recording for this paper: question ${q} starts after its number is read out` : `The recording for question ${q}, with its pauses, as in the exam`}</p>
-            <audio controls preload="none" src={`${papersBase}/${p.au}`} onPlay={() => track("bank_reveal", { subject: subject.slug, kind: "audio", part: many ? questionKey(part) : part.id })} />
-          </div>
-        ))}
         <div className="qb-paper">
           {parts.map(p => [
             many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,
