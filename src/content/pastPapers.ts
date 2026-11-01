@@ -1,6 +1,6 @@
 /**
  * The past paper library: Maths, Further Maths, Biology, Chemistry and Physics papers
- * at GCSE, IGCSE and A-Level, AQA GCSE English Language and Geography, English Literature (AQA GCSE, and AQA, Edexcel and OCR A-Level), Edexcel GCSE Computer Science and Edexcel A-Level Economics B, grouped the way students search for them — level,
+ * at GCSE, IGCSE and A-Level, AQA and Eduqas GCSE English Language, AQA GCSE Geography, English Literature (AQA and Eduqas GCSE, and AQA, Edexcel and OCR A-Level), Edexcel GCSE Computer Science and Edexcel A-Level Economics B, grouped the way students search for them — level,
  * subject, then board.
  *
  * Every file is our own copy of the board's published paper, fetched from the board's
@@ -261,8 +261,8 @@ function ownEdexcelScienceBoard(subject: string, base: BoardPapers): BoardPapers
 /**
  * Pearson publishes GCSE Maths' June and November 2017 and 2018 series only as zips, which the
  * library's fetch (scripts/past-papers/boards/edexcel.py) passes over; the GCSE Maths question bank
- * unpacked the Higher papers onto our storage (edexcel/1ma1-1h-qp-jun18.pdf). Those sittings join the
- * library's Higher tier rows from the bank's own list.
+ * unpacked both tiers' papers onto our storage (edexcel/1ma1-1h-qp-jun18.pdf, 1ma1-1f-qp-jun18.pdf).
+ * Those sittings join the library's rows for each tier from the bank's own list.
  */
 function withBankGcseMaths(base: BoardPapers): BoardPapers {
   const wholes = bankSubject("edexcel-gcse-maths")?.wholes ?? {};
@@ -270,11 +270,11 @@ function withBankGcseMaths(base: BoardPapers): BoardPapers {
   const groups = base.groups.map(g => ({
     ...g,
     papers: g.papers.map(p => {
-      const code = p.title.match(/\(1MA1\/(\d)H\)/);
+      const code = p.title.match(/\(1MA1\/(\d[FH])\)/);
       if (!code) return p;
       const have = new Set(p.rows.map(r => r.session));
       const extra: PaperRow[] = Object.entries(wholes)
-        .filter(([k]) => k.startsWith(`1ma1${code[1]}h-`) && !have.has(seriesName(k.split("-")[1])))
+        .filter(([k]) => k.startsWith(`1ma1${code[1].toLowerCase()}-`) && !have.has(seriesName(k.split("-")[1])))
         .map(([k, files]) => ({ session: seriesName(k.split("-")[1]), files: { qp: files.qp, ms: files.ms, er: files.er } }));
       added += extra.reduce((n, r) => n + Object.values(r.files).filter(Boolean).length, 0);
       const order = (r: PaperRow) => {

@@ -1,24 +1,25 @@
-"""Gather the GCSE Maths Higher tier papers of AQA (8300), Pearson Edexcel (1MA1) and OCR (J560).
+"""Gather the GCSE Maths papers, both tiers, of AQA (8300), Pearson Edexcel (1MA1) and OCR (J560).
 
     python3 scripts/question-bank/gcse_maths/fetch_gcse_maths.py aqa|edexcel|ocr [--from=<past-papers work dir>] [work-dir]
     # default work dir: scripts/question-bank/.work/gcse-maths/<board>
     # default --from:   scripts/past-papers/.work (the library's crawl of the boards' own sites)
 
 Every file comes from the board's own website:
-  - AQA and OCR: the past paper library's crawl already holds every Higher paper,
-    mark scheme and examiner's report from aqa.org.uk and ocr.org.uk, unmodified, with
-    a manifest. This keeps the Higher ones (AQA 8300/1H-3H, OCR J560/04-06) and copies
-    each to <work-dir>/pdf/, downloading from the same board address what isn't local.
-    AQA's specimen papers come as separate files and are kept. OCR's specimen papers
-    and its first two reports (June and November 2017) are single files covering all
-    six papers, so they are left out.
+  - AQA and OCR: the past paper library's crawl already holds every paper, mark
+    scheme and examiner's report from aqa.org.uk and ocr.org.uk, unmodified, with a
+    manifest. This keeps the GCSE Maths ones (AQA 8300/1F-3F and 1H-3H, OCR J560/01-03
+    Foundation and 04-06 Higher) and copies each to <work-dir>/pdf/, downloading from
+    the same board address what isn't local. AQA's specimen papers come as separate
+    files and are kept. OCR's specimen papers and its reports covering three papers at
+    once (June and November 2017, and "J560/01/02/03" from 2023) are single files, so
+    they are left out.
   - Pearson: its past paper search (as fetch_pearson.py) lists every series from June
     2019 as single PDFs, and June 2017 to November 2018 as one zip of question papers and
-    mark schemes and one of examiner's reports per series, all public; the Higher files
+    mark schemes and one of examiner's reports per series, all public; both tiers' files
     are taken out of those. Pearson keeps November 2025 and later for teachers only.
 
 Writes <work-dir>/manifest.json in fetch_pearson.py's shape: component (AQA "83001H",
-Pearson "1ma1-1h", OCR "j560-04"), kind (qp, ms, er), series ("JUN23", "SPEC"),
+Pearson "1ma1-1h", OCR "j560-04"; Foundation "83001F", "1ma1-1f", "j560-01"), kind (qp, ms, er), series ("JUN23", "SPEC"),
 title, source, file, and `r2`: the library's key for the same file where the bucket
 already has it (aqa/AQA-83001H-QP-JUN23.pdf), so the bank links to that copy.
 """
@@ -57,20 +58,20 @@ def in_range(series):
 
 
 def from_library():
-    """AQA and OCR: the library's Higher files."""
+    """AQA and OCR: the library's GCSE Maths files."""
     library = json.load(open(os.path.join(SOURCE, BOARD, "manifest.json")))
     out = []
     for f in library:
         if f["subject"] != "gcse-maths" or f["kind"] not in ("qp", "ms", "er", "ins") or not in_range(f["series"]):
             continue
         if BOARD == "aqa":
-            m = re.fullmatch(r"8300/([123])H", f["code"])
-            comp = m and f"8300{m.group(1)}H"
+            m = re.fullmatch(r"8300/([123][FH])", f["code"])
+            comp = m and f"8300{m.group(1)}"
         else:
-            m = re.fullmatch(r"J560/0([456])", f["code"])
+            m = re.fullmatch(r"J560/0([1-6])", f["code"])
             comp = m and f"j560-0{m.group(1)}"
             if f["series"] == "SPEC":
-                comp = None  # one file for all three Higher papers
+                comp = None  # one file for a tier's three papers
         if not comp:
             continue
         name = f"{comp}-{f['kind']}-{f['series'].lower()}.pdf"
@@ -111,10 +112,10 @@ def from_pearson():
         source = PEARSON + urllib.parse.quote(r["url"])
         if "/secure/" in r["url"]:
             continue  # teachers only
-        m = re.match(r"1ma1[-_]([123])h[-_](que|rms|msc|pef)[-_]", name, re.I)
+        m = re.match(r"1ma1[-_]([123][fh])[-_](que|rms|msc|pef)[-_]", name, re.I)
         if m:
             kind = {"que": "qp", "rms": "ms", "msc": "ms", "pef": "er"}[m.group(2).lower()]
-            items = [(f"1ma1-{m.group(1)}h", kind, lambda s=source: get(s), source)]
+            items = [(f"1ma1-{m.group(1).lower()}", kind, lambda s=source: get(s), source)]
         elif name.endswith(".zip") and re.search(r"(QP_MS|question-papers|Examiner)", name, re.I) and "modified" not in name.lower():
             body = get(source)
             if not body:
@@ -123,12 +124,12 @@ def from_pearson():
             items = []
             for member in z.namelist():
                 base = os.path.basename(member)
-                mm = re.match(r"1MA1_([123])H(?:_(QP|MS|que|msc|pef))?", base, re.I)
+                mm = re.match(r"1MA1_([123][FH])(?:_(QP|MS|que|msc|pef))?", base, re.I)
                 if not mm or not base.lower().endswith(".pdf"):
                     continue
                 tag = (mm.group(2) or "").lower()
                 kind = "er" if "xaminer" in name or tag == "pef" else "ms" if tag in ("ms", "msc") else "qp"
-                items.append((f"1ma1-{mm.group(1)}h", kind, lambda z=z, member=member: z.read(member), f"{source}#{base}"))
+                items.append((f"1ma1-{mm.group(1).lower()}", kind, lambda z=z, member=member: z.read(member), f"{source}#{base}"))
         else:
             continue
         for comp, kind, read, src in items:
