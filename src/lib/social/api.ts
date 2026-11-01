@@ -59,6 +59,19 @@ export const RPC = {
   setHallPosition: { name: "set_hall_position", args: ["hall", "x", "y"] },
   clearHallPosition: { name: "clear_hall_position", args: [] },
   hallPositions: { name: "hall_positions", args: ["hall"] },
+  // The public lobby and the Grand Library (0117, 0119, 0121): the same functions the iPad's library calls.
+  lobbyMe: { name: "lobby_me", args: [] },
+  setLobbyVisible: { name: "set_lobby_visible", args: ["visible"] },
+  regenerateNickname: { name: "regenerate_nickname", args: [] },
+  lobbyJoin: { name: "lobby_join", args: ["x", "y", "want"] },
+  lobbyServers: { name: "lobby_servers", args: [] },
+  lobbySetPosition: { name: "lobby_set_position", args: ["shard", "x", "y", "seated", "subject", "focus_since"] },
+  lobbyLeave: { name: "lobby_leave", args: [] },
+  lobbyPeople: { name: "lobby_people", args: ["shard"] },
+  lobbyEmote: { name: "lobby_emote", args: ["kind"] },
+  libraryMessages: { name: "library_messages", args: ["shard", "since"] },
+  sendLibraryMessage: { name: "send_library_message", args: ["shard", "body"] },
+  reportLibraryMessage: { name: "report_library_message", args: ["message", "reason", "block"] },
 } as const;
 
 export type RpcKey = keyof typeof RPC;

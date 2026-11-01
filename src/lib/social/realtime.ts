@@ -30,7 +30,7 @@ export interface ChannelLike {
   untrack(): Promise<unknown> | unknown;
 }
 export interface RealtimeLike {
-  channel(topic: string, options?: { config?: { private?: boolean; presence?: { key: string }; broadcast?: { self?: boolean } } }): ChannelLike;
+  channel(topic: string, options?: { config?: { private?: boolean; presence?: { key: string; enabled?: boolean }; broadcast?: { self?: boolean } } }): ChannelLike;
   removeChannel(channel: ChannelLike): Promise<unknown> | unknown;
 }
 
@@ -73,7 +73,9 @@ export function watchHall(
   let timer: ReturnType<typeof setInterval> | null = null;
   let stopped = false;
 
-  const mine = rt.channel(walkTopic(o.hall, o.me), { config: { private: true, presence: { key: o.me.toLowerCase() }, broadcast: { self: false } } });
+  // supabase-js switches presence on only for a channel with a presence listener or `enabled: true` (realtime-js 2.117
+  // RealtimeChannel.subscribe): your own topic only tracks, so it must say so, or nobody is told you arrived.
+  const mine = rt.channel(walkTopic(o.hall, o.me), { config: { private: true, presence: { key: o.me.toLowerCase(), enabled: true }, broadcast: { self: false } } });
   channels.push(mine);
   mine.subscribe((status) => { if (status === "SUBSCRIBED") void mine.track({ at: now() }); });
 

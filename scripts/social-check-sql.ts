@@ -26,6 +26,13 @@ const MIGRATIONS: { m: string; what: string; test: string }[] = [
   { m: "0112", what: "friends' streaks (social_summary.streak)", test: "EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='social_summary' AND column_name='streak')" },
   { m: "0113", what: "the hall and chat in real time (private channel policies)", test: "to_regclass('realtime.messages') IS NOT NULL AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='realtime' AND tablename='messages' AND policyname='plumi_realtime_receive') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='realtime' AND tablename='messages' AND policyname='plumi_realtime_send')" },
   // study_group.visibility has existed since 0104 (with one allowed value), so the column proves nothing; the join request function does.
+  // The Grand Library (0117 to 0123): the lobby, its chat and its servers.
+  { m: "0117", what: "the public lobby (lobby_profile, lobby_presence, lobby_people)", test: "to_regclass('public.lobby_presence') IS NOT NULL AND to_regclass('public.lobby_profile') IS NOT NULL" },
+  { m: "0119", what: "the library chat (library_message)", test: "to_regclass('public.library_message') IS NOT NULL" },
+  { m: "0120", what: "the library chat's spam rule and Pro tag (library_spam)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam')" },
+  { m: "0121", what: "library servers (lobby_servers, a shard of 60)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_servers')" },
+  { m: "0122", what: "the ceiling of 300 libraries (lobby_max_shard)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_max_shard')" },
+  { m: "0123", what: "library spam rule for every script (a sentence in Chinese or Arabic is not spam)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam' AND p.prosrc LIKE '%uFE00%')" },
   { m: "0118", what: "public groups and asking to join one (request_to_join)", test: "EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'request_to_join')" },
 ];
 

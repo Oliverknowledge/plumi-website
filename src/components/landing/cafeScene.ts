@@ -107,6 +107,10 @@ interface Person {
   staff?: "librarian" | "butler";
   subject: string; mins: number; since: number;  // what their focus timer says, from when
   speed: number;
+  id?: string;                    // library mode: a real person, by their id
+  remote?: boolean;
+  known?: boolean;                // library mode: they have said where they stand
+  rev?: number;                   // library mode: the last news about their place that was acted on
 }
 
 const SUBJECTS = ["Physics", "Maths", "Chemistry", "Biology"];
@@ -123,11 +127,21 @@ const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length)];
 
 export interface CafeStatus { seated: boolean; seconds: number; look: number; subject: string | null }
+
+/** The class names the engine gives its labels, pops and cards. The homepage's own (`lp-*`) unless a page says otherwise. */
+export interface CafeClasses { nm: string; timer: string; you: string; pop: string; tick: string; ink: string; who: string }
+const LP_CLASSES: CafeClasses = { nm: "lp-nm", timer: "lp-nm is-timer", you: "lp-nm is-you", pop: "lp-pop", tick: "is-tick", ink: "is-ink", who: "lp-who" };
+
 export interface CafeOptions {
-  mode: "hero" | "friends";
+  /** "library" is the study app's Grand Library: the same room and engine, with real people driven from outside (`live`). */
+  mode: "hero" | "friends" | "library";
   reduced: boolean;
   look?: number;
   onStatus?: (s: CafeStatus) => void;
+  /** Library mode only: where people come from and where your own steps go. */
+  live?: LiveHooks;
+  /** Class names for labels and pops (library mode brings its own, so the homepage's stylesheet is not needed). */
+  cls?: Partial<CafeClasses>;
 }
 export interface CafeHandle {
   destroy(): void;
@@ -135,6 +149,54 @@ export interface CafeHandle {
   readonly looks: number;
   readonly look: number;
 }
+
+/* ---------- library mode: the study app's room, with real people ---------- */
+
+/** A point in art pixels (a sprite's top left, or a waypoint of one). */
+export type ArtPoint = readonly [x: number, y: number];
+/** A chair, as the study app's room table lists it (src/lib/studyapp/library/room.ts `seatTable`). */
+export interface LiveSeat { ipad: number | null; spot: number | null; x: number; y: number; face: Dir; table: string }
+/** Someone else, as the controller tells the engine: where they stand, the seat they sit in, the walk they are on. */
+export interface LiveRemote {
+  id: string; look: number; pos: ArtPoint | null; seat: number | null; path: ArtPoint[]; seated: boolean;
+  /** Which piece of news about their place this is: the room acts on each once, so a walk is not restarted every time the list is read. */
+  rev: number;
+}
+/** You, as the controller needs to tell everyone: the sprite's top left, your seat, the rest of your walk. */
+export interface LiveYou { x: number; y: number; seat: number | null; path: ArtPoint[]; walking: boolean }
+export interface LiveLabel { name: string; tag: string | null; friend: boolean; pro: boolean }
+export interface LiveHooks {
+  /** The seats you and others may take, in the iPad's order, from this layout's spots. */
+  seats(spots: readonly { x: number; y: number; role: string; pose: string; face: string }[]): LiveSeat[];
+  /** You walked, sat or stood: say so (read `youNow()` for where). */
+  onYou?: () => void;
+  /** Someone's person was tapped (their id), or nobody. */
+  onPick?: (id: string | null) => void;
+  /** What to write over someone's head: their name, and "Physics \u00b7 12 min" while they are timing. */
+  describe?: (id: string) => LiveLabel | null;
+}
+export interface LibraryHandle extends CafeHandle {
+  /** Tell the room who else is in it (everyone not listed leaves). */
+  setRemotes(list: readonly LiveRemote[]): void;
+  /** Where you are, for the others; null before you have come in. */
+  youNow(): LiveYou | null;
+  /** Sit in the free seat nearest you; false when there is none you can reach. */
+  sit(): boolean;
+  /** Sit in the iPad's seat number `ipad`, if it is free. */
+  sitIn(ipad: number): boolean;
+  stand(): void;
+  /** Walk to the free seat nearest them, as "Pull up a chair". */
+  goTo(id: string): boolean;
+  /** Highlight someone (or nobody). */
+  select(id: string | null): void;
+  /** A short word over someone's head ("Wave"), or yours (`"you"`). */
+  say(who: string, text: string): void;
+  /** Whether you are in a seat. */
+  readonly seated: boolean;
+}
+
+/** How fast everyone in the library walks, in art pixels a second: LibraryScene.speed (140 points a second) over two. */
+const LIVE_SPEED = 70;
 
 /** The friends' window: the fire under the gallery, its armchairs, and a table for two either side (art pixels,
  * the window's shape). Where each friend sits, by the seat nearest each point. */
@@ -150,6 +212,12 @@ const FRIENDS = [
 export async function mountCafe(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: CafeOptions): Promise<CafeHandle> {
   const A = await loadAssets();
   return new Cafe(canvas, overlay, A, opts);
+}
+
+/** Mounts the study app's Grand Library: this room with real people in it (see `LiveHooks`). */
+export async function mountLibrary(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: Omit<CafeOptions, "mode">): Promise<LibraryHandle> {
+  const A = await loadAssets();
+  return new Cafe(canvas, overlay, A, { ...opts, mode: "library" }) as unknown as LibraryHandle;
 }
 
 class Cafe implements CafeHandle {
@@ -191,12 +259,21 @@ class Cafe implements CafeHandle {
   private yourSubject: string | null = null;    // set when you pull up a chair beside someone
   private ghost = document.createElement("canvas");
   private cleanup: (() => void)[] = [];
+  private cn: CafeClasses;
+  private live: LiveHooks | undefined;
+  private remotes = new Map<string, Person>();
+  private libSeats: Set<Spot> | null = null;          // library mode: the chairs you and others may take
+  private byIpad = new Map<number, Spot>();
+  private ipadOf = new Map<Spot, number>();
   looks: number;
   look = 0;
 
   constructor(private canvas: HTMLCanvasElement, private overlay: HTMLElement, private a: Assets, private o: CafeOptions) {
     this.L = a.L;
     this.spots = a.L.spots.map(s => ({ ...s, who: null }));
+    this.cn = { ...LP_CLASSES, ...o.cls };
+    this.live = o.mode === "library" ? o.live : undefined;
+    if (this.live) this.libraryTable();
     this.looks = a.L.people.choose;
     this.scene = document.createElement("canvas");
     this.scene.width = this.L.w; this.scene.height = this.L.h;
@@ -230,7 +307,7 @@ class Cafe implements CafeHandle {
 
   private free(role?: Spot["role"], inRegion = false) {
     return this.spots.filter(s => !s.who && (role ? s.role === role : s.role === "seat" || s.role === "sofa")
-      && (!inRegion || this.inRegion(s.x + 8, s.y + 20)));
+      && (!inRegion || this.inRegion(s.x + 8, s.y + 20)) && (role || this.canSit(s)));
   }
 
   private inRegion(x: number, y: number) {
@@ -271,7 +348,7 @@ class Cafe implements CafeHandle {
         this.seatAt(you, yours, Infinity);
         this.people.push(you);
         this.you = you;
-        this.label(you, "You", "lp-nm is-you");
+        this.label(you, "You", this.cn.you);
       }
       const used = new Set(this.people.map(p => p.look));
       for (const s of this.free("seat", true).slice(0, 6)) {
@@ -287,20 +364,22 @@ class Cafe implements CafeHandle {
     // the visitor's look, then a full room: most seats taken, a few browsing the shelves
     const choose = L.people.choose;
     this.look = this.o.look !== undefined && this.o.look >= 0 && this.o.look < choose ? this.o.look : Math.floor(Math.random() * choose);
-    for (const s of this.free().sort(() => Math.random() - .5).slice(0, this.crowd)) {
-      const p = this.person(this.anyLook(), 0, 0);
-      this.seatAt(p, s, this.t + rand(8, 90));
-      this.people.push(p);
-    }
-    for (const s of this.free("browse").sort(() => Math.random() - .5).slice(0, 3)) {
-      const p = this.person(this.anyLook(), 0, 0);
-      this.seatAt(p, s, this.t + rand(3, 12));
-      p.next = "seat";
-      this.people.push(p);
+    if (this.o.mode === "hero") {
+      for (const s of this.free().sort(() => Math.random() - .5).slice(0, this.crowd)) {
+        const p = this.person(this.anyLook(), 0, 0);
+        this.seatAt(p, s, this.t + rand(8, 90));
+        this.people.push(p);
+      }
+      for (const s of this.free("browse").sort(() => Math.random() - .5).slice(0, 3)) {
+        const p = this.person(this.anyLook(), 0, 0);
+        this.seatAt(p, s, this.t + rand(3, 12));
+        p.next = "seat";
+        this.people.push(p);
+      }
     }
     // the visitor comes in at the entrance and walks up the runner into the reading hall's middle aisle
     const d = L.door, you = this.person(this.look, d.x, d.y, "back");
-    you.you = true; you.speed = 36; you.who = "You";
+    you.you = true; you.speed = this.live ? LIVE_SPEED : 36; you.who = "You";
     this.you = you;
     this.people.push(you);
     const inside = this.nearest(d.tile, d.x - 8, d.y - 150) ?? d.tile;
@@ -310,10 +389,13 @@ class Cafe implements CafeHandle {
       you.doing = "enter"; you.alpha = 0;
       you.path = [this.feet(d.tile), ...(this.route(d.tile, inside) ?? []).map(t => this.feet(t))];
     }
-    this.label(you, "You", "lp-nm is-you");
+    this.label(you, "You", this.cn.you);
   }
 
   /** How many students the room holds: most of its seats, a few left for the visitor. */
+  /** Whether you are a person in this room, with a seat to take and a floor to walk: the hero, and the study app's library. */
+  private get playable() { return this.o.mode === "hero" || this.o.mode === "library"; }
+
   private get crowd() {
     const seats = this.spots.filter(s => s.role === "seat" || s.role === "sofa").length;
     return Math.max(8, Math.round(seats * .6));
@@ -414,12 +496,13 @@ class Cafe implements CafeHandle {
     this.t += dt;
     const t = this.t;
     for (const p of [...this.people]) {
+      if (p.remote && p.doing !== "leave" && p.alpha < 1) p.alpha = Math.min(1, p.alpha + dt * 2.5);
       if (p.path.length) this.walk(p, dt);
       else if (p.doing === "walk" || p.doing === "enter") this.arrive(p);
       else if (p.doing === "leave") {
         p.alpha -= dt * 2.5;
         if (p.alpha <= 0) this.remove(p);
-      } else if (!p.you && !p.name && p.at && t >= p.until) this.decide(p);
+      } else if (!p.you && !p.name && !p.remote && p.at && t >= p.until) this.decide(p);
     }
     if (this.o.mode === "hero") {
       const students = this.people.filter(p => !p.you && !p.staff).length;
@@ -430,7 +513,7 @@ class Cafe implements CafeHandle {
       }
     }
     if (t >= this.nextTimers) this.chooseTimers();
-    if (t >= this.nextPop) {
+    if (!this.live && t >= this.nextPop) {
       this.nextPop = t + rand(4, 8);
       const seated = this.people.filter(p => p.doing === "sit" && !p.you && !p.name && !this.labels.has(p) && this.onScreen(p) && !this.crowded(p, [...this.labels.keys()]));
       if (seated.length) this.pop(pick(seated), pick(POPS));
@@ -453,14 +536,14 @@ class Cafe implements CafeHandle {
   private arrive(p: Person) {
     if (p.doing === "enter" && !p.spot) {
       p.doing = "idle";
-      if (p.you) { this.nextTimers = Math.min(this.nextTimers, this.t + .5); return; }   // in view now: pick who to label
+      if (p.you) { this.nextTimers = Math.min(this.nextTimers, this.t + .5); this.youChanged(); return; }   // in view now: pick who to label
     }
     const s = p.spot;
-    if (!s) { p.doing = "idle"; return; }
+    if (!s) { p.doing = "idle"; if (p.you) this.youChanged(); return; }
     const sit = s.role === "seat" || s.role === "sofa";
     p.at = true; p.doing = sit ? "sit" : "stand"; p.dir = s.face;
     p.x = s.x + 8; p.y = s.y + 31;
-    if (p.you) { this.seatedAt = this.t; this.inkPaid = 0; this.nextTimers = Math.min(this.nextTimers, this.t + .5); return; }
+    if (p.you) { this.seatedAt = this.t; this.inkPaid = 0; this.nextTimers = Math.min(this.nextTimers, this.t + .5); this.youChanged(); return; }
     p.until = this.t + (sit ? rand(25, 70) : rand(5, 10));
     if (sit) { p.mins = Math.floor(rand(1, 20)); p.since = this.t; }
     if (sit) p.next = null;
@@ -494,6 +577,7 @@ class Cafe implements CafeHandle {
   private remove(p: Person) {
     if (this.picked === p) this.picked = null;
     if (this.hover === p) this.hover = null;
+    if (p.id) this.remotes.delete(p.id);
     this.release(p);
     this.people = this.people.filter(q => q !== p);
     this.labels.get(p)?.remove();
@@ -527,6 +611,7 @@ class Cafe implements CafeHandle {
     const [dx, dy] = dir === "right" ? [1, 0] : dir === "left" ? [-1, 0] : dir === "back" ? [0, -1] : [0, 1];
     you.dir = dir;
     if (this.walkable(tx + dx, ty + dy)) { you.path = [this.feet([tx + dx, ty + dy])]; you.doing = "walk"; }
+    this.youChanged();
   }
 
   private sitNearby() {
@@ -534,7 +619,7 @@ class Cafe implements CafeHandle {
     if (!you || you.at) return;
     const [tx, ty] = this.tileOf(you.x, you.y);
     const s = this.free().find(x => x.tile[0] === tx && x.tile[1] === ty);
-    if (s) this.sendTo(you, s);
+    if (s && this.sendTo(you, s)) this.youChanged();
   }
 
   /** The person drawn at an art pixel, the frontmost first. */
@@ -548,21 +633,24 @@ class Cafe implements CafeHandle {
   private tap(ax: number, ay: number) {
     const hit = this.hit(ax, ay);
     if (hit && !hit.you) {
+      if (this.live && !hit.remote) { this.draw(); return; }               // the librarian and the butler are part of the room
       this.picked = this.picked === hit ? null : hit;
       if (this.o.mode === "friends") this.pop(hit, "High five!");
+      this.live?.onPick?.(this.picked?.id ?? null);
       this.draw();
       return;
     }
+    if (this.picked) this.live?.onPick?.(null);
     this.picked = null;
     const you = this.you;
-    if (!you || this.o.mode !== "hero") { this.draw(); return; }
+    if (!you || !this.playable) { this.draw(); return; }
     this.yourSubject = null;
     // a free seat?
-    const seat = this.spots.find(s => (s.role === "seat" || s.role === "sofa") && ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36);
+    const seat = this.spots.find(s => (s.role === "seat" || s.role === "sofa") && this.canSit(s) && ax >= s.x - 3 && ax < s.x + 19 && ay >= s.y + 4 && ay < s.y + 36);
     if (seat && (!seat.who || seat.who === you)) {
       if (seat.who === you && you.at) return;
-      if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); return; }
-      this.sendTo(you, seat);
+      if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); this.youChanged(); return; }
+      if (this.sendTo(you, seat)) this.youChanged();
       return;
     }
     const from = this.walkable(...this.tileOf(you.x, you.y)) ? this.tileOf(you.x, you.y) : this.nearestTile(you.x, you.y);
@@ -571,11 +659,12 @@ class Cafe implements CafeHandle {
     if (this.o.reduced) {
       this.release(you); you.doing = "idle";
       [you.x, you.y] = this.feet(to);
-      this.draw(); this.status();
+      this.draw(); this.status(); this.youChanged();
       return;
     }
     this.release(you);
     this.go(you, to);
+    this.youChanged();
   }
 
   /** Sit at the free seat nearest someone and study what they're studying (the app's "Pull up a chair"). */
@@ -588,8 +677,9 @@ class Cafe implements CafeHandle {
     if (!seat) return;
     this.picked = null;
     this.yourSubject = p.subject;
-    if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); return; }
+    if (this.o.reduced) { this.release(you); this.seatAt(you, seat, Infinity); this.seatedAt = this.t; this.draw(); this.status(); this.youChanged(); return; }
     if (!this.sendTo(you, seat)) this.yourSubject = null;
+    else this.youChanged();
   }
 
   /** The card over whoever is pointed at or tapped: their name, their subject and how long they've been at it. */
@@ -607,6 +697,7 @@ class Cafe implements CafeHandle {
   }
 
   private showCard() {
+    if (this.live) { if (this.card) { this.card.remove(); this.card = null; this.cardFor = null; } return; }   // the page shows the card
     const p = this.picked ?? this.hover;
     if (!p || p.you || p.alpha <= .5) {
       if (this.card) { this.card.remove(); this.card = null; this.cardFor = null; }
@@ -651,7 +742,7 @@ class Cafe implements CafeHandle {
   }
 
   /* ---------- labels ---------- */
-  private label(p: Person, text: string, cls = "lp-nm") {
+  private label(p: Person, text: string, cls = this.cn.nm) {
     let el = this.labels.get(p);
     if (!el) { el = document.createElement("div"); this.overlay.appendChild(el); this.labels.set(p, el); }
     if (el.className !== cls || el.textContent !== text) {
@@ -672,6 +763,7 @@ class Cafe implements CafeHandle {
   }
 
   private chooseTimers() {
+    if (this.live) { this.nextTimers = this.t + 1; this.libraryLabels(); return; }
     this.nextTimers = this.t + rand(9, 14);
     for (const p of this.timers) if (!p.name && !p.you) { this.labels.get(p)?.remove(); this.labels.delete(p); }
     this.timers = [];
@@ -686,7 +778,7 @@ class Cafe implements CafeHandle {
       if (this.crowded(p, [...this.timers, ...(this.you ? [this.you] : [])])) continue;
       if (this.timers.some(q => q.subject === p.subject)) p.subject = SUBJECTS.find(x => !this.timers.some(q => q.subject === x)) ?? p.subject;
       this.timers.push(p);
-      this.label(p, this.timerText(p), "lp-nm is-timer");
+      this.label(p, this.timerText(p), this.cn.timer);
     }
   }
 
@@ -703,12 +795,12 @@ class Cafe implements CafeHandle {
   private show(p: Person) {
     if (this.timers.includes(p)) return;
     this.timers.push(p);
-    this.label(p, this.timerText(p), "lp-nm is-timer");
+    this.label(p, this.timerText(p), this.cn.timer);
   }
 
   private pop(p: Person, text: string) {
     const el = document.createElement("div");
-    el.className = "lp-pop" + (text.startsWith("✓") ? " is-tick" : text.startsWith("+") ? " is-ink" : "");
+    el.className = this.cn.pop + (text.startsWith("✓") ? " " + this.cn.tick : text.startsWith("+") ? " " + this.cn.ink : "");
     el.textContent = text;
     this.overlay.appendChild(el);
     this.widths.set(el, el.offsetWidth);
@@ -859,10 +951,10 @@ class Cafe implements CafeHandle {
     if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
     const r = this.region;
     // the hero is a window onto part of the library, at the size the café was drawn at, that follows you about
-    const want = this.o.mode === "hero" ? (box.width < 560 ? 240 : 400) : r.w;
+    const want = this.playable ? (box.width < 560 ? 240 : 400) : r.w;
     const exact = W / want;
     let k = Math.max(1, Math.round(exact));
-    if (W / k > r.w * 1.04 || H / k > (this.o.mode === "hero" ? this.L.h : r.h) * 1.04) k = Math.ceil(exact);
+    if (W / k > r.w * 1.04 || H / k > (this.playable ? this.L.h : r.h) * 1.04) k = Math.ceil(exact);
     if ((k - exact) / exact > .3 && dpr < 2) k = exact;                // a large crop on a low-density screen: fit instead
     this.k = k;
     this.viewW = Math.min(this.L.w, W / k);
@@ -874,7 +966,7 @@ class Cafe implements CafeHandle {
 
   private follow(snap = false) {
     let cx: number, cy: number;
-    if (this.o.mode === "hero" && this.you && this.viewW < this.L.w - 1) {
+    if (this.playable && this.you && this.viewW < this.L.w - 1) {
       // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
       const [x, y] = this.spriteAt(this.you);
       cx = x + 8; cy = y + 18 - this.viewH * .2;
@@ -913,7 +1005,7 @@ class Cafe implements CafeHandle {
     };
     on(this.canvas, "click", ev => {
       this.tap(...at(ev as MouseEvent));
-      if (this.o.mode === "hero") this.canvas.focus({ preventScroll: true });
+      if (this.playable) this.canvas.focus({ preventScroll: true });
     });
     const at = (e: MouseEvent): [number, number] => {
       const r = this.canvas.getBoundingClientRect();
@@ -931,7 +1023,7 @@ class Cafe implements CafeHandle {
     const KEYS: Record<string, Dir> = { ArrowRight: "right", ArrowLeft: "left", ArrowUp: "back", ArrowDown: "front" };
     on(this.canvas, "keydown", ev => {
       const e = ev as KeyboardEvent;
-      if (this.o.mode !== "hero") return;
+      if (!this.playable) return;
       const d = KEYS[e.key];
       if (d) {
         e.preventDefault();
@@ -962,6 +1054,177 @@ class Cafe implements CafeHandle {
     if (you.path.length) { [you.x, you.y] = you.path[you.path.length - 1]; you.path = []; you.doing = "idle"; }
     this.held = null;
     this.draw(); this.status();
+  }
+
+
+  /* ---------- library mode: real people in the room (LiveHooks) ---------- */
+
+  /** Whether a chair is one you and others may take: in the library, only the iPad's seats (the rest are scenery there). */
+  private canSit(s: Spot) { return !this.libSeats || this.libSeats.has(s); }
+
+  /** Builds the library's chairs from the study app's seat table; a chair the layout left empty is added from the iPad's own coordinates. */
+  private libraryTable() {
+    this.libSeats = new Set();
+    for (const d of this.live!.seats(this.a.L.spots)) {
+      const spot = d.spot !== null ? this.spots[d.spot] : this.addSpot(d);
+      if (!spot) continue;
+      this.libSeats.add(spot);
+      if (d.ipad !== null) { this.byIpad.set(d.ipad, spot); this.ipadOf.set(spot, d.ipad); }
+    }
+  }
+
+  /** A chair the layout has no one in: its sort is that of the chair piece it sits in (so it is drawn in front of the chair and behind the table). */
+  private addSpot(d: LiveSeat): Spot {
+    const chair = this.L.pieces.find(q => q.w >= 8 && q.w <= 16 && q.h >= 17 && q.h <= 26 && Math.abs(q.x - (d.x + (d.face === "left" ? 2 : 1))) <= 1 && Math.abs(q.y - (d.y + 14)) <= 2);
+    const spot: Spot = { role: "seat", pose: "sit", face: d.face, x: d.x, y: d.y, sort: chair ? chair.z + .5 : d.y + 36, tile: this.nearestTile(d.x + 8, d.y + 31), who: null };
+    this.spots.push(spot);
+    return spot;
+  }
+
+  private youChanged() { this.live?.onYou?.(); }
+
+  get seated() { const s = this.you?.spot; return !!this.you?.at && !!s && (s.role === "seat" || s.role === "sofa"); }
+
+  youNow(): LiveYou | null {
+    const you = this.you;
+    if (!you) return null;
+    if (you.at && you.spot) return { x: you.spot.x, y: you.spot.y, seat: this.ipadOf.get(you.spot) ?? null, path: [], walking: false };
+    const [x, y] = this.spriteAt(you);
+    return { x, y, seat: null, path: you.path.map(([fx, fy]) => [fx - 8, fy - 31] as ArtPoint), walking: you.path.length > 0 };
+  }
+
+  private takeSeat(you: Person, s: Spot): boolean {
+    if (this.o.reduced) { this.release(you); this.seatAt(you, s, Infinity); this.seatedAt = this.t; this.draw(); }
+    else if (!this.sendTo(you, s)) return false;
+    this.youChanged();
+    return true;
+  }
+
+  sit(): boolean {
+    const you = this.you;
+    if (!you || you.doing === "enter") return false;
+    if (this.seated) return true;
+    const [fx, fy] = [you.x, you.y];
+    const near = this.free().filter(s => !s.who || s.who === you).sort((a, b) => Math.hypot(a.x + 8 - fx, a.y + 31 - fy) - Math.hypot(b.x + 8 - fx, b.y + 31 - fy));
+    for (const s of near.slice(0, 6)) if (this.takeSeat(you, s)) return true;
+    return false;
+  }
+
+  sitIn(ipad: number): boolean {
+    const you = this.you, s = this.byIpad.get(ipad);
+    if (!you || !s || you.doing === "enter" || (s.who && s.who !== you)) return false;
+    return this.takeSeat(you, s);
+  }
+
+  stand() {
+    const you = this.you;
+    if (!you?.at) return;
+    this.release(you);
+    you.doing = "idle";
+    [you.x, you.y] = this.feet(this.nearestTile(you.x, you.y));
+    this.draw();
+    this.youChanged();
+  }
+
+  goTo(id: string): boolean {
+    const p = this.remotes.get(id);
+    if (!p || !this.you) return false;
+    this.joinPerson(p);
+    return !!this.you.spot;
+  }
+
+  select(id: string | null) {
+    this.picked = id ? this.remotes.get(id) ?? null : null;
+    this.draw();
+  }
+
+  say(who: string, text: string) {
+    const p = who === "you" ? this.you : this.remotes.get(who);
+    if (p && p.alpha > .3) this.pop(p, text);
+  }
+
+  /** Tells the room who else is in it. Each person is placed where they said (or in a free chair, if they said nothing of the floor). */
+  setRemotes(list: readonly LiveRemote[]) {
+    if (!this.live || this.dead) return;
+    const seen = new Set<string>();
+    for (const r of list) {
+      seen.add(r.id);
+      let p = this.remotes.get(r.id);
+      if (!p) {
+        const d = this.L.door;
+        p = this.person(r.look, d.x, d.y, "front");
+        p.id = r.id; p.remote = true; p.speed = LIVE_SPEED; p.who = ""; p.alpha = this.o.reduced ? 1 : 0;
+        this.remotes.set(r.id, p);
+        this.people.push(p);
+      }
+      p.look = r.look;
+      this.place_(p, r);
+    }
+    for (const [id, p] of [...this.remotes]) {
+      if (seen.has(id)) continue;
+      this.remotes.delete(id);
+      if (this.o.reduced) { this.remove(p); continue; }
+      this.release(p);
+      p.path = []; p.doing = "leave";
+    }
+    this.libraryLabels();
+    if (this.o.reduced) this.draw();
+  }
+
+  /** One person's place: their seat if they sit (and it is theirs), else where they stand and the walk they are on. */
+  private place_(p: Person, r: LiveRemote) {
+    if (p.known && r.rev === p.rev) return;     // nothing new about where they are: they carry on as they were
+    p.rev = r.rev;
+    const seat = r.seat !== null ? this.byIpad.get(r.seat) : undefined;
+    if (seat && (!seat.who || seat.who === p) && seat !== this.you?.spot) {
+      if (p.spot !== seat || !p.at) { this.release(p); this.seatAt(p, seat, Infinity); }
+      p.path = []; p.known = true;
+      return;
+    }
+    const wasSeated = p.at;
+    if (wasSeated) { this.release(p); p.doing = "idle"; }
+    if (r.pos) {
+      const feet: ArtPoint = [r.pos[0] + 8, r.pos[1] + 31];
+      // near where they are drawn they carry on from there; far, or just up from a seat, they are put where they said
+      // (LibraryScene.remoteHeard: a walk is short, so a jump is the exception; 48 points there, 24 pixels here)
+      if (!p.known || wasSeated || this.o.reduced || Math.hypot(p.x - feet[0], p.y - feet[1]) > 24) { [p.x, p.y] = feet; p.known = true; }
+      const path = r.path.map(([x, y]) => [x + 8, y + 31] as [number, number]);
+      if (this.o.reduced && path.length) { [p.x, p.y] = path[path.length - 1]; p.path = []; }
+      else p.path = path;
+      p.doing = p.path.length ? "walk" : "idle";
+      return;
+    }
+    if (!p.spot && !p.known) {
+      // nothing said about the floor (an older app, or the socket has not reached us): a chair, as the iPad seats a student whose app says nothing of it
+      const free = this.free();
+      let h = 5381;
+      for (const c of p.id ?? "") h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
+      const s = free[h % Math.max(1, free.length)];
+      if (s) { this.seatAt(p, s, Infinity); p.known = true; }
+    }
+  }
+
+  /** The names over the heads of whoever is on screen: friends and the one you tapped first, then the nearest; never so many they pile up. */
+  private libraryLabels() {
+    const live = this.live;
+    if (!live) return;
+    const you = this.you;
+    if (you) this.label(you, "You", this.cn.you);
+    const [yx, yy] = you ? this.spriteAt(you) : [this.camX, this.camY];
+    const rank = (p: Person) => (p === this.picked ? -1e6 : 0) + (live.describe?.(p.id!)?.friend ? -1e3 : 0) + Math.hypot(this.spriteAt(p)[0] - yx, this.spriteAt(p)[1] - yy);
+    const near = [...this.remotes.values()].filter(p => p.alpha > .3 && this.onScreen(p)).sort((a, b) => rank(a) - rank(b));
+    const shown: Person[] = you ? [you] : [];
+    const keep = new Set<Person>();
+    const max = this.overlay.clientWidth < 480 ? 6 : 14;
+    for (const p of near) {
+      if (keep.size >= max) break;
+      const d = live.describe?.(p.id!);
+      if (!d) continue;
+      if (p !== this.picked && this.crowded(p, shown)) continue;
+      shown.push(p); keep.add(p);
+      this.label(p, d.tag ? `${d.name}\n${d.tag}` : d.name, this.cn.nm + (d.friend ? " is-friend" : "") + (d.pro ? " is-pro" : ""));
+    }
+    for (const [p, el] of [...this.labels]) if (p !== you && !keep.has(p)) { el.remove(); this.labels.delete(p); }
   }
 
   destroy() {

@@ -27,6 +27,12 @@ migrations(m, what, ok) AS (VALUES
     ('0110', 'hall positions (hall_position)', (to_regclass('public.hall_position') IS NOT NULL)),
     ('0112', 'friends'' streaks (social_summary.streak)', (EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='social_summary' AND column_name='streak'))),
     ('0113', 'the hall and chat in real time (private channel policies)', (to_regclass('realtime.messages') IS NOT NULL AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='realtime' AND tablename='messages' AND policyname='plumi_realtime_receive') AND EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='realtime' AND tablename='messages' AND policyname='plumi_realtime_send'))),
+    ('0117', 'the public lobby (lobby_profile, lobby_presence, lobby_people)', (to_regclass('public.lobby_presence') IS NOT NULL AND to_regclass('public.lobby_profile') IS NOT NULL)),
+    ('0119', 'the library chat (library_message)', (to_regclass('public.library_message') IS NOT NULL)),
+    ('0120', 'the library chat''s spam rule and Pro tag (library_spam)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam'))),
+    ('0121', 'library servers (lobby_servers, a shard of 60)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_servers'))),
+    ('0122', 'the ceiling of 300 libraries (lobby_max_shard)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'lobby_max_shard'))),
+    ('0123', 'library spam rule for every script (a sentence in Chinese or Arabic is not spam)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'library_spam' AND p.prosrc LIKE '%uFE00%'))),
     ('0118', 'public groups and asking to join one (request_to_join)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'request_to_join')))
 ),
 want_rpc(key, fn, args) AS (VALUES
@@ -57,7 +63,19 @@ want_rpc(key, fn, args) AS (VALUES
     ('reportGroupMessage', 'report_group_message', ARRAY['block', 'message', 'reason']::text[]),
     ('setHallPosition', 'set_hall_position', ARRAY['hall', 'x', 'y']::text[]),
     ('clearHallPosition', 'clear_hall_position', ARRAY[]::text[]),
-    ('hallPositions', 'hall_positions', ARRAY['hall']::text[])
+    ('hallPositions', 'hall_positions', ARRAY['hall']::text[]),
+    ('lobbyMe', 'lobby_me', ARRAY[]::text[]),
+    ('setLobbyVisible', 'set_lobby_visible', ARRAY['visible']::text[]),
+    ('regenerateNickname', 'regenerate_nickname', ARRAY[]::text[]),
+    ('lobbyJoin', 'lobby_join', ARRAY['want', 'x', 'y']::text[]),
+    ('lobbyServers', 'lobby_servers', ARRAY[]::text[]),
+    ('lobbySetPosition', 'lobby_set_position', ARRAY['focus_since', 'seated', 'shard', 'subject', 'x', 'y']::text[]),
+    ('lobbyLeave', 'lobby_leave', ARRAY[]::text[]),
+    ('lobbyPeople', 'lobby_people', ARRAY['shard']::text[]),
+    ('lobbyEmote', 'lobby_emote', ARRAY['kind']::text[]),
+    ('libraryMessages', 'library_messages', ARRAY['shard', 'since']::text[]),
+    ('sendLibraryMessage', 'send_library_message', ARRAY['body', 'shard']::text[]),
+    ('reportLibraryMessage', 'report_library_message', ARRAY['block', 'message', 'reason']::text[])
 ),
 have AS (
   SELECT p.proname AS fn, p.oid,

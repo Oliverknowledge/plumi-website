@@ -408,7 +408,7 @@ describe("realtime", () => {
     const { rt, made } = fakeRealtime();
     watchHall(rt, { hall: "g1", me: "ME", people: ["me", "ann", "bob"], onSignal: () => {} });
     assert.deepEqual(made.map((m) => m.topic), ["walk:g1:me", "walk:g1:ann", "walk:g1:bob"], "you are not listened to twice");
-    assert.deepEqual(made[0].options, { config: { private: true, presence: { key: "me" }, broadcast: { self: false } } });
+    assert.deepEqual(made[0].options, { config: { private: true, presence: { key: "me", enabled: true }, broadcast: { self: false } } });
     assert.equal((made[1].options as { config: { private: boolean } }).config.private, true);
     assert.equal(made[0].tracked.length, 1, "presence is tracked once subscribed");
   });

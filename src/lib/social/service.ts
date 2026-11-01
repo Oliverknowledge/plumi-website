@@ -2,6 +2,11 @@ import { READS, RPC, type Api, type Filter, type Row } from "./api";
 import * as chat from "./chatRules";
 import { fail, failureFor, ok, type Failure, type Result } from "./failure";
 import { parseCode } from "./friendCode";
+import { check as libraryCheck, type Said } from "./librarySpam";
+import {
+  byMessageTime, lobbyDecode, sanitised, type LibraryMessage, type LobbyEmote, type LobbyEmoteOutcome, type LobbyJoin, type LobbyMe,
+  type LobbyPerson, type LobbyServers,
+} from "./lobby";
 import {
   MAX_TILE, REACTION_KINDS,
   type FriendRequest, type FriendRequestOutcome, type FriendsSnapshot, type GroupHall, type GroupMember, type GroupMessage,
@@ -27,6 +32,14 @@ const num = (v: unknown): number | null => {
   return null;
 };
 const iso = (d: Date) => d.toISOString();
+
+const clampTile = (n: number) => Math.min(MAX_TILE, Math.max(0, Math.round(Number.isFinite(n) ? n : 0)));
+
+/** What a refusal from the library's checks is called in the quiet failures. */
+const LIBRARY_REASON = {
+  empty: "message_empty", too_long: "message_too_long", link: "message_link", language: "message_language",
+  spam: "message_spam", shouting: "message_shouting", repeat: "message_repeat",
+} as const;
 
 const clampColour = (n: number | null) => ((n ?? 0) % 16 + 16) % 16;
 
@@ -348,6 +361,87 @@ export function createSocial(api: Api) {
     }),
     reportMessage: (messageId: string, reason: MessageReportReason, block: boolean) =>
       write("reportGroupMessage", { message: Number(messageId) || 0, reason, block }),
+
+    /* The public lobby and the Grand Library (0117 to 0123): the same functions the iPad's library calls.
+       A stranger is only ever a random nickname; a friend shows their real name. The server decides who sees whom. */
+    lobbyMe: () => run<LobbyMe>(async () => {
+      const r = await rpc("lobbyMe");
+      const me = r.failure ? null : lobbyDecode.me(r.data);
+      return r.failure ? fail(r.failure) : me ? ok(me) : fail({ kind: "unavailable" });
+    }),
+    /** Hidden: out of the lobby at once, and strangers are not shown either. */
+    setLobbyVisible: (visible: boolean) => write("setLobbyVisible", { visible }),
+    regenerateNickname: () => run<{ changed: boolean; nickname: string }>(async () => {
+      const r = await rpc("regenerateNickname");
+      if (r.failure) return fail(r.failure);
+      const d = (r.data ?? {}) as Row;
+      const nickname = str(d.nickname);
+      return nickname ? ok({ changed: d.status === "changed", nickname }) : fail({ kind: "unavailable" });
+    }),
+    /**
+     * Into the lobby, standing on a tile of the shared world: the shard to be in (none for a hidden student).
+     * `want` asks for a server; when it is full the usual pick is made and `wantedFull` says so. Without
+     * `want` the call is the two-argument one, so a server before 0121 still answers.
+     */
+    joinLobby: (tile: { x: number; y: number }, want?: number | null) => run<LobbyJoin>(async () => {
+      const args: Record<string, unknown> = { x: clampTile(tile.x), y: clampTile(tile.y) };
+      if (want !== undefined && want !== null) args.want = Math.floor(want);
+      const r = await rpc("lobbyJoin", args);
+      if (r.failure) return fail(r.failure);
+      const j = lobbyDecode.join(r.data);
+      return j ? ok(j) : fail({ kind: "unavailable" });
+    }),
+    /** `lobby_servers`: counts and the number of friends only, nothing about who. */
+    lobbyServers: () => run<LobbyServers>(async () => {
+      const r = await rpc("lobbyServers");
+      if (r.failure) return fail(r.failure);
+      const s = lobbyDecode.servers(r.data);
+      return s ? ok(s) : fail({ kind: "unavailable" });
+    }),
+    /** Where you stand and what you are doing. False when you are not in that shard any more (hidden since, or the row went stale): join again. */
+    setLobbyPosition: (shard: number, tile: { x: number; y: number }, status: { seated: boolean; subjectId?: string | null; focusSince?: Date | number | null }) => run<boolean>(async () => {
+      const since = status.focusSince === undefined || status.focusSince === null ? null : new Date(status.focusSince).toISOString();
+      const r = await rpc("lobbySetPosition", {
+        shard, x: clampTile(tile.x), y: clampTile(tile.y), seated: status.seated, subject: status.seated ? status.subjectId ?? null : null,
+        focus_since: status.seated ? since : null,
+      });
+      return r.failure ? fail(r.failure) : ok(r.data === "ok");
+    }),
+    leaveLobby: () => write("lobbyLeave"),
+    /** Everyone else in your shard now, as you may see them. Refused (`not_member`) unless you are in that shard. */
+    lobbyPeople: (shard: number) => run<LobbyPerson[]>(async () => {
+      const r = await rpc("lobbyPeople", { shard });
+      if (r.failure) return fail(r.failure);
+      return ok(Array.isArray(r.data) ? (r.data as Row[]).flatMap((row) => { const p = lobbyDecode.person(row); return p ? [sanitised(p)] : []; }) : []);
+    }),
+    /** A wave or a high five over your own head. */
+    lobbyEmote: (kind: LobbyEmote) => run<LobbyEmoteOutcome>(async () => {
+      const r = await rpc("lobbyEmote", { kind });
+      return r.failure ? fail(r.failure) : ok(lobbyDecode.emote(r.data));
+    }),
+    /** The newest 100 of the last three hours you may read, or those after `since`. Refused (`not_member`) unless you are in that shard. */
+    libraryMessages: (shard: number, since?: Date | number | null) => run<LibraryMessage[]>(async () => {
+      const args: Record<string, unknown> = { shard };
+      if (since !== undefined && since !== null) args.since = new Date(since).toISOString();
+      const r = await rpc("libraryMessages", args);
+      if (r.failure) return fail(r.failure);
+      return ok(Array.isArray(r.data) ? (r.data as Row[]).flatMap((row) => { const m = lobbyDecode.message(row); return m ? [m] : []; }).sort(byMessageTime) : []);
+    }),
+    /**
+     * Checked here first (the group chat's rules, then the library's spam rule, then saying it again) so the
+     * student is told before sending; the server's check is the one that counts. `recent` is what you said lately.
+     */
+    sendLibraryMessage: (shard: number, body: string, recent: readonly Said[] = [], now = Date.now()) => run<LibraryMessage>(async () => {
+      const verdict = libraryCheck(body, recent, now);
+      if (!verdict.ok) return fail({ kind: "refused", reason: LIBRARY_REASON[verdict.refusal] });
+      const r = await rpc("sendLibraryMessage", { shard, body: verdict.body });
+      if (r.failure) return fail(r.failure);
+      const m = r.data && typeof r.data === "object" ? lobbyDecode.message({ hidden: false, ...(r.data as Row) }) : null;
+      return m ? ok(m) : fail({ kind: "unavailable" });
+    }),
+    /** Reports a message (it disappears for you at once); with `block`, its sender is blocked too. */
+    reportLibraryMessage: (messageId: string, reason: MessageReportReason, block: boolean) =>
+      write("reportLibraryMessage", { message: Number(messageId) || 0, reason, block }),
   };
 }
 

@@ -2,6 +2,8 @@ export * from "./types";
 export * from "./failure";
 export * from "./friendCode";
 export * as chatRules from "./chatRules";
+export * as librarySpam from "./librarySpam";
+export * from "./lobby";
 export * from "./presence";
 export { createSocial, decode, byTime, type SocialService } from "./service";
 export { RPC, READS, type Api, type Filter, type Row } from "./api";
