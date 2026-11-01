@@ -4,7 +4,7 @@
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
  * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, Eduqas's A-Level
  * sciences, AS/A Level Religious Studies and GCSE Religious Studies and History, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Psychology, Economics, Philosophy, Sociology, Business and Geography,
- * AQA's GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Pearson Edexcel's A-Level Economics A and B,
+ * AQA's GCSE English Literature, English Language and Geography and A-Level English Literature A and B and English Language, Pearson Edexcel's A-Level Economics A and B,
  * Geography, Psychology, Politics and English Literature, OCR's A-Level Economics, Law and English Literature, OCR's and AQA's A-Level Computer Science, Pearson Edexcel's GCSE Computer Science and Geography B, and AQA's, Pearson Edexcel's and OCR's GCSE Maths
  * (Higher tier), cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
@@ -36,6 +36,7 @@ import aqaMaths from "./questionBank/aqa-a-level-maths.json";
 import aqaComputerScience from "./questionBank/aqa-a-level-computer-science.json";
 import aqaEnglishLiteratureA from "./questionBank/aqa-a-level-english-literature-a.json";
 import aqaEnglishLiteratureB from "./questionBank/aqa-a-level-english-literature-b.json";
+import aqaEnglishLanguage from "./questionBank/aqa-a-level-english-language.json";
 import maths from "./questionBank/edexcel-a-level-maths.json";
 import furtherMaths from "./questionBank/edexcel-a-level-further-maths.json";
 import gcseBiology from "./questionBank/aqa-gcse-biology.json";
@@ -195,7 +196,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaBusiness, aqaGeography, aqaPhilosophy, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrEnglishLiterature, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, gcseEnglishLanguage, edexcelGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, gcseGeography, edexcelGcseGeographyB] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaBusiness, aqaGeography, aqaPhilosophy, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, aqaEnglishLanguage, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrEnglishLiterature, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, gcseEnglishLanguage, edexcelGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, gcseGeography, edexcelGcseGeographyB] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
