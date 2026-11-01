@@ -3,7 +3,7 @@
  * and Physics papers and GCSE Combined Science: Trilogy, Pearson Edexcel's GCSE Biology, Chemistry and Physics and A-Level Maths, Further Maths, Biology A
  * and B, Chemistry and Physics, OCR's and OCR MEI's A-Level sciences and maths, and
  * Cambridge International's (CAIE's) AS & A Level and IGCSE sciences and maths, Eduqas's A-Level
- * sciences, AS/A Level Religious Studies, A Level English Literature and GCSE Religious Studies and History, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Psychology, Economics, Philosophy, Religious Studies, Sociology, Business and Geography,
+ * sciences, AS/A Level Religious Studies, A Level English Literature and GCSE Religious Studies and History, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Psychology, Economics, Philosophy, Religious Studies, Sociology, Business, Geography, Politics and Law,
  * AQA's GCSE English Literature, English Language, Geography and Religious Studies and A-Level English Literature A and B, Pearson Edexcel's A-Level Economics A and B, Business,
  * Geography, Psychology, Politics and English Literature, OCR's A-Level Economics, Law and English Literature, OCR's and AQA's A-Level Computer Science, Pearson Edexcel's GCSE Computer Science and Geography B, OCR's GCSE Computer Science, and AQA's, Pearson Edexcel's and OCR's GCSE Maths
  * (both tiers) and AQA's Level 2 Further Maths, cut out one at a time, each with its own mark scheme
@@ -12,7 +12,7 @@
  *
  * Built from the boards' own published papers by scripts/question-bank/ (AQA:
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; AQA economics: aqa_economics/; AQA philosophy: aqa_philosophy/; AQA Religious Studies: aqa_rs/;
- * AQA sociology: aqa_sociology/; AQA business: aqa_business/; AQA geography: aqa_geography/; AQA English Literature: aqa_english_lit/; AQA English Language: aqa_english_lang/; AQA GCSE Geography: aqa_gcse_geography/; AQA GCSE Religious Studies: aqa_gcse_rs/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
+ * AQA sociology: aqa_sociology/; AQA politics: aqa_politics/; AQA law: aqa_law/; AQA business: aqa_business/; AQA geography: aqa_geography/; AQA English Literature: aqa_english_lit/; AQA English Language: aqa_english_lang/; AQA GCSE Geography: aqa_gcse_geography/; AQA GCSE Religious Studies: aqa_gcse_rs/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
  * scripts; Edexcel sciences: edexcel_sciences/; Edexcel GCSE sciences: edexcel_gcse/; Edexcel geography: edexcel_geography/; Edexcel psychology: edexcel_psychology/; Edexcel economics B: edexcel_economics_b/; Edexcel business: edexcel_business/; Edexcel politics: edexcel_politics/; Edexcel English Literature: edexcel_english_lit/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; Eduqas Religious Studies: eduqas_rs/; Eduqas English Literature: eduqas_english_lit/; Eduqas GCSE Religious Studies and History: eduqas_gcse/; WJEC: wjec/;
  * Computer Science: computer_science/; Edexcel GCSE Computer Science: edexcel_cs/; OCR GCSE Computer Science: ocr_gcse_cs/; Edexcel GCSE Geography B: edexcel_gcse_geography/; OCR economics: ocr_economics/; OCR law: ocr_law/; OCR English Literature: ocr_english_lit/; GCSE Maths: gcse_maths/; AQA Level 2 Further Maths: aqa_l2_further_maths/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
@@ -31,6 +31,8 @@ import aqaEconomics from "./questionBank/aqa-a-level-economics.json";
 import aqaPhilosophy from "./questionBank/aqa-a-level-philosophy.json";
 import aqaReligiousStudies from "./questionBank/aqa-a-level-religious-studies.json";
 import aqaSociology from "./questionBank/aqa-a-level-sociology.json";
+import aqaPolitics from "./questionBank/aqa-a-level-politics.json";
+import aqaLaw from "./questionBank/aqa-a-level-law.json";
 import aqaGeography from "./questionBank/aqa-a-level-geography.json";
 import aqaBusiness from "./questionBank/aqa-a-level-business.json";
 import aqaMaths from "./questionBank/aqa-a-level-maths.json";
@@ -114,7 +116,7 @@ import aqaLevel2FurtherMaths from "./questionBank/aqa-level-2-further-maths.json
  * statement groups in Edexcel Biology A and Physics (`points`: "9–15").
  */
 export interface BankTopic { code: string; ref?: string; points?: string; title: string; short?: string; section: string; slug: string; count: number; year: 0 | 1 | 2 | 3 }
-/** `option`: the area belongs to one of the bank's `options` (Eduqas Religious Studies: Christianity's topics are Option A's). */
+/** `option`: the area belongs to one of the bank's `options` (Eduqas Religious Studies: Christianity's topics are Option A's; AQA Law: contract is Paper 3A's). */
 export interface BankSection { code: string; title: string; option?: string }
 /** `option`: one of the bank's `options` (Eduqas Religious Studies' Component 1B is Option B, Islam); a paper without one is sat by everyone. */
 export interface BankPaper { id: string; name: string; title: string; as: boolean; option?: string }
@@ -201,7 +203,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaBusiness, aqaGeography, aqaPhilosophy, aqaReligiousStudies, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelBusiness, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrEnglishLiterature, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, eduqasEnglishLiterature, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, aqaLevel2FurtherMaths, gcseEnglishLanguage, edexcelGcseComputerScience, ocrGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, gcseGeography, edexcelGcseGeographyB, gcseReligiousStudies] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaPolitics, aqaLaw, aqaBusiness, aqaGeography, aqaPhilosophy, aqaReligiousStudies, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelBusiness, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrEnglishLiterature, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, eduqasEnglishLiterature, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, aqaLevel2FurtherMaths, gcseEnglishLanguage, edexcelGcseComputerScience, ocrGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, gcseGeography, edexcelGcseGeographyB, gcseReligiousStudies] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
