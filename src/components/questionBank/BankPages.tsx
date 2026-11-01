@@ -72,7 +72,7 @@ const boardKey = (s: BankSubject) =>
 /** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
 const findText = (s: BankSubject) => [
   s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
-  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate international" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 3" ? "applied diploma vocational" : "",
   s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
 ].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
@@ -99,7 +99,7 @@ export function BankHub() {
   const all = shelves();
   const total = bankSubjects.reduce((a, s) => a + s.count, 0);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every AQA and Edexcel GCSE and A-Level, and OCR A-Level, Biology, Chemistry and Physics, AQA GCSE Combined Science, AQA, Edexcel and OCR GCSE Maths (Foundation and Higher), and AQA, Edexcel, OCR and OCR MEI A-Level Maths, Edexcel, OCR and OCR MEI Further Maths exam question, AQA A-Level Psychology, AQA and OCR A-Level Economics, OCR A-Level Law, AQA A-Level Philosophy, AQA A-Level Sociology, AQA A-Level Business, AQA A-Level Geography, AQA GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Edexcel and OCR A-Level English Literature, Edexcel A-Level Economics A and B, Edexcel A-Level Geography and GCSE Geography B, Edexcel A-Level Psychology, Edexcel A-Level Politics, OCR and AQA A-Level Computer Science and Edexcel GCSE Computer Science exam questions, Eduqas A-Level Biology, Chemistry and Physics, AS/A Level Religious Studies and GCSE Religious Studies and History, and every question from the CAIE (Cambridge International) AS & A Level and IGCSE papers Cambridge publishes, and WJEC AS/A Level Biology, Chemistry, Physics and Maths and WJEC Level 3 Applied Diploma in Criminology exam questions, by topic, with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every exam question from the AQA, Pearson Edexcel, OCR, OCR MEI, Eduqas, WJEC and Cambridge (CAIE) GCSE, International GCSE, Level 2 and A-Level papers the boards publish, across maths, the sciences, English, history, geography, religious studies, computer science, business, economics, psychology, sociology, politics, law and more, sorted by topic, each with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap qb-hub-hero">
           <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>
