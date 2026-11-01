@@ -30,8 +30,8 @@ export const subjectColours: Record<string, string> = {
   Law: "#8a93c4",
   Politics: "#7f8fb8",
   History: "#c98a6b",
-  French: "#8fa7d6",
-  Spanish: "#e6b36f",
+  French: "#8fb0dc",
+  Spanish: "#e0a07a",
 };
 
 export function Book({ subject, kicker, plate, children, as: Tag = "div", className = "", ...rest }: {
