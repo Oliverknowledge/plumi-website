@@ -9,7 +9,7 @@ import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
 import { isEssaySubject } from "@/lib/markBands";
 import {
-  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, questionOf, reportKey, seriesLabel, topicName,
+  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
 
@@ -106,6 +106,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const pdfOnly = parts.filter(p => p.msf && !p.ms && !p.k);
   const schemePdf = pdfOnly[0]?.msf;
   const stem = parts.find(p => p.st);
+  // A Listening question is answered from its recording: AQA's track for the question, or the whole paper's where AQA publishes no tracks.
+  const recordings = [...new Map(parts.filter(p => p.au).map(p => [p.au as string, p])).values()];
   const stemOpen = open.stem || many;
   const earlier = many ? [] : before;
 
@@ -182,7 +184,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {stem && stemOpen && <img className="qb-img" src={partImage(stem.id, "stem", subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
+            {stem && stemOpen && <img className="qb-img" src={stemImage(stem, subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
             {stemOpen && earlier.map(p => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={p.id} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
@@ -190,6 +192,12 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             ))}
           </div>
         )}
+        {recordings.map(p => (
+          <div key={p.au} className="qb-audio">
+            <p className="qb-note-label">{p.auw ? `The whole recording for this paper: question ${q} starts after its number is read out` : `The recording for question ${q}, with its pauses, as in the exam`}</p>
+            <audio controls preload="none" src={`${papersBase}/${p.au}`} onPlay={() => track("bank_reveal", { subject: subject.slug, kind: "audio", part: many ? questionKey(part) : part.id })} />
+          </div>
+        ))}
         <div className="qb-paper">
           {parts.map(p => [
             many && p.or ? <p key={`${p.id}-or`} className="qb-or">OR</p> : null,

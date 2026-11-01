@@ -6,7 +6,7 @@
  * sciences, AS/A Level Religious Studies, A Level English Literature and GCSE Religious Studies, History, English Language and English Literature, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Further Maths, Psychology, Economics, Philosophy, Religious Studies, Sociology, Business, Geography, Politics, History and Law,
  * AQA's GCSE English Literature, English Language, Geography and Religious Studies and A-Level English Literature A and B and English Language, Pearson Edexcel's A-Level Economics A and B, Business,
  * Geography, Psychology, Politics, English Literature and History, OCR's A-Level Economics, Law, Psychology, Sociology, English Literature and Religious Studies, OCR's and AQA's A-Level Computer Science, Pearson Edexcel's GCSE Computer Science, Geography B and Business, OCR's GCSE Computer Science, and AQA's, Pearson Edexcel's and OCR's GCSE Maths
- * (both tiers) and AQA's Level 2 Further Maths, and OCR's GCSE Gateway Biology A, Chemistry A, Physics A and Combined Science A, cut out one at a time, each with its own mark scheme
+ * (both tiers) and AQA's Level 2 Further Maths, OCR's GCSE Gateway Biology A, Chemistry A, Physics A and Combined Science A, and AQA's GCSE French, Spanish and Bengali, cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
@@ -14,7 +14,7 @@
  * fetch_aqa.py, spec.py, cut.py, build_bank.py; AQA maths: aqa_maths/; AQA further maths: aqa_further_maths/; AQA economics: aqa_economics/; AQA philosophy: aqa_philosophy/; AQA Religious Studies: aqa_rs/;
  * AQA sociology: aqa_sociology/; AQA politics: aqa_politics/; AQA law: aqa_law/; AQA business: aqa_business/; AQA history: aqa_history/; AQA geography: aqa_geography/; AQA English Literature: aqa_english_lit/; AQA English Language: aqa_english_lang/; AQA GCSE Geography: aqa_gcse_geography/; AQA GCSE Religious Studies: aqa_gcse_rs/; AQA GCSE Business: aqa_gcse_business/; AQA GCSE History: aqa_gcse_history/; AQA Combined Science: aqa_trilogy/; Edexcel maths: the *_edexcel.py
  * scripts; Edexcel sciences: edexcel_sciences/; Edexcel GCSE sciences: edexcel_gcse/; Edexcel International GCSE sciences: edexcel_igcse/; Edexcel GCSE Combined Science: edexcel_combined/; Edexcel geography: edexcel_geography/; Edexcel psychology: edexcel_psychology/; Edexcel economics B: edexcel_economics_b/; Edexcel business: edexcel_business/; Edexcel politics: edexcel_politics/; Edexcel English Literature: edexcel_english_lit/; Edexcel History: edexcel_history/; OCR: ocr/; CAIE: caie/; Eduqas: eduqas/; Eduqas Religious Studies: eduqas_rs/; Eduqas English Literature: eduqas_english_lit/; Eduqas GCSE Religious Studies and History: eduqas_gcse/; Eduqas GCSE English Language and Literature: eduqas_gcse_english/; WJEC: wjec/;
- * Computer Science: computer_science/; Edexcel GCSE Computer Science: edexcel_cs/; OCR GCSE Computer Science: ocr_gcse_cs/; AQA GCSE Computer Science: aqa_gcse_cs/; Edexcel GCSE Geography B: edexcel_gcse_geography/; Edexcel GCSE Business: edexcel_gcse_business/; Edexcel GCSE History: edexcel_gcse_history/; Edexcel GCSE English: edexcel_gcse_english/; OCR economics: ocr_economics/; OCR law: ocr_law/; OCR psychology and sociology: ocr_psychology/, ocr_sociology/; OCR English Literature: ocr_english_lit/; OCR Religious Studies: ocr_rs/; OCR History A: ocr_history/; GCSE Maths: gcse_maths/; AQA Level 2 Further Maths: aqa_l2_further_maths/; OCR GCSE sciences: ocr_gcse/; Edexcel International GCSE Maths: edexcel_igcse_maths/). The images and PDFs are ours,
+ * Computer Science: computer_science/; Edexcel GCSE Computer Science: edexcel_cs/; OCR GCSE Computer Science: ocr_gcse_cs/; AQA GCSE Computer Science: aqa_gcse_cs/; Edexcel GCSE Geography B: edexcel_gcse_geography/; Edexcel GCSE Business: edexcel_gcse_business/; Edexcel GCSE History: edexcel_gcse_history/; Edexcel GCSE English: edexcel_gcse_english/; OCR economics: ocr_economics/; OCR law: ocr_law/; OCR psychology and sociology: ocr_psychology/, ocr_sociology/; OCR English Literature: ocr_english_lit/; OCR Religious Studies: ocr_rs/; OCR History A: ocr_history/; GCSE Maths: gcse_maths/; AQA Level 2 Further Maths: aqa_l2_further_maths/; OCR GCSE sciences: ocr_gcse/; Edexcel International GCSE Maths: edexcel_igcse_maths/; AQA GCSE French, Spanish and Bengali: aqa_gcse_languages/). The images and PDFs are ours,
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
@@ -125,6 +125,9 @@ import aqaLevel2FurtherMaths from "./questionBank/aqa-level-2-further-maths.json
 import ocrGcseChemistryA from "./questionBank/ocr-gcse-chemistry-a.json";
 import ocrGcsePhysicsA from "./questionBank/ocr-gcse-physics-a.json";
 import ocrGcseCombinedScienceA from "./questionBank/ocr-gcse-combined-science-a.json";import edexcelIgcseMaths from "./questionBank/edexcel-igcse-maths.json";
+import aqaGcseFrench from "./questionBank/aqa-gcse-french.json";
+import aqaGcseSpanish from "./questionBank/aqa-gcse-spanish.json";
+import aqaGcseBengali from "./questionBank/aqa-gcse-bengali.json";
 
 /**
  * `year`: 1 for AS content, 2 for A-Level only, 3 for a Paper 3 option (Physics, Psychology), 0 where the bank doesn't split by year (maths, GCSE, IGCSE, the rest of Psychology, English Literature's set texts).
@@ -174,6 +177,11 @@ export interface BankPart {
   sol?: 1;
   /** A multiple-choice question's answer letter, where the scheme is a key rather than a table. */
   k?: string;
+  /** Where its start (`st`) is, when its id doesn't say: a question with no parts showing the start it shares with the one before (GCSE languages: questions 02 to 04 set on question 01's options) has "<its id>-stem.webp". See stemImage. */
+  sk?: string;
+  /** A Listening question's recording, relative to the papers base: AQA's track for the question ("audio/8658lh-jun24-07.mp3"), or with `auw` the whole paper's. */
+  au?: string;
+  auw?: 1;
   /** Asks for a calculation; in a bank with `calcPapers`, sits on a paper that allows a calculator. */
   calc?: 1;
   /** The opening words, for alt text and the static topic pages. */
@@ -185,7 +193,7 @@ export interface BankSubject {
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE" | "Eduqas" | "WJEC";
   /** "Level 3": a vocational Level 3 qualification, WJEC's Applied Diploma in Criminology, shelved apart from the A-Levels. "Level 2": AQA's Level 2 Certificate in Further Maths, sat beside GCSE and shelved with it. */
   level: "A-Level" | "GCSE" | "IGCSE" | "Level 2" | "Level 3";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Economics B" | "Computer Science" | "Combined Science" | "Philosophy" | "Sociology" | "Business" | "English Literature" | "English Literature A" | "Geography" | "Geography B" | "Criminology" | "English Literature B" | "Law" | "Politics" | "Religious Studies" | "English Language" | "History";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Economics B" | "Computer Science" | "Combined Science" | "Philosophy" | "Sociology" | "Business" | "English Literature" | "English Literature A" | "Geography" | "Geography B" | "Criminology" | "English Literature B" | "Law" | "Politics" | "Religious Studies" | "English Language" | "History" | "French" | "Spanish" | "Bengali";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)", "Chemistry B (Salters)". */
   fullName?: string;
   specs: string[];
@@ -225,7 +233,7 @@ export interface BankSubject {
   sample: BankPart[];
 }
 
-export const bankSubjects = [maths, furtherMaths, aqaMaths, aqaFurtherMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaPolitics, aqaLaw, aqaBusiness, aqaHistory, aqaGeography, aqaPhilosophy, aqaReligiousStudies, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, aqaEnglishLanguage, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelBusiness, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, edexcelHistory, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrPsychology, ocrSociology, ocrEnglishLiterature, ocrReligiousStudies, ocrHistoryA, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, eduqasEnglishLiterature, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, aqaLevel2FurtherMaths, gcseEnglishLanguage, aqaGcseComputerScience, edexcelGcseComputerScience, ocrGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, eduqasGcseEnglishLanguage, eduqasGcseEnglishLiterature, gcseGeography, edexcelGcseGeographyB, gcseReligiousStudies, gcseBusiness, ocrGcseBiologyA, ocrGcseChemistryA, ocrGcsePhysicsA, ocrGcseCombinedScienceA, gcseHistory, edexcelGcseBusiness, edexcelGcseCombinedScience, edexcelGcseHistory, edexcelGcseEnglishLanguage, edexcelGcseEnglishLiterature, edexcelIgcseMaths, edexcelIgcseBiology, edexcelIgcseChemistry, edexcelIgcsePhysics] as BankSubject[];
+export const bankSubjects = [maths, furtherMaths, aqaMaths, aqaFurtherMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaPolitics, aqaLaw, aqaBusiness, aqaHistory, aqaGeography, aqaPhilosophy, aqaReligiousStudies, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, aqaEnglishLanguage, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelBusiness, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, edexcelHistory, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrPsychology, ocrSociology, ocrEnglishLiterature, ocrReligiousStudies, ocrHistoryA, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, eduqasEnglishLiterature, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, aqaLevel2FurtherMaths, gcseEnglishLanguage, aqaGcseComputerScience, edexcelGcseComputerScience, ocrGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, eduqasGcseEnglishLanguage, eduqasGcseEnglishLiterature, gcseGeography, edexcelGcseGeographyB, gcseReligiousStudies, gcseBusiness, ocrGcseBiologyA, ocrGcseChemistryA, ocrGcsePhysicsA, ocrGcseCombinedScienceA, gcseHistory, edexcelGcseBusiness, edexcelGcseCombinedScience, edexcelGcseHistory, edexcelGcseEnglishLanguage, edexcelGcseEnglishLiterature, edexcelIgcseMaths, edexcelIgcseBiology, edexcelIgcseChemistry, edexcelIgcsePhysics, aqaGcseFrench, aqaGcseSpanish, aqaGcseBengali] as BankSubject[];
 
 export function bankSubject(slug: string): BankSubject | undefined {
   return bankSubjects.find(s => s.slug === slug);
@@ -269,6 +277,9 @@ export const partImage = (id: string, kind: "qp" | "ms" | "stem", version?: numb
   const v = kind === "ms" ? Math.max(MS_VERSION, version ?? 0) : version;
   return (kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`) + (v ? `?v=${v}` : "");
 };
+/** A part's start (`st`): its question's, or the one it shares (`sk`). */
+export const stemImage = (p: Pick<BankPart, "id" | "sk">, version?: number) =>
+  p.sk ? `${papersBase}/bank/${p.sk}-stem.webp${version ? `?v=${version}` : ""}` : partImage(p.id, "stem", version);
 /** The examiner's report covers a whole question: "74051-jun23-01" (AQA parts share it); an Edexcel question is its own key. */
 export const reportKey = (subject: Pick<BankSubject, "reportsBy">, id: string) => (subject.reportsBy === "question" ? id : id.split("-").slice(0, 3).join("-"));
 
