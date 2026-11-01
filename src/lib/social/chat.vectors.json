@@ -1,0 +1,293 @@
+{
+ "source": "tools/social-check/chat_test.sql (app repo)",
+ "vectors": [
+  {
+   "body": "hello",
+   "want": null
+  },
+  {
+   "body": "  anyone done q3   yet?  ",
+   "want": null
+  },
+  {
+   "body": "",
+   "want": "empty"
+  },
+  {
+   "body": "     ",
+   "want": "empty"
+  },
+  {
+   "body": "pass the class assignment",
+   "want": null
+  },
+  {
+   "body": "the cockpit of a plane",
+   "want": null
+  },
+  {
+   "body": "cumulative frequency is a pain",
+   "want": null
+  },
+  {
+   "body": "my therapist says revise",
+   "want": null
+  },
+  {
+   "body": "sex cells are gametes",
+   "want": null
+  },
+  {
+   "body": "Nazi Germany 1933-1939",
+   "want": null
+  },
+  {
+   "body": "WW2 was 1939-1945",
+   "want": null
+  },
+  {
+   "body": "pi is 3.14159265358979",
+   "want": null
+  },
+  {
+   "body": "I'm done. Me too",
+   "want": null
+  },
+  {
+   "body": "this hit me hard",
+   "want": null
+  },
+  {
+   "body": "e.g. use v = f x lambda",
+   "want": null
+  },
+  {
+   "body": "meet @ 5 in the library",
+   "want": null
+  },
+  {
+   "body": "I got 45 on paper 3",
+   "want": null
+  },
+  {
+   "body": "the Arsenal match",
+   "want": null
+  },
+  {
+   "body": "Dickens wrote it",
+   "want": null
+  },
+  {
+   "body": "Scunthorpe",
+   "want": "language"
+  },
+  {
+   "body": "fuck",
+   "want": "language"
+  },
+  {
+   "body": "FUCK this",
+   "want": "language"
+  },
+  {
+   "body": "fuuuuuck",
+   "want": "language"
+  },
+  {
+   "body": "f u c k",
+   "want": "language"
+  },
+  {
+   "body": "f.u.c.k",
+   "want": "language"
+  },
+  {
+   "body": "f**k off",
+   "want": "language"
+  },
+  {
+   "body": "sh1t",
+   "want": "language"
+  },
+  {
+   "body": "sh it",
+   "want": "language"
+  },
+  {
+   "body": "$hit",
+   "want": "language"
+  },
+  {
+   "body": "you absolute bitch",
+   "want": "language"
+  },
+  {
+   "body": "what an ass",
+   "want": "language"
+  },
+  {
+   "body": "a$$",
+   "want": "language"
+  },
+  {
+   "body": "wtf",
+   "want": "language"
+  },
+  {
+   "body": "go kill yourself",
+   "want": "language"
+  },
+  {
+   "body": "kys",
+   "want": "language"
+  },
+  {
+   "body": "crap",
+   "want": "language"
+  },
+  {
+   "body": "see https://plumi.app",
+   "want": "link"
+  },
+  {
+   "body": "http stuff",
+   "want": "link"
+  },
+  {
+   "body": "www.example.org",
+   "want": "link"
+  },
+  {
+   "body": "w w w dot something",
+   "want": "link"
+  },
+  {
+   "body": "go to google.com",
+   "want": "link"
+  },
+  {
+   "body": "google . com",
+   "want": "link"
+  },
+  {
+   "body": "youtu.be/abc",
+   "want": "link"
+  },
+  {
+   "body": "bit.ly/x",
+   "want": "link"
+  },
+  {
+   "body": "example dot com",
+   "want": "link"
+  },
+  {
+   "body": "email me at sam@school.uk",
+   "want": "link"
+  },
+  {
+   "body": "follow @sam_k",
+   "want": "link"
+  },
+  {
+   "body": "call 07700 900123",
+   "want": "link"
+  },
+  {
+   "body": "+44 7700 900 123",
+   "want": "link"
+  },
+  {
+   "body": "my snap is samk",
+   "want": "link"
+  },
+  {
+   "body": "add me on snapchat",
+   "want": "link"
+  },
+  {
+   "body": "dm me",
+   "want": "link"
+  },
+  {
+   "body": "whatsapp me",
+   "want": "link"
+  },
+  {
+   "body": "on discord later",
+   "want": "link"
+  },
+  {
+   "body": "my gmail",
+   "want": "link"
+  },
+  {
+   "body": "that is gooning behaviour",
+   "want": "language"
+  },
+  {
+   "body": "G00ned",
+   "want": "language"
+  },
+  {
+   "body": "goooon",
+   "want": "language"
+  },
+  {
+   "body": "such a gyatt",
+   "want": "language"
+  },
+  {
+   "body": "we went to the lagoon",
+   "want": null
+  },
+  {
+   "body": "that was nutty",
+   "want": null
+  },
+  {
+   "body": "ｆｕｃｋ",
+   "want": "language"
+  },
+  {
+   "body": "f​uck",
+   "want": "language"
+  },
+  {
+   "body": "фuck",
+   "want": null
+  },
+  {
+   "body": "ѕhit",
+   "want": "language"
+  },
+  {
+   "body": "fück",
+   "want": "language"
+  },
+  {
+   "body": "𝐟𝐮𝐜𝐤",
+   "want": "language"
+  },
+  {
+   "body": "www．example．com",
+   "want": "link"
+  },
+  {
+   "body": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "want": null
+  },
+  {
+   "body": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "want": "too_long"
+  },
+  {
+   "body": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+   "want": null
+  },
+  {
+   "body": "hello\nthere",
+   "want": null
+  }
+ ]
+}
