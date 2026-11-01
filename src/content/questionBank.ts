@@ -197,7 +197,7 @@ export interface BankSubject {
   board: "AQA" | "Edexcel" | "OCR" | "OCR MEI" | "CAIE" | "Eduqas" | "WJEC";
   /** "Level 3": a vocational Level 3 qualification, WJEC's Applied Diploma in Criminology, shelved apart from the A-Levels. "Level 2": AQA's Level 2 Certificate in Further Maths, sat beside GCSE and shelved with it. */
   level: "A-Level" | "GCSE" | "IGCSE" | "Level 2" | "Level 3";
-  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Economics B" | "Computer Science" | "Combined Science" | "Philosophy" | "Sociology" | "Business" | "English Literature" | "English Literature A" | "Geography" | "Geography B" | "Criminology" | "English Literature B" | "Law" | "Politics" | "Religious Studies" | "English Language" | "History" | "French" | "Spanish" | "French" | "Spanish" | "Bengali";
+  subject: "Biology" | "Biology A" | "Biology B" | "Chemistry" | "Chemistry A" | "Chemistry B" | "Physics" | "Physics A" | "Physics B" | "Maths" | "Further Maths" | "Additional Maths" | "Psychology" | "Economics" | "Economics A" | "Economics B" | "Computer Science" | "Combined Science" | "Philosophy" | "Sociology" | "Business" | "English Literature" | "English Literature A" | "Geography" | "Geography B" | "Criminology" | "English Literature B" | "Law" | "Politics" | "Religious Studies" | "English Language" | "History" | "French" | "Spanish" | "Bengali";
   /** Where the specification's name is longer: "Biology A (Salters-Nuffield)", "Chemistry B (Salters)". */
   fullName?: string;
   specs: string[];
