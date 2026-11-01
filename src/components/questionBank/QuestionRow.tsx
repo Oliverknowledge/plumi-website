@@ -89,8 +89,9 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
   const whole = subject.wholes[`${part.p}-${part.s}`];
-  // A question on the paper's sources (English Language) is read with them open: they're printed in the insert.
-  const insert = whole?.ins && parts.some(p => /\bsources?\b|\bextract\b|\blines? \d/i.test(p.x)) ? whole.ins : undefined;
+  // A question on the paper's sources (English Language; at A-Level its "Text A") is read with them open: they're printed in the insert.
+  const insert = whole?.ins && parts.some(p => /\bsources?\b|\bextract\b|\blines? \d|\btext [A-D]\b/i.test(p.x)) ? whole.ins : undefined;
+  const insertTexts = parts.some(p => /\btext [A-D]\b/i.test(p.x));
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
   // alternative (AQA Sociology's Topic A2, Economics' Context 2, English Literature's Romeo and Juliet or Macbeth) still shows its marks.
   const marked = parts.filter(p => p.m != null && !(p.or && parts.some(o => !o.or)));
@@ -157,7 +158,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           )}
           {!withScheme.length && !schemePdf && <span className="qb-noms">No published mark scheme</span>}
           {insert && (
-            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The sources for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>Sources (insert) ↗</a>
+            <a className="qb-key" href={`${papersBase}/${insert}`} target="_blank" rel="noopener" title={`The ${insertTexts ? "texts" : "sources"} for ${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}`}>{insertTexts ? "Texts" : "Sources"} (insert) ↗</a>
           )}
           {!embed && (
             <button type="button" className={`qb-key qb-add${inSet ? " is-on" : ""}`} aria-pressed={inSet} onClick={onToggleSet} disabled={!inSet && setFull}>
