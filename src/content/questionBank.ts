@@ -6,7 +6,7 @@
  * sciences, AS/A Level Religious Studies and GCSE Religious Studies and History, WJEC's AS/A Level sciences and maths, WJEC's Level 3 Applied Diploma in Criminology, AQA's A-Level Maths, Psychology, Economics, Philosophy, Sociology, Business and Geography,
  * AQA's GCSE English Literature, English Language and Geography and A-Level English Literature A and B, Pearson Edexcel's A-Level Economics A and B,
  * Geography, Psychology, Politics and English Literature, OCR's A-Level Economics, Law and English Literature, OCR's and AQA's A-Level Computer Science, Pearson Edexcel's GCSE Computer Science and Geography B, and AQA's, Pearson Edexcel's and OCR's GCSE Maths
- * (Higher tier), cut out one at a time, each with its own mark scheme
+ * (both tiers), cut out one at a time, each with its own mark scheme
  * rows and the examiner's report on its question, tagged to the topic of the
  * specification it tests.
  *
@@ -219,9 +219,12 @@ export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | 
  */
 export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
   s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE"));
-/** A GCSE bank with Higher and Foundation papers has a tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too. */
+/**
+ * A GCSE bank with Higher and Foundation papers (by name, "Paper 1 Higher", as the tier links read them) has a
+ * tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too.
+ */
 export const bankHasTiers = (s: Pick<BankSubject, "level" | "papers">) =>
-  s.level === "GCSE" && s.papers.some(p => /H$/i.test(p.id)) && s.papers.some(p => /F$/i.test(p.id));
+  s.level === "GCSE" && s.papers.some(p => /\bHigher\b/.test(p.name)) && s.papers.some(p => /\bFoundation\b/.test(p.name));
 export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */

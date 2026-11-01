@@ -917,11 +917,12 @@ by parts or substitution, radians in calculus, and the rest of that list above).
 `as_spec` file for what the AS covers: boards differ, and an option's AS paper covers less
 than its A-Level paper at OCR and MEI. When it's a real toss-up, answer 13.
 
-## GCSE Maths (AQA, Edexcel and OCR Higher)
+## GCSE Maths (AQA, Edexcel and OCR, both tiers)
 
-`gcse_maths/tag_gcse_maths.py split` writes batches for the three GCSE Maths Higher
+`gcse_maths/tag_gcse_maths.py split` writes batches for the three GCSE Maths
 banks together (AQA 8300, Pearson Edexcel 1MA1, OCR J560) to `.work/gcse-maths/tag/`,
-and `merge` collects them into each board's `tags.json`. The brief is the one at the
+and `merge` collects them into each board's `tags.json`: batches 1 to 31 are the Higher
+papers, 32 to 65 the Foundation ones (split leaves out what is already tagged). The brief is the one at the
 top, with these differences:
 
 - Maths is tagged a whole question at a time, as the other maths banks are: one to
