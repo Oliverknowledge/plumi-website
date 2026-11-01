@@ -150,12 +150,14 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           <button type="button" className="btn lb-hbtn" data-testid="exit-full" onClick={exitFull}>{"\u2922"} Exit full screen</button>
         </div>
         <div className="lb-dock"><SeatCard session={session} snap={snap} handleRef={handle} /></div>
-        <aside className={`lb-drawer${drawer ? " is-open" : ""}`} aria-label="Library panel" aria-hidden={drawer ? undefined : true} inert={drawer ? undefined : true} data-testid="drawer">
+        <aside className={`lb-drawer${drawer ? " is-open" : ""}`} data-tab={drawer ?? undefined} aria-label="Library panel" aria-hidden={drawer ? undefined : true} inert={drawer ? undefined : true} data-testid="drawer">
           <div className="lb-tabs" role="tablist">
             {(["chat", "people", "outfit", "libraries"] as const).map((t) => (
               <button key={t} type="button" role="tab" aria-selected={drawer === t} className={drawer === t ? "on" : undefined} onClick={() => open(t)}>{TAB_TITLE[t]}</button>
             ))}
-            <button type="button" className="lb-x" aria-label="Close panel" onClick={() => open(null)}>{"\u00d7"}</button>
+            <button type="button" className="lb-x" aria-label="Close panel" data-testid="close-panel" onClick={() => open(null)}>
+              <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" fill="none" /></svg>
+            </button>
           </div>
           <div className="lb-dbody">
             {drawer === "chat" && <Chat session={session} snap={snap} me={driver.me} />}
