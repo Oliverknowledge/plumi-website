@@ -29,7 +29,7 @@ def words(text):
 def tiered(slug):
     meta = json.load(open(os.path.join(ROOT, "src", "content", "questionBank", f"{slug}.json")))
     ids = [p["id"] for p in meta["papers"]]
-    return meta.get("level") == "GCSE" and any(i.upper().endswith("H") for i in ids) and any(i.upper().endswith("F") for i in ids)
+    return meta.get("level") in ("GCSE", "IGCSE") and any(i.upper().endswith("H") for i in ids) and any(i.upper().endswith("F") for i in ids)
 
 
 def pairs(slug):
