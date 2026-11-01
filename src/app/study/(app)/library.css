@@ -175,9 +175,10 @@
 
 /* the panel: a floating card under the buttons, as tall as what is in it, so the room stays in view.
    Chat is the one with a set height (a conversation needs room to read). Walking and sitting still work with it open. */
-.pa .lb-drawer { position: absolute; z-index: 4; top: calc(64px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); width: min(380px, calc(100% - 24px)); max-height: calc(100% - 64px - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; background: var(--paper); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 4px 0 var(--ink), 0 14px 30px rgba(20, 29, 51, .28); overflow: hidden; opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top right; visibility: hidden; pointer-events: none; transition: opacity .16s ease-out, transform .16s ease-out, visibility 0s .16s; }
+.pa .lb-drawer { position: absolute; z-index: 4; top: calc(64px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); width: min(380px, calc(100% - 24px)); max-height: calc(100% - 64px - 130px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; background: var(--paper); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 4px 0 var(--ink), 0 14px 30px rgba(20, 29, 51, .28); overflow: hidden; opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top right; visibility: hidden; pointer-events: none; transition: opacity .16s ease-out, transform .16s ease-out, visibility 0s .16s; }
 .pa .lb-drawer.is-open { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition: opacity .16s ease-out, transform .16s ease-out; }
-.pa .lb-drawer[data-tab="chat"] { height: calc(100% - 64px - 12px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); max-height: none; }
+/* tall, but it stops above the record player in the bottom right corner */
+.pa .lb-drawer[data-tab="chat"] { height: calc(100% - 64px - 130px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); max-height: none; }
 .pa .lb-drawer[data-tab="chat"] .lb-dbody > .lb-chat { flex: 1; min-height: 0; }
 .pa .lb-drawer[data-tab="chat"] .lb-msgs { flex: 1; min-height: 0; }
 .pa .lb-tabs { display: flex; align-items: center; gap: 4px; padding: 8px 8px 8px 10px; border-bottom: 2px solid var(--ink); background: var(--card2); flex: none; }
