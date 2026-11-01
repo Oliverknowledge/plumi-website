@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { EmbedQuestionList } from "@/components/questionBank/EmbedQuestionList";
-import { bankSubject, bankTopic, bankTopicPath, type BankPart } from "@/content/questionBank";
+import { bankSubject, bankTitle, bankTopic, bankTopicPath, type BankPart } from "@/content/questionBank";
 import { sortNewest } from "@/lib/embed";
 
 type Params = Promise<{ subject: string; topic: string }>;
@@ -43,8 +43,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!found) return {};
   const { s, t } = found;
   return {
-    title: { absolute: `${t.title}: ${s.board} ${s.level} ${s.subject} practice questions` },
-    description: `${s.board} ${s.level} ${s.subject} questions on ${t.title}, from Plumi.`,
+    title: { absolute: `${t.title}: ${bankTitle(s)} practice questions` },
+    description: `${bankTitle(s)} questions on ${t.title}, from Plumi.`,
     alternates: { canonical: bankTopicPath(s.slug, t.slug) },
     robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
     openGraph: null,
