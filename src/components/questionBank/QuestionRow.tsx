@@ -176,7 +176,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           <div className="qb-stem">
             {!many && (
               <button type="button" className="qb-link" aria-expanded={!!open.stem} onClick={() => flip("stem")}>
-                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : `how question ${q} starts`}
+                {/* (History's stem is the sources and interpretations the question is set on) */}
+                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : subject.subject === "History" ? `the sources for question ${q}` : `how question ${q} starts`}
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
