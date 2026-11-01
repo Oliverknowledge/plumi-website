@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { lookScript } from "@/components/study/appearance";
-import "./tokens.css";
-import "./components.css";
+import "../tokens.css";
+import "../components.css";
 
 /**
  * The study app's root. Everything under /study (which study.tryplumi.app will serve) sits in

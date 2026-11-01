@@ -1,0 +1,99 @@
+/* Flashcards: Review, Decks and the deck editor. On the app's tokens (app.css), scoped under .pa. */
+.pa .fcp { padding-bottom: 110px; }
+.pa .fcp .ph { padding-block: 30px 18px; }
+.pa .fcp-card { background: var(--card); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); }
+.pa .fcp-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 22px 26px; text-align: center; max-width: 640px; margin: 0 auto; }
+.pa .fcp-empty h2 { margin: 0; font: 700 28px/1.1 var(--f-px); }
+.pa .fcp-empty p { margin: 0; max-width: 46ch; font-weight: 700; color: var(--soft); }
+.pa .fcp-empty .quill { width: 72px; height: 72px; image-rendering: pixelated; }
+.pa .fcp-streak { font: 600 19px var(--f-px) !important; color: var(--ink) !important; }
+.pa .fcp-acts { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+
+/* review */
+.pa .fcp-review { display: grid; gap: 14px; max-width: 760px; margin: 0 auto; }
+.pa .fcp-scope { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pa .fcp-prog { height: 14px; border: 2px solid var(--ink); border-radius: 8px; background: #fff; overflow: hidden; }
+.pa .fcp-prog i { display: block; height: 100%; background: var(--gold); border-right: 2px solid var(--ink); transition: width .3s; }
+.pa .fcp-prog i[style*="width: 0%"] { border-right: 0; }
+.pa .fcp-keys { margin: 0; text-align: center; font-size: 13px; font-weight: 800; color: var(--soft); display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.pa .fcp-keys kbd { margin-left: 6px; }
+.pa .fcp-keys kbd:first-child { margin-left: 0; }
+
+/* shared bits */
+.pa .fcp-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-block: 22px 12px; }
+.pa .fcp-bar h2 { margin: 0; font: 600 26px var(--f-px); }
+.pa .fcp-bar .grow { flex: 1; }
+.pa .fcp-none { margin: 4px 0 16px; font-weight: 700; color: var(--soft); }
+.pa .btn.danger { color: var(--red-pen); }
+.pa .btn.danger:hover { background: #f9dcd8; }
+.pa .btn.danger.solid, .pa .fcp-danger .btn.danger:not(.ghost) { background: var(--red-pen); color: #fff; border-color: var(--ink); }
+.pa .btn.danger:not(.ghost):hover { background: #a8352f; }
+
+/* decks */
+.pa .fcp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 900px) { .pa .fcp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pa .fcp-stats .card { padding: 12px 14px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pa .fcp-stats .num { font: 700 38px/1 var(--f-px); }
+.pa .fcp-stats small { font-size: 12.5px; font-weight: 700; color: var(--soft); }
+.pa .fcp-stats select, .pa .fcp-new select { height: 38px; padding: 0 8px; border: 2px solid var(--ink); border-radius: 9px; background: #fff; font: 800 14px var(--f-body); color: var(--ink); max-width: 100%; }
+.pa .fcp-starters { padding: 16px; margin-bottom: 8px; }
+.pa .fcp-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.pa .fcp-grid .card { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.pa .fcp-grid .dk-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 26px; }
+.pa .fcp-grid h3 { margin: 0; font: 600 21px/1.1 var(--f-px); overflow-wrap: anywhere; }
+.pa .fcp-grid p { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--soft); }
+.pa .fcp-grid .acts { display: flex; gap: 8px; margin-top: auto; flex-wrap: wrap; }
+.pa .fcp-new { margin-top: 20px; padding: 14px 16px 16px; }
+.pa .fcp-new h3, .pa .fcp-add h3, .pa .fcp-list h3 { margin: 0 0 10px; font: 600 21px var(--f-px); }
+.pa .fcp-new .row2 { display: grid; grid-template-columns: minmax(0, 1fr) 180px auto; gap: 10px; }
+@media (max-width: 640px) { .pa .fcp-new .row2 { grid-template-columns: minmax(0, 1fr); } }
+.pa .fcp-new input, .pa .fcp-import textarea { height: 42px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; font: 700 15px var(--f-body); color: var(--ink); min-width: 0; }
+
+/* starters */
+.pa .starters ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; text-align: left; }
+.pa .starters label { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 2px solid var(--ink); border-radius: 11px; background: #fff; cursor: pointer; min-height: 52px; }
+.pa .starters label:hover { background: #fff8e6; }
+.pa .starters label.added { opacity: .65; cursor: default; }
+.pa .starters .cbx { margin: 0; }
+.pa .starters .name { display: grid; line-height: 1.2; }
+.pa .starters .name b { font: 600 18px var(--f-px); }
+.pa .starters .name small { font-size: 12.5px; font-weight: 700; color: var(--soft); }
+.pa .starters .stk { transform: none; }
+.pa .starter-note { margin: 10px 0 0; font-size: 12.5px; font-weight: 700; color: var(--soft); }
+.pa .starters.compact ul { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+/* editor */
+.pa .fcp-editor { display: grid; gap: 16px; max-width: 900px; }
+.pa .fcp-editor .fcp-bar { margin-block: 14px 0; }
+.pa .fcp-title { min-width: 0; flex: 1 1 240px; height: 46px; padding: 0 12px; border: 2px solid transparent; border-radius: 10px; background: transparent; font: 700 28px var(--f-px); color: var(--ink); }
+.pa .fcp-title:hover, .pa .fcp-title:focus { border-color: var(--ink); background: #fff; outline: none; }
+.pa .fcp-counts { margin: -6px 0 0 14px; font-size: 13.5px; font-weight: 700; color: var(--soft); }
+.pa .fcp-add, .pa .fcp-list, .pa .fcp-import { padding: 14px 16px 16px; }
+.pa .cardfields { display: grid; gap: 10px; }
+.pa .cf-grid { display: grid; gap: 4px; }
+.pa .cf-grid textarea, .pa .fcp-import textarea { width: 100%; padding: 8px 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; font: 700 15.5px/1.4 var(--f-body); color: var(--ink); resize: vertical; height: auto; }
+.pa .cf-grid textarea:focus, .pa .fcp-import textarea:focus, .pa .fcp-new input:focus { outline: 3px solid var(--gold); outline-offset: 1px; }
+.pa .cf-grid .lbl { margin-top: 6px; }
+.pa .symbar2 { display: flex; flex-wrap: wrap; gap: 4px; }
+.pa .symbar2 button { min-width: 36px; height: 34px; padding: 0 8px; border: 2px solid var(--ink); border-radius: 8px; background: #fff; font: 800 15px var(--f-body); cursor: pointer; }
+.pa .symbar2 button:hover { background: #fff1c2; }
+.pa .cf-acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pa .cf-hint { font-size: 12px; font-weight: 800; color: var(--mute); display: inline-flex; gap: 4px; align-items: center; }
+.pa .fcp-list h3 small { font: 800 12px var(--f-body); padding: 1px 7px; border-radius: 8px; background: var(--gold); margin-left: 6px; vertical-align: middle; }
+.pa .fcp-list ul { list-style: none; margin: 0; padding: 0; }
+.pa .fcp-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto auto auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 2px dashed var(--line); }
+.pa .fcp-list li:first-child { border-top: 0; }
+.pa .fcp-list li .cardfields { grid-column: 1 / -1; }
+.pa .fcp-list .q { font-weight: 800; overflow-wrap: anywhere; white-space: pre-line; }
+.pa .fcp-list .a { color: var(--soft); font-weight: 700; font-size: 14.5px; overflow-wrap: anywhere; white-space: pre-line; }
+.pa .fcp-list .meta { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; color: var(--mute); }
+.pa .fcp-list .btn { min-height: 36px; }
+@media (max-width: 760px) { .pa .fcp-list li { grid-template-columns: minmax(0, 1fr) auto auto; } .pa .fcp-list .a { grid-column: 1 / -1; order: 5; } .pa .fcp-list .meta { display: none; } }
+.pa .fcp-import summary { cursor: pointer; font: 600 18px var(--f-px); }
+.pa .fcp-import p { margin: 10px 0 8px; font-size: 13.5px; font-weight: 700; color: var(--soft); }
+.pa .fcp-import code { font: 800 13px var(--f-body); background: var(--card2); padding: 0 5px; border-radius: 4px; }
+.pa .fcp-import textarea { margin-bottom: 10px; }
+.pa .fcp-danger { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-weight: 700; padding-bottom: 20px; }
+
+/* Every placeholder in the app meets 4.5:1 on its field */
+.pa ::placeholder { color: var(--mute); opacity: 1; }
