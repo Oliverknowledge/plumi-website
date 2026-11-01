@@ -5,6 +5,7 @@ import { track } from "@/lib/analytics";
 import { paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 import { AnswerReadBack } from "./AnswerBox";
 import { ChoicePick, SelfMark } from "./SelfMark";
+import { usePhotoScan } from "@/lib/photoScan";
 
 /**
  * A question, full screen, to read on a phone: tap any question or mark scheme in the
@@ -32,6 +33,7 @@ const useZoom = () => useSyncExternalStore(cb => { listeners.add(cb); return () 
 
 export function ZoomViewer() {
   const z = useZoom();
+  const photo = usePhotoScan();
   const ref = useRef<HTMLDialogElement>(null);
   const [kind, setKind] = useState<Kind>("qp");
   const [index, setIndex] = useState(0);
@@ -90,10 +92,10 @@ export function ZoomViewer() {
             <Stage key={`${part.id}-${kind}`}>
               {kind === "qp" && part.st && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} draggable={false} />
+                <img {...photo} src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} draggable={false} />
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={partImage(part.id, kind, subject.cropVersion)} alt={kind === "qp" ? `Question ${part.l}: ${part.x}` : `Mark scheme for ${part.l}`} draggable={false} />
+              <img {...photo} src={partImage(part.id, kind, subject.cropVersion)} alt={kind === "qp" ? `Question ${part.l}: ${part.x}` : `Mark scheme for ${part.l}`} draggable={false} />
             </Stage>
           )}
 
