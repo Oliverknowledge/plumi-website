@@ -85,8 +85,6 @@ function write(f: Filters) {
   urlListeners.forEach(l => l());
 }
 
-// A Foundation paper's Higher partner: "84611F" → "84611H", "1bi01f" → "1bi01h".
-const twinPaper = (paper: string) => paper.replace(/f$/, "h").replace(/F$/, "H");
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 // (Cambridge's "JUN24V2" is a second June 2024 sitting, another variant of the same papers.)
 const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
@@ -234,6 +232,9 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
   // A topic's section from the data, not its code: "3.1.2" is in "3.1", but Edexcel's "6.A" is in Topic "6".
   const sectionOf = useMemo(() => new Map(subject.topics.map(t => [t.code, t.section])), [subject.topics]);
+  // A Foundation part's Higher twin's paper, read off the twin itself: "84611F" → "84611H", and OCR GCSE Maths' "j56001" → "j56004".
+  const paperOf = useMemo(() => new Map((parts ?? []).map(p => [p.id, p.p])), [parts]);
+  const twinPaper = useCallback((id: string) => paperOf.get(twins?.get(id) ?? "") ?? "", [paperOf, twins]);
   // The option (religion) each paper is for, where it is for one; a link's unknown option is no option.
   const optionOf = useMemo(() => new Map(subject.papers.flatMap(p => (p.option ? [[p.id, p.option] as const] : []))), [subject.papers]);
   const opt = subject.options?.list.some(o => o.id === f.opt) ? f.opt : "";
@@ -267,9 +268,9 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       (skip === "prac" || !f.prac || !practicals || (f.prac === "only") === practicals.has(p.id)) &&
       (skip === "yr" || !f.yr || !year13 || (f.yr === "13") === year13.has(p.id)) &&
       // On both tiers, once: a Foundation part goes when its Higher twin's paper is in view too.
-      (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.p)))) &&
+      (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.id)))) &&
       (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => p.x.toLowerCase().includes(w))));
-  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, f.part, f.marks, opt, text, sectionOf, optionOf, practicals, year13, twins, bands, visible]);
+  }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, f.part, f.marks, opt, text, sectionOf, optionOf, practicals, year13, twins, twinPaper, bands, visible]);
 
   // Every part of each question, in order, for the whole-question view.
   const questions = useMemo(() => {
@@ -294,8 +295,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const hasWhole = !!questions && [...questions.values()].some(g => g.length > 1);
   const hasPracticals = !!practicals?.size;
   // How many Foundation parts the switch would leave out of the list as it is now.
-  const repeats = useMemo(() => (!twins || !parts ? 0 : parts.filter(p => twins.has(p.id) && matches({ ...p }, "q") && (!f.papers.length || f.papers.includes(twinPaper(p.p)))).length),
-    [twins, parts, matches, f.papers]);
+  const repeats = useMemo(() => (!twins || !parts ? 0 : parts.filter(p => twins.has(p.id) && matches({ ...p }, "q") && (!f.papers.length || f.papers.includes(twinPaper(p.id)))).length),
+    [twins, parts, matches, f.papers, twinPaper]);
   const hasYears = !!year13;
   const whole = f.view === "whole" && hasWhole;
 

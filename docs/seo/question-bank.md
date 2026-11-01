@@ -90,7 +90,7 @@ sitemap in Search Console.
 - **Set PDFs.** A crop up to 1.4 pages tall is shrunk onto one page; a longer one is cut at a blank row up
   to half a page back (it was a fifth), so a graph, which has no blank row, moves whole to the next page.
 - **Past papers.** A tickbox before each sitting marks it done (`DoneTick`, kept in the browser, no
-  account). Edexcel GCSE Maths' 2017 and 2018 Higher papers, which Pearson publishes only as zips and the
+  account). Edexcel GCSE Maths' 2017 and 2018 papers (both tiers), which Pearson publishes only as zips and the
   library's fetch passed over, join its table from the bank's own copies (`withBankGcseMaths`).
 
 ## Column vectors and fractions at a question's top (maths), fixed 28 October 2026
@@ -313,30 +313,50 @@ python3 scripts/question-bank/practicals.py split --only=aqa-gcse-combined-scien
 npm run bank:upload -- scripts/question-bank/.work-gcse-trilogy
 ```
 
-## GCSE Maths, Higher tier (AQA, Edexcel and OCR)
+## GCSE Maths, Foundation and Higher tiers (AQA, Edexcel and OCR)
 
 Added 28 October 2026, after the founder asked for "maths higher gcse" (no board named, so
 the three main English boards): `/question-bank/aqa-gcse-maths`, `/question-bank/edexcel-gcse-maths`
 and `/question-bank/ocr-gcse-maths`, every Higher tier question from 2017 to 2025, November
-series included.
+series included. The Foundation papers of the same series joined on 1 November 2026, when the
+founder asked how the site covers both tiers (the science banks had both; maths left Foundation
+students out).
 
-| Bank | Papers | Series | Questions | Scheme crops | Reports |
-| --- | --- | --- | --- | --- | --- |
-| AQA 8300 | 1H (non-calculator), 2H, 3H | June 2017 to June 2025, with the specimen papers (16) | 1,304 | 1,304 | 1,134 |
-| Pearson Edexcel 1MA1 | 1H (non-calculator), 2H, 3H | June 2017 to June 2025 (15) | 997 | 997 | 988 |
-| OCR J560 | 4, 5 (non-calculator), 6 | June 2017 to June 2025 (15) | 921 | 920 | 647 |
+| Bank | Higher papers | Foundation papers | Series | Questions (Higher + Foundation) | Scheme crops | Reports |
+| --- | --- | --- | --- | --- | --- | --- |
+| AQA 8300 | 1H (non-calculator), 2H, 3H | 1F (non-calculator), 2F, 3F | June 2017 to June 2025, with the specimen papers (16) | 1,304 + 1,362 | all | 1,134 + 1,143 |
+| Pearson Edexcel 1MA1 | 1H (non-calculator), 2H, 3H | 1F (non-calculator), 2F, 3F | June 2017 to June 2025 (15) | 997 + 1,260 | all | 988 + 1,228 |
+| OCR J560 | 4, 5 (non-calculator), 6 | 1, 2 (non-calculator), 3 | June 2017 to June 2025 (15) | 921 + 1,087 | all | 647 + 936 |
 
 Every AQA and Pearson paper's questions add up to its 80 marks; every OCR paper's to its
-100, bar June 2024 Paper 6 (99: one question's mark is a point short).
+100, bar June 2024 Paper 6 (99: one question's mark is a point short). All 138 Foundation
+papers add up.
+
+- **Tiers.** Each paper is named with its tier ("Paper 1 Higher", "Paper 1 Foundation", OCR's
+  "Paper 4 Higher" and "Paper 1 Foundation"), as the science banks' are, so the paper filter
+  offers "Higher only" and "Foundation only". The ids, crops and URLs of the Higher questions
+  didn't change. `bankHasTiers` now reads the tier from the paper's name, not its id (OCR's
+  ids are `j56001` to `j56006`), and the "show once" switch finds a Foundation question's
+  Higher paper from its twin (`tiers.json`), not by swapping F for H.
+- **On both tiers (`tiers.py`).** A sitting's Foundation papers pair with its Higher ones in
+  the bank's order (1F with 1H; OCR 1, 2, 3 with 4, 5, 6). Maths keeps its numbers in the
+  comparison (a shared question is the same sum), and also takes a pair whose words and
+  numbers match as counts in any order, since the text layer often comes out in a different
+  order on the two papers. 346 AQA, 305 Edexcel and 221 OCR Foundation questions are on the
+  Higher paper too. Checked against the crops: a pixel comparison of every candidate pair,
+  and by eye for every pair whose crops differ and a random sample of the rest. The bar keeps
+  out Edexcel November 2024 2F Q18 and 2H Q11 (worded alike, different triangles). About a
+  dozen pairs that print identically but whose text came out too differently are left
+  unpaired (they show twice).
 
 - **Sources, all the boards' own sites.** AQA's and OCR's papers, schemes and reports are the
   past paper library's crawl of aqa.org.uk and ocr.org.uk (already on R2 under `aqa/` and
   `ocr/`; the banks link to those copies). Pearson's come from its past paper search:
   June 2019 on as single PDFs (on R2 under `edexcel/` from the library), June 2017 to
   November 2018 as one public zip per series of question papers and mark schemes and
-  another of examiner's reports, which `fetch_gcse_maths.py` takes the Higher files out of
+  another of examiner's reports, which `fetch_gcse_maths.py` takes both tiers' files out of
   (uploaded under `edexcel/1ma1-*`, with November 2020 Paper 2's report, which the library
-  hadn't got).
+  hadn't got, and the same for Foundation: 36 files from 2017 and 2018 and November 2020's three reports).
 - **Cut a whole question at a time,** as every maths bank is (a later part builds on an
   earlier one): the question's words with the room to work in closed up, and all its
   scheme rows. AQA is `aqa_maths/cut_maths.py` run over the GCSE layout, which draws its
@@ -355,18 +375,24 @@ Every AQA and Pearson paper's questions add up to its 80 marks; every OCR paper'
   print those codes; OCR numbers its sections its own way but covers the same statements,
   so its questions take the same codes. The statements are read from AQA's specification;
   the short titles ("G20 Pythagoras and trigonometry") are ours. Topics with no question
-  get no page (AQA 5, Edexcel 11, OCR 5 of the 97, such as A8 Coordinates on its own).
-  Tagged by Claude subagents per tag.md's GCSE Maths section; `batch-31` holds the 18 OCR
-  questions found after a re-cut (November 2019 Paper 5's questions 7–21, which OCR numbers
-  in regular type, and June 2019 Paper 5's question 19) and was tagged by hand.
+  get no page (with Foundation in, Edexcel 1 and OCR 1 of the 97; AQA none). Tagged by Claude
+  subagents per tag.md's GCSE Maths section; `batch-31` holds the 18 OCR questions found after
+  a re-cut (November 2019 Paper 5's questions 7–21, which OCR numbers in regular type, and
+  June 2019 Paper 5's question 19) and was tagged by hand. The Foundation papers are batches
+  32 to 65, each copy of a shared question tagged on its own: on the 790 or so shared ones,
+  the two tiers' tags overlap 95% of the time and agree on the main topic 83%.
 - **Calculator filter:** the bank's `calcPapers` turns the "Calculations" filter (which the
   maths banks otherwise leave out, `noCalc`) into "Calculator: Allowed / Not allowed";
-  a question's `calc` says its paper allows one (AQA and Pearson Papers 2 and 3, OCR Papers
-  4 and 6), and each paper's title in the filter says which it is. The URL stays `?calc=only`
+  a question's `calc` says its paper allows one (AQA and Pearson Papers 2 and 3 of either
+  tier, OCR Papers 1, 3, 4 and 6), and each paper's title in the filter says which it is. The URL stays `?calc=only`
   (calculator) or `?calc=none` (non-calculator).
 - **Pipeline:** `scripts/question-bank/gcse_maths/`: `fetch_gcse_maths.py`, `spec_gcse_maths.py`,
   `cut_aqa_gcse_maths.py`, `cut_pearson_gcse_maths.py`, `tag_gcse_maths.py`, `build_gcse_maths.py`.
-  Ids: `83001h-jun23-09`, `1ma11h-jun23-05`, `j56004-nov22-12`; crops under `bank/` with those names.
+  Ids: `83001h-jun23-09`, `1ma11h-jun23-05`, `j56004-nov22-12` (Foundation `83001f-…`, `1ma11f-…`,
+  `j56001-…`); crops under `bank/` with those names. Two AQA cutter fixes came with Foundation:
+  the 2F specimen spaces its "END  OF  QUESTIONS" (the cutter ran off the last page), and the
+  3F specimen's and November 2017 2F's scheme rules stop at x 90.0; and working lines indented
+  under a part's label (x 117) are left out like full-width ones.
 
 ### Gaps
 
@@ -380,9 +406,14 @@ Every AQA and Pearson paper's questions add up to its 80 marks; every OCR paper'
   2017, and one for the three Higher papers in November 2019; those series have no
   per-question report. Otherwise reports cover the questions the examiners commented on
   (AQA's skip a few, the opening multiple-choice ones especially).
-- **Scheme:** OCR November 2019 Paper 6 question 11 prints its rows "11 a" in a way the
-  cutter doesn't read; it links to the whole mark scheme instead.
-- None of the three boards puts older Higher papers behind a teacher login (Pearson's 2017
+- **Scheme:** OCR November 2019 Paper 6 question 11, OCR June 2022 Paper 1 question 9 and
+  Edexcel June 2022 Paper 3F question 7 aren't paired by the cutters; `ms_fallback.py` crops
+  their rows.
+- **Search:** Pearson's November 2019 Paper 2F has almost no text layer, so its questions
+  are tagged (from their crops) but barely searchable by their words.
+- **OCR's 2017 to 2022 Foundation reports** cover the three papers separately, but from 2023
+  OCR writes one report for J560/01/02/03; those series have no per-question report.
+- None of the three boards puts older papers of either tier behind a teacher login (Pearson's 2017
   and 2018 series are public, as zips), so no mirror was needed.
 
 ```bash
@@ -394,6 +425,8 @@ python3 scripts/question-bank/gcse_maths/cut_pearson_gcse_maths.py edexcel   # a
 python3 scripts/question-bank/gcse_maths/tag_gcse_maths.py split   # tag the batches, then:
 python3 scripts/question-bank/gcse_maths/tag_gcse_maths.py merge
 python3 scripts/question-bank/gcse_maths/build_gcse_maths.py
+python3 scripts/question-bank/ms_fallback.py cut --bank=aqa-gcse-maths <work-dir>   # each bank, then upload, then apply
+python3 scripts/question-bank/tiers.py aqa-gcse-maths edexcel-gcse-maths ocr-gcse-maths
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/gcse-maths/aqa --crops-only   # and edexcel, ocr
 ```
 

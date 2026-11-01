@@ -1,4 +1,4 @@
-"""Write the GCSE Maths Higher banks' data files from the cut questions and their tags.
+"""Write the GCSE Maths banks' data files, both tiers, from the cut questions and their tags.
 
     python3 scripts/question-bank/gcse_maths/build_gcse_maths.py [aqa edexcel ocr]
     # reads scripts/question-bank/.work/gcse-maths/<board>/{parts,tags,manifest}.json and .work/gcse-maths/spec.json
@@ -9,7 +9,9 @@ report keyed by the question (`reportsBy`). What differs: the topics are spec_gc
 DfE statements (N1 to S6) under the six areas, shared by the three banks; and, where the
 other maths banks leave the calculation filter out (every question is one), here it sorts
 calculator from non-calculator papers (`calcPapers`): a question's `calc` says its paper
-allows a calculator (AQA and Pearson Papers 2 and 3, OCR Papers 4 and 6).
+allows a calculator (AQA and Pearson Papers 2 and 3 of either tier, OCR Papers 1, 3, 4 and 6).
+Each paper is named with its tier ("Paper 1 Higher", "Paper 1 Foundation", OCR's "Paper 4 Higher"),
+as the GCSE science banks are, for the tier links and tiers.py; the ids stay the boards' codes.
 
 The whole papers are the past paper library's copies already in the bucket (manifest `r2`);
 the few the library hasn't got (Pearson's 2017 and 2018 series, from its zips) go up under
@@ -28,14 +30,24 @@ BANKS = {  # board: (slug, board name, specification)
     "edexcel": ("edexcel-gcse-maths", "Edexcel", "1MA1"),
     "ocr": ("ocr-gcse-maths", "OCR", "J560"),
 }
-CALCULATOR = {"83002H", "83003H", "1ma12h", "1ma13h", "j56004", "j56006"}
-FULL_NAME = {"aqa": "Mathematics (8300), Higher tier", "edexcel": "Mathematics (1MA1), Higher tier", "ocr": "Mathematics (J560), Higher tier"}
+CALCULATOR = {"83002H", "83003H", "83002F", "83003F", "1ma12h", "1ma13h", "1ma12f", "1ma13f", "j56001", "j56003", "j56004", "j56006"}
+FULL_NAME = {"aqa": "Mathematics (8300)", "edexcel": "Mathematics (1MA1)", "ocr": "Mathematics (J560)"}
 # Pearson's furniture, on top of AQA's: the answer lines, "(Total for Question 3 is 4 marks)", the margin notes.
 FURNITURE = re.compile(rf"{BOILERPLATE.pattern}|\(Total for Question \d+ is \d+ marks?\)|DO NOT WRITE IN THIS AREA|\.{{4,}}|_{{4,}}|\[\d+\]|\[\d+ marks?\]|\(\d+\)", re.I)
 
 
+def tier(board, comp):
+    return ("Higher" if comp[-1] in "456" else "Foundation") if board == "ocr" else "Higher" if comp[-1] in "hH" else "Foundation"
+
+
 def paper_name(board, comp):
-    return f"Paper {comp[4]}H" if board != "ocr" else f"Paper {comp[-1]}"
+    return f"Paper {comp[-1] if board == 'ocr' else comp[4]} {tier(board, comp)}"
+
+
+def paper_order(board, comp):
+    """Each Higher paper, then the Foundation paper it shares questions with: 1H, 1F, 2H… (OCR 4, 1, 5, 2, 6, 3)."""
+    n = int(comp[-1]) if board == "ocr" else int(comp[4])
+    return (n - 3 if n > 3 else n, 0 if tier(board, comp) == "Higher" else 1)
 
 
 def own_text(p):
@@ -86,7 +98,7 @@ def build(board):
     topics = [{"code": t["code"], "title": t["title"], "section": t["section"], "slug": slug(t["title"]),
                "count": counts.get(t["code"], 0), "year": 0} for t in spec["topics"]]
     assert len({t["slug"] for t in topics}) == len(topics), "two topics share an address"
-    comps = sorted({r["p"] for r in rows})
+    comps = sorted({r["p"] for r in rows}, key=lambda c: paper_order(board, c))
     series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
     years = [int("20" + s[3:]) for s in series if s != "SPEC"]
     meta = {

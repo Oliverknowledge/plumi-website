@@ -152,9 +152,9 @@ def qp_regions(doc):
             if (nxt and nxt[0] == pg) or "END OF QUESTIONS" in page.get_text():
                 break
             pg += 1
-            if nxt and pg > nxt[0]:
+            if nxt and pg > nxt[0] or pg == len(doc):  # (AQA's GCSE 2F specimen spaces its "END  OF  QUESTIONS")
                 break
-            if pg < len(doc) and cut.NOT_QUESTIONS.search(doc[pg].get_text()):
+            if cut.NOT_QUESTIONS.search(doc[pg].get_text()):
                 break
             top = qp_frame(doc[pg]).y0
         out.append([key_of(q, a, r), (q, a, r), pieces, "\n".join(full)])

@@ -29,10 +29,12 @@ cut_maths.HEADINGS = re.compile(r"Comments?")  # "Comment" in some years
 
 
 def grey_rule(d):
-    """A working line: a thin grey bar across the question column (x 98 to 533), or an answer line (x 220-265, 228 wide)."""
+    """A working line: a thin grey bar across the question column (x 98 to 533, or from x 117 under a part's
+    label), or an answer line (x 220-265, 228 wide)."""
     r, fill = d["rect"], d.get("fill")
     return r.height < 2 and fill is not None and abs(fill[0] - fill[2]) < 0.02 and 0.4 < fill[0] < 0.9 \
-        and (90 < r.x0 < 110 and 420 < r.width < 445 or 200 < r.x0 < 270 and 200 < r.width < 240)
+        and (90 < r.x0 < 110 and 420 < r.width < 445 or 110 <= r.x0 < 125 and 400 < r.width < 425 and abs(r.x1 - 533) < 4
+             or 200 < r.x0 < 270 and 200 < r.width < 240)
 
 
 # Page furniture inside the question column, which isn't the question's.
@@ -78,9 +80,10 @@ def qp_regions(doc):
 
 
 def row_top(page, y):
-    """The rule over the label's cell in the Q column, or the headings sitting right over it."""
+    """The rule over the label's cell in the Q column, or the headings sitting right over it. (The column's
+    rules end at x 90 or a shade past it: the 3F specimen's stop at 90.0.)"""
     rules = sorted({round(d["rect"].y0) for d in page.get_drawings()
-                    if d["rect"].height < 3 and d["rect"].x0 < 70 and d["rect"].x1 > 90})
+                    if d["rect"].height < 3 and d["rect"].x0 < 70 and d["rect"].x1 > 88})
     above = [r for r in rules if r <= y + 2]
     top = above[-1] - 1 if above else y - 6
     for ht, hb in cut_maths.headers(page):
