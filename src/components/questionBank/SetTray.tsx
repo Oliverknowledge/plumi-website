@@ -71,6 +71,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   const [note, setNote] = useState<string | null>(null);
   const [withMs, setWithMs] = useState(true);
   const [withReports, setWithReports] = useState(false);
+  const [withLines, setWithLines] = useState(true);
   const [undo, setUndo] = useState<string[] | null>(null);
   const [listOpen, setListOpen] = useState(false);
   if (!set.ids.length && !undo) return null;
@@ -99,8 +100,8 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
       // Numbered as the list below is, in the order they were added.
       const numbers = new Map(chosen.map((p, i) => [p.id, i + 1]));
       const reports = withReports && hasReports;
-      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0 });
+      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, lines: withLines, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0, lines: withLines ? 1 : 0 });
       setNote(skipped ? `Saved ✓ (${skipped} couldn’t be added)` : "Saved ✓");
     } catch {
       setNote("Couldn’t build it. Try again?");
@@ -128,6 +129,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
         {count >= SET_MAX && !note && <p className="qb-tray-note" role="status">That’s {SET_MAX}, the most one set holds. Download it, then clear it for the next.</p>}
         {listOpen && (
           <div className="qb-tray-list">
+            <label className="qb-tray-ms"><input type="checkbox" checked={withLines} onChange={e => setWithLines(e.target.checked)} /> Lines to write on</label>
             <label className="qb-tray-ms"><input type="checkbox" checked={withMs} onChange={e => setWithMs(e.target.checked)} /> Mark schemes at the back</label>
             {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports at the back</label>}
             <ol>
