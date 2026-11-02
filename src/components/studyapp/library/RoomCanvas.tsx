@@ -5,6 +5,7 @@ import type { LibraryHandle, LiveRemote } from "@/components/landing/cafeScene";
 import { toast } from "@/components/studyapp/toast";
 import { EMOTE_TITLE } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
+import { BUBBLE_MS, BubbleFeed } from "@/lib/studyapp/library/bubbles";
 import { peopleStore } from "@/lib/studyapp/library/people/store";
 import { floorFromArt, seatTable } from "@/lib/studyapp/library/room";
 import type { LibrarySession } from "@/lib/studyapp/library/session";
@@ -33,10 +34,12 @@ function savedLook(): number | undefined {
 /** How long the room waits for your own person before it opens with the premade one (the layers are 0.6 MB). */
 const WAIT_FOR_YOU_MS = 1500;
 
-export function RoomCanvas({ session, handleRef, onPick, label, you }: {
+export function RoomCanvas({ session, handleRef, onPick, onReady, label, you }: {
   session: LibrarySession;
   handleRef: RefObject<LibraryHandle | null>;
   onPick: (id: string | null) => void;
+  /** Called once the room has drawn its first frame (the page keeps its controls asleep until then). */
+  onReady?: () => void;
   label: string;
   /** Your avatar and colour (the profile's): you are drawn as the person they make. */
   you: YouAre;
@@ -44,10 +47,11 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
   const canvas = useRef<HTMLCanvasElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
   const pick = useRef(onPick);
+  const ready_ = useRef(onReady);
   const [ready, setReady] = useState(false);
   const youNow = useRef(you);
   const redress = useRef<() => void>(() => {});
-  useEffect(() => { pick.current = onPick; youNow.current = you; });
+  useEffect(() => { pick.current = onPick; ready_.current = onReady; youNow.current = you; });
   const youKey = JSON.stringify([you.avatar, you.colour]);
   useEffect(() => { redress.current(); }, [youKey]);
 
@@ -72,7 +76,7 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
         reduced,
         look: savedLook(),
         youSheet: you ? { sheet: you.sheet, phones: you.phones } : null,
-        cls: { nm: "lb-nm", timer: "lb-nm", you: "lb-nm is-you", pop: "lb-pop", tick: "is-tick", ink: "is-ink", who: "lb-who" },
+        cls: { nm: "lb-nm", timer: "lb-nm", you: "lb-nm is-you", pop: "lb-pop", tick: "is-tick", ink: "is-ink", who: "lb-who", bub: "lb-bub" },
         live: {
           seats: seatTable,
           onYou: () => session.roomChanged(),
@@ -99,9 +103,16 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
           if (e.type === "emote") h.say(e.id, EMOTE_TITLE[e.kind]);
           else toast(e.text);
         }));
+        // What was just said, over the head of whoever said it (display only: the chat decides what exists)
+        const feed = new BubbleFeed(session.meId);
+        const speak = () => { const s = session.snapshot(); for (const b of feed.feed(s.messages, s.chatLoaded)) h.bubble(b.who, b.text, BUBBLE_MS); };
+        offs.push(session.subscribe(speak));
+        speak();
         dressYou();
         h.setRemotes(remotes());
         setReady(true);
+        // the first frame is on the canvas by the second animation frame: only then do the controls wake
+        requestAnimationFrame(() => requestAnimationFrame(() => { if (!dead) ready_.current?.(); }));
       })
       .catch(() => { /* the art did not load: the panel still works, and the room stays a dark pane */ });
     return () => {

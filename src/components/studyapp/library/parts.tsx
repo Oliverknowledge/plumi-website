@@ -15,6 +15,7 @@ import { face, settled } from "@/lib/studyapp/timer";
 import { timer, useTimer } from "@/lib/studyapp/timerStore";
 import { describe, viewOf, type View } from "@/components/studyapp/timer/TimerPanel";
 import { Head } from "./Head";
+import { startSubject, subjectWord } from "@/lib/studyapp/library/subject";
 import { friendButton } from "@/lib/studyapp/library/friendRequest";
 import { platformOf } from "@/lib/studyapp/library/platform";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
@@ -36,14 +37,31 @@ function savedSubject(): string | null | undefined {
   try { const v = window.localStorage.getItem(SUBJECT_KEY); return v === null ? undefined : v === "" ? null : v; } catch { return undefined; }
 }
 
+/** The two hands on the seat card: a drawn glyph (phones show it alone, wider screens show the word beside it). */
+const Hand = ({ kind }: { kind: string }) => (
+  <svg className="lb-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.900" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M6 10.500V5.200M9 10V3.800M12 10V4.600M15 10.500V7M6 10.500l-2.200-1.800a1.200 1.200 0 0 0-1.600 1.700L6 15a5 5 0 0 0 4 2h1.500a4 4 0 0 0 3.500-4v-2.500" />
+    {kind === "wave" ? <path d="M17.500 3.200a4 4 0 0 1 1.300 2.600M1.800 3.200" /> : <path d="M3 2.500l.8 1.500M7 1.500l.2 1.600M1 6l1.400.4" />}
+  </svg>
+);
+const StandIcon = () => (
+  <svg className="lb-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M10 16.500V4M5 9l5-5 5 5" /></svg>
+);
+
 /**
  * Your seat. The focus control here is the study timer, the same one as the chip: Start focus starts it with the
  * settings the student last chose (so a Pomodoro student gets a Pomodoro here), Stop stops it, and the library
  * is told by the timer, not by this card (see `useTimerFollow`). Standing up does not stop it.
+ *
+ * Start focus is always live once you sit: with no subject chosen yet it starts a plain "Focus" (`startSubject`),
+ * and the chips are there to say more, not a step before it. As the full-screen DOCK (`dock`) it is a slim pill on a
+ * phone: one row, the words shrink to icons, and the subject chips fold behind the subject button.
  */
-export function SeatCard({ session, snap, handleRef }: { session: LibrarySession; snap: Snapshot; handleRef: RefObject<LibraryHandle | null> }) {
+export function SeatCard({ session, snap, handleRef, dock = false }: { session: LibrarySession; snap: Snapshot; handleRef: RefObject<LibraryHandle | null>; dock?: boolean }) {
   const now = useNow(1000);
   const { doc, ready } = useTimer();
+  const [subjOpen, setSubjOpen] = useState(false);
+  const chipsId = useId();
   const view: View = ready && now ? viewOf(doc.session, now) : "setup";
   const running = view !== "setup" && doc.session ? settled(doc.session, now) : null;
   // What you are on: the timer's, which is what you last chose (anywhere in the app), else the old per-browser choice.
@@ -53,44 +71,52 @@ export function SeatCard({ session, snap, handleRef }: { session: LibrarySession
   const clock = running && view !== "over" && now ? <b className="lb-clock" aria-live="off" data-testid="seat-clock">{face(running, now)}</b> : null;
 
   return (
-    <section className="card lb-card lb-seat" aria-label="Your seat">
+    <section className={`card lb-card lb-seat${dock ? " is-dock" : ""}${subjOpen ? " has-open" : ""}${view !== "setup" ? " is-running" : ""}`} aria-label="Your seat">
       <div className="lb-head">
         <h2>{title}</h2>
         {snap.nickname && <span className="lb-me">as <b>{snap.nickname}</b></span>}
       </div>
       {!snap.seated ? (
         <>
-          <div className="lb-row">
-            <button type="button" className="btn gold" onClick={sit}>Sit down</button>
+          <div className="lb-row lb-main">
+            <button type="button" className="btn gold" data-testid="seat-sit" onClick={sit}>Sit down</button>
             <span className="lb-hint">or tap a seat, or press E near one</span>
+            <div className="lb-emotes" role="group" aria-label="Say hello">
+              {LOBBY_EMOTES.map((k) => (
+                <button key={k} type="button" className="btn lb-emote" aria-label={EMOTE_TITLE[k]} title={EMOTE_TITLE[k]} onClick={() => void session.emote(k)}><Hand kind={k} /><span className="lb-lab">{EMOTE_TITLE[k]}</span></button>
+              ))}
+            </div>
           </div>
-          {running && <p className="lb-hint" data-testid="seat-walking">{clock}Walking about. Your clock keeps running.</p>}
+          {running && <p className="lb-hint lb-walking" data-testid="seat-walking">{clock}Walking about. Your clock keeps running.</p>}
         </>
       ) : (
         <>
-          <div className="lb-chips" role="group" aria-label="What are you on?">
-            {SEAT_SUBJECTS.map((s) => (
-              <button key={s.label} type="button" className="chip" aria-pressed={subject === s.id && subject !== undefined} onClick={() => timer.setSubject(s.id)}>{s.label}</button>
-            ))}
-          </div>
-          <div className="lb-row">
+          <div className="lb-row lb-main">
             {clock}
-            {view === "setup" && <button type="button" className="btn gold" disabled={subject === undefined} onClick={() => timer.start({ subject: subject ?? null })} data-testid="seat-start">Start focus</button>}
+            <button type="button" className={`chip lb-subj${subjOpen ? " is-on" : ""}`} aria-expanded={subjOpen} aria-controls={chipsId} onClick={() => setSubjOpen((o) => !o)}>
+              {subjectWord(subject)}<svg className="lb-caret" viewBox="0 0 10 6" aria-hidden="true" focusable="false"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+            {view === "setup" && <button type="button" className="btn gold lb-go" onClick={() => timer.start({ subject: startSubject(subject) })} data-testid="seat-start">Start focus</button>}
             {view === "work" && <button type="button" className="btn" onClick={() => timer.pause()}>Pause</button>}
             {view === "paused" && <button type="button" className="btn gold" onClick={() => timer.resume()}>Resume</button>}
             {view === "break" && <button type="button" className="btn gold" onClick={() => timer.endBreak()}>End break</button>}
             {view === "over" && <button type="button" className="btn gold" onClick={() => timer.endBreak()} data-testid="seat-continue">Continue studying</button>}
             {view !== "setup" && <button type="button" className="btn" onClick={() => timer.stop()} data-testid="seat-stop">Stop</button>}
-            <button type="button" className="btn ghost" onClick={() => handleRef.current?.stand()}>Stand up</button>
+            <button type="button" className="btn ghost lb-stand" aria-label="Stand up" title="Stand up" data-testid="seat-stand" onClick={() => handleRef.current?.stand()}><StandIcon /><span className="lb-lab">Stand up</span></button>
           </div>
-          {view === "setup" && <p className="lb-hint" data-testid="seat-mode">{describe(doc.settings)}, from the timer in the corner</p>}
+          <div className={`lb-chips${subjOpen ? " is-open" : ""}`} id={chipsId} role="group" aria-label="What are you on?">
+            {SEAT_SUBJECTS.map((s) => (
+              <button key={s.label} type="button" className="chip" aria-pressed={subject !== undefined && subject === s.id} onClick={() => { timer.setSubject(s.id); setSubjOpen(false); }}>{s.label}</button>
+            ))}
+          </div>
+          {view === "setup" && <p className="lb-hint lb-mode" data-testid="seat-mode">{describe(doc.settings)}, from the timer in the corner</p>}
+          <div className="lb-emotes lb-emotes-seated" role="group" aria-label="Say hello">
+            {LOBBY_EMOTES.map((k) => (
+              <button key={k} type="button" className="btn lb-emote" aria-label={EMOTE_TITLE[k]} title={EMOTE_TITLE[k]} onClick={() => void session.emote(k)}><Hand kind={k} /><span className="lb-lab">{EMOTE_TITLE[k]}</span></button>
+            ))}
+          </div>
         </>
       )}
-      <div className="lb-row lb-emotes">
-        {LOBBY_EMOTES.map((k) => (
-          <button key={k} type="button" className="btn lb-emote" onClick={() => void session.emote(k)}>{EMOTE_TITLE[k]}</button>
-        ))}
-      </div>
     </section>
   );
 }
@@ -98,7 +124,7 @@ export function SeatCard({ session, snap, handleRef }: { session: LibrarySession
 /* ── Who is here ─────────────────────────────────────────────────────────
    The panel itself is People.tsx (requests, friends, the room); a person's card is here, shared by it. */
 
-export function PersonCard({ session, person, now, onClose, onPullUp }: { session: LibrarySession; person: LobbyPerson; now: number; onClose: () => void; onPullUp: (id: string) => void }) {
+export function PersonCard({ session, person, now, onClose, onPullUp, onLook }: { session: LibrarySession; person: LobbyPerson; now: number; onClose: () => void; onPullUp: (id: string) => void; onLook?: (id: string) => void }) {
   const [asking, setAsking] = useState<"report" | "block" | null>(null);
   const [askLine, setAskLine] = useState<string | null>(null);
   const fb = friendButton(person);
@@ -117,7 +143,7 @@ export function PersonCard({ session, person, now, onClose, onPullUp }: { sessio
             {person.pro && <span className="lb-tag lb-pro">Plumi Pro</span>}
           </div>
         </div>
-        <button type="button" className="btn ghost icon" aria-label="Close" onClick={onClose}>{"×"}</button>
+        <button type="button" className="btn ghost icon lb-pclose" aria-label="Close" onClick={onClose}>{"×"}</button>
       </div>
       <dl className="lb-stats" data-testid="person-stats">
         <div><dt>Day streak</dt><dd>{person.streak === 1 ? "1 day" : `${person.streak} days`}</dd></div>
@@ -134,6 +160,7 @@ export function PersonCard({ session, person, now, onClose, onPullUp }: { sessio
             </button>
           )}
           {session.canRequestFriends && fb === "sent" && <span className="lb-tag" data-testid="person-request-sent">Friend request sent</span>}
+          {onLook && <button type="button" className="btn" data-testid="person-find" onClick={() => onLook(person.id)}>Find them</button>}
           {person.seated && <button type="button" className="btn gold" onClick={() => onPullUp(person.id)}>Pull up a chair</button>}
           <button type="button" className="btn ghost" onClick={() => setAsking("report")}>Report</button>
           <button type="button" className="btn ghost" onClick={() => setAsking("block")}>Block</button>
@@ -164,10 +191,12 @@ export function Servers({ session, snap }: { session: LibrarySession; snap: Snap
   useEffect(() => { void session.refreshServers(); }, [session]);
   const list = snap.servers ? listedServers(snap.servers) : [];
   const cap = snap.servers?.cap ?? LOBBY_CAP;
-  if (list.length === 0) return null;
   return (
     <section className="card lb-card" aria-label="Libraries">
       <div className="lb-head"><h2>Libraries</h2></div>
+      {list.length === 0 && (
+        <p className="lb-empty" data-testid="servers-none">{snap.servers ? "Just this library for now" : "Looking for libraries"}</p>
+      )}
       <ul className="lb-servers">
         {list.map((s) => {
           const here = s.shard === snap.shard;
@@ -231,7 +260,7 @@ export function Chat({ session, snap, me }: { session: LibrarySession; snap: Sna
   return (
     <section className="card lb-card lb-chat" aria-label="Library chat">
       <div className="lb-head"><h2>Library chat</h2><span className="lb-hint">Everyone in Library {snap.shard}</span></div>
-      <ul className="lb-msgs" ref={list} onScroll={(e) => { const t = e.currentTarget; stick.current = t.scrollHeight - t.scrollTop - t.clientHeight < 24; }}>
+      <ul className="lb-msgs" role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0} ref={list} onScroll={(e) => { const t = e.currentTarget; stick.current = t.scrollHeight - t.scrollTop - t.clientHeight < 24; }}>
         {snap.messages.length === 0 && <li className="lb-empty">{snap.chatLoaded ? "Say hi to the library" : ""}</li>}
         {snap.messages.map((m) => {
           const mine = m.senderId === me;
