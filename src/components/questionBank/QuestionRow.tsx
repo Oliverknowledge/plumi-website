@@ -7,7 +7,7 @@ import { track } from "@/lib/analytics";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
-import { usePhotoScan } from "@/lib/photoScan";
+import { useDarkCrop } from "@/lib/darkCrops";
 import { isEssaySubject } from "@/lib/markBands";
 import {
   bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
@@ -84,7 +84,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
 }) {
   const [open, setOpen] = useState<{ ms?: boolean; sol?: boolean; er?: boolean; stem?: boolean }>({});
   const [report, setReport] = useState<string | null>(null);
-  const photo = usePhotoScan();
+  const photo = useDarkCrop();
   const part = parts[0];
   const many = parts.length > 1;
   const q = questionOf(part.l);

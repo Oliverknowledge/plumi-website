@@ -5,7 +5,7 @@ import { track } from "@/lib/analytics";
 import { paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 import { AnswerReadBack } from "./AnswerBox";
 import { ChoicePick, SelfMark } from "./SelfMark";
-import { usePhotoScan } from "@/lib/photoScan";
+import { useDarkCrop } from "@/lib/darkCrops";
 
 /**
  * A question, full screen, to read on a phone: tap any question or mark scheme in the
@@ -33,7 +33,7 @@ const useZoom = () => useSyncExternalStore(cb => { listeners.add(cb); return () 
 
 export function ZoomViewer() {
   const z = useZoom();
-  const photo = usePhotoScan();
+  const photo = useDarkCrop();
   const ref = useRef<HTMLDialogElement>(null);
   const [kind, setKind] = useState<Kind>("qp");
   const [index, setIndex] = useState(0);

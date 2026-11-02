@@ -68,18 +68,22 @@ html[data-theme="dark"] .lp .lp-stamp, html[data-theme="dark"] .lp .pk-stamp {
 /* Plumi's note on the marked page is paper too: darkened like the notes off the page, its page ink couldn't be read (31 October). */
 html[data-theme="dark"] .lp .lp-page .lp-note { background: #fff4dd; }
 
-/* ── The questions in dark (30 October). A question is a black-on-white scan, so it is inverted: white ink on the sheet's own dark,
-   `screen` letting the scan's black fall away into the sheet. hue-rotate keeps a diagram's red red and its blue blue. The marked
-   screenshots of the app are not inverted, only exam scans. ── */
-html[data-theme="dark"] .lp .qb-sheet { background: #272120; border-color: #4a3f39; box-shadow: 4px 0 0 rgba(0, 0, 0, .3); }
-html[data-theme="dark"] .lp .qb-row.is-in-set .qb-sheet { background: #2e2622; }
-html[data-theme="dark"] .lp .qb-listen { background: #2e2622; border-color: #4a3f39; color-scheme: dark; }
-html[data-theme="dark"] .lp .qb-row + .qb-row .qb-sheet, html[data-theme="dark"] .lp .qb-row:first-child .qb-sheet, html[data-theme="dark"] .lp .qb-row:last-child .qb-sheet { border-color: #4a3f39; }
-html[data-theme="dark"] .lp .qb-img, html[data-theme="dark"] .lp .qb-stem img, html[data-theme="dark"] .lp .qb-reveal-ms img,
-html[data-theme="dark"] .lp .qb-zoom-inner img { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; background: transparent; border-color: #4a3f39; }
-html[data-theme="dark"] .lp .qb-zoom-inner img { mix-blend-mode: normal; background: #fff; }
-/* A crop with a photograph in it (photoScan.ts) stays paper: inverted, a photograph turns into its negative (1 November). */
-html[data-theme="dark"] .lp img[data-photo] { filter: brightness(.92); mix-blend-mode: normal; background: #fff; border-radius: 6px; }
+/* ── The questions in dark (30 October; pure black and white, 2 November). A question's print is white ink on pure black and its figures
+   stay as printed, dark lines on white. A crop is one picture of both, so darkCrops.ts cuts each one up in the browser and puts a dark
+   copy on the <img> (`data-dq="dark"`): print turned over, figure boxes left alone. Everything else on the page keeps its warm dark.
+   Until the copy is there it is hidden for a moment; where it can't be made (a local build, a preview, a picture the page may not read)
+   the crop is plain paper: a white card with a thin edge, never the whole picture turned inside out. The marked screenshots of the app
+   are not exam scans and are left as they are. ── */
+html[data-theme="dark"] .lp .qb-sheet, html[data-theme="dark"] .lp .qb-row.is-in-set .qb-sheet { background: #000; border-color: #333; box-shadow: none; }
+html[data-theme="dark"] .lp .qb-listen { background: #111; border-color: #333; color-scheme: dark; }
+html[data-theme="dark"] .lp .qb-row + .qb-row .qb-sheet, html[data-theme="dark"] .lp .qb-row:first-child .qb-sheet, html[data-theme="dark"] .lp .qb-row:last-child .qb-sheet { border-color: #333; }
+html[data-theme="dark"] .lp :is(.qb-img, .qb-stem img, .qb-reveal-ms img, .qb-zoom-inner img) { background: #fff; border-color: #333; border-radius: 6px; filter: none; mix-blend-mode: normal; box-shadow: 0 0 0 1px #3a3a3a; }
+html[data-theme="dark"] .lp img[data-dq="dark"] { background: #000; box-shadow: none; }
+.lp img[data-dq="pending"], .lp img[data-dq="swap"], .lp img[data-dq="restore"] { opacity: 0; }
+/* the full-screen viewer: black too, its buttons and cards keep their warm dark */
+html[data-theme="dark"] .lp .qb-zoom, html[data-theme="dark"] .lp .qb-zoom .qb-zoom-stage, html[data-theme="dark"] .lp .qb-zoom .qb-zoom-head, html[data-theme="dark"] .lp .qb-zoom .qb-zoom-foot { background: #000; }
+html[data-theme="dark"] .lp .qb-zoom .qb-zoom-head { border-bottom-color: #333; }
+html[data-theme="dark"] .lp .qb-zoom .qb-zoom-foot { border-top-color: #333; }
 /* the answer box: dark paper with ruled lines, light ink */
 html[data-theme="dark"] .lp .qb-answer-area { background: var(--lp-card-bg) repeating-linear-gradient(transparent 0 31px, #3d332d 31px 32px); background-attachment: local; background-position: 0 6px; border-color: #4a3f39; color: var(--lp-ink); }
 html[data-theme="dark"] .lp .qb-answer-area::placeholder { color: #8a7a6e; }
