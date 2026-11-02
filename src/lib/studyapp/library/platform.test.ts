@@ -36,4 +36,5 @@ test("a fox is not proof of an iPad: the website writes body \"fox\", the iPad c
   assert.equal(platformOf({ avatar: { body: "fox" }, platform: "web" }), "Web", "what the server says still wins");
   assert.equal(platformOf({ avatar: { body: "fox" }, platform: "ipad" }), "iPad");
   assert.equal(platformOf({ avatar: { body: "fox", plat: "web" } }), "Web");
+  for (const id of ["capybara", "axolotl", "redpanda", "badger", "hedgehog", "raccoon", "triceratops", "dragon"]) assert.equal(platformOf({ avatar: { body: id, eyes: "02", hair: "05_01" } }), null, id);
 });
