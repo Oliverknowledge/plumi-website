@@ -1,0 +1,410 @@
+{
+  "title": "Plumi",
+  "subtitle": "Study together",
+  "fps": 60,
+  "hideCss": ".rp, nextjs-portal, next-route-announcer, .tm-sr, .lb-top, .lb-dock, .lb-drawer, .tw-exit { display: none !important; }",
+  "cast": [
+    "fox",
+    "raccoon",
+    "capybara",
+    "hedgehog",
+    "redpanda",
+    "person"
+  ],
+  "routes": {
+    "orchard-to-plaza": [
+      {
+        "door": "orchard-row-house-3",
+        "dy": 40
+      },
+      {
+        "zone": "quiet-grove",
+        "dy": 90
+      },
+      {
+        "hub": "plaza"
+      }
+    ],
+    "plaza-to-cafe": [
+      {
+        "hub": "plaza"
+      },
+      {
+        "door": "cafe"
+      }
+    ],
+    "plaza-cross": [
+      {
+        "plaza": "library-plaza",
+        "dx": -190,
+        "dy": 20
+      },
+      {
+        "plaza": "library-plaza",
+        "dx": 190,
+        "dy": 20
+      }
+    ],
+    "terrace": [
+      {
+        "plaza": "cafe-plaza",
+        "dx": -100,
+        "dy": 10
+      },
+      {
+        "plaza": "cafe-plaza",
+        "dx": 100,
+        "dy": 10
+      }
+    ],
+    "to-library": [
+      {
+        "plaza": "library-plaza",
+        "dy": 50
+      },
+      {
+        "door": "library"
+      }
+    ]
+  },
+  "takes": [
+    {
+      "name": "town",
+      "query": "bots=7&furniture=0&map=0&hz=60&tod=evening",
+      "seed": 11,
+      "shots": [
+        {
+          "type": "walk",
+          "name": "opening",
+          "body": "fox",
+          "route": "orchard-to-plaza",
+          "start": {
+            "px": 0
+          },
+          "seconds": 4.8,
+          "bots": [
+            {
+              "body": "raccoon",
+              "route": "orchard-to-plaza",
+              "from": {
+                "px": 340
+              },
+              "to": {
+                "px": 40
+              },
+              "side": 12,
+              "name": "Ava"
+            },
+            {
+              "route": "orchard-to-plaza",
+              "from": {
+                "px": 150
+              },
+              "to": {
+                "px": 520
+              },
+              "side": -10,
+              "name": "Maya",
+              "row": 2
+            },
+            {
+              "body": "capybara",
+              "route": "orchard-to-plaza",
+              "from": {
+                "px": 430
+              },
+              "to": {
+                "px": 150
+              },
+              "side": -14,
+              "name": "Theo"
+            },
+            {
+              "route": "orchard-to-plaza",
+              "from": {
+                "px": 30
+              },
+              "to": {
+                "px": 280
+              },
+              "side": 16,
+              "name": "Leo",
+              "row": 5
+            }
+          ]
+        },
+        {
+          "type": "walk",
+          "name": "meadow",
+          "body": "fox",
+          "route": "orchard-to-plaza",
+          "start": {
+            "near": {
+              "plaza": "north-meadow-clearing"
+            },
+            "back": 260
+          },
+          "seconds": 3.3,
+          "bots": [
+            {
+              "body": "hedgehog",
+              "route": "orchard-to-plaza",
+              "from": {
+                "near": {
+                  "plaza": "north-meadow-clearing"
+                },
+                "back": -120
+              },
+              "to": {
+                "near": {
+                  "plaza": "north-meadow-clearing"
+                },
+                "back": 300
+              },
+              "side": 12,
+              "name": "Ava"
+            },
+            {
+              "route": "orchard-to-plaza",
+              "from": {
+                "near": {
+                  "plaza": "north-meadow-clearing"
+                },
+                "back": 60
+              },
+              "to": {
+                "near": {
+                  "plaza": "north-meadow-clearing"
+                },
+                "back": -380
+              },
+              "side": -12,
+              "name": "Zara",
+              "row": 4
+            }
+          ]
+        },
+        {
+          "type": "walk",
+          "name": "to-plaza",
+          "body": "fox",
+          "route": "orchard-to-plaza",
+          "start": {
+            "fromEnd": 350
+          },
+          "seconds": 5.0,
+          "holdAfter": 0.4,
+          "bots": [
+            {
+              "body": "redpanda",
+              "route": "orchard-to-plaza",
+              "from": {
+                "fromEnd": 10
+              },
+              "to": {
+                "fromEnd": 330
+              },
+              "side": 12,
+              "name": "Theo"
+            },
+            {
+              "route": "orchard-to-plaza",
+              "from": {
+                "fromEnd": 260
+              },
+              "to": {
+                "fromEnd": 0
+              },
+              "side": -12,
+              "name": "Priya",
+              "row": 3
+            },
+            {
+              "body": "raccoon",
+              "route": "plaza-cross",
+              "from": 0.95,
+              "to": 0.3,
+              "side": 0,
+              "name": "Ava"
+            },
+            {
+              "route": "plaza-cross",
+              "from": 0.0,
+              "to": 0.7,
+              "side": 22,
+              "name": "Sam",
+              "row": 6
+            }
+          ]
+        },
+        {
+          "type": "pan",
+          "name": "library-pan",
+          "body": "fox",
+          "at": {
+            "hub": "plaza"
+          },
+          "building": "library",
+          "from": {
+            "rx": 0.5,
+            "ry": 0.9
+          },
+          "to": {
+            "rx": 0.42,
+            "ry": 0.08
+          },
+          "seconds": 3.2,
+          "lead": 0.5,
+          "tail": 0.3,
+          "bots": [
+            {
+              "route": "plaza-cross",
+              "from": 0.2,
+              "to": 0.9,
+              "side": 30,
+              "name": "Zara",
+              "row": 4
+            },
+            {
+              "body": "raccoon",
+              "route": "plaza-cross",
+              "from": 0.95,
+              "to": 0.4,
+              "side": 40,
+              "name": "Theo"
+            }
+          ]
+        },
+        {
+          "type": "walk",
+          "name": "to-cafe",
+          "body": "person",
+          "route": "plaza-to-cafe",
+          "start": {
+            "fromEnd": 405
+          },
+          "seconds": 5.8,
+          "holdAfter": 0.3,
+          "stopAtEnd": true,
+          "bots": [
+            {
+              "body": "capybara",
+              "route": "terrace",
+              "from": 0.9,
+              "to": 0.2,
+              "side": 0,
+              "name": "Ava"
+            },
+            {
+              "route": "terrace",
+              "from": 0.1,
+              "to": 0.8,
+              "side": 26,
+              "name": "Noah",
+              "row": 1
+            },
+            {
+              "route": "plaza-to-cafe",
+              "from": {
+                "fromEnd": 30
+              },
+              "to": {
+                "fromEnd": 420
+              },
+              "side": 14,
+              "name": "Ines",
+              "row": 2
+            }
+          ]
+        },
+        {
+          "type": "enter",
+          "name": "cafe-door",
+          "door": "cafe",
+          "hold": 0.9,
+          "fastForward": 30,
+          "body": "person"
+        },
+        {
+          "type": "room",
+          "name": "cafe-room",
+          "seats": [
+            "long-n2",
+            "long-n1",
+            "long-n3",
+            "long-s2"
+          ],
+          "sitHold": 2.6,
+          "arriveHold": 0.7,
+          "bubbles": [
+            {
+              "t": 2.0,
+              "near": 1,
+              "text": "Quiz me on moles?"
+            },
+            {
+              "t": 4.8,
+              "near": 2,
+              "text": "Ten more minutes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "library",
+      "query": "bots=7&furniture=0&map=0&hz=60&tod=evening",
+      "seed": 23,
+      "shots": [
+        {
+          "type": "walk",
+          "name": "to-library",
+          "body": "raccoon",
+          "route": "to-library",
+          "start": 0.0,
+          "seconds": 1.7,
+          "holdAfter": 0.3,
+          "lead": 0.2,
+          "bots": [
+            {
+              "body": "capybara",
+              "route": "plaza-cross",
+              "from": 0.1,
+              "to": 0.8,
+              "side": -36,
+              "name": "Theo"
+            },
+            {
+              "route": "plaza-cross",
+              "from": 0.9,
+              "to": 0.3,
+              "side": 50,
+              "name": "Kofi",
+              "row": 3
+            }
+          ]
+        },
+        {
+          "type": "enter",
+          "name": "library-door",
+          "door": "library",
+          "hold": 0.9,
+          "fastForward": 30,
+          "body": "raccoon"
+        },
+        {
+          "type": "room",
+          "name": "library-room",
+          "seats": "auto",
+          "sitHold": 2.0,
+          "arriveHold": 0.7,
+          "bubbles": []
+        },
+        {
+          "type": "endcard",
+          "seconds": 2.2
+        }
+      ]
+    }
+  ]
+}
