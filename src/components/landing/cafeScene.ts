@@ -109,6 +109,7 @@ interface DrawItem {
   f: number; sy: number;          // a person's frame and the row of their sheet
   fx: number; fy: number;         // an animation's frame in its sheet
   outline: boolean;
+  shadow: boolean;                // library mode: a soft ground shadow under a person who stands
 }
 const byDepth = (p: DrawItem, q: DrawItem) => p.z - q.z;
 
@@ -141,6 +142,9 @@ interface Person {
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
   fw?: number;                    // library mode: the width of one frame of `sheet`, when it is not the people's 16 (the fox's is 34); the feet stay under the middle
   moving?: boolean;               // library mode, you: walking under the keys (not along a path)
+  stride: number;                 // library mode: seconds this walk has lasted (the walk's own pose clock; 0 while not walking)
+  still: number;                  // library mode: seconds standing in the same place (a person who has just stopped holds one pose)
+  lx: number; ly: number;         // library mode: where they were at the last step (to tell standing still from being put somewhere)
 }
 
 const SUBJECTS = ["Physics", "Maths", "Chemistry", "Biology"];
@@ -247,6 +251,35 @@ const wide = (w: number | undefined): number | undefined => (w !== undefined && 
 
 /** How fast everyone in the library walks, in art pixels a second: LibraryScene.speed (140 points a second) over two. */
 const LIVE_SPEED = 70;
+/*
+ * Library mode's movement feel (docs/study/library.md "Movement", tools/movement). None of this touches the homepage's
+ * hero and friends windows: they keep the 30 Hz step, whole art pixel placement and the shared 5 Hz walk clock.
+ */
+/** A walk's poses change this many times a second, counted from the step the walk began (the same for people and animals). */
+const POSE_HZ = 12;
+/** A person who has just stopped holds one pose for this long (room seconds) before the standing frames start to move. */
+const STILL_FIRST = 2;
+/** How fast the camera catches up with someone it is not yet locked to, art pixels a second (you walk at 70). */
+const CATCH_UP = 200;
+/** The time constant of the camera's ease (a look at someone, a seat taken, the entrance): the old per-step 12 percent at 30 Hz, as seconds. */
+const EASE_TAU = 0.26;
+/** Present at 60 Hz: a display frame is taken when this many ms have passed (a little under 1000 / 60, so 60 and 120 Hz screens keep pace). */
+const GAP_60 = 1000 / 60 - 2.5;
+/** Present at about 30 Hz (the old gate): while nothing moves, and as the fallback. */
+const GAP_30 = 1000 / 32;
+/** The frame governor: 60 Hz is kept while the rolling 95th percentile of a frame's own work (step and draw) stays under this many ms. */
+const GOV_KEEP_MS = 8;
+/** ... and is tried again after a fallback only when that percentile is under this (hysteresis), and not before the hold has passed. */
+const GOV_RETURN_MS = 5;
+/** A frame this late (ms since the one before) missed a display refresh; a quarter of the last 90 doing so is a fallback too. */
+const GOV_LATE_MS = 24;
+const GOV_WINDOW = 90;
+/** The soft shadow under a standing person: stepped rows of this many art pixels wide, 14 across and 4 high. The reference's is 0.475 of the body's height measured as the patch you can see round the feet; a body 25 rows tall hides the middle of it, so the whole ellipse is a little wider (0.56) to show that much. */
+const SHADOW_ROWS = [10, 14, 14, 10] as const;
+const SHADOW_RGB = "rgb(44,14,86)";
+const SHADOW_ALPHA = .5;
+const OUTLINE: readonly (readonly [number, number])[] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+
 /** While you walk under the keys your place goes out about this often (room seconds): over the wire's 100 ms floor, so no step is held back. */
 const YOU_GAP = 0.11;
 /** A free chair is "near" when its standing place or its seat is within this many art pixels of your feet. */
@@ -320,6 +353,20 @@ class Cafe implements CafeHandle {
   private offX = 0; private offY = 0;
   private dpr = 1;
   private region: { x: number; y: number; w: number; h: number };
+  /** Library mode, motion allowed: the library's own movement (a walk clock per person, a camera locked to you, a ground shadow, the frame governor). Else everything is as the homepage draws it. */
+  private smooth: boolean;
+  /** ... and while the governor allows 60 Hz, people also move by whole device pixels (`drawLive`); at 30 Hz the room is composed at art size and scaled up after, as before. */
+  private get fine() { return this.smooth && this.hz60; }
+  private lampFire: HTMLCanvasElement[] | null = null;
+  private camFX = 0; private camFY = 0;     // smooth mode: the camera before it is put on the device pixel grid
+  private followT = 0;                       // smooth mode: the room time of the last follow
+  private camMoved = false;                  // smooth mode: the camera moved in the last follow
+  private motion = false;                    // smooth mode: something in view moved in the last frame (so 60 Hz is worth it)
+  private hz60 = true;                       // smooth mode: the frame governor's verdict
+  private govWork = new Float32Array(GOV_WINDOW); private govSort = new Float32Array(GOV_WINDOW);
+  private govLate = new Uint8Array(GOV_WINDOW);
+  private govI = 0; private govN = 0; private govTick = 0; private lateI = 0; private lateSum = 0;
+  private govAt = 0; private govFalls = 0; private govFrom = 0;
   private labels = new Map<Person, HTMLElement>();
   private widths = new WeakMap<HTMLElement, number>();
   /** Where each label was last put (whole CSS pixels) and how opaque: a label that has not moved is not written again. */
@@ -373,6 +420,7 @@ class Cafe implements CafeHandle {
     this.cn = { ...LP_CLASSES, ...o.cls };
     this.live = o.mode === "library" ? o.live : undefined;
     if (this.W && !this.live) this.W = undefined;
+    this.smooth = !!this.live && !o.reduced;
     if (this.W) this.grid = this.W.gridOf(this.L.walk, this.L.cols);
     if (this.W) this.keyHints = typeof matchMedia === "function" && !matchMedia("(pointer: coarse)").matches;
     if (this.live) this.libraryTable();
@@ -398,7 +446,7 @@ class Cafe implements CafeHandle {
   private person(look: number, x: number, y: number, dir: Dir = "front"): Person {
     const taken = new Set(this.people.map(p => p.who));
     return { look, x, y, dir, doing: "idle", path: [], spot: null, at: false, until: 0, next: null, phase: Math.floor(Math.random() * 6),
-      alpha: 1, who: pick(NAMES.filter(n => !taken.has(n))) ?? pick(NAMES), subject: pick(SUBJECTS), mins: Math.floor(rand(4, 48)),
+      stride: 0, still: 0, lx: x, ly: y, alpha: 1, who: pick(NAMES.filter(n => !taken.has(n))) ?? pick(NAMES), subject: pick(SUBJECTS), mins: Math.floor(rand(4, 48)),
       since: this.t - rand(0, 59), speed: rand(22, 28) };
   }
 
@@ -626,6 +674,7 @@ class Cafe implements CafeHandle {
         if (p.alpha <= 0) this.remove(p);
       } else if (!p.you && !p.name && !p.remote && p.at && t >= p.until) this.decide(p);
     }
+    if (this.smooth) this.clocks(dt);
     if (this.o.mode === "hero") {
       const students = this.people.filter(p => !p.you && !p.staff).length;
       if (students < this.crowd + 2 && t >= this.nextArrival) this.arrival();
@@ -643,6 +692,19 @@ class Cafe implements CafeHandle {
     if (this.held && this.you && !this.you.path.length) this.nudge(this.held);
     if (this.youOwed && this.t - this.lastYou >= YOU_GAP) this.announce();
     this.status();
+  }
+
+  /**
+   * Library mode: each person's own walk clock and stillness clock. A walk's poses are counted from the step it began
+   * (so it always starts on the same pose, and every person and animal cycles at the same rate, not on a clock shared
+   * by the room); someone who is put somewhere (or has stopped for a moment) holds one standing pose first.
+   */
+  private clocks(dt: number) {
+    for (const p of this.people) {
+      if (p.path.length > 0 || p.moving) { p.stride += dt; p.still = 0; }
+      else { p.stride = 0; p.still = p.x !== p.lx || p.y !== p.ly ? 0 : p.still + dt; }
+      p.lx = p.x; p.ly = p.y;
+    }
   }
 
   private walk(p: Person, dt: number) {
@@ -952,7 +1014,9 @@ class Cafe implements CafeHandle {
     const half = (this.widths.get(el) ?? 0) / 2;
     if (half) px = Math.min(Math.max(px, half + 4), ow - half - 4);   // a label never runs off the window
     py = Math.max(py, 24);
-    const rx = Math.round(px), ry = Math.round(py);
+    // in the library a label lands on the device pixel grid, the same one its person is drawn on, so it follows them exactly
+    const d = this.smooth && this.hz60 ? this.dpr : 1;
+    const rx = Math.round(px * d) / d, ry = Math.round(py * d) / d;
     let c = this.placed.get(el);
     if (!c) { c = { x: NaN, y: NaN, o: NaN }; this.placed.set(el, c); }
     if (c.x !== rx || c.y !== ry) { c.x = rx; c.y = ry; el.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -100%)`; }
@@ -995,9 +1059,11 @@ class Cafe implements CafeHandle {
   /** `spriteAt`, one number at a time, for the frame loop (no array made). */
   private spriteX(p: Person): number {
     const sh = p.fw ? (p.fw - 16) / 2 : 0;
-    return (p.at && p.spot ? p.spot.x : Math.round(p.x) - 8) - sh;
+    return (p.at && p.spot ? p.spot.x : this.snap(p.x) - 8) - sh;
   }
-  private spriteY(p: Person): number { return p.at && p.spot ? p.spot.y : Math.round(p.y) - 31; }
+  private spriteY(p: Person): number { return p.at && p.spot ? p.spot.y : this.snap(p.y) - 31; }
+  /** Where a walker is drawn along one axis: a whole art pixel on the homepage; in the library a whole device pixel (a fraction 1 / k of an art pixel). */
+  private snap(v: number): number { return this.smooth && this.hz60 ? Math.round(v * this.k) / this.k : Math.round(v); }
 
   /** Half a frame: where the feet are across the frame (8 for a person). */
   private half(p: Person) { return p.fw ? p.fw / 2 : 8; }
@@ -1008,7 +1074,7 @@ class Cafe implements CafeHandle {
 
   private frame(p: Person, tick: number): number {
     const R = this.L.people.rows, d = DIRS.indexOf(p.dir);
-    if (p.path.length || p.moving) return R.walk + d * 6 + (Math.floor(tick / 2) + p.phase) % 6;
+    if (p.path.length || p.moving) return R.walk + d * 6 + (this.smooth ? Math.floor(p.stride * POSE_HZ) % 6 : (Math.floor(tick / 2) + p.phase) % 6);
     if (p.at && p.spot) {
       const s = p.spot;
       if (s.pose === "sit") return R.sit + (s.face === "right" ? 0 : 6) + (Math.floor(tick / 8) + p.phase) % 6;
@@ -1016,6 +1082,7 @@ class Cafe implements CafeHandle {
       if (s.pose === "phone") return R.phone + (Math.floor(tick / 4) + p.phase) % 6;
       return R.idle + DIRS.indexOf(s.face) * 6 + (Math.floor(tick / 6) + p.phase) % 6;
     }
+    if (this.smooth) return R.idle + d * 6 + Math.floor(Math.max(0, p.still - STILL_FIRST) * this.L.fps / 6) % 6;
     return R.idle + d * 6 + (Math.floor(tick / 6) + p.phase) % 6;
   }
 
@@ -1023,7 +1090,7 @@ class Cafe implements CafeHandle {
   private item(z: number, kind: DrawItem["kind"]): DrawItem {
     const pool = this.itemPool;
     let it = pool[this.itemN];
-    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false }; pool.push(it); }
+    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false, shadow: false }; pool.push(it); }
     this.itemN++;
     it.z = z; it.kind = kind;
     this.items.push(it);
@@ -1039,6 +1106,11 @@ class Cafe implements CafeHandle {
       case 2: { const pc = it.pc!; sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h); break; }
       case 3: {
         const img = it.img!, fw = it.p!.fw ?? 16;
+        if (it.shadow) {
+          sc.globalAlpha = SHADOW_ALPHA * it.p!.alpha;
+          sc.fillStyle = SHADOW_RGB;
+          for (let r = 0; r < SHADOW_ROWS.length; r++) sc.fillRect(it.x + fw / 2 - SHADOW_ROWS[r] / 2, it.y + 31 - SHADOW_ROWS.length + 1 + r, SHADOW_ROWS[r], 1);
+        }
         if (it.outline) this.outline(it.f, img, it.sy, it.x, it.y, fw);
         sc.globalAlpha = it.p!.alpha;
         sc.drawImage(img, it.f * fw, it.sy, fw, 32, it.x, it.y, fw, 32);
@@ -1050,6 +1122,7 @@ class Cafe implements CafeHandle {
   }
 
   private draw() {
+    if (this.smooth && this.hz60) { this.drawLive(); return; }
     const { L, sc, a } = this;
     const tick = Math.floor(this.t * L.fps);
     sc.globalAlpha = 1;
@@ -1077,6 +1150,7 @@ class Cafe implements CafeHandle {
       it.p = p; it.x = x; it.y = y; it.f = f;
       it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
       it.outline = p === lit && !p.you;
+      it.shadow = this.smooth && this.grounded(p);
     }
     if (this.W) this.addRings(tick);
     items.sort(byDepth);
@@ -1095,8 +1169,129 @@ class Cafe implements CafeHandle {
     this.place();
   }
 
+  /**
+   * The library's frame (the homepage's `draw` is above, and unchanged). The same order as the kit's, but composed
+   * straight onto the screen canvas at its own resolution instead of into the art sized `scene` and scaled up after:
+   * the room, then everything that stands on the floor in order of depth, then the lamplight. Everything is still
+   * made of whole art pixels, k device pixels square, drawn nearest neighbour at integer sizes. What changes is where a
+   * walker may stand: the ground, the pieces and the lamp sit on the art grid (camera, pieces and animations at whole
+   * art pixels), a person's sprite and shadow at the nearest device pixel, a 1/k art pixel step. A table, plant or
+   * chair that stands in front of a walker is drawn after them, at the same scale and offset, so it covers them exactly.
+   */
+  private drawLive() {
+    const { L, a, ctx, canvas, k } = this;
+    const tick = Math.floor(this.t * L.fps);
+    this.follow(false);                                   // the camera first: every place below is relative to it
+    const view = this.viewW * k, tall = this.viewH * k;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.globalAlpha = 1;
+    if (view < canvas.width - .5 || tall < canvas.height - .5) { ctx.fillStyle = "#2a1d1a"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    ctx.drawImage(a.bg, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, view, tall);
+    // art pixel coordinates from here on: one art pixel is k device pixels, the origin on the device pixel grid
+    const tx = this.offX - Math.round(this.camX * k), ty = this.offY - Math.round(this.camY * k);
+    ctx.setTransform(k, 0, 0, k, tx, ty);
+    const items = this.items;
+    items.length = 0;
+    this.itemN = 0;
+    let motion = this.camMoved;
+    const m = 64;
+    this.vx0 = this.camX - m; this.vy0 = this.camY - m; this.vx1 = this.camX + this.viewW + m; this.vy1 = this.camY + this.viewH + m;
+    for (const an of L.anims) {
+      if (!this.near(an.x, an.y, an.w, an.h)) continue;
+      const [fx, fy] = an.frames[an.seq[tick % an.seq.length]];
+      if (an.z === 0) { ctx.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h); continue; }
+      const it = this.item(an.z, 1);
+      it.an = an; it.fx = fx; it.fy = fy;
+    }
+    for (const pc of L.pieces) if (this.near(pc.x, pc.y, pc.w, pc.h)) { const it = this.item(pc.z, 2); it.pc = pc; }
+    const lit = this.picked ?? this.hover;
+    for (const p of this.people) {
+      if (p.alpha <= 0) continue;
+      const x = this.spriteX(p), y = this.spriteY(p);
+      if (!this.near(x, y, p.fw ?? 16, 32)) continue;
+      const walking = p.path.length > 0 || !!p.moving;
+      if (walking) motion = true;
+      const it = this.item(this.z(p) + .01, 3);
+      it.p = p; it.x = x; it.y = y; it.f = this.frame(p, tick);
+      it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
+      it.outline = p === lit && !p.you;
+      it.shadow = this.grounded(p);
+    }
+    this.motion = motion;
+    this.addRings(tick);
+    items.sort(byDepth);
+    for (let i = 0; i < items.length; i++) this.drawItemLive(items[i], tx, ty);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // the lamplight and the fire's flicker in one layer (made once per flicker step): one blend over the screen, not two
+    ctx.drawImage(this.lampLayer(tick), this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, view, tall);
+    ctx.setTransform(k, 0, 0, k, tx, ty);
+    this.notes(tick, ctx);
+    this.drawPrompt(tick, ctx);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.place();
+  }
+
+  /** The lamplight with the fire's light over it, for this tick's flicker step (made on first use); the same as drawing the two in turn. */
+  private lampLayer(tick: number): HTMLCanvasElement {
+    if (!this.fire) return this.lamp;
+    const all = (this.lampFire ??= [0, 1, 2].map(j => {
+      const cv = document.createElement("canvas");
+      cv.width = this.L.w; cv.height = this.L.h;
+      const c = cv.getContext("2d")!;
+      c.drawImage(this.lamp, 0, 0);
+      c.globalAlpha = (.30 + .04 * j) / .38;
+      c.drawImage(this.fire!, 0, 0);
+      return cv;
+    }));
+    return all[Math.floor(tick / 3) % 3];
+  }
+
+  /** Whether a person stands on the floor (a shadow under them): not one in a chair or on a stool. */
+  private grounded(p: Person): boolean {
+    return !(p.at && p.spot && (p.doing === "sit" || p.spot.pose === "sit" || p.spot.pose === "stool"));
+  }
+
+  /** One item of `drawLive`, with the origin of art pixel space at (tx, ty) device pixels. A person is placed in device pixels (their shadow, outline and sprite all at the same one). */
+  private drawItemLive(it: DrawItem, tx: number, ty: number) {
+    const { ctx, a, k } = this;
+    switch (it.kind) {
+      case 1: { const an = it.an!; ctx.drawImage(a.anims, it.fx, it.fy, an.w, an.h, an.x, an.y, an.w, an.h); break; }
+      case 2: { const pc = it.pc!; ctx.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h); break; }
+      case 3: {
+        const p = it.p!, img = it.img!, fw = p.fw ?? 16;
+        const dx = Math.round(it.x * k) + tx, dy = Math.round(it.y * k) + ty;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        if (it.shadow) {
+          // under the feet whichever way they face and whatever the pose: stepped rows, no smoothing, half opaque
+          ctx.globalAlpha = SHADOW_ALPHA * p.alpha;
+          ctx.fillStyle = SHADOW_RGB;
+          const mid = dx + fw * k / 2, top = dy + (31 - SHADOW_ROWS.length + 1) * k;
+          for (let r = 0; r < SHADOW_ROWS.length; r++) { const w = SHADOW_ROWS[r] * k; ctx.fillRect(mid - w / 2, top + r * k, w, k); }
+        }
+        if (it.outline) {
+          ctx.globalAlpha = 1;
+          const g = this.silhouette(it.f, img, it.sy, fw);
+          for (const [ox, oy] of OUTLINE) ctx.drawImage(g, 0, 0, fw, 32, dx + ox * k, dy + oy * k, fw * k, 32 * k);
+        }
+        ctx.globalAlpha = p.alpha;
+        ctx.drawImage(img, it.f * fw, it.sy, fw, 32, dx, dy, fw * k, 32 * k);
+        ctx.globalAlpha = 1;
+        ctx.setTransform(k, 0, 0, k, tx, ty);
+        break;
+      }
+      default: ctx.drawImage(it.img!, it.x, it.y);
+    }
+  }
+
   /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
   private outline(f: number, img: CanvasImageSource, sy: number, x: number, y: number, fw = 16) {
+    const g = this.silhouette(f, img, sy, fw);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) this.sc.drawImage(g, x + dx, y + dy);
+  }
+
+  /** A person's frame as a white silhouette (in `ghost`). */
+  private silhouette(f: number, img: CanvasImageSource, sy: number, fw: number): HTMLCanvasElement {
     const g = this.ghost, gc = g.getContext("2d")!;
     if (g.width !== fw) { g.width = fw; g.height = 32; }
     gc.globalCompositeOperation = "source-over";
@@ -1105,12 +1300,12 @@ class Cafe implements CafeHandle {
     gc.globalCompositeOperation = "source-in";
     gc.fillStyle = "#fff";
     gc.fillRect(0, 0, fw, 32);
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) this.sc.drawImage(g, x + dx, y + dy);
+    return g;
   }
 
   /** The kit's music notes, rising from the headphones of a few who are sitting. */
-  private notes(tick: number) {
-    const phones = this.L.people.phones, sc = this.sc;
+  private notes(tick: number, sc = this.sc) {
+    const phones = this.L.people.phones;
     let i = 0;
     for (const p of this.people) {
       if (p.doing !== "sit" || !(p.sheet ? p.sheetPhones : phones[p.look]) || p.you) continue;
@@ -1156,16 +1351,19 @@ class Cafe implements CafeHandle {
   }
 
   private follow(snap = false) {
-    let cx: number, cy: number;
+    let cx: number, cy: number, lock = false;
     if (this.playable && this.you && this.viewW < this.L.w - 1) {
       // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
       const [x, y] = this.looking ? this.spriteAt(this.looking) : this.spriteAt(this.you);
       cx = x + this.half(this.looking ?? this.you); cy = y + 18 - (this.looking ? 0 : this.viewH * .2);
+      // library: while you walk the view is held to you (a look at someone, the entrance and a seat taken ease instead)
+      lock = !this.looking && this.you.doing !== "enter" && (!!this.you.moving || this.you.path.length > 0);
     } else {
       cx = this.region.x + this.region.w / 2; cy = this.region.y + this.region.h / 2;
     }
     const tx = Math.min(Math.max(cx - this.viewW / 2, 0), this.L.w - this.viewW);
     const ty = Math.min(Math.max(cy - this.viewH / 2, 0), this.L.h - this.viewH);
+    if (this.smooth) { this.followLive(tx, ty, snap, lock); return; }
     if (snap) { this.camX = tx; this.camY = ty; }
     else { this.camX += (tx - this.camX) * .12; this.camY += (ty - this.camY) * .12; }
     // land the camera on whole art pixels, so every pixel stays the same size
@@ -1173,12 +1371,40 @@ class Cafe implements CafeHandle {
     this.camY = Math.round(this.camY * this.k) / this.k;
   }
 
+  /**
+   * The library's camera. While you walk it is locked to you: it lands on the same device pixel grid as your sprite
+   * the same frame, so you do not slide against the window and it stops the frame you do. It catches up at a speed
+   * (not an ease) when it was somewhere else, so it never trails and never overshoots. Everything else (a look at
+   * someone, sitting, standing, the entrance) eases, by time and not by frame so 60 and 30 Hz agree, and the ease is
+   * kept in floats and only the picture of it is put on the grid, so it arrives exactly.
+   */
+  private followLive(tx: number, ty: number, snap: boolean, lock: boolean) {
+    const dt = Math.min(.25, Math.max(0, this.t - this.followT));
+    this.followT = this.t;
+    if (snap) { this.camFX = tx; this.camFY = ty; }
+    else if (lock) {
+      const m = CATCH_UP * dt, dx = tx - this.camFX, dy = ty - this.camFY;
+      this.camFX += dx > m ? m : dx < -m ? -m : dx;
+      this.camFY += dy > m ? m : dy < -m ? -m : dy;
+    } else {
+      const e = 1 - Math.exp(-dt / EASE_TAU);
+      this.camFX += (tx - this.camFX) * e; this.camFY += (ty - this.camFY) * e;
+      if (Math.abs(tx - this.camFX) < .01) this.camFX = tx;
+      if (Math.abs(ty - this.camFY) < .01) this.camFY = ty;
+    }
+    const nx = Math.round(this.camFX * this.k) / this.k, ny = Math.round(this.camFY * this.k) / this.k;
+    this.camMoved = nx !== this.camX || ny !== this.camY;
+    this.camX = nx; this.camY = ny;
+  }
+
   /* ---------- the loop, paused off screen and in a hidden tab ---------- */
   private start() {
     if (this.raf || this.dead || this.o.reduced || !this.visible || document.hidden) return;
     this.last = performance.now();
+    if (this.smooth) { this.govern(0, 0, false, true); this.govAt = this.last; }
     const loop = (now: number) => {
       this.raf = requestAnimationFrame(loop);
+      if (this.smooth) { this.frameLive(now); return; }
       if (now - this.last < 1000 / 32) return;
       this.step(Math.min(.1, (now - this.last) / 1000));
       this.last = now;
@@ -1186,6 +1412,58 @@ class Cafe implements CafeHandle {
     };
     this.raf = requestAnimationFrame(loop);
   }
+
+  /**
+   * The library's frame: every display frame while something in view moves (or a walking key is down) and the governor
+   * allows 60 Hz, else at the old 30 Hz gate. Standing still costs what it did.
+   */
+  private frameLive(now: number) {
+    const gap = now - this.last;
+    const fast = this.hz60 && (this.motion || this.keysDown.size > 0);
+    if (gap < (fast ? GAP_60 : GAP_30)) return;
+    const w0 = performance.now();
+    this.step(Math.min(.1, gap / 1000));
+    this.last = now;
+    this.draw();
+    this.govern(performance.now() - w0, gap, fast, false);
+  }
+
+  /**
+   * The frame governor. 60 Hz doubles the draw work of 30, and nothing in the page can see the GPU, so the page watches
+   * itself: the rolling 95th percentile of a frame's own work (step and draw, JS side) and how many frames came a display
+   * refresh late. Over `GOV_KEEP_MS`, or a quarter late, it presents at 30 Hz; it tries 60 again only when the work is
+   * well under (`GOV_RETURN_MS`) and after a hold that doubles every time it has had to fall back. `data-hz` on the
+   * canvas says which (and `hz` on the handle, in development).
+   */
+  private govern(work: number, gap: number, fast: boolean, reset: boolean) {
+    if (reset) { this.govN = 0; this.govI = 0; this.govTick = 0; this.govLate.fill(0); this.lateSum = 0; this.lateI = 0; this.govFrom = performance.now() + 1500; this.setHz(this.hz60); return; }
+    const W = this.govWork;
+    W[this.govI] = work; this.govI = (this.govI + 1) % W.length; if (this.govN < W.length) this.govN++;
+    if (fast && performance.now() > this.govFrom) {            // not the first moments after the page, a tab or the room woke (decoding, layout)
+      const late = gap > GOV_LATE_MS && gap < 300 ? 1 : 0, L = this.govLate;
+      this.lateSum += late - L[this.lateI]; L[this.lateI] = late; this.lateI = (this.lateI + 1) % L.length;
+    }
+    if (++this.govTick < 30 || this.govN < 60) return;
+    this.govTick = 0;
+    const S = this.govSort;
+    for (let i = 0; i < this.govN; i++) S[i] = W[i];
+    const sorted = S.subarray(0, this.govN).sort();
+    const p95 = sorted[Math.floor((this.govN - 1) * .95)], now = performance.now();
+    if (this.hz60) {
+      if (p95 > GOV_KEEP_MS || this.lateSum >= this.govLate.length / 4) { this.govFalls++; this.govAt = now; this.setHz(false); }
+    } else if (p95 < GOV_RETURN_MS && now - this.govAt > 30_000 * 2 ** Math.min(4, this.govFalls - 1)) {
+      this.govAt = now; this.govLate.fill(0); this.lateSum = 0; this.setHz(true);
+    }
+  }
+
+  private setHz(on: boolean) {
+    if (on && !this.hz60) this.motion = true;
+    this.hz60 = on;
+    this.canvas.dataset.hz = on ? "60" : "30";
+  }
+
+  /** Which rate the library is presenting at (the governor's verdict); 60 until it has had to fall back. */
+  get hz(): 30 | 60 { return this.hz60 ? 60 : 30; }
 
   private stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
 
@@ -1427,7 +1705,7 @@ class Cafe implements CafeHandle {
   }
 
   /** The "E" keycap over the chair you could sit in (it bobs), or "E stand" by you while you sit: over everything, in art pixels, so it scales and follows the camera. */
-  private drawPrompt(tick: number) {
+  private drawPrompt(tick: number, sc = this.sc) {
     const art = this.libArt, you = this.you;
     if (!art || !you) return;
     const kind = this.promptFor(this.nearSeat());
@@ -1444,7 +1722,7 @@ class Cafe implements CafeHandle {
     }
     x = Math.min(Math.max(x, this.camX + 2), this.camX + this.viewW - img.width - 2);
     y = Math.min(Math.max(y, this.camY + 2), this.camY + this.viewH - img.height - 2);
-    this.sc.drawImage(img, Math.round(x), Math.round(y));
+    sc.drawImage(img, Math.round(x), Math.round(y));
     this.promptBox = [Math.round(x), Math.round(y), img.width, img.height];
   }
 
@@ -1547,7 +1825,7 @@ class Cafe implements CafeHandle {
     const you = this.you;
     if (!you) return null;
     if (you.at && you.spot) return { x: you.spot.x, y: you.spot.y, seat: this.ipadOf.get(you.spot) ?? null, path: [], walking: false };
-    const [sx, y] = this.spriteAt(you), x = sx + (you.fw ? (you.fw - 16) / 2 : 0);       // on the wire a sprite is the 16 wide one's top left
+    const x = Math.round(you.x) - 8, y = Math.round(you.y) - 31;       // on the wire a sprite is the 16 wide one's top left, on whole art pixels (the picture of it may sit between)
     if (this.W && you.moving) {
       // walking under the keys: the next half second, a couple of points, so others carry on along it (and not through a wall)
       const [hx, hy] = this.heading;

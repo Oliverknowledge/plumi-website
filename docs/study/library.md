@@ -508,6 +508,59 @@ Library mode only; the homepage's `hero` and `friends` modes keep their tile ste
 source), run with a seeded `Math.random` and reduced motion, and the `toDataURL` of both canvases on `/` (the hero 569 x 394 and
 the friends window 204 x 150) hashed identically, before and after a tap and arrow-key hops.
 
+## Movement feel (founder, 2 November 2026)
+
+Library mode only, set against a measured reference (`docs/study/art/movement-reference.md`, `movement-gap.md`, the harness in
+`tools/movement`, results in `movement-after.md`). The homepage's `hero` and `friends` windows keep their 30 Hz step, whole art pixel
+placement, shared 5 Hz walk clock and eased camera: nothing below runs for them (`this.smooth` is `live && !reduced`; the virtual-clock
+hash of both homepage canvases over 300 frames with clicks and keys is byte-identical before and after, `hero-det2.js`, four modes).
+
+- **60 Hz, device pixel placement (G1).** While a person or the camera moves the room presents on every display frame (a screen that
+  refreshes at 120 Hz is held to 60), else at the old 30 Hz gate, so a still room costs what it did. A walker is placed at the nearest
+  *device* pixel (1/k of an art pixel: 1 css px at 1x, 0.5 at 2x) instead of a whole art pixel. To do that the library no longer composes
+  into the art sized `scene` canvas and scales it up: `drawLive` draws on the screen canvas with an integer scale, the room first, then
+  everything standing on the floor in depth order, then the lamplight. Ground, pieces, animations, rings, the key prompt and the notes
+  are at whole art pixels (k device pixels square, nearest neighbour, origin on the device grid); only a person's sprite, shadow and
+  outline are at a device pixel offset, also nearest neighbour at k times, so no art pixel is blurred or resized. Occlusion needs
+  nothing special: a table, chair or plant in front of a walker is a later item of the same depth sort, drawn at the same scale and
+  offset, so it covers them exactly (checked on screenshots of the player behind a bookshelf and a table). The lamp and the fire are one
+  pre-merged layer per flicker step. Labels, pops and bubbles are put on the device pixel grid in the same frame, so they follow the
+  sprite with zero offset (30 frames measured). The wire is unchanged: `youNow()` still sends whole art pixels.
+- **Walk clock (G2).** Each person has their own `stride` (seconds this walk has lasted), 12 poses a second over the six walk frames,
+  restarted when a walk starts: 500 ms a cycle, 0.23 body heights a pose (reference 0.19). Everyone, animals included (the same
+  frame indices), cycles at the same rate. Idle, sit, read and phone keep the 10 Hz clock. A person who has just stopped (or been put
+  somewhere) holds one standing pose for 2 s.
+- **Camera (G3).** Locked to you while you walk (keys or a path, not the entrance): it lands on the same device pixel the frame you move
+  and stops the frame you stop, clamped to the room. A camera that was elsewhere (after "look at") catches up at 200 art px/s, never
+  trailing or overshooting. Everything else (look at someone, sitting, standing, the entrance) still eases, now by time (tau 0.26 s, the
+  old per-step 12 percent at 30 Hz) so 60 and 30 Hz agree, kept in floats so it arrives exactly. Where the camera holds you vertically
+  (20 percent of the view below centre) is unchanged: a product choice.
+- **Ground shadow (G4).** A stepped ellipse (14 x 4 art px, rows 10, 14, 14, 10; dark purple at 50 percent, fading with the person)
+  under everyone standing or walking, not under anyone in a chair or on a stool, constant in every pose. It is beneath the person in the
+  depth sort, so furniture covers it. It reads as 0.44 of the body height by the harness's measure (the patch visible round the feet).
+  Known blemish: its last row is one pixel below the feet, so a person standing directly behind a table whose bottom row is
+  transparent between its legs shows a one pixel dark sliver there.
+- **The governor (the cost of 60 Hz).** Nothing in the page can see the GPU, so the room watches itself: the 95th percentile of a
+  frame's own work (step and draw, JS side) over the last 90 frames, and how many frames came a display refresh late. Over 8 ms, or a
+  quarter of frames late, it presents at 30 Hz *and draws the old way* (art sized scene, whole art pixel placement; the new clocks,
+  camera and shadow stay), so the fallback costs what the room cost before. It tries 60 again only when the work is under 5 ms and after
+  a hold of 30 s that doubles at each fall (to about 8 minutes). `data-hz` on the canvas and `hz` on the dev handle say which. The first
+  1.5 s after the room wakes are not counted (decoding). Visibility pause and reduced motion are unchanged (reduced motion: no loop,
+  whole art pixels, the old pose clock).
+- **Measured (headless Chromium, software raster, 1280 x 800, 50 people, 10 walking, you walking, 12 s).** Before, 1x CPU, 2x density: 30
+  draws a second, draw 3.7 ms p50 / 5.5 p95, main thread 40 percent busy, 19 GCs. After: 59 a second, draw 1.0 / 1.6 ms, busy 86 percent,
+  26 GCs (0.04 a frame against 0.05); at 1x density: 4.5 / 6.6 ms and 28 percent before, 0.9 / 1.3 ms and 36 percent after. The JS
+  draw time falls because the pixel work is now recorded and rasterised by the browser, not by a scene copy; the busy figure
+  is the honest one, and under *software* raster 60 Hz at 2x costs twice the main thread. At 4x CPU slowdown the governor falls back to
+  30 Hz within a couple of seconds, and the fallback draws at 17.9 to 18.5 ms p50 against 16.7 to 17.2 before (about 8 percent more:
+  the shadows, the camera and the per-person clocks). Per frame there is no allocation in the new code (the pool is kept, no tuples).
+- **Not measured, and the risks.** iPad Safari (rAF cadence at 60 Hz on a 120 Hz ProMotion screen, canvas raster on a CPU or GPU
+  backing, thermal throttling): the governor's lateness check is the only protection and has not been seen to work there. 60 Hz on
+  a laptop on battery costs more energy while anything moves (a still room is unchanged). The lamp layer and three fire variants add
+  about 7.5 MB of canvas. Walk speed (70 art px/s, 2.8 body heights a second against the reference's 2.24) is deliberately the iPad's.
+- **Held by:** the harness (`node tools/movement/measure.mjs`, also `--zoo`, `--dpr 2`, `--me fox`; 0 scored failures), `library:test`
+  and `app:test` (they do not look at drawing), and the hero hash.
+
 ## Friends list (founder, 1 November)
 
 The People tab is now a scrollable panel: **Requests** (only when there are some), **Friends** (all of them), **In the library**

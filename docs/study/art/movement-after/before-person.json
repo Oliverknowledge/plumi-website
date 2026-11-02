@@ -1,0 +1,640 @@
+{
+ "meta": {
+  "base": "http://localhost:3960",
+  "me": "person",
+  "viewport": [
+   1512,
+   949,
+   1
+  ],
+  "k": 4,
+  "spriteRows": 25,
+  "spriteFw": 16,
+  "speedArtPerS": 70
+ },
+ "hold": {
+  "right": {
+   "speedArt": 70.1,
+   "speedHs": 2.804,
+   "startDelayMs": 10,
+   "stopExcessMs": 8,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30.4,
+   "spriteUpdateHz": 30.4,
+   "posQuantumCss": 4,
+   "stepCss": 9.33,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.561,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 29,
+   "camLagSteadyCss": 69,
+   "camLagMaxCss": 70,
+   "camSettleMs": 733,
+   "lockOffX": 189,
+   "seq": [
+    24,
+    25,
+    26,
+    27,
+    28,
+    29
+   ]
+  },
+  "left": {
+   "speedArt": 70.1,
+   "speedHs": 2.804,
+   "startDelayMs": 10,
+   "stopExcessMs": 8,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30.4,
+   "spriteUpdateHz": 30.4,
+   "posQuantumCss": 4,
+   "stepCss": 9.33,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.561,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 38,
+   "camLagSteadyCss": 69,
+   "camLagMaxCss": 70,
+   "camSettleMs": 733,
+   "lockOffX": -189,
+   "seq": [
+    39,
+    40,
+    41,
+    36,
+    37,
+    38
+   ]
+  },
+  "down": {
+   "speedArt": 70.1,
+   "speedHs": 2.804,
+   "startDelayMs": 10,
+   "stopExcessMs": 8,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30.4,
+   "spriteUpdateHz": 30.4,
+   "posQuantumCss": 4,
+   "stepCss": 9.33,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.561,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 47,
+   "camLagSteadyCss": 69,
+   "camLagMaxCss": 70,
+   "camSettleMs": 733,
+   "lockOffX": 179,
+   "seq": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47
+   ]
+  },
+  "up": {
+   "speedArt": 70.04,
+   "speedHs": 2.802,
+   "startDelayMs": 9,
+   "stopExcessMs": 8,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30,
+   "spriteUpdateHz": 30,
+   "posQuantumCss": 4,
+   "stepCss": 9.33,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.56,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 31,
+   "camLagSteadyCss": 68,
+   "camLagMaxCss": 69,
+   "camSettleMs": 700,
+   "lockOffX": -179,
+   "seq": [
+    32,
+    33,
+    34,
+    35,
+    30,
+    31
+   ]
+  }
+ },
+ "diag": {
+  "downRight": {
+   "speedArt": 69.95,
+   "speedHs": 2.798,
+   "startDelayMs": 16,
+   "stopExcessMs": 2,
+   "stopMs": 0,
+   "firstMoveMs": 17,
+   "updateHz": 30,
+   "spriteUpdateHz": 30,
+   "posQuantumCss": 4,
+   "stepCss": 9.19,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.56,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 9,
+   "camLagSteadyCss": 67.7,
+   "camLagMaxCss": 69.3,
+   "camSettleMs": null,
+   "lockOffX": 260.22,
+   "seq": [
+    47,
+    42,
+    43,
+    44,
+    45,
+    46
+   ],
+   "faceChanges": 0,
+   "face": "front"
+  },
+  "upLeft": {
+   "speedArt": 70,
+   "speedHs": 2.8,
+   "startDelayMs": 8,
+   "stopExcessMs": 3,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30,
+   "spriteUpdateHz": 30,
+   "posQuantumCss": 4,
+   "stepCss": 9.27,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.56,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 31,
+   "camLagSteadyCss": 67.1,
+   "camLagMaxCss": 68.6,
+   "camSettleMs": null,
+   "lockOffX": -260.22,
+   "seq": [
+    32,
+    33,
+    34,
+    35,
+    30,
+    31
+   ],
+   "faceChanges": 0,
+   "face": "back"
+  },
+  "downLeft": {
+   "speedArt": 70.1,
+   "speedHs": 2.804,
+   "startDelayMs": 10,
+   "stopExcessMs": 3,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30.4,
+   "spriteUpdateHz": 30.4,
+   "posQuantumCss": 4,
+   "stepCss": 9.27,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.561,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 45,
+   "camLagSteadyCss": 67.9,
+   "camLagMaxCss": 69.3,
+   "camSettleMs": null,
+   "lockOffX": -7.07,
+   "seq": [
+    46,
+    47,
+    42,
+    43,
+    44,
+    45
+   ],
+   "faceChanges": 0,
+   "face": "front"
+  },
+  "upRight": {
+   "speedArt": 70.1,
+   "speedHs": 2.804,
+   "startDelayMs": 10,
+   "stopExcessMs": 3,
+   "stopMs": 0,
+   "firstMoveMs": 33,
+   "updateHz": 30.4,
+   "spriteUpdateHz": 30.4,
+   "posQuantumCss": 4,
+   "stepCss": 9.27,
+   "poseHz": 5,
+   "poseMs": 200,
+   "poseDistHs": 0.561,
+   "distinctPoses": 6,
+   "cycleSlots": 6,
+   "cycleMs": 1200,
+   "firstFrame": 30,
+   "camLagSteadyCss": 67.2,
+   "camLagMaxCss": 68.6,
+   "camSettleMs": null,
+   "lockOffX": 7.07,
+   "seq": [
+    31,
+    32,
+    33,
+    34,
+    35,
+    30
+   ],
+   "faceChanges": 0,
+   "face": "back"
+  }
+ },
+ "art": {
+  "bobRowsByDir": [
+   1,
+   1,
+   1,
+   1
+  ],
+  "footRowsByDir": [
+   1,
+   0,
+   1,
+   1
+  ],
+  "shadowPx": 0,
+  "shadowW": 0,
+  "rows": 25
+ },
+ "turn": {
+  "facingRight": "right",
+  "facingDiag": "right",
+  "facingAfterReleaseRight": "front",
+  "turnLatencyMs": 33
+ },
+ "wall": {
+  "facedWall": true,
+  "moved": 0
+ },
+ "shadow": {
+  "control": 56,
+  "px": 0,
+  "width": 0,
+  "height": 0,
+  "meanDrop": 0
+ },
+ "idle": {
+  "changesIn3s": 5,
+  "changesIn1250ms": 2,
+  "frames": 6
+ },
+ "tap": {
+  "travelArt": 7,
+  "pressMs": 100,
+  "ideal": 7
+ },
+ "click": {
+  "speedHs": 2.83,
+  "endSpeedRatio": 1.03,
+  "durationMs": 2167,
+  "distanceArt": 152.8
+ },
+ "npc": [
+  {
+   "idx": 0,
+   "fw": 16,
+   "spriteRows": 24,
+   "speedArt": 70,
+   "speedHs": 2.916,
+   "poseHz": 5,
+   "distinct": 6
+  }
+ ],
+ "metrics": {
+  "sprite_rows": 25,
+  "speed_hs_axis": 2.803,
+  "speed_art_per_s": 70.1,
+  "speed_hs_spread": 1.001,
+  "speed_diag_ratio": 0.999,
+  "start_delay_ms": 10,
+  "stop_excess_ms": 5,
+  "stop_settle_ms": 0,
+  "display_update_hz": 30.3,
+  "pos_quantum_css": 4,
+  "step_css": 9.33,
+  "pose_rate_hz": 5,
+  "pose_dist_hs": 0.561,
+  "cycle_ms": 1200,
+  "distinct_poses": 6,
+  "head_bob_rows": 1,
+  "ground_shadow_w_hs": 0,
+  "ground_shadow_px": 0,
+  "sprite_vh_pct": 10.5,
+  "idle_changes_1250ms": 2,
+  "cam_lag_steady_css": 69,
+  "cam_settle_ms": 733,
+  "lock_off_x_pct": 0,
+  "lock_off_y_pct": 25.4,
+  "diag_keeps_face": 1,
+  "turn_latency_ms": 33,
+  "wall_turns_and_stays": 1,
+  "click_speed_ratio": 1.01,
+  "npc_speed_ratio": 1.04,
+  "npc_pose_rate_hz": 5
+ },
+ "table": [
+  {
+   "key": "speed_hs_axis",
+   "ours": 2.803,
+   "want": "2.24 ±0.269",
+   "unit": "H/s",
+   "ref": "269 css px/s = 89.7 art px/s over a sprite 40 art px tall; 17 held-key runs, idx 7-664",
+   "verdict": "info",
+   "note": "Sprite heights a second. INFO, not gated: ours is coupled to the iPad's walk speed (LIVE_SPEED 70 art px/s, docs/study/library.md 'Walking'), so it may only change together with the wire's speed assumption. In css px a second ours (280 at k=4) is already the reference (269)."
+  },
+  {
+   "key": "speed_hs_spread",
+   "ours": 1.001,
+   "want": "..1.08",
+   "unit": "ratio",
+   "ref": "left 255-271, right 270-272, down 262-267, up 270 css px/s: max/min 1.04",
+   "verdict": "PASS",
+   "note": "Same speed in all four directions (no extra perspective scaling)."
+  },
+  {
+   "key": "speed_diag_ratio",
+   "ours": 0.999,
+   "want": "0.94 ±0.1",
+   "unit": "ratio",
+   "ref": "idx 66-70: 3 px per axis per frame = 254 css px/s against 269 straight",
+   "verdict": "PASS",
+   "note": "Diagonal about the same speed as straight (normalised), not 1.41 times. One 5-frame sample only."
+  },
+  {
+   "key": "start_delay_ms",
+   "ours": 10,
+   "want": "-40..50",
+   "unit": "ms",
+   "ref": "full speed within 2 frames at idx 29-32 and 55-58; no acceleration ramp",
+   "verdict": "PASS",
+   "note": "Effective delay of the fitted constant-speed line after the key goes down."
+  },
+  {
+   "key": "stop_excess_ms",
+   "ours": 5,
+   "want": "-40..40",
+   "unit": "ms",
+   "ref": "idx 50-52 and 664-666: -5, -3, 0 px; no coast, no overshoot, no settle",
+   "verdict": "PASS",
+   "note": "How far past (+) or short of (-) the release the sprite travels, as milliseconds of walking."
+  },
+  {
+   "key": "stop_settle_ms",
+   "ours": 0,
+   "want": "..50",
+   "unit": "ms",
+   "ref": "motion ends within 1 to 2 frames of the last step (idx 50-52, 664-666)",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "display_update_hz",
+   "ours": 30.3,
+   "want": "50..",
+   "unit": "Hz",
+   "ref": "the sprite moved on every one of the 60 recorded frames (2 recorded frames in 3 are not duplicates: 63 gaps of 25 ms are recorder drops)",
+   "verdict": "FAIL",
+   "note": "Distinct on-screen updates a second while walking (sprite, camera or pose changed)."
+  },
+  {
+   "key": "pos_quantum_css",
+   "ours": 4,
+   "want": "..1.5",
+   "unit": "css px",
+   "ref": "native frame: sprite edges at device-px offsets 1, 3, 5 modulo the 6 px art pixel (idx 32-51): positioned at whole css pixels, 1/3 art pixel",
+   "verdict": "FAIL",
+   "note": "Smallest step the sprite can be placed at. Ours is a whole art pixel (k css px)."
+  },
+  {
+   "key": "step_css",
+   "ours": 9.33,
+   "want": "..6",
+   "unit": "css px",
+   "ref": "4.5 css px per frame at 60 Hz",
+   "verdict": "FAIL",
+   "note": "Size of one visible jump. Judder amplitude: half of this per axis of the reference, double ours."
+  },
+  {
+   "key": "pose_rate_hz",
+   "ours": 5,
+   "want": "11..15",
+   "unit": "Hz",
+   "ref": "pose changes every 84.0 ms mean (13 slots idx 94-157: 75-92 ms, 5 recorded frames each = 12 Hz)",
+   "verdict": "FAIL",
+   "note": "Walk-cycle pose changes a second."
+  },
+  {
+   "key": "pose_dist_hs",
+   "ours": 0.561,
+   "want": "0.187 ±0.065",
+   "unit": "H",
+   "ref": "269 px/s x 84.0 ms = 22.6 css px = 7.5 art px = 0.19 sprite heights per pose",
+   "verdict": "FAIL",
+   "note": "How far the body travels per pose. Larger means skating (the feet slide)."
+  },
+  {
+   "key": "cycle_ms",
+   "ours": 1200,
+   "want": "450..800",
+   "unit": "ms",
+   "ref": "front view: 9 slots (B A C D E F E D A) = 0.75 s, 67 art px = 1.7 H",
+   "verdict": "FAIL",
+   "note": "With six drawn frames a cycle of 6 slots at 12 Hz is 500 ms; accepted."
+  },
+  {
+   "key": "distinct_poses",
+   "ours": 6,
+   "want": "6..",
+   "unit": "poses",
+   "ref": "A B C D E F (6 drawn poses, 3 of them used twice)",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "head_bob_rows",
+   "ours": 1,
+   "want": "1..2",
+   "unit": "art px",
+   "ref": "head 1 art px (3 css px) higher in poses C and D than in A and E; no squash or stretch",
+   "verdict": "PASS",
+   "note": "Peak to peak head height over the walk frames of the sheet."
+  },
+  {
+   "key": "ground_shadow_w_hs",
+   "ours": 0,
+   "want": "0.35..0.6",
+   "unit": "H",
+   "ref": "purple ellipse 57 x 18 css px = 19 x 6 art px = 0.475 H wide, 0.15 H tall, fixed under the feet in every pose, also when standing",
+   "verdict": "FAIL",
+   "note": "Width of the darkened patch the engine draws under a standing person, in sprite heights. 0 = none."
+  },
+  {
+   "key": "idle_changes_1250ms",
+   "ours": 2,
+   "want": "..0",
+   "unit": "changes",
+   "ref": "idx 668-739 (1.25 s standing): not one pixel changes",
+   "verdict": "info",
+   "note": "Cannot say what the reference does after 1.25 s; ours animates the idle pose every 0.6 s."
+  },
+  {
+   "key": "cam_lag_steady_css",
+   "ours": 69,
+   "want": "..3",
+   "unit": "css px",
+   "ref": "while the camera scrolled (167 frames) the player's screen x stayed 756.7 +- 0.7 css px; the camera moved the same frame as the player (idx 225, 293, 328, 346)",
+   "verdict": "FAIL",
+   "note": "How far the player slides from his lock point while walking (distance behind)."
+  },
+  {
+   "key": "cam_settle_ms",
+   "ours": 733,
+   "want": "..100",
+   "unit": "ms",
+   "ref": "camera stops the frame the player stops (idx 243, 312, 341, 357)",
+   "verdict": "FAIL",
+   "note": "Time after the release until the player is back within one art pixel of his lock point."
+  },
+  {
+   "key": "lock_off_x_pct",
+   "ours": 0,
+   "want": "-3..3",
+   "unit": "% width",
+   "ref": "player pinned at x 756 of 1512",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "lock_off_y_pct",
+   "ours": 25.4,
+   "want": "-3..8",
+   "unit": "% height",
+   "ref": "head 395-405 css px, feet 481 of 949: 0.7% below centre",
+   "verdict": "info",
+   "note": "Ours deliberately sits 20% of the view lower than centre (the entrance is at the bottom, the library opens upward): a product choice, not a movement-feel matter."
+  },
+  {
+   "key": "diag_keeps_face",
+   "ours": 1,
+   "want": "1..1",
+   "unit": "bool",
+   "ref": "idx 62-70: left face kept through the diagonal, front the frame the left key went",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "turn_latency_ms",
+   "ours": 33,
+   "want": "..40",
+   "unit": "ms",
+   "ref": "front face appears on the frame the horizontal motion ends (idx 71)",
+   "verdict": "PASS",
+   "note": "From releasing the held key to showing the new facing."
+  },
+  {
+   "key": "wall_turns_and_stays",
+   "ours": 1,
+   "want": "1..1",
+   "unit": "bool",
+   "ref": "idx 21-29: pressing into a chair turns the sprite to front and the player stays put, 8 frames",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "click_speed_ratio",
+   "ours": 1.01,
+   "want": "1 ±0.1",
+   "unit": "ratio",
+   "ref": "no click-to-walk in the clip (cursor never moves); informational: a click walk should be as fast as the keys",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "npc_speed_ratio",
+   "ours": 1.04,
+   "want": "1 ±0.1",
+   "unit": "ratio",
+   "ref": "no NPC walks in the clip; rule: everyone walks at the player's speed",
+   "verdict": "PASS",
+   "note": ""
+  },
+  {
+   "key": "npc_pose_rate_hz",
+   "ours": 5,
+   "want": "11..15",
+   "unit": "Hz",
+   "ref": "no NPC walks in the clip; rule: everyone cycles at the player's rate",
+   "verdict": "FAIL",
+   "note": ""
+  },
+  {
+   "key": "zoo_pose_rate_min",
+   "want": "11..",
+   "unit": "Hz",
+   "ref": "same rule for every animal (--zoo)",
+   "verdict": "n/a",
+   "note": ""
+  },
+  {
+   "key": "zoo_pose_rate_max",
+   "want": "..15",
+   "unit": "Hz",
+   "ref": "same rule for every animal (--zoo)",
+   "verdict": "n/a",
+   "note": ""
+  },
+  {
+   "key": "zoo_speed_hs_max",
+   "want": "..2.9",
+   "unit": "H/s",
+   "ref": "animals are 23 to 26 rows tall, so a fixed art speed is a different number of heights",
+   "verdict": "n/a",
+   "note": ""
+  },
+  {
+   "key": "sprite_vh_pct",
+   "ours": 10.5,
+   "want": "9..15",
+   "unit": "% height",
+   "ref": "sprite 120 of 949 css px = 12.6% of the window height (40 of 316 art px)",
+   "verdict": "PASS",
+   "note": "How big the person is on the screen; our k = 4 gives 10.5%."
+  }
+ ],
+ "fails": 10,
+ "errors": [],
+ "seconds": 12.3
+}
