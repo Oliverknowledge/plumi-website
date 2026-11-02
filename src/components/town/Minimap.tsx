@@ -70,26 +70,26 @@ export function Minimap({ engine, hubs, cooldown, onWalkHub, onTeleportHub, phon
       .concat(d.plazas.filter((p) => /grove|meadow|park|clearing/.test(p.id)).map((p) => ({ x: p.rect.x / 8, y: p.rect.y / 8, w: p.rect.w / 8, h: p.rect.h / 8, label: p.id.replace(/-clearing$/, "").replace(/-/g, " ").replace(/^./, (s) => s.toUpperCase()) })));
   }, [d, open]);
 
-  // the live layer, 10 times a second (the engine is read, not rendered through React)
+  // the live layer, 8 times a second (the engine is read, not rendered through React)
   useEffect(() => {
     if (!open) return;
     const id = setInterval(() => {
       const cv = dyn.current, host = base.current;
       if (!cv || !host) return;
-      if (cv.width !== host.width) { cv.width = host.width * 3; cv.height = host.height * 3; }
-      const c = cv.getContext("2d")!, S = 3 / 8;      // art px -> dyn px: one cell (8 art px) is 3 dyn px
+      if (cv.width !== Math.round(host.width * 1.5)) { cv.width = Math.round(host.width * 1.5); cv.height = Math.round(host.height * 1.5); }
+      const c = cv.getContext("2d")!, S = 1.5 / 8;      // art px -> dyn px: one cell (8 art px) is 1.5 dyn px (the live layer is small: it is redrawn 8 times a second)
       c.clearRect(0, 0, cv.width, cv.height);
       const v = engine.viewRect();
-      c.strokeStyle = "#fff"; c.lineWidth = 3; c.strokeRect(v.x * S, v.y * S, v.w * S, v.h * S);
-      c.strokeStyle = "#22304d"; c.lineWidth = 1.2; c.strokeRect(v.x * S - 1.5, v.y * S - 1.5, v.w * S + 3, v.h * S + 3);
-      for (const b of engine.botPositions()) { c.beginPath(); c.arc(b.x * S, (b.y - 8) * S, 4, 0, 7); c.fillStyle = "#fff"; c.fill(); c.lineWidth = 1.6; c.strokeStyle = "#22304d"; c.stroke(); }
+      c.strokeStyle = "#fff"; c.lineWidth = 1.6; c.strokeRect(v.x * S, v.y * S, v.w * S, v.h * S);
+      c.strokeStyle = "#22304d"; c.lineWidth = 0.8; c.strokeRect(v.x * S - 1, v.y * S - 1, v.w * S + 2, v.h * S + 2);
+      for (const b of engine.botPositions()) { c.beginPath(); c.arc(b.x * S, (b.y - 8) * S, 2.2, 0, 7); c.fillStyle = "#fff"; c.fill(); c.lineWidth = 1; c.strokeStyle = "#22304d"; c.stroke(); }
       const t = dest.current;
-      if (t) { const k = (performance.now() - t.t) / 1400; if (k >= 1) dest.current = null; else { c.beginPath(); c.arc(t.x * S, t.y * S, 4 + 14 * k, 0, 7); c.lineWidth = 2.4; c.strokeStyle = `rgba(217,119,43,${1 - k})`; c.stroke(); c.beginPath(); c.arc(t.x * S, t.y * S, 3, 0, 7); c.fillStyle = "#d9772b"; c.fill(); } }
+      if (t) { const k = (performance.now() - t.t) / 1400; if (k >= 1) dest.current = null; else { c.beginPath(); c.arc(t.x * S, t.y * S, 2 + 8 * k, 0, 7); c.lineWidth = 1.4; c.strokeStyle = `rgba(217,119,43,${1 - k})`; c.stroke(); c.beginPath(); c.arc(t.x * S, t.y * S, 1.8, 0, 7); c.fillStyle = "#d9772b"; c.fill(); } }
       const p = engine.youPos(), x = p.x * S, y = (p.y - 8) * S, a = p.dir === "right" ? 0 : p.dir === "front" ? Math.PI / 2 : p.dir === "left" ? Math.PI : -Math.PI / 2;
       c.save(); c.translate(x, y); c.rotate(a);
-      c.beginPath(); c.moveTo(9, 0); c.lineTo(-6, -6.5); c.lineTo(-3, 0); c.lineTo(-6, 6.5); c.closePath();
-      c.fillStyle = "#f2c96b"; c.fill(); c.lineWidth = 2.2; c.strokeStyle = "#22304d"; c.lineJoin = "round"; c.stroke(); c.restore();
-    }, 100);
+      c.beginPath(); c.moveTo(5, 0); c.lineTo(-3.5, -3.6); c.lineTo(-1.6, 0); c.lineTo(-3.5, 3.6); c.closePath();
+      c.fillStyle = "#f2c96b"; c.fill(); c.lineWidth = 1.3; c.strokeStyle = "#22304d"; c.lineJoin = "round"; c.stroke(); c.restore();
+    }, 125);
     return () => clearInterval(id);
   }, [engine, open]);
 
