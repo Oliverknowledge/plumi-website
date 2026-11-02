@@ -28,6 +28,7 @@ export const subjectColours: Record<string, string> = {
   "Religious Studies": "#e0b878",
   "Islamic Studies": "#7fb59a",
   Criminology: "#8f9cc0", // a dusk blue
+  "Engineering Manufacture": "#a3a8ad", // a steel grey
   Law: "#8a93c4",
   Politics: "#7f8fb8",
   History: "#c98a6b",
