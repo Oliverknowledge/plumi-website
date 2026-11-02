@@ -94,7 +94,8 @@ export function installHelpers() {
   /** Where the camera would settle for a player standing at (x, y): the engine's own follow() maths, no smoothing. */
   const camTarget = (x, y) => {
     const h = H(), p = h.you, fw = p.fw || 16, half = fw / 2;
-    const sx = Math.round(x) - 8 - (p.fw ? (p.fw - 16) / 2 : 0), sy = Math.round(y) - 31;
+    const q = h.fine ? (v) => Math.round(v * h.k) / h.k : Math.round;     // the engine places a walker on the device pixel grid in the library (60 Hz mode)
+    const sx = q(x) - 8 - (p.fw ? (p.fw - 16) / 2 : 0), sy = q(y) - 31;
     const cx = sx + half, cy = sy + 18 - h.viewH * 0.2;
     return [Math.min(Math.max(cx - h.viewW / 2, 0), h.L.w - h.viewW), Math.min(Math.max(cy - h.viewH / 2, 0), h.L.h - h.viewH)];
   };
@@ -173,6 +174,7 @@ export function installHelpers() {
    * the feet, on pixels the sprite itself does not cover: a darker patch there is a shadow drawn by the engine.
    */
   const shadow = (p) => {
+    if (H().fine) return shadowScreen(p);
     const h = H(), fw = p.fw || 16, img = p.sheet ?? h.a.people, sy0 = p.sheet ? 0 : p.look * 32;
     const [sx, sy] = h.spriteAt(p), tick = Math.floor(h.t * h.L.fps), f = h.frame(p, tick);
     const x0 = Math.max(0, sx - 8), w = fw + 16, y0 = sy + 22, hgt = 16;
@@ -194,10 +196,41 @@ export function installHelpers() {
     return { control, px, width: cols.size, height: rowsSet.size, meanDrop: px ? drop / px : 0 };
   };
 
+  /**
+   * The same probe for the library's smooth mode, which composes straight onto the screen canvas (there is no art sized
+   * `scene` any more): render with and without the person, compare the SCREEN pixels under the feet that the sprite itself
+   * does not cover. Widths and heights come back in art pixels (device pixels / k), so the numbers mean what they meant.
+   */
+  const shadowScreen = (p) => {
+    const h = H(), k = h.k, fw = p.fw || 16, img = p.sheet ?? h.a.people, sy0 = p.sheet ? 0 : p.look * 32;
+    const [sx, sy] = h.spriteAt(p), tick = Math.floor(h.t * h.L.fps), f = h.frame(p, tick);
+    const dev = (ax, ay) => [Math.round((ax - h.camX) * k) + h.offX, Math.round((ay - h.camY) * k) + h.offY];
+    const [x0, y0] = dev(sx - 8, sy + 22), [spx, spy] = dev(sx, sy), w = (fw + 16) * k, hgt = 16 * k;
+    const cx = h.canvas.getContext("2d", { willReadFrequently: true });
+    const grab = () => { h.draw(); return cx.getImageData(x0, y0, w, hgt).data; };
+    const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = hgt;
+    const tc = tmp.getContext("2d", { willReadFrequently: true });
+    tc.imageSmoothingEnabled = false;
+    tc.drawImage(img, f * fw, sy0, fw, 32, spx - x0, spy - y0, fw * k, 32 * k);
+    const m = tc.getImageData(0, 0, w, hgt).data;
+    const a1 = grab(); const old = p.alpha; p.alpha = 0; const a0 = grab(); p.alpha = old; h.draw();
+    const lum = (d, i) => 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+    let px = 0, drop = 0, control = 0; const cols = new Set(); const rowsSet = new Set();
+    for (let y = 0; y < hgt; y++) for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (m[i + 3] > 0) { if (Math.abs(lum(a0, i) - lum(a1, i)) > 8) control++; continue; }
+      const d = lum(a0, i) - lum(a1, i);
+      if (d > 8) { px++; drop += d; cols.add(x); rowsSet.add(y); }
+    }
+    return { control: control / (k * k), px: px / (k * k), width: cols.size / k, height: rowsSet.size / k, meanDrop: px ? drop / px : 0 };
+  };
+
   const facing = () => H().you.dir;
   const info = () => {
     const h = H();
     return { people: h.people.map((p, i) => ({ i, remote: !!p.remote, you: !!p.you, at: !!p.at, fw: p.fw || 16, x: p.x, y: p.y, hasSheet: !!p.sheet })) };
   };
-  window.__mv = { shadow, rec, key, click, frames, tele, run, view, camTarget, pathOk, findPath, findStart, art, facing, info, pick, DIRS };
+  /** The engine's frame governor reacts to how late REAL frames came while the page booted; pin it to 60 Hz so a run measures the engine, not the machine. */
+  const pinGovernor = () => { const h = H(); h.hz60 = true; h.govFalls = 0; h.govLate.fill(0); h.lateSum = 0; h.govN = 0; h.govFrom = Infinity; h.canvas.dataset.hz = "60"; };
+  window.__mv = { pinGovernor, shadow, rec, key, click, frames, tele, run, view, camTarget, pathOk, findPath, findStart, art, facing, info, pick, DIRS };
 }

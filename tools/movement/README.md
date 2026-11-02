@@ -37,6 +37,14 @@ a scored FAIL exits 1). The demo URL is `<base>/study/library/demo` (`?me=<anima
 * Computes the same numbers as `ref_analysis.py` did from the video and prints them with a PASS/FAIL table against
   `target.json` (`info` rows are shown, never fail).
 
+## What changed in the engine (and in this harness)
+
+The library now composes at device resolution at up to 60 Hz and places walkers at device pixels (`docs/study/library.md`, "Movement
+feel"). `spriteAt()` returns the drawn top left as a multiple of 1/k art px; `frame()` the pose from the walker's own clock; `camX/camY`
+the drawn camera. `inpage.mjs` `shadow()` reads the SCREEN canvas when `h.fine` (60 Hz mode) and the art sized `scene` otherwise, and
+`pinGovernor()` (called by `measure.mjs` once the virtual clock is frozen) pins the engine's frame governor to 60 Hz, because
+real boot frames on a slow machine can be late and the governor would then, correctly, measure 30 Hz.
+
 ## If you change how the engine draws
 
 The harness reads engine internals that exist at runtime in a dev build: `Cafe.spriteAt()`, `Cafe.frame()`,

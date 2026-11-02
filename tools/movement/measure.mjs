@@ -158,7 +158,7 @@ async function main() {
   await page.evaluate(`(${installHelpers.toString()})()`);
   // let the room settle for a moment of real time (bots arrive), then freeze the clock
   await page.waitForTimeout(1500);
-  await page.evaluate(() => { window.__vt.auto = false; });
+  await page.evaluate(() => { window.__vt.auto = false; window.__mv.pinGovernor(); });
   const ev = (fn, arg) => page.evaluate(fn, arg);
   const V = await ev(() => window.__mv.view());
   const art = await ev(() => window.__mv.art(window.__plumiLibrary.you));
