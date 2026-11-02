@@ -352,7 +352,6 @@ export function compileWorld(bp: Blueprint, cat: Catalog, urls: Urls, registry: 
   }
   // groves: picnic tables (the plaza set may already have them), a log, a bush
   // benches and lamps along the paths
-  const rb = rng(seed + 77);
   let benchN = 0, lampN = 0;
   for (const e of pl.edges) {
     if (e.kind === "spur") continue;

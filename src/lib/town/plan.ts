@@ -199,10 +199,10 @@ export class Planner {
       const o = A * Math.sin((2 * Math.PI * s[i]) / wl + ph) * taper * f;
       return [sp[i][0] - ty * o, sp[i][1] + tx * o];
     };
-    const need = (i: number) => h0 + 0.35;
+    const need = () => h0 + 0.35;
     for (let i = 0; i < sp.length; i++) {
       const [x, y] = disp(i, 1);
-      const free = (p: [number, number]) => this.clearance(p[0], p[1]) >= need(i) || this.net[Math.floor(p[1]) * this.cols + Math.floor(p[0])] === 1;
+      const free = (p: [number, number]) => this.clearance(p[0], p[1]) >= need() || this.net[Math.floor(p[1]) * this.cols + Math.floor(p[0])] === 1;
       if (!free([x, y])) scale[i] = 0;
     }
     // smooth the on/off switch so the line does not kink

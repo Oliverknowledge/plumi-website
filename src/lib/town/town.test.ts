@@ -18,7 +18,7 @@ import { Nav } from "./nav";
 import { allObjects } from "./objects";
 import { Planner, rle, unrle } from "./plan";
 import { SPOTS_PER_SCREEN, validateTown } from "./validate";
-import { TILE, type TownData } from "./types";
+import type { TownData } from "./types";
 import { World } from "./world";
 import { slotLengths } from "../studyapp/library/poseSim";
 
@@ -172,6 +172,12 @@ describe("the ground painter", () => {
     // the band's middle is solid path and well away from it is grass
     assert.equal(landAt(g, 800, 330), 1); assert.equal(landAt(g, 800, 100), 0);
     assert.equal(landAt(g, 960, 760 + 8), 2);                       // inside the plaza block
+  });
+  it("paints a chunk in 8 slabs of 64 rows exactly as in one go (so the engine can bake ahead a slab a frame)", () => {
+    const g = mk(), whole = new Uint8ClampedArray(512 * 512 * 4), parts = new Uint8ClampedArray(512 * 512 * 4);
+    paintChunk(g, atlas, 1, 0, whole);
+    for (let r = 0; r < 512; r += 64) paintChunk(g, atlas, 1, 0, parts, undefined, r, r + 64);
+    assert.equal(createHash("sha1").update(whole).digest("hex"), createHash("sha1").update(parts).digest("hex"));
   });
   it("paints a darker rim inside the edge and grass tufts outside it", () => {
     const g = mk(), out = new Uint8ClampedArray(512 * 512 * 4);

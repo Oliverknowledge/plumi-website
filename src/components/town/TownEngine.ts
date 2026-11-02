@@ -1,6 +1,9 @@
 import { MOVE, approach, idleFrame, walkFrame } from "@/lib/town/movement";
 import { ChunkCache } from "@/lib/town/chunks";
-import { CHUNK_TILES, TILE, type AtlasName, type SitSpot, type TownData, type TownObject } from "@/lib/town/types";
+import { allObjects } from "@/lib/town/objects";
+import { makeGroundCtx, paintChunk, type GroundAtlas, type GroundCtx } from "@/lib/town/ground";
+import { unrle } from "@/lib/town/plan";
+import { CHUNK_TILES, TILE, type AtlasName, type DoorKind, type SitSpot, type TownData, type TownObject } from "@/lib/town/types";
 import { World } from "@/lib/town/world";
 import { facing, type Face as WFace } from "@/lib/studyapp/library/walk";
 
@@ -24,11 +27,12 @@ const DIR_OF: Record<string, number> = { right: 0, back: 1, left: 2, front: 3 };
 const POSE = { idle: 0, walk: 24, sit: 48, phone: 60, read: 66, stool: 72 } as const;
 const NEAR_SPOT = 6 * TILE;          // rings show for seats within about 6 tiles
 const SIT_REACH = 30;                // E sits in a seat whose stand point or seat is this close
-const PATH_CAP = 96;                 // points in a walk (x, y pairs: 2 floats each)
+const PATH_CAP = 400;                // points in a walk (x, y pairs: 2 floats each): a walk across the whole map is a few dozen straight runs
 const RING_VIEW = 6 * TILE;
+const QUIET_MS = 3000;               // lateness and slow frames are not judged for this long after the page, a tab or the window changed
 
 export interface PlayerArt { img: CanvasImageSource; sy: number; fw: number }
-export interface TownEvent { kind: "enter" | "knock" | "sit" | "stand"; id: string }
+export interface TownEvent { kind: "enter" | "knock" | "sit" | "stand"; id: string; door?: DoorKind }
 export interface TownOptions {
   canvas: HTMLCanvasElement; overlay: HTMLCanvasElement;
   data: TownData; images: Record<AtlasName | "ground", CanvasImageSource>;
@@ -36,6 +40,10 @@ export interface TownOptions {
   premade: CanvasImageSource; premadeRows: number;
   bots: number; debug: boolean; placeholders: boolean; reduced: boolean;
   onEvent?: (e: TownEvent) => void;
+  /** Where you start (feet) and which way you face (0 right, 1 back, 2 left, 3 front); the spawn when absent. */
+  start?: { x: number; y: number; dir?: number };
+  /** `30`, `60` or `auto` (the page's `?hz=`; absent: the `plumi-hz` storage key, else auto). Read once. */
+  hz?: string;
   /** Reads the font family for labels (a CSS font stack). */
   font?: string;
 }
@@ -49,7 +57,7 @@ class Person {
   path = new Float64Array(PATH_CAP * 2); pathN = 0; pathI = 0;
   art: PlayerArt = { img: null as unknown as CanvasImageSource, sy: 0, fw: 16 };
   sitting = false; spot: SitSpot | null = null; pending: SitSpot | null = null;
-  bot = false; name = ""; wait = 0; node = 0; target = -1;
+  bot = false; name = ""; wait = 0; node = 0; target = -1; prev = -1;
   vx = 0; vy = 0; speed = 0; blockedFor = 0;
 }
 
@@ -76,7 +84,10 @@ export class TownEngine {
   private objects: TownObject[];
   private sprites: Record<string, TownData["sprites"][string]>;
   private doors: TownObject[] = [];
-  private doorNow = -1; private lastKnock = -99;
+  private maxW = 0; private maxH = 0;
+  private ground: GroundCtx; private atlasData: GroundAtlas; private chunkBuf: ImageData; private slabBuf: ImageData; private slab: { key: number; row: number } | null = null; slabs = 0; private scratch = new Uint8Array((CHUNK_TILES * TILE + 4) ** 2);
+  private pendingDoor: TownObject | null = null;
+  private doorNow = -1;
   keys = new Set<string>();
   private chunks: ChunkCache<HTMLCanvasElement>;
   private chunksX: number;
@@ -90,6 +101,7 @@ export class TownEngine {
   // loop
   private raf = 0; private last = 0; private acc = 0; private running = false; private dead = false;
   private targetFps: number = MOVE.fps;
+  private hzMode: "auto" | "30" | "60" = "auto"; private quietUntil = 0; private hzSaid = false;
   private ms = new Float32Array(240); private msN = 0; private msI = 0; private lastFpsT = 0; private fpsFrames = 0; fps = 0;
   private slowSince = 0; private fastSince = 0; private p50 = 0; private p95 = 0; frames = 0; firstFrameMs = 0;
   private cleanup: (() => void)[] = [];
@@ -106,18 +118,26 @@ export class TownEngine {
     this.world = new World(this.d);
     this.sprites = this.d.sprites;
     // objects sorted by depth once; the frame loop only culls them
-    this.objects = [...this.d.objects].sort((a, b) => a.sortY - b.sortY);
-    this.doors = this.d.objects.filter((o) => o.door);
+    this.objects = [...allObjects(this.d)].sort((a, b) => a.sortY - b.sortY);
+    for (const sp of Object.values(this.d.sprites)) { this.maxW = Math.max(this.maxW, sp.w); this.maxH = Math.max(this.maxH, sp.h); }
+    this.doors = this.objects.filter((o) => o.door);
     const byId = new Map(this.d.objects.map((o) => [o.id, o]));
     for (const s of this.d.spots) { const ob = byId.get(s.object); if (ob) this.spotObj.set(s.id, ob); }
     this.chunksX = Math.ceil(this.d.cols / CHUNK_TILES);
-    this.chunks = new ChunkCache<HTMLCanvasElement>(9, (key, recycled) => this.bake(key, recycled));
+    this.ground = makeGroundCtx(this.d, this.objects.filter((o) => o.kind === "tree").map((o) => ({ x: o.x, y: o.y })), unrle(this.d.mat.rle, this.d.mat.cols * this.d.mat.rows));
+    { const im = opts.images.ground as HTMLImageElement, cv = document.createElement("canvas"); cv.width = im.naturalWidth || im.width; cv.height = im.naturalHeight || im.height; const c = cv.getContext("2d")!; c.drawImage(im, 0, 0); const id = c.getImageData(0, 0, cv.width, cv.height); this.atlasData = { w: cv.width, h: cv.height, data: id.data }; }
+    this.chunkBuf = new ImageData(CHUNK_TILES * TILE, CHUNK_TILES * TILE); this.slabBuf = new ImageData(CHUNK_TILES * TILE, CHUNK_TILES * TILE);
+    this.chunks = new ChunkCache<HTMLCanvasElement>(12, (key, recycled) => this.bake(key, recycled));
     this.fontFamily = opts.font ?? "ui-monospace, monospace";
+    { let v = opts.hz ?? null; if (v === null) { try { v = localStorage.getItem("plumi-hz"); } catch { v = null; } } this.hzMode = v === "30" || v === "60" ? v : "auto"; }
+    if (this.hzMode === "30") this.targetFps = MOVE.fallbackFps;
+    opts.canvas.dataset.hz = String(this.targetFps); opts.canvas.dataset.hzWhy = this.hzMode === "auto" ? "auto" : `forced ${this.hzMode}`;
+    this.quietUntil = performance.now() + QUIET_MS;
     this.shadowImg = this.makeShadow();
     this.ringImg = [this.makeRing(false), this.makeRing(true)];
     // you
     const y = this.you;
-    y.x = this.d.spawn.x; y.y = this.d.spawn.y; y.dir = 3;
+    y.x = opts.start?.x ?? this.d.spawn.x; y.y = opts.start?.y ?? this.d.spawn.y; y.dir = opts.start?.dir ?? 3;
     y.art = { img: opts.premade, sy: 0, fw: 16 };
     this.people.push(y);
     this.resize();
@@ -133,10 +153,15 @@ export class TownEngine {
   dispose() { this.stop(); this.dead = true; for (const c of this.cleanup) c(); this.cleanup.length = 0; }
   /** Draws one frame now (also what the loop calls). Exposed for tests and the reduced-motion path. */
   renderNow() { this.frame(0); }
+  /** Where the bots are (feet), for the minimap. */
+  botPositions(): { x: number; y: number }[] { const out: { x: number; y: number }[] = []; for (let i = 1; i < this.people.length; i++) out.push({ x: this.people[i].x, y: this.people[i].y }); return out; }
+  /** The world rectangle on screen, art px. */
+  viewRect() { return { x: this.camX, y: this.camY, w: this.viewW, h: this.viewH }; }
+  get data() { return this.d; }
   youPos() { return { x: this.you.x, y: this.you.y, sitting: this.you.sitting, walking: this.you.walking, dir: DIRS[this.you.dir] }; }
   /** For the browser checks: teleport (feet) and walk to a point. */
   teleport(x: number, y: number) { const p = this.you; p.x = x; p.y = y; p.pathN = 0; p.walking = false; this.camX = this.targetX(); this.camY = this.targetY(); this.clampCam(); }
-  walkTo(x: number, y: number) { this.planFor(this.you, x, y, null); }
+  walkTo(x: number, y: number): boolean { this.pendingDoor = null; return this.planFor(this.you, x, y, null); }
   press(code: string, down: boolean) { if (down) this.keys.add(code); else this.keys.delete(code); }
   sitAt(spotId: number) { const s = this.d.spots.find((q) => q.id === spotId); if (s) this.goSit(s); }
   stats(): TownStats {
@@ -148,6 +173,29 @@ export class TownEngine {
   }
   /** The raw draw-ms ring buffer (most recent `n`), for the performance checks. */
   drawTimes(): number[] { const n = Math.min(this.msN, this.ms.length), out: number[] = []; for (let i = 0; i < n; i++) out.push(this.ms[i]); return out; }
+
+  /** The whole map in one canvas at `scale` (ground chunks, then every object in depth order; no people, no labels): for the overview and the minimap. */
+  overview(scale: number, withObjects = true, treeline = true): HTMLCanvasElement {
+    const S = CHUNK_TILES * TILE, w = this.d.cols * TILE, h = this.d.rows * TILE;
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(w * scale); cv.height = Math.round(h * scale);
+    const c = cv.getContext("2d")!;
+    c.imageSmoothingEnabled = false;
+    c.fillStyle = "#6d8f3c"; c.fillRect(0, 0, cv.width, cv.height);
+    const cy = Math.ceil(this.d.rows / CHUNK_TILES);
+    for (let j = 0; j < cy; j++) for (let i = 0; i < this.chunksX; i++) {
+      const tmp = document.createElement("canvas"); tmp.width = S; tmp.height = S;
+      paintChunk(this.ground, this.atlasData, i, j, this.chunkBuf.data, this.scratch);
+      tmp.getContext("2d")!.putImageData(this.chunkBuf, 0, 0);
+      c.drawImage(tmp, 0, 0, S, S, Math.round(i * S * scale), Math.round(j * S * scale), Math.ceil(S * scale), Math.ceil(S * scale));
+    }
+    if (withObjects) for (const o of this.objects) {
+      if (!o.sprite || (!treeline && o.zone === "treeline")) continue;
+      const sp = this.sprites[o.sprite];
+      c.drawImage(this.o.images[sp.atlas], sp.x, sp.y, sp.w, sp.h, Math.round(o.sx * scale), Math.round(o.sy * scale), Math.max(1, Math.round(sp.w * scale)), Math.max(1, Math.round(sp.h * scale)));
+    }
+    return cv;
+  }
 
   /* ---------- zoom: the library's rule (cafeScene.ts resize), integer scale only ---------- */
   resize() {
@@ -177,26 +225,41 @@ export class TownEngine {
     const S = CHUNK_TILES * TILE;
     const cv = recycled ?? document.createElement("canvas");
     if (cv.width !== S) { cv.width = S; cv.height = S; }
-    const c = cv.getContext("2d")!;
-    c.imageSmoothingEnabled = false;
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.clearRect(0, 0, S, S);
-    const cx = key % this.chunksX, cy = Math.floor(key / this.chunksX), d = this.d, atlas = this.o.images.ground;
-    for (let j = 0; j < CHUNK_TILES; j++) for (let i = 0; i < CHUNK_TILES; i++) {
-      const tx = cx * CHUNK_TILES + i, ty = cy * CHUNK_TILES + j;
-      if (tx >= d.cols || ty >= d.rows) continue;
-      const v = d.ground[ty * d.cols + tx], idx = v & 127, sx = (idx % d.groundCols) * TILE, sy = Math.floor(idx / d.groundCols) * TILE;
-      if (v & 896) {
-        // flipped / transposed grass: a transform about the tile's centre
-        c.save();
-        c.translate(i * TILE + TILE / 2, j * TILE + TILE / 2);
-        if (v & 512) c.transform(0, 1, 1, 0, 0, 0);
-        c.scale(v & 128 ? -1 : 1, v & 256 ? -1 : 1);
-        c.drawImage(atlas, sx, sy, TILE, TILE, -TILE / 2, -TILE / 2, TILE, TILE);
-        c.restore();
-      } else c.drawImage(atlas, sx, sy, TILE, TILE, i * TILE, j * TILE, TILE, TILE);
-    }
+    paintChunk(this.ground, this.atlasData, key % this.chunksX, Math.floor(key / this.chunksX), this.chunkBuf.data, this.scratch);
+    cv.getContext("2d")!.putImageData(this.chunkBuf, 0, 0);
     return cv;
+  }
+
+  /**
+   * Ground that the camera is about to need is painted ahead, one slab of 64 rows a frame (about 3 ms; a whole chunk is 25 to 40 ms and would be a visible
+   * hitch at the edge of a chunk). Chunks within 192 art px of the view, nearest first; the view's own chunks are painted at once by `get` when missing
+   * (after a teleport, behind the fade).
+   */
+  private prebake() {
+    const S = CHUNK_TILES * TILE, M = 192, cy1 = Math.ceil(this.d.rows / CHUNK_TILES) - 1;
+    if (!this.slab) {
+      const x0 = Math.max(0, Math.floor((this.camX - M) / S)), x1 = Math.min(this.chunksX - 1, Math.floor((this.camX + this.viewW + M) / S));
+      const y0 = Math.max(0, Math.floor((this.camY - M) / S)), y1 = Math.min(cy1, Math.floor((this.camY + this.viewH + M) / S));
+      let best = -1, bd = Infinity;
+      for (let j = y0; j <= y1; j++) for (let i = x0; i <= x1; i++) {
+        const k = j * this.chunksX + i;
+        if (this.chunks.has(k)) continue;
+        const dd = Math.hypot((i + 0.5) * S - (this.camX + this.viewW / 2), (j + 0.5) * S - (this.camY + this.viewH / 2));
+        if (dd < bd) { bd = dd; best = k; }
+      }
+      if (best < 0) return;
+      this.slab = { key: best, row: 0 };
+    }
+    const s = this.slab, rows = 64;
+    paintChunk(this.ground, this.atlasData, s.key % this.chunksX, Math.floor(s.key / this.chunksX), this.slabBuf.data, this.scratch, s.row, s.row + rows);
+    s.row += rows; this.slabs++;
+    if (s.row >= CHUNK_TILES * TILE) {
+      const cv = this.chunks.recycle() ?? document.createElement("canvas");
+      if (cv.width !== s.row) { cv.width = s.row; cv.height = s.row; }
+      cv.getContext("2d")!.putImageData(this.slabBuf, 0, 0);
+      this.chunks.insert(s.key, cv);
+      this.slab = null;
+    }
   }
 
   private makeShadow(): HTMLCanvasElement {
@@ -238,6 +301,7 @@ export class TownEngine {
     this.t += dt;
     this.step(dt);
     this.draw();
+    this.prebake();
     this.afterDraw(t0);
   }
 
@@ -249,10 +313,17 @@ export class TownEngine {
     if (now - this.lastFpsT >= 1000) { this.fps = (this.fpsFrames * 1000) / (now - this.lastFpsT); this.fpsFrames = 0; this.lastFpsT = now; }
     if ((this.frames & 31) === 0) {
       this.percentiles();
-      if (this.frames < 240) return;      // the first seconds (compiling, baking the first chunks) say nothing about the device
-      // adaptive: 60 Hz unless the p95 draw time says the device cannot keep it
-      if (this.targetFps === MOVE.fps && this.p95 > MOVE.fallbackMs) { this.slowSince += 1; if (this.slowSince >= 2) { this.targetFps = MOVE.fallbackFps; this.slowSince = 0; } } else this.slowSince = 0;
-      if (this.targetFps === MOVE.fallbackFps && this.p95 < MOVE.recoverMs) { this.fastSince += 1; if (this.fastSince >= 8) { this.targetFps = MOVE.fps; this.fastSince = 0; } } else this.fastSince = 0;
+      if (this.frames < 240 || now < this.quietUntil || this.hzMode !== "auto") return;      // the first seconds (compiling, baking the first chunks) say nothing about the device; a pinned rate is only watched
+      // adaptive: 60 Hz unless the p95 draw time says the device cannot keep it. The town places every sprite the same way at both rates, so a switch cannot pop.
+      const cv = this.o.canvas;
+      if (this.targetFps === MOVE.fps && this.p95 > MOVE.fallbackMs) {
+        this.slowSince += 1;
+        if (this.slowSince >= 2) {
+          this.targetFps = MOVE.fallbackFps; this.slowSince = 0; cv.dataset.hz = "30"; cv.dataset.hzWhy = `fell: draw p95 ${this.p95.toFixed(1)} ms over ${MOVE.fallbackMs}`;
+          if (!this.hzSaid) { this.hzSaid = true; console.info(`[town] 60 Hz fell back to 30: ${cv.dataset.hzWhy}. Pin it with ?hz=60 or localStorage plumi-hz.`); }
+        }
+      } else this.slowSince = 0;
+      if (this.targetFps === MOVE.fallbackFps && this.p95 < MOVE.recoverMs) { this.fastSince += 1; if (this.fastSince >= 8) { this.targetFps = MOVE.fps; this.fastSince = 0; cv.dataset.hz = "60"; cv.dataset.hzWhy = "back to 60: draw time is low again"; } } else this.fastSince = 0;
     }
   }
 
@@ -298,7 +369,7 @@ export class TownEngine {
     const any = kx !== 0 || ky !== 0;
     let moved = false;
     if (any) {
-      p.pathN = 0; p.pending = null;
+      p.pathN = 0; p.pending = null; this.pendingDoor = null;
       const hl = MOVE.normaliseDiagonal ? Math.sqrt(kx * kx + ky * ky) : 1, hx = kx / hl, hy = ky / hl;
       const want = approach(p.speed, MOVE.walkSpeed, dt);
       p.speed = want;
@@ -343,6 +414,7 @@ export class TownEngine {
     }
     if (p.pathI >= p.pathN && p.pathN > 0) {
       p.pathN = 0;
+      if (p === this.you && this.pendingDoor) { const o = this.pendingDoor; this.pendingDoor = null; if (this.doorNow >= 0 && this.doors[this.doorNow] === o) this.openDoor(o); }
       if (p.pending && !p.bot) this.sitDown(p.pending);
     }
     return moved;
@@ -393,12 +465,15 @@ export class TownEngine {
   interact() {
     const p = this.you;
     if (p.sitting) { this.standUp(); return; }
-    if (this.doorNow >= 0) { const o = this.doors[this.doorNow]; this.o.onEvent?.({ kind: o.door!.kind === "cafe" ? "enter" : "knock", id: o.id }); return; }
+    if (this.doorNow >= 0) { this.openDoor(this.doors[this.doorNow]); return; }
     const s = this.nearestSpot();
     if (s) this.sitDown(s);
   }
 
   /* ---------- doors ---------- */
+  private openDoor(o: TownObject) { this.o.onEvent?.({ kind: o.door!.kind === "cottage" ? "knock" : "enter", id: o.id, door: o.door!.kind }); }
+  /** Where the town puts you when you come out of a door: its entry point. */
+  doorEntry(id: string): { x: number; y: number } | null { const o = this.doors.find((q) => q.id === id); return o ? { x: o.door!.entry.x, y: o.door!.entry.y + 10 } : null; }
   private doorCheck() {
     const p = this.you;
     let now = -1;
@@ -408,25 +483,14 @@ export class TownEngine {
     }
     if (now !== this.doorNow) {
       this.doorNow = now;
-      if (now >= 0 && this.doors[now].door!.kind === "cottage" && this.t - this.lastKnock > 3) { this.lastKnock = this.t; this.o.onEvent?.({ kind: "knock", id: this.doors[now].id }); }
     }
   }
 
   /* ---------- bots ---------- */
   private makeBots(n: number) {
-    const ring = this.d.ring, plaza = this.d.plaza;
-    this.nodes = [...ring, ...plaza];
-    const R = ring.length;
-    this.links = this.nodes.map(() => []);
-    for (let i = 0; i < R; i++) { this.links[i].push((i + 1) % R, (i + R - 1) % R); }
-    for (let j = 0; j < plaza.length; j++) {
-      const id = R + j;
-      let best = 0, bd = Infinity;
-      for (let i = 0; i < R; i++) { const dd = Math.hypot(ring[i].x - plaza[j].x, ring[i].y - plaza[j].y); if (dd < bd) { bd = dd; best = i; } }
-      this.links[id].push(best, R + ((j + 1) % plaza.length));
-      this.links[best].push(id);
-      this.links[R + ((j + 1) % plaza.length)].push(id);
-    }
+    this.nodes = this.d.botNodes; this.links = this.d.botLinks;
+    const R = this.nodes.length;
+    if (!R) return;
     const names = ["Maya", "Leo", "Priya", "Sam", "Zara", "Noah", "Ines", "Kofi"];
     for (let b = 0; b < n; b++) {
       const p = new Person();
@@ -437,20 +501,20 @@ export class TownEngine {
       p.wait = 0.5 + b * 0.7;
       this.people.push(p);
     }
-    // the legs between linked nodes, planned once (after the first frame: it is a few milliseconds)
-    setTimeout(() => {
-      if (this.dead) return;
-      for (let a = 0; a < this.nodes.length; a++) for (const b of this.links[a]) {
-        const key = a * 64 + b;
-        if (this.legs.has(key)) continue;
-        const pts = this.world.nav.plan([this.nodes[a].x, this.nodes[a].y], [this.nodes[b].x, this.nodes[b].y]);
-        if (!pts) continue;
-        const f = new Float64Array(Math.min(PATH_CAP, pts.length) * 2);
-        for (let i = 0; i < f.length / 2; i++) { f[i * 2] = pts[i][0]; f[i * 2 + 1] = pts[i][1]; }
-        this.legs.set(key, f);
-      }
-      this.legsReady = true;
-    }, 0);
+    this.legsReady = true;
+  }
+
+  /** The leg between two linked bot nodes, planned the first time a bot needs it and kept. */
+  private legOf(a: number, b: number): Float64Array | null {
+    const key = a * 4096 + b;
+    const hit = this.legs.get(key);
+    if (hit) return hit;
+    const pts = this.world.nav.plan([this.nodes[a].x, this.nodes[a].y], [this.nodes[b].x, this.nodes[b].y]);
+    if (!pts) return null;
+    const f = new Float64Array(Math.min(PATH_CAP, pts.length) * 2);
+    for (let i = 0; i < f.length / 2; i++) { f[i * 2] = pts[i][0]; f[i * 2 + 1] = pts[i][1]; }
+    this.legs.set(key, f);
+    return f;
   }
 
   private stepBot(p: Person, dt: number) {
@@ -460,16 +524,17 @@ export class TownEngine {
       this.setWalking(p, false, dt);
       if (p.wait > 0) return;
       const ls = this.links[p.node];
-      // keep going round the ring most of the time; now and then turn aside to the plaza
-      const next = ls[Math.random() < 0.7 ? 0 : Math.floor(Math.random() * ls.length)];
-      const leg = this.legs.get(p.node * 64 + next);
+      if (!ls.length) { p.wait = 2; return; }
+      // keep going the way it was going most of the time (the first link is the next along its own path), now and then turn aside
+      const fwd = ls.filter((q) => q !== p.prev), pool = fwd.length ? fwd : ls, next = pool[Math.floor(Math.random() * pool.length)];
+      const leg = this.legOf(p.node, next);
       if (!leg) { p.wait = 1; return; }
       p.path.set(leg); p.pathN = leg.length / 2; p.pathI = 0; p.target = next;
       return;
     }
     const moved = this.followPath(p, dt);
     this.setWalking(p, moved, dt);
-    if (p.pathN === 0) { p.node = p.target; p.wait = 0.4 + Math.random() * 3; }
+    if (p.pathN === 0) { p.prev = p.node; p.node = p.target; p.wait = 0.4 + Math.random() * 3; }
   }
 
   /* ---------- input ---------- */
@@ -490,13 +555,13 @@ export class TownEngine {
       const wx = ((e.clientX - r.left) * this.dpr + this.camPxX) / this.k, wy = ((e.clientY - r.top) * this.dpr + this.camPxY) / this.k;
       this.tap(wx, wy);
     });
-    const ro = new ResizeObserver(() => { this.resize(); });
+    const ro = new ResizeObserver(() => { this.quietUntil = performance.now() + QUIET_MS; this.resize(); });
     ro.observe(cv);
     this.cleanup.push(() => ro.disconnect());
     const io = new IntersectionObserver(([en]) => { this.visible = en.isIntersecting; if (this.visible) this.start(); else this.stop(); });
     io.observe(cv);
     this.cleanup.push(() => io.disconnect());
-    on(document, "visibilitychange", () => { if (document.hidden) this.stop(); else if (this.visible) this.start(); });
+    on(document, "visibilitychange", () => { if (document.hidden) this.stop(); else { this.quietUntil = performance.now() + QUIET_MS; if (this.visible) this.start(); } });
   }
 
   private tap(wx: number, wy: number) {
@@ -507,7 +572,11 @@ export class TownEngine {
     // a door: walk to where it is reached from
     for (const o of this.doors) {
       const d = o.door!;
-      if (wx >= d.rect.x - 4 && wx < d.rect.x + d.rect.w + 4 && wy >= d.rect.y && wy < d.rect.y + d.rect.h + 6) { this.planFor(this.you, d.entry.x, d.entry.y + 8, null); return; }
+      if (wx >= d.rect.x - 4 && wx < d.rect.x + d.rect.w + 4 && wy >= d.rect.y && wy < d.rect.y + d.rect.h + 6) {
+        if (this.doorNow >= 0 && this.doors[this.doorNow] === o) { this.openDoor(o); return; }
+        if (this.planFor(this.you, d.entry.x, d.entry.y + 8, null)) this.pendingDoor = o;
+        return;
+      }
     }
     this.planFor(this.you, wx, wy, null);
   }
@@ -550,15 +619,19 @@ export class TownEngine {
     const items = this.items;
     items.length = 0;
     const vx0 = x0 - 64, vy0 = y0 - 64, vx1 = x0 + this.viewW + 64, vy1 = y0 + this.viewH + 64;
-    const objs = this.objects, placeholders = this.o.placeholders || this.o.debug;
-    for (let i = 0; i < objs.length; i++) {
+    const objs = this.objects, placeholders = this.o.placeholders || this.o.debug, mw = this.maxW / 2 + 8, mh = this.maxH + 8;
+    // objects are sorted by sortY: binary search the first one whose base is not above the view, stop when sprites could no longer reach down into it
+    let lo = 0, hi = objs.length;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (objs[mid].sortY < vy0) lo = mid + 1; else hi = mid; }
+    for (let i = lo; i < objs.length; i++) {
       const o = objs[i];
-      if (o.sortY < vy0 || o.sortY - 160 > vy1 || o.x < vx0 - 80 || o.x > vx1 + 80) continue;
+      if (o.sortY - mh > vy1) break;
+      if (o.x < vx0 - mw || o.x > vx1 + mw) continue;
       if (o.sprite) {
         const s = this.sprites[o.sprite], it = this.item(o.sortY, 1);
         it.img = this.o.images[s.atlas]; it.sx = s.x; it.sy = s.y; it.sw = s.w; it.sh = s.h; it.dx = o.sx; it.dy = o.sy; it.o = o;
         // a tree or a roof that covers someone BEHIND it: nothing to do, the sort does it
-      } else if (o.ph && placeholders) {
+      } else if (o.ph && placeholders && (!o.ph.building || this.o.debug)) {
         const a = this.item(o.sortY - 0.02, 4); a.o = o; a.half = 0;
         const b = this.item(o.sortY + 0.02, 4); b.o = o; b.half = 1;
       }
@@ -586,6 +659,7 @@ export class TownEngine {
       const it = this.item(z + depthOff, 2);
       it.p = p; it.f = this.frameOf(p);
       it.dx = p.x - p.art.fw / 2; it.dy = p.y - 32;
+      if (p === this.you) this.youItem = it;
     }
     // collect into `items` in the order made, then insertion sort (nearly sorted: objects are already in depth order)
     for (let i = 0; i < this.itemN; i++) items.push(this.pool[i]);
@@ -597,8 +671,27 @@ export class TownEngine {
     }
     for (let i = 0; i < items.length; i++) this.drawItem(items[i], cx, cy);
     ctx.globalAlpha = 1;
+    this.drawGhost(items, cx, cy);
     if (this.o.debug) this.drawDebug(cx, cy);
     this.drawLabels(cx, cy);
+  }
+
+  /** Behind a roof, a wall or a canopy you would vanish: a see-through copy of you is drawn on top of whatever covers you (nothing changes where you are not covered). */
+  private youItem: Item | null = null;
+  private drawGhost(items: Item[], cx: number, cy: number) {
+    const y = this.youItem;
+    if (!y || y.p !== this.you || this.you.sitting) return;
+    const x0 = y.dx, y0 = y.dy, x1 = x0 + 16, y1 = y0 + 32;
+    let covered = false;
+    for (let i = items.length - 1; i >= 0 && !covered; i--) {
+      const it = items[i];
+      if (it === y) break;
+      if (it.kind === 1 && it.dx < x1 && it.dx + it.sw > x0 && it.dy < y1 && it.dy + it.sh > y0) covered = true;
+    }
+    if (!covered) return;
+    this.ctx.globalAlpha = 0.42;
+    this.drawItem(y, cx, cy);
+    this.ctx.globalAlpha = 1;
   }
 
   private drawItem(it: Item, cx: number, cy: number) {
@@ -673,7 +766,7 @@ export class TownEngine {
     const you = this.you;
     if (this.doorNow >= 0 && !you.sitting) {
       const o = this.doors[this.doorNow], d = o.door!;
-      pill(d.kind === "cafe" ? "E  Enter" : "E  Knock", (d.rect.x + d.rect.w / 2) * k - cx, (d.rect.y - 4) * k - cy, "rgba(40,30,25,0.82)", "#fff6dc");
+      pill("E  Enter", (d.rect.x + d.rect.w / 2) * k - cx, (d.rect.y - 4) * k - cy, "rgba(40,30,25,0.82)", "#fff6dc");
     }
     const near = you.sitting ? null : this.nearestSpot();
     if (near) pill("E  Sit", near.at.x * k - cx, (near.at.y - 40) * k - cy, "rgba(40,30,25,0.82)", "#fff6dc");

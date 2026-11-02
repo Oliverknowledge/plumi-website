@@ -1,0 +1,31 @@
+/* The town dev page's map and hubs. Reuses the library HUD's look (.btn, .lb-hbtn, ink outlines, gold) from library.css; everything is scoped under .pa .tw-. */
+.pa .tw-map { position: fixed; z-index: 45; top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(10px + env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; }
+.pa .tw-map > * { pointer-events: auto; }
+.pa .tw-panel { width: 296px; padding: 8px; background: rgba(255, 253, 246, .97); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink), 0 12px 28px rgba(20, 29, 51, .22); display: flex; flex-direction: column; gap: 8px; }
+.pa .tw-mapwrap { position: relative; border: 2px solid var(--ink); border-radius: 8px; overflow: hidden; background: #b9d17a; line-height: 0; touch-action: none; }
+.pa .tw-mapwrap canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; cursor: crosshair; }
+.pa .tw-mapwrap canvas.tw-dyn { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; image-rendering: auto; }
+.pa .tw-tip { position: absolute; z-index: 2; pointer-events: none; transform: translate(-50%, -140%); padding: 3px 8px; border-radius: 8px; background: var(--ink); color: #fff8e4; font: 800 12px var(--f-body); white-space: nowrap; line-height: 1.3; }
+.pa .tw-hubs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.pa .tw-hub { display: flex; gap: 4px; align-items: stretch; }
+.pa .tw-hub .btn { min-height: 44px; padding: 0 10px; font-size: 14px; box-shadow: 0 2px 0 var(--ink); }
+.pa .tw-hub .tw-walk { flex: 1; min-width: 0; padding: 0 8px; justify-content: center; gap: 4px; }
+.pa .tw-hub .tw-jump { width: 44px; padding: 0; flex: none; }
+.pa .tw-hub .tw-jump:disabled { opacity: .45; }
+.pa .tw-ico { width: 18px; height: 18px; flex: none; }
+.pa .tw-cd { font: 800 12px var(--f-body); font-variant-numeric: tabular-nums; }
+.pa .tw-fab { min-height: 44px; min-width: 44px; padding: 0 12px; }
+.pa .tw-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 800 12px var(--f-body); letter-spacing: .07em; text-transform: uppercase; color: var(--soft); }
+.pa .tw-head .btn { min-height: 44px; min-width: 44px; padding: 0; box-shadow: 0 2px 0 var(--ink); }
+.pa .tw-veil { position: fixed; inset: 0; z-index: 60; background: #1c1a16; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+.pa .tw-veil.is-on { opacity: 1; pointer-events: auto; }
+.pa .tw-veil.is-quick { transition-duration: .18s; }
+.pa .tw-exit { position: fixed; z-index: 70; left: calc(10px + env(safe-area-inset-left, 0px)); top: calc(66px + env(safe-area-inset-top, 0px)); }
+.pa .tw-exit .btn { min-height: 44px; }
+@media (max-width: 560px) {
+  .pa .tw-map { top: calc(8px + env(safe-area-inset-top, 0px)); right: calc(8px + env(safe-area-inset-right, 0px)); }
+  /* the phone's map is a sheet: the button opens it, it covers the lower part of the screen */
+  .pa .tw-sheet { position: fixed; z-index: 46; left: 8px; right: 8px; bottom: calc(78px + env(safe-area-inset-bottom, 0px)); width: auto; max-height: calc(100dvh - 140px); overflow: auto; }
+  .pa .tw-hubs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .pa .tw-veil { transition-duration: 0s; } }
