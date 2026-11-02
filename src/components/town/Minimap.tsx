@@ -63,9 +63,14 @@ export function Minimap({ engine, hubs, cooldown, onWalkHub, onTeleportHub, phon
   useEffect(() => {
     const cv = base.current;
     if (!cv || !open) return;
-    baked.current = baked.current ?? bakeMinimap(d);
-    cv.width = baked.current.width; cv.height = baked.current.height;
-    cv.getContext("2d")!.drawImage(baked.current, 0, 0);
+    // baked when the browser is idle, not in the way of the first walkable frame
+    const ric = (window as unknown as { requestIdleCallback?: (g: () => void, o: { timeout: number }) => number }).requestIdleCallback;
+    const idle = (f: () => void) => { if (ric) ric(f, { timeout: 1200 }); else setTimeout(f, 300); };
+    idle(() => {
+      baked.current = baked.current ?? bakeMinimap(d);
+      cv.width = baked.current.width; cv.height = baked.current.height;
+      cv.getContext("2d")!.drawImage(baked.current, 0, 0);
+    });
     names.current = d.objects.filter((o) => o.door && o.door.kind !== "cottage").map((o) => { const sp = d.sprites[o.sprite as string]; return { x: (o.x - sp.anchorX) / 8, y: (o.y - sp.anchorY) / 8, w: sp.w / 8, h: sp.h / 8, label: o.door!.label }; })
       .concat(d.plazas.filter((p) => /grove|meadow|park|clearing/.test(p.id)).map((p) => ({ x: p.rect.x / 8, y: p.rect.y / 8, w: p.rect.w / 8, h: p.rect.h / 8, label: p.id.replace(/-clearing$/, "").replace(/-/g, " ").replace(/^./, (s) => s.toUpperCase()) })));
   }, [d, open]);

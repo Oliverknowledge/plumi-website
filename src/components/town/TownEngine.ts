@@ -6,6 +6,8 @@ import { unrle } from "@/lib/town/plan";
 import { CHUNK_TILES, TILE, type AtlasName, type DoorKind, type SitSpot, type TownData, type TownObject } from "@/lib/town/types";
 import { World } from "@/lib/town/world";
 import { facing, type Face as WFace } from "@/lib/studyapp/library/walk";
+import type { TimeOfDay } from "@/lib/studyapp/library/entry";
+import { Ambient } from "./ambient";
 
 /**
  * The town engine (docs/study/town.md). A NEW engine, not cafeScene.ts: it draws straight to the screen canvas at an INTEGER scale `k`
@@ -46,6 +48,10 @@ export interface TownOptions {
   hz?: string;
   /** Reads the font family for labels (a CSS font stack). */
   font?: string;
+  /** The backing scale to start at (the page's `?backing=0.5..1`; the governor lowers it by itself when the screen cannot be filled fast enough). */
+  backing?: number;
+  /** Pins the hour's tint (the page's `?tod=dawn|day|evening|night`); absent: the student's own clock. */
+  tod?: TimeOfDay;
 }
 export interface TownStats {
   fps: number; targetFps: number; p50: number; p95: number; frames: number; chunks: number; evictions: number; bakes: number;
@@ -70,12 +76,14 @@ interface Item {
 
 export class TownEngine {
   private ctx: CanvasRenderingContext2D;
+  /** Labels draw on the one canvas (a second full size layer was a compositor cost for a few pills). */
   private lab: CanvasRenderingContext2D;
+  private amb: Ambient;
   readonly world: World;
   private d: TownData;
   private o: TownOptions;
   // view
-  k = 3; private dpr = 1; private W = 0; private H = 0; viewW = 0; viewH = 0;
+  k = 3; private dpr = 1; backing = 1; private rasterSlow = 0; private W = 0; private H = 0; viewW = 0; viewH = 0;
   private camX = 0; private camY = 0; private camPxX = 0; private camPxY = 0;
   // state
   private t = 0;
@@ -113,14 +121,17 @@ export class TownEngine {
 
   constructor(opts: TownOptions) {
     this.o = opts; this.d = opts.data;
+    if (opts.backing && opts.backing >= 0.4 && opts.backing <= 1) this.backing = opts.backing;
     this.ctx = opts.canvas.getContext("2d", { alpha: false })!;
-    this.lab = opts.overlay.getContext("2d")!;
+    this.lab = this.ctx;
     this.world = new World(this.d);
     this.sprites = this.d.sprites;
     // objects sorted by depth once; the frame loop only culls them
     this.objects = [...allObjects(this.d)].sort((a, b) => a.sortY - b.sortY);
     for (const sp of Object.values(this.d.sprites)) { this.maxW = Math.max(this.maxW, sp.w); this.maxH = Math.max(this.maxH, sp.h); }
     this.doors = this.objects.filter((o) => o.door);
+    this.amb = new Ambient(this.objects, this.sprites, opts.reduced, opts.tod);
+    if (opts.tod) this.amb.fixedTod = true;
     const byId = new Map(this.d.objects.map((o) => [o.id, o]));
     for (const s of this.d.spots) { const ob = byId.get(s.object); if (ob) this.spotObj.set(s.id, ob); }
     this.chunksX = Math.ceil(this.d.cols / CHUNK_TILES);
@@ -201,7 +212,7 @@ export class TownEngine {
   resize() {
     const box = this.o.canvas.getBoundingClientRect();
     if (!box.width || !box.height) return;
-    let dpr = Math.min(3, window.devicePixelRatio || 1);
+    let dpr = Math.min(3, window.devicePixelRatio || 1) * this.backing;
     let W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
     // the library's window onto the room: 400 art px across (240 on a phone), so a person is the size he is in the library at that viewport
     const want = box.width < 560 ? 240 : 400;
@@ -214,7 +225,8 @@ export class TownEngine {
     }
     this.dpr = dpr; this.k = k;
     const cv = this.o.canvas, ov = this.o.overlay;
-    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; ov.width = W; ov.height = H; }
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    if (ov.width !== 1) { ov.width = 1; ov.height = 1; }          // the overlay canvas is no longer drawn on
     this.W = W; this.H = H; this.viewW = W / k; this.viewH = H / k;
     this.ctx.imageSmoothingEnabled = false;
     this.camX = this.targetX(); this.camY = this.targetY(); this.clampCam();
@@ -310,7 +322,20 @@ export class TownEngine {
     this.ms[this.msI] = ms; this.msI = (this.msI + 1) % this.ms.length; this.msN++;
     this.frames++; this.fpsFrames++;
     if (this.frames === 1) this.firstFrameMs = now;
-    if (now - this.lastFpsT >= 1000) { this.fps = (this.fpsFrames * 1000) / (now - this.lastFpsT); this.fpsFrames = 0; this.lastFpsT = now; }
+    if (now - this.lastFpsT >= 1000) {
+      this.fps = (this.fpsFrames * 1000) / (now - this.lastFpsT); this.fpsFrames = 0; this.lastFpsT = now;
+      // raster bound: the frames arrive well under the rate we ask for while our own draw time is small (the cost is the browser filling the pixels). Then fewer device pixels
+      // go to each art pixel (k drops, the canvas is stretched, `pixelated`): 0.75 a step, down to half. Judged only after the quiet period and never when the rate is pinned.
+      if (this.frames > 240 && now > this.quietUntil && this.hzMode === "auto" && this.backing > 0.5) {
+        if (this.fps > 0 && this.fps < this.targetFps * 0.62 && this.p95 < MOVE.fallbackMs) {
+          if (++this.rasterSlow >= 3) {
+            this.rasterSlow = 0; this.backing = Math.max(0.5, this.backing * 0.75); this.quietUntil = now + QUIET_MS; this.resize();
+            this.o.canvas.dataset.backing = this.backing.toFixed(2);
+            console.info(`[town] raster bound (${this.fps.toFixed(0)} fps, draw p95 ${this.p95.toFixed(1)} ms): backing scale ${this.backing.toFixed(2)}, k ${this.k}`);
+          }
+        } else this.rasterSlow = 0;
+      }
+    }
     if ((this.frames & 31) === 0) {
       this.percentiles();
       if (this.frames < 240 || now < this.quietUntil || this.hzMode !== "auto") return;      // the first seconds (compiling, baking the first chunks) say nothing about the device; a pinned rate is only watched
@@ -356,6 +381,7 @@ export class TownEngine {
     else { const s = 1 - Math.exp(-dt / MOVE.cameraTau); this.camX += gx * s; this.camY += gy * s; }
     this.clampCam();
     this.camPxX = Math.round(this.camX * this.k); this.camPxY = Math.round(this.camY * this.k);
+    this.amb.update(dt, { x: this.camX, y: this.camY, w: this.viewW, h: this.viewH });
     this.doorCheck();
   }
 
@@ -609,7 +635,7 @@ export class TownEngine {
     const S = CHUNK_TILES * TILE, x0 = this.camX, y0 = this.camY;
     const cx0 = Math.max(0, Math.floor(x0 / S)), cx1 = Math.min(this.chunksX - 1, Math.floor((x0 + this.viewW) / S));
     const cy0 = Math.max(0, Math.floor(y0 / S)), cy1 = Math.min(Math.ceil(this.d.rows / CHUNK_TILES) - 1, Math.floor((y0 + this.viewH) / S));
-    ctx.fillRect(0, 0, W, H);
+    if (this.viewW > this.d.cols * TILE || this.viewH > this.d.rows * TILE) ctx.fillRect(0, 0, W, H);      // the chunks cover the view unless the map is smaller than the screen
     for (let j = cy0; j <= cy1; j++) for (let i = cx0; i <= cx1; i++) {
       const ch = this.chunks.get(j * this.chunksX + i);
       ctx.drawImage(ch, 0, 0, S, S, i * S * k - cx, j * S * k - cy, S * k, S * k);
@@ -672,6 +698,9 @@ export class TownEngine {
     for (let i = 0; i < items.length; i++) this.drawItem(items[i], cx, cy);
     ctx.globalAlpha = 1;
     this.drawGhost(items, cx, cy);
+    const vw = { x: this.camX, y: this.camY, w: this.viewW, h: this.viewH };
+    this.amb.drawMotion(ctx, k, cx, cy, vw);
+    this.amb.drawLight(ctx, k, cx, cy, vw, W, H);
     if (this.o.debug) this.drawDebug(cx, cy);
     this.drawLabels(cx, cy);
   }
@@ -757,7 +786,7 @@ export class TownEngine {
   };
   private drawLabels(cx: number, cy: number) {
     const L = this.lab, k = this.k, dpr = this.dpr;
-    L.clearRect(0, 0, this.W, this.H);
+    L.save();
     const px = Math.round(11 * dpr);
     if (this.fontPx !== px) { this.fontPx = px; this.fontCss = `${px}px ${this.fontFamily}`; this.widths.clear(); }
     L.font = this.fontCss;
@@ -784,5 +813,6 @@ export class TownEngine {
       L.fillStyle = "rgba(0,0,0,0.65)"; L.fillRect(8, 8, L.measureText(hud).width + 16, px * 1.9);
       L.fillStyle = "#9dff9d"; L.fillText(hud, 16, 8 + px * 0.95);
     }
+    L.restore();
   }
 }

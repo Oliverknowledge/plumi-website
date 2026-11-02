@@ -5,7 +5,7 @@ import { toast } from "@/components/studyapp/toast";
 import { STARTER, type PersonLook } from "@/lib/studyapp/library/people/look";
 import { peopleStore } from "@/lib/studyapp/library/people/store";
 import { ANIMAL_IDS } from "@/lib/studyapp/library/people/animals";
-import { TOWN_DATA_URL } from "@/lib/town/assets.generated";
+import { TOWN_ASSET_URLS, TOWN_DATA_URL } from "@/lib/town/assets.generated";
 import { FADE_MS, initialPlace, stepPlace, type PlaceEffect, type PlaceEvent, type PlaceState } from "@/lib/town/place";
 import type { AtlasName, Hub, TownData } from "@/lib/town/types";
 import { Minimap, TELEPORT_COOLDOWN_S } from "./Minimap";
@@ -17,7 +17,7 @@ const preloadInterior = () => { void import("./TownInterior"); };
 /**
  * The town's dev page (/study/town/dev): `?body=fox|capybara|...|person` (person is the default), `?bots=N`, `?debug=1` (collision cells, the navigation
  * grid, doors, sit spots, placeholders, the FPS and draw-ms HUD), `?furniture=0` (hide the placeholder furniture, drawn by default until the art exists),
- * `?map=0` (no minimap), `?hz=30|60|auto`. It exposes the engine as `window.__town` and the place machine as `window.__townPlace` for the browser checks.
+ * `?map=0` (no minimap), `?hz=30|60|auto`, `?backing=0.5..1` (starts at a lower backing scale), `?tod=dawn|day|evening|night` (pins the hour's tint; absent: the student's own clock). It exposes the engine as `window.__town` and the place machine as `window.__townPlace` for the browser checks.
  *
  * DOORS. E at a door (or a tap on it) fades out in 0.35 s, mounts the room (the library's or the cafe's, on the fake world), and Escape, the Town button
  * or "Leave the library" fade back to the door you came in by, as the same body. The town engine is DISPOSED while you are inside (its chunk canvases, loops
@@ -28,7 +28,6 @@ const num = (v: string | null, d: number, max: number) => { const n = Number(v);
 function load(src: string): Promise<HTMLImageElement> {
   return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("image " + src)); i.src = src; });
 }
-const ATLASES = ["ground", "nature", "cafe", "cottage", "landmark", "props"] as const;
 interface Loaded { data: TownData; images: Record<AtlasName | "ground", CanvasImageSource>; premade: HTMLImageElement; font: string }
 
 function Stage({ q }: { q: URLSearchParams }) {
@@ -51,10 +50,17 @@ function Stage({ q }: { q: URLSearchParams }) {
     t0.current = performance.now();
     reduced.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     (async () => {
+      // the map and the atlases are asked for at the same time (the atlas urls are in assets.generated.ts); the cottage and cafe atlases are not waited for:
+      // the first view is the library's plaza, and a sprite whose image has not arrived is simply not drawn yet (drawImage on an image still loading draws nothing)
+      const FIRST = ["ground", "nature", "props", "landmark"] as const, LATER = ["cottage", "cafe"] as const;
+      const urls = TOWN_ASSET_URLS as Record<string, string>;
+      const first = Promise.all(FIRST.map((k) => load(urls[k])));
+      const premadeP = load(urls.premade);
+      const later = LATER.map((k) => { const i = new Image(); i.src = urls[k]; return i; });
       const data = (await (await fetch(TOWN_DATA_URL)).json()) as TownData;
-      const [premade, ...imgs] = await Promise.all([load(data.premade.url), ...ATLASES.map((k) => load(data.atlases[k].url))]);
+      const [premade, imgs] = await Promise.all([premadeP, first]);
       if (dead) return;
-      const images = Object.fromEntries(ATLASES.map((n, i) => [n, imgs[i]])) as Loaded["images"];
+      const images = { ...Object.fromEntries(FIRST.map((n, i) => [n, imgs[i]])), cottage: later[0], cafe: later[1] } as Loaded["images"];
       const font = getComputedStyle(document.body).getPropertyValue("--pa-font-digit").trim() || "ui-monospace, monospace";
       setLoaded({ data, images, premade, font: `${font}, ui-monospace, monospace` });
       (window as unknown as { __townT0?: number }).__townT0 = t0.current;
@@ -103,6 +109,8 @@ function Stage({ q }: { q: URLSearchParams }) {
       bots: num(q.get("bots"), 0, 12), debug: q.get("debug") === "1", placeholders: q.get("furniture") !== "0", reduced: reduced.current, font: loaded.font,
       start: door ? { x: door.entry.x, y: door.entry.y + 12, dir: 3 } : undefined,
       hz: q.get("hz") ?? undefined,
+      backing: q.get("backing") ? Number(q.get("backing")) : undefined,
+      tod: ((v) => (v === "dawn" || v === "day" || v === "evening" || v === "night" ? v : undefined))(q.get("tod")),
       onEvent: (e) => { if (e.kind === "enter" || e.kind === "knock") send({ t: "door", id: e.id, kind: e.door ?? "cottage" }); },
     });
     if (art.current) eng.setYou(art.current);
