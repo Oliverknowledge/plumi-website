@@ -41,7 +41,9 @@ const MIGRATIONS: { m: string; what: string; test: string }[] = [
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
 const arr = (a: readonly string[]) => (a.length ? `ARRAY[${a.map(q).join(", ")}]::text[]` : "ARRAY[]::text[]");
 
-const rpcRows = Object.entries(RPC).map(([key, spec]) => `    (${q(key)}, ${q(spec.name)}, ${arr([...spec.args].sort())})`).join(",\n");
+// Arguments a server may add (all with defaults) without the call changing: the check accepts either shape.
+const OPTIONAL_ARGS: Record<string, string[]> = { lobby_set_position: ["focus_elapsed"] };   // 0126: focus time on the server's clock
+const rpcRows = Object.entries(RPC).map(([key, spec]) => `    (${q(key)}, ${q(spec.name)}, ${arr([...spec.args].sort())}, ${arr([...(OPTIONAL_ARGS[spec.name] ?? [])].sort())})`).join(",\n");
 // Every ladder for a table, so the check can say how far up the ladder this server is.
 const ladders = new Map<string, string[]>();
 for (const r of Object.values(READS)) ladders.set(r.table, [...new Set([...(ladders.get(r.table) ?? []), ...r.ladder])]);
@@ -70,7 +72,7 @@ WITH
 migrations(m, what, ok) AS (VALUES
 ${MIGRATIONS.map((x) => `    (${q(x.m)}, ${q(x.what)}, (${x.test}))`).join(",\n")}
 ),
-want_rpc(key, fn, args) AS (VALUES
+want_rpc(key, fn, args, opt) AS (VALUES
 ${rpcRows}
 ),
 have AS (
@@ -98,7 +100,7 @@ SELECT area, what, CASE WHEN ok THEN 'ok' ELSE 'MISSING' END AS status, note FRO
   SELECT 1 AS o, 'migration' AS area, m || ': ' || what AS what, ok, '' AS note FROM migrations
   UNION ALL
   SELECT 2, 'rpc', w.fn || '(' || array_to_string(w.args, ', ') || ')',
-         EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND h.args = w.args AND has_function_privilege('authenticated', h.oid, 'EXECUTE') AND NOT has_function_privilege('anon', h.oid, 'EXECUTE')),
+         EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND (h.args = w.args OR (h.args @> w.args AND h.args <@ (w.args || w.opt))) AND has_function_privilege('authenticated', h.oid, 'EXECUTE') AND NOT has_function_privilege('anon', h.oid, 'EXECUTE')),
          CASE WHEN NOT EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn) THEN 'no such function'
               WHEN EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND has_function_privilege('anon', h.oid, 'EXECUTE')) THEN 'SIGNED-OUT VISITORS CAN CALL THIS' ELSE '' END
     FROM want_rpc w
@@ -106,10 +108,10 @@ SELECT area, what, CASE WHEN ok THEN 'ok' ELSE 'MISSING' END AS status, note FRO
   SELECT 3, 'table', w.tbl,
          to_regclass('public.' || w.tbl) IS NOT NULL
            AND coalesce((SELECT c.relrowsecurity FROM pg_class c WHERE c.oid = to_regclass('public.' || w.tbl)), false)
-           AND coalesce(has_table_privilege('authenticated', to_regclass('public.' || w.tbl), 'SELECT'), false)
-           AND NOT coalesce(has_table_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false),
+           AND coalesce(has_any_column_privilege('authenticated', to_regclass('public.' || w.tbl), 'SELECT'), false)
+           AND NOT coalesce(has_any_column_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false),
          CASE WHEN to_regclass('public.' || w.tbl) IS NULL THEN 'no such table'
-              WHEN coalesce(has_table_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false) THEN 'SIGNED-OUT VISITORS CAN READ THIS' ELSE '' END
+              WHEN coalesce(has_any_column_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false) THEN 'SIGNED-OUT VISITORS CAN READ THIS' ELSE '' END
     FROM want_table w
   UNION ALL
   SELECT 4, 'columns', s.tbl, s.step IS NOT NULL,

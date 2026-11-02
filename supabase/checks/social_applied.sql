@@ -37,49 +37,49 @@ migrations(m, what, ok) AS (VALUES
     ('0124', 'the device a student is on, in the library (lobby_presence.platform, lobby_join(..., platform))', (EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='lobby_presence' AND column_name='platform'))),
     ('0125', 'asking someone in the library to be friends (send_lobby_friend_request, friendship.via_lobby)', (EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = 'public' AND p.proname = 'send_lobby_friend_request') AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='friendship' AND column_name='via_lobby')))
 ),
-want_rpc(key, fn, args) AS (VALUES
-    ('optIn', 'social_opt_in', ARRAY['colour', 'display_name']::text[]),
-    ('optOut', 'social_opt_out', ARRAY[]::text[]),
-    ('sendFriendRequest', 'send_friend_request', ARRAY['code']::text[]),
-    ('respondFriendRequest', 'respond_friend_request', ARRAY['accept', 'from_user']::text[]),
-    ('removeFriend', 'remove_friend', ARRAY['user']::text[]),
-    ('block', 'block_user', ARRAY['user']::text[]),
-    ('unblock', 'unblock_user', ARRAY['user']::text[]),
-    ('reportUser', 'report_user', ARRAY['group', 'reason', 'user']::text[]),
-    ('createGroup', 'create_group', ARRAY['name']::text[]),
-    ('joinGroup', 'join_group', ARRAY['code']::text[]),
-    ('leaveGroup', 'leave_group', ARRAY['group']::text[]),
-    ('removeMember', 'remove_member', ARRAY['group', 'user']::text[]),
-    ('rotateGroupCode', 'rotate_group_code', ARRAY['group']::text[]),
-    ('renameGroup', 'rename_group', ARRAY['group', 'name']::text[]),
-    ('setPresence', 'set_presence', ARRAY['ends_at', 'mode', 'phase', 'started_at', 'subject']::text[]),
-    ('clearPresence', 'clear_presence', ARRAY[]::text[]),
-    ('publishSummaryWeek', 'publish_summary_week', ARRAY['level', 'today_seconds', 'week_seconds', 'week_xp']::text[]),
-    ('publishStreak', 'publish_streak', ARRAY['days']::text[]),
-    ('setGroupHall', 'set_group_hall', ARRAY['emblem', 'group', 'hall_theme', 'weekly_goal_hours']::text[]),
-    ('setGroupVisibility', 'set_group_visibility', ARRAY['group', 'visibility']::text[]),
-    ('sendReaction', 'send_reaction', ARRAY['group', 'kind', 'user']::text[]),
-    ('markReactionsSeen', 'mark_reactions_seen', ARRAY[]::text[]),
-    ('setAvatar', 'set_avatar', ARRAY['avatar']::text[]),
-    ('sendGroupMessage', 'send_group_message', ARRAY['body', 'group']::text[]),
-    ('reportGroupMessage', 'report_group_message', ARRAY['block', 'message', 'reason']::text[]),
-    ('setHallPosition', 'set_hall_position', ARRAY['hall', 'x', 'y']::text[]),
-    ('clearHallPosition', 'clear_hall_position', ARRAY[]::text[]),
-    ('hallPositions', 'hall_positions', ARRAY['hall']::text[]),
-    ('lobbyMe', 'lobby_me', ARRAY[]::text[]),
-    ('setLobbyVisible', 'set_lobby_visible', ARRAY['visible']::text[]),
-    ('regenerateNickname', 'regenerate_nickname', ARRAY[]::text[]),
-    ('lobbyJoin', 'lobby_join', ARRAY['platform', 'want', 'x', 'y']::text[]),
-    ('lobbyServers', 'lobby_servers', ARRAY[]::text[]),
-    ('lobbySetPosition', 'lobby_set_position', ARRAY['focus_since', 'seated', 'shard', 'subject', 'x', 'y']::text[]),
-    ('lobbyLeave', 'lobby_leave', ARRAY[]::text[]),
-    ('lobbyPeople', 'lobby_people', ARRAY['shard']::text[]),
-    ('lobbyEmote', 'lobby_emote', ARRAY['kind']::text[]),
-    ('libraryMessages', 'library_messages', ARRAY['shard', 'since']::text[]),
-    ('sendLibraryMessage', 'send_library_message', ARRAY['body', 'shard']::text[]),
-    ('reportLibraryMessage', 'report_library_message', ARRAY['block', 'message', 'reason']::text[]),
-    ('sendLobbyFriendRequest', 'send_lobby_friend_request', ARRAY['person']::text[]),
-    ('lobbyFriendRequests', 'lobby_friend_requests', ARRAY[]::text[])
+want_rpc(key, fn, args, opt) AS (VALUES
+    ('optIn', 'social_opt_in', ARRAY['colour', 'display_name']::text[], ARRAY[]::text[]),
+    ('optOut', 'social_opt_out', ARRAY[]::text[], ARRAY[]::text[]),
+    ('sendFriendRequest', 'send_friend_request', ARRAY['code']::text[], ARRAY[]::text[]),
+    ('respondFriendRequest', 'respond_friend_request', ARRAY['accept', 'from_user']::text[], ARRAY[]::text[]),
+    ('removeFriend', 'remove_friend', ARRAY['user']::text[], ARRAY[]::text[]),
+    ('block', 'block_user', ARRAY['user']::text[], ARRAY[]::text[]),
+    ('unblock', 'unblock_user', ARRAY['user']::text[], ARRAY[]::text[]),
+    ('reportUser', 'report_user', ARRAY['group', 'reason', 'user']::text[], ARRAY[]::text[]),
+    ('createGroup', 'create_group', ARRAY['name']::text[], ARRAY[]::text[]),
+    ('joinGroup', 'join_group', ARRAY['code']::text[], ARRAY[]::text[]),
+    ('leaveGroup', 'leave_group', ARRAY['group']::text[], ARRAY[]::text[]),
+    ('removeMember', 'remove_member', ARRAY['group', 'user']::text[], ARRAY[]::text[]),
+    ('rotateGroupCode', 'rotate_group_code', ARRAY['group']::text[], ARRAY[]::text[]),
+    ('renameGroup', 'rename_group', ARRAY['group', 'name']::text[], ARRAY[]::text[]),
+    ('setPresence', 'set_presence', ARRAY['ends_at', 'mode', 'phase', 'started_at', 'subject']::text[], ARRAY[]::text[]),
+    ('clearPresence', 'clear_presence', ARRAY[]::text[], ARRAY[]::text[]),
+    ('publishSummaryWeek', 'publish_summary_week', ARRAY['level', 'today_seconds', 'week_seconds', 'week_xp']::text[], ARRAY[]::text[]),
+    ('publishStreak', 'publish_streak', ARRAY['days']::text[], ARRAY[]::text[]),
+    ('setGroupHall', 'set_group_hall', ARRAY['emblem', 'group', 'hall_theme', 'weekly_goal_hours']::text[], ARRAY[]::text[]),
+    ('setGroupVisibility', 'set_group_visibility', ARRAY['group', 'visibility']::text[], ARRAY[]::text[]),
+    ('sendReaction', 'send_reaction', ARRAY['group', 'kind', 'user']::text[], ARRAY[]::text[]),
+    ('markReactionsSeen', 'mark_reactions_seen', ARRAY[]::text[], ARRAY[]::text[]),
+    ('setAvatar', 'set_avatar', ARRAY['avatar']::text[], ARRAY[]::text[]),
+    ('sendGroupMessage', 'send_group_message', ARRAY['body', 'group']::text[], ARRAY[]::text[]),
+    ('reportGroupMessage', 'report_group_message', ARRAY['block', 'message', 'reason']::text[], ARRAY[]::text[]),
+    ('setHallPosition', 'set_hall_position', ARRAY['hall', 'x', 'y']::text[], ARRAY[]::text[]),
+    ('clearHallPosition', 'clear_hall_position', ARRAY[]::text[], ARRAY[]::text[]),
+    ('hallPositions', 'hall_positions', ARRAY['hall']::text[], ARRAY[]::text[]),
+    ('lobbyMe', 'lobby_me', ARRAY[]::text[], ARRAY[]::text[]),
+    ('setLobbyVisible', 'set_lobby_visible', ARRAY['visible']::text[], ARRAY[]::text[]),
+    ('regenerateNickname', 'regenerate_nickname', ARRAY[]::text[], ARRAY[]::text[]),
+    ('lobbyJoin', 'lobby_join', ARRAY['platform', 'want', 'x', 'y']::text[], ARRAY[]::text[]),
+    ('lobbyServers', 'lobby_servers', ARRAY[]::text[], ARRAY[]::text[]),
+    ('lobbySetPosition', 'lobby_set_position', ARRAY['focus_since', 'seated', 'shard', 'subject', 'x', 'y']::text[], ARRAY['focus_elapsed']::text[]),
+    ('lobbyLeave', 'lobby_leave', ARRAY[]::text[], ARRAY[]::text[]),
+    ('lobbyPeople', 'lobby_people', ARRAY['shard']::text[], ARRAY[]::text[]),
+    ('lobbyEmote', 'lobby_emote', ARRAY['kind']::text[], ARRAY[]::text[]),
+    ('libraryMessages', 'library_messages', ARRAY['shard', 'since']::text[], ARRAY[]::text[]),
+    ('sendLibraryMessage', 'send_library_message', ARRAY['body', 'shard']::text[], ARRAY[]::text[]),
+    ('reportLibraryMessage', 'report_library_message', ARRAY['block', 'message', 'reason']::text[], ARRAY[]::text[]),
+    ('sendLobbyFriendRequest', 'send_lobby_friend_request', ARRAY['person']::text[], ARRAY[]::text[]),
+    ('lobbyFriendRequests', 'lobby_friend_requests', ARRAY[]::text[], ARRAY[]::text[])
 ),
 have AS (
   SELECT p.proname AS fn, p.oid,
@@ -113,7 +113,7 @@ SELECT area, what, CASE WHEN ok THEN 'ok' ELSE 'MISSING' END AS status, note FRO
   SELECT 1 AS o, 'migration' AS area, m || ': ' || what AS what, ok, '' AS note FROM migrations
   UNION ALL
   SELECT 2, 'rpc', w.fn || '(' || array_to_string(w.args, ', ') || ')',
-         EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND h.args = w.args AND has_function_privilege('authenticated', h.oid, 'EXECUTE') AND NOT has_function_privilege('anon', h.oid, 'EXECUTE')),
+         EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND (h.args = w.args OR (h.args @> w.args AND h.args <@ (w.args || w.opt))) AND has_function_privilege('authenticated', h.oid, 'EXECUTE') AND NOT has_function_privilege('anon', h.oid, 'EXECUTE')),
          CASE WHEN NOT EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn) THEN 'no such function'
               WHEN EXISTS (SELECT 1 FROM have h WHERE h.fn = w.fn AND has_function_privilege('anon', h.oid, 'EXECUTE')) THEN 'SIGNED-OUT VISITORS CAN CALL THIS' ELSE '' END
     FROM want_rpc w
@@ -121,10 +121,10 @@ SELECT area, what, CASE WHEN ok THEN 'ok' ELSE 'MISSING' END AS status, note FRO
   SELECT 3, 'table', w.tbl,
          to_regclass('public.' || w.tbl) IS NOT NULL
            AND coalesce((SELECT c.relrowsecurity FROM pg_class c WHERE c.oid = to_regclass('public.' || w.tbl)), false)
-           AND coalesce(has_table_privilege('authenticated', to_regclass('public.' || w.tbl), 'SELECT'), false)
-           AND NOT coalesce(has_table_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false),
+           AND coalesce(has_any_column_privilege('authenticated', to_regclass('public.' || w.tbl), 'SELECT'), false)
+           AND NOT coalesce(has_any_column_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false),
          CASE WHEN to_regclass('public.' || w.tbl) IS NULL THEN 'no such table'
-              WHEN coalesce(has_table_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false) THEN 'SIGNED-OUT VISITORS CAN READ THIS' ELSE '' END
+              WHEN coalesce(has_any_column_privilege('anon', to_regclass('public.' || w.tbl), 'SELECT'), false) THEN 'SIGNED-OUT VISITORS CAN READ THIS' ELSE '' END
     FROM want_table w
   UNION ALL
   SELECT 4, 'columns', s.tbl, s.step IS NOT NULL,
