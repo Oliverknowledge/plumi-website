@@ -1,0 +1,200 @@
+{
+  "about": "Targets for tools/movement/measure.mjs, measured from the reference screen recording (3024x1898 retina, 60 fps, 12.86 s, 740 frames; one player rabbit on the keyboard, seated NPCs). Method and numbers: docs/study/art/movement-reference.md. 'ref' says where in the clip each number comes from (frame indices are 0-based decoded frames of the clip). A metric with \"info\": true is printed and compared but never fails the run. Tolerances come from the clip's own scatter plus one frame (16.7 ms) and one css pixel of measuring error; tighter than that is noise. Units: 'art px' are the sprite sheet's pixels; the reference draws 3 css px per art px, ours 4 on a 1512 px wide window (k in the harness header).",
+  "metrics": {
+    "speed_hs_axis": {
+      "target": 2.24,
+      "tolRel": 0.12,
+      "unit": "H/s",
+      "ref": "269 css px/s = 89.7 art px/s over a sprite 40 art px tall; 17 held-key runs, idx 7-664",
+      "note": "Sprite heights a second. INFO, not gated: ours is coupled to the iPad's walk speed (LIVE_SPEED 70 art px/s, docs/study/library.md 'Walking'), so it may only change together with the wire's speed assumption. In css px a second ours (280 at k=4) is already the reference (269).",
+      "info": true
+    },
+    "speed_hs_spread": {
+      "max": 1.08,
+      "unit": "ratio",
+      "ref": "left 255-271, right 270-272, down 262-267, up 270 css px/s: max/min 1.04",
+      "note": "Same speed in all four directions (no extra perspective scaling)."
+    },
+    "speed_diag_ratio": {
+      "target": 0.94,
+      "tolAbs": 0.1,
+      "unit": "ratio",
+      "ref": "idx 66-70: 3 px per axis per frame = 254 css px/s against 269 straight",
+      "note": "Diagonal about the same speed as straight (normalised), not 1.41 times. One 5-frame sample only."
+    },
+    "start_delay_ms": {
+      "min": -40,
+      "max": 50,
+      "unit": "ms",
+      "ref": "full speed within 2 frames at idx 29-32 and 55-58; no acceleration ramp",
+      "note": "Effective delay of the fitted constant-speed line after the key goes down."
+    },
+    "stop_excess_ms": {
+      "min": -40,
+      "max": 40,
+      "unit": "ms",
+      "ref": "idx 50-52 and 664-666: -5, -3, 0 px; no coast, no overshoot, no settle",
+      "note": "How far past (+) or short of (-) the release the sprite travels, as milliseconds of walking."
+    },
+    "stop_settle_ms": {
+      "max": 50,
+      "unit": "ms",
+      "ref": "motion ends within 1 to 2 frames of the last step (idx 50-52, 664-666)"
+    },
+    "display_update_hz": {
+      "min": 50,
+      "target": 60,
+      "unit": "Hz",
+      "ref": "the sprite moved on every one of the 60 recorded frames (2 recorded frames in 3 are not duplicates: 63 gaps of 25 ms are recorder drops)",
+      "note": "Distinct on-screen updates a second while walking (sprite, camera or pose changed)."
+    },
+    "pos_quantum_css": {
+      "max": 1.5,
+      "unit": "css px",
+      "ref": "native frame: sprite edges at device-px offsets 1, 3, 5 modulo the 6 px art pixel (idx 32-51): positioned at whole css pixels, 1/3 art pixel",
+      "note": "Smallest step the sprite can be placed at. Ours is a whole art pixel (k css px)."
+    },
+    "step_css": {
+      "max": 6,
+      "target": 4.5,
+      "unit": "css px",
+      "ref": "4.5 css px per frame at 60 Hz",
+      "note": "Size of one visible jump. Judder amplitude: half of this per axis of the reference, double ours."
+    },
+    "pose_rate_hz": {
+      "min": 11,
+      "max": 15,
+      "unit": "Hz",
+      "ref": "pose changes every 84.0 ms mean (13 slots idx 94-157: 75-92 ms, 5 recorded frames each = 12 Hz)",
+      "note": "Walk-cycle pose changes a second."
+    },
+    "pose_dist_hs": {
+      "target": 0.187,
+      "tolRel": 0.35,
+      "unit": "H",
+      "ref": "269 px/s x 84.0 ms = 22.6 css px = 7.5 art px = 0.19 sprite heights per pose",
+      "note": "How far the body travels per pose. Larger means skating (the feet slide)."
+    },
+    "cycle_ms": {
+      "min": 450,
+      "max": 800,
+      "unit": "ms",
+      "ref": "front view: 9 slots (B A C D E F E D A) = 0.75 s, 67 art px = 1.7 H",
+      "note": "With six drawn frames a cycle of 6 slots at 12 Hz is 500 ms; accepted."
+    },
+    "distinct_poses": {
+      "min": 6,
+      "unit": "poses",
+      "ref": "A B C D E F (6 drawn poses, 3 of them used twice)"
+    },
+    "head_bob_rows": {
+      "min": 1,
+      "max": 2,
+      "unit": "art px",
+      "ref": "head 1 art px (3 css px) higher in poses C and D than in A and E; no squash or stretch",
+      "note": "Peak to peak head height over the walk frames of the sheet."
+    },
+    "ground_shadow_w_hs": {
+      "min": 0.35,
+      "max": 0.6,
+      "target": 0.475,
+      "unit": "H",
+      "ref": "purple ellipse 57 x 18 css px = 19 x 6 art px = 0.475 H wide, 0.15 H tall, fixed under the feet in every pose, also when standing",
+      "note": "Width of the darkened patch the engine draws under a standing person, in sprite heights. 0 = none."
+    },
+    "idle_changes_1250ms": {
+      "max": 0,
+      "info": true,
+      "unit": "changes",
+      "ref": "idx 668-739 (1.25 s standing): not one pixel changes",
+      "note": "Cannot say what the reference does after 1.25 s; ours animates the idle pose every 0.6 s."
+    },
+    "cam_lag_steady_css": {
+      "max": 3,
+      "unit": "css px",
+      "ref": "while the camera scrolled (167 frames) the player's screen x stayed 756.7 +- 0.7 css px; the camera moved the same frame as the player (idx 225, 293, 328, 346)",
+      "note": "How far the player slides from his lock point while walking (distance behind)."
+    },
+    "cam_settle_ms": {
+      "max": 100,
+      "unit": "ms",
+      "ref": "camera stops the frame the player stops (idx 243, 312, 341, 357)",
+      "note": "Time after the release until the player is back within one art pixel of his lock point."
+    },
+    "lock_off_x_pct": {
+      "min": -3,
+      "max": 3,
+      "unit": "% width",
+      "ref": "player pinned at x 756 of 1512"
+    },
+    "lock_off_y_pct": {
+      "min": -3,
+      "max": 8,
+      "info": true,
+      "unit": "% height",
+      "ref": "head 395-405 css px, feet 481 of 949: 0.7% below centre",
+      "note": "Ours deliberately sits 20% of the view lower than centre (the entrance is at the bottom, the library opens upward): a product choice, not a movement-feel matter."
+    },
+    "diag_keeps_face": {
+      "min": 1,
+      "max": 1,
+      "unit": "bool",
+      "ref": "idx 62-70: left face kept through the diagonal, front the frame the left key went"
+    },
+    "turn_latency_ms": {
+      "max": 40,
+      "unit": "ms",
+      "ref": "front face appears on the frame the horizontal motion ends (idx 71)",
+      "note": "From releasing the held key to showing the new facing."
+    },
+    "wall_turns_and_stays": {
+      "min": 1,
+      "max": 1,
+      "unit": "bool",
+      "ref": "idx 21-29: pressing into a chair turns the sprite to front and the player stays put, 8 frames"
+    },
+    "click_speed_ratio": {
+      "target": 1,
+      "tolAbs": 0.1,
+      "info": true,
+      "unit": "ratio",
+      "ref": "no click-to-walk in the clip (cursor never moves); informational: a click walk should be as fast as the keys"
+    },
+    "npc_speed_ratio": {
+      "target": 1,
+      "tolAbs": 0.1,
+      "unit": "ratio",
+      "ref": "no NPC walks in the clip; rule: everyone walks at the player's speed"
+    },
+    "npc_pose_rate_hz": {
+      "min": 11,
+      "max": 15,
+      "unit": "Hz",
+      "ref": "no NPC walks in the clip; rule: everyone cycles at the player's rate"
+    },
+    "zoo_pose_rate_min": {
+      "min": 11,
+      "unit": "Hz",
+      "ref": "same rule for every animal (--zoo)"
+    },
+    "zoo_pose_rate_max": {
+      "max": 15,
+      "unit": "Hz",
+      "ref": "same rule for every animal (--zoo)"
+    },
+    "zoo_speed_hs_max": {
+      "max": 2.9,
+      "info": true,
+      "unit": "H/s",
+      "ref": "animals are 23 to 26 rows tall, so a fixed art speed is a different number of heights"
+    },
+    "sprite_vh_pct": {
+      "min": 9,
+      "max": 15,
+      "info": true,
+      "unit": "% height",
+      "ref": "sprite 120 of 949 css px = 12.6% of the window height (40 of 316 art px)",
+      "note": "How big the person is on the screen; our k = 4 gives 10.5%."
+    }
+  }
+}
