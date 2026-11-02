@@ -78,6 +78,8 @@ html[data-theme="dark"] .lp .qb-row + .qb-row .qb-sheet, html[data-theme="dark"]
 html[data-theme="dark"] .lp .qb-img, html[data-theme="dark"] .lp .qb-stem img, html[data-theme="dark"] .lp .qb-reveal-ms img,
 html[data-theme="dark"] .lp .qb-zoom-inner img { filter: invert(1) hue-rotate(180deg); mix-blend-mode: screen; background: transparent; border-color: #4a3f39; }
 html[data-theme="dark"] .lp .qb-zoom-inner img { mix-blend-mode: normal; background: #fff; }
+html[data-theme="dark"] .lp .qb-quiz-stage { background: #1f1a18; }
+html[data-theme="dark"] .lp .qb-quiz-stage img { filter: invert(1) hue-rotate(180deg); background: #fff; border-color: #4a3f39; }
 /* A crop with a photograph in it (photoScan.ts) stays paper: inverted, a photograph turns into its negative (1 November). */
 html[data-theme="dark"] .lp img[data-photo] { filter: brightness(.92); mix-blend-mode: normal; background: #fff; border-radius: 6px; }
 /* the answer box: dark paper with ruled lines, light ink */

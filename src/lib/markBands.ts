@@ -16,13 +16,28 @@ import type { BankPart, BankSubject } from "@/content/questionBank";
  * A band's label names the marks it actually holds ("6 marks" where only 6s exist). One
  * value in the whole bank (English Literature A is all 25-markers) and there's no filter.
  */
-export interface MarkBand { id: string; label: string; lo: number; hi: number }
+export interface MarkBand { id: string; label: string; lo: number; hi: number; choice?: true }
+
+/** A multiple-choice question: its key is a letter ("B", or "A or C" where either is right). */
+export const isChoice = (p: Pick<BankPart, "k">) => !!p.k && /^[A-D]( or [A-D])*$/.test(p.k);
+
+/**
+ * "Multiple choice" leads the question types wherever a bank has some and something else too (OCR's
+ * sciences open each paper with a section of them): a Discord ask, 2 November 2026, to practise them alone.
+ */
+const CHOICE: MarkBand = { id: "mc", label: "Multiple choice", lo: 0, hi: 0, choice: true };
 
 const SCIENCE: [number, number][] = [[1, 2], [3, 5], [6, 9], [10, Infinity]];
 const MATHS: [number, number][] = [[1, 5], [6, 9], [10, Infinity]];
 const ESSAY: [number, number][] = [[1, 2], [3, 5], [6, 9], [10, 15], [16, Infinity]];
 
 export function markBands(subject: Pick<BankSubject, "subject">, parts: BankPart[]): MarkBand[] {
+  const choices = parts.filter(isChoice).length;
+  const bands = byMarks(subject, parts);
+  return choices && choices < parts.length ? [CHOICE, ...bands] : bands;
+}
+
+function byMarks(subject: Pick<BankSubject, "subject">, parts: BankPart[]): MarkBand[] {
   const values = [...new Set(parts.map(p => p.m).filter((m): m is number => m != null && m > 0))].sort((a, b) => a - b);
   if (values.length <= 1) return [];
   const marks = (lo: number, hi: number) => (lo === hi ? `${lo} ${lo === 1 ? "mark" : "marks"}` : `${lo}–${hi} marks`);
@@ -40,6 +55,8 @@ export function markBands(subject: Pick<BankSubject, "subject">, parts: BankPart
 }
 
 export const inBand = (m: number | null, band: MarkBand) => m != null && m >= band.lo && m <= band.hi;
+/** Whether a part is of a question type: multiple choice, or worth the band's marks. */
+export const inType = (p: Pick<BankPart, "k" | "m">, band: MarkBand) => (band.choice ? isChoice(p) : inBand(p.m, band));
 
 /** A subject answered in sentences and essays, not working: not maths, not a science. */
 export const isEssaySubject = (subject: Pick<BankSubject, "subject">) =>
