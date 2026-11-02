@@ -19,6 +19,8 @@
     "social:contract": "tsx scripts/social-contract.ts",
     "social:e2e": "tsx scripts/social-e2e.ts",
     "social:fuzz-library": "tsx scripts/social-fuzz-library.ts",
+    "town:build": "tsx tools/town/build.ts",
+    "town:test": "tsx --test src/lib/town/*.test.ts",
     "library:seats": "tsx scripts/library-seats.ts",
     "library:test": "tsx --test src/lib/studyapp/library/*.test.ts src/lib/studyapp/library/people/*.test.ts src/lib/social/library.test.ts",
     "social:verify": "npm run -s social:test && npm run -s social:check-sql -- --check && npm run -s social:vectors -- --check",

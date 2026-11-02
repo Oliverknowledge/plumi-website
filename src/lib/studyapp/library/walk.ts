@@ -21,7 +21,14 @@ export type Tile = readonly [tx: number, ty: number];
 export type Face = "right" | "back" | "left" | "front";
 
 /** The walkable mask: `open(tx, ty)` is true where feet may stand. It need not bounds-check; `cols` and `rows` do. */
-export interface Grid { cols: number; rows: number; open(tx: number, ty: number): boolean }
+export interface Grid { cols: number; rows: number; open(tx: number, ty: number): boolean; m?: Metrics }
+
+/**
+ * The size of things, in art px: a grid cell (`tile`), the feet-y at which a cell's row begins (`rowTop`), and the half width and half depth of
+ * the footprint. The Grand Library's are the defaults below; the town (src/lib/town) has 8 px collision cells and 16 px navigation cells and
+ * sets `Grid.m`. Every function here reads the metrics of the grid it is given, so the library's calls are exactly what they were.
+ */
+export interface Metrics { tile: number; rowTop: number; halfW: number; halfH: number; clear: number; assist: number }
 
 export const TILE = 16;
 /** The feet-y at which a tile's row begins: a tile's row is [16 ty + 4, 16 ty + 20). */
@@ -33,9 +40,15 @@ export const HALF_H = 3;
 const CLEAR = 1;
 /** How far a corner may nudge you sideways to find the way on (px). */
 export const ASSIST = 5;
+/** The Grand Library's metrics. */
+export const LIBRARY_METRICS: Metrics = { tile: TILE, rowTop: ROW_TOP, halfW: HALF_W, halfH: HALF_H, clear: CLEAR, assist: ASSIST };
+const M = (g: Grid): Metrics => g.m ?? LIBRARY_METRICS;
 
-export const cellOf = (x: number, y: number): Tile => [Math.floor(x / TILE), Math.floor((y - ROW_TOP) / TILE)];
-export const centreOf = ([tx, ty]: Tile): Pt => [tx * TILE + TILE / 2, ty * TILE + ROW_TOP + TILE / 2];
+/** The cell a feet point stands in, and a cell's middle, for any metrics (`cellOf` and `centreOf` are the library's, usable as `.map(centreOf)`). */
+export const cellIn = (x: number, y: number, m: Metrics): Tile => [Math.floor(x / m.tile), Math.floor((y - m.rowTop) / m.tile)];
+export const centreIn = ([tx, ty]: Tile, m: Metrics): Pt => [tx * m.tile + m.tile / 2, ty * m.tile + m.rowTop + m.tile / 2];
+export const cellOf = (x: number, y: number): Tile => cellIn(x, y, LIBRARY_METRICS);
+export const centreOf = (t: Tile): Pt => centreIn(t, LIBRARY_METRICS);
 
 export const isOpen = (g: Grid, tx: number, ty: number) => tx >= 0 && ty >= 0 && tx < g.cols && ty < g.rows && g.open(tx, ty);
 
@@ -46,9 +59,9 @@ export function gridOf(walk: readonly string[], cols = walk[0]?.length ?? 0): Gr
 
 /** Whether a person's footprint (grown by `grow` px) can stand with its feet at (x, y): every tile it touches is walkable. */
 export function fits(g: Grid, x: number, y: number, grow = 0): boolean {
-  const hw = HALF_W + grow, hh = HALF_H + grow, e = 1e-6;
-  const x0 = Math.floor((x - hw) / TILE), x1 = Math.floor((x + hw - e) / TILE);
-  const y0 = Math.floor((y - hh - ROW_TOP) / TILE), y1 = Math.floor((y + hh - e - ROW_TOP) / TILE);
+  const m = M(g), hw = m.halfW + grow, hh = m.halfH + grow, e = 1e-6, T = m.tile;
+  const x0 = Math.floor((x - hw) / T), x1 = Math.floor((x + hw - e) / T);
+  const y0 = Math.floor((y - hh - m.rowTop) / T), y1 = Math.floor((y + hh - e - m.rowTop) / T);
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) if (!isOpen(g, tx, ty)) return false;
   return true;
 }
@@ -135,7 +148,7 @@ export function reach(g: Grid, from: Tile): number[] {
 export function nearestTile(g: Grid, from: Tile, x: number, y: number): Tile | null {
   let best: Tile | null = null, bd = Infinity;
   for (const k of reach(g, from)) {
-    const t: Tile = [k % g.cols, Math.floor(k / g.cols)], [cx, cy] = centreOf(t), d = (cx - x) ** 2 + (cy - y) ** 2;
+    const t: Tile = [k % g.cols, Math.floor(k / g.cols)], [cx, cy] = centreIn(t, M(g)), d = (cx - x) ** 2 + (cy - y) ** 2;
     if (d < bd) { bd = d; best = t; }
   }
   return best;
@@ -144,12 +157,12 @@ export function nearestTile(g: Grid, from: Tile, x: number, y: number): Tile | n
 /** Where to stand if (x, y) is not somewhere one can: the middle of the nearest open tile (within a few tiles), else the point itself. */
 export function settle(g: Grid, x: number, y: number): Pt {
   if (fits(g, x, y)) return [x, y];
-  const [cx, cy] = cellOf(x, y);
+  const m = M(g), [cx, cy] = cellIn(x, y, m);
   let best: Pt | null = null, bd = Infinity;
   for (let r = 1; r <= 6 && !best; r++) {
     for (let ty = cy - r; ty <= cy + r; ty++) for (let tx = cx - r; tx <= cx + r; tx++) {
       if (!isOpen(g, tx, ty)) continue;
-      const c = centreOf([tx, ty]), d = (c[0] - x) ** 2 + (c[1] - y) ** 2;
+      const c = centreIn([tx, ty], m), d = (c[0] - x) ** 2 + (c[1] - y) ** 2;
       if (d < bd) { bd = d; best = c; }
     }
   }
@@ -157,7 +170,7 @@ export function settle(g: Grid, x: number, y: number): Pt {
 }
 
 /** Whether one can walk the straight line a to b: the footprint (and its clearance) stands everywhere along it. */
-export function seen(g: Grid, a: Pt, b: Pt, grow = CLEAR): boolean {
+export function seen(g: Grid, a: Pt, b: Pt, grow = M(g).clear): boolean {
   const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])));
   for (let i = 0; i <= n; i++) if (!fits(g, a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n, grow)) return false;
   return true;
@@ -190,13 +203,13 @@ export function plan(g: Grid, from: Pt, to: Tile, dest?: Pt): Pt[] | null {
   const lead: Pt[] = [];
   let origin = from;
   if (!fits(g, from[0], from[1])) { origin = settle(g, from[0], from[1]); lead.push(origin); }
-  const tiles = route(g, cellOf(origin[0], origin[1]), to);
+  const tiles = route(g, cellIn(origin[0], origin[1], M(g)), to);
   if (!tiles) return null;
-  const way = tiles.map(centreOf);
+  const way = tiles.map((t) => centreIn(t, M(g)));
   const end = dest && fits(g, dest[0], dest[1]) ? dest : null;
   if (end && way.length) way[way.length - 1] = end;
   else if (end) way.push(end);
-  else if (!way.length) { const c = centreOf(to); if (Math.hypot(c[0] - origin[0], c[1] - origin[1]) > 0.5) way.push(c); }
+  else if (!way.length) { const c = centreIn(to, M(g)); if (Math.hypot(c[0] - origin[0], c[1] - origin[1]) > 0.5) way.push(c); }
   return [...lead, ...pull(g, origin, way)];
 }
 
@@ -218,7 +231,8 @@ export function slide(g: Grid, x: number, y: number, dx: number, dy: number): Pt
     }
     // a straight push that is blocked: find the nearest sideways offset from which it is not, and move that way
     let nudged = false;
-    for (let o = 1; o <= ASSIST && !nudged; o++) for (const s of [1, -1]) {
+    const assist = M(g).assist;
+    for (let o = 1; o <= assist && !nudged; o++) for (const s of [1, -1]) {
       const ox = sx === 0 ? s * o : 0, oy = sy === 0 ? s * o : 0;
       if (!fits(g, x + ox, y + oy) || !fits(g, x + ox + sx, y + oy + sy)) continue;
       const m = Math.min(step, o);

@@ -1,0 +1,1220 @@
+{
+ "name": "district-1",
+ "seed": 11,
+ "cols": 52,
+ "rows": 30,
+ "bounds": [
+  1,
+  1,
+  50,
+  28
+ ],
+ "ring": {
+  "halfWidth": 1.6,
+  "points": [
+   [
+    7.5,
+    9.5
+   ],
+   [
+    18,
+    9.5
+   ],
+   [
+    27,
+    9.5
+   ],
+   [
+    36,
+    9.5
+   ],
+   [
+    44.5,
+    9.5
+   ],
+   [
+    44.5,
+    13
+   ],
+   [
+    45.5,
+    17
+   ],
+   [
+    44.5,
+    21
+   ],
+   [
+    44.5,
+    24.5
+   ],
+   [
+    36,
+    24.5
+   ],
+   [
+    30,
+    25.5
+   ],
+   [
+    22,
+    25.5
+   ],
+   [
+    16,
+    24.5
+   ],
+   [
+    7.5,
+    24.5
+   ],
+   [
+    7.5,
+    21
+   ],
+   [
+    6.5,
+    17
+   ],
+   [
+    7.5,
+    13
+   ]
+  ]
+ },
+ "plazas": [
+  {
+   "id": "plaza",
+   "rect": [
+    19,
+    8,
+    14,
+    5
+   ]
+  }
+ ],
+ "plazaFill": "single",
+ "zones": [
+  {
+   "id": "terrace",
+   "name": "Cafe terrace",
+   "rect": [
+    19,
+    7,
+    14,
+    6
+   ]
+  },
+  {
+   "id": "quiet",
+   "name": "Quiet corner",
+   "rect": [
+    35,
+    13,
+    9,
+    9
+   ]
+  },
+  {
+   "id": "cottages",
+   "name": "Cottages",
+   "rect": [
+    0,
+    0,
+    52,
+    7
+   ]
+  },
+  {
+   "id": "ring",
+   "name": "The path",
+   "rect": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "objects": [
+  {
+   "sprite": "cafe",
+   "at": [
+    24.0,
+    8.0
+   ],
+   "id": "cafe",
+   "zone": "terrace"
+  },
+  {
+   "sprite": "cottage_slate",
+   "at": [
+    7.6,
+    5.0
+   ],
+   "id": "house-1",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "cottage_terracotta",
+   "at": [
+    14.6,
+    5.0
+   ],
+   "id": "house-2",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "cottage_slate_plum",
+   "at": [
+    38.0,
+    5.0
+   ],
+   "id": "house-3",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "cottage_terracotta_moss",
+   "at": [
+    13.0,
+    20.0
+   ],
+   "id": "house-4",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "cottage_terracotta",
+   "at": [
+    21.5,
+    20.0
+   ],
+   "id": "house-5",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "cottage_slate",
+   "at": [
+    33.0,
+    20.0
+   ],
+   "id": "house-6",
+   "zone": "cottages"
+  },
+  {
+   "sprite": "well",
+   "at": [
+    17.8,
+    12.3
+   ],
+   "id": "well"
+  },
+  {
+   "sprite": "cart-apples",
+   "at": [
+    35.2,
+    12.6
+   ],
+   "id": "cart"
+  },
+  {
+   "sprite": "lamp-post-ornate",
+   "at": [
+    19.0,
+    13.1
+   ],
+   "id": "lamp-plaza-sw"
+  },
+  {
+   "sprite": "lamp-post-ornate",
+   "at": [
+    33.0,
+    13.1
+   ],
+   "id": "lamp-plaza-se"
+  },
+  {
+   "sprite": "noticeboard",
+   "at": [
+    30.2,
+    7.0
+   ],
+   "id": "noticeboard"
+  }
+ ],
+ "clusters": [
+  {
+   "id": "g-between-w",
+   "center": [
+    11.1,
+    4.9
+   ],
+   "rx": 0.8,
+   "ry": 0.4,
+   "n": 1,
+   "seed": 1,
+   "mix": {
+    "tree_m_red": 1,
+    "tree_m_gold_round": 1
+   }
+  },
+  {
+   "id": "g-west-edge",
+   "center": [
+    3.4,
+    5.0
+   ],
+   "rx": 1.4,
+   "ry": 1.0,
+   "n": 3,
+   "seed": 2,
+   "mix": {
+    "tree_l_orange_wide": 1,
+    "tree_m_amber_tall": 1,
+    "bush_orange_round": 1
+   }
+  },
+  {
+   "id": "g-between-e",
+   "center": [
+    32.6,
+    4.2
+   ],
+   "rx": 2.4,
+   "ry": 1.4,
+   "n": 4,
+   "seed": 3,
+   "mix": {
+    "tree_l_gold_round": 1,
+    "tree_m_mixed": 1,
+    "bush_gold_hedge": 1
+   }
+  },
+  {
+   "id": "g-east-edge",
+   "center": [
+    43.5,
+    4.8
+   ],
+   "rx": 2.2,
+   "ry": 1.4,
+   "n": 4,
+   "seed": 4,
+   "mix": {
+    "tree_l_red": 1,
+    "tree_l_amber_tall": 1,
+    "bush_red_long": 1
+   }
+  },
+  {
+   "id": "g-between-s",
+   "center": [
+    17.3,
+    19.0
+   ],
+   "rx": 0.9,
+   "ry": 1.0,
+   "n": 2,
+   "seed": 5,
+   "mix": {
+    "tree_m_gold_twin": 1,
+    "bush_mixed": 1
+   }
+  },
+  {
+   "id": "g-mid-s",
+   "center": [
+    27.4,
+    18.0
+   ],
+   "rx": 1.8,
+   "ry": 2.0,
+   "n": 4,
+   "seed": 6,
+   "mix": {
+    "tree_l_mixed": 1,
+    "tree_m_orange_wide": 1,
+    "bush_gold_round": 1
+   },
+   "bench": {
+    "type": "bench_front",
+    "at": [
+     0,
+     2.6
+    ]
+   }
+  },
+  {
+   "id": "g-quiet",
+   "center": [
+    39.2,
+    17.8
+   ],
+   "rx": 3.2,
+   "ry": 2.8,
+   "n": 8,
+   "seed": 8,
+   "mix": {
+    "tree_l_red": 1,
+    "tree_l_gold_round": 1,
+    "tree_m_amber_tall": 1,
+    "bush_red_long": 1,
+    "log": 1
+   },
+   "bench": {
+    "type": "bench_right",
+    "at": [
+     -3.6,
+     0.6
+    ]
+   }
+  },
+  {
+   "id": "g-east",
+   "center": [
+    41.5,
+    13.0
+   ],
+   "rx": 1.6,
+   "ry": 1.4,
+   "n": 3,
+   "seed": 9,
+   "mix": {
+    "tree_l_orange_wide": 1,
+    "tree_m_mixed": 1
+   },
+   "bench": {
+    "type": "bench_front",
+    "at": [
+     0.2,
+     2.4
+    ]
+   }
+  },
+  {
+   "id": "g-park-w",
+   "center": [
+    12.5,
+    13.5
+   ],
+   "rx": 1.6,
+   "ry": 1.3,
+   "n": 2,
+   "seed": 10,
+   "mix": {
+    "tree_l_amber_tall": 1,
+    "bush_gold_hedge": 1,
+    "stump_big": 1
+   }
+  },
+  {
+   "id": "g-park-n",
+   "center": [
+    16.0,
+    14.0
+   ],
+   "rx": 0.9,
+   "ry": 0.8,
+   "n": 1,
+   "seed": 11,
+   "mix": {
+    "tree_l_orange_wide": 1
+   },
+   "bench": {
+    "type": "bench_back",
+    "at": [
+     0,
+     1.6
+    ]
+   }
+  },
+  {
+   "id": "g-park-e",
+   "center": [
+    30.0,
+    14.2
+   ],
+   "rx": 1.4,
+   "ry": 0.8,
+   "n": 2,
+   "seed": 12,
+   "mix": {
+    "tree_m_orange_wide": 1,
+    "bush_orange_round": 1
+   }
+  },
+  {
+   "id": "g-sw2",
+   "center": [
+    11.6,
+    12.8
+   ],
+   "rx": 1.0,
+   "ry": 0.8,
+   "n": 1,
+   "seed": 13,
+   "mix": {
+    "tree_l_gold_twin": 1,
+    "bush_orange_twin": 1
+   }
+  },
+  {
+   "id": "g-in-1",
+   "center": [
+    20.2,
+    15.2
+   ],
+   "rx": 1.6,
+   "ry": 0.9,
+   "n": 3,
+   "seed": 21,
+   "mix": {
+    "tree_m_red": 1,
+    "bush_gold_round": 1,
+    "tree_l_gold_round": 1
+   }
+  },
+  {
+   "id": "g-in-2",
+   "center": [
+    25.4,
+    15.4
+   ],
+   "rx": 1.4,
+   "ry": 0.8,
+   "n": 2,
+   "seed": 22,
+   "mix": {
+    "tree_m_gold_twin": 1,
+    "bush_orange_round": 1
+   }
+  },
+  {
+   "id": "g-in-3",
+   "center": [
+    31.2,
+    15.4
+   ],
+   "rx": 1.6,
+   "ry": 0.9,
+   "n": 3,
+   "seed": 23,
+   "mix": {
+    "tree_l_red": 1,
+    "bush_mixed": 1,
+    "tree_m_mixed": 1
+   }
+  },
+  {
+   "id": "g-in-4",
+   "center": [
+    36.4,
+    14.4
+   ],
+   "rx": 1.2,
+   "ry": 0.8,
+   "n": 2,
+   "seed": 24,
+   "mix": {
+    "tree_m_amber_tall": 1,
+    "bush_gold_hedge": 1
+   }
+  },
+  {
+   "id": "g-in-5",
+   "center": [
+    18.0,
+    22.0
+   ],
+   "rx": 1.4,
+   "ry": 0.5,
+   "n": 2,
+   "seed": 25,
+   "mix": {
+    "bush_orange_twin": 1,
+    "bush_red_long": 1
+   }
+  },
+  {
+   "id": "g-in-6",
+   "center": [
+    27.5,
+    22.0
+   ],
+   "rx": 1.8,
+   "ry": 0.5,
+   "n": 2,
+   "seed": 26,
+   "mix": {
+    "bush_gold_round": 1,
+    "stump_small": 1,
+    "bush_mixed": 1
+   }
+  }
+ ],
+ "scatter": [
+  {
+   "id": "tl-top",
+   "rects": [
+    [
+     1,
+     0,
+     50,
+     1.9
+    ]
+   ],
+   "sprites": [
+    "tree_l_gold_round",
+    "tree_l_orange_wide",
+    "tree_l_amber_tall",
+    "tree_l_red",
+    "tree_l_gold_twin",
+    "tree_l_mixed",
+    "tree_m_red",
+    "tree_m_gold_round"
+   ],
+   "spacing": 1.0,
+   "seed": 21,
+   "tries": 57,
+   "decoration": true
+  },
+  {
+   "id": "tl-left",
+   "rects": [
+    [
+     0,
+     2,
+     2.6,
+     26
+    ]
+   ],
+   "sprites": [
+    "tree_l_gold_round",
+    "tree_l_orange_wide",
+    "tree_l_red",
+    "tree_m_mixed",
+    "bush_orange_round"
+   ],
+   "spacing": 1.0,
+   "seed": 22,
+   "tries": 57,
+   "decoration": true
+  },
+  {
+   "id": "tl-right",
+   "rects": [
+    [
+     48.8,
+     2,
+     3.2,
+     26
+    ]
+   ],
+   "sprites": [
+    "tree_l_gold_twin",
+    "tree_l_amber_tall",
+    "tree_l_red",
+    "tree_m_orange_wide",
+    "bush_red_long"
+   ],
+   "spacing": 1.0,
+   "seed": 23,
+   "tries": 57,
+   "decoration": true
+  },
+  {
+   "id": "tl-bottom",
+   "rects": [
+    [
+     1,
+     27,
+     50,
+     3
+    ]
+   ],
+   "sprites": [
+    "tree_l_gold_round",
+    "tree_l_mixed",
+    "tree_l_red",
+    "tree_m_gold_twin",
+    "tree_m_amber_tall",
+    "bush_mixed"
+   ],
+   "spacing": 1.0,
+   "seed": 24,
+   "tries": 70,
+   "decoration": true
+  }
+ ],
+ "lamps": {
+  "sprite": "lamp-post-small",
+  "everyTiles": 11,
+  "startTiles": 3,
+  "offsetTiles": 1.9,
+  "withBench": true,
+  "benchGapPx": 30
+ },
+ "ringBenches": {
+  "everyTiles": 9,
+  "startTiles": 8,
+  "longEvery": 4
+ },
+ "furnitureTypes": {
+  "bench_front": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 30,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    28,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_back": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 30,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    28,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_left": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 14,
+   "h": 26,
+   "cut": 12,
+   "base": [
+    12,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -3
+     ],
+     "stand": [
+      -19,
+      -8
+     ],
+     "face": "left",
+     "pose": "sit",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_right": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 14,
+   "h": 26,
+   "cut": 12,
+   "base": [
+    12,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -3
+     ],
+     "stand": [
+      19,
+      -8
+     ],
+     "face": "right",
+     "pose": "sit",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_front_long": {
+   "label": "long bench",
+   "color": "#a8692f",
+   "w": 78,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    76,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -24,
+      -1
+     ],
+     "stand": [
+      -24,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    },
+    {
+     "at": [
+      24,
+      -1
+     ],
+     "stand": [
+      24,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_back_long": {
+   "label": "long bench",
+   "color": "#a8692f",
+   "w": 78,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    76,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -24,
+      -1
+     ],
+     "stand": [
+      -24,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    },
+    {
+     "at": [
+      24,
+      -1
+     ],
+     "stand": [
+      24,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    }
+   ]
+  },
+  "picnic_long": {
+   "label": "picnic table",
+   "color": "#c58a4a",
+   "w": 52,
+   "h": 26,
+   "cut": 14,
+   "base": [
+    52,
+    26
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -13,
+      -19
+     ],
+     "stand": [
+      -13,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      13,
+      -19
+     ],
+     "stand": [
+      13,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      -13,
+      -2
+     ],
+     "stand": [
+      -13,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      13,
+      -2
+     ],
+     "stand": [
+      13,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  },
+  "cafe_table": {
+   "label": "cafe table",
+   "color": "#d9a05b",
+   "w": 24,
+   "h": 20,
+   "cut": 10,
+   "base": [
+    22,
+    12
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -19,
+      -3
+     ],
+     "stand": [
+      -37,
+      -3
+     ],
+     "face": "right",
+     "pose": "sit",
+     "depth": "between"
+    },
+    {
+     "at": [
+      19,
+      -3
+     ],
+     "stand": [
+      37,
+      -3
+     ],
+     "face": "left",
+     "pose": "sit",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -20
+     ],
+     "stand": [
+      0,
+      -38
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      0,
+      5
+     ],
+     "stand": [
+      0,
+      24
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  },
+  "study_desk": {
+   "label": "study desk",
+   "color": "#9c6a3c",
+   "w": 84,
+   "h": 24,
+   "cut": 12,
+   "base": [
+    84,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -28,
+      -24
+     ],
+     "stand": [
+      -28,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      0,
+      -24
+     ],
+     "stand": [
+      0,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      28,
+      -24
+     ],
+     "stand": [
+      28,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      -28,
+      -2
+     ],
+     "stand": [
+      -28,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      0,
+      -2
+     ],
+     "stand": [
+      0,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      28,
+      -2
+     ],
+     "stand": [
+      28,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  }
+ },
+ "furniture": [
+  {
+   "id": "plaza-bench-w",
+   "type": "bench_right",
+   "at": [
+    19.7,
+    10.8
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "plaza-bench-e",
+   "type": "bench_left",
+   "at": [
+    32.3,
+    10.8
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "plaza-bench-s1",
+   "type": "bench_back",
+   "at": [
+    22.0,
+    12.9
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "plaza-bench-s2",
+   "type": "bench_back",
+   "at": [
+    30.0,
+    12.9
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "cafe-table-1",
+   "type": "cafe_table",
+   "at": [
+    21.6,
+    10.0
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "cafe-table-2",
+   "type": "cafe_table",
+   "at": [
+    23.8,
+    11.6
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "study-desk",
+   "type": "study_desk",
+   "at": [
+    29.6,
+    10.4
+   ],
+   "zone": "terrace"
+  },
+  {
+   "id": "picnic-quiet",
+   "type": "picnic_long",
+   "at": [
+    39.5,
+    14.8
+   ],
+   "zone": "quiet"
+  },
+  {
+   "id": "picnic-park",
+   "type": "picnic_long",
+   "at": [
+    10.4,
+    14.6
+   ],
+   "zone": "park"
+  },
+  {
+   "id": "picnic-plaza",
+   "type": "picnic_long",
+   "at": [
+    26.6,
+    12.4
+   ],
+   "zone": "terrace"
+  }
+ ],
+ "spawn": [
+  26.8,
+  9.6
+ ],
+ "plazaStands": [
+  [
+   21,
+   9
+  ],
+  [
+   25,
+   10.5
+  ],
+  [
+   29,
+   9
+  ],
+  [
+   31,
+   11.5
+  ],
+  [
+   23,
+   12.2
+  ]
+ ],
+ "botNodesEveryTiles": 7
+}

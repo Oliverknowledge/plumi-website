@@ -85,6 +85,14 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       /**
+       * The town's map and atlases (public/town/v1) are written under content hashes by tools/town/build.ts
+       * (town.<hash>.json, town-ground.<hash>.png ...): a name is always the same bytes, so it is kept for a year.
+       */
+      {
+        source: "/town/v1/:file*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      /**
        * The people layers are a binary file, and a CDN will not compress `application/octet-stream` (587 KB raw, 312 KB
        * gzipped). Served as text/plain it is compressed like any text; the page reads it with fetch().arrayBuffer(),
        * which does not care what the type says.

@@ -1,0 +1,266 @@
+{
+ "image": "town-cottages-door.png",
+ "size": [
+  512,
+  123
+ ],
+ "scale": 5.8,
+ "tile": 32,
+ "colours": 65,
+ "source": "docs/study/art/source/cottages-a-01.png",
+ "tool": "tools/art/cottages.py",
+ "buildings": [
+  {
+   "name": "cottage_terracotta",
+   "w": 123,
+   "h": 123,
+   "sourceBox": [
+    26,
+    176,
+    737,
+    888
+   ],
+   "derived": false,
+   "anchorX": 62,
+   "anchorY": 118,
+   "sortY": 118,
+   "footprint": {
+    "x": 10,
+    "y": 107,
+    "w": 104,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 10,
+    "y": 40,
+    "w": 104,
+    "h": 79
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 123,
+    "h": 81
+   },
+   "doorRect": {
+    "x": 54,
+    "y": 90,
+    "w": 16,
+    "h": 25
+   },
+   "step": {
+    "x": 52,
+    "y": 115,
+    "w": 20,
+    "h": 8
+   },
+   "doorCentreX": 62.0,
+   "entry": {
+    "x": 62,
+    "y": 123
+   },
+   "entryOffsetFromAnchor": [
+    0,
+    5
+   ],
+   "doorTrigger": {
+    "x": 52,
+    "y": 118,
+    "w": 20,
+    "h": 13
+   },
+   "x": 0,
+   "y": 0
+  },
+  {
+   "name": "cottage_slate",
+   "w": 124,
+   "h": 123,
+   "sourceBox": [
+    797,
+    176,
+    1512,
+    888
+   ],
+   "derived": false,
+   "anchorX": 62,
+   "anchorY": 118,
+   "sortY": 118,
+   "footprint": {
+    "x": 10,
+    "y": 107,
+    "w": 105,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 10,
+    "y": 40,
+    "w": 105,
+    "h": 79
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 124,
+    "h": 81
+   },
+   "doorRect": {
+    "x": 54,
+    "y": 90,
+    "w": 16,
+    "h": 25
+   },
+   "step": {
+    "x": 52,
+    "y": 115,
+    "w": 20,
+    "h": 8
+   },
+   "doorCentreX": 62.0,
+   "entry": {
+    "x": 62,
+    "y": 123
+   },
+   "entryOffsetFromAnchor": [
+    0,
+    5
+   ],
+   "doorTrigger": {
+    "x": 52,
+    "y": 118,
+    "w": 20,
+    "h": 13
+   },
+   "x": 125,
+   "y": 0
+  },
+  {
+   "name": "cottage_terracotta_moss",
+   "w": 123,
+   "h": 123,
+   "sourceBox": [
+    26,
+    176,
+    737,
+    888
+   ],
+   "derived": true,
+   "anchorX": 62,
+   "anchorY": 118,
+   "sortY": 118,
+   "footprint": {
+    "x": 10,
+    "y": 107,
+    "w": 104,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 10,
+    "y": 40,
+    "w": 104,
+    "h": 79
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 123,
+    "h": 81
+   },
+   "doorRect": {
+    "x": 54,
+    "y": 90,
+    "w": 16,
+    "h": 25
+   },
+   "step": {
+    "x": 52,
+    "y": 115,
+    "w": 20,
+    "h": 8
+   },
+   "doorCentreX": 62.0,
+   "entry": {
+    "x": 62,
+    "y": 123
+   },
+   "entryOffsetFromAnchor": [
+    0,
+    5
+   ],
+   "doorTrigger": {
+    "x": 52,
+    "y": 118,
+    "w": 20,
+    "h": 13
+   },
+   "derivedFrom": "cottage_terracotta",
+   "derivedHow": "terracotta roof turned moss green, walls as drawn",
+   "x": 251,
+   "y": 0
+  },
+  {
+   "name": "cottage_slate_plum",
+   "w": 124,
+   "h": 123,
+   "sourceBox": [
+    797,
+    176,
+    1512,
+    888
+   ],
+   "derived": true,
+   "anchorX": 62,
+   "anchorY": 118,
+   "sortY": 118,
+   "footprint": {
+    "x": 10,
+    "y": 107,
+    "w": 105,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 10,
+    "y": 40,
+    "w": 105,
+    "h": 79
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 124,
+    "h": 81
+   },
+   "doorRect": {
+    "x": 54,
+    "y": 90,
+    "w": 16,
+    "h": 25
+   },
+   "step": {
+    "x": 52,
+    "y": 115,
+    "w": 20,
+    "h": 8
+   },
+   "doorCentreX": 62.0,
+   "entry": {
+    "x": 62,
+    "y": 123
+   },
+   "entryOffsetFromAnchor": [
+    0,
+    5
+   ],
+   "doorTrigger": {
+    "x": 52,
+    "y": 118,
+    "w": 20,
+    "h": 13
+   },
+   "derivedFrom": "cottage_slate",
+   "derivedHow": "slate roof turned plum, honey walls",
+   "x": 376,
+   "y": 0
+  }
+ ]
+}
