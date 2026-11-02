@@ -2,13 +2,12 @@
 
 import { useEffect, useSyncExternalStore, type CSSProperties } from "react";
 import { colourOf } from "@/lib/library";
-import { HEAD, headPx, scaleHead, type HeadSize } from "@/lib/studyapp/library/people/headCrop";
+import { HEAD, headPx, headSquare, scaleHead, type HeadSize } from "@/lib/studyapp/library/people/headCrop";
 import { lookKey, personOf, type AvatarKeys } from "@/lib/studyapp/library/people/look";
 import { peopleStore, type DrawnPerson } from "@/lib/studyapp/library/people/store";
-import { FRAME_W } from "@/lib/studyapp/library/people/sheet";
 
 /**
- * A person's HEAD in a rounded tile, in their colour: their front-facing idle frame cropped to the head and shoulders
+ * A person's (or animal's) HEAD in a rounded tile, in their colour: their front-facing idle frame cropped to the head and shoulders
  * (people/headCrop.ts), drawn from the SAME built row the room uses (`peopleStore()`, never a second copy of the art).
  *
  * HOW IT IS CACHED. A head is painted once per look and size: the 16 x 16 crop is read from the built row (1 KB), scaled
@@ -25,7 +24,7 @@ const FAILED = "!";
 const KEEP_HEADS = 400;
 
 const urls = new Map<string, string>();        // `${look}@${px}` -> PNG data URL
-const crops = new Map<string, Uint8ClampedArray>();   // look -> its 16 x 16 head, so a second size does not read the row again
+const crops = new Map<string, { rgba: Uint8ClampedArray; side: number }>();   // look -> its square head (16 x 16 for a person), so a second size does not read the row again
 const asked = new Set<string>();               // looks whose row was asked for
 const lost = new Set<string>();                // looks whose row could not be built
 let artFailed = false;                          // the layers could not be fetched
@@ -54,14 +53,16 @@ function paint(look: string, drawn: DrawnPerson, px: number): string {
     if (!crop) {
       const ctx = drawn.sheet.getContext("2d");
       if (!ctx) return FAILED;
-      crop = new Uint8ClampedArray(ctx.getImageData(HEAD.frame * FRAME_W + HEAD.x, HEAD.y, HEAD.w, HEAD.h).data);
+      // a person's frame is 16 wide and the head the same place for everyone; an animal's is found from its art (headCrop.ts)
+      const sq = headSquare(drawn.frame, drawn.head);
+      crop = { rgba: new Uint8ClampedArray(ctx.getImageData(HEAD.frame * drawn.frame.w + sq.x, sq.y, sq.side, sq.side).data), side: sq.side };
       remember(crops, look, crop);
     }
     work ??= document.createElement("canvas");
     work.width = px; work.height = px;
     const ctx = work.getContext("2d");
     if (!ctx) return FAILED;
-    ctx.putImageData(new ImageData(scaleHead(crop, px) as Uint8ClampedArray<ArrayBuffer>, px, px), 0, 0);
+    ctx.putImageData(new ImageData(scaleHead(crop.rgba, px, crop.side) as Uint8ClampedArray<ArrayBuffer>, px, px), 0, 0);
     const url = work.toDataURL("image/png");
     remember(urls, `${look}@${px}`, url);
     return url;

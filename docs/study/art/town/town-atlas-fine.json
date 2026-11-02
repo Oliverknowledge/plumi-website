@@ -1,0 +1,351 @@
+{
+ "image": "town-atlas-fine.png",
+ "size": [
+  256,
+  151
+ ],
+ "scale": 5.0,
+ "tile": 16,
+ "palette": [
+  "#230d03",
+  "#472009",
+  "#434124",
+  "#6c3a17",
+  "#395b13",
+  "#904e1e",
+  "#ad351d",
+  "#83572b",
+  "#5f6640",
+  "#ac5e21",
+  "#4e8116",
+  "#db4d22",
+  "#ad7c3f",
+  "#c57327",
+  "#828e58",
+  "#7c9e16",
+  "#f0731a",
+  "#bd9a69",
+  "#e1902e",
+  "#d8a55c",
+  "#eabd74",
+  "#fbc835",
+  "#f5d18e",
+  "#f8e2ab"
+ ],
+ "source": "docs/study/art/source/town-props-sheet.png",
+ "tool": "tools/art/props_sheet.py",
+ "props": [
+  {
+   "name": "lamp-post-small",
+   "x": 168,
+   "y": 0,
+   "w": 14,
+   "h": 42,
+   "anchorX": 6,
+   "anchorY": 41,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "lamp-post-ornate",
+   "x": 34,
+   "y": 0,
+   "w": 16,
+   "h": 48,
+   "anchorX": 8,
+   "anchorY": 47,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "lamp-post-double",
+   "x": 0,
+   "y": 0,
+   "w": 32,
+   "h": 50,
+   "anchorX": 16,
+   "anchorY": 49,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "fence-straight",
+   "x": 90,
+   "y": 127,
+   "w": 37,
+   "h": 19,
+   "anchorX": 18,
+   "anchorY": 18,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "fence-post",
+   "x": 0,
+   "y": 95,
+   "w": 18,
+   "h": 30,
+   "anchorX": 8,
+   "anchorY": 29,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "fence-corner",
+   "x": 192,
+   "y": 95,
+   "w": 37,
+   "h": 26,
+   "anchorX": 18,
+   "anchorY": 25,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "fence-end",
+   "x": 81,
+   "y": 95,
+   "w": 27,
+   "h": 29,
+   "anchorX": 12,
+   "anchorY": 28,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "gate",
+   "x": 149,
+   "y": 95,
+   "w": 41,
+   "h": 27,
+   "anchorX": 20,
+   "anchorY": 26,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  },
+  {
+   "name": "signpost-single",
+   "x": 41,
+   "y": 52,
+   "w": 23,
+   "h": 40,
+   "anchorX": 4,
+   "anchorY": 39,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "signpost-double",
+   "x": 184,
+   "y": 0,
+   "w": 35,
+   "h": 41,
+   "anchorX": 17,
+   "anchorY": 40,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "noticeboard",
+   "x": 115,
+   "y": 52,
+   "w": 39,
+   "h": 39,
+   "anchorX": 19,
+   "anchorY": 38,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "mailbox",
+   "x": 204,
+   "y": 52,
+   "w": 21,
+   "h": 37,
+   "anchorX": 10,
+   "anchorY": 36,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "well",
+   "x": 81,
+   "y": 0,
+   "w": 36,
+   "h": 46,
+   "anchorX": 18,
+   "anchorY": 45,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "bin",
+   "x": 20,
+   "y": 95,
+   "w": 20,
+   "h": 30,
+   "anchorX": 10,
+   "anchorY": 29,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "planter-flowers",
+   "x": 110,
+   "y": 95,
+   "w": 37,
+   "h": 28,
+   "anchorX": 18,
+   "anchorY": 27,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "planter-pumpkins",
+   "x": 42,
+   "y": 95,
+   "w": 37,
+   "h": 30,
+   "anchorX": 18,
+   "anchorY": 29,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "bike-rack",
+   "x": 48,
+   "y": 127,
+   "w": 40,
+   "h": 20,
+   "anchorX": 20,
+   "anchorY": 19,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  },
+  {
+   "name": "cart-apples",
+   "x": 156,
+   "y": 52,
+   "w": 46,
+   "h": 38,
+   "anchorX": 17,
+   "anchorY": 37,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "barrel",
+   "x": 227,
+   "y": 52,
+   "w": 28,
+   "h": 35,
+   "anchorX": 14,
+   "anchorY": 34,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "crates",
+   "x": 0,
+   "y": 52,
+   "w": 39,
+   "h": 41,
+   "anchorX": 19,
+   "anchorY": 40,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  },
+  {
+   "name": "string-lights",
+   "x": 66,
+   "y": 52,
+   "w": 47,
+   "h": 40,
+   "anchorX": 23,
+   "anchorY": 39,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  },
+  {
+   "name": "flag",
+   "x": 52,
+   "y": 0,
+   "w": 27,
+   "h": 48,
+   "anchorX": 4,
+   "anchorY": 47,
+   "footprintTiles": [
+    1,
+    1
+   ]
+  },
+  {
+   "name": "stone-wall",
+   "x": 0,
+   "y": 127,
+   "w": 46,
+   "h": 24,
+   "anchorX": 22,
+   "anchorY": 23,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  },
+  {
+   "name": "stone-arch",
+   "x": 119,
+   "y": 0,
+   "w": 47,
+   "h": 45,
+   "anchorX": 23,
+   "anchorY": 44,
+   "footprintTiles": [
+    2,
+    1
+   ]
+  }
+ ]
+}

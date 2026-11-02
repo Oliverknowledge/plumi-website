@@ -9,6 +9,8 @@
  * the nearest part it does; nothing a friend sends can stop them being drawn.
  */
 
+import { ANIMAL_IDS } from "./animals";
+
 export interface PersonLook {
   /** "01" to "07". */
   body: string;
@@ -23,7 +25,7 @@ export interface PersonLook {
   /** "red", "cream", "black", "teal", "lilac", or null for no headphones. */
   phones: string | null;
   /**
-   * An animal instead of a person ("fox", see `SPECIES`). Set when the avatar's `body` names one. The rest of the look
+   * An animal instead of a person ("fox", "badger" and the rest of `SPECIES`). Set when the avatar's `body` names one. The rest of the look
    * is still the person the student would be (the nearest person for an iPad that does not know the animal, the
    * wardrobe's Person tab, the avatar keys that are kept), but the room draws the animal.
    */
@@ -31,11 +33,13 @@ export interface PersonLook {
 }
 
 /**
- * The values of an avatar's `body` that are an animal, not a skin ("01" to "07"). The server takes any identifier in
- * `body` (`set_avatar`: `^[a-z0-9_-]{1,24}$`), so no migration: the web writes `body: "fox"` and the person keys stay,
- * and an iPad that does not know the animal falls back to the person (`known` maps an unknown body to the first one).
+ * The values of an avatar's `body` that are an animal, not a skin ("01" to "07"): the ids in animals.ts. The web writes
+ * `body: "fox"` (and the like) and the person keys stay, and an iPad that does not know the animal falls back to the person
+ * (`known` maps an unknown body to the first one). WHAT THE SERVER MUST ALLOW: migration 0125 and earlier took any
+ * `^[a-z0-9_-]{1,24}$` in `body`; 0126's `set_avatar` takes digits only (`^[0-9]{1,3}$`) and would refuse every animal, so it
+ * has to take these ids too (docs/study/library.md, "Characters": the exact line). They are lower case letters, 3 to 12.
  */
-export const SPECIES: readonly string[] = ["fox"];
+export const SPECIES: readonly string[] = ANIMAL_IDS;
 /** The animal a `body` value names, or null for a skin or anything else (an unknown value is treated as before: `known` maps it to a skin). */
 export const speciesOf = (body: string | null | undefined): string | null => (typeof body === "string" && SPECIES.includes(body) ? body : null);
 

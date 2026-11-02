@@ -1,0 +1,80 @@
+{
+  "id": "triceratops",
+  "title": "Triceratops",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#110904",
+    "#120e26",
+    "#441207",
+    "#24204a",
+    "#373010",
+    "#2f2966",
+    "#3c367f",
+    "#41398d",
+    "#635b25",
+    "#a55133",
+    "#7e7f2e",
+    "#ee6746",
+    "#a59369",
+    "#9da334",
+    "#9fa649",
+    "#fa9063",
+    "#bbc658",
+    "#f5b592",
+    "#ead19b",
+    "#fcf7d2"
+  ],
+  "outline": "#110904",
+  "jumper": [
+    "#24204a",
+    "#3c367f",
+    "#41398d"
+  ],
+  "sourceScale": 8.73,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-triceratops.png",
+  "tool": "tools/art/animal_sheet.py"
+}

@@ -1,0 +1,79 @@
+{
+  "id": "redpanda",
+  "title": "Red panda",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#210d07",
+    "#390f0a",
+    "#0d2521",
+    "#5d1e0a",
+    "#533521",
+    "#623129",
+    "#0b4a4a",
+    "#813f2c",
+    "#96441a",
+    "#0f7072",
+    "#bd5a22",
+    "#b6633c",
+    "#0a8f96",
+    "#dc712d",
+    "#b48d6f",
+    "#de7e38",
+    "#d59054",
+    "#f3ca97",
+    "#fbebb7",
+    "#fbeec9"
+  ],
+  "outline": "#210d07",
+  "jumper": [
+    "#0f7072",
+    "#0a8f96"
+  ],
+  "sourceScale": 8.1,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-redpanda.png",
+  "tool": "tools/art/animal_sheet.py"
+}

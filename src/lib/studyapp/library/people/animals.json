@@ -1,0 +1,129 @@
+[
+ {
+  "id": "fox",
+  "title": "Fox",
+  "jumper": [
+   "#76273b",
+   "#a03a55"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "capybara",
+  "title": "Capybara",
+  "jumper": [
+   "#dab787",
+   "#f7dbab"
+  ],
+  "tail": {
+   "down": null,
+   "left": null,
+   "up": null,
+   "right": null
+  }
+ },
+ {
+  "id": "axolotl",
+  "title": "Axolotl",
+  "jumper": [
+   "#a664cd"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "redpanda",
+  "title": "Red panda",
+  "jumper": [
+   "#0f7072",
+   "#0a8f96"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "badger",
+  "title": "Badger",
+  "jumper": [
+   "#b27722",
+   "#eab340"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "hedgehog",
+  "title": "Hedgehog",
+  "jumper": [
+   "#6a784d",
+   "#8ca16e"
+  ],
+  "tail": {
+   "down": null,
+   "left": null,
+   "up": null,
+   "right": null
+  }
+ },
+ {
+  "id": "raccoon",
+  "title": "Raccoon",
+  "jumper": [
+   "#ae4815",
+   "#d46020",
+   "#e86718"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "triceratops",
+  "title": "Triceratops",
+  "jumper": [
+   "#24204a",
+   "#3c367f",
+   "#41398d"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ },
+ {
+  "id": "dragon",
+  "title": "Dragon",
+  "jumper": [
+   "#1f213c",
+   "#343c68"
+  ],
+  "tail": {
+   "down": 6,
+   "left": 5,
+   "up": null,
+   "right": 5
+  }
+ }
+]

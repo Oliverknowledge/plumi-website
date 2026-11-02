@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { SocialAvatar } from "@/lib/social/types";
-import { FOX_W } from "@/lib/studyapp/library/people/fox";
+import { ANIMAL_W } from "@/lib/studyapp/library/people/animal";
 import { peopleStore } from "@/lib/studyapp/library/people/store";
 import type { PersonLook } from "@/lib/studyapp/library/people/look";
 import {
@@ -19,8 +19,8 @@ import type { LibrarySocial } from "@/lib/studyapp/library/session";
  */
 
 const FRONT = 18, WALK_RIGHT = 24, WALK_FRONT = 42;
-/** What is shown while a character has nothing to dress (the fox for now). */
-const FOX_LINE = "Foxes come as they are for now";
+/** What is shown while a character has nothing to dress (an animal, for now: it wears the jumper it was drawn in). */
+const ANIMAL_LINE = "Animals come as they are for now";
 
 /** Draws frames of a built person onto a canvas, a few times a second; one still frame under reduced motion. */
 function Figure({ look, scale, loop, rect, label }: { look: PersonLook | null; scale: number; loop: number; rect?: [number, number]; label?: string }) {
@@ -29,7 +29,7 @@ function Figure({ look, scale, loop, rect, label }: { look: PersonLook | null; s
   const last = useRef<typeof drawn>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const [sy, sh] = rect ?? [0, 32];
-  const fw = look?.species ? FOX_W : 16;       // a fox's frames are wider than a person's (the drawn row says the same: `frame.w`)
+  const fw = look?.species ? ANIMAL_W : 16;       // an animal's frames are wider than a person's (the drawn row says the same: `frame.w`)
   useEffect(() => { if (look) store.row(look, false); }, [store, look]);
   useEffect(() => {
     if (drawn) last.current = drawn;
@@ -60,7 +60,7 @@ function Tile({ item, look, on, current, onPick }: { item: Item; look: PersonLoo
   );
 }
 
-/** One character, pictured: the person you are dressing, or the fox. */
+/** One character, pictured: the person you are dressing, or an animal. */
 function CharacterTile({ id, title, look, on, onPick }: { id: Character; title: string; look: PersonLook; on: boolean; onPick: () => void }) {
   return (
     <button type="button" className={`lb-wtile lb-wchar${on ? " is-on" : ""}`} aria-pressed={on} data-testid={`character-${id}`} onClick={onPick}>
@@ -92,7 +92,7 @@ export function Wardrobe({ social, avatar, colour, me, onSaved }: {
   const changed = !sameLook(draft, base);
   const put = (next: PersonLook) => { setEdit(next); setLine(null); };
   const character = characterOf(draft);
-  const fox = character === "fox";
+  const animal = character !== "person";
   const items = itemsIn(slot);
   const extra = currentOutsideFree(draft, slot);
   const colourSlot = slot === "hair" || slot === "outfit" ? slot : null;
@@ -114,13 +114,13 @@ export function Wardrobe({ social, avatar, colour, me, onSaved }: {
         {CHARACTERS.map((c) => <CharacterTile key={c.id} id={c.id} title={c.title} look={draft} on={character === c.id} onPick={() => put(asCharacter(draft, c.id))} />)}
       </div>
       <div className="lb-wstage">
-        <div className="lb-wbig"><Figure look={draft} scale={fox ? 5 : 7} loop={FRONT} label="You, standing" /></div>
+        <div className="lb-wbig"><Figure look={draft} scale={animal ? 5 : 7} loop={FRONT} label="You, standing" /></div>
         <div className="lb-wwalk" aria-hidden="true">
-          <Figure look={draft} scale={fox ? 3 : 4} loop={WALK_RIGHT} label="You, walking" />
-          <Figure look={draft} scale={fox ? 3 : 4} loop={WALK_FRONT} label="You, walking" />
+          <Figure look={draft} scale={animal ? 3 : 4} loop={WALK_RIGHT} label="You, walking" />
+          <Figure look={draft} scale={animal ? 3 : 4} loop={WALK_FRONT} label="You, walking" />
         </div>
       </div>
-      {fox ? <p className="lb-hint lb-wfox" data-testid="fox-line">{FOX_LINE}</p> : <>
+      {animal ? <p className="lb-hint lb-wfox" data-testid="animal-line">{ANIMAL_LINE}</p> : <>
       <div className="lb-wslots" role="tablist" aria-label="What to change">
         {SLOTS.map((s) => (
           <button key={s.slot} type="button" role="tab" aria-selected={slot === s.slot} className={slot === s.slot ? "on" : undefined} onClick={() => setSlot(s.slot)}>{s.title}</button>
@@ -141,10 +141,10 @@ export function Wardrobe({ social, avatar, colour, me, onSaved }: {
       </>}
       <div className="lb-row lb-wact">
         <button type="button" className="btn gold" data-testid="save-outfit" disabled={!changed || busy} onClick={() => void save()}>{busy ? "Saving" : "Save"}</button>
-        {!fox && <button type="button" className="btn ghost" onClick={() => put(randomLook(cat))}>Random</button>}
-        {!fox && <button type="button" className="btn ghost" onClick={() => put({ ...STARTER_LOOK })}>Reset</button>}
+        {!animal && <button type="button" className="btn ghost" onClick={() => put(randomLook(cat))}>Random</button>}
+        {!animal && <button type="button" className="btn ghost" onClick={() => put({ ...STARTER_LOOK })}>Reset</button>}
       </div>
-      <p className="lb-hint lb-wline" role="status" data-testid="outfit-line">{line ?? (changed ? "Not saved yet" : fox ? "" : "More to wear is earned on iPad")}</p>
+      <p className="lb-hint lb-wline" role="status" data-testid="outfit-line">{line ?? (changed ? "Not saved yet" : animal ? "" : "More to wear is earned on iPad")}</p>
     </section>
   );
 }

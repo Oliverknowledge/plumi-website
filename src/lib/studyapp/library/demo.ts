@@ -1,5 +1,6 @@
 import { IPAD_SEATS } from "./ipadSeats";
 import { FakeBot, FakeLibraryWorld, FakeRealtimeHub } from "./fake";
+import { ANIMALS } from "./people/animals";
 import type { LibraryDriver } from "@/components/studyapp/library/driver";
 
 /**
@@ -29,7 +30,12 @@ const AVATARS: Record<number, Record<string, string>> = {
 };
 
 /** What the demo adds, for the browser checks (`?people=40&friends=30`, `?friends=none`): more strangers on the floor, more friends, or none at all. */
-export interface DemoOptions { people?: number; friends?: number | "none"; /** Nobody else is in the library (`?alone=1`: the quiet-room checks). */ alone?: boolean }
+export interface DemoOptions {
+  people?: number; friends?: number | "none";
+  /** Nobody else is in the library (`?alone=1`: the quiet-room checks). */ alone?: boolean;
+  /** `?zoo=1`: every animal (people/animals.ts) is in the room walking along the open row; `?zoo=sit`: sitting at the desks. For checking the art in the room. */ zoo?: "walk" | "sit";
+  /** `?me=badger`: you are that animal (to walk it in every direction and sit it down). */ me?: string;
+}
 
 const ADJ = ["Quiet", "Brave", "Bright", "Calm", "Clever", "Cosy", "Eager", "Gentle", "Happy", "Jolly", "Keen", "Kind", "Lucky", "Merry", "Mighty", "Nimble", "Plucky", "Proud", "Rapid", "Sunny"];
 const ANIMAL = ["Badger", "Falcon", "Finch", "Gecko", "Hedgehog", "Ibis", "Jackal", "Koala", "Lemur", "Magpie", "Narwhal", "Ocelot", "Puffin", "Quokka", "Robin", "Stoat", "Tapir", "Urchin", "Vole", "Walrus"];
@@ -44,7 +50,8 @@ const dressed = (n: number): Record<string, string> | null => n % 5 === 4 ? null
 export function demoDriver(o: DemoOptions = {}): LibraryDriver {
   const world = new FakeLibraryWorld();
   const hub = new FakeRealtimeHub();
-  world.add(DEMO_ME, { nickname: "Quiet Otter", display: "You", colour: 1, avatar: ME_AVATAR });
+  const meAvatar = o.me && ANIMALS.some((a) => a.id === o.me) ? { ...ME_AVATAR, body: o.me } : ME_AVATAR;
+  world.add(DEMO_ME, { nickname: "Quiet Otter", display: "You", colour: 1, avatar: meAvatar });
   const cast = [
     { id: uuid(2), nickname: "Bold Fox", display: "Maya", colour: 2, friend: true, subject: "chemistry", seatIdx: 9, mins: 24 },
     { id: uuid(3), nickname: "Calm Heron", display: "Josh", colour: 3, friend: true, subject: null, seatIdx: null, mins: 0 },
@@ -87,6 +94,12 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
     if (i % 3 === 1) world.studying(id, ["physics", "chemistry", "biology"][i % 3], 30);
     more.push({ id, here: i % 3 === 0 });
   }
+  // the animals, one of each, for the art checks (`?zoo=1`)
+  const zoo = o.zoo ? ANIMALS.map((a, i) => ({ id: uuid(300 + i), animal: a.id, tile: 22 + Math.round(i * 2.5), seatIdx: [3, 8, 14, 18, 24, 29, 34, 40, 44][i] })) : [];
+  for (const z of zoo) {
+    world.add(z.id, { nickname: `Zoo ${z.animal}`, display: ANIMALS.find((x) => x.id === z.animal)!.title, colour: 2 + (zoo.indexOf(z) % 6), avatar: { body: z.animal }, streak: 2, level: 3 });
+    if (!noFriends) world.befriend(DEMO_ME, z.id);       // friends, so each is in the People list with a head
+  }
   // another library with a few in it, for the picker
   for (let i = 0; i < 3; i++) { const id = uuid(20 + i); world.add(id, { nickname: ["Kind Seal", "Wise Hare", "Keen Lynx"][i], display: `S${i}` }); if (!o.alone) world.place(id, 2); }
 
@@ -94,7 +107,7 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
     social: world.social(DEMO_ME),
     realtime: () => hub.client(DEMO_ME),
     me: DEMO_ME,
-    mine: { avatar: ME_AVATAR, colour: 1 },
+    mine: { avatar: meAvatar, colour: 1 },
     scene() {
       // the browser checks reach into the scripted world (to make a friend sit down, say); the demo page does not exist in production
       if (typeof window !== "undefined") (window as unknown as { __plumiDemo?: unknown }).__plumiDemo = { world, me: DEMO_ME, uuid };
@@ -121,12 +134,23 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
         more.forEach((f, i) => { if (f.here) world.place(f.id, 1, { seated: i % 2 === 0, subject: i % 2 === 0 ? "chemistry" : null, focusSince: i % 2 === 0 ? t0 - (3 + i) * 60_000 : null }); });
       };
       placeExtras();
+      const zooBots = zoo.map((z) => {
+        const bot = new FakeBot(hub.client(z.id), z.id, 1, `walk:lobby-1:${z.id}`);
+        bots.set(z.id, bot);
+        return { ...z, bot, to: z.tile, dir: 1 as 1 | -1 };
+      });
+      const zooPlace = () => {
+        for (const z of zooBots) world.place(z.id, 1, { seated: o.zoo === "sit", subject: null, focusSince: o.zoo === "sit" ? t0 - 8 * 60_000 : null });
+        if (o.zoo === "sit") for (const z of zooBots) z.bot.at({ ...seat(z.seatIdx), path: [] });
+      };
+      zooPlace();
       // each beat: keep the server's rows fresh, and send each person's place on the floor (as the iPad's 10 second resend does)
       const beat = () => {
         for (const c of cast) world.place(c.id, 1, { seated: c.seatIdx !== null, subject: c.subject, focusSince: c.seatIdx !== null ? t0 - c.mins * 60_000 : null });
         for (const c of cast.filter((x) => x.seatIdx !== null)) bots.get(c.id)!.at({ ...seat(c.seatIdx!), path: [] });
         for (const id of [uuid(20), uuid(21), uuid(22)]) world.place(id, 2);
         placeExtras();
+        zooPlace();
       };
 
       timers.push(setInterval(beat, 8000));
@@ -142,6 +166,18 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
       };
       later(leg, 900);
       timers.push(setInterval(leg, 7000));
+      // the animals walk a few tiles along the open row and back, each on its own stretch, so every direction is seen
+      const zooLeg = () => {
+        if (o.zoo !== "walk") return;
+        for (const z of zooBots) {
+          const next = z.to >= z.tile + 4 ? z.tile - 1 : z.to <= z.tile - 1 ? z.tile + 4 : z.dir > 0 ? z.tile + 4 : z.tile - 1;
+          z.bot.at({ x: row(z.to).x, y: row(z.to).y, seat: null, path: [[row(next).x, row(next).y]] });
+          z.dir = next > z.to ? 1 : -1;
+          z.to = next;
+        }
+      };
+      later(zooLeg, 700);
+      timers.push(setInterval(zooLeg, 3500));
       // talk, and a wave
       const lines: [number, string][] = [
         [1, "anyone doing the paper 2 mock tomorrow?"], [2, "just finished q4, the last part was nasty"], [0, "good luck everyone"], [3, "40 minutes on maths then a break, join me"],

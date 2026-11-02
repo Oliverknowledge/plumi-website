@@ -105,12 +105,12 @@ describe("personOf (RoomAvatar.person)", () => {
   });
 });
 
-describe("an animal (body: \"fox\")", () => {
+describe("an animal (body: \"fox\" and the other eight)", () => {
   const person = { body: "03", eyes: "02", outfit: "12_03", hair: "29_04", acc: "none", phones: "red" };
   it("names the species only for a species id, never for a skin or an invented value", () => {
-    assert.deepEqual(SPECIES, ["fox"]);
-    assert.equal(speciesOf("fox"), "fox");
-    for (const v of ["03", "01", "", "Fox", "wolf", undefined, null]) assert.equal(speciesOf(v as string), null, String(v));
+    assert.deepEqual(SPECIES, ["fox", "capybara", "axolotl", "redpanda", "badger", "hedgehog", "raccoon", "triceratops", "dragon"]);
+    for (const id of SPECIES) assert.equal(speciesOf(id), id);
+    for (const v of ["03", "01", "", "Fox", "wolf", "red-panda", "foxx", undefined, null]) assert.equal(speciesOf(v as string), null, String(v));
   });
   it("is the fox for you and everyone, with or without the person keys, and the person behind it is the nearest one", () => {
     const a = personOf(cat, { ...person, body: "fox" }, 3, "u1");
@@ -138,5 +138,11 @@ describe("an animal (body: \"fox\")", () => {
   });
   it("survives `known` (the species is not a part to be mapped)", () => {
     assert.equal(known(cat, { ...STARTER, species: "fox" }).species, "fox");
+  });
+  it("is each animal's own row: nine animals, nine keys, none a person's", () => {
+    const keys = SPECIES.map((id) => lookKey(personOf(cat, { ...person, body: id }, 3, "u1")));
+    assert.equal(new Set(keys).size, SPECIES.length);
+    assert.deepEqual(keys, SPECIES.map((id) => `~${id}`));
+    for (const id of SPECIES) assert.equal(personOf(cat, { body: id }, 3, "u1").species, id);
   });
 });

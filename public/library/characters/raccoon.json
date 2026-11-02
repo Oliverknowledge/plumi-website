@@ -1,0 +1,76 @@
+{
+  "id": "raccoon",
+  "title": "Raccoon",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#1f0d0d",
+    "#3f1309",
+    "#2f2121",
+    "#63210a",
+    "#403535",
+    "#484140",
+    "#87300a",
+    "#665e5d",
+    "#ae4815",
+    "#837b7a",
+    "#d46020",
+    "#e86718",
+    "#959291",
+    "#f09a92",
+    "#bcb3ae",
+    "#e1d9d2"
+  ],
+  "outline": "#1f0d0d",
+  "jumper": [
+    "#ae4815",
+    "#d46020",
+    "#e86718"
+  ],
+  "sourceScale": 8.1,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-raccoon.png",
+  "tool": "tools/art/animal_sheet.py"
+}

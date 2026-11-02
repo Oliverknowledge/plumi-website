@@ -1,0 +1,79 @@
+{
+  "id": "dragon",
+  "title": "Dragon",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#15040a",
+    "#380d1c",
+    "#1f213c",
+    "#59352a",
+    "#343c68",
+    "#682d47",
+    "#893a5f",
+    "#a84f53",
+    "#ac527c",
+    "#9f756b",
+    "#ba658b",
+    "#db7345",
+    "#ed6c2a",
+    "#f27d8f",
+    "#fa8830",
+    "#dba99a",
+    "#edbd93",
+    "#fad6c5",
+    "#fce6ce",
+    "#fdeabf"
+  ],
+  "outline": "#15040a",
+  "jumper": [
+    "#1f213c",
+    "#343c68"
+  ],
+  "sourceScale": 8.52,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-dragon.png",
+  "tool": "tools/art/animal_sheet.py"
+}

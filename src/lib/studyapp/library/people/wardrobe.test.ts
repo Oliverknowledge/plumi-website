@@ -169,12 +169,12 @@ describe("the avatar that is saved (set_avatar replaces it whole)", () => {
   });
 });
 
-describe("the character: person or fox", () => {
+describe("the character: person or an animal", () => {
   const current: Record<string, string> = { body: "01", eyes: "01", outfit: "10_01", hair: "05_01", acc: "none", phones: "teal", pro: "1", feather: "blue", top: "hoodie", colour: "#7cc6c2", hat: "headphones", hat_colour: "#5aa6a4", glasses: "none" };
   const look = personOf(cat, current, 0, "u1");
-  it("offers two characters, both free", () => {
-    assert.deepEqual(CHARACTERS.map((c) => c.id), ["person", "fox"]);
-    assert.deepEqual(CHARACTERS.map((c) => c.title), ["Person", "Fox"]);
+  it("offers a person and nine animals, all free", () => {
+    assert.deepEqual(CHARACTERS.map((c) => c.id), ["person", "fox", "capybara", "axolotl", "redpanda", "badger", "hedgehog", "raccoon", "triceratops", "dragon"]);
+    assert.deepEqual(CHARACTERS.map((c) => c.title), ["Person", "Fox", "Capybara", "Axolotl", "Red panda", "Badger", "Hedgehog", "Raccoon", "Triceratops", "Dragon"]);
     assert.ok(CHARACTERS.every((c) => !/\u2014/.test(c.title)));
   });
   it("a fox changes body and nothing else: pro, the older keys and the person keys stay", () => {
@@ -182,6 +182,17 @@ describe("the character: person or fox", () => {
     assert.deepEqual(next, { ...current, body: "fox" });
     assert.equal(validAvatarValue(next.body), true, "the server accepts it (^[a-z0-9_-]{1,24}$)");
     for (const [k, v] of Object.entries(next)) { assert.ok(AVATAR_KEYS.has(k), k); assert.ok(validAvatarValue(v), `${k}=${v}`); }
+  });
+  it("every animal is saved as body and nothing else, in a value the server's earlier rule took and the next must", () => {
+    for (const c of CHARACTERS.filter((x) => x.id !== "person")) {
+      const next = mergeAvatar(current, asCharacter(look, c.id));
+      assert.deepEqual(next, { ...current, body: c.id }, c.id);
+      assert.match(next.body, /^[a-z0-9_-]{1,24}$/);
+      assert.match(next.body, /^[a-z]{3,12}$/);
+      assert.equal(characterOf(personOf(cat, next, 0, "u1")), c.id);
+      assert.deepEqual(asCharacter(asCharacter(look, c.id), "person"), look, "Person puts back the person");
+      assert.equal(JSON.stringify(next).length < 420, true, "inside the avatar's size cap");
+    }
   });
   it("a fox for a student who never dressed adds only body: no key is invented", () => {
     assert.deepEqual(mergeAvatar(null, asCharacter(STARTER_LOOK, "fox")), { body: "fox" });

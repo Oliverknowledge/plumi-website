@@ -1,4 +1,6 @@
 {
+  "id": "fox",
+  "title": "Fox",
   "frame": [
     24,
     32
@@ -40,7 +42,8 @@
   "anchor": {
     "x": 12,
     "feetRow": 31,
-    "note": "the feet's bottom row; the centre of mass of each frame is on column x"
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
   },
   "palette": [
     "#230703",
@@ -61,8 +64,12 @@
     "#fdf7c5"
   ],
   "outline": "#230703",
+  "jumper": [
+    "#76273b",
+    "#a03a55"
+  ],
   "sourceScale": 8.1,
   "method": "vote",
   "source": "docs/study/art/source/fox-sheet-01.png",
-  "tool": "tools/art/fox_sheet.py"
+  "tool": "tools/art/animal_sheet.py"
 }

@@ -13,7 +13,7 @@ import { LibraryFront } from "./LibraryFront";
 /** `?people=40&friends=30` or `?friends=none` (what the browser checks add to the scripted world). Nothing on the server render. */
 function demoOptions(q: URLSearchParams): DemoOptions {
   const n = (k: string) => { const v = Number(q.get(k)); return Number.isFinite(v) && v > 0 ? Math.min(150, Math.floor(v)) : undefined; };
-  return { people: n("people"), friends: q.get("friends") === "none" ? "none" : n("friends"), alone: q.get("alone") === "1" };
+  return { people: n("people"), friends: q.get("friends") === "none" ? "none" : n("friends"), alone: q.get("alone") === "1", zoo: q.get("zoo") === "sit" ? "sit" : q.get("zoo") === "1" ? "walk" : undefined, me: q.get("me") ?? undefined };
 }
 
 /**

@@ -1,5 +1,6 @@
 import { artUrl } from "../art";
-import { FOX_H, FOX_ROW_W, FOX_URL, FOX_W, composeFox, type Box } from "./fox";
+import { ANIMAL_H, ANIMAL_ROW_W, ANIMAL_W, composeAnimal, type Box } from "./animal";
+import { animalOf, animalUrl } from "./animals";
 import { LayerPack } from "./layers";
 import { decodePng, type Bitmap } from "./png";
 import { lookKey, personOf, stableHash, known, type AvatarKeys, type PeopleCatalogue, type PersonLook } from "./look";
@@ -18,10 +19,10 @@ import { FRAME_H, ROW_W, composeRowSteps, layerKeys } from "./sheet";
 
 /**
  * One person's (or animal's) 78 frames, ready for the engine. THE FRAME SIZE is per row: a person's frames are 16 x 32
- * (`frame`), the fox's 24 x 32, and `sheet` is 78 frames of that width side by side. `head` is where the head is in the
+ * (`frame`), an animal's 34 x 32, and `sheet` is 78 frames of that width side by side. `head` is where the head is in the
  * front idle frame (frame `POSE.idle + 18`, that is index 18 of the row), for a list or a card that shows only the head:
  * crop `head` out of `sheet` at x = (18 * frame.w) + head.x. For a person the box is the face and hair (the layers'
- * heads are all in the same place); for the fox it is found from the art (ears down to the sweater).
+ * heads are all in the same place); for an animal it is found from the art (ears down to the jumper).
  */
 export interface DrawnPerson { sheet: HTMLCanvasElement; phones: boolean; look: PersonLook; frame: { w: number; h: number }; head: Box }
 
@@ -151,42 +152,44 @@ export class PeopleStore {
     return new Promise((resolve) => queued.waiters.push(resolve));
   }
 
-  private strip: Promise<Bitmap | null> | null = null;
-  private stripFailedAt = -Infinity;
+  private strips = new Map<string, Promise<Bitmap | null>>();
+  private stripFailedAt = new Map<string, number>();
   private building = new Set<string>();
-  /** The fox's strip, fetched once (and again after a failure, once in a while). */
-  private foxStrip(): Promise<Bitmap | null> {
-    if (this.strip) return this.strip;
-    if (this.now() - this.stripFailedAt < RETRY_AFTER_MS) return Promise.resolve(null);
+  /** An animal's strip, fetched once (and again after a failure, once in a while). Only the animals that are asked for are ever fetched. */
+  private animalStrip(id: string): Promise<Bitmap | null> {
+    const have = this.strips.get(id);
+    if (have) return have;
+    if (this.now() - (this.stripFailedAt.get(id) ?? -Infinity) < RETRY_AFTER_MS) return Promise.resolve(null);
     const p = (async () => {
       try {
-        const r = await this.get(FOX_URL);
-        if (!r.ok) throw new Error("fox: fetch");
+        const r = await this.get(animalUrl(id));
+        if (!r.ok) throw new Error("animal: fetch");
         return await decodePng(new Uint8Array(await r.arrayBuffer()));
       } catch {
-        this.stripFailedAt = this.now();
-        this.strip = null;
+        this.stripFailedAt.set(id, this.now());
+        this.strips.delete(id);
         return null;
       }
     })();
-    this.strip = p;
+    this.strips.set(id, p);
     return p;
   }
 
-  /** An animal's row (the fox): from its own strip, not the people's layers, so it does not wait for them. */
+  /** An animal's row: from its own strip, not the people's layers, so it does not wait for them. */
   private async buildAnimal(key: string, look: PersonLook, graded: boolean): Promise<DrawnPerson | null> {
-    if (typeof document === "undefined") return null;
+    const animal = animalOf(look.species);
+    if (!animal || typeof document === "undefined") return null;
     this.building.add(key);
     try {
-      const strip = await this.foxStrip();
-      const fox = strip ? composeFox(strip, { graded }) : null;
-      if (!fox) return null;
+      const strip = await this.animalStrip(animal.id);
+      const row = strip ? composeAnimal(strip, animal, { graded }) : null;
+      if (!row) return null;
       const canvas = document.createElement("canvas");
-      canvas.width = FOX_ROW_W; canvas.height = FOX_H;
+      canvas.width = ANIMAL_ROW_W; canvas.height = ANIMAL_H;
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
-      ctx.putImageData(new ImageData(fox.rgba as Uint8ClampedArray<ArrayBuffer>, FOX_ROW_W, FOX_H), 0, 0);
-      const person: DrawnPerson = { sheet: canvas, phones: false, look, frame: { w: FOX_W, h: FOX_H }, head: fox.head };
+      ctx.putImageData(new ImageData(row.rgba as Uint8ClampedArray<ArrayBuffer>, ANIMAL_ROW_W, ANIMAL_H), 0, 0);
+      const person: DrawnPerson = { sheet: canvas, phones: false, look, frame: { w: ANIMAL_W, h: ANIMAL_H }, head: row.head };
       if (this.rows.size >= KEEP_ROWS) this.rows.delete(this.rows.keys().next().value as string);
       this.rows.set(key, person);
       this.changed();

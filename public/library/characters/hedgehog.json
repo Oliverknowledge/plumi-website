@@ -1,0 +1,75 @@
+{
+  "id": "hedgehog",
+  "title": "Hedgehog",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#190702",
+    "#3b170c",
+    "#322e14",
+    "#6d3729",
+    "#575838",
+    "#8c533d",
+    "#a06446",
+    "#6a784d",
+    "#b1936f",
+    "#8ca16e",
+    "#ca905a",
+    "#e6b476",
+    "#f0c7a2",
+    "#f2d197",
+    "#fbf1cc",
+    "#fdf4c3"
+  ],
+  "outline": "#190702",
+  "jumper": [
+    "#6a784d",
+    "#8ca16e"
+  ],
+  "sourceScale": 8.06,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-hedgehog.png",
+  "tool": "tools/art/animal_sheet.py"
+}

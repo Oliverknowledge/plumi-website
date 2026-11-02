@@ -1,0 +1,78 @@
+{
+  "id": "axolotl",
+  "title": "Axolotl",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#28030a",
+    "#41060b",
+    "#43103f",
+    "#72141d",
+    "#692b8a",
+    "#7e413d",
+    "#c14859",
+    "#a664cd",
+    "#e94362",
+    "#b6756f",
+    "#f75d6a",
+    "#ba86c9",
+    "#f17272",
+    "#c689e6",
+    "#f88c80",
+    "#f59b90",
+    "#f8b4af",
+    "#fbb8a8",
+    "#f7bead",
+    "#fcd5c7"
+  ],
+  "outline": "#28030a",
+  "jumper": [
+    "#a664cd"
+  ],
+  "sourceScale": 8.77,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-axolotl.png",
+  "tool": "tools/art/animal_sheet.py"
+}

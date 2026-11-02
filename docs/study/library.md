@@ -174,50 +174,79 @@ look return after the iPad is next opened.
 schema: an iPad avatar reads back, the merged avatar is accepted exactly and changes only what was chosen, the whole
 avatar is replaced, an invented key is refused, and another student's `lobby_people` returns it).
 
-## Characters (a fox, experiment)
+## Characters (nine animals, experiment)
 
-A student can be a **Person** (the layered wardrobe above) or a **Fox**. The fox is one animal as it is drawn: no skin, hair or
-outfit yet ("Foxes come as they are for now"), free for everyone (the web has no ink).
+A student can be a **Person** (the layered wardrobe above) or one of nine **animals**: fox, capybara, axolotl, red panda, badger,
+hedgehog, raccoon, triceratops, dragon (`people/animals.json`, written by the art tool). An animal wears the jumper it was drawn in
+and has nothing to choose ("Animals come as they are for now"): the Skin, Eyes, Hair, Outfit, Glasses and Headphones tabs and
+Random and Reset are hidden for an animal, only Save stays. Free for everyone (the web has no ink). A bear sheet was drawn but did not
+reach the repo: there is no bear.
 
-**On the wire: `body: "fox"`.** `set_avatar` takes any `^[a-z0-9_-]{1,24}$` in `body`, so there is no migration. Choosing the fox
-writes `body: "fox"` into the avatar the student already has and touches nothing else (`mergeAvatar`: `pro`, the old keys and the
-person keys stay, so an iPad, which does not know the fox, draws the person those keys make: `known` maps the unknown body to the
-first skin). Choosing Person again writes the six person keys over it. `people/look.ts` `SPECIES` lists the animals; `personOf`
-checks the species BEFORE the iPad-port `known()` mapping and returns the person look with `species: "fox"` (`lookKey` makes the
-fox its own row). Any other unknown `body` is mapped to a skin as before. `platform.ts`: a `body` that names an animal is not proof
-of an iPad (and neither are the person keys beside it); the inference then says nothing, the server's value still wins.
+**On the wire: `body: "<id>"`, and THE SERVER MUST ALLOW IT.** Every `set_avatar` up to 0125 took `^[a-z0-9_-]{1,24}$` in `body`.
+**0126's `set_avatar` takes `^[0-9]{1,3}$` for `body` and would refuse every animal** (the save fails, the student sees "That didn't
+save"). 0126 is not applied yet, so change that one line before it is: `WHEN 'body' THEN s ~ '^([0-9]{1,3}|fox|capybara|axolotl|redpanda|badger|hedgehog|raccoon|triceratops|dragon)$'`
+(an explicit list keeps the covert channel closed: nine words, not free letters; each new animal needs a migration), or, if a migration
+per animal is too much, `'^([0-9]{1,3}|[a-z]{3,12})$'` (every id here is 3 to 11 lower case letters; this leaves up to 12 free letters in
+one key). The ids are letters only on purpose (no hyphen: `redpanda`). The 420 character cap still holds (the longest animal id adds 8
+characters to a 356 character worst case). `animal.test.ts` and `wardrobe.test.ts` hold every id to `^[a-z]{3,12}$`.
+Choosing an animal writes `body: "<id>"` into the avatar the student already has and touches nothing else (`mergeAvatar`: `pro`, the old
+keys and the person keys stay, so an iPad, which does not know the animal, draws the person those keys make: `known` maps the unknown body
+to the first skin). Choosing Person again writes the six person keys over it. `people/look.ts` `SPECIES` is the list of ids; `personOf`
+checks the species BEFORE the iPad-port `known()` mapping and returns the person look with `species` (`lookKey` makes each animal its
+own row). Any other unknown `body` is mapped to a skin as before. `platform.ts`: a `body` that names an animal is not proof of an iPad.
 
-**Art.** `docs/study/art/source/fox-sheet-01.png` (ChatGPT, 1536 x 1024, magenta) is turned into `public/library/characters/fox.png`
-(24 frames of 24 x 32, down, left, up, right x 6 steps) and `fox.json` by `python3 tools/art/fox_sheet.py`; `tools/art/check_fox.py`
-asserts the invariants (also run from `fox.test.ts`). 8x previews: `docs/study/art/fox-processed-8x.png`. Method: magenta test (green
-far below red and blue) not a colour match; 24 connected components; ONE 16 colour k-means palette (Lab, fixed seed) over the fox's
-interior; one scale (8.1 source px per art px) for every frame; each frame's grid is shifted so its feet land on row 31 and its
-centre of mass on column 12; a cell is fox when half of it is; the 1 px outline is DRAWN (the silhouette's edge ring, the source
-outline is half an art pixel thick) and interior cells take a weighted vote of palette indices, eyes, nose and blush boosted
-(plain averaging, `--method area`, washes the eyes out). A person's art is 24 rows tall in a 16 x 32 frame; the fox is 25 to 28.
+**Art: one data-driven pipeline.** `tools/art/animal_sheet.py` (config: the `ANIMALS` table at its top) turns each ChatGPT sheet
+(`docs/study/art/source/animal-sheet-<id>.png`, 1536 x 1024, magenta, 6 columns x 4 rows: down, left, up, right) into
+`public/library/characters/<id>.png` (24 frames of 24 x 32) and `<id>.json`, plus `people/animals.json` (id, title, jumper colours, tail
+swish) and 8x previews in `docs/study/art/animals/`. `tools/art/check_animals.py` asserts the invariants (every frame the same size, one
+piece, binary alpha, a 1 px outline, feet on one row and not jittering, the torso steady, no magenta, 9 strips under 200 KB: 59 KB) and is
+run from `animal.test.ts`. Method (per animal): magenta test, not a colour match (`mag` and `merge` are raised for the axolotl: its lilac
+jumper scores like magenta, and its tail was drawn in two touching pieces); exactly 24 connected components; ONE k-means palette (Lab, fixed
+seed, 16 or 20 colours); one scale per animal (source px per art px: the median sprite is 26 rows tall like the fox, and the widest fits 24
+columns: 8.06 to 8.77); each frame's grid is shifted so the feet land on row 31 and the TORSO (the jumper's centroid, with a per direction
+median when it is half hidden) on column 12 (the fox used the centre of mass before; that made its body slide 4 px when it turned, so it
+is re-run on the torso too); a cell is animal when half of it is; the outline is DRAWN; interior cells take a weighted vote with the dark
+features (eyes, nose) and blush boosted only where the cell is mostly face fur (`fur`, `dark`, `blush` per animal). Source files: the fox's
+is the same picture as `fox-sheet-01.png` (the lossless one is kept); the other eight were jpg or webp, so the PNGs are lossless copies of
+lossy files.
 
-**The engine row** (`people/fox.ts`): the 78 frames in a person's order, each `FOX_W` = 34 wide (24 of art and 5 empty columns each
-side). Walk 24 to 47 are the strip's own frames; idle 0 to 23 is the frame with the feet together (narrowest bottom rows) with a
-1 px breath (upper rows move, feet stay) and a tail swish; sit 48 to 59 is that frame lowered `SIT_DROP` (1) row, with the legs
-falling off the bottom, and moved `SIT_BACK` (5) px away from the desk it faces (the room's desks cover the face of anything that
-sits against them); phone, read and stool reuse the front and back sit. Nothing is redrawn by hand.
+**The engine row** (`people/animal.ts`, one composer for every animal): the 78 frames in a person's order, each `ANIMAL_W` = 34 wide (24 of
+art and 5 empty columns each side). Walk 24 to 47 are the strip's own frames; idle 0 to 23 is the frame with the feet together (narrowest
+bottom rows) with a 1 px breath (upper rows move, feet stay) and, where `animals.json` names a tail for that direction, a tail swish; sit 48
+to 59 is that frame lowered `SIT_DROP` (1) row, with the legs falling off the bottom, and moved `SIT_BACK` (5) px away from the desk it
+faces; phone, read and stool reuse the front and back sit. Nothing is redrawn by hand. Strips are fetched one per animal, only when someone in
+the room or the wardrobe is that animal (`store.ts` `animalStrip`); only `animals.json` (about 2 KB) is in the page's bundle.
 
 **Per-row frame width** (`cafeScene.ts`, library mode only; every change is additive and defaults to the old 16): `Person.fw`,
-`LiveRemote.frameW`, `youSheet.frameW`, `dressYou(sheet, phones, frameW)`. The feet stay at the middle of the frame, so the wire
-(sprite top left of a 16 wide sprite) and the seat table are unchanged; `spriteAt` shifts a wide frame left by `(fw - 16) / 2`, the
-name tag and card use `half(p)` and `crown(p)`, hit-testing takes the middle 22 px, and the hover outline's ghost canvas takes `fw`.
+`LiveRemote.frameW`, `youSheet.frameW`, `dressYou(sheet, phones, frameW)`. The feet stay at the middle of the frame, so the wire (sprite
+top left of a 16 wide sprite) and the seat table are unchanged; `spriteAt` shifts a wide frame left by `(fw - 16) / 2`, the name tag and
+card use `half(p)` and `crown(p)`, hit-testing takes the middle 22 px, and the hover outline's ghost canvas takes `fw`. Checked against
+main's `cafeScene.ts` with the homepage's deterministic hash (`perffix/hero-det.js`, 4 viewport modes): identical.
 
-**For a friends list or card (`Head.tsx`, not on this branch):** `DrawnPerson` (`people/store.ts`) now has `frame: { w, h }` and
-`head: { x, y, w, h }`, the head's box in the front idle frame, which is frame index 18 of the row (`FRONT_IDLE`). Crop
-`sheet` at `x = FRONT_IDLE * frame.w + head.x`, `y = head.y`, `w = head.w`, `h = head.h`. A person's is 16 x 32 with the head
-`PERSON_HEAD` (approximate, the layers' heads are all in one place); the fox's is 34 x 32, found from the art (ears down to the
-sweater). `store.peek(look)` / `row(look)` / `make(look)` return it for both kinds; look from `store.lookOf(avatar, colour, id)`.
+**Heads (`Head.tsx`, `people/headCrop.ts`):** `DrawnPerson` has `frame: { w, h }` and `head`, the head's box in the front idle frame
+(index 18 of the row). A person's head is the old fixed 16 x 16 crop; an animal's is a square of 16 to 24 whole art pixels from the top of
+its ears, as wide as the head, found by `headSquare`, drawn at a whole scale like a person's.
 
-**Limits (say so).** The fox has no outfits, hats or colours. An iPad student sees a person for a fox (the nearest skin, their own
-keys). A fox saved over a student's body loses the previous skin on the server (Person again then uses the keys they have, or the id's
-person). The seated and idle poses are the walk art moved, not drawn: the legs are cut, the face sits at the desk's edge, and a
-standing fox is a little taller than a person (ears). The source art is not consistent frame to frame (the eye, the cheek, the
-sweater's ribs are redrawn each frame), so some shimmer remains at 24 x 32. Not run against a real iPad or server.
+**Demo (`/study/library/demo`, dev only):** `?zoo=1` puts all nine walking along the open row (friends, so they are in the People list),
+`?zoo=sit` seats them, `?me=badger` makes you that animal.
+
+**Limits (say so).** An animal has no outfits, hats or colours. An iPad student sees a person for an animal (the nearest skin, their own
+keys). An animal saved over a student's body loses the previous skin on the server (Person again then uses the keys they have, or the id's
+person). The seated and idle poses are the walk art moved, not drawn: the legs are cut, the face sits at the desk's edge. The source art is
+not consistent frame to frame (the eye, the cheek, the ribs are redrawn each frame), so some shimmer remains at 24 x 32; faces are the weak
+point (capybara eyes are half closed lines that survive as one or two dark pixels; the badger's glasses and the dragon's wings are
+mush at this size; the capybara and hedgehog barely walk: their six frames are nearly the same). Not run against a real iPad or server.
+
+## Town props (assets only)
+
+`tools/art/props_sheet.py` turns `docs/study/art/source/town-props-sheet.png` (24 props on magenta) into `docs/study/art/town/`: one PNG
+each (`props/`), `town-atlas.png` + `town-atlas.json` (name, x, y, w, h, `anchorX`, `anchorY` = the bottom centre of the base in art
+pixels from the prop's top left, `footprintTiles` a guess in 16 art pixel tiles) and `town-contact.png` on grass. Two densities:
+the default is the characters' (8.1 source px per art px, so a prop and a person share a pixel size; muddy: fences lose their rails,
+crates and the well turn to brown), `--fine` is 5.0 (about the sheet's own apparent pixel; the lamp glow, the well's bricks and the
+gate's hinges survive) in the `-fine` files. The sheet's own pixels are about 5 source px (median colour step spacing 5, the same as
+the character sheets), so at the characters' scale the props are cut to roughly 60% of their drawn detail; at the fine scale they are
+finer than anything else in the room, and a lamp post is 42 art rows against a person's 24. The world scale decision is open.
 
 ## Safety (students are 13 to 18)
 

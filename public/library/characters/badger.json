@@ -1,0 +1,79 @@
+{
+  "id": "badger",
+  "title": "Badger",
+  "frame": [
+    24,
+    32
+  ],
+  "frames": 24,
+  "order": [
+    "down:0",
+    "down:1",
+    "down:2",
+    "down:3",
+    "down:4",
+    "down:5",
+    "left:0",
+    "left:1",
+    "left:2",
+    "left:3",
+    "left:4",
+    "left:5",
+    "up:0",
+    "up:1",
+    "up:2",
+    "up:3",
+    "up:4",
+    "up:5",
+    "right:0",
+    "right:1",
+    "right:2",
+    "right:3",
+    "right:4",
+    "right:5"
+  ],
+  "directions": [
+    "down",
+    "left",
+    "up",
+    "right"
+  ],
+  "perDirection": 6,
+  "anchor": {
+    "x": 12,
+    "feetRow": 31,
+    "kind": "torso",
+    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"
+  },
+  "palette": [
+    "#120804",
+    "#2b150d",
+    "#4b2311",
+    "#493f2f",
+    "#534341",
+    "#6b4930",
+    "#9d3330",
+    "#655651",
+    "#7c5020",
+    "#466b5c",
+    "#736557",
+    "#b27722",
+    "#ac804b",
+    "#d09431",
+    "#b09f8c",
+    "#d9ad5e",
+    "#eab340",
+    "#e1bf9e",
+    "#f9efda",
+    "#faf0ce"
+  ],
+  "outline": "#120804",
+  "jumper": [
+    "#b27722",
+    "#eab340"
+  ],
+  "sourceScale": 8.43,
+  "method": "vote",
+  "source": "docs/study/art/source/animal-sheet-badger.png",
+  "tool": "tools/art/animal_sheet.py"
+}
