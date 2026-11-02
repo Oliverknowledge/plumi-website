@@ -545,8 +545,12 @@ hash of both homepage canvases over 300 frames with clicks and keys is byte-iden
   quarter of frames late, it presents at 30 Hz *and draws the old way* (art sized scene, whole art pixel placement; the new clocks,
   camera and shadow stay), so the fallback costs what the room cost before. It tries 60 again only when the work is under 5 ms and after
   a hold of 30 s that doubles at each fall (to about 8 minutes). `data-hz` on the canvas and `hz` on the dev handle say which. The first
-  1.5 s after the room wakes are not counted (decoding). Visibility pause and reduced motion are unchanged (reduced motion: no loop,
-  whole art pixels, the old pose clock).
+  3 s after the room wakes, a tab becomes visible or the window is resized are not counted (decoding, layout). Visibility pause and reduced motion are unchanged (reduced motion: no loop,
+  whole art pixels, the old pose clock). **Steering and observability (world branch, from `movement-verify.md`):** `?hz=30|60|auto` (else the `plumi-hz` localStorage key) is read once;
+  30 or 60 pins the rate (the governor only watches); `data-hz-why` on the canvas says `auto`, `forced N`, or `fell: work p95 ... / N of 90 frames late` and one `console.info` says it when it falls; a
+  fall or a return waits until you are walking (a standing sprite would move up to 2 css px between the two placements; while you walk the camera is locked to you and nothing pops). The pose clock is
+  `poseSlot(stride) = floor(stride * 12 + 0.1)` (`walk.ts`): slots are 5, 5, 5 frames at 60 Hz instead of 30 percent 4 or 6. The full-room layers are drawn with an integer source offset and a clipped destination
+  offset (the camera is a multiple of 1/k, a fractional source rectangle may sample differently in WebKit): pixel identical in Chromium over 360 random cases. The shadow sliver behind furniture is left as it was.
 - **Measured (headless Chromium, software raster, 1280 x 800, 50 people, 10 walking, you walking, 12 s).** Before, 1x CPU, 2x density: 30
   draws a second, draw 3.7 ms p50 / 5.5 p95, main thread 40 percent busy, 19 GCs. After: 59 a second, draw 1.0 / 1.6 ms, busy 86 percent,
   26 GCs (0.04 a frame against 0.05); at 1x density: 4.5 / 6.6 ms and 28 percent before, 0.9 / 1.3 ms and 36 percent after. The JS
