@@ -312,9 +312,10 @@
 .pa .en.is-quick[data-stage="go"] .en-cam { scale: 1.25; transition-duration: .42s; }
 
 /* the room, already loaded behind the door, comes forward as the door goes */
-.pa .en-flow[data-phase="entering"] > .lb-full { opacity: 0; scale: .9; transform-origin: 50% 74%; }
-.pa .en-flow[data-phase="entering"][data-stage="go"] > .lb-full { opacity: 1; scale: 1; transition: opacity .66s ease-out .08s, scale .8s cubic-bezier(.2, .7, .25, 1); }
-.pa .en-flow[data-quick][data-phase="entering"] > .lb-full { scale: 1; }
+/* The room fades in by opacity only. It must never be scaled or transformed while it mounts: the engine sizes its canvas from
+   getBoundingClientRect at that moment, and a scale makes the canvas, the name tags and the clicks 10% too small until a resize. */
+.pa .en-flow[data-phase="entering"] > .lb-full { opacity: 0; }
+.pa .en-flow[data-phase="entering"][data-stage="go"] > .lb-full { opacity: 1; transition: opacity .66s ease-out .08s; }
 .pa .en-flow[data-quick][data-phase="entering"][data-stage="go"] > .lb-full { transition-duration: .4s; transition-delay: 0s; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -324,7 +325,6 @@
 .pa .en[data-stage="press"] .en-cam, .pa .en[data-stage="go"] .en-cam, .pa .en[data-stage="go"] .en-glow { scale: 1; transition: none; }
 .pa .en[data-stage="press"] .en-mark, .pa .en[data-stage="go"] .en-mark, .pa .en[data-stage="press"] .en-plaque, .pa .en[data-stage="go"] .en-plaque { scale: 1; }
 .pa .en[data-stage="go"] { transition: opacity .22s linear; }
-.pa .en-flow[data-phase="entering"] > .lb-full { scale: 1; }
 .pa .en-flow[data-phase="entering"][data-stage="go"] > .lb-full { transition: opacity .22s linear; }
 .pa .en-pill, .pa .en-key-cap, .pa .en-key::after { transition: none; }
 }

@@ -13,7 +13,7 @@
     "study:tokens": "tsx scripts/study-tokens.ts",
     "study:contrast": "tsx scripts/study-contrast.ts",
     "social:test": "tsx --test src/lib/social/social.test.ts",
-    "app:test": "tsx --test src/lib/studyapp/*.test.ts src/lib/sessionStorage.test.ts",
+    "app:test": "tsx --test src/lib/studyapp/*.test.ts src/lib/sessionStorage.test.ts src/lib/safePath.test.ts",
     "social:vectors": "tsx scripts/social-vectors.ts",
     "social:check-sql": "tsx scripts/social-check-sql.ts",
     "social:contract": "tsx scripts/social-contract.ts",
