@@ -1255,7 +1255,7 @@ class Cafe implements CafeHandle {
 
   /** Whether a person stands on the floor (a shadow under them): not one in a chair or on a stool. */
   private grounded(p: Person): boolean {
-    return !(p.at && p.spot && (p.doing === "sit" || p.spot.pose === "sit" || p.spot.pose === "stool"));
+    return !(p.at && p.spot && (p.doing === "sit" || p.spot.pose === "sit" || p.spot.pose === "stool" || p.spot.pose === "chairback"));
   }
 
   /** One item of `drawLive`, with the origin of art pixel space at (tx, ty) device pixels. A person is placed in device pixels (their shadow, outline and sprite all at the same one). */

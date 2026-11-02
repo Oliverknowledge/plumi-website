@@ -104,7 +104,7 @@ export function installHelpers() {
    * A polyline of straight runs, segs = [[dx, dy, len], ...], from (x, y): every point free to walk (the engine's own
    * `fits`), and the camera never clamped on the way, so the follow lag is visible rather than hidden by a wall.
    */
-  const pathOk = (x, y, segs, margin = 24) => {
+  const pathOk = (x, y, segs, margin = 24, camFree = true) => {
     const h = H(), W = h.W, g = h.grid;
     let cx = x, cy = y;
     const pts = [];
@@ -116,17 +116,26 @@ export function installHelpers() {
       }
       cx += dx * len; cy += dy * len;
     }
-    for (let i = 0; i < pts.length; i += 10) {
+    for (let i = 0; camFree && i < pts.length; i += 10) {
       const [tx, ty] = camTarget(pts[i][0], pts[i][1]);
       if (tx <= 0.5 || tx >= h.L.w - h.viewW - 0.5 || ty <= 0.5 || ty >= h.L.h - h.viewH - 0.5) return false;
     }
     return true;
   };
+  /**
+   * The Grand Library is several windows wide, so a run is searched for in its middle (as it always was). A smaller room
+   * (the cafe, 640 x 432) is searched whole; if no run keeps the camera free (it cannot in a room that small) the camera
+   * test is dropped and `lastFind.camFree` says so, so a metric that needs a free camera is not read from a clamped one.
+   */
   const findPath = (segs) => {
-    const cands = [];
-    for (let y = 150; y <= 560; y += 4) for (let x = 200; x <= 760; x += 4) cands.push([x, y]);
-    cands.sort((a, b) => Math.hypot(a[0] - 480, a[1] - 330) - Math.hypot(b[0] - 480, b[1] - 330));
-    for (const [x, y] of cands) if (pathOk(x, y, segs)) return [x, y];
+    const h = H(), big = h.L.w >= 900, cands = [];
+    const [x0, x1, y0, y1] = big ? [200, 760, 150, 560] : [24, h.L.w - 24, 24, h.L.h - 24];
+    for (let y = y0; y <= y1; y += 4) for (let x = x0; x <= x1; x += 4) cands.push([x, y]);
+    const mx = big ? 480 : h.L.w / 2, my = big ? 330 : h.L.h / 2;
+    cands.sort((a, b) => Math.hypot(a[0] - mx, a[1] - my) - Math.hypot(b[0] - mx, b[1] - my));
+    for (const [x, y] of cands) if (pathOk(x, y, segs)) { window.__mv.lastFind = { camFree: true }; return [x, y]; }
+    if (big) return null;
+    for (const [x, y] of cands) if (pathOk(x, y, segs, 24, false)) { window.__mv.lastFind = { camFree: false }; return [x, y]; }
     return null;
   };
   const findStart = (dx, dy, len) => findPath([[dx, dy, len]]);

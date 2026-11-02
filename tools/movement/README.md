@@ -14,6 +14,7 @@ setsid npx next dev -p 3960 > /tmp/mv-dev.log 2>&1 & echo $! > /tmp/mv-dev.pid  
 node tools/movement/measure.mjs --base http://localhost:3960
 node tools/movement/measure.mjs --me fox                 # you are the fox (any animal id of people/animals.ts)
 node tools/movement/measure.mjs --zoo                    # all nine animals walk an open run: pose rate and speed each
+node tools/movement/measure.mjs --room cafe              # the cafe interior (/study/cafe/demo): same engine, 640 x 432 room; no vertical runs fit, so those holds are skipped
 node tools/movement/measure.mjs --dpr 2                  # a retina window (art scale k = 8)
 node tools/movement/measure.mjs --json out.json --series series.json   # the numbers, and every recorded display frame
 node tools/movement/measure.mjs --selftest               # no browser: the analysis must pass a synthetic reference-like walker

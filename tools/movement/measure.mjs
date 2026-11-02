@@ -2,7 +2,7 @@
 /*
  * Movement-feel harness for the web Grand Library. See tools/movement/README.md.
  *
- *   node tools/movement/measure.mjs [--base http://localhost:3960] [--me fox] [--zoo] [--json out.json]
+ *   node tools/movement/measure.mjs [--base http://localhost:3960] [--room cafe] [--me fox] [--zoo] [--json out.json]
  *                                   [--series series.json] [--target tools/movement/target.json]
  *                                   [--width 1512 --height 949 --dpr 1] [--no-fail]
  *
@@ -152,7 +152,8 @@ async function main() {
   const errs = [];
   page.on("pageerror", (e) => errs.push(e.message));
   const qs = [args.me && args.me !== true ? `me=${args.me}` : "", args.zoo ? "zoo=1" : ""].filter(Boolean).join("&");
-  await page.goto(`${BASE}/study/library/demo${qs ? "?" + qs : ""}`, { waitUntil: "load", timeout: 240000 });
+  const ROOM = args.room === "cafe" ? "cafe" : "library";
+  await page.goto(`${BASE}/study/${ROOM}/demo${qs ? "?" + qs : ""}`, { waitUntil: "load", timeout: 240000 });
   await page.waitForSelector(".lb-room[data-ready]", { timeout: 240000 });
   await page.waitForFunction(() => window.__plumiLibrary && window.__plumiLibrary.youNow(), null, { timeout: 120000 });
   await page.evaluate(`(${installHelpers.toString()})()`);
@@ -171,10 +172,12 @@ async function main() {
   const lift = art.walk.map((d) => Math.max(...d.map((s) => s.bot)) - Math.min(...d.map((s) => s.bot)));
   out.art = { bobRowsByDir: bob, footRowsByDir: lift, shadowPx: art.idle[3].semi, shadowW: art.idle[3].shadowW, rows: spriteRows };
 
+  // a run of 150 art px (a key held 1.5 s walks 105 and the rest is margin); a room too small for that (the cafe) gets 115
+  const findRun = async (dx, dy) => { for (const len of [150, 115]) { const st = await ev(([dx, dy, len]) => window.__mv.findStart(dx, dy, len), [dx, dy, len]); if (st) return st; } return null; };
   /* ---- four axes, held 1.5 s ---- */
   const AX = { right: [1, 0, "KeyD"], left: [-1, 0, "KeyA"], down: [0, 1, "KeyS"], up: [0, -1, "KeyW"] };
   for (const [name, [dx, dy, code]] of Object.entries(AX)) {
-    const st = await ev(([dx, dy]) => window.__mv.findStart(dx, dy, 150), [dx, dy]);
+    const st = await findRun(dx, dy);
     if (!st) { out.hold[name] = { error: "no clear run" }; continue; }
     const r = await ev(([st, code]) => window.__mv.run([{ tele: st, n: 30 }, { mark: "press", down: [code], n: 90 }, { mark: "release", up: [code], n: 200 }]), [st, code]);
     series[`hold_${name}`] = r;
@@ -183,7 +186,7 @@ async function main() {
   /* ---- diagonals ---- */
   const DG = { downRight: [1, 1, ["KeyD", "KeyS"]], upLeft: [-1, -1, ["KeyA", "KeyW"]], downLeft: [-1, 1, ["KeyA", "KeyS"]], upRight: [1, -1, ["KeyD", "KeyW"]] };
   for (const [name, [dx, dy, codes]] of Object.entries(DG)) {
-    const n = Math.SQRT1_2, st = await ev(([dx, dy, n]) => window.__mv.findStart(dx * n, dy * n, 150), [dx, dy, n]);
+    const n = Math.SQRT1_2, st = await findRun(dx * n, dy * n);
     if (!st) { out.diag[name] = { error: "no clear run" }; continue; }
     const r = await ev(([st, codes]) => window.__mv.run([{ tele: st, n: 30 }, { mark: "press", down: codes, n: 90 }, { mark: "release", up: codes, n: 200 }]), [st, codes]);
     series[`diag_${name}`] = r;
@@ -207,7 +210,8 @@ async function main() {
   {
     const wall = await ev(() => {
       const h = window.__plumiLibrary, W = h.W, g = h.grid;
-      for (let y = 160; y < 540; y += 3) for (let x = 140; x < 820; x += 3) if (W.fits(g, x, y) && !W.fits(g, x + 3, y) && !W.fits(g, x + 6, y)) return [x, y];
+      const big = h.L.w >= 900, [x0, x1, y0, y1] = big ? [140, 820, 160, 540] : [16, h.L.w - 16, 16, h.L.h - 16];
+      for (let y = y0; y < y1; y += 3) for (let x = x0; x < x1; x += 3) if (W.fits(g, x, y) && !W.fits(g, x + 3, y) && !W.fits(g, x + 6, y)) return [x, y];
       return null;
     });
     if (wall) {
@@ -239,8 +243,11 @@ async function main() {
   }
   /* ---- click to walk: a 100 art px diagonal route ---- */
   {
-    const st = await ev(() => window.__mv.findStart(0.9, 0.4, 140));
-    const r = await ev((st) => { const [x, y] = st; return window.__mv.run([{ tele: st, n: 20 }, { mark: "click", click: [x + 100, y + 45], n: 200 }]); }, st);
+    // the Grand Library has a run of 140; a small room (the cafe) may only have a shorter one: the route is scaled to it
+    let len = 140, st = null;
+    for (const l of [140, 100, 70, 50]) { len = l; st = await ev((l) => window.__mv.findStart(0.9, 0.4, l), l); if (st) break; }
+    if (!st) { out.click = { error: "no clear run" }; } else {
+    const r = await ev(([st, len]) => { const [x, y] = st; return window.__mv.run([{ tele: st, n: 20 }, { mark: "click", click: [x + 100 * len / 140, y + 45 * len / 140], n: 200 }]); }, [st, len]);
     series.click = r;
     const mv = r.rows.filter((x) => x[C.plen] > 0);
     if (mv.length > 20) {
@@ -252,6 +259,7 @@ async function main() {
       const endV = Math.hypot(feetX(lastW[lastW.length - 1]) - feetX(lastW[0]), feetY(lastW[lastW.length - 1]) - feetY(lastW[0])) / ((lastW[lastW.length - 1][C.vt] - lastW[0][C.vt]) / 1000);
       out.click = { speedHs: R(Math.abs(f.slope) / spriteRows, 3), endSpeedRatio: R(endV / Math.abs(f.slope), 2), durationMs: R(tEnd - mv[0][C.vt], 0), distanceArt: R(len, 1) };
     } else out.click = { error: "no path" };
+    }
   }
 
   /* ---- other walkers (what everyone else in the room does): same maths, a path set directly ---- */

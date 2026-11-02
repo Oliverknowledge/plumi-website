@@ -765,3 +765,19 @@ long task left at entry; Supabase's client loads on every Study route because `a
 
 A second room on the same engine, made from one picture by `tools/art/room_from_image.py`: `docs/study/cafe.md` (scale decision, config, 47 seats,
 the engine seam `RoomDef`/`art`, the dev demo `/study/cafe/demo`). The Grand Library is the default room and is unchanged.
+
+### Both together (integration branch `claude/world`)
+
+The cafe is the Grand Library's engine with a different room, so it takes the movement feel too: its frame is the 60 Hz `drawLive`
+(device pixel placement, per walker stride clock, locked camera, shadow, governor). Nothing in `drawLive` assumes the library's size: the room,
+camera clamp (`viewW = min(room, canvas / k)`), lamp and fire layers (`lampLayer`, from the room's `lights`), pieces (the occluders, at the same
+scale and offset as the walkers) and seat rings all come from the room's `layout.json`. The one room-specific rule is the `chairback` seat
+pose: it is a seat, so it has no ground shadow (`grounded()`). Checked in Chromium on `/study/cafe/demo`: walking behind plants and a pillar,
+sitting at the long table (read, side and chairback seats), the governor stays at 60.
+
+`tools/movement/measure.mjs --room cafe` runs the same harness on `/study/cafe/demo` (README there). The cafe has no straight vertical run of
+115 px, so its `down`/`up` holds and the two down diagonals are reported "no clear run" and are not scored; the horizontal holds, the right/left
+diagonals, the turn, wall, shadow, idle, tap and click are.
+
+`libraryArtVersion()` (`next.config.ts`) hashes `public/library` recursively: with the `characters/` folder added it used to throw on the folder,
+return "" and serve the library art without its `?v=` fingerprint (and so without the one year cache rule). It does again.

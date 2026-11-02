@@ -11,8 +11,17 @@ import type { NextConfig } from "next";
 function libraryArtVersion(): string {
   const dir = join(process.cwd(), "public", "library");
   const h = createHash("sha256");
+  // every file under the folder, the sub folders (characters/) included, in a fixed order, each by its path and bytes
+  const walk = (rel: string): void => {
+    const entries = readdirSync(join(dir, rel), { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    for (const e of entries) {
+      const path = rel ? rel + "/" + e.name : e.name;
+      if (e.isDirectory()) walk(path);
+      else if (e.isFile()) h.update(path).update(readFileSync(join(dir, path)));
+    }
+  };
   try {
-    for (const name of readdirSync(dir).sort()) h.update(name).update(readFileSync(join(dir, name)));
+    walk("");
   } catch {
     return "";   // no art folder (a partial checkout): the page asks for plain URLs, which are revalidated as before
   }
