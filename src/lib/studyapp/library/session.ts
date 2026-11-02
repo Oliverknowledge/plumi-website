@@ -149,8 +149,8 @@ export const CHAT_FULL_EVERY = 6;
 /** The libraries picker, while it is open. Otherwise the count is read at most this often (the Desk's "revising" figure). */
 export const SERVERS_EVERY_MS = 20_000;
 export const SERVERS_IDLE_EVERY_MS = 60_000;
-/** The chat while it is not on screen: only to count what is new. */
-export const CHAT_CLOSED_EVERY_MS = 20_000;
+/** The chat while it is not on screen: for the speech bubbles over heads and the unread count (a bubble shows within about this). */
+export const CHAT_CLOSED_EVERY_MS = 8_000;
 /** A tab hidden for longer than this sends only a slow heartbeat: under the server's freshness window (30 s, `lobby_fresh`, 0117). */
 export const HIDDEN_AFTER_MS = 60_000;
 export const HIDDEN_POS_EVERY_MS = 25_000;

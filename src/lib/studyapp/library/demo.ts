@@ -27,7 +27,7 @@ const AVATARS: Record<number, Record<string, string>> = {
 };
 
 /** What the demo adds, for the browser checks (`?people=40&friends=30`, `?friends=none`): more strangers on the floor, more friends, or none at all. */
-export interface DemoOptions { people?: number; friends?: number | "none" }
+export interface DemoOptions { people?: number; friends?: number | "none"; /** Nobody else is in the library (`?alone=1`: the quiet-room checks). */ alone?: boolean }
 
 const ADJ = ["Quiet", "Brave", "Bright", "Calm", "Clever", "Cosy", "Eager", "Gentle", "Happy", "Jolly", "Keen", "Kind", "Lucky", "Merry", "Mighty", "Nimble", "Plucky", "Proud", "Rapid", "Sunny"];
 const ANIMAL = ["Badger", "Falcon", "Finch", "Gecko", "Hedgehog", "Ibis", "Jackal", "Koala", "Lemur", "Magpie", "Narwhal", "Ocelot", "Puffin", "Quokka", "Robin", "Stoat", "Tapir", "Urchin", "Vole", "Walrus"];
@@ -86,7 +86,7 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
     more.push({ id, here: i % 3 === 0 });
   }
   // another library with a few in it, for the picker
-  for (let i = 0; i < 3; i++) { const id = uuid(20 + i); world.add(id, { nickname: ["Kind Seal", "Wise Hare", "Keen Lynx"][i], display: `S${i}` }); world.place(id, 2); }
+  for (let i = 0; i < 3; i++) { const id = uuid(20 + i); world.add(id, { nickname: ["Kind Seal", "Wise Hare", "Keen Lynx"][i], display: `S${i}` }); if (!o.alone) world.place(id, 2); }
 
   return {
     social: world.social(DEMO_ME),
@@ -96,6 +96,7 @@ export function demoDriver(o: DemoOptions = {}): LibraryDriver {
     scene() {
       // the browser checks reach into the scripted world (to make a friend sit down, say); the demo page does not exist in production
       if (typeof window !== "undefined") (window as unknown as { __plumiDemo?: unknown }).__plumiDemo = { world, me: DEMO_ME, uuid };
+      if (o.alone) return () => {};
       const t0 = Date.now();
       const bots = new Map<string, FakeBot>();
       const timers: ReturnType<typeof setInterval>[] = [];

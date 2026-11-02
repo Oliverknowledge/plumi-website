@@ -112,8 +112,8 @@
 .pa .rp-tip { bottom: 66px; }
 .pa .rp-notes { right: 34px; bottom: 46px; }
 }
-/* narrow screens: the library's drawer is a sheet along the bottom, so the record keeps out of its way (the music plays on) */
-@media (max-width: 820px) {
+/* narrow or short screens: the library's drawer is a sheet along the bottom (or the right), so the record keeps out of its way (the music plays on) */
+@media (max-width: 820px), (max-height: 520px) {
 .pa:has(.lb-full[data-drawer]) .rp { right: calc(16px + env(safe-area-inset-right, 0px)); opacity: 0; }
 .pa:has(.lb-full[data-drawer]) .rp > * { pointer-events: none; }
 }

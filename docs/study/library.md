@@ -30,7 +30,7 @@ a clock and a ticker, so a scripted world drives it in tests and in the demo. Th
 | `lobby_join(x, y[, want])` | on entry, switching, and when the server says "rejoin" | `SocialModel.enterLobby / switchLobby`, `SocialModel.swift:880, 908` |
 | `lobby_set_position(shard, x, y, seated, subject, focus_since)` | when seated or the subject changes, and every 10 s | `HallPositions.heartbeat` 10 s (`HallPositions.swift:38`), `lobbyBeat` (`SocialModel.swift:1018`) |
 | `lobby_people(shard)` | every 2 s; every **12 s** while the floor is live (the web saves calls: Realtime already carries the walking and the leavers, so the list is for newcomers and details; a new face shows within about 15 s) | `lobbyReadEvery` 2 (`SocialModel.swift:876`), `liveReadEvery` 5 (`HallPositions.swift:46`) |
-| `library_messages(shard, since)` | every 4 s **while the chat is on screen**, every 20 s otherwise (only to count what is new); the newest 100 afresh every sixth read | `GroupChatModel.pollInterval / fullReadEvery` (`GroupChatModel.swift:61, 64`) |
+| `library_messages(shard, since)` | every 4 s **while the chat is on screen**, every 8 s otherwise (for the speech bubbles and the unread count); the newest 100 afresh every sixth read | `GroupChatModel.pollInterval / fullReadEvery` (`GroupChatModel.swift:61, 64`) |
 | `lobby_servers()` | every 20 s while the picker is open, every 60 s otherwise (the Desk's count); at once when it opens | `SocialModel.loadLobbyServers` |
 | `lobby_leave()` | on leaving the page, **and the moment the tab closes** (a `keepalive` request signed as the student the visit began as; below) | `SocialModel.leaveHall` |
 
@@ -559,3 +559,30 @@ lettering cost on a low-end phone.
 **Tests.** `src/lib/studyapp/library/entry.test.ts` (27): when the door shows, the hour and season, both lines' wording,
 the preload order and that it never throws, the lamplight against `layout.json`, the art's cover scale at 11 window
 sizes, the transition's timing rules.
+
+## Full-screen controls (UX critic round)
+
+`Hud.tsx` is the one bar along the top of the full-screen room: Desk and who is here on the left; the timer, Chat, People
+and a More menu on the right (More holds Outfit, Libraries, Hide me / Show me, Exit full screen, Leave the library). The
+words give way in steps (icons under 1000 px, the count alone under 560 px, the count on the People button under 420 px), so
+the two clusters never meet; a Playwright run at 360x640, 390x844, 844x390, 768x1024, 1024x768, 1280x800 and 1440x900 checks
+bounding boxes, 44 px targets (touch or under 820 px), the close key, focus and overflow.
+
+- **Asleep until drawn.** The bar and the seat card are `inert` skeletons (same boxes, so nothing shifts) until the room
+  reports its first frame (`RoomCanvas` `onReady`).
+- **Seat card.** On a phone, a tablet (coarse pointer) or a short window it is a one-row pill (`SeatCard dock`): icons for
+  words, subjects folded behind the subject button. Start focus is always live once seated: with no subject ever chosen it
+  starts a plain "Focus" (`subject.ts`), never an invented Maths. While a session runs the subject button is hidden on the pill.
+- **Hidden.** Stays in the full-screen layout: the room dims (and is `inert`), one card says "You're hidden" with Show me,
+  and More offers Show me. Chat, People and Libraries are disabled meanwhile. Leave asks first (Stay has focus).
+- **Bubbles** (`bubbles.ts`, engine `bubble`): display only. The visit's chat decides what exists; a bubble is drawn for a
+  new, not hidden message of someone in the room, one per person (the newest), at most four, 56 characters, 6 s. History is
+  not replayed on joining or switching library. `lookAt` (engine) centres the view on a person from the room, the People list
+  or "Find them"; walking, sitting or standing returns it to you.
+- **Alone.** A drawn mug and book with one line over the room, and the same drawn tiles in People (`?alone=1` in the demo).
+- **Keys.** Opening the panel moves focus onto its current tab and closing returns it to what opened it; Tab stays inside the
+  panel; left/right/Home/End walk the tabs. Escape closes ONE thing, innermost first: Leave question, More menu, the timer's
+  card, the panel; with none open it gives the notebook page back. It never leaves or hides. The chat list is `role="log"`
+  `aria-live="polite"`. Bubbles and the new animations stop under `prefers-reduced-motion`.
+- Not done here: pinch or drag panning of the room (the view follows you or the person you pick); changing the subject while
+  a session runs on a phone pill (use the timer card).

@@ -136,8 +136,8 @@ const pick = <T>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length
 export interface CafeStatus { seated: boolean; seconds: number; look: number; subject: string | null }
 
 /** The class names the engine gives its labels, pops and cards. The homepage's own (`lp-*`) unless a page says otherwise. */
-export interface CafeClasses { nm: string; timer: string; you: string; pop: string; tick: string; ink: string; who: string }
-const LP_CLASSES: CafeClasses = { nm: "lp-nm", timer: "lp-nm is-timer", you: "lp-nm is-you", pop: "lp-pop", tick: "is-tick", ink: "is-ink", who: "lp-who" };
+export interface CafeClasses { nm: string; timer: string; you: string; pop: string; tick: string; ink: string; who: string; bub: string }
+const LP_CLASSES: CafeClasses = { nm: "lp-nm", timer: "lp-nm is-timer", you: "lp-nm is-you", pop: "lp-pop", tick: "is-tick", ink: "is-ink", who: "lp-who", bub: "lp-bub" };
 
 export interface CafeOptions {
   /** "library" is the study app's Grand Library: the same room and engine, with real people driven from outside (`live`). */
@@ -204,6 +204,13 @@ export interface LibraryHandle extends CafeHandle {
   select(id: string | null): void;
   /** A short word over someone's head ("Wave"), or yours (`"you"`). */
   say(who: string, text: string): void;
+  /**
+   * A speech bubble over someone's head (or yours, `"you"`) for `ms`: one per person (a new one replaces theirs), and
+   * never so many they pile up. False when they are not in the room, or there is no room for it.
+   */
+  bubble(who: string, text: string, ms: number): boolean;
+  /** Centre the view on someone until you walk, sit or stand (or `lookAt(null)`); false when they are not in the room. */
+  lookAt(id: string | null): boolean;
   /** Draw you as this person (your avatar changed, or the art came late); null goes back to the premade look. */
   dressYou(sheet: CanvasImageSource | null, phones?: boolean): void;
   /** Whether you are in a seat. */
@@ -288,6 +295,8 @@ class Cafe implements CafeHandle {
   private labels = new Map<Person, HTMLElement>();
   private widths = new WeakMap<HTMLElement, number>();
   private pops: { el: HTMLElement; x: number; y: number; born: number }[] = [];
+  private bubbles = new Map<Person, { el: HTMLElement; lift: number; timer: ReturnType<typeof setTimeout> }>();   // library mode: speech bubbles, one per person
+  private looking: Person | null = null;        // library mode: the view is on them, not on you (lookAt)
   private timers: Person[] = [];
   private nextTimers = 0;
   private nextPop = 4;
@@ -914,6 +923,11 @@ class Cafe implements CafeHandle {
       el.style.opacity = String(this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha);
     }
     for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
+    for (const [p, b] of this.bubbles) {
+      const [x, y] = this.spriteAt(p);
+      b.el.style.transform = at(x + 8, y + (this.labels.has(p) ? -24 : -2) - b.lift * 34, b.el);
+      b.el.style.opacity = p.alpha > .3 ? "" : "0";
+    }
     if (this.card && this.cardFor) {
       // over their head, or under their feet when there isn't room above
       const [x, y] = this.spriteAt(this.cardFor), el = this.card, half = el.offsetWidth / 2;
@@ -1056,8 +1070,8 @@ class Cafe implements CafeHandle {
     let cx: number, cy: number;
     if (this.playable && this.you && this.viewW < this.L.w - 1) {
       // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
-      const [x, y] = this.spriteAt(this.you);
-      cx = x + 8; cy = y + 18 - this.viewH * .2;
+      const [x, y] = this.looking ? this.spriteAt(this.looking) : this.spriteAt(this.you);
+      cx = x + 8; cy = y + 18 - (this.looking ? 0 : this.viewH * .2);
     } else {
       cx = this.region.x + this.region.w / 2; cy = this.region.y + this.region.h / 2;
     }
@@ -1427,7 +1441,7 @@ class Cafe implements CafeHandle {
     return spot;
   }
 
-  private youChanged() { this.live?.onYou?.(); }
+  private youChanged() { this.looking = null; this.live?.onYou?.(); }
 
   dressYou(sheet: CanvasImageSource | null, phones = false) {
     const you = this.you;
@@ -1500,6 +1514,45 @@ class Cafe implements CafeHandle {
   say(who: string, text: string) {
     const p = who === "you" ? this.you : this.remotes.get(who);
     if (p && p.alpha > .3) this.pop(p, text);
+  }
+
+  bubble(who: string, text: string, ms: number): boolean {
+    const p = who === "you" ? this.you : this.remotes.get(who);
+    if (!p || !this.live || this.dead || p.alpha <= .3) return false;
+    this.clearBubble(p);
+    // beside someone else's bubble it goes up a line; with two there already, it is left out rather than pile up
+    const [x, y] = this.spriteAt(p), s = this.k / this.dpr;
+    let lift = 0;
+    for (const [q, b] of this.bubbles) {
+      const [qx, qy] = this.spriteAt(q);
+      if (Math.abs(qx - x) * s < 150 && Math.abs(qy - y) * s < 50 + b.lift * 34) lift = Math.max(lift, b.lift + 1);
+    }
+    if (lift > 1) return false;
+    while (this.bubbles.size >= 4) this.clearBubble(this.bubbles.keys().next().value as Person);
+    const el = document.createElement("div");
+    el.className = this.cn.bub;
+    el.textContent = text;
+    el.style.setProperty("--bub-ms", `${ms}ms`);
+    this.overlay.appendChild(el);
+    this.widths.set(el, el.offsetWidth);
+    this.bubbles.set(p, { el, lift, timer: setTimeout(() => this.clearBubble(p), ms + 100) });
+    this.place();
+    return true;
+  }
+
+  private clearBubble(p: Person) {
+    const b = this.bubbles.get(p);
+    if (!b) return;
+    clearTimeout(b.timer);
+    b.el.remove();
+    this.bubbles.delete(p);
+  }
+
+  lookAt(id: string | null): boolean {
+    const p = id ? this.remotes.get(id) ?? null : null;
+    this.looking = p;
+    if (this.o.reduced) this.draw();
+    return id === null || !!p;
   }
 
   /** Tells the room who else is in it. Each person is placed where they said (or in a free chair, if they said nothing of the floor). */
@@ -1627,6 +1680,7 @@ class Cafe implements CafeHandle {
     for (const f of this.cleanup) f();
     for (const el of this.labels.values()) el.remove();
     for (const q of this.pops) q.el.remove();
+    for (const p of [...this.bubbles.keys()]) this.clearBubble(p);
     this.card?.remove();
   }
 }
