@@ -1,0 +1,221 @@
+{
+ "image": "town-landmarks.png",
+ "size": [
+  512,
+  398
+ ],
+ "colours": 120,
+ "tool": "tools/art/landmarks.py",
+ "buildings": [
+  {
+   "name": "grand_library",
+   "label": "The Grand Library",
+   "w": 311,
+   "h": 234,
+   "scale": 4.2,
+   "nativeScale": 5.0,
+   "sourceBox": [
+    89,
+    15,
+    1398,
+    1000
+   ],
+   "derived": false,
+   "anchorX": 157,
+   "anchorY": 215,
+   "sortY": 215,
+   "footprint": {
+    "x": 5,
+    "y": 204,
+    "w": 304,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 5,
+    "y": 40,
+    "w": 304,
+    "h": 176
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 311,
+    "h": 168
+   },
+   "doorRect": {
+    "x": 144,
+    "y": 183,
+    "w": 26,
+    "h": 30
+   },
+   "doorCentreX": 157.0,
+   "step": {
+    "x": 122,
+    "y": 213,
+    "w": 71,
+    "h": 21
+   },
+   "entry": {
+    "x": 157,
+    "y": 234
+   },
+   "entryOffsetFromAnchor": [
+    0,
+    19
+   ],
+   "doorTrigger": {
+    "x": 144,
+    "y": 215,
+    "w": 26,
+    "h": 27
+   },
+   "persons": {
+    "w": 12.4,
+    "h": 9.4,
+    "door": 1.2
+   },
+   "x": 0,
+   "y": 0
+  },
+  {
+   "name": "bookshop",
+   "label": "The Bookshop",
+   "w": 231,
+   "h": 162,
+   "scale": 5.8,
+   "nativeScale": 4.0,
+   "sourceBox": [
+    88,
+    54,
+    1428,
+    995
+   ],
+   "derived": false,
+   "anchorX": 110,
+   "anchorY": 158,
+   "sortY": 158,
+   "footprint": {
+    "x": 11,
+    "y": 147,
+    "w": 198,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 11,
+    "y": 40,
+    "w": 198,
+    "h": 119
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 231,
+    "h": 113
+   },
+   "doorRect": {
+    "x": 172,
+    "y": 127,
+    "w": 19,
+    "h": 27
+   },
+   "doorCentreX": 181.5,
+   "step": {
+    "x": 172,
+    "y": 153,
+    "w": 19,
+    "h": 9
+   },
+   "entry": {
+    "x": 182,
+    "y": 162
+   },
+   "entryOffsetFromAnchor": [
+    72,
+    4
+   ],
+   "doorTrigger": {
+    "x": 172,
+    "y": 158,
+    "w": 20,
+    "h": 12
+   },
+   "persons": {
+    "w": 9.2,
+    "h": 6.5,
+    "door": 1.08
+   },
+   "x": 0,
+   "y": 236
+  },
+  {
+   "name": "bakery",
+   "label": "The Bakery",
+   "w": 200,
+   "h": 149,
+   "scale": 6.6,
+   "nativeScale": 4.0,
+   "sourceBox": [
+    91,
+    53,
+    1405,
+    1036
+   ],
+   "derived": false,
+   "anchorX": 100,
+   "anchorY": 141,
+   "sortY": 141,
+   "footprint": {
+    "x": 17,
+    "y": 130,
+    "w": 166,
+    "h": 12
+   },
+   "blockRect": {
+    "x": 17,
+    "y": 40,
+    "w": 166,
+    "h": 102
+   },
+   "roofRect": {
+    "x": 0,
+    "y": 0,
+    "w": 200,
+    "h": 98
+   },
+   "doorRect": {
+    "x": 32,
+    "y": 107,
+    "w": 16,
+    "h": 27
+   },
+   "doorCentreX": 40.0,
+   "step": {
+    "x": 30,
+    "y": 134,
+    "w": 20,
+    "h": 15
+   },
+   "entry": {
+    "x": 40,
+    "y": 149
+   },
+   "entryOffsetFromAnchor": [
+    -60,
+    8
+   ],
+   "doorTrigger": {
+    "x": 30,
+    "y": 141,
+    "w": 20,
+    "h": 16
+   },
+   "persons": {
+    "w": 8.0,
+    "h": 6.0,
+    "door": 1.08
+   },
+   "x": 233,
+   "y": 236
+  }
+ ]
+}
