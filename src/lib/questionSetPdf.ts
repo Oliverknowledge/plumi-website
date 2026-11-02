@@ -18,7 +18,7 @@ const SOFT = rgb(0.48, 0.4, 0.36);
  * second a call while the tab is in the background, so a big set built while someone
  * looks at another tab would crawl.
  */
-type Slice = { bytes: string; w: number; h: number };
+type Slice = { bytes: string; w: number; h: number; ruled: boolean };
 const PRINT_W = A4.w - MARGIN * 2;
 const PRINT_H = A4.h - MARGIN * 2 - 40;
 
@@ -43,7 +43,8 @@ async function asJpeg(url: string): Promise<Slice[] | null> {
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
   const pageRows = Math.floor((canvas.width * PRINT_H) / PRINT_W);
-  if (canvas.height <= pageRows * SHRINK) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height }];
+  const ruled = hasAnswerLines(ctx, canvas.width, canvas.height);
+  if (canvas.height <= pageRows * SHRINK) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height, ruled }];
   const blank = (row: number) => ctx.getImageData(0, row, canvas.width, 1).data.every((v, i) => i % 4 === 3 || v > 235);
   const slices: Slice[] = [];
   for (let top = 0; top < canvas.height;) {
@@ -58,10 +59,40 @@ async function asJpeg(url: string): Promise<Slice[] | null> {
     piece.width = canvas.width;
     piece.height = cut - top;
     piece.getContext("2d")?.drawImage(canvas, 0, top, canvas.width, cut - top, 0, 0, canvas.width, cut - top);
-    slices.push({ bytes: piece.toDataURL("image/jpeg", 0.88), w: piece.width, h: piece.height });
+    slices.push({ bytes: piece.toDataURL("image/jpeg", 0.88), w: piece.width, h: piece.height, ruled });
     top = cut;
   }
   return slices;
+}
+
+/**
+ * Whether a crop already has the paper's own lines to write on (many cutters keep them: OCR's and AQA's sciences,
+ * Edexcel Psychology's one-part questions), so the PDF adds none under it. Lines to write on are rules a few
+ * pixels tall across most of the crop's width, solid or dotted, three or more evenly spaced; a box's border
+ * (Edexcel English Literature) or a lone "Answer ____" line isn't, and a table's rules span only the table.
+ */
+function hasAnswerLines(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const data = ctx.getImageData(0, 0, w, h).data;
+  const rules: number[] = [];
+  let run = 0;
+  for (let y = 0; y <= h; y++) {
+    let ruleRow = false;
+    if (y < h) {
+      let first = -1, last = -1, ink = 0;
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (data[i] + data[i + 1] + data[i + 2] < 600) { if (first < 0) first = x; last = x; ink++; }
+      }
+      ruleRow = last - first >= w * 0.7 && ink >= (last - first) * 0.3;
+    }
+    if (ruleRow) run++;
+    else { if (run && run <= 4) rules.push(y); run = 0; }
+  }
+  for (let i = 2; i < rules.length; i++) {
+    const a = rules[i - 1] - rules[i - 2], b = rules[i] - rules[i - 1];
+    if (a >= 14 && b >= 14 && a <= 90 && b <= 90 && Math.abs(a - b) <= Math.max(a, b) * 0.25) return true;
+  }
+  return false;
 }
 
 /**
@@ -107,6 +138,25 @@ function limited(width: number) {
  */
 const PLAIN: Record<string, string> = { "≥": ">=", "≤": "<=", "≠": "!=", "→": "->", "←": "<-", "−": "-", "‐": "-", "‑": "-", "√": "sqrt", "≈": "~", "∆": "delta", "Δ": "delta", "θ": "theta", "λ": "lambda", "μ": "u", "π": "pi", "Ω": "ohm", "\u00a0": " " };
 
+/** Runs of list numbers as ranges: "1–3", "1, 3", "2–4, 7". */
+function ranges(nums: Iterable<number>) {
+  const runs: number[][] = [];
+  for (const n of [...new Set(nums)].sort((x, y) => x - y)) {
+    const last = runs.at(-1);
+    if (last && n === last[last.length - 1] + 1) last.push(n); else runs.push([n]);
+  }
+  return runs.map(r => (r.length > 1 ? `${r[0]}–${r[r.length - 1]}` : `${r[0]}`)).join(", ");
+}
+
+/**
+ * Ruled lines to answer on, as a paper gives (Discord, 2 November 2026): two a mark, at least two and at most
+ * forty (a 20-mark essay gets a page and a half; a longer one goes on paper), 24 pt apart. None under a
+ * multiple-choice question, whose answer is a letter.
+ */
+const LINE_GAP = 24;
+const linesFor = (p: BankPart) => (p.k ? 0 : Math.min(40, Math.max(2, Math.round((p.m ?? 2) * 2))));
+const RULE = rgb(0.78, 0.74, 0.7);
+
 /**
  * The set as one A4 PDF: a title, each question with a one-line label ("3 · June 2023 ·
  * Paper 1 · Q01.4 · 1 mark", numbered as on the page it came from) and its crop at
@@ -115,7 +165,7 @@ const PLAIN: Record<string, string> = { "≥": ">=", "≤": "<=", "≠": "!=", "
  * order they were picked in, so the PDF reads as the list on screen did.
  */
 export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: {
-  markSchemes: boolean; reports?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
+  markSchemes: boolean; reports?: boolean; lines?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
 }): Promise<number> {
   const parts = [...picked];
   const reports: Record<string, string> = opts.reports ? await fetch(bankDataPath(subject.slug, "reports")).then(r => r.json()).catch(() => ({})) : {};
@@ -133,6 +183,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const footer = (p: typeof page) =>
     p.drawText(`${bankTitle(subject)} · questions © ${bankOwner(subject)} · tryplumi.app/question-bank`, { x: MARGIN, y: 22, size: 8, font, color: SOFT });
   footer(page);
+  const newPage = () => { page = pdf.addPage([A4.w, A4.h]); footer(page); y = A4.h - MARGIN; };
 
   // A heading waits to be drawn with the first crop under it, so it never sits alone at the foot of a page.
   type Heading = { title: string; sub?: string };
@@ -154,7 +205,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
   const want = (c: Crop) => { fetched.set(c, run(() => asJpeg(c.kind === "stem" ? stemImage(c.part, subject.cropVersion) : partImage(c.part.id, c.kind, subject.cropVersion)).catch(() => null))); return c; };
 
-  async function place({ kind, label }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
+  async function place({ kind, label, part }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind !== "stem") {
       done += 1;
       opts.onProgress?.(done, total);
@@ -179,19 +230,33 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
       page.drawImage(jpg, { x: MARGIN, y: y - 16 - h, width: w, height: h });
       y -= 16 + h + GAP;
     }
+    if (kind === "qp" && opts.lines && !slices.some(s => s.ruled)) {
+      // The lines start under the crop and carry on over the page if they must, as a paper's do.
+      y += GAP / 2;
+      for (let n = linesFor(part); n > 0; n--) {
+        if (y - LINE_GAP < MARGIN + 10) newPage();
+        y -= LINE_GAP;
+        page.drawLine({ start: { x: MARGIN + 18, y }, end: { x: A4.w - MARGIN, y }, thickness: 0.6, color: RULE });
+      }
+      y -= GAP;
+    }
   }
 
   const num = (p: BankPart) => (opts.numbers?.has(p.id) ? `${opts.numbers.get(p.id)} · ` : "");
   const labelFor = (p: BankPart) => `${num(p)}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · Q${p.l}${p.m != null ? ` · ${p.m} ${p.m === 1 ? "mark" : "marks"}` : ""}`;
-  // Each question's start (its setup, before part .1) goes in once, above its first part, unnumbered: the
-  // list number is its first part's, and printed twice it read as two questions (Discord, 1 November 2026). A start several
-  // questions share (AQA Economics: a context's extracts, for questions 01–04) goes in once for them all.
+  // Each question's start (its setup, before part .1) goes in once, above its first part, headed with the numbers
+  // it is for ("For 26–27 · June 2024 · AS Paper 1 · question 2"): numbered like a part, it read as one (Discord,
+  // 1 November 2026). A start several questions share (AQA Economics: a context's extracts, for questions 01–04)
+  // goes in once for them all.
   const stemsDone = new Set<string>();
+  const stemFor = new Map<string, number[]>();
+  for (const p of parts) if (p.st && opts.numbers?.has(p.id)) stemFor.set(stemImage(p), [...(stemFor.get(stemImage(p)) ?? []), opts.numbers.get(p.id)!]);
   for (const p of parts) {
     const stem = stemImage(p);
     if (p.st && !stemsDone.has(stem)) {
       stemsDone.add(stem);
-      crops.push(want({ part: p, kind: "stem", label: `${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · question ${questionOf(p.l)}` }));
+      const covers = stemFor.has(stem) ? `For ${ranges(stemFor.get(stem)!)} · ` : "";
+      crops.push(want({ part: p, kind: "stem", label: `${covers}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · start of question ${questionOf(p.l)}` }));
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
@@ -217,7 +282,6 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     if (PLAIN[ch] !== undefined) return PLAIN[ch];
     try { font.widthOfTextAtSize(ch, 10); return ch; } catch { return ""; }
   }).join("");
-  const newPage = () => { page = pdf.addPage([A4.w, A4.h]); footer(page); y = A4.h - MARGIN; };
   function drawReport(p: BankPart) {
     const key = reportKey(subject, p.id);
     if (reportAfter.get(key) !== p) return;
@@ -243,13 +307,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     if (y - 40 < MARGIN + 10) newPage();
     if (pending) { drawHeading(pending); pending = null; }
     const q = key === p.id ? `Q${p.l}` : `question ${questionOf(p.l)}`;
-    // Runs of numbers as ranges: "1–3", "1, 3", "2–4, 7".
-    const runs: number[][] = [];
-    for (const n of [...new Set(reportNums.get(key))].sort((x, y) => x - y)) {
-      const last = runs.at(-1);
-      if (last && n === last[last.length - 1] + 1) last.push(n); else runs.push([n]);
-    }
-    const covers = runs.length ? `${runs.map(r => (r.length > 1 ? `${r[0]}–${r[r.length - 1]}` : `${r[0]}`)).join(", ")} · ` : "";
+    const covers = reportNums.get(key)?.length ? `${ranges(reportNums.get(key)!)} · ` : "";
     page.drawText(`${covers}Examiner's report · ${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · ${q}`, { x: MARGIN, y: y - 10, size: 9.5, font: bold, color: INK });
     y -= 22;
     for (const l of lines) {

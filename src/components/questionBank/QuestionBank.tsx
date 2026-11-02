@@ -525,7 +525,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
       const reports = withReports && hasReports;
-      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, lines: true, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
       track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, reports: reports ? 1 : 0, via: "range", skipped, whole: whole ? 1 : 0 });
       const what = whole ? `${numbers.size} whole ${numbers.size === 1 ? "question" : "questions"}` : `${picks.size} ${picks.size === 1 ? "question" : "questions"}`;
       setRangeNote(skipped
