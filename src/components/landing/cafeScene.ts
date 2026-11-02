@@ -24,7 +24,8 @@ const DIRS: readonly Dir[] = ["right", "back", "left", "front"];
 
 interface Spot {
   role: "seat" | "sofa" | "queue" | "browse" | "barista";
-  pose: "sit" | "idle" | "read" | "phone" | "stool";
+  /** "chairback" (a room of its own only: the cafe) is someone sitting in a chair with their back to us, drawn from the stool frames; the Grand Library's stools stay the back view standing. */
+  pose: "sit" | "idle" | "read" | "phone" | "stool" | "chairback";
   staff?: "librarian" | "butler";
   face: Dir;
   x: number; y: number; sort: number;
@@ -43,10 +44,12 @@ interface Layout {
 interface Assets { L: Layout; bg: HTMLImageElement; pieces: HTMLImageElement; anims: HTMLImageElement; people: HTMLImageElement }
 
 const BASE = "/library/";
+/** Where another room's art is (library mode only): the files `export_library.py` or `tools/art/room_from_image.py` make. The Grand Library, when omitted. */
+export interface RoomArt { id: string; layout: string; bg: string; pieces: string; anims: string; people: string }
 /** The most device pixels the study app's room paints (1280 x 800 at 2x is 4.1 million, and stays whole; 4K at 2x is 33). */
 const LIBRARY_PIXELS = 6_000_000;
 /** The homepage asks for the art by its plain URL (landing.css shares those files); the study app's room asks for its fingerprinted URL, cached for a year. */
-const loading: Record<"plain" | "versioned", Promise<Assets> | null> = { plain: null, versioned: null };
+const loading: Record<string, Promise<Assets> | null> = { plain: null, versioned: null };
 
 function image(name: string, url: (n: string) => string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -58,9 +61,9 @@ function image(name: string, url: (n: string) => string): Promise<HTMLImageEleme
   });
 }
 
-function loadAssets(versioned = false): Promise<Assets> {
-  const kind = versioned ? "versioned" : "plain";
-  const url = versioned ? artUrl : (n: string) => BASE + n;
+function loadAssets(versioned = false, art?: RoomArt): Promise<Assets> {
+  const kind = art ? art.id : versioned ? "versioned" : "plain";
+  const url = art ? (n: string) => art[n.split(".")[0] as "bg" | "pieces" | "anims" | "people" | "layout"] : versioned ? artUrl : (n: string) => BASE + n;
   const p = (loading[kind] ??= Promise.all([
     fetch(url("layout.json")).then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
     image("bg.png", url), image("pieces.png", url), image("anims.png", url), image("people.png", url),
@@ -176,6 +179,8 @@ export interface CafeOptions {
   live?: LiveHooks;
   /** Class names for labels and pops (library mode brings its own, so the homepage's stylesheet is not needed). */
   cls?: Partial<CafeClasses>;
+  /** Library mode only: the room to mount (its art), when it is not the Grand Library (see `RoomArt`). */
+  art?: RoomArt;
   /** Library mode only: you, drawn from your own avatar (see `LiveRemote.sheet`), from the first frame. */
   youSheet?: { sheet: CanvasImageSource; phones: boolean; frameW?: number } | null;
 }
@@ -324,7 +329,7 @@ export async function mountCafe(canvas: HTMLCanvasElement, overlay: HTMLElement,
 
 /** Mounts the study app's Grand Library: this room with real people in it (see `LiveHooks`). */
 export async function mountLibrary(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: Omit<CafeOptions, "mode">): Promise<LibraryHandle> {
-  const [A, W] = await Promise.all([loadAssets(true), import("@/lib/studyapp/library/walk")]);
+  const [A, W] = await Promise.all([loadAssets(true, opts.art), import("@/lib/studyapp/library/walk")]);
   const handle = new Cafe(canvas, overlay, A, { ...opts, mode: "library" }, W) as unknown as LibraryHandle;
   // in development only (compiled out of a production build): the page's tests read where you stand through it
   if (process.env.NODE_ENV !== "production") (window as unknown as { __plumiLibrary?: LibraryHandle }).__plumiLibrary = handle;
@@ -811,7 +816,7 @@ class Cafe implements CafeHandle {
   /** The person drawn at an art pixel, the frontmost first. */
   private hit(ax: number, ay: number): Person | null {
     return [...this.people].sort((a, b) => this.z(b) - this.z(a)).find(p => {
-      const [x, y] = this.spriteAt(p), tall = p.at && p.spot?.pose === "stool" ? 20 : 32;
+      const [x, y] = this.spriteAt(p), tall = p.at && (p.spot?.pose === "stool" || p.spot?.pose === "chairback") ? 20 : 32;
       const fw = p.fw ?? 16, pad = p.fw ? Math.max(1, (fw - 22) / 2) : 2;      // a wide frame (the fox's) has empty columns at the sides: its body is the middle 22
       return ax >= x + pad && ax < x + fw - pad && ay >= y + 4 && ay < y + tall && p.alpha > .5;
     }) ?? null;
@@ -1078,6 +1083,7 @@ class Cafe implements CafeHandle {
     if (p.at && p.spot) {
       const s = p.spot;
       if (s.pose === "sit") return R.sit + (s.face === "right" ? 0 : 6) + (Math.floor(tick / 8) + p.phase) % 6;
+      if (s.pose === "chairback") return R.stool + (Math.floor(tick / 8) + p.phase) % 6;
       if (s.pose === "read") return R.read + (Math.floor(tick / 5) + p.phase) % 6;
       if (s.pose === "phone") return R.phone + (Math.floor(tick / 4) + p.phase) % 6;
       return R.idle + DIRS.indexOf(s.face) * 6 + (Math.floor(tick / 6) + p.phase) % 6;

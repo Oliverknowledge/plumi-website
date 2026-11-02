@@ -760,3 +760,8 @@ Tried and dropped: loading the room (`Library.tsx`, with the visit, people, chat
 
 Not changed: the lamplight (`lightLayer`) is one synchronous 60 ms (at 1x) pass in the engine's constructor, the biggest
 long task left at entry; Supabase's client loads on every Study route because `account.ts` imports it.
+
+## The cafe interior
+
+A second room on the same engine, made from one picture by `tools/art/room_from_image.py`: `docs/study/cafe.md` (scale decision, config, 47 seats,
+the engine seam `RoomDef`/`art`, the dev demo `/study/cafe/demo`). The Grand Library is the default room and is unchanged.
