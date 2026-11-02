@@ -28,12 +28,16 @@ sc = d["scatter"]
 for i in range(0, len(sc["v"]), 4):
     n = sc["names"][sc["v"][i]]; sp = d["sprites"][n]; x, y = sc["v"][i + 1], sc["v"][i + 2]
     f = sp["foot"]; sx, sy = x - sp["anchorX"], y - 1 - sp["anchorY"]
-    objs.append({"kind": "tree" if n.startswith("tree_") else "bush", "x": x, "y": y, "zone": "treeline" if sc["v"][i + 3] else "wood", "block": {"x": sx + f["x"], "y": sy + f["y"], "w": f["w"], "h": f["h"]}})
+    objs.append({"kind": "tree" if n.startswith("tree_") else "bush", "x": x, "y": y, "zone": ["wood", "treeline", "hedge", "dress"][sc["v"][i + 3]], "block": {"x": sx + f["x"], "y": sy + f["y"], "w": f["w"], "h": f["h"]}})
 for o in objs:
     b = o["block"]; r = [b["x"] * S, b["y"] * S, (b["x"] + b["w"]) * S, (b["y"] + b["h"]) * S]
     k = o["kind"]
     if o.get("zone") == "treeline":
         continue
+    if o.get("zone") == "hedge":
+        dr.rectangle([r[0], r[1] - 1, r[2], r[3] + 1], fill=(40, 90, 40)); continue
+    if o.get("zone") == "dress":
+        dr.rectangle([r[0], r[1], r[2] + 1, r[3] + 1], fill=(40, 40, 160)); continue
     if k == "building":
         sp = d["sprites"][o["sprite"]]
         dr.rectangle([o["sx"] * S, o["sy"] * S, (o["sx"] + sp["w"]) * S, (o["sy"] + sp["h"]) * S], outline=(120, 40, 40))

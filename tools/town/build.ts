@@ -69,10 +69,13 @@ function main() {
   writeFileSync(join(OUT, `town.${dh}.json`), body);
   writeFileSync(join(ROOT, "tools/town/spot-registry.json"), JSON.stringify(c.registry, null, 1) + "\n");
   writeFileSync(join(ROOT, "src/lib/town/assets.generated.ts"),
-    `// Written by tools/town/build.ts. Do not edit.\nexport const TOWN_DATA_URL = "/town/v1/town.${dh}.json";\n`);
+    `// Written by tools/town/build.ts. Do not edit.\nexport const TOWN_DATA_URL = "/town/v1/town.${dh}.json";\n` +
+    `/** The atlases and the premade people, so the page asks for them at the same time as the map instead of after it. */\n` +
+    `export const TOWN_ASSET_URLS = ${JSON.stringify(urls)} as const;\n`);
   const total = readdirSync(OUT).map((f) => readFileSync(join(OUT, f)).length).reduce((a, b) => a + b, 0);
   console.log(`town:build ok. ${c.data.stats.objects} objects, ${c.data.stats.spots} sit spots, ${total} bytes in public/town/v1 (json ${body.length}).`);
   console.log(JSON.stringify(c.data.stats), "notes:", JSON.stringify(c.notes));
   console.log("validator:", JSON.stringify(report.summary));
+  console.log("hub pairs (seconds along the paths, seconds by the shortest walk, ratio):\n  " + report.pairs.join("\n  "));
 }
 main();

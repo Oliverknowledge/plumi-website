@@ -20,6 +20,7 @@ export interface SpriteDef {
   atlas: AtlasName; x: number; y: number; w: number; h: number; anchorX: number; anchorY: number;
   foot: Rect;                  // the base the object stands on (blocks walking when `block` is absent)
   block?: Rect;                // the ground area it occupies when that is bigger than the base (a building's body)
+  solids?: Rect[];             // what really blocks walking when the sprite is not one lump (an arch: two pillars; string lights: two posts), relative to the sprite
   trunk?: Rect; canopy?: Rect; roof?: Rect;
   door?: Rect; step?: Rect; entry?: { x: number; y: number }; trigger?: Rect;
   derived?: boolean;
@@ -34,6 +35,8 @@ export interface TownObject {
   sortY: number;               // the depth line: the sprite is drawn after everyone whose feet are above it
   /** The rect that blocks walking (world), and the ground base inside it. */
   block: Rect; foot: Rect;
+  /** When the object is not one lump (an arch, string lights): the rects that block walking, world px. `block` is then their bounding box. */
+  solids?: Rect[];
   /** Where the sprite's top left is. */
   sx: number; sy: number;
   /** A placeholder's look: its box in the world, the label, a colour, and the cut line (rows from its top) between its back and its front half. */
@@ -66,7 +69,7 @@ export interface PathOut { id: string; kind: string; half: number; pts: number[]
 export interface PlazaOut { id: string; rect: Rect }
 
 export interface TownData {
-  version: 2; name: string; seed: number;
+  version: 3; name: string; seed: number;
   cols: number; rows: number;                  // ground tiles
   bounds: Rect;                                // the walkable rectangle, world px
   atlases: Record<AtlasName | "ground", { url: string; w: number; h: number }>;
@@ -89,6 +92,10 @@ export interface TownData {
   hubs: Hub[];
   /** Where bots walk: nodes (feet points) and, per node, the nodes it links to. */
   botNodes: { x: number; y: number }[]; botLinks: number[][];
+  /** Worn ground (dirt showing through the grass) round doors, benches, signs: [x, y, radius] in art px, flat. */
+  worn: number[];
+  /** Where a belt closes the way (the hedge rows and walls of trees draw it; this is what blocks): rects, flat [x, y, w, h, ...], world px. A gap is a gate. */
+  walls: number[];
   placeholders: Labelled[];                   // art that does not exist yet (debug view)
   stats: Record<string, number>;
 }

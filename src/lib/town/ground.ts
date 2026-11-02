@@ -10,6 +10,7 @@
  * `paintChunk` writes one 16 x 16 tile chunk (512 x 512 art px) into an RGBA buffer. It is pure (no DOM): the engine bakes a chunk once and
  * blits it. Seeded: the same data gives the same pixels.
  */
+import { edt2 } from "./plan";
 import { hash2, valueNoise } from "./rng";
 import { CHUNK_TILES, TILE, type TownData } from "./types";
 
@@ -17,7 +18,11 @@ export const MATC = 8;                 // art px per material cell
 export const PATH_TAN = [238, 214, 150] as const;
 export const PATH_LIFT = 0.55;
 export const PLAZA_TAN = [244, 228, 184] as const;
-export const PLAZA_LIFT = 0.5;
+/** The herringbone is the loudest ground on the map, so it is lifted toward pale hard: 0.62 in the middle of a plaza, 0.86 at its edge (it fades toward the dirt apron). */
+export const PLAZA_LIFT = 0.62;
+export const PLAZA_LIFT_EDGE = 0.86;
+const STONE = [190, 168, 124] as const;   // the stone border: a pixel line round the paving
+export const WORN = [208, 178, 114] as const;   // worn ground: dirt showing through the grass
 const TUFT = [105, 124, 52] as const;  // darker than the grass atlas's (127,140,62): the tuft reads on both greens
 const RIM = [196, 150, 92] as const;   // the dirt's own darker tone, lifted a little
 
@@ -26,27 +31,45 @@ export interface GroundCtx {
   d: Pick<TownData, "cols" | "rows" | "seed" | "groundCols" | "tiles">;
   mat: Uint8Array; mc: number; mr: number;       // material cells
   cov: Float32Array;                              // blurred path-or-plaza coverage, per cell
+  cov2: Float32Array;                             // blurred plaza coverage, per cell
+  pd: Float32Array;                               // per cell: distance (cells) to the nearest non-plaza cell (0 outside), capped at 8
   leaf: Uint8Array;                               // per tile: a tree is near
+  wornAt: Map<number, number[]>;                  // per tile (ty * cols + tx): the worn discs [x, y, r, ...] that reach it
 }
 
-export function makeGroundCtx(d: GroundCtx["d"] & { mat: { rle: number[] } }, trees: { x: number; y: number }[], mat: Uint8Array): GroundCtx {
+export function makeGroundCtx(d: GroundCtx["d"] & { mat: { rle: number[] }; worn?: number[] }, trees: { x: number; y: number }[], mat: Uint8Array): GroundCtx {
   const mc = d.cols * (TILE / MATC), mr = d.rows * (TILE / MATC);
-  const cov = new Float32Array(mc * mr);
+  const cov = new Float32Array(mc * mr), cov2 = new Float32Array(mc * mr);
   for (let y = 0; y < mr; y++) for (let x = 0; x < mc; x++) {
-    let s = 0, n = 0;
+    let s = 0, s2 = 0, n = 0;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
       const nx = x + dx, ny = y + dy;
       if (nx < 0 || ny < 0 || nx >= mc || ny >= mr) continue;
-      n++; if (mat[ny * mc + nx]) s++;
+      n++; const m = mat[ny * mc + nx]; if (m) s++; if (m === 2) s2++;
     }
-    cov[y * mc + x] = s / n;
+    cov[y * mc + x] = s / n; cov2[y * mc + x] = s2 / n;
+  }
+  const pd2 = new Float64Array(mc * mr);
+  for (let i = 0; i < pd2.length; i++) pd2[i] = mat[i] === 2 ? 1e20 : 0;
+  edt2(pd2, mc, mr);
+  const pd = new Float32Array(mc * mr);
+  for (let i = 0; i < pd.length; i++) pd[i] = Math.min(8, Math.sqrt(pd2[i]));
+  const wornAt = new Map<number, number[]>();
+  const wd = d.worn ?? [];
+  for (let i = 0; i + 2 < wd.length; i += 3) {
+    const x = wd[i], y = wd[i + 1], r = wd[i + 2];
+    for (let ty = Math.floor((y - r - 2) / TILE); ty <= Math.floor((y + r + 2) / TILE); ty++) for (let tx = Math.floor((x - r - 2) / TILE); tx <= Math.floor((x + r + 2) / TILE); tx++) {
+      if (tx < 0 || ty < 0 || tx >= d.cols || ty >= d.rows) continue;
+      const k = ty * d.cols + tx, l = wornAt.get(k);
+      if (l) l.push(x, y, r); else wornAt.set(k, [x, y, r]);
+    }
   }
   const leaf = new Uint8Array(d.cols * d.rows);
   for (const t of trees) {
     const cx = t.x / TILE, cy = t.y / TILE;
     for (let y = Math.max(0, Math.floor(cy - 3.2)); y <= Math.min(d.rows - 1, Math.floor(cy + 3.2)); y++) for (let x = Math.max(0, Math.floor(cx - 3.2)); x <= Math.min(d.cols - 1, Math.floor(cx + 3.2)); x++) leaf[y * d.cols + x] = 1;
   }
-  return { d, mat, mc, mr, cov, leaf };
+  return { d, mat, mc, mr, cov, cov2, pd, leaf, wornAt };
 }
 
 /** The atlas tile (index) for a grass tile, and its flip flags (128 flipX, 256 flipY, 512 transpose). */
@@ -70,8 +93,13 @@ function tilePx(a: GroundAtlas, cols: number, v: number, px: number, py: number,
 }
 
 const nn: number[] = [0, 0, 0];
+const ti2 = (d: { cols: number }, ty: number, tx: number) => ty * d.cols + tx;
 const covAt = (g: GroundCtx, x: number, y: number) => (x < 0 || y < 0 || x >= g.mc || y >= g.mr ? 0 : g.cov[y * g.mc + x]);
-/** Whether the pixel (wx, wy) in the world is path/plaza land: 0 grass, 1 path, 2 plaza. */
+const covAt2 = (g: GroundCtx, x: number, y: number) => (x < 0 || y < 0 || x >= g.mc || y >= g.mr ? 0 : g.cov2[y * g.mc + x]);
+/**
+ * Whether the pixel (wx, wy) in the world is path/plaza land: 0 grass, 1 path, 2 plaza. The land edge (any material against grass) and the paving's edge
+ * (plaza against path) are both ragged: each is a blurred coverage plus the same seeded noise, thresholded.
+ */
 export function landAt(g: GroundCtx, wx: number, wy: number): number {
   const fx = (wx + 0.5) / MATC - 0.5, fy = (wy + 0.5) / MATC - 0.5;
   const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
@@ -79,11 +107,12 @@ export function landAt(g: GroundCtx, wx: number, wy: number): number {
   if (v <= 0.02) return 0;
   const cx = Math.min(g.mc - 1, Math.max(0, Math.floor(wx / MATC))), cy = Math.min(g.mr - 1, Math.max(0, Math.floor(wy / MATC)));
   const here = g.mat[cy * g.mc + cx];
-  if (here === 2 && v > 0.45) return 2;                                  // plaza: a straight cut at the cell outline, no noise
   const seed = g.d.seed;
   const n = hash2(seed + 21, wx, wy) * 0.45 + valueNoise(seed + 22, wx, wy, 5) * 0.55 - 0.5;
   if (v + n * 0.7 <= 0.5) return 0;
-  return here === 2 ? 2 : here === 1 || nearMat(g, cx, cy, 1) ? 1 : 0;
+  const p = covAt2(g, x0, y0) * (1 - tx) * (1 - ty) + covAt2(g, x0 + 1, y0) * tx * (1 - ty) + covAt2(g, x0, y0 + 1) * (1 - tx) * ty + covAt2(g, x0 + 1, y0 + 1) * tx * ty;
+  if (p > 0.02 && p + n * 0.8 > 0.5) return 2;
+  return here === 1 || here === 2 || nearMat(g, cx, cy, 1) || nearMat(g, cx, cy, 2) ? 1 : 0;
 }
 function nearMat(g: GroundCtx, cx: number, cy: number, v: number): boolean {
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const x = cx + dx, y = cy + dy; if (x >= 0 && y >= 0 && x < g.mc && y < g.mr && g.mat[y * g.mc + x] === v) return true; }
@@ -135,7 +164,14 @@ export function paintChunk(g: GroundCtx, atlas: GroundAtlas, cx: number, cy: num
       const wx = ox + i, tx = Math.floor(wx / TILE), px = wx - tx * TILE, li = (j + P) * W + i + P, m = land[li], ti = (ty - cy * T) * T + (tx - cx * T);
       let r: number, gg: number, b: number;
       if (tx >= d.cols || ty >= d.rows) { r = 109; gg = 143; b = 60; }
-      else if (m === 2) { tilePx(atlas, d.groundCols, d.tiles.plaza, px, py, col); r = col[0] + (PLAZA_TAN[0] - col[0]) * PLAZA_LIFT; gg = col[1] + (PLAZA_TAN[1] - col[1]) * PLAZA_LIFT; b = col[2] + (PLAZA_TAN[2] - col[2]) * PLAZA_LIFT; }
+      else if (m === 2) {
+        tilePx(atlas, d.groundCols, d.tiles.plaza, px, py, col);
+        const cxm = Math.min(g.mc - 1, Math.max(0, Math.floor(wx / MATC))), cym = Math.min(g.mr - 1, Math.max(0, Math.floor(wy / MATC)));
+        const fade = Math.min(1, g.pd[cym * g.mc + cxm] / 5), lift = PLAZA_LIFT_EDGE + (PLAZA_LIFT - PLAZA_LIFT_EDGE) * fade;
+        r = col[0] + (PLAZA_TAN[0] - col[0]) * lift; gg = col[1] + (PLAZA_TAN[1] - col[1]) * lift; b = col[2] + (PLAZA_TAN[2] - col[2]) * lift;
+        // a stone border: the paving's outermost pixel against path or grass
+        if (land[li - 1] !== 2 || land[li + 1] !== 2 || land[li - W] !== 2 || land[li + W] !== 2) { r = STONE[0]; gg = STONE[1]; b = STONE[2]; }
+      }
       else if (m === 1) {
         if (dirtOf[ti] < 0) dirtOf[ti] = d.tiles.dirt[Math.floor(hash2(d.seed + 2, tx, ty) * d.tiles.dirt.length)];
         tilePx(atlas, d.groundCols, dirtOf[ti], px, py, col);
@@ -146,6 +182,12 @@ export function paintChunk(g: GroundCtx, atlas: GroundAtlas, cx: number, cy: num
         if (grassOf[ti] < 0) grassOf[ti] = grassTile(g, tx, ty);
         tilePx(atlas, d.groundCols, grassOf[ti], px, py, col);
         r = col[0]; gg = col[1]; b = col[2];
+        const wl = g.wornAt.get(ti2(d, ty, tx));
+        if (wl) {
+          let a = 0;
+          for (let q = 0; q < wl.length; q += 3) { const dd = Math.hypot(wx - wl[q], (wy - wl[q + 1]) * 1.35) / wl[q + 2]; if (dd < 1) a = Math.max(a, 1 - dd); }
+          if (a > 0 && a * 1.25 + (hash2(d.seed + 35, wx, wy) - 0.5) * 0.8 + (valueNoise(d.seed + 36, wx, wy, 4) - 0.5) * 0.5 > 0.42) { r = r * 0.25 + WORN[0] * 0.75; gg = gg * 0.25 + WORN[1] * 0.75; b = b * 0.25 + WORN[2] * 0.75; }
+        }
         const touch = land[li - 1] !== 0 || land[li + 1] !== 0 || land[li - W] !== 0 || land[li + W] !== 0;
         if (touch) { if (hash2(d.seed + 31, wx, wy) < 0.7) { r = TUFT[0]; gg = TUFT[1]; b = TUFT[2]; } }
         else if ((land[li - 2] !== 0 || land[li + 2] !== 0 || land[li - 2 * W] !== 0 || land[li + 2 * W] !== 0) && hash2(d.seed + 32, wx, wy) < 0.16) { r = TUFT[0]; gg = TUFT[1]; b = TUFT[2]; }

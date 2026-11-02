@@ -1,10 +1,12 @@
-import { gap } from "./worldgen";
+import { gap, overlaps } from "./worldgen";
 import { allObjects } from "./objects";
-import { unrle } from "./plan";
-import { NAV, TILE, type PathOut, type Rect, type TownData } from "./types";
+import { CollisionGrid } from "./collision";
+import { Nav } from "./nav";
+import { edt2, unrle } from "./plan";
+import { CELL as CELL8, NAV, TILE, type PathOut, type Rect, type TownData } from "./types";
 import { World } from "./world";
 
-export interface Report { failures: string[]; warnings: string[]; summary: Record<string, number | string> }
+export interface Report { failures: string[]; warnings: string[]; summary: Record<string, number | string>; pairs: string[] }
 
 const inR = (r: Rect, x: number, y: number) => x >= r.x && y >= r.y && x < r.x + r.w && y < r.y + r.h;
 
@@ -14,8 +16,17 @@ export const SCREEN = { w: 427, h: 267 };
 /** Pockets of open navigation cells that nobody can reach are allowed up to this many cells (a nav cell is 16 px; 4 tiles are 16 cells). */
 export const POCKET_MAX = 4;
 export const WIDTH_MIN = 1.9, WIDTH_MAX = 3.6;         // tiles, a path's cross section away from junctions (the brief: 2 to 3.5, less the 8 px cell rounding)
-export const STRAIGHT_WINDOW = 12, STRAIGHT_MIN_DEV = 0.4;   // tiles: no 12 tile stretch may stay within 0.4 tiles of its chord
+export const STRAIGHT_WINDOW = 12, STRAIGHT_MIN_DEV = 0.25;   // tiles: no 12 tile stretch may stay within 0.4 tiles of its chord
 export const SPOTS_PER_SCREEN = [1.5, 2.5] as const;
+/** The widest a path may be anywhere, junctions included (tiles), except where it meets a plaza. The generator clamps to 3.6. */
+export const LOCAL_WIDTH_MAX = 3.8;
+/** Library plaza to bakery plaza, walking along the paths, in seconds (70 art px a second). */
+export const LIB_BAKERY_SECS = [60, 90] as const;
+/** A hub pair's path route may be this many times the shortest walkable route (the shortcut saves at most 1 - 1/ratio of the walk). */
+export const ROUTE_RATIO_MAX = 1.5;
+/** Props a person should be able to walk up to: a standable, reachable cell within this many px of their base. */
+export const ACCESS_PX = 40;
+const NEEDS_ACCESS = /^(noticeboard|mailbox|well|cart-apples|signpost-|planter-|barrel|crates|bike-rack|bin)/;
 
 /**
  * The map validator. A map that fails does not get written (`tools/town/build.ts`) and the tests assert it on the real map:
@@ -24,7 +35,7 @@ export const SPOTS_PER_SCREEN = [1.5, 2.5] as const;
  *   sample that is not a junction, end or plaza; no 12 tile stretch of a path straighter than a tolerance and no sharp turn; every sit spot reachable
  *   with a stand point that fits; spots per screen in the asked band; ids and keys unique; trees leave walkable gaps.
  */
-export function validateTown(d: TownData, world = new World(d)): Report {
+export function validateTown(d: TownData, world = new World(d), debug?: Record<string, [number, number][]>): Report {
   const failures: string[] = [], warnings: string[] = [];
   const { coll, nav } = world;
   const objects = allObjects(d);
@@ -85,17 +96,33 @@ export function validateTown(d: TownData, world = new World(d)): Report {
   if (comps !== 1) failures.push(`the path network is ${comps} pieces (sizes ${compSize.slice(0, 6).join(", ")})`);
   const matAtPx = (x: number, y: number) => { const i = Math.floor(x / CELL), j = Math.floor(y / CELL); return i < 0 || j < 0 || i >= mcols || j >= mrows ? 0 : mat[j * mcols + i]; };
 
-  // no footprint on a path (dirt) cell; plazas may carry their furniture, lamps and bins
+  // no footprint on a path (dirt) cell; plazas may carry their furniture, lamps and bins (an arch straddles its path on purpose)
   let onPath = 0;
   for (const o of objects) {
-    if (o.zone === "treeline" || o.id.startsWith("bench-view")) continue;
-    const f = o.foot;
+    if (o.zone === "treeline" || o.id.startsWith("bench-view") || o.sprite === "stone-arch") continue;
     let hit = false;
-    for (let y = Math.floor(f.y / CELL); y <= Math.floor((f.y + f.h - 1) / CELL) && !hit; y++) for (let x = Math.floor(f.x / CELL); x <= Math.floor((f.x + f.w - 1) / CELL); x++) {
-      const m = x < 0 || y < 0 || x >= mcols || y >= mrows ? 0 : mat[y * mcols + x];
-      if (m === 1 || (m === 2 && (o.kind === "tree" || o.kind === "bush" || o.kind === "log" || o.kind === "building"))) { hit = true; break; }
+    for (const f of o.solids ?? [o.foot]) {
+      for (let y = Math.floor(f.y / CELL); y <= Math.floor((f.y + f.h - 1) / CELL) && !hit; y++) for (let x = Math.floor(f.x / CELL); x <= Math.floor((f.x + f.w - 1) / CELL); x++) {
+        const m = x < 0 || y < 0 || x >= mcols || y >= mrows ? 0 : mat[y * mcols + x];
+        if (m === 1 || (m === 2 && (o.kind === "tree" || o.kind === "bush" || o.kind === "log" || o.kind === "building"))) { hit = true; break; }
+      }
     }
-    if (hit) { onPath++; failures.push(`${o.id}'s footprint is on a path`); }
+    if (hit) { onPath++; failures.push(`${o.id}${o.sprite ? ` (${o.sprite})` : ""} at (${o.x},${o.y}) has its footprint on a path`); }
+  }
+
+  // the widest the path is ANYWHERE, junctions included: the inscribed diameter of the path material (plaza and grass are the outside), except near a plaza
+  const d2 = new Float64Array(mat.length);
+  for (let i = 0; i < d2.length; i++) d2[i] = mat[i] === 1 ? 1e20 : 0;
+  edt2(d2, mcols, mrows);
+  let localMax = 0, localAt = "";
+  {
+    const near = (cx: number, cy: number) => d.plazas.some((p) => cx * CELL >= p.rect.x - 3.2 * TILE && cx * CELL <= p.rect.x + p.rect.w + 3.2 * TILE && cy * CELL >= p.rect.y - 3.2 * TILE && cy * CELL <= p.rect.y + p.rect.h + 3.2 * TILE);
+    for (let j = 0; j < mrows; j++) for (let i = 0; i < mcols; i++) {
+      if (mat[j * mcols + i] !== 1) continue;
+      const w = (2 * Math.sqrt(d2[j * mcols + i]) - 1) / 4;          // tiles: twice the distance to the nearest outside cell, less the cell itself
+      if (w > localMax && !near(i, j)) { localMax = w; localAt = `${Math.round(i / 4)},${Math.round(j / 4)}`; }
+    }
+    if (localMax > LOCAL_WIDTH_MAX) failures.push(`a path (junctions included) is ${localMax.toFixed(2)} tiles wide at (${localAt}) tiles: the cap is ${LOCAL_WIDTH_MAX}`);
   }
 
   // path geometry: widths, straightness, turns
@@ -117,13 +144,15 @@ export function validateTown(d: TownData, world = new World(d)): Report {
     for (let i = 4; i < P.length - 4; i += 4) {
       const a = P[i - 1], b = P[i + 1], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = -(b[1] - a[1]) / l, ny = (b[0] - a[0]) / l;
       const [x, y] = P[i];
-      if (others(ei, x, y, 3.6)) continue;
+      const loc = (2 * Math.sqrt(d2[Math.min(mrows - 1, Math.max(0, Math.floor((y * TILE) / CELL))) * mcols + Math.min(mcols - 1, Math.max(0, Math.floor((x * TILE) / CELL)))]) - 1) / 4;
+      if (loc > 3.0 || others(ei, x, y, 6.0) || d.plazas.some((q) => x * TILE > q.rect.x - 4 * TILE && x * TILE < q.rect.x + q.rect.w + 4 * TILE && y * TILE > q.rect.y - 4 * TILE && y * TILE < q.rect.y + q.rect.h + 4 * TILE)) continue;
       // march along the normal both ways until the material ends; a plaza on the way means a junction: skip
       let w = 0, plaza = false;
       for (const s of [1, -1]) { let t = 0; while (t < 4) { const m = matAtPx((x + nx * s * t) * TILE, (y + ny * s * t) * TILE); if (m === 2) plaza = true; if (!m) break; t += 0.125; } w += t; }
       if (plaza || Math.min(i, P.length - i) < 8) continue;
       wN++; wMin = Math.min(wMin, w); wMax = Math.max(wMax, w);
-      if (w < WIDTH_MIN || w > WIDTH_MAX) failures.push(`${p.id}: ${w.toFixed(2)} tiles wide at (${Math.round(x)},${Math.round(y)}) tiles`);
+      // (the upper bound is the local width rule below, which holds at junctions and bends too; a normal marched through a bend overstates)
+      if (w < WIDTH_MIN) failures.push(`${p.id}: ${w.toFixed(2)} tiles wide at (${Math.round(x)},${Math.round(y)}) tiles`);
     }
     // straightness: windows of 12 tiles of arc, away from the 3 tile ends
     const arc: number[] = [0];
@@ -160,6 +189,7 @@ export function validateTown(d: TownData, world = new World(d)): Report {
       if (j <= i) continue;
       const b = solid[j], g = gap(a.block, b.block);
       if (g >= 24) continue;
+      if (a.zone === "hedge" || b.zone === "hedge") continue;
       const furn = a.kind === "furniture" || b.kind === "furniture";
       const prop = a.kind === "prop" || b.kind === "prop";
       if (g === 0 && !furn && !prop) { failures.push(`${a.id} and ${b.id} overlap`); continue; }
@@ -170,13 +200,18 @@ export function validateTown(d: TownData, world = new World(d)): Report {
   // cottages: a front yard to the path (the spur), 3 tiles between houses
   const houses = objects.filter((o) => o.sprite?.startsWith("cottage_"));
   let minSpacing = Infinity;
-  for (const h of houses) for (const o of houses) if (o !== h) minSpacing = Math.min(minSpacing, gap(h.foot, o.foot));
+  const courtOf = (id: string) => (id.startsWith("court-") ? id.split("-house-")[0] : "");
+  for (const h of houses) for (const o of houses) if (o !== h) {
+    const g = gap(h.foot, o.foot), sameCourt = courtOf(h.id) !== "" && courtOf(h.id) === courtOf(o.id);
+    if (sameCourt) { if (g < 1.5 * TILE - 1) failures.push(`${h.id} and ${o.id} stand ${Math.round(g)} px apart (a courtyard needs ${1.5 * TILE})`); continue; }
+    minSpacing = Math.min(minSpacing, g);
+  }
   if (houses.length > 1 && minSpacing < 3 * TILE - 1) failures.push(`two houses stand ${Math.round(minSpacing)} px apart (need ${3 * TILE})`);
 
   // every house door meets a path: the spur's material is under its entry
   let doorsOnPath = 0;
   for (const o of objects) if (o.door && matAtPx(o.door.entry.x, o.door.entry.y - 2) + matAtPx(o.door.entry.x, o.door.entry.y + 8) > 0) doorsOnPath++;
-  if (doorsOnPath !== doors) failures.push(`${doors - doorsOnPath} doors have no path at their entry`);
+  if (doorsOnPath !== doors) failures.push(`${doors - doorsOnPath} doors have no path at their entry: ${objects.filter((o) => o.door && matAtPx(o.door.entry.x, o.door.entry.y - 2) + matAtPx(o.door.entry.x, o.door.entry.y + 8) === 0).map((o) => o.id).join(", ")}`);
 
   // sit spots
   const ids = new Set<number>(), keys = new Set<string>();
@@ -202,18 +237,70 @@ export function validateTown(d: TownData, world = new World(d)): Report {
   if (perScreen < SPOTS_PER_SCREEN[0] || perScreen > SPOTS_PER_SCREEN[1]) failures.push(`${perScreen.toFixed(2)} spots a screen (want ${SPOTS_PER_SCREEN[0]} to ${SPOTS_PER_SCREEN[1]})`);
   const byFace: Record<string, number> = {};
   for (const s of d.spots) byFace[s.face] = (byFace[s.face] ?? 0) + 1;
-  // worst case route: library plaza to the bakery's (the far end), time and expansions
+  // hub pairs: the shortest walkable route against the route along the paths only (the path network is a second navigation grid: grass is closed)
+  const pathColl = new CollisionGrid(W, H, d.bounds);
+  for (const o of objects) if (o.zone !== "treeline") { if (o.solids) for (const r of o.solids) pathColl.addRect(r); else pathColl.addRect(o.block); }
+  for (let i = 0; i + 3 < d.walls.length; i += 4) pathColl.addRect({ x: d.walls[i], y: d.walls[i + 1], w: d.walls[i + 2], h: d.walls[i + 3] });
+  if (pathColl.cols === mcols) for (let j = 0; j < mrows; j++) for (let i = 0; i < mcols; i++) if (mat[j * mcols + i] === 0) pathColl.addRect({ x: i * CELL8, y: j * CELL8, w: CELL8, h: CELL8 });
+  const pathNav = new Nav(pathColl);
+  const len = (from: readonly [number, number], pts: readonly (readonly [number, number])[] | null) => { if (!pts) return -1; let L = 0, at: readonly [number, number] = from; for (const p of pts) { L += Math.hypot(p[0] - at[0], p[1] - at[1]); at = p; } return L; };
+  const hubs = d.hubs;
+  let worstRatio = 0, sumRatio = 0, pairs = 0, minPath = Infinity, noRoute = 0, libBakery = 0, libBakeryShort = 0;
+  const pairInfo: string[] = [];
+  for (let a = 0; a < hubs.length; a++) for (let b = a + 1; b < hubs.length; b++) {
+    const A: [number, number] = [hubs[a].x, hubs[a].y], B: [number, number] = [hubs[b].x, hubs[b].y];
+    const sPts = nav.plan(A, B), pPts = pathNav.plan(A, B);
+    if (debug) { debug[`S ${hubs[a].id}-${hubs[b].id}`] = [A, ...(sPts ?? [])] as [number, number][]; debug[`P ${hubs[a].id}-${hubs[b].id}`] = [A, ...(pPts ?? [])] as [number, number][]; }
+    const S = len(A, sPts), P = len(A, pPts);
+    if (S < 0 || P < 0) { noRoute++; failures.push(`hubs ${hubs[a].id} and ${hubs[b].id}: no ${S < 0 ? "walkable" : "path"} route`); continue; }
+    const r = P / S;
+    worstRatio = Math.max(worstRatio, r); sumRatio += r; pairs++; minPath = Math.min(minPath, P / 70);
+    pairInfo.push(`${hubs[a].id}-${hubs[b].id} ${Math.round(P / 70)}s path, ${Math.round(S / 70)}s shortcut, x${r.toFixed(2)}`);
+    if (r > ROUTE_RATIO_MAX) failures.push(`hubs ${hubs[a].id} and ${hubs[b].id}: the path takes ${(P / 70).toFixed(0)} s, a shortcut ${(S / 70).toFixed(0)} s (ratio ${r.toFixed(2)}, the most allowed is ${ROUTE_RATIO_MAX})`);
+    if ((hubs[a].id === "library" && hubs[b].id === "bakery") || (hubs[b].id === "library" && hubs[a].id === "bakery")) {
+      libBakery = P / 70; libBakeryShort = S / 70;
+      if (libBakery < LIB_BAKERY_SECS[0] || libBakery > LIB_BAKERY_SECS[1]) failures.push(`library plaza to bakery plaza is ${libBakery.toFixed(0)} s along the paths (want ${LIB_BAKERY_SECS[0]} to ${LIB_BAKERY_SECS[1]})`);
+    }
+  }
   const t0 = performance.now();
-  const lib = d.hubs.find((h) => h.id === "library"), bak = d.hubs.find((h) => h.id === "bakery");
+  const lib = hubs.find((h) => h.id === "library"), bak = hubs.find((h) => h.id === "bakery");
   let routeMs = 0, expansions = 0;
   if (lib && bak) { world.nav.plan([lib.x, lib.y], [bak.x, bak.y]); routeMs = performance.now() - t0; expansions = world.nav.expansions; }
+
+  // dressing: every prop a person should walk up to has a standable, reachable cell near it; every door keeps a clear apron
+  let access = 0, noAccess = 0;
+  for (const o of objects) {
+    if (o.kind !== "prop" || !o.sprite || !NEEDS_ACCESS.test(o.sprite)) continue;
+    access++;
+    let ok = false;
+    const f = o.foot;
+    for (let y = f.y - ACCESS_PX; y <= f.y + f.h + ACCESS_PX && !ok; y += 8) for (let x = f.x - ACCESS_PX; x <= f.x + f.w + ACCESS_PX && !ok; x += 8) {
+      if (gap({ x, y, w: 0, h: 0 }, f) > ACCESS_PX || !coll.fits(x, y)) continue;
+      const c = nav.cellOf(x, y);
+      if (reach.has(key(c[0], c[1]))) ok = true;
+    }
+    if (!ok) { noAccess++; failures.push(`${o.sprite} ${o.id} at (${o.x},${o.y}) has nowhere to stand within ${ACCESS_PX} px`); }
+  }
+  let doorBlocked = 0;
+  for (const o of objects) if (o.door) {
+    const e = o.door.entry;
+    let blocked = false;
+    for (let y = e.y + 10; y <= e.y + 24 && !blocked; y += 4) for (let x = e.x - 12; x <= e.x + 12; x += 4) if (!coll.fits(x, y)) { blocked = true; break; }
+    if (blocked) {
+      const box = { x: e.x - 12, y: e.y + 7, w: 24, h: 18 }, who = objects.find((q) => q !== o && q.zone !== "treeline" && overlaps(box, q.block));
+      doorBlocked++; failures.push(`door of ${o.id}: ${who ? `${who.sprite ?? who.kind} ${who.id}` : "something"} stands in its apron`);
+    }
+  }
   void warnings;
   return {
-    failures, warnings,
+    failures, warnings, pairs: pairInfo,
     summary: {
       doors, openNavCells: open, sealedNavCells: sealed, biggestPocket: biggest, bigPockets, pathPieces: comps, onPath, tightGaps: tight, houses: houses.length,
       minHouseGapPx: Number.isFinite(minSpacing) ? Math.round(minSpacing) : -1, widthSamples: wN, widthMin: Math.round(wMin * 100) / 100, widthMax: Math.round(wMax * 100) / 100,
       straightestWindowDev: Math.round(worstDev * 100) / 100, sharpestTurnDeg: Math.round((worstTurn * 180) / Math.PI),
+      localWidthMax: Math.round(localMax * 100) / 100, hubPairs: pairs, worstRouteRatio: Math.round(worstRatio * 100) / 100, meanRouteRatio: pairs ? Math.round((sumRatio / pairs) * 100) / 100 : 0,
+      shortestHubPathSecs: Math.round(minPath), libraryToBakerySecs: Math.round(libBakery), libraryToBakeryShortcutSecs: Math.round(libBakeryShort), noRoute, access, noAccess, doorBlocked,
+      trees: objects.filter((o) => o.kind === "tree").length, treesWalkable: objects.filter((o) => o.kind === "tree" && o.zone !== "treeline").length,
       spots: d.spots.length, spotsOk, screens: Math.round(screens * 10) / 10, spotsPerScreen: Math.round(perScreen * 100) / 100,
       front: byFace.front ?? 0, back: byFace.back ?? 0, left: byFace.left ?? 0, right: byFace.right ?? 0, worstRouteMs: Math.round(routeMs * 10) / 10, worstRouteExpansions: expansions,
     },

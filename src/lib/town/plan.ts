@@ -24,7 +24,18 @@ export interface PathEdge {
   /** The two ends are on the network (or are a dead end): ids of the nodes if known. */
   a?: string; b?: string;
 }
-export interface PlazaDef { id: string; x: number; y: number; w: number; h: number; round: number }
+export interface PlazaDef {
+  id: string; x: number; y: number; w: number; h: number; round: number;
+  /** Tiles of worn dirt around the paved shape (default 1.2). 0: none. */
+  apron?: number;
+  /** How far the paved edge wanders, tiles (default 0.55). The top band (against the building) stays straight. */
+  rag?: number;
+}
+/** Signed distance (tiles) from a point to a rounded rectangle: negative inside. */
+export function roundedSd(p: { x: number; y: number; w: number; h: number; round: number }, px: number, py: number): number {
+  const r = Math.min(p.round, p.w / 2, p.h / 2), qx = Math.abs(px - (p.x + p.w / 2)) - (p.w / 2 - r), qy = Math.abs(py - (p.y + p.h / 2)) - (p.h / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+}
 export interface NodeDef { id: string; x: number; y: number }
 
 export class Planner {
@@ -33,6 +44,7 @@ export class Planner {
   dist: Float32Array;                  // distance (tiles) from a tile centre to the nearest obstacle tile edge, capped at 8
   readonly mask: Uint8Array;           // material cells
   readonly net: Uint8Array;            // tiles that are on the network
+  readonly beltTiles = new Set<number>();   // tiles a belt closes (not its gates)
   readonly edges: PathEdge[] = [];
   readonly attach: { x: number; y: number }[] = [];
   readonly plazas: PlazaDef[] = [];
@@ -86,24 +98,117 @@ export class Planner {
     this.edges.push(e);
     for (let i = 0; i < e.pts.length; i++) {
       this.stampDisc(e.pts[i][0], e.pts[i][1], e.half[i], MAT.path);
-      if (i % 2 === 0) this.attach.push({ x: e.pts[i][0], y: e.pts[i][1] });
+      // a route may join a path anywhere but at the ends of a spur (a door, a lane's mouth)
+      if (i % 2 === 0 && !(e.kind === "spur" && (i < 8 || i > e.pts.length - 9))) this.attach.push({ x: e.pts[i][0], y: e.pts[i][1] });
     }
     this.refreshNet();
   }
+  /** The paved shape's wander: a smooth noise in [-1, 1] (tiles of `rag` at most). */
+  private wander(px: number, py: number) { return (valueNoise(this.seed + 55, px, py, 3.2) - 0.5) * 2; }
   addPlaza(p: PlazaDef) {
     this.plazas.push(p);
-    for (let j = Math.floor(p.y * MC); j < Math.ceil((p.y + p.h) * MC); j++) for (let i = Math.floor(p.x * MC); i < Math.ceil((p.x + p.w) * MC); i++) {
+    const apron = p.apron ?? 1.2, rag = p.rag ?? 0.55, reach = apron + 1.5;
+    const topBand = p.y + 0.9;
+    for (let j = Math.floor((p.y - reach) * MC); j < Math.ceil((p.y + p.h + reach) * MC); j++) for (let i = Math.floor((p.x - reach) * MC); i < Math.ceil((p.x + p.w + reach) * MC); i++) {
       if (i < 0 || j < 0 || i >= this.cx || j >= this.cy) continue;
-      // rounded corners: the corner disc of radius `round` tiles
-      const px = (i + 0.5) / MC, py = (j + 0.5) / MC, r = p.round;
-      const qx = Math.max(p.x + r - px, 0, px - (p.x + p.w - r)), qy = Math.max(p.y + r - py, 0, py - (p.y + p.h - r));
-      if (qx * qx + qy * qy <= r * r) this.mask[j * this.cx + i] = MAT.plaza;
+      const px = (i + 0.5) / MC, py = (j + 0.5) / MC;
+      const d = roundedSd(p, px, py), w = this.wander(px, py);
+      const paved = py < topBand && d < 0 ? true : d < -0.15 + w * rag;
+      if (paved) this.mask[j * this.cx + i] = MAT.plaza;
+      else if (apron > 0 && py >= p.y - 0.01 && d < apron + w * rag * 0.9 && this.mask[j * this.cx + i] < MAT.path) this.mask[j * this.cx + i] = MAT.path;
     }
-    for (let t = 0; t < 2 * (p.w + p.h); t += 1) {
-      const u = t < p.w ? [p.x + t, p.y] : t < p.w + p.h ? [p.x + p.w, p.y + t - p.w] : t < 2 * p.w + p.h ? [p.x + p.w - (t - p.w - p.h), p.y + p.h] : [p.x, p.y + p.h - (t - 2 * p.w - p.h)];
-      this.attach.push({ x: u[0], y: u[1] });
+    // attach points ON the paved shape (a route ends where the paving begins)
+    const n = Math.round(2 * (p.w + p.h));
+    for (let t = 0; t < n; t += 1) {
+      const f = t / n, a = f * Math.PI * 2;
+      const dx = Math.cos(a) * 1000, dy = Math.sin(a) * 1000;
+      let x = p.x + p.w / 2 + Math.max(-p.w / 2, Math.min(p.w / 2, dx)), y = p.y + p.h / 2 + Math.max(-p.h / 2, Math.min(p.h / 2, dy));
+      const cxm = p.x + p.w / 2, cym = p.y + p.h / 2;
+      for (let k = 0; k < 40 && roundedSd(p, x, y) > -0.5; k++) { x += (cxm - x) * 0.06; y += (cym - y) * 0.06; }
+      this.attach.push({ x, y });
     }
     this.refreshNet();
+  }
+
+  /** Blocks a belt (a polyline, tiles) with `thick` tiles of obstacle, leaving `gateR` tiles open around each gate point. */
+  blockBelt(pts: [number, number][], thick: number, gates: [number, number][], gateR: number) {
+    for (let i = 0; i + 1 < pts.length; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1], L = Math.hypot(bx - ax, by - ay), n = Math.ceil(L / 0.25);
+      for (let k = 0; k <= n; k++) {
+        const x = ax + ((bx - ax) * k) / n, y = ay + ((by - ay) * k) / n;
+        if (gates.some((g) => Math.hypot(g[0] - x, g[1] - y) < gateR)) continue;
+        this.block(x - thick / 2, y - thick / 2, x + thick / 2, y + thick / 2);
+        for (let ty = Math.floor(y - thick / 2); ty < Math.ceil(y + thick / 2); ty++) for (let tx = Math.floor(x - thick / 2); tx < Math.ceil(x + thick / 2); tx++) if (tx >= 0 && ty >= 0 && tx < this.cols && ty < this.rows) this.beltTiles.add(ty * this.cols + tx);
+      }
+    }
+  }
+
+  /** A belt is closed: any path that ended up on it (a node too close, a path end cap) is cut back, so the only crossings are the gates. Returns the path cells removed. */
+  carveBelts(): number {
+    let n = 0;
+    for (const t of this.beltTiles) {
+      const tx = t % this.cols, ty = Math.floor(t / this.cols);
+      for (let j = 0; j < MC; j++) for (let i = 0; i < MC; i++) { const k = (ty * MC + j) * this.cx + tx * MC + i; if (this.mask[k] === MAT.path) { this.mask[k] = 0; n++; } }
+    }
+    this.refreshNet();
+    return n;
+  }
+
+  /**
+   * The distance-field clamp. A junction where routes meet at a shallow angle swells to a blob; every cell of path (not plaza) whose inscribed
+   * radius is over `cap` tiles is a fat core. The medial axis (cells not inside a neighbour's disc) is kept and each of its discs is capped at `cap`,
+   * so a blob is trimmed to a band `2 * cap` wide that follows its spine, and everything thinner is untouched. Cells within `exempt` tiles of a plaza are left alone.
+   */
+  clampWidths(cap: number, exempt: number): number {
+    const { cx, cy, mask } = this;
+    const R = cap * MC;
+    // squared exact distance to the nearest non-path cell (plazas count as non-path: a path meeting a plaza has a short distance)
+    const INF = 1e20, d2 = new Float64Array(cx * cy);
+    for (let i = 0; i < d2.length; i++) d2[i] = mask[i] === MAT.path ? INF : 0;
+    edt2(d2, cx, cy);
+    const D = new Float32Array(cx * cy);
+    for (let i = 0; i < D.length; i++) D[i] = Math.sqrt(d2[i]);
+    const ex = new Uint8Array(cx * cy);
+    for (const p of this.plazas) {
+      const g = exempt;
+      for (let j = Math.max(0, Math.floor((p.y - g) * MC)); j < Math.min(cy, Math.ceil((p.y + p.h + g) * MC)); j++) for (let i = Math.max(0, Math.floor((p.x - g) * MC)); i < Math.min(cx, Math.ceil((p.x + p.w + g) * MC)); i++) ex[j * cx + i] = 1;
+    }
+    const out = new Uint8Array(cx * cy), thick = new Float32Array(cx * cy);       // thick: the radius of the biggest inscribed disc that covers a cell
+    for (let i = 0; i < out.length; i++) if (mask[i] === MAT.plaza) out[i] = MAT.plaza;
+    let trimmed = 0;
+    const stamp = (i: number, j: number, r: number, fn: (k: number) => void) => {
+      const r2 = r * r, x0 = Math.max(0, Math.floor(i - r)), x1 = Math.min(cx - 1, Math.ceil(i + r)), y0 = Math.max(0, Math.floor(j - r)), y1 = Math.min(cy - 1, Math.ceil(j + r));
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x - i) ** 2 + (y - j) ** 2 <= r2 && mask[y * cx + x] === MAT.path) fn(y * cx + x);
+    };
+    for (let j = 0; j < cy; j++) for (let i = 0; i < cx; i++) {
+      const k = j * cx + i, d = D[k];
+      if (mask[k] !== MAT.path) continue;
+      // on the medial axis (a local maximum of the distance) unless a neighbour is deeper
+      let ridge = true;
+      for (let dj = -1; dj <= 1 && ridge; dj++) for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue;
+        const x = i + di, y = j + dj;
+        if (x < 0 || y < 0 || x >= cx || y >= cy) continue;
+        if (D[y * cx + x] > d + 0.25) { ridge = false; break; }
+      }
+      if (!ridge) continue;
+      stamp(i, j, d + 0.6, (q) => { if (d > thick[q]) thick[q] = d; });
+    }
+    // a cell under a disc of radius T (the biggest that covers it) is kept when it is at least T - R deep: the disc is capped at R round its centre
+    // (a cell no fat disc covers has T <= R and is kept; a neck that joins a thin path to a blob is deep enough to stay)
+    for (let i = 0; i < out.length; i++) if (mask[i] === MAT.path && (ex[i] || D[i] + R + 0.5 >= thick[i])) out[i] = MAT.path;
+    for (let i = 0; i < out.length; i++) if (mask[i] === MAT.path && !out[i]) trimmed++;
+    mask.set(out);
+    // specks: a piece of path or paving of fewer than 14 cells that is not joined to the rest goes
+    const seen = new Uint8Array(cx * cy);
+    for (let i0 = 0; i0 < mask.length; i0++) {
+      if (!mask[i0] || seen[i0]) continue;
+      const q = [i0]; seen[i0] = 1;
+      for (let a = 0; a < q.length; a++) { const x = q[a] % cx, y = Math.floor(q[a] / cx); for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= cx || ny >= cy) continue; const k = ny * cx + nx; if (mask[k] && !seen[k]) { seen[k] = 1; q.push(k); } } }
+      if (q.length < 14) { for (const k of q) mask[k] = 0; trimmed += q.length; }
+    }
+    this.refreshNet();
+    return trimmed;
   }
 
   /* ---------- routing ---------- */
@@ -152,8 +257,9 @@ export class Planner {
   }
 
   /** Route a -> b and add the off-network stretches as edges. Returns the new edges' total length in tiles. */
-  connect(id: string, a: [number, number], b: [number, number], kind: PathEdge["kind"], rngSeed: number, half?: number): number {
-    const r = this.route(a, b);
+  connect(id: string, a: [number, number], b: [number, number], kind: PathEdge["kind"], rngSeed: number, half?: number, netCost = 0.45): number {
+    // a tight corner of the map (a gate between a house and a belt) may need the obstacles' margin eased
+    const r = this.route(a, b, 2.2, netCost) ?? this.route(a, b, 1.5, netCost) ?? this.route(a, b, 1.0, netCost);
     if (!r) return -1;
     const pts = r.map((i) => [(i % this.cols) + 0.5, Math.floor(i / this.cols) + 0.5] as [number, number]);
     const on = r.map((i) => this.net[i] === 1);
@@ -188,8 +294,8 @@ export class Planner {
     const s: number[] = [0];
     for (let i = 1; i < sp.length; i++) s.push(s[i - 1] + Math.hypot(sp[i][0] - sp[i - 1][0], sp[i][1] - sp[i - 1][1]));
     const L = s[s.length - 1];
-    const h0 = halfBase ?? (kind === "street" ? 1.25 : 1.1 + 0.45 * hash2(this.seed + 3, seed, 1));
-    const A = (kind === "spur" ? 0 : 0.8 + 1.0 * hash2(this.seed + 4, seed, 2)), wl = 12 + 8 * hash2(this.seed + 5, seed, 3), ph = hash2(this.seed + 6, seed, 4) * Math.PI * 2;
+    const h0 = halfBase ?? (kind === "street" ? 1.2 : 1.05 + 0.25 * hash2(this.seed + 3, seed, 1));
+    const A = (kind === "spur" ? 0 : 1.0 + 1.2 * hash2(this.seed + 4, seed, 2)), wl = 12 + 8 * hash2(this.seed + 5, seed, 3), ph = hash2(this.seed + 6, seed, 4) * Math.PI * 2;
     const out: [number, number][] = [], half: number[] = [];
     const scale = new Float32Array(sp.length).fill(1);
     const disp = (i: number, f: number): [number, number] => {
@@ -210,8 +316,8 @@ export class Planner {
     for (let pass = 0; pass < 4; pass++) for (let i = 1; i < sp.length - 1; i++) scale[i] = (scale[i - 1] + 2 * scale[i] + scale[i + 1]) / 4;
     for (let i = 0; i < sp.length; i++) {
       out.push(disp(i, scale[i]));
-      const w = kind === "spur" ? h0 : clamp(h0 + 0.14 * Math.sin((2 * Math.PI * s[i]) / 9 + ph * 2), 1.1, 1.6);
-      half.push(kind === "trunk" || kind === "street" || kind === "foot" ? Math.max(kind === "foot" ? 1.0 : 1.1, w) : w);
+      const w = kind === "spur" ? h0 : clamp(h0 + 0.1 * Math.sin((2 * Math.PI * s[i]) / 9 + ph * 2), 1.05, 1.35);
+      half.push(kind === "trunk" || kind === "street" || kind === "foot" ? Math.max(kind === "foot" ? 1.0 : 1.05, w) : w);
     }
     return { id, kind, pts: out, half };
   }
@@ -249,4 +355,22 @@ export function unrle(r: readonly number[], n: number): Uint8Array {
   const a = new Uint8Array(n); let k = 0;
   for (let i = 0; i < r.length; i += 2) { a.fill(r[i], k, k + r[i + 1]); k += r[i + 1]; }
   return a;
+}
+
+/** Squared Euclidean distance transform in place (Felzenszwalb and Huttenlocher): `f` holds 0 at the sources and a huge number elsewhere. */
+export function edt2(f: Float64Array, w: number, h: number) {
+  const n = Math.max(w, h), v = new Int32Array(n), z = new Float64Array(n + 1), g = new Float64Array(n);
+  const pass = (len: number, get: (i: number) => number, set: (i: number, val: number) => void) => {
+    for (let i = 0; i < len; i++) g[i] = get(i);
+    let k = 0; v[0] = 0; z[0] = -Infinity; z[1] = Infinity;
+    for (let q = 1; q < len; q++) {
+      let s = (g[q] + q * q - (g[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+      while (s <= z[k]) { k--; s = (g[q] + q * q - (g[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]); }
+      k++; v[k] = q; z[k] = s; z[k + 1] = Infinity;
+    }
+    k = 0;
+    for (let q = 0; q < len; q++) { while (z[k + 1] < q) k++; const p = v[k]; set(q, (q - p) * (q - p) + g[p]); }
+  };
+  for (let x = 0; x < w; x++) pass(h, (i) => f[i * w + x], (i, val) => { f[i * w + x] = val; });
+  for (let y = 0; y < h; y++) pass(w, (i) => f[y * w + i], (i, val) => { f[y * w + i] = val; });
 }
