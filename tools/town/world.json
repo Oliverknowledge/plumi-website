@@ -1,0 +1,1021 @@
+{
+ "name": "Plumi town",
+ "seed": 20260925,
+ "cols": 136,
+ "rows": 72,
+ "bounds": [
+  5,
+  5,
+  126,
+  62
+ ],
+ "landmarks": [
+  {
+   "id": "library",
+   "sprite": "grand_library",
+   "at": [
+    70,
+    25
+   ],
+   "door": "library",
+   "label": "Grand Library",
+   "plaza": {
+    "w": 24,
+    "h": 9,
+    "round": 1.5
+   }
+  },
+  {
+   "id": "cafe",
+   "sprite": "cafe",
+   "at": [
+    104,
+    36
+   ],
+   "door": "cafe",
+   "label": "Cafe",
+   "plaza": {
+    "w": 18,
+    "h": 6,
+    "round": 1.2
+   }
+  },
+  {
+   "id": "bookshop",
+   "sprite": "bookshop",
+   "at": [
+    92,
+    58
+   ],
+   "door": "bookshop",
+   "label": "Bookshop",
+   "plaza": {
+    "w": 12,
+    "h": 5,
+    "round": 1
+   }
+  },
+  {
+   "id": "bakery",
+   "sprite": "bakery",
+   "at": [
+    22,
+    58
+   ],
+   "door": "bakery",
+   "label": "Bakery",
+   "plaza": {
+    "w": 12,
+    "h": 5,
+    "round": 1
+   }
+  }
+ ],
+ "placeholders": [
+  {
+   "id": "post-office",
+   "label": "post office",
+   "rect": [
+    40,
+    13,
+    7,
+    5
+   ]
+  },
+  {
+   "id": "florist",
+   "label": "florist",
+   "rect": [
+    31,
+    43,
+    5,
+    4
+   ]
+  },
+  {
+   "id": "market",
+   "label": "market stalls",
+   "rect": [
+    46,
+    49.5,
+    10,
+    4
+   ],
+   "node": [
+    44,
+    51.5
+   ]
+  },
+  {
+   "id": "pavilion",
+   "label": "pavilion",
+   "rect": [
+    118,
+    21,
+    7,
+    5
+   ]
+  },
+  {
+   "id": "pond",
+   "label": "pond",
+   "rect": [
+    113,
+    59,
+    11,
+    6
+   ],
+   "node": [
+    110.5,
+    61.5
+   ]
+  },
+  {
+   "id": "fountain",
+   "label": "fountain",
+   "rect": [
+    68.5,
+    29,
+    3,
+    2.5
+   ],
+   "onPlaza": true
+  }
+ ],
+ "neighbourhoods": [
+  {
+   "id": "orchard-row",
+   "name": "Orchard Row",
+   "street": [
+    [
+     9,
+     23
+    ],
+    [
+     17,
+     21.5
+    ],
+    [
+     27,
+     23
+    ],
+    [
+     37,
+     21
+    ]
+   ],
+   "houses": [
+    "cottage_terracotta",
+    "cottage_slate_plum",
+    "cottage_terracotta_moss",
+    "cottage_slate"
+   ],
+   "gap": 3,
+   "start": 1.5
+  },
+  {
+   "id": "hill-row",
+   "name": "Hill Row",
+   "street": [
+    [
+     93,
+     19
+    ],
+    [
+     103,
+     17.5
+    ],
+    [
+     112,
+     19
+    ],
+    [
+     124,
+     17
+    ]
+   ],
+   "houses": [
+    "cottage_slate",
+    "cottage_terracotta_moss",
+    "cottage_slate_plum",
+    "cottage_terracotta"
+   ],
+   "gap": 3,
+   "start": 2
+  },
+  {
+   "id": "mill-close",
+   "name": "Mill Close",
+   "street": [
+    [
+     7,
+     41
+    ],
+    [
+     15,
+     39.5
+    ],
+    [
+     25,
+     40.5
+    ]
+   ],
+   "houses": [
+    "cottage_terracotta_moss",
+    "cottage_slate",
+    "cottage_terracotta"
+   ],
+   "gap": 3,
+   "start": 0.6
+  },
+  {
+   "id": "garden-court",
+   "name": "Garden Court",
+   "street": [
+    [
+     43,
+     63.2
+    ],
+    [
+     53,
+     62
+    ],
+    [
+     62,
+     63.6
+    ],
+    [
+     72,
+     62.2
+    ]
+   ],
+   "houses": [
+    "cottage_slate_plum",
+    "cottage_terracotta",
+    "cottage_slate",
+    "cottage_terracotta_moss"
+   ],
+   "gap": 3,
+   "start": 2
+  },
+  {
+   "id": "east-end",
+   "name": "East End",
+   "street": [
+    [
+     113,
+     53
+    ],
+    [
+     121,
+     51.5
+    ],
+    [
+     131,
+     52.5
+    ]
+   ],
+   "houses": [
+    "cottage_terracotta",
+    "cottage_slate_plum",
+    "cottage_slate"
+   ],
+   "gap": 3,
+   "start": 0.4
+  }
+ ],
+ "groves": [
+  {
+   "id": "quiet-grove",
+   "name": "Quiet Grove",
+   "center": [
+    44,
+    31
+   ],
+   "plaza": [
+    8,
+    5
+   ],
+   "tables": 2
+  },
+  {
+   "id": "north-meadow",
+   "name": "North Meadow",
+   "center": [
+    60,
+    8
+   ],
+   "plaza": [
+    8,
+    5
+   ],
+   "tables": 2
+  },
+  {
+   "id": "orchard-park",
+   "name": "Orchard Park",
+   "center": [
+    83,
+    46
+   ],
+   "plaza": [
+    9,
+    5
+   ],
+   "tables": 2
+  }
+ ],
+ "viewpoints": [
+  [
+   7,
+   11
+  ],
+  [
+   129,
+   9
+  ],
+  [
+   7,
+   64
+  ],
+  [
+   129,
+   60
+  ],
+  [
+   88,
+   8
+  ]
+ ],
+ "hubs": [
+  [
+   30,
+   31
+  ],
+  [
+   57,
+   43
+  ],
+  [
+   96,
+   28
+  ],
+  [
+   118,
+   32
+  ],
+  [
+   76,
+   57
+  ],
+  [
+   36,
+   52
+  ],
+  [
+   14,
+   48
+  ],
+  [
+   64,
+   50
+  ],
+  [
+   47,
+   23
+  ],
+  [
+   104,
+   50
+  ],
+  [
+   20,
+   30
+  ]
+ ],
+ "loops": 7,
+ "benches": {
+  "everyTiles": 8.5,
+  "lampEvery": 15,
+  "bin": true
+ },
+ "hubsUi": [
+  {
+   "id": "library",
+   "label": "Library",
+   "at": "library"
+  },
+  {
+   "id": "cafe",
+   "label": "Cafe",
+   "at": "cafe"
+  },
+  {
+   "id": "bakery",
+   "label": "Bakery",
+   "at": "bakery"
+  },
+  {
+   "id": "bookshop",
+   "label": "Bookshop",
+   "at": "bookshop"
+  },
+  {
+   "id": "plaza",
+   "label": "Plaza",
+   "at": "library-plaza"
+  },
+  {
+   "id": "park",
+   "label": "Park",
+   "at": "orchard-park"
+  }
+ ],
+ "spawn": [
+  70.5,
+  28.3
+ ],
+ "furnitureTypes": {
+  "bench_front": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 30,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    28,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_back": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 30,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    28,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_left": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 14,
+   "h": 26,
+   "cut": 12,
+   "base": [
+    12,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -3
+     ],
+     "stand": [
+      -19,
+      -8
+     ],
+     "face": "left",
+     "pose": "sit",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_right": {
+   "label": "bench",
+   "color": "#b5763a",
+   "w": 14,
+   "h": 26,
+   "cut": 12,
+   "base": [
+    12,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      0,
+      -3
+     ],
+     "stand": [
+      19,
+      -8
+     ],
+     "face": "right",
+     "pose": "sit",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_front_long": {
+   "label": "long bench",
+   "color": "#a8692f",
+   "w": 78,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    76,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -24,
+      -1
+     ],
+     "stand": [
+      -24,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    },
+    {
+     "at": [
+      24,
+      -1
+     ],
+     "stand": [
+      24,
+      17
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "between"
+    }
+   ]
+  },
+  "bench_back_long": {
+   "label": "long bench",
+   "color": "#a8692f",
+   "w": 78,
+   "h": 16,
+   "cut": 8,
+   "base": [
+    76,
+    6
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -24,
+      -1
+     ],
+     "stand": [
+      -24,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -1
+     ],
+     "stand": [
+      0,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    },
+    {
+     "at": [
+      24,
+      -1
+     ],
+     "stand": [
+      24,
+      -20
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "between"
+    }
+   ]
+  },
+  "picnic_long": {
+   "label": "picnic table",
+   "color": "#c58a4a",
+   "w": 52,
+   "h": 26,
+   "cut": 14,
+   "base": [
+    52,
+    26
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -13,
+      -19
+     ],
+     "stand": [
+      -13,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      13,
+      -19
+     ],
+     "stand": [
+      13,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      -13,
+      -2
+     ],
+     "stand": [
+      -13,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      13,
+      -2
+     ],
+     "stand": [
+      13,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  },
+  "cafe_table": {
+   "label": "cafe table",
+   "color": "#d9a05b",
+   "w": 24,
+   "h": 20,
+   "cut": 10,
+   "base": [
+    22,
+    12
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -19,
+      -3
+     ],
+     "stand": [
+      -37,
+      -3
+     ],
+     "face": "right",
+     "pose": "sit",
+     "depth": "between"
+    },
+    {
+     "at": [
+      19,
+      -3
+     ],
+     "stand": [
+      37,
+      -3
+     ],
+     "face": "left",
+     "pose": "sit",
+     "depth": "between"
+    },
+    {
+     "at": [
+      0,
+      -20
+     ],
+     "stand": [
+      0,
+      -38
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      0,
+      5
+     ],
+     "stand": [
+      0,
+      24
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  },
+  "study_desk": {
+   "label": "study desk",
+   "color": "#9c6a3c",
+   "w": 84,
+   "h": 24,
+   "cut": 12,
+   "base": [
+    84,
+    20
+   ],
+   "sprite": null,
+   "spots": [
+    {
+     "at": [
+      -28,
+      -24
+     ],
+     "stand": [
+      -28,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      0,
+      -24
+     ],
+     "stand": [
+      0,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      28,
+      -24
+     ],
+     "stand": [
+      28,
+      -42
+     ],
+     "face": "front",
+     "pose": "read",
+     "depth": "behind"
+    },
+    {
+     "at": [
+      -28,
+      -2
+     ],
+     "stand": [
+      -28,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      0,
+      -2
+     ],
+     "stand": [
+      0,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    },
+    {
+     "at": [
+      28,
+      -2
+     ],
+     "stand": [
+      28,
+      18
+     ],
+     "face": "back",
+     "pose": "stool",
+     "depth": "front"
+    }
+   ]
+  }
+ },
+ "plazaFurniture": {
+  "library": [
+   [
+    "picnic_long",
+    -8.5,
+    0.6
+   ],
+   [
+    "picnic_long",
+    8.5,
+    0.6
+   ],
+   [
+    "study_desk",
+    -5.2,
+    3.0
+   ],
+   [
+    "study_desk",
+    5.2,
+    3.0
+   ]
+  ],
+  "cafe": [
+   [
+    "cafe_table",
+    -6.2,
+    -0.2
+   ],
+   [
+    "cafe_table",
+    -3.4,
+    1.1
+   ],
+   [
+    "cafe_table",
+    3.4,
+    1.1
+   ],
+   [
+    "cafe_table",
+    6.2,
+    -0.2
+   ],
+   [
+    "study_desk",
+    0,
+    2.4
+   ]
+  ],
+  "quiet-grove": [
+   [
+    "picnic_long",
+    -2.0,
+    0.4
+   ],
+   [
+    "picnic_long",
+    2.2,
+    0.4
+   ]
+  ],
+  "north-meadow": [
+   [
+    "picnic_long",
+    -2.0,
+    0.4
+   ],
+   [
+    "picnic_long",
+    2.2,
+    0.4
+   ]
+  ],
+  "orchard-park": [
+   [
+    "picnic_long",
+    -2.4,
+    0.4
+   ],
+   [
+    "picnic_long",
+    2.4,
+    0.4
+   ]
+  ]
+ },
+ "woodPatches": [
+  [
+   48,
+   41,
+   7,
+   5
+  ],
+  [
+   71,
+   42,
+   7,
+   4
+  ],
+  [
+   103,
+   26,
+   7,
+   3.5
+  ],
+  [
+   24,
+   50,
+   4,
+   3
+  ],
+  [
+   16,
+   46,
+   4,
+   3
+  ],
+  [
+   60,
+   47,
+   5,
+   3.5
+  ],
+  [
+   96,
+   43,
+   4,
+   4
+  ],
+  [
+   84,
+   13,
+   6,
+   3.5
+  ],
+  [
+   20,
+   9,
+   6,
+   3
+  ]
+ ]
+}

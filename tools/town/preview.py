@@ -1,45 +1,57 @@
 #!/usr/bin/env python3
-"""A flat picture of the compiled map (no browser): python3 tools/town/preview.py [out.png] [scale]. For looking at the layout while editing the blueprint."""
-import json, sys, glob
+"""A flat picture of the compiled map for editing the blueprint:  python3 tools/town/preview.py out.png [scale=0.25]
+Path/plaza material, building boxes, trees (dots), furniture, spots. Reads the json named by src/lib/town/assets.generated.ts."""
+import json, re, sys
 from pathlib import Path
 from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[2]
-V = ROOT / "public/town/v1"
-d = json.load(open(sorted(V.glob("town.*.json"))[-1]))
-out = sys.argv[1] if len(sys.argv) > 1 else "/tmp/town-preview.png"
-z = float(sys.argv[2]) if len(sys.argv) > 2 else 1.0
-def img(name): return Image.open(ROOT / "public" / d["atlases"][name]["url"].lstrip("/")).convert("RGBA")
-A = {k: img(k) for k in d["atlases"]}
+url = re.search(r'"(/town/v1/town\.[0-9a-f]+\.json)"', (ROOT / "src/lib/town/assets.generated.ts").read_text()).group(1)
+d = json.loads((ROOT / "public" / url.lstrip("/")).read_text())
+out = sys.argv[1] if len(sys.argv) > 1 else "town-preview.png"
+S = float(sys.argv[2]) if len(sys.argv) > 2 else 0.25
 W, H = d["cols"] * 32, d["rows"] * 32
-im = Image.new("RGBA", (W, H), (120, 160, 90, 255))
-g = A["ground"]
-for i, v in enumerate(d["ground"]):
-    idx = v & 127; col, row = idx % d["groundCols"], idx // d["groundCols"]
-    t = g.crop((col * 32, row * 32, col * 32 + 32, row * 32 + 32))
-    if v & 512: t = t.transpose(Image.TRANSPOSE)
-    if v & 128: t = t.transpose(Image.FLIP_LEFT_RIGHT)
-    if v & 256: t = t.transpose(Image.FLIP_TOP_BOTTOM)
-    im.paste(t, ((i % d["cols"]) * 32, (i // d["cols"]) * 32))
-dr = ImageDraw.Draw(im)
-for o in sorted(d["objects"], key=lambda o: o["sortY"]):
-    if o["sprite"]:
-        s = d["sprites"][o["sprite"]]
-        t = A[s["atlas"]].crop((s["x"], s["y"], s["x"] + s["w"], s["y"] + s["h"]))
-        im.alpha_composite(t, (o["sx"], o["sy"])) if o["sx"] >= 0 and o["sy"] >= 0 else im.paste(t, (o["sx"], o["sy"]), t)
-    elif o.get("ph"):
-        p = o["ph"]
-        dr.rectangle([p["x"], p["y"], p["x"] + p["w"], p["y"] + p["h"]], fill=p["color"], outline=(60, 30, 10))
-        dr.text((p["x"] + 2, p["y"] + 2), p["label"][:6], fill=(30, 10, 0))
-if "--debug" in sys.argv:
-    for o in d["objects"]:
-        b = o["block"]; dr.rectangle([b["x"], b["y"], b["x"] + b["w"], b["y"] + b["h"]], outline=(60, 120, 255))
-    for s in d["spots"]:
-        dr.ellipse([s["at"]["x"] - 3, s["at"]["y"] - 3, s["at"]["x"] + 3, s["at"]["y"] + 3], fill=(255, 0, 80))
-        dr.line([s["at"]["x"], s["at"]["y"], s["stand"]["x"], s["stand"]["y"]], fill=(255, 255, 0))
-    for o in d["objects"]:
-        if o.get("door"):
-            t = o["door"]["trigger"]; dr.rectangle([t["x"], t["y"], t["x"] + t["w"], t["y"] + t["h"]], outline=(255, 0, 255))
-    dr.ellipse([d["spawn"]["x"] - 4, d["spawn"]["y"] - 4, d["spawn"]["x"] + 4, d["spawn"]["y"] + 4], fill=(0, 255, 255))
-if z != 1.0: im = im.resize((int(W * z), int(H * z)), Image.NEAREST)
-im.convert("RGB").save(out)
-print(out, im.size)
+img = Image.new("RGB", (int(W * S), int(H * S)), (176, 200, 108))
+px = img.load()
+mc, mr = d["mat"]["cols"], d["mat"]["rows"]
+flat = []
+for i in range(0, len(d["mat"]["rle"]), 2):
+    flat.extend([d["mat"]["rle"][i]] * d["mat"]["rle"][i + 1])
+cs = 8 * S
+dr = ImageDraw.Draw(img)
+for y in range(mr):
+    for x in range(mc):
+        v = flat[y * mc + x]
+        if v:
+            dr.rectangle([x * cs, y * cs, (x + 1) * cs, (y + 1) * cs], fill=(228, 200, 140) if v == 1 else (240, 228, 196))
+objs = list(d["objects"])
+sc = d["scatter"]
+for i in range(0, len(sc["v"]), 4):
+    n = sc["names"][sc["v"][i]]; sp = d["sprites"][n]; x, y = sc["v"][i + 1], sc["v"][i + 2]
+    f = sp["foot"]; sx, sy = x - sp["anchorX"], y - 1 - sp["anchorY"]
+    objs.append({"kind": "tree" if n.startswith("tree_") else "bush", "x": x, "y": y, "zone": "treeline" if sc["v"][i + 3] else "wood", "block": {"x": sx + f["x"], "y": sy + f["y"], "w": f["w"], "h": f["h"]}})
+for o in objs:
+    b = o["block"]; r = [b["x"] * S, b["y"] * S, (b["x"] + b["w"]) * S, (b["y"] + b["h"]) * S]
+    k = o["kind"]
+    if o.get("zone") == "treeline":
+        continue
+    if k == "building":
+        sp = d["sprites"][o["sprite"]]
+        dr.rectangle([o["sx"] * S, o["sy"] * S, (o["sx"] + sp["w"]) * S, (o["sy"] + sp["h"]) * S], outline=(120, 40, 40))
+        dr.rectangle(r, fill=(150, 70, 60))
+    elif k == "placeholder":
+        dr.rectangle(r, fill=(154, 134, 196), outline=(60, 40, 100)); dr.text((r[0] + 2, r[1] + 2), o["ph"]["label"], fill=(255, 255, 255))
+    elif k == "tree":
+        c = (o["x"] * S, (o["y"] - 20) * S); dr.ellipse([c[0] - 4, c[1] - 4, c[0] + 4, c[1] + 4], fill=(200, 130, 30))
+    elif k in ("bush", "log"):
+        dr.ellipse([r[0] - 1, r[1] - 1, r[2] + 1, r[3] + 1], fill=(120, 140, 40))
+    elif k == "furniture":
+        dr.rectangle(r, fill=(120, 70, 30))
+    else:
+        dr.rectangle(r, fill=(60, 60, 60))
+for s in d["spots"]:
+    dr.ellipse([s["at"]["x"] * S - 1.5, s["at"]["y"] * S - 1.5, s["at"]["x"] * S + 1.5, s["at"]["y"] * S + 1.5], fill=(255, 0, 80))
+dr.rectangle([d["bounds"]["x"] * S, d["bounds"]["y"] * S, (d["bounds"]["x"] + d["bounds"]["w"]) * S, (d["bounds"]["y"] + d["bounds"]["h"]) * S], outline=(255, 255, 255))
+for h in d["hubs"]:
+    dr.ellipse([h["x"] * S - 4, h["y"] * S - 4, h["x"] * S + 4, h["y"] * S + 4], outline=(0, 0, 255)); dr.text((h["x"] * S + 6, h["y"] * S), h["label"], fill=(0, 0, 160))
+img.save(out)
+print(out, img.size)

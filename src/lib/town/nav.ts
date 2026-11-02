@@ -1,6 +1,6 @@
 import { NAV, type Rect } from "./types";
 import { CollisionGrid, COARSE } from "./collision";
-import { cellIn, centreIn, fits as wfits, pull, route, seen, settle, type Grid, type Pt } from "../studyapp/library/walk";
+import { cellIn, centreIn, fits as wfits, pull, seen, settle, type Grid, type Pt } from "../studyapp/library/walk";
 
 /**
  * Navigation: A* over a COARSER grid (16 px cells; a cell is open when a person fits at its middle with one pixel to spare), the route then
@@ -20,6 +20,60 @@ export class Nav {
   }
 
   open(x: number, y: number) { return this.grid.open(x, y); }
+
+  /** Nodes taken off the open list by the last `route` (the cost of a click-walk; the test asserts on it). */
+  expansions = 0;
+  private best: Float64Array | null = null; private prev: Int32Array | null = null; private heapF = new Float64Array(1 << 14); private heapI = new Int32Array(1 << 14); private stamp: Uint32Array | null = null; private run = 0;
+  /**
+   * A* over the open navigation cells, 8 neighbours (a diagonal only when both orthogonals are open: walk.ts `around`), octile heuristic. Typed arrays
+   * only and the buffers are reused, so a walk across the whole 136 x 72 tile map (39k cells) allocates nothing but its answer. From exclusive to inclusive.
+   */
+  route(from: [number, number], to: [number, number]): [number, number][] | null {
+    const { cols, rows, openBits } = this, n = cols * rows;
+    if (!this.open(to[0], to[1]) || from[0] < 0 || from[1] < 0 || from[0] >= cols || from[1] >= rows) return null;
+    if (!this.best) { this.best = new Float64Array(n); this.prev = new Int32Array(n); this.stamp = new Uint32Array(n); }
+    const best = this.best, prev = this.prev as Int32Array, stamp = this.stamp as Uint32Array, run = ++this.run;
+    const SQ = Math.SQRT2, tx = to[0], ty = to[1];
+    const h = (x: number, y: number) => { const dx = Math.abs(x - tx), dy = Math.abs(y - ty); return dx > dy ? dx + (SQ - 1) * dy : dy + (SQ - 1) * dx; };
+    let hn = 0;
+    const push = (f: number, i: number) => {
+      if (hn >= this.heapF.length) { const nf = new Float64Array(hn * 2), ni = new Int32Array(hn * 2); nf.set(this.heapF); ni.set(this.heapI); this.heapF = nf; this.heapI = ni; }
+      let k = hn++; const F = this.heapF, I = this.heapI;
+      while (k > 0) { const p = (k - 1) >> 1; if (F[p] <= f) break; F[k] = F[p]; I[k] = I[p]; k = p; }
+      F[k] = f; I[k] = i;
+    };
+    const start = from[1] * cols + from[0], goal = ty * cols + tx;
+    best[start] = 0; stamp[start] = run; prev[start] = -1;
+    push(h(from[0], from[1]), start);
+    let exp = 0;
+    while (hn > 0) {
+      const F = this.heapF, I = this.heapI, f = F[0], cur = I[0];
+      // pop
+      hn--;
+      if (hn > 0) { const lf = F[hn], li = I[hn]; let k = 0; for (;;) { let c = 2 * k + 1; if (c >= hn) break; if (c + 1 < hn && F[c + 1] < F[c]) c++; if (F[c] >= lf) break; F[k] = F[c]; I[k] = I[c]; k = c; } F[k] = lf; I[k] = li; }
+      const x = cur % cols, y = (cur - x) / cols, g0 = best[cur];
+      if (f > g0 + h(x, y) + 1e-9) continue;
+      exp++;
+      if (cur === goal) {
+        this.expansions = exp;
+        const out: [number, number][] = [];
+        for (let k = cur; k !== start; k = prev[k]) out.push([k % cols, Math.floor(k / cols)]);
+        return out.reverse();
+      }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) continue;
+        const j = ny * cols + nx;
+        if (!openBits[j]) continue;
+        if (dx && dy && (!openBits[y * cols + nx] || !openBits[ny * cols + x])) continue;
+        const cost = g0 + (dx && dy ? SQ : 1);
+        if (stamp[j] !== run || cost < best[j] - 1e-9) { stamp[j] = run; best[j] = cost; prev[j] = cur; push(cost + h(nx, ny), j); }
+      }
+    }
+    this.expansions = exp;
+    return null;
+  }
   cellOf(x: number, y: number): [number, number] { const c = cellIn(x, y, COARSE); return [c[0], c[1]]; }
   centre(cx: number, cy: number): Pt { return centreIn([cx, cy], COARSE); }
 
@@ -51,7 +105,7 @@ export class Nav {
     const startCell: [number, number] | null = this.open(a[0], a[1]) ? a : this.nearestOpen(origin[0], origin[1], 3);
     const goalCell = this.nearestOpen(to[0], to[1]);
     if (!startCell || !goalCell) return null;
-    const cells = route(this.grid, startCell, goalCell);
+    const cells = this.route(startCell, goalCell);
     if (!cells) return null;
     const way: Pt[] = cells.map((c) => this.centre(c[0], c[1]));
     const end: Pt | null = this.coll.fits(to[0], to[1]) && this.cellOf(to[0], to[1]).join() === goalCell.join() ? to : null;

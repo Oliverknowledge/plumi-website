@@ -11,7 +11,9 @@ export interface Rect { x: number; y: number; w: number; h: number }
 export type Face = "left" | "right" | "front" | "back";
 export type Depth = "behind" | "between" | "front";
 export type Pose = "sit" | "read" | "phone" | "stool";
-export type AtlasName = "nature" | "cafe" | "cottage" | "props";
+export type AtlasName = "nature" | "cafe" | "cottage" | "props" | "landmark";
+/** The doors that can be opened. Only `library` and `cafe` have an interior drawn; the rest answer with a toast. */
+export type DoorKind = "library" | "cafe" | "bakery" | "bookshop" | "cottage";
 
 /** One sprite in one of the atlases (rects are from the sprite's top left). */
 export interface SpriteDef {
@@ -23,7 +25,7 @@ export interface SpriteDef {
   derived?: boolean;
 }
 
-export type ObjectKind = "tree" | "bush" | "log" | "prop" | "building" | "furniture";
+export type ObjectKind = "tree" | "bush" | "log" | "prop" | "building" | "furniture" | "placeholder";
 
 export interface TownObject {
   id: string; kind: ObjectKind;
@@ -35,9 +37,9 @@ export interface TownObject {
   /** Where the sprite's top left is. */
   sx: number; sy: number;
   /** A placeholder's look: its box in the world, the label, a colour, and the cut line (rows from its top) between its back and its front half. */
-  ph?: { x: number; y: number; w: number; h: number; label: string; color: string; cut: number };
+  ph?: { x: number; y: number; w: number; h: number; label: string; color: string; cut: number; building?: boolean };
   /** A door: scenery or a trigger (the cafe). `entry` is the walkable ground point the door is reached from; `trigger` the world rect where its prompt shows. */
-  door?: { kind: "cafe" | "cottage"; rect: Rect; entry: { x: number; y: number }; trigger: Rect };
+  door?: { kind: DoorKind; rect: Rect; entry: { x: number; y: number }; trigger: Rect; label: string };
   zone?: string;
   type?: string;               // furniture type (blueprint `furnitureTypes`)
 }
@@ -58,25 +60,35 @@ export interface Labelled { id: string; label: string; x: number; y: number }
 
 export interface BotRoute { nodes: { x: number; y: number }[]; links: number[][] }
 
+/** A place the HUD can send you: where to walk to, and a ring of spawn points for the teleport. */
+export interface Hub { id: string; label: string; x: number; y: number; spawn: { x: number; y: number }[] }
+export interface PathOut { id: string; kind: string; half: number; pts: number[] }
+export interface PlazaOut { id: string; rect: Rect }
+
 export interface TownData {
-  version: 1; name: string; seed: number;
+  version: 2; name: string; seed: number;
   cols: number; rows: number;                  // ground tiles
   bounds: Rect;                                // the walkable rectangle, world px
   atlases: Record<AtlasName | "ground", { url: string; w: number; h: number }>;
   /** The premade people (tools/town/people_strip.py): row 0 is you until your own look is built, rows 1 to 8 the bots'. 78 frames of 16 x 32 a row. */
   premade: { url: string; w: number; h: number; rows: number };
   sprites: Record<string, SpriteDef>;
-  /** One entry per ground tile, row major: atlas index (row * 12 + col) | flipX 128 | flipY 256 | transpose 512. */
-  ground: number[];
+  /** The ground material on an 8 px grid (0 grass, 1 path, 2 plaza), run-length encoded [value, run, ...], row major; `src/lib/town/ground.ts` paints it. */
+  mat: { cols: number; rows: number; rle: number[] };
   groundCols: number;
-  /** Per ground tile: 0 grass, 1 path fill, 2 plaza fill, 3 edge piece (the validator and the debug view read it). */
-  kind: number[];
+  /** Atlas indices (row * groundCols + col) of the ground tiles the painter uses. */
+  tiles: { grassA: number[]; flower: number[]; leaves: number[]; dirt: number[]; plaza: number };
+  /** Everything with its own record: buildings, furniture, props, placeholders. Trees, bushes and logs are in `scatter` (objects.ts `allObjects` gives both). */
   objects: TownObject[];
+  scatter: { names: string[]; v: number[] };
   spots: SitSpot[];
   zones: Zone[];
   spawn: { x: number; y: number };
-  ring: { x: number; y: number }[];           // the ring's centre line (feet points), clockwise, closed
-  plaza: { x: number; y: number }[];          // a few standing places in the plaza
+  /** The path centre lines (px) and the plazas, for the minimap, the bots and the validator. */
+  paths: PathOut[]; plazas: PlazaOut[];
+  hubs: Hub[];
+  /** Where bots walk: nodes (feet points) and, per node, the nodes it links to. */
+  botNodes: { x: number; y: number }[]; botLinks: number[][];
   placeholders: Labelled[];                   // art that does not exist yet (debug view)
   stats: Record<string, number>;
 }

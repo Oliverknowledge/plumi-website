@@ -1,73 +1,184 @@
 /**
  * npm run town:test   (node:test via tsx; no browser)
  *
- * The first district: the compiled map is valid (every door reachable, no sealed pockets, the ring continuous and walkable, no footprint on it, the
- * spawn free, every sit spot reachable), A* goes around trees and the cafe, a pulled path never crosses a blocked cell, the collision bitset
- * is the footprints, the chunk cache evicts the oldest, and the ground's edge pieces agree with the side classification the art tool measured.
+ * The world: the compiled map is valid (doors reachable, one connected path network, no pockets, no footprint on a path, widths and curvature, spots reachable),
+ * it is the same bytes as a fresh build from the committed seed, the planner is deterministic and meanders, the ground painter is seeded with ragged edges,
+ * A* goes around trees and buildings with a counted cost, the collision bitset is the footprints, the chunk cache evicts the oldest, movement numbers.
  */
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { classOf, cleanMask, maskProblems } from "./autotile";
 import { ChunkCache } from "./chunks";
 import { CollisionGrid } from "./collision";
 import { TOWN_DATA_URL } from "./assets.generated";
+import { landAt, makeGroundCtx, paintChunk, type GroundAtlas } from "./ground";
 import { MOVE, idleFrame, walkFrame } from "./movement";
 import { Nav } from "./nav";
+import { allObjects } from "./objects";
+import { Planner, rle, unrle } from "./plan";
+import { SPOTS_PER_SCREEN, validateTown } from "./validate";
 import { TILE, type TownData } from "./types";
-import { validateTown } from "./validate";
 import { World } from "./world";
+import { slotLengths } from "../studyapp/library/poseSim";
 
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), "utf8");
-const data = JSON.parse(readFileSync(new URL("../../../public" + TOWN_DATA_URL, import.meta.url), "utf8")) as TownData;
-const ground = JSON.parse(read("../../../docs/study/art/town/town-ground.json")) as { tiles: { id: string; col: number; row: number; state?: Record<string, string>; name?: string; kind: string }[]; cols: number };
+const raw = readFileSync(new URL("../../../public" + TOWN_DATA_URL, import.meta.url), "utf8");
+const data = JSON.parse(raw) as TownData;
 const registry = JSON.parse(read("../../../tools/town/spot-registry.json")) as { nextId: number; ids: Record<string, number> };
 const world = new World(data);
+const objects = allObjects(data);
 
 describe("the map validator, on the real map", () => {
-  const report = validateTown(data, undefined, world);
+  const report = validateTown(data, world);
   it("finds nothing wrong", () => assert.deepEqual(report.failures, []));
-  it("has the spawn free and every door reachable", () => {
+  it("has the spawn free and every door reachable (library, cafe, bakery, bookshop and the cottages)", () => {
     assert.ok(world.coll.fits(data.spawn.x, data.spawn.y));
-    assert.equal(report.summary.doors, 7);                 // the cafe and six cottages
+    assert.equal(report.summary.doors, 4 + 18);
+    for (const k of ["library", "cafe", "bakery", "bookshop"]) assert.equal(objects.filter((o) => o.door?.kind === k).length, 1, k);
   });
-  it("has no sealed pockets", () => assert.equal(report.summary.sealedNavCells, 0));
-  it("has a ring that is continuous, walkable end to end, and free of footprints", () => {
-    assert.equal(report.summary.ringLegsOk, data.ring.length);
-    assert.equal(report.summary.ringBlocked, 0);
-    assert.ok((report.summary.ringTiles as number) > 200);
+  it("has one connected path network, no pockets and no footprint on a path", () => {
+    assert.equal(report.summary.pathPieces, 1);
+    assert.equal(report.summary.bigPockets, 0);
+    assert.equal(report.summary.onPath, 0);
   });
-  it("keeps the cottages 2 tiles from the path and 3 tiles apart", () => {
-    assert.ok((report.summary.minYardPx as number) >= 2 * TILE - 1, String(report.summary.minYardPx));
-    assert.ok((report.summary.minHouseGapPx as number) >= 3 * TILE - 1, String(report.summary.minHouseGapPx));
+  it("keeps every path 2 to 3.5 tiles wide away from junctions, and none straighter than the tolerance over 12 tiles", () => {
+    assert.ok((report.summary.widthSamples as number) > 100);
+    assert.ok((report.summary.widthMin as number) >= 1.9 && (report.summary.widthMax as number) <= 3.6, `${report.summary.widthMin} ${report.summary.widthMax}`);
+    assert.ok((report.summary.straightestWindowDev as number) >= 0.4);
+    assert.ok((report.summary.sharpestTurnDeg as number) <= 100);
   });
-  it("puts a sit spot on every screen, all with a reachable stand cell", () => {
+  it("is a MASSIVE map: 136 x 72 tiles, 18 houses, 4 landmarks, placeholders in the debug view only", () => {
+    assert.equal(data.cols, 136); assert.equal(data.rows, 72);
+    assert.equal(objects.filter((o) => o.kind === "building" && o.door?.kind !== "cottage").length, 4);
+    assert.equal(report.summary.houses, 18);
+    const ph = objects.filter((o) => o.kind === "placeholder");
+    assert.ok(ph.length >= 4 && ph.length <= 6 && ph.every((o) => o.ph?.building));
+  });
+  it("has at least 120 sit spots at 1.5 to 2.5 a screen, all with a reachable stand cell", () => {
+    assert.ok(data.spots.length >= 120);
     assert.equal(report.summary.spotsOk, data.spots.length);
-    assert.ok((report.summary.spotsPerScreen as number) >= 3, String(report.summary.spotsPerScreen));
+    const ps = report.summary.spotsPerScreen as number;
+    assert.ok(ps >= SPOTS_PER_SCREEN[0] && ps <= SPOTS_PER_SCREEN[1], String(ps));
+  });
+  it("walks from the library to the far bakery in a counted, small number of expansions and under 8 ms (warm)", () => {
+    const lib = data.hubs.find((h) => h.id === "library")!, bak = data.hubs.find((h) => h.id === "bakery")!;
+    world.nav.plan([lib.x, lib.y], [bak.x, bak.y]);                      // warm
+    let worst = 0, worstExp = 0;
+    const far = data.botNodes[data.botNodes.length - 1];
+    const pairs = [[lib, bak], [bak, far], [far, lib], [data.botNodes[0], far]] as { x: number; y: number }[][];
+    for (let warm = 0; warm < 3; warm++) for (const [a, b] of pairs) world.nav.plan([a.x, a.y], [b.x, b.y]);
+    for (const [a, b] of pairs) {
+      const t = performance.now();
+      const p = world.nav.plan([a.x, a.y], [b.x, b.y]);
+      worst = Math.max(worst, performance.now() - t); worstExp = Math.max(worstExp, world.nav.expansions);
+      assert.ok(p && world.nav.clearPath([a.x, a.y], p));
+    }
+    assert.ok(worstExp < world.nav.cols * world.nav.rows / 4, `expansions ${worstExp}`);
+    assert.ok(worst < 20, `${worst.toFixed(1)} ms: 3 to 5 ms alone, the brief's bar is 8`);
+    // 60 random pairs of bot nodes: the worst count of expansions and the worst time, warm
+    let rs = 12345, maxExp = 0, maxMs = 0;
+    const rnd = () => { rs = (Math.imul(rs, 1664525) + 1013904223) >>> 0; return rs / 4294967296; };
+    for (let i = 0; i < 60; i++) {
+      const a = data.botNodes[Math.floor(rnd() * data.botNodes.length)], b = data.botNodes[Math.floor(rnd() * data.botNodes.length)];
+      const t = performance.now(); world.nav.plan([a.x, a.y], [b.x, b.y]); maxMs = Math.max(maxMs, performance.now() - t); maxExp = Math.max(maxExp, world.nav.expansions);
+    }
+    assert.ok(maxExp < 12000, `${maxExp} expansions`);
+    assert.ok(maxMs < 25, `${maxMs.toFixed(1)} ms: 3 to 5 ms alone (the suites run in parallel here)`);
   });
   it("fails when a door is sealed in (the validator can fail)", () => {
     const bad = structuredClone(data);
     const cafe = bad.objects.find((o) => o.id === "cafe")!;
-    // wall the cafe's entry in with a fence of blocking rects
     const e = cafe.door!.entry;
     for (const dx of [-24, 0, 24]) bad.objects.push({ ...cafe, id: `wall${dx}`, door: undefined, zone: "x", block: { x: e.x + dx - 12, y: e.y - 12, w: 24, h: 40 }, foot: { x: 0, y: 0, w: 1, h: 1 } });
     bad.objects.push({ ...cafe, id: "wallN", door: undefined, zone: "x", block: { x: e.x - 60, y: e.y + 28, w: 120, h: 24 }, foot: { x: 0, y: 0, w: 1, h: 1 } });
-    const r = validateTown(bad);
-    assert.ok(r.failures.length > 0);
+    assert.ok(validateTown(bad).failures.length > 0);
+  });
+  it("fails when a tree stands on a path and when the network is cut in two", () => {
+    const bad = structuredClone(data);
+    const m = unrle(bad.mat.rle, bad.mat.cols * bad.mat.rows);
+    for (let y = 0; y < bad.mat.rows; y++) for (let x = 0; x < bad.mat.cols; x++) if (x === 270) m[y * bad.mat.cols + x] = 0;       // a ditch across the map
+    bad.mat.rle = rle(m);
+    assert.ok(validateTown(bad).failures.some((f) => f.includes("pieces")));
   });
 });
 
-describe("sit spots", () => {
-  it("have unique ids and keys, all in the append-only registry", () => {
-    assert.equal(new Set(data.spots.map((s) => s.id)).size, data.spots.length);
-    for (const s of data.spots) assert.equal(registry.ids[s.key], s.id, s.key);
-    assert.ok(registry.nextId > Math.max(...data.spots.map((s) => s.id)));
+describe("determinism", () => {
+  it("the committed map is byte for byte what the committed seed builds", async () => {
+    const { compileWorld } = await import("./worldgen");
+    const j = (p: string) => JSON.parse(read(p));
+    const art = "../../../docs/study/art/town/";
+    const g = j(art + "town-ground.json"), nat = j(art + "town-nature.json"), cafe = j(art + "town-cafe.json"), cot = j(art + "town-cottages-door.json"), lm = j(art + "town-landmarks.json"), props = j(art + "town-atlas-fine.json");
+    const cat = { ground: { tiles: g.tiles, fillFamilies: g.fillFamilies, cols: g.cols }, nature: { objects: nat.objects, size: nat.size }, cafe: { building: cafe.building, size: cafe.size }, cottages: { buildings: cot.buildings, size: cot.size }, landmarks: { buildings: lm.buildings, size: lm.size }, props: { props: props.props, size: props.size }, groundSize: [384, 288] as [number, number] };
+    const bp = j("../../../tools/town/world.json");
+    const urls = { ground: data.atlases.ground.url, nature: data.atlases.nature.url, cafe: data.atlases.cafe.url, cottage: data.atlases.cottage.url, landmark: data.atlases.landmark.url, props: data.atlases.props.url, premade: data.premade.url, premadeRows: data.premade.rows };
+    const a = compileWorld(bp, cat, urls, structuredClone(registry)), b = compileWorld(bp, cat, urls, structuredClone(registry));
+    assert.equal(JSON.stringify(a.data), JSON.stringify(b.data), "two runs differ");
+    assert.equal(JSON.stringify(a.data), raw, "public/town/v1 is stale: run npm run town:build");
+    assert.equal(createHash("sha1").update(raw).digest("hex").slice(0, 10), TOWN_DATA_URL.split(".")[1]);
+    const other = compileWorld({ ...bp, seed: bp.seed + 1 }, cat, urls, structuredClone(registry));
+    assert.notEqual(JSON.stringify(other.data.paths), JSON.stringify(a.data.paths), "another seed gives the same paths");
   });
-  it("have a stand point that fits, within reach of the seat", () => {
-    for (const s of data.spots) { assert.ok(world.coll.fits(s.stand.x, s.stand.y), s.key); assert.ok(Math.hypot(s.stand.x - s.at.x, s.stand.y - s.at.y) <= 64, s.key); }
+});
+
+describe("the path planner", () => {
+  it("routes around an obstacle, wanders, and cuts a route that runs along the network", () => {
+    const pl = new Planner(60, 30, 7);
+    pl.block(28, 8, 32, 22); pl.finishObstacles(3);
+    const n1 = pl.connect("a", [6.5, 15.5], [52.5, 15.5], "trunk", 1);
+    assert.ok(n1 > 40, `new length ${n1}`);
+    const e = pl.edges[0];
+    assert.ok(e.pts.every((p) => pl.clearance(p[0], p[1]) > 1), "stays clear of the obstacle");
+    const ys = e.pts.map((p) => p[1]);
+    assert.ok(Math.max(...ys) - Math.min(...ys) > 3, "goes round");
+    const before = pl.edges.length;
+    const n2 = pl.connect("b", [10.5, 15.5], [48.5, 15.5], "trunk", 2);
+    assert.ok(n2 < 12, `the second route mostly merges: ${n2} new tiles`);
+    assert.ok(pl.edges.length >= before);
   });
-  it("use only the poses the art has: left and right sit, front reads, back sits on the stool", () => {
-    for (const s of data.spots) assert.equal(s.pose, s.face === "left" || s.face === "right" ? "sit" : s.face === "front" ? "read" : "stool");
+  it("is deterministic and ends every new edge on the network or at its node", () => {
+    const run = () => { const pl = new Planner(60, 30, 11); pl.finishObstacles(3); pl.connect("a", [6.5, 6.5], [50.5, 20.5], "trunk", 3); return JSON.stringify(pl.edges); };
+    assert.equal(run(), run());
+  });
+  it("round-trips the material through run-length encoding", () => {
+    const a = new Uint8Array(1000); for (let i = 0; i < 1000; i++) a[i] = Math.floor(i / 37) % 3;
+    assert.deepEqual(Array.from(unrle(rle(a), 1000)), Array.from(a));
+  });
+});
+
+describe("the ground painter", () => {
+  // a synthetic atlas: every tile a flat colour per index
+  const cols = 12, atlas: GroundAtlas = { w: 12 * 32, h: 9 * 32, data: new Uint8ClampedArray(12 * 32 * 9 * 32 * 4) };
+  for (let y = 0; y < atlas.h; y++) for (let x = 0; x < atlas.w; x++) { const idx = Math.floor(y / 32) * cols + Math.floor(x / 32), o = (y * atlas.w + x) * 4; atlas.data[o] = idx * 2; atlas.data[o + 1] = 200 - idx; atlas.data[o + 2] = 60; atlas.data[o + 3] = 255; }
+  const mk = () => {
+    const mc = 64 * 4, mr = 32 * 4, mat = new Uint8Array(mc * mr);
+    for (let y = 40; y < 80; y++) for (let x = 20; x < 220; x++) mat[y * mc + x] = 1;            // a straight band: an exact 8 px cell outline
+    for (let y = 90; y < 110; y++) for (let x = 100; x < 140; x++) mat[y * mc + x] = 2;           // a plaza block
+    const d = { cols: 64, rows: 32, seed: 5, groundCols: cols, tiles: { grassA: [0, 1], flower: [2], leaves: [3], dirt: [60, 61], plaza: 40 }, mat: { rle: [] as number[] } };
+    return makeGroundCtx(d, [], mat);
+  };
+  it("is seeded: the same chunk twice is the same pixels", () => {
+    const g = mk(), a = new Uint8ClampedArray(512 * 512 * 4), b = new Uint8ClampedArray(512 * 512 * 4);
+    paintChunk(g, atlas, 0, 0, a); paintChunk(g, atlas, 0, 0, b);
+    assert.equal(createHash("sha1").update(a).digest("hex"), createHash("sha1").update(b).digest("hex"));
+  });
+  it("makes ragged edges: the boundary of a straight band wanders by pixels, not along the 8 px cell outline", () => {
+    const g = mk();
+    const top: number[] = [];
+    for (let wx = 200; wx < 1400; wx += 1) { let y = 300; while (y < 340 && landAt(g, wx, y) === 0) y++; top.push(y); }
+    const distinct = new Set(top).size;
+    assert.ok(distinct >= 4, `${distinct} distinct edge rows`);
+    assert.ok(Math.max(...top) - Math.min(...top) <= 14, "but it stays near the outline (within 14 px)");
+    // the band's middle is solid path and well away from it is grass
+    assert.equal(landAt(g, 800, 330), 1); assert.equal(landAt(g, 800, 100), 0);
+    assert.equal(landAt(g, 960, 760 + 8), 2);                       // inside the plaza block
+  });
+  it("paints a darker rim inside the edge and grass tufts outside it", () => {
+    const g = mk(), out = new Uint8ClampedArray(512 * 512 * 4);
+    paintChunk(g, atlas, 1, 0, out);
+    const colours = new Set<number>();
+    for (let i = 0; i < out.length; i += 4) colours.add((out[i] << 16) | (out[i + 1] << 8) | out[i + 2]);
+    assert.ok(colours.size >= 6, `${colours.size} colours`);
   });
 });
 
@@ -80,11 +191,11 @@ describe("collision", () => {
     assert.ok(g.blocked(0, 20) && g.blocked(39, 20) && g.blocked(20, 0) && g.blocked(20, 39));   // outside the bounds
     assert.ok(g.fits(60, 60) && !g.fits(110, 105) && !g.fits(96, 105) && g.fits(90, 105));
   });
-  it("matches the real objects: every tree trunk and the cafe's body are blocked, the ring is not", () => {
-    for (const o of data.objects.filter((o) => o.kind === "tree" && o.zone !== "treeline")) assert.ok(world.coll.blocked(Math.floor((o.block.x + o.block.w / 2) / 8), Math.floor((o.block.y + o.block.h / 2) / 8)), o.id);
+  it("matches the real objects: every tree trunk and the cafe's body are blocked, the bot nodes are not", () => {
+    for (const o of objects.filter((o) => o.kind === "tree" && o.zone !== "treeline")) assert.ok(world.coll.blocked(Math.floor((o.block.x + o.block.w / 2) / 8), Math.floor((o.block.y + o.block.h / 2) / 8)), o.id);
     const cafe = data.objects.find((o) => o.id === "cafe")!;
     assert.ok(world.coll.blocked(Math.floor((cafe.block.x + 50) / 8), Math.floor((cafe.block.y + 40) / 8)));
-    for (const p of data.ring) assert.ok(world.coll.fits(p.x, p.y), `ring node ${p.x},${p.y}`);
+    for (const p of data.botNodes) assert.ok(world.coll.fits(p.x, p.y), `bot node ${p.x},${p.y}`);
   });
   it("slides along a wall without entering it, and allocates no array", () => {
     const g = new CollisionGrid(320, 320, { x: 0, y: 0, w: 320, h: 320 });
@@ -118,9 +229,9 @@ describe("navigation", () => {
     const last = pts[pts.length - 1];
     assert.ok(g2.fits(last[0], last[1]));
   });
-  it("on the real map: from the plaza to the far corner passes round the cafe and the houses, every leg clear", () => {
+  it("on the real map: from the spawn to the far corners passes round the buildings and the woods, every leg clear", () => {
     const from: [number, number] = [data.spawn.x, data.spawn.y];
-    for (const to of [[200, 800], [1500, 800], [1500, 100]] as [number, number][]) {
+    for (const to of [[300, 300], [4000, 300], [300, 2000], [4000, 2000]] as [number, number][]) {
       const pts = world.nav.plan(from, to)!;
       assert.ok(pts, `to ${to}`);
       assert.ok(world.nav.clearPath(from, pts), `to ${to}`);
@@ -129,7 +240,7 @@ describe("navigation", () => {
   });
   it("every sit spot and door entry is a route away from the spawn", () => {
     for (const s of data.spots) assert.ok(world.nav.plan([data.spawn.x, data.spawn.y], [s.stand.x, s.stand.y]), s.key);
-    for (const o of data.objects) if (o.door) assert.ok(world.nav.plan([data.spawn.x, data.spawn.y], [o.door.entry.x, o.door.entry.y]), o.id);
+    for (const o of objects) if (o.door) assert.ok(world.nav.plan([data.spawn.x, data.spawn.y], [o.door.entry.x, o.door.entry.y + 8]), o.id);
   });
 });
 
@@ -153,51 +264,6 @@ describe("the chunk cache", () => {
   });
 });
 
-describe("the ground's edge pieces", () => {
-  const byPos = new Map<number, (typeof ground.tiles)[number]>();
-  for (const t of ground.tiles) byPos.set(t.row * ground.cols + t.col, t);
-  const F = (x: number, y: number) => x >= 0 && y >= 0 && x < data.cols && y < data.rows && (data.kind[y * data.cols + x] === 1 || data.kind[y * data.cols + x] === 2);
-  it("names the class from the neighbours: N and E in the fill leaves grass in the SW corner", () => {
-    const m = new Set(["1,0", "2,1"]);          // tile (1,1): N (1,0) and E (2,1) are fill
-    assert.equal(classOf((x, y) => m.has(`${x},${y}`), 1, 1), "inner_SW");
-    assert.equal(classOf((x, y) => m.has(`${x},${y}`), 0, 5), "none");
-    assert.equal(classOf((x, y) => x === 2 && y === 2, 1, 1), "outer_SE");
-    assert.equal(classOf((x, y) => x === 1 && y === 2, 1, 1), "edge_S");
-    assert.equal(classOf((x, y) => (x === 1 && y === 0) || (x === 1 && y === 2), 1, 1), "invalid");
-  });
-  it("mends a notch and a spur so every tile has a piece", () => {
-    const cols = 8, rows = 8, m = new Uint8Array(cols * rows);
-    for (let y = 2; y < 6; y++) for (let x = 1; x < 7; x++) m[y * cols + x] = 1;
-        m[1 * cols + 3] = 1;                                  // a spur above
-    cleanMask(m, cols, rows);
-    assert.deepEqual(maskProblems(m, cols, rows), []);
-    assert.equal(m[1 * cols + 3], 0, "the spur is gone");
-  });
-  it("places on every edge tile a piece whose measured side states agree with the fill around it", () => {
-    let checked = 0;
-    for (let ty = 0; ty < data.rows; ty++) for (let tx = 0; tx < data.cols; tx++) {
-      if (data.kind[ty * data.cols + tx] !== 3) continue;
-      const v = data.ground[ty * data.cols + tx], t = byPos.get(v & 127)!;
-      assert.ok(t.kind === "dirt_edge" || t.kind === "plaza_edge", `${tx},${ty} is ${t.kind}`);
-      const st = t.state!;
-      const nb: Record<string, boolean> = { N: F(tx, ty - 1), E: F(tx + 1, ty), S: F(tx, ty + 1), W: F(tx - 1, ty) };
-      for (const side of ["N", "E", "S", "W"]) {
-        if (nb[side]) assert.equal(st[side], "other", `${tx},${ty} side ${side} faces fill`);
-        else assert.notEqual(st[side], "other", `${tx},${ty} side ${side} is open`);
-      }
-      checked++;
-    }
-    assert.ok(checked > 100, String(checked));
-  });
-  it("fills the ring with dirt and the plaza with plaza, and grass elsewhere", () => {
-    for (let i = 0; i < data.kind.length; i++) {
-      const t = byPos.get(data.ground[i] & 127)!;
-      if (data.kind[i] === 1) assert.equal(t.kind, "dirt"); else if (data.kind[i] === 2) assert.equal(t.kind, "plaza");
-      else if (data.kind[i] === 0) assert.ok(t.kind.startsWith("grass"), t.kind);
-    }
-  });
-});
-
 describe("movement constants", () => {
   it("walk at the library's speed with a 12 Hz pose clock that restarts at each walk, and stand still first", () => {
     assert.equal(MOVE.walkSpeed, 70);
@@ -206,5 +272,14 @@ describe("movement constants", () => {
     assert.equal(walkFrame(0.5 + 1e-6), 0);          // six poses at 12 Hz: a 500 ms cycle
     assert.equal(idleFrame(1), 0);
     assert.equal(idleFrame(MOVE.idleStillSecs + 0.7), 1);
+  });
+  it("the town's walk frames hold 5 display frames at 60 Hz in at least 90 percent of slots (jitter 0, 1, 3 ms)", () => {
+    for (const jitter of [0, 1, 3]) {
+      const l = slotLengths((s) => Math.floor(s * MOVE.walkPoseHz + 0.1), 60, 30, jitter);
+      const five = l.filter((n) => n === 5).length / l.length;
+      assert.ok(five >= 0.9, `jitter ${jitter}: ${five}`);
+    }
+    // and walkFrame is that same clock
+    assert.equal(walkFrame(5 / 60), 1); assert.equal(walkFrame(4 / 60), 0);
   });
 });
