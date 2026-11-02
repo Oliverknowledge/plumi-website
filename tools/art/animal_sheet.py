@@ -6,6 +6,7 @@ Turns ChatGPT animal character sheets into game frames: ONE data-driven pipeline
                                                            #   src/lib/studyapp/library/people/animals.json and the 8x previews
     python3 tools/art/animal_sheet.py --id raccoon         # one animal
     python3 tools/art/animal_sheet.py --ingest raccoon /path/to/28.webp    # converts a raw ChatGPT file to the lossless source PNG
+    python3 tools/art/animal_sheet.py --ingest-sit dragon /path/to/sit.png # a SEATED sheet for that animal (then run it with --id dragon: the rig uses it as drawn)
     python3 tools/art/check_animals.py                     # asserts the invariants of everything it wrote
 
 THE SOURCE is not clean pixel art: 1536 x 1024, 6 columns x 4 rows (rows: facing DOWN, LEFT, UP, RIGHT; columns: six walk
@@ -49,6 +50,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import animal_rig as rig  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DIR = ROOT / "docs/study/art/source"
 OUT_DIR = ROOT / "public/library/characters"
@@ -59,6 +63,7 @@ FRAME_W, FRAME_H = 24, 32
 DIRS = ("down", "left", "up", "right")     # the sheet's rows
 COLS = 6                                    # walk frames per direction
 FRAMES = len(DIRS) * COLS
+ENGINE_FRAMES = 78                          # idle 24, walk 24, sit 12, phone 6, read 6, stool 6: the engine's row (people/sheet.ts POSE)
 BASELINE = FRAME_H                          # the feet's bottom edge, in art rows: the last row of the frame holds the feet
 TARGET_ROWS = 26.2                          # the median sprite's height in art rows (the fox's), which sets the scale of an animal that does not name one
 COVER = 0.5                                 # a cell is animal when at least this much of it is
@@ -86,6 +91,10 @@ class Animal:
     mag: int = MAG                           # the magenta test's threshold: raised for an animal whose own colours come close (the axolotl's lilac jumper scores up to ~130, the background 190 to 250)
     bal: int = 255                           # how far apart red and blue may be in the background (255: no test)
     merge: int = 0                           # grow the mask this many source pixels before looking for sprites (a sprite drawn in touching pieces)
+    hip: int = 27                            # the row the legs start at (the rig cuts the walk's legs and the seated pose there)
+    stride: int = 3                          # the legs' spread at the walk's contact frames, art px (short legs need more to read)
+    legw: int = 5                            # how far either side of the torso's centre the legs reach (the tail beyond is not a leg)
+    shoulder: int = 17                       # the row below which, seated, the tail's columns are tucked away
     anchor: str = "torso"                    # "mass" or "torso": what the frame's centre column is
     tail: dict = field(default_factory=dict) # the swish: columns from the torso centre to the tail, per direction (see animals.json); a missing one does not swish
 
@@ -94,9 +103,9 @@ class Animal:
 ANIMALS: tuple[Animal, ...] = (
     Animal("fox", "Fox", "fox-sheet-01.png", jumper=("#76273b", "#a03a55"), fur=None, scale=8.1,
            tail={"down": 6, "left": 5, "right": 5}),
-    Animal("capybara", "Capybara", "animal-sheet-capybara.png", dark=20, jumper=("#f7dbab", "#dab787"), blush=(),
+    Animal("capybara", "Capybara", "animal-sheet-capybara.png", dark=20, hip=28, stride=3, jumper=("#f7dbab", "#dab787"), blush=(),
            fur=("#ca8655", "#d1864a", "#b66e3b", "#a36642", "#a25d33")),
-    Animal("axolotl", "Axolotl", "animal-sheet-axolotl.png", dark=20, jumper=("#9150c1",), blush=(), colours=20, mag=100, merge=2,
+    Animal("axolotl", "Axolotl", "animal-sheet-axolotl.png", dark=20, stride=3, jumper=("#9150c1",), blush=(), colours=20, mag=100, merge=2,
            fur=("#fbb8a8", "#f7beae", "#fbd5c7", "#f69b90", "#f88a7f"), tail={"down": 6, "left": 5, "right": 5}),
     Animal("redpanda", "Red panda", "animal-sheet-redpanda.png", dark=20, jumper=("#0a8e95", "#0e6869"), blush=(), colours=20,
            fur=("#db813d", "#dc722e", "#fbeab6", "#fbeec9", "#f2c793"), tail={"down": 6, "left": 5, "right": 5}),
@@ -227,15 +236,15 @@ def components(fg: np.ndarray) -> tuple[np.ndarray, int]:
     return out, len(roots)
 
 
-def order_sprites(boxes: list[tuple[int, int, int, int]]) -> list[int]:
+def order_sprites(boxes: list[tuple[int, int, int, int]], cols: int = COLS, nrows: int = len(DIRS)) -> list[int]:
     """Indices in reading order: the rows are found by clustering centres on y, then each row by x."""
     cy = np.array([(b[1] + b[3]) / 2 for b in boxes])
     cx = np.array([(b[0] + b[2]) / 2 for b in boxes])
     idx = list(np.argsort(cy))
-    rows = [idx[i * COLS:(i + 1) * COLS] for i in range(len(DIRS))]
+    rows = [idx[i * cols:(i + 1) * cols] for i in range(nrows)]
     for r in rows:
         if max(cy[r]) - min(cy[r]) > 120:
-            raise SystemExit("the sprites do not fall in 4 rows of 6")
+            raise SystemExit(f"the sprites do not fall in {nrows} rows of {cols}")
     return [int(i) for r in rows for i in sorted(r, key=lambda j: cx[j])]
 
 
@@ -311,12 +320,12 @@ def cells(x0: float, y0: float, scale: float, w: int, h: int) -> list[list[tuple
 
 
 def downsample(fg: np.ndarray, idx: np.ndarray, pure: np.ndarray, weights: np.ndarray, st: dict, method: str,
-               lab_img: np.ndarray, lab_pal: np.ndarray, outline_idx: int, scale: float, fur: tuple[int, ...]) -> np.ndarray:
+               lab_img: np.ndarray, lab_pal: np.ndarray, outline_idx: int, scale: float, fur: tuple[int, ...], baseline: int = BASELINE) -> np.ndarray:
     """One frame: an (FRAME_H, FRAME_W) int array of palette indices, -1 transparent."""
     # the frame's left edge: the anchor on the centre column, but never so far that the sprite is cut by the frame
     x0 = st["ax"] - FRAME_W / 2 * scale
     x0 = min(max(x0, st["right"] - FRAME_W * scale), st["left"])
-    y0 = st["bottom"] - BASELINE * scale
+    y0 = st["bottom"] - baseline * scale
     grid = cells(x0, y0, scale, FRAME_W, FRAME_H)
     out = np.full((FRAME_H, FRAME_W), -1, np.int16)
     solid = np.zeros((FRAME_H, FRAME_W), bool)
@@ -379,7 +388,7 @@ def source_of(an: Animal) -> Path:
     return SOURCE_DIR / an.source
 
 
-def sprites_of(rgb: np.ndarray, merge: int, mag: int, bal: int) -> tuple[np.ndarray, list[int], list[tuple[int, int, int, int]], np.ndarray]:
+def sprites_of(rgb: np.ndarray, merge: int, mag: int, bal: int, cols: int = COLS, nrows: int = len(DIRS)) -> tuple[np.ndarray, list[int], list[tuple[int, int, int, int]], np.ndarray]:
     """The keyed mask, the sprite label image (labels of the mask, grown by `merge` to find them), the 24 labels in reading order, and their boxes."""
     fg = ~key_out(rgb, mag, bal)
     grown = grow(fg, merge) if merge else fg
@@ -387,13 +396,13 @@ def sprites_of(rgb: np.ndarray, merge: int, mag: int, bal: int) -> tuple[np.ndar
     labels = np.where(fg, labels, 0)
     sizes = np.bincount(labels.ravel(), minlength=n + 1)[1:]
     keep = [i + 1 for i, s in enumerate(sizes) if s > 2000]      # specks of lossy noise are not sprites
-    if len(keep) != FRAMES:
-        raise SystemExit(f"expected {FRAMES} sprites, found {len(keep)}")
+    if len(keep) != cols * nrows:
+        raise SystemExit(f"expected {cols * nrows} sprites, found {len(keep)}")
     boxes = []
     for lab in keep:
         ys, xs = np.where(labels == lab)
         boxes.append((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
-    order = order_sprites(boxes)
+    order = order_sprites(boxes, cols, nrows)
     return fg, labels, [keep[o] for o in order], [boxes[o] for o in order]
 
 
@@ -460,7 +469,40 @@ def run(an: Animal, method: str = "vote") -> dict:
         sub = {"ax": st["ax"] - x0, "bottom": st["bottom"] - y0, "left": st["left"] - x0, "right": st["right"] - x0}
         f = downsample(mask[win], idx[win], pure[win] & mask[win], weights, sub, method, lab_img[win], lab_pal, outline_idx, scale, fur)
         frames.append(f)
-    return {"animal": an, "palette": pal, "frames": frames, "stats": stats, "method": method, "scale": scale, "jumper": jumper}
+    sit = None
+    sit_src = SOURCE_DIR / f"animal-sit-{an.id}.png"
+    if sit_src.exists():
+        sit = run_sit(an, sit_src, pal, lab_pal, weights, fur, jumper, scale, method)
+    return {"animal": an, "palette": pal, "frames": frames, "stats": stats, "method": method, "scale": scale, "jumper": jumper, "sit": sit}
+
+
+SIT_COLS, SIT_ROWS = 4, 2      # a seated sheet: row 1 the SIDE view facing right, row 2 the FRONT view; columns still, page turn, head nod, writing
+
+
+def run_sit(an: Animal, src: Path, pal: np.ndarray, lab_pal: np.ndarray, weights: np.ndarray, fur: tuple[int, ...], jumper: tuple[int, ...],
+            scale: float, method: str) -> dict:
+    """The seated sheet (docs/study/art/chatgpt-animal-sit-prompts.md): 8 sprites cut and snapped like the walk's, with the walk's palette
+    (every pixel takes its nearest colour) and scale, the torso on column 12 and the bottom of the figure on the lap line (hip + 4)."""
+    rgb = np.array(Image.open(src).convert("RGB"))
+    fg, labels, order, boxes = sprites_of(rgb, an.merge, an.mag, an.bal, SIT_COLS, SIT_ROWS)
+    dep = depth(fg)
+    lab_img = srgb_to_lab(rgb)
+    idx, dist = nearest(lab_pal, lab_img)
+    band = (lab_pal[:, 0] < 32)[idx] & (dep <= OUTLINE_DEPTH)
+    pure = fg & ((dep >= PURE_DEPTH) | (dist < 9)) & ~band
+    jmask = fg & np.isin(idx, jumper) & (dep >= PURE_DEPTH)
+    out = []
+    for lab in order:
+        mask = labels == lab
+        st = sprite_stats(mask)
+        ys, xs = np.where(jmask & mask)
+        st["ax"] = float(xs.mean()) if len(xs) >= 150 else st["cx"]
+        y0, y1 = max(st["top"] - 40, 0), min(st["bottom"] + 40, mask.shape[0])
+        x0, x1 = max(st["left"] - 40, 0), min(st["right"] + 40, mask.shape[1])
+        win = (slice(y0, y1), slice(x0, x1))
+        sub = {"ax": st["ax"] - x0, "bottom": st["bottom"] - y0, "left": st["left"] - x0, "right": st["right"] - x0}
+        out.append(downsample(mask[win], idx[win], pure[win] & mask[win], weights, sub, method, lab_img[win], lab_pal, 0, scale, fur, an.hip + 4))
+    return {"side": out[:SIT_COLS], "front": out[SIT_COLS:]}
 
 
 def to_rgba(frame: np.ndarray, pal: np.ndarray) -> np.ndarray:
@@ -471,26 +513,43 @@ def to_rgba(frame: np.ndarray, pal: np.ndarray) -> np.ndarray:
     return out
 
 
-def strip_of(result: dict) -> np.ndarray:
+def sheet_strip(result: dict) -> np.ndarray:
+    """The sheet's own 24 frames, side by side (what the pipeline cut out of the ChatGPT sheet)."""
     return np.concatenate([to_rgba(f, result["palette"]) for f in result["frames"]], axis=1)
 
 
-def preview(strip: np.ndarray, path: Path, zoom: int = 8, bg=(120, 92, 70)) -> None:
-    """The 24 frames in the sheet's 6 x 4 layout, each at `zoom`, on a floor-like colour, with a faint frame grid."""
-    h, w = FRAME_H, FRAME_W
-    sheet = np.zeros((h * len(DIRS), w * COLS, 4), np.uint8)
-    for d in range(len(DIRS)):
+def engine_frames(result: dict) -> list[np.ndarray]:
+    """The 78 frames the engine reads, built from the sheet's frames by animal_rig."""
+    pal = result["palette"]
+    sheet = [to_rgba(f, pal) for f in result["frames"]]
+    jumper = {tuple(int(v) for v in pal[i]) for i in result["jumper"]}
+    sit = None if result.get("sit") is None else {k: [to_rgba(f, pal) for f in v] for k, v in result["sit"].items()}
+    return rig.build(sheet, result["animal"], jumper, tuple(int(v) for v in pal[0]), sit)
+
+
+def strip_of(result: dict) -> np.ndarray:
+    return np.concatenate(engine_frames(result), axis=1)
+
+
+LAYOUT = [("idle right", 0), ("idle back", 6), ("idle left", 12), ("idle front", 18), ("walk right", 24), ("walk back", 30), ("walk left", 36),
+          ("walk front", 42), ("sit right", 48), ("sit left", 54), ("phone", 60), ("read", 66), ("stool", 72)]
+
+
+def preview(strip: np.ndarray, path: Path, zoom: int = 6, bg=(120, 92, 70)) -> None:
+    """The 78 engine frames, one pose per row (idle, walk, sit, phone, read, stool), each at `zoom`, on a floor-like colour."""
+    h, w = FRAME_H, rig.FRAME_W
+    sheet = np.zeros((h * len(LAYOUT), w * COLS, 4), np.uint8)
+    for r, (_, first) in enumerate(LAYOUT):
         for c in range(COLS):
-            sheet[d * h:(d + 1) * h, c * w:(c + 1) * w] = strip[:, (d * COLS + c) * w:(d * COLS + c + 1) * w]
+            sheet[r * h:(r + 1) * h, c * w:(c + 1) * w] = strip[:, (first + c) * w:(first + c + 1) * w]
     base = np.zeros(sheet.shape[:2] + (3,), np.uint8)
     base[:] = bg
-    for d in range(len(DIRS)):
+    for r in range(len(LAYOUT)):
         for c in range(COLS):
-            base[d * h:(d + 1) * h, c * w:(c + 1) * w] = np.array(bg) + (8 if (c + d) % 2 else 0)
+            base[r * h:(r + 1) * h, c * w:(c + 1) * w] = np.array(bg) + (8 if (c + r) % 2 else 0)
     a = sheet[..., 3:4] > 0
     base = np.where(a, sheet[..., :3], base).astype(np.uint8)
-    im = Image.fromarray(base).resize((base.shape[1] * zoom, base.shape[0] * zoom), Image.NEAREST)
-    im.save(path)
+    Image.fromarray(base).resize((base.shape[1] * zoom, base.shape[0] * zoom), Image.NEAREST).save(path)
 
 
 def hexes(pal: np.ndarray, which) -> list[str]:
@@ -502,24 +561,31 @@ def emit(result: dict) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     strip = strip_of(result)
     Image.fromarray(strip, "RGBA").save(OUT_DIR / f"{an.id}.png", optimize=True)
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(sheet_strip(result), "RGBA").save(PREVIEW_DIR / f"{an.id}-sheet.png", optimize=True)
     pal = result["palette"]
     # the anchor: the frame column the anchor sits on, and the row of the feet
     meta = {
         "id": an.id,
         "title": an.title,
-        "frame": [FRAME_W, FRAME_H],
-        "frames": FRAMES,
-        "order": [f"{d}:{c}" for d in DIRS for c in range(COLS)],
-        "directions": list(DIRS),
-        "perDirection": COLS,
-        "anchor": {"x": FRAME_W // 2, "feetRow": FRAME_H - 1, "kind": an.anchor,
+        "frame": [rig.FRAME_W, FRAME_H],
+        "artFrame": [FRAME_W, FRAME_H],
+        "pad": rig.PAD,
+        "frames": ENGINE_FRAMES,
+        "order": [f"{name}:{c}" for name, _ in LAYOUT for c in range(COLS)],
+        "layout": {name: first for name, first in LAYOUT},
+        "sheetFrames": FRAMES,
+        "sheetOrder": [f"{d}:{c}" for d in DIRS for c in range(COLS)],
+        "anchor": {"x": rig.FRAME_W // 2, "feetRow": FRAME_H - 1, "kind": an.anchor,
                    "note": "the feet's bottom row; the anchor (the centre of mass, or the centre of the jumper) of each frame is on column x"},
         "palette": ["#%02x%02x%02x" % tuple(c) for c in pal],
         "outline": "#%02x%02x%02x" % tuple(pal[0]),
         "jumper": hexes(pal, result["jumper"]),
+        "rig": {"hip": an.hip, "stride": an.stride, "legw": an.legw, "shoulder": an.shoulder, "tail": {d: an.tail.get(d) for d in DIRS}},
         "sourceScale": result["scale"],
         "method": result["method"],
         "source": f"docs/study/art/source/{an.source}",
+        "sitSource": f"docs/study/art/source/animal-sit-{an.id}.png" if result.get("sit") else None,
         "tool": "tools/art/animal_sheet.py",
     }
     (OUT_DIR / f"{an.id}.json").write_text(json.dumps(meta, indent=2) + "\n")
@@ -553,11 +619,18 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--id", action="append", help="only this animal (repeatable)")
     ap.add_argument("--method", choices=["vote", "area"], default="vote")
     ap.add_argument("--ingest", nargs=2, metavar=("ID", "FILE"), help="convert a raw sheet to the source PNG and stop")
+    ap.add_argument("--ingest-sit", nargs=2, metavar=("ID", "FILE"), help="convert a raw SEATED sheet (docs/study/art/chatgpt-animal-sit-prompts.md) to docs/study/art/source/animal-sit-<id>.png and stop")
     ap.add_argument("--set", metavar="JSON", help="override fields of the chosen animals for this run only (exploring): --set '{\"dark\": 20}'")
     ap.add_argument("--out", metavar="DIR", help="write the strips and previews into DIR instead of the game's folders (for trying settings)")
     a = ap.parse_args(argv)
     if a.ingest:
         ingest(BY_ID[a.ingest[0]], Path(a.ingest[1]))
+        return 0
+    if a.ingest_sit:
+        img = Image.open(a.ingest_sit[1]).convert("RGB")
+        dst = SOURCE_DIR / f"animal-sit-{BY_ID[a.ingest_sit[0]].id}.png"
+        img.save(dst, optimize=True)
+        print(f"{a.ingest_sit[0]}: {img.size[0]} x {img.size[1]} -> {dst.relative_to(ROOT)}")
         return 0
     global OUT_DIR, PREVIEW_DIR
     if a.out:

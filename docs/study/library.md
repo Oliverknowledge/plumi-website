@@ -197,9 +197,9 @@ own row). Any other unknown `body` is mapped to a skin as before. `platform.ts`:
 
 **Art: one data-driven pipeline.** `tools/art/animal_sheet.py` (config: the `ANIMALS` table at its top) turns each ChatGPT sheet
 (`docs/study/art/source/animal-sheet-<id>.png`, 1536 x 1024, magenta, 6 columns x 4 rows: down, left, up, right) into
-`public/library/characters/<id>.png` (24 frames of 24 x 32) and `<id>.json`, plus `people/animals.json` (id, title, jumper colours, tail
-swish) and 8x previews in `docs/study/art/animals/`. `tools/art/check_animals.py` asserts the invariants (every frame the same size, one
-piece, binary alpha, a 1 px outline, feet on one row and not jittering, the torso steady, no magenta, 9 strips under 200 KB: 59 KB) and is
+`public/library/characters/<id>.png` (78 frames of 34 x 32: see below) and `<id>.json`, plus `people/animals.json` (id, title, jumper colours, tail
+swish) and previews in `docs/study/art/animals/` (`<id>-8x.png`: the 78 frames, one pose a row). `tools/art/check_animals.py` asserts the invariants (every frame the same size, one
+piece, binary alpha, a 1 px outline, feet on one row and not jittering, the torso steady, no magenta, 9 strips under 400 KB: 67 KB) and is
 run from `animal.test.ts`. Method (per animal): magenta test, not a colour match (`mag` and `merge` are raised for the axolotl: its lilac
 jumper scores like magenta, and its tail was drawn in two touching pieces); exactly 24 connected components; ONE k-means palette (Lab, fixed
 seed, 16 or 20 colours); one scale per animal (source px per art px: the median sprite is 26 rows tall like the fox, and the widest fits 24
@@ -210,12 +210,33 @@ features (eyes, nose) and blush boosted only where the cell is mostly face fur (
 is the same picture as `fox-sheet-01.png` (the lossless one is kept); the other eight were jpg or webp, so the PNGs are lossless copies of
 lossy files.
 
-**The engine row** (`people/animal.ts`, one composer for every animal): the 78 frames in a person's order, each `ANIMAL_W` = 34 wide (24 of
-art and 5 empty columns each side). Walk 24 to 47 are the strip's own frames; idle 0 to 23 is the frame with the feet together (narrowest
-bottom rows) with a 1 px breath (upper rows move, feet stay) and, where `animals.json` names a tail for that direction, a tail swish; sit 48
-to 59 is that frame lowered `SIT_DROP` (1) row, with the legs falling off the bottom, and moved `SIT_BACK` (5) px away from the desk it
-faces; phone, read and stool reuse the front and back sit. Nothing is redrawn by hand. Strips are fetched one per animal, only when someone in
-the room or the wardrobe is that animal (`store.ts` `animalStrip`); only `animals.json` (about 2 KB) is in the page's bundle.
+**The engine row (`people/animal.ts`, `tools/art/animal_rig.py`).** The strip is now the engine's 78 frames themselves, each 34 wide
+(24 of art and 5 empty columns each side), made offline from ONE standing frame per direction of the sheet (the narrowest feet). The sheet's
+own six walk frames are not played: ChatGPT redraws the eye, the cheek and the ribs in every frame (shimmer) and gives no steady bob or
+stride. They are kept for reference as `docs/study/art/animals/<id>-sheet.png`. What the people do, studied first (`people.png`, the
+engine's `frame()`): the animation clock is `layout.fps` = 10 ticks a second, walk frames change every 2 ticks (5 a second, six frames, two
+steps a cycle), the head bobs 1 row at the passing frames, the swing foot leaves the bottom rows, and the room moves a walker 70 art px a
+second (14 per frame); a seated person is one of 6 frames at 1 per 8 ticks (a slow breath: the head 1 row up for two frames), only facing the
+desk (right or left; the stool is the back view cut to 20 rows), sprite top-left on the seat, between the chair (z) and the table front
+(z + .5 sort), so the table covers the face side of the lap; stand and sit are snaps (`p.at`), no transition. The animals use the same
+frame functions and the same z, so they get the same cadence, occlusion and snaps (checked in the room at every seat orientation the
+iPad table has: right and left at the long tables, the arm chairs, the pod stool).
+
+- **Walk**: stride 2 to 3 art px at the contact frames (the legs are cut at the hip into near and far halves and sheared into an inverted V),
+  closing through the middle frame, together at the passing frame, where the body rises 1 row and the swing leg is lifted 2; the trailing leg
+  is lifted 1 at the contact (toe off); front and back views lift one foot at a time; the tail swings a row against the bob. The legs are
+  split where the legs are, grounded to the baseline (a short leg is lengthened, not floated) and every frame gets its 1 px outline back.
+- **Idle**: a 1 px breath, the tail's swish, and a blink facing the camera.
+- **Sit** (right, left): head and torso as drawn, the tail tucked (cut at the torso), the far leg gone, the near leg folded forward, one row
+  lower, moved 5 px away from the desk, a breath and a nod of the head (people only breathe); phone and read are the front view the same way,
+  the stool the back view lowered and cut. **Where the standing art cannot be made to sit** (dragon, badger, triceratops, capybara) a SEATED sheet
+  is the fix: `docs/study/art/chatgpt-animal-sit-prompts.md` has the prompts and `animal_sheet.py --ingest-sit` the entry point; a sheet
+  named `animal-sit-<id>.png` is used as drawn (the pipeline is exercised with a synthetic sheet; no real one exists yet).
+- **Numbers** (`check_animals.py -v`): the head bobs 1 to 2 rows in every direction; the torso slides at most 2.3 columns between frames
+  (usually under 1); foot motion (the change of the feet's extent on the bottom two rows, a frame to the next) is 3.6 to 6.0 columns a frame
+  against a person's 5.5. FOOT SKATE: the room moves a walker 14 art px a frame and no foot of a 24 px sprite can step back that fast, so every
+  walker, people included, skates; the residual (travel minus foot speed) is 8.0 to 10.4 px a frame for the animals against 8.5 for a
+  person. Removing it needs a slower walk or a faster cycle in the engine (`frame()`), not different art.
 
 **Per-row frame width** (`cafeScene.ts`, library mode only; every change is additive and defaults to the old 16): `Person.fw`,
 `LiveRemote.frameW`, `youSheet.frameW`, `dressYou(sheet, phones, frameW)`. The feet stay at the middle of the frame, so the wire (sprite

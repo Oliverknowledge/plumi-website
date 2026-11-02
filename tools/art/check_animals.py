@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-Asserts the invariants of every animal strip in public/library/characters/ (written by tools/art/animal_sheet.py).
+Asserts the invariants of every animal strip in public/library/characters/ (written by tools/art/animal_sheet.py + animal_rig.py).
 
-    python3 tools/art/check_animals.py        # exits 0 and says "ok", or prints every violation and exits 1
+    python3 tools/art/check_animals.py [-v]   # exits 0 and says "ok", or prints every violation and exits 1
 
-For each animal listed in src/lib/studyapp/library/people/animals.json:
-  * the strip is RGBA, 24 frames of the size its json says, all the same size (a frame is never cropped differently from another);
-  * alpha is 0 or 255 only (hard edges: no half transparent halo), and every drawn pixel whose 4-neighbour is clear is the outline colour;
-  * no more than the palette's colours, the palette no more than 24, and none of them magenta or a pink/purple fringe of it;
-  * the feet are on the one baseline row in every frame (they never move vertically), and the feet's middle never moves more than FEET_X
-    columns between the frames of a direction (no jitter in a walk);
-  * the torso (the jumper's colours) never moves more than TORSO_X columns between the frames of a direction, and its middle is near the
-    frame's middle;
-  * every frame is ONE piece (8-connected): no stray specks, no sprite split in two;
-  * the animal fits the frame (never touches both side columns of a 24 wide frame unless it is exactly as wide), and is between 20 and 30 rows tall;
-  * the strip file is small, and the whole bundle is under 200 KB.
+For each animal listed in src/lib/studyapp/library/people/animals.json the strip is the engine's 78 frames of 34 x 32 (idle 0-23, walk
+24-47, sit 48-59, phone 60-65, read 66-71, stool 72-77: people/sheet.ts POSE), and in it:
 
-Also run by `npm run library:test` (src/lib/studyapp/library/people/animal.test.ts calls it).
+  EVERY FRAME     RGBA, alpha 0 or 255 only (hard edges), every drawn pixel beside a clear one is the outline colour, ONE piece (no specks,
+                  no split sprite), colours from the palette, none of them magenta, the art inside its 24 columns (the 5 either side
+                  are empty but for a seated animal moved away from its desk).
+  BASELINE        the feet are on row 31 in every idle and walk frame, and the lowest row of the 6 frames of a seated pose is one row.
+  WALK            (per direction, 6 frames, at the engine's 5 a second and 14 art px of travel per frame) the body bobs by BOB rows (the head
+                  top moves 1 or 2 rows between the frames of a cycle), the torso does not slide more than TORSO_X columns, and the feet
+                  MOVE like feet: in the side views the feet's extent (the bottom two rows) changes by at least FOOT_MIN and at most
+                  FOOT_MAX columns a frame on average, never more than FOOT_JUMP in one. The FOOT SKATE is reported: travel (14) minus the
+                  mean foot speed, which no 24 px sprite can bring to 0 at this cadence (a person's is reported beside it).
+  SIT             nothing hangs below the lap line (the hip row + SIT_LAP), and a tail it has is tucked: no drawn pixel on the far side
+                  of the torso, below the shoulders, beyond the tail's own start.
+  SIZE            the strips are small: the bundle under 400 KB.
 """
 import json
 import sys
@@ -28,20 +30,25 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 DIR = ROOT / "public/library/characters"
 REGISTRY = ROOT / "src/lib/studyapp/library/people/animals.json"
-FEET_X = 4.0            # the feet's middle (bottom three rows) between the frames of one direction: a stride moves it a little, a jitter would move it more
-TORSO_X = 3.0           # the jumper's centre between the frames of one direction
-TORSO_FROM_MIDDLE = 4.0  # ... and from the frame's middle (a tail or wings that fill the 24 columns push the body off it)
+PEOPLE = ROOT / "public/library/people.png"
+FW, FH, PAD, ART = 34, 32, 5, 24
+FRAMES = 78
+TRAVEL = 14.0           # art px the engine moves a walker between two walk frames: 70 px a second (LIVE_SPEED), 5 frames a second
+TORSO_X = 3.0
+FOOT_MIN, FOOT_MAX, FOOT_JUMP = 0.3, 6.0, 12.0   # a foot lifted off the bottom two rows jumps the extent (a person's does too: 6)
+SIT_LAP = 5
 MAX_COLOURS = 24
-BUNDLE_LIMIT = 200_000
+BUNDLE_LIMIT = 400_000
+WALK = {"right": 24, "back": 30, "left": 36, "front": 42}
+IDLE = {"right": 0, "back": 6, "left": 12, "front": 18}
 
 
-def is_magenta(c: tuple[int, int, int]) -> bool:
+def is_magenta(c):
     r, g, b = c
     return min(r, b) > 170 and g < 0.5 * min(r, b) and abs(r - b) < 45
 
 
 def pieces(on: np.ndarray) -> int:
-    """The number of 8-connected pieces of a mask (a flood fill: frames are tiny)."""
     seen = np.zeros_like(on)
     n = 0
     h, w = on.shape
@@ -62,6 +69,38 @@ def pieces(on: np.ndarray) -> int:
     return n
 
 
+def foot_extent(on: np.ndarray, cx: float, side: bool, reach: int = 6):
+    """The columns the feet cover on the bottom two rows, among the leg columns (a tail beside them is not a foot)."""
+    sub = on[FH - 2:, max(int(cx) - reach, 0):int(cx) + reach + 1]
+    low = np.where(sub)[1]
+    return (float(low.min()), float(low.max())) if len(low) else (cx, cx)
+
+
+def foot_speeds(frames: list[np.ndarray], cxs: list[float]) -> list[float]:
+    """The feet's motion between consecutive frames of a cycle (wrapping): the change of the leading and trailing foot's column on the bottom two rows."""
+    ext = [foot_extent(f[..., 3] > 0, c, True) for f, c in zip(frames, cxs)]
+    out = []
+    for i in range(len(ext)):
+        a, b = ext[i], ext[(i + 1) % len(ext)]
+        out.append(max(abs(b[0] - a[0]), abs(b[1] - a[1])))
+    return out
+
+
+def people_skate() -> str:
+    """A person's own foot speed in the same measure (looks 0 to 11 averaged), for the report."""
+    if not PEOPLE.exists():
+        return "n/a"
+    im = np.array(Image.open(PEOPLE).convert("RGBA"))
+    vals = []
+    for look in range(min(11, im.shape[0] // 32)):
+        r = im[look * 32:(look + 1) * 32]
+        for off in (24, 36):
+            fr = [r[:, (off + k) * 16:(off + k + 1) * 16] for k in range(6)]
+            ext = [foot_extent(f[..., 3] > 0, 8, True, 8) for f in fr]
+            vals += [max(abs(ext[(i + 1) % 6][0] - ext[i][0]), abs(ext[(i + 1) % 6][1] - ext[i][1])) for i in range(6)]
+    return f"{float(np.mean(vals)):.2f}"
+
+
 def check(animal: dict) -> tuple[list[str], str]:
     aid = animal["id"]
     errs: list[str] = []
@@ -70,17 +109,14 @@ def check(animal: dict) -> tuple[list[str], str]:
     if im.mode != "RGBA":
         errs.append(f"{aid}: mode {im.mode}, not RGBA")
     a = np.array(im.convert("RGBA"))
-    fw, fh = meta["frame"]
-    n = meta["frames"]
     if meta.get("id") != aid:
         errs.append(f"{aid}: its json says {meta.get('id')}")
-    if n != 24:
-        errs.append(f"{aid}: frames {n}, not 24")
-    if a.shape[0] != fh or a.shape[1] != fw * n:
-        errs.append(f"{aid}: strip is {a.shape[1]} x {a.shape[0]}, expected {fw * n} x {fh} (24 frames, all one size)")
+    if a.shape != (FH, FW * FRAMES, 4) or meta["frame"] != [FW, FH] or meta["frames"] != FRAMES:
+        errs.append(f"{aid}: strip is {a.shape[1]} x {a.shape[0]}, expected {FW * FRAMES} x {FH} (78 frames of {FW} x {FH})")
         return errs, aid
     if meta["jumper"] != animal["jumper"]:
         errs.append(f"{aid}: animals.json and {aid}.json disagree on the jumper")
+    rig = meta["rig"]
     alpha = a[..., 3]
     if not np.isin(alpha, (0, 255)).all():
         errs.append(f"{aid}: alpha is not binary (soft edges)")
@@ -98,60 +134,89 @@ def check(animal: dict) -> tuple[list[str], str]:
         if h not in meta["palette"]:
             errs.append(f"{aid}: the jumper colour {h} is not in the palette")
     jumper = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in animal["jumper"]}
-    feet_row = meta["anchor"]["feetRow"]
     out = tuple(int(meta["outline"][i:i + 2], 16) for i in (1, 3, 5))
-    feet_mid: list[list[float]] = [[] for _ in range(4)]
-    torso_mid: list[list[float]] = [[] for _ in range(4)]
-    for f in range(n):
-        d = f // 6
-        fr = a[:, f * fw:(f + 1) * fw]
+    frames = [a[:, f * FW:(f + 1) * FW] for f in range(FRAMES)]
+
+    def torso(f):
+        m = np.zeros(f.shape[:2], bool)
+        for c in jumper:
+            m |= (f[..., :3] == np.array(c)).all(-1) & (f[..., 3] > 0)
+        return float(np.where(m)[1].mean()) if m.sum() >= 6 else None
+
+    for i, fr in enumerate(frames):
         on = fr[..., 3] > 0
         if not on.any():
-            errs.append(f"{aid}: frame {f} is empty")
+            errs.append(f"{aid}: frame {i} is empty")
             continue
         ys, xs = np.where(on)
-        if ys.max() != feet_row:
-            errs.append(f"{aid}: frame {f}: feet on row {ys.max()}, not {feet_row}")
-        h = ys.max() - ys.min() + 1
-        if not 20 <= h <= 30:
-            errs.append(f"{aid}: frame {f} is {h} rows tall (20 to 30)")
-        if xs.max() - xs.min() + 1 > fw:
-            errs.append(f"{aid}: frame {f}: does not fit")
-        low = on[feet_row - 2:feet_row + 1]
-        fx = np.where(low)[1]
-        feet_mid[d].append(float(fx.mean()))
-        jm = np.zeros(on.shape, bool)
-        for c in jumper:
-            jm |= (fr[..., :3] == np.array(c)).all(-1) & on
-        if jm.sum() >= 6:
-            torso_mid[d].append(float(np.where(jm)[1].mean()))
         np_ = pieces(on)
         if np_ != 1:
-            errs.append(f"{aid}: frame {f} is {np_} separate pieces (a stray speck or a split sprite)")
-        # a 1 px outline: every opaque pixel with a transparent 4-neighbour is the outline colour
+            errs.append(f"{aid}: frame {i} is {np_} separate pieces (a stray speck or a split sprite)")
+        if xs.min() < 0 or xs.max() >= FW:
+            errs.append(f"{aid}: frame {i} does not fit")
+        if i < 48 and not (xs.min() >= PAD - 1 and xs.max() <= FW - PAD):
+            errs.append(f"{aid}: frame {i}: the art leaves its 24 columns ({xs.min()}..{xs.max()})")
         p = np.pad(on, 1)
         edge = on & ~(p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:])
         bad = [(int(y), int(x)) for y, x in zip(*np.where(edge)) if tuple(int(v) for v in fr[y, x, :3]) != out]
         if bad:
-            errs.append(f"{aid}: frame {f}: {len(bad)} edge pixels are not the outline colour, e.g. {bad[:3]}")
-    names = ("down", "left", "up", "right")
-    worst_feet = worst_torso = 0.0
-    for d in range(4):
-        if feet_mid[d]:
-            sp = max(feet_mid[d]) - min(feet_mid[d])
-            worst_feet = max(worst_feet, sp)
-            if sp > FEET_X:
-                errs.append(f"{aid}: {names[d]}: the feet's middle moves {sp:.1f} columns between frames (more than {FEET_X})")
-        if len(torso_mid[d]) >= 4:
-            sp = max(torso_mid[d]) - min(torso_mid[d])
+            errs.append(f"{aid}: frame {i}: {len(bad)} edge pixels are not the outline colour, e.g. {bad[:3]}")
+        if i < 48 and ys.max() != FH - 1:
+            errs.append(f"{aid}: frame {i}: feet on row {ys.max()}, not {FH - 1}")
+    # walk
+    worst_torso = 0.0
+    speeds: list[float] = []
+    bobs = []
+    for name, o in WALK.items():
+        six = frames[o:o + 6]
+        tops = [int(np.where(f[..., 3] > 0)[0].min()) for f in six]
+        bob = max(tops) - min(tops)
+        bobs.append(bob)
+        if not 1 <= bob <= 2:
+            errs.append(f"{aid}: walk {name}: the head bobs {bob} rows over a cycle (1 or 2)")
+        t = [torso(f) for f in six]
+        t = [x for x in t if x is not None]
+        if len(t) >= 4:
+            sp = max(t) - min(t)
             worst_torso = max(worst_torso, sp)
             if sp > TORSO_X:
-                errs.append(f"{aid}: {names[d]}: the torso moves {sp:.1f} columns between frames (more than {TORSO_X})")
-            off = max(abs(t - (fw - 1) / 2) for t in torso_mid[d])
-            if off > TORSO_FROM_MIDDLE:
-                errs.append(f"{aid}: {names[d]}: the torso is {off:.1f} columns from the frame's middle (more than {TORSO_FROM_MIDDLE})")
+                errs.append(f"{aid}: walk {name}: the torso moves {sp:.1f} columns between frames (more than {TORSO_X})")
+        if name in ("right", "left"):
+            v = foot_speeds(six, [(torso(f) if torso(f) is not None else 17.0) for f in six])
+            speeds += v
+            if max(v) > FOOT_JUMP:
+                errs.append(f"{aid}: walk {name}: a foot jumps {max(v):.0f} columns in one frame (more than {FOOT_JUMP})")
+            if not FOOT_MIN <= float(np.mean(v)) <= FOOT_MAX:
+                errs.append(f"{aid}: walk {name}: the feet move {np.mean(v):.2f} columns a frame on average, not {FOOT_MIN} to {FOOT_MAX} (sliding, or running on the spot)")
+        elif name == "front":                               # from behind the legs are often hidden by the body or the tail
+            tc = [(torso(f) if torso(f) is not None else 17.0) for f in six]
+            low = [int((f[FH - 3:, max(int(c) - 6, 0):int(c) + 7, 3] > 0).sum()) for f, c in zip(six, tc)]
+            if len(set(low)) < 2:
+                errs.append(f"{aid}: walk {name}: the feet never change")
+    # sit
+    hip = rig["hip"]
+    tail = rig["tail"]
+    for name, o, face in (("sit right", 48, "right"), ("sit left", 54, "left"), ("phone", 60, "down"), ("read", 66, "down"), ("stool", 72, "up")):
+        six = frames[o:o + 6]
+        lows = {int(np.where(f[..., 3] > 0)[0].max()) for f in six}
+        if len(lows) != 1:
+            errs.append(f"{aid}: {name}: the lowest row changes between its frames {sorted(lows)}")
+        if name != "stool" and max(lows) > hip + SIT_LAP:
+            errs.append(f"{aid}: {name}: something hangs below the lap line (row {max(lows)}, the line is {hip + SIT_LAP})")
+        at = tail.get(face)
+        if at is not None and name in ("sit right", "sit left"):
+            for f in six:
+                jc = torso(f)
+                if jc is None:
+                    continue
+                on = f[..., 3] > 0
+                far = on[rig["shoulder"] + 1:hip, :int(jc - at - 2) + 1] if face == "right" else on[rig["shoulder"] + 1:hip, int(jc + at + 2):]
+                if far.sum() > 0:
+                    errs.append(f"{aid}: {name}: the tail is not tucked ({int(far.sum())} pixels beyond the torso at the back)")
+                    break
     size = (DIR / f"{aid}.png").stat().st_size
-    return errs, f"{aid} {fw}x{fh} {len(colours)}c feet-jitter {worst_feet:.1f} torso-jitter {worst_torso:.1f} {size}B"
+    foot = float(np.mean(speeds)) if speeds else 0.0
+    return errs, f"{aid} {len(colours)}c bob {bobs} torso-slide {worst_torso:.1f} foot-speed {foot:.2f} px/frame skate {TRAVEL - foot:.1f}/{TRAVEL:.0f} {size}B"
 
 
 def main() -> int:
@@ -169,9 +234,10 @@ def main() -> int:
     if errs:
         print("\n".join(errs))
         return 1
-    print(f"ok: {len(animals)} animals, 24 frames each, alpha binary, one piece per frame, feet on one row, no magenta, {total} bytes")
+    print(f"ok: {len(animals)} animals, 78 frames each, alpha binary, one piece per frame, feet on one row, walk bobs and strides, seated tucked, no magenta, {total} bytes")
     if "-v" in sys.argv:
         print("\n".join(notes))
+        print(f"a person's feet move {people_skate()} px/frame in the same measure (side walks, looks 0 to 10)")
     return 0
 
 
