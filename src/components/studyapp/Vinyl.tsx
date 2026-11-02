@@ -44,8 +44,14 @@ export function Vinyl() {
       if (dock) sizes.observe(dock);
       lift();
     }
-    const pages = new MutationObserver(find);
-    pages.observe(document.body, { childList: true, subtree: true });
+    // The page changes all the time (the room's labels, chat, the people), and the dock is rare: so a change only
+    // costs a look at the nodes that were added or taken away, and the document is searched when one of them is
+    // (or holds) the dock, or when the dock we hold has gone.
+    const isDock = (n: Node) => n instanceof Element && (n.matches(".lb-dock") || n.querySelector(".lb-dock") !== null);
+    const pages = new MutationObserver((records) => {
+      if ((dock && !dock.isConnected) || records.some((r) => Array.from(r.addedNodes).some(isDock))) find();
+    });
+    pages.observe(box.current?.closest(".pa") ?? document.body, { childList: true, subtree: true });
     window.addEventListener("resize", lift);
     find();
     return () => { pages.disconnect(); sizes.disconnect(); window.removeEventListener("resize", lift); };
@@ -76,7 +82,7 @@ export function Vinyl() {
   const cardLabel = s.cardHidden ? "Show the player" : "Hide the player";
 
   return (
-    <div ref={box} className={`rp${s.playing ? " is-playing" : ""}${s.begun ? " is-begun" : ""}`} data-testid="record-player">
+    <div ref={box} className={`rp${s.playing ? " is-playing" : ""}${s.begun ? " is-begun" : ""}${s.loading ? " is-loading" : ""}`} data-testid="record-player">
       <div className={`rp-card${s.cardOpen ? " is-open" : ""}`} aria-live="polite">
         <div className="rp-embed" ref={host} />
         {s.line && <p className="rp-line">{s.line}</p>}
@@ -93,7 +99,7 @@ export function Vinyl() {
         </button>
       </div>
       {tip && !s.begun && <span className="rp-tip">tap for lofi ♪</span>}
-      <button type="button" className="rp-vinyl" aria-pressed={s.playing} aria-label={label} title={label} onClick={() => { setTip(false); lofi().toggle(); }}>
+      <button type="button" className="rp-vinyl" aria-pressed={s.playing} aria-busy={s.loading || undefined} aria-label={label} title={label} onPointerEnter={() => lofi().warm()} onFocus={() => lofi().warm()} onClick={() => { setTip(false); lofi().toggle(); }}>
         <svg viewBox="0 0 72 72" aria-hidden="true">
           <g className="rp-disc">
             <circle cx="36" cy="36" r="33" fill="#1b1922" stroke="currentColor" strokeWidth="2.5" />

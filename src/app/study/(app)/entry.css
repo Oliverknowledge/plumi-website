@@ -70,7 +70,8 @@
 .pa .en-cam > * { position: absolute; inset: 0; }
 /* out of focus, like a room seen from the doorway: the lettering and the key are the only sharp things */
 .pa .en-art {
-  background: url(/library/bg.png) 0 0 / 100% 100% no-repeat;
+  /* the picture itself (bg.png, fingerprinted) is set by Front.tsx, so the room and the door ask for the same URL */
+  background: 0 0 / 100% 100% no-repeat;
   filter: blur(calc(var(--en-k) * 1.4px)) var(--en-grade);
   image-rendering: pixelated;
 }

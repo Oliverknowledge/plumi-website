@@ -155,7 +155,7 @@ describe("getting the room ready", () => {
     assert.ok(keys.every((k) => !/lobby|join|social/i.test(k)));
   });
   it("names real files", () => {
-    for (const u of [...ROOM_ART, ROOM_LAYOUT]) assert.ok(existsSync(`public${u}`) || existsSync(new URL(`../../../../public${u}`, import.meta.url)), u);
+    for (const u of [...ROOM_ART, ROOM_LAYOUT]) assert.ok(existsSync(`public${u.split("?")[0]}`) || existsSync(new URL(`../../../../public${u.split("?")[0]}`, import.meta.url)), u);
   });
 });
 

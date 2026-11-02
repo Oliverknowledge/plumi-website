@@ -190,7 +190,7 @@
 .pa .td-count { margin-left: 0; }
 .pa .row .stk { display: none; }
 }
-.pa .lib { position: relative; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end; background: #3a2a22 url(/library/library-door-still.webp) 50% 40% / cover no-repeat; image-rendering: pixelated; }
+.pa .lib { position: relative; overflow: hidden; min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end; background: #3a2a22 50% 40% / cover no-repeat; /* the door picture is set by desk/LibraryCard.tsx (fingerprinted, cached for a year) */ image-rendering: pixelated; }
 .pa .lib-live { position: absolute; left: 10px; top: 10px; display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; background: rgba(255,253,246,.95); border: 2px solid var(--ink); border-radius: 14px; font-size: 12.5px; font-weight: 800; }
 .pa .dot { width: 9px; height: 9px; border-radius: 50%; background: #3fb36b; box-shadow: 0 0 0 3px rgba(63,179,107,.25); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(63,179,107,0); } }

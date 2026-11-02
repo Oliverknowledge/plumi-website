@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAccount, signInHref } from "@/lib/account";
 import { colourOf } from "@/lib/library";
 import { useAppHref } from "@/lib/studyapp/host";
+import { artUrl } from "@/lib/studyapp/library/art";
 import { useLiveSummary, type LiveFriend } from "@/lib/studyapp/live";
 
 /**
@@ -28,7 +29,7 @@ export function LibraryCard() {
   const href = !user && live.state !== "off" ? signInHref("library", to("/study/library")) : to("/study/library");
   const label = `Enter the Grand Library${showCount ? `: ${live.revising} revising` : ""}`;
   return (
-    <Link className="card lib" href={href} aria-label={label} data-testid="library-card">
+    <Link className="card lib" href={href} style={{ backgroundImage: `url(${artUrl("library-door-still.webp")})` }} aria-label={label} data-testid="library-card">
       {showCount && <span className="lib-live"><span className="dot" />{live.revising} revising</span>}
       <span className="lib-foot">
         <b>The Grand Library</b>

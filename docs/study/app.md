@@ -76,6 +76,17 @@ once). It never starts by itself: only a tap on the record. ⏮ / ⏭ skip, song
 can be tucked away (remembered on the device). Over the full-screen library it gets chalk lines, steps aside for the
 drawer, and rises above the seat card on a phone.
 
+**When Spotify is fetched** (`music.ts`, `music.test.ts`). Spotify's script and player (about a megabyte, from
+another site) are not requested until the student reaches for the record: pointing at it, focusing it, or tapping it.
+A tap that finds nothing loaded starts the fetch and plays when the player is ready (no second tap); the record spins
+while it waits (`LofiState.loading`, `.is-loading` in `vinyl.css`), and a second tap while it waits means "never mind".
+On the quiet pages (Desk, Flashcards, Timer) the player is fetched once the browser is idle, so a tap there is
+instant; the Grand Library, already busy drawing a room, asks Spotify for nothing until a hand is on the record
+(measured: 32 requests to Spotify within 13 s of opening the library before, 0 now, the first one 114 ms after a tap).
+Unverified: how long a cold first tap takes to first sound on a real network, and whether iOS Safari lets a play that
+follows the fetch count as part of the tap (if not, the existing "Tap ▶ in the player" line appears, as it already
+does when a phone refuses autoplay).
+
 ## Decisions taken from the founder's answers
 
 1. **Study = the Grand Library room**, not a subject page.
