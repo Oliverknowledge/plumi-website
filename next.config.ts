@@ -1,4 +1,23 @@
+import { createHash } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { NextConfig } from "next";
+
+/**
+ * A short fingerprint of everything in public/library (the Grand Library's art), taken whenever the config loads.
+ * The Study page asks for its art as `/library/<file>?v=<this>` (src/lib/studyapp/library/art.ts), so a file's URL
+ * changes exactly when its bytes do, and the `?v=` URLs below can be cached for a year without ever going stale.
+ */
+function libraryArtVersion(): string {
+  const dir = join(process.cwd(), "public", "library");
+  const h = createHash("sha256");
+  try {
+    for (const name of readdirSync(dir).sort()) h.update(name).update(readFileSync(join(dir, name)));
+  } catch {
+    return "";   // no art folder (a partial checkout): the page asks for plain URLs, which are revalidated as before
+  }
+  return h.digest("hex").slice(0, 10);
+}
 
 /**
  * Every host that is not the canonical one, and must 308 to it.
@@ -29,6 +48,7 @@ const removedPages: readonly (readonly [string, string])[] = [
 ];
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_LIBRARY_ART: libraryArtVersion() },
   /**
    * Security headers.
    *
@@ -53,6 +73,25 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
         ],
+      },
+      /**
+       * The Grand Library's art, asked for with its fingerprint (`?v=`): the same URL is always the same bytes, so
+       * it is kept for a year and a repeat visit fetches none of it. Without `?v=` (the homepage's own copy of the
+       * room, the sign-in page's door) the files keep the default and are revalidated each time.
+       */
+      {
+        source: "/library/:file*",
+        has: [{ type: "query", key: "v" }],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      /**
+       * The people layers are a binary file, and a CDN will not compress `application/octet-stream` (587 KB raw, 312 KB
+       * gzipped). Served as text/plain it is compressed like any text; the page reads it with fetch().arrayBuffer(),
+       * which does not care what the type says.
+       */
+      {
+        source: "/library/people-layers.bin",
+        headers: [{ key: "Content-Type", value: "text/plain" }],
       },
       /**
        * No page may be framed, except the partner embed under /embed/. That one

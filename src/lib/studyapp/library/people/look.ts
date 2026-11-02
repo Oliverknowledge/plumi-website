@@ -98,11 +98,37 @@ const distance = (a: readonly number[], b: readonly number[]) => {
   return 2 * dr * dr + 4 * dg * dg + 3 * db * db;
 };
 
+/** A catalogue part with its colour read once (the colour is a constant of the art, not of the call). */
+interface Swatch { id: string; rgb: [number, number, number] }
+/** Everything `derived` reads off the catalogue, worked out once per catalogue instead of once per call. */
+interface Prep {
+  bodies: string[]; eyes: string[]; styles: string[];
+  hairByStyle: Map<string, Swatch[]>; outfits: Swatch[]; outfitIds: string[];
+  headphones: [string, [number, number, number]][]; glasses: string | null; firstHair: string | undefined;
+}
+const swatches = (pool: CataloguePart[]): Swatch[] => pool.map((p) => ({ id: p.id, rgb: hexColour(p.colour ?? "#808080") }));
+const preps = new WeakMap<PeopleCatalogue, Prep>();
+function prep(cat: PeopleCatalogue): Prep {
+  let p = preps.get(cat);
+  if (p) return p;
+  const styles = [...new Set(cat.parts.hair.map((x) => x.id.slice(0, 2)))].sort();
+  p = {
+    bodies: ids(cat.parts.bodies), eyes: ids(cat.parts.eyes), styles,
+    hairByStyle: new Map(styles.map((st) => [st, swatches(cat.parts.hair.filter((x) => x.id.startsWith(st)))])),
+    outfits: swatches(cat.parts.outfits), outfitIds: ids(cat.parts.outfits),
+    headphones: Object.entries(cat.headphones).map(([key, cols]) => [key, hexColour(cols[0] ?? "#000000")]),
+    glasses: cat.parts.accessories.find((x) => x.id.includes("glasses"))?.id ?? null,
+    firstHair: cat.parts.hair[0]?.id,
+  };
+  preps.set(cat, p);
+  return p;
+}
+
 /** The part nearest a colour; a tie goes to the smaller id (PersonLook.derived `nearest`). */
-function nearest(pool: CataloguePart[], to: readonly number[]): string | null {
-  let best: CataloguePart | null = null, bd = 0;
+function nearest(pool: readonly Swatch[], to: readonly number[]): string | null {
+  let best: Swatch | null = null, bd = 0;
   for (const p of pool) {
-    const d = distance(hexColour(p.colour ?? "#808080"), to);
+    const d = distance(p.rgb, to);
     if (best === null || d < bd || (d === bd && p.id < best.id)) { best = p; bd = d; }
   }
   return best?.id ?? null;
@@ -114,27 +140,26 @@ function nearest(pool: CataloguePart[], to: readonly number[]): string | null {
  * colour nearest theirs, glasses if any; skin, eyes and the hairstyle from the id.
  */
 export function derived(cat: PeopleCatalogue, seed: string, feather: string, top: string | null, headphones: string | null, glasses: boolean): PersonLook {
+  const c = prep(cat);
   const h = stableHash(seed);
-  const bodies = ids(cat.parts.bodies), eyes = ids(cat.parts.eyes);
-  const styles = [...new Set(cat.parts.hair.map((p) => p.id.slice(0, 2)))].sort();
-  const body = bodies.length ? bodies[h % bodies.length] : "01";
-  const eye = eyes.length ? eyes[Math.floor(h / 7) % eyes.length] : "01";
-  const style = styles.length ? styles[Math.floor(h / 49) % styles.length] : "01";
-  const hair = nearest(cat.parts.hair.filter((p) => p.id.startsWith(style)), hexColour(feather)) ?? cat.parts.hair[0]?.id ?? "01_01";
+  const body = c.bodies.length ? c.bodies[h % c.bodies.length] : "01";
+  const eye = c.eyes.length ? c.eyes[Math.floor(h / 7) % c.eyes.length] : "01";
+  const style = c.styles.length ? c.styles[Math.floor(h / 49) % c.styles.length] : "01";
+  const hair = nearest(c.hairByStyle.get(style) ?? cat.parts.hair.filter((p) => p.id.startsWith(style)).map((p) => ({ id: p.id, rgb: hexColour(p.colour ?? "#808080") })), hexColour(feather)) ?? c.firstHair ?? "01_01";
   const outfit = top !== null
-    ? nearest(cat.parts.outfits, hexColour(top)) ?? "10_01"
-    : cat.parts.outfits.length ? cat.parts.outfits[Math.floor(h / 1_421) % cat.parts.outfits.length].id : "10_01";
+    ? nearest(c.outfits, hexColour(top)) ?? "10_01"
+    : c.outfitIds.length ? c.outfitIds[Math.floor(h / 1_421) % c.outfitIds.length] : "10_01";
   let phones: string | null = null;
   if (headphones !== null) {
     const want = hexColour(headphones);
     let bestKey: string | null = null, bd = 0;
-    for (const [key, cols] of Object.entries(cat.headphones)) {
-      const d = distance(hexColour(cols[0] ?? "#000000"), want);
+    for (const [key, rgb] of c.headphones) {
+      const d = distance(rgb, want);
       if (bestKey === null || d < bd || (d === bd && key < bestKey)) { bestKey = key; bd = d; }
     }
     phones = bestKey;
   }
-  const accessory = glasses ? cat.parts.accessories.find((p) => p.id.includes("glasses"))?.id ?? null : null;
+  const accessory = glasses ? c.glasses : null;
   return { body, eyes: eye, outfit, hair, accessory, phones };
 }
 
@@ -176,15 +201,16 @@ export function legacyLook(cat: PeopleCatalogue, avatar: AvatarKeys | null | und
   return derived(cat, id, feather, top, headphones, glasses);
 }
 
-/**
- * The person a student is, from what their app sent (either kind) and their id (RoomAvatar.person). An avatar with
- * no person keys, or none at all, is the person worked out from the old keys and the id.
- */
-export function personOf(cat: PeopleCatalogue, avatar: AvatarKeys | null | undefined, colour: number, id: string): PersonLook {
-  const legacy = legacyLook(cat, avatar, colour, id);
+const PERSON_KEYS = ["body", "eyes", "outfit", "hair", "acc", "phones"] as const;
+
+function personUncached(cat: PeopleCatalogue, avatar: AvatarKeys | null | undefined, colour: number, id: string): PersonLook {
+  const named = !!avatar && (get(avatar, "outfit") !== undefined || get(avatar, "hair") !== undefined);
+  // An avatar that names all six parts overwrites every field of the legacy look, so the legacy look is never read.
+  const whole = named && PERSON_KEYS.every((k) => get(avatar, k) !== undefined);
+  const legacy: PersonLook = whole ? { body: "", eyes: "", outfit: "", hair: "", accessory: null, phones: null } : legacyLook(cat, avatar, colour, id);
   // THE SPECIES CHECK comes before `known` (the iPad's nearest-part mapping): "fox" is not a skin to be mapped to the first one.
   const species = speciesOf(get(avatar, "body"));
-  if (!avatar || (get(avatar, "outfit") === undefined && get(avatar, "hair") === undefined)) return species ? { ...legacy, species } : legacy;
+  if (!named) return species ? { ...legacy, species } : legacy;
   const look = { ...legacy };
   const v = (k: string) => get(avatar, k);
   if (v("body") !== undefined && species === null) look.body = v("body")!;
@@ -195,6 +221,31 @@ export function personOf(cat: PeopleCatalogue, avatar: AvatarKeys | null | undef
   if (v("phones") !== undefined) look.phones = v("phones") === "none" ? null : v("phones")!;
   const person = known(cat, look);
   return species ? { ...person, species } : person;
+}
+
+const MEMO_CAP = 256;
+const memos = new WeakMap<PeopleCatalogue, Map<string, PersonLook>>();
+
+/**
+ * The person a student is, from what their app sent (either kind) and their id (RoomAvatar.person). An avatar with
+ * no person keys, or none at all, is the person worked out from the old keys and the id.
+ *
+ * The room asks for every remote on every Realtime signal and every Head on every snapshot, and the answer only
+ * depends on (avatar, colour, id), so it is kept (the newest 256, per catalogue). A fresh copy is returned each time,
+ * so a caller that edits its look (the wardrobe does) cannot change what the next caller gets.
+ */
+export function personOf(cat: PeopleCatalogue, avatar: AvatarKeys | null | undefined, colour: number, id: string): PersonLook {
+  let memo = memos.get(cat);
+  if (!memo) memos.set(cat, (memo = new Map()));
+  let key: string | null = null;
+  try { key = JSON.stringify([avatar ?? null, colour, id]); } catch { key = null; }
+  if (key === null) return personUncached(cat, avatar, colour, id);
+  const hit = memo.get(key);
+  if (hit) { memo.delete(key); memo.set(key, hit); return { ...hit }; }
+  const look = personUncached(cat, avatar, colour, id);
+  if (memo.size >= MEMO_CAP) memo.delete(memo.keys().next().value as string);
+  memo.set(key, look);
+  return { ...look };
 }
 
 /** A key for caching a drawn row: the same look is the same row. An animal is its own row whatever person is behind it. */

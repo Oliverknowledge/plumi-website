@@ -3,8 +3,11 @@
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
+import { isSitePath } from "@/lib/safePath";
 import { browserSessionStorage } from "@/lib/sessionStorage";
 import { isStudyHostname } from "@/lib/studyapp/routing";
+import { timedFetch } from "@/lib/social/serverTime";
+import { rememberToken } from "@/lib/studyapp/library/farewell";
 
 /**
  * Plumi accounts on the website: the same Supabase project, and so the same accounts,
@@ -40,6 +43,8 @@ export function supabase(): SupabaseClient | null {
   if (!accountsOn || typeof window === "undefined") return null;
   client ??= createClient(URL!, KEY!, {
     auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "plumi-auth", storage: browserSessionStorage() },
+    // a timeout on every call to the data API, and the server's clock from each answer (see serverTime.ts)
+    global: { fetch: timedFetch() },
   });
   return client;
 }
@@ -58,6 +63,7 @@ function start() {
   sb.auth.onAuthStateChange((_event, session) => set(session));
 }
 function set(session: Session | null) {
+  if (session) rememberToken(session.user.id, session.access_token);   // so a visit can still leave as THIS student after another account signs in (library/farewell.ts)
   if (state.ready && state.session?.access_token === session?.access_token) return;
   state = { ready: true, session };
   listeners.forEach(l => l());
@@ -101,8 +107,8 @@ export function onUser(cb: (userId: string | null) => void) {
  */
 export type SignInReason = "header" | "marks" | "library";
 
-/** Only somewhere on this site: "/question-bank/x?y", never "//elsewhere" or "https://…". */
-export const safeNext = (next: string | null | undefined) => (next && next.startsWith("/") && !next.startsWith("//") ? next : defaultNext());
+/** Only somewhere on this site: "/question-bank/x?y", never "//elsewhere", "/\\elsewhere", "https://…" or a path with control characters (lib/safePath). */
+export const safeNext = (next: string | null | undefined) => (isSitePath(next) ? next : defaultNext());
 /** Where a sign-in goes with nowhere in mind: the Desk on the app's host, the question bank on the main site. */
 const defaultNext = () => (typeof window !== "undefined" && isStudyHostname(window.location.hostname) ? "/" : "/question-bank");
 

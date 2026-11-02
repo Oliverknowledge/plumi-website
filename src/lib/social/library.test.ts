@@ -52,12 +52,13 @@ describe("what a stranger may be shown (LobbyRules)", () => {
     assert.equal(focusTag(person({ seated: true, subjectId: "physics", focusSince: T + 90_000 }), T), null, "a start in the future is not believed");
     assert.equal(focusTag(person({ seated: true, subjectId: "physics", focusSince: T + 30_000 }), T), "Physics · 0 min", "a clock a little fast counts as just started");
   });
-  it("shows a wave for ten seconds, either side of the clocks", () => {
+  it("shows a wave the server lists, whatever this device's clock says (the server sends ten seconds of them)", () => {
     const p = person({ emote: "wave", emoteAt: T - 4000 });
     assert.equal(emoteOf(p, T), "wave");
-    assert.equal(emoteOf(p, T + 7000), null);
+    assert.equal(emoteOf(p, T + 7000), "wave", "a clock seven seconds ahead no longer hides it");
+    assert.equal(emoteOf(p, T - 5 * 60_000), "wave", "nor does one five minutes behind");
     assert.equal(emoteOf(person({ emote: "wave", emoteAt: T + 4000 }), T), "wave");
-    assert.equal(emoteOf(person(), T), null);
+    assert.equal(emoteOf(person(), T), null, "no wave listed, none shown");
   });
   it("lists friends first, then the rest by name, stably", () => {
     const l = listPeople([person({ id: "c", nickname: "Calm Heron" }), person({ id: "a", nickname: "Brave Wren", isFriend: true, displayName: "Zed" }), person({ id: "b", nickname: "Amber Fox" }), person({ id: "d", nickname: "Calm Heron" })]);

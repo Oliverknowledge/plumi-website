@@ -117,9 +117,11 @@ const Skeleton = () => (
   </ul>
 );
 
-export function WhoHere({ session, snap, you, picked, onPick, onPullUp }: {
+export function WhoHere({ session, snap, you, picked, onPick, onPullUp, onLook }: {
   session: LibrarySession; snap: Snapshot; you: { avatar: SocialAvatar | null; colour: number };
   picked: string | null; onPick: (id: string | null) => void; onPullUp: (id: string) => void;
+  /** Take the room's view to someone (the card's "Find them"). */
+  onLook?: (id: string) => void;
 }) {
   const now = useNow(1000);
   const [friendOpen, setFriendOpen] = useState<string | null>(null);
@@ -191,7 +193,7 @@ export function WhoHere({ session, snap, you, picked, onPick, onPullUp }: {
         <h2>Who’s here</h2>
         <span className="lb-count">{here}{nFriendsHere ? ` · ${nFriendsHere} friend${nFriendsHere === 1 ? "" : "s"}` : ""}</span>
       </div>
-      {open && <PersonCard key={open.id} session={session} person={open} now={now} onClose={() => onPick(null)} onPullUp={onPullUp} />}
+      {open && <PersonCard key={open.id} session={session} person={open} now={now} onClose={() => onPick(null)} onPullUp={onPullUp} onLook={onLook} />}
       {openFriend && <FriendCard key={openFriend.id} session={session} friend={openFriend} status={friendStatus(openFriend, now)} onClose={() => setFriendOpen(null)} />}
 
       <div className="lb-pscroll" ref={area} data-testid="people-scroll" tabIndex={-1}
@@ -235,7 +237,12 @@ export function WhoHere({ session, snap, you, picked, onPick, onPullUp }: {
                 status={focusTag(p, now) ?? (p.seated ? "Sitting" : null)} streak={null} picked={p.id === picked} testid="library-row" onTap={tapPerson} />
             ))}
           </ul>
-          {others.length === 0 && <p className="lb-empty">Just you for now</p>}
+          {others.length === 0 && (
+            <div className="lb-alone" data-testid="people-alone">
+              <span className="lb-ghosts" aria-hidden="true"><i /><i /><i /></span>
+              <b>Just you for now</b>
+            </div>
+          )}
         </section>
       </div>
     </section>

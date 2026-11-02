@@ -38,6 +38,29 @@ export function refusalLine(r: ChatRefusal): string {
   }
 }
 
+/* ── 0. Clean the input (the browser's only; the server's rules start at "tidy") ─────────────── */
+
+/** Most combining marks one letter may carry: ordinary writing needs two or three (Vietnamese, Arabic with vowels), a stack of two hundred is a crash waiting to happen. */
+export const MAX_MARKS = 3;
+const MARK = /^\p{M}$/u;
+
+/**
+ * What the page sends in place of what was typed: the characters a database cannot hold taken out (NUL, a lone
+ * half of a surrogate pair) and no more than `MAX_MARKS` combining marks in a row. The server tidies and judges the
+ * text as before (that is the authority, and `tidy` below is its mirror, untouched); this only stops the page from
+ * sending something that makes a request fail or a line of text unreadable.
+ */
+export function cleanInput(raw: string): string {
+  let out = "", marks = 0;
+  for (const ch of raw) {
+    const v = ch.codePointAt(0)!;
+    if (v === 0 || (v >= 0xd800 && v <= 0xdfff)) continue;
+    if (MARK.test(ch)) { if (++marks > MAX_MARKS) continue; } else marks = 0;
+    out += ch;
+  }
+  return out;
+}
+
 /* ── 1. Tidy ─────────────────────────────────────────────────────────── */
 
 const dropped = (v: number) =>

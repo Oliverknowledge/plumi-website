@@ -15,6 +15,7 @@
  * Browser only, and loaded with import() after first paint (CafeScene in LandingClient.tsx).
  */
 
+import { artUrl } from "@/lib/studyapp/library/art";
 /** Library mode's free movement: the pure maths (src/lib/studyapp/library/walk.ts), loaded only when the library mounts, so the homepage's chunk never carries it. */
 type Walk = typeof import("@/lib/studyapp/library/walk");
 
@@ -42,25 +43,30 @@ interface Layout {
 interface Assets { L: Layout; bg: HTMLImageElement; pieces: HTMLImageElement; anims: HTMLImageElement; people: HTMLImageElement }
 
 const BASE = "/library/";
-let loading: Promise<Assets> | null = null;
+/** The most device pixels the study app's room paints (1280 x 800 at 2x is 4.1 million, and stays whole; 4K at 2x is 33). */
+const LIBRARY_PIXELS = 6_000_000;
+/** The homepage asks for the art by its plain URL (landing.css shares those files); the study app's room asks for its fingerprinted URL, cached for a year. */
+const loading: Record<"plain" | "versioned", Promise<Assets> | null> = { plain: null, versioned: null };
 
-function image(name: string): Promise<HTMLImageElement> {
+function image(name: string, url: (n: string) => string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const im = new Image();
     im.decoding = "async";
     im.onload = () => resolve(im);
     im.onerror = () => reject(new Error(`cafe: ${name}`));
-    im.src = BASE + name;
+    im.src = url(name);
   });
 }
 
-function loadAssets(): Promise<Assets> {
-  loading ??= Promise.all([
-    fetch(BASE + "layout.json").then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
-    image("bg.png"), image("pieces.png"), image("anims.png"), image("people.png"),
-  ]).then(([L, bg, pieces, anims, people]) => ({ L, bg, pieces, anims, people }));
-  loading.catch(() => { loading = null; });
-  return loading;
+function loadAssets(versioned = false): Promise<Assets> {
+  const kind = versioned ? "versioned" : "plain";
+  const url = versioned ? artUrl : (n: string) => BASE + n;
+  const p = (loading[kind] ??= Promise.all([
+    fetch(url("layout.json")).then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
+    image("bg.png", url), image("pieces.png", url), image("anims.png", url), image("people.png", url),
+  ]).then(([L, bg, pieces, anims, people]) => ({ L, bg, pieces, anims, people })));
+  p.catch(() => { if (loading[kind] === p) loading[kind] = null; });
+  return p;
 }
 
 /* ---------- the lamplight: the kit's Canvas.light, composited once into an overlay ---------- */
@@ -90,6 +96,22 @@ function lightLayer(L: Layout, lights: Light[], boost = 0): HTMLCanvasElement {
   return cv;
 }
 
+/**
+ * One thing to draw this frame, in depth order. Kept in a pool and reused, so a frame makes no garbage: it used to make
+ * an object and a closure for every piece, animation, person and ring in view, about 30 times a second.
+ */
+interface DrawItem {
+  z: number;
+  kind: 1 | 2 | 3 | 4;            // 1 animation, 2 piece, 3 person, 4 chair ring
+  an: Anim | null; pc: Piece | null; p: Person | null;
+  img: CanvasImageSource | null;
+  x: number; y: number;           // where (a person's or a ring's sprite top left)
+  f: number; sy: number;          // a person's frame and the row of their sheet
+  fx: number; fy: number;         // an animation's frame in its sheet
+  outline: boolean;
+}
+const byDepth = (p: DrawItem, q: DrawItem) => p.z - q.z;
+
 /* ---------- people ---------- */
 type Doing = "enter" | "walk" | "sit" | "stand" | "leave" | "idle";
 interface Person {
@@ -114,6 +136,7 @@ interface Person {
   remote?: boolean;
   known?: boolean;                // library mode: they have said where they stand
   rev?: number;                   // library mode: the last news about their place that was acted on
+  said?: boolean;                 // library mode: whether the server last said they are seated
   sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
   fw?: number;                    // library mode: the width of one frame of `sheet`, when it is not the people's 16 (the fox's is 34); the feet stay under the middle
@@ -136,8 +159,8 @@ const pick = <T>(xs: readonly T[]): T => xs[Math.floor(Math.random() * xs.length
 export interface CafeStatus { seated: boolean; seconds: number; look: number; subject: string | null }
 
 /** The class names the engine gives its labels, pops and cards. The homepage's own (`lp-*`) unless a page says otherwise. */
-export interface CafeClasses { nm: string; timer: string; you: string; pop: string; tick: string; ink: string; who: string }
-const LP_CLASSES: CafeClasses = { nm: "lp-nm", timer: "lp-nm is-timer", you: "lp-nm is-you", pop: "lp-pop", tick: "is-tick", ink: "is-ink", who: "lp-who" };
+export interface CafeClasses { nm: string; timer: string; you: string; pop: string; tick: string; ink: string; who: string; bub: string }
+const LP_CLASSES: CafeClasses = { nm: "lp-nm", timer: "lp-nm is-timer", you: "lp-nm is-you", pop: "lp-pop", tick: "is-tick", ink: "is-ink", who: "lp-who", bub: "lp-bub" };
 
 export interface CafeOptions {
   /** "library" is the study app's Grand Library: the same room and engine, with real people driven from outside (`live`). */
@@ -206,6 +229,13 @@ export interface LibraryHandle extends CafeHandle {
   select(id: string | null): void;
   /** A short word over someone's head ("Wave"), or yours (`"you"`). */
   say(who: string, text: string): void;
+  /**
+   * A speech bubble over someone's head (or yours, `"you"`) for `ms`: one per person (a new one replaces theirs), and
+   * never so many they pile up. False when they are not in the room, or there is no room for it.
+   */
+  bubble(who: string, text: string, ms: number): boolean;
+  /** Centre the view on someone until you walk, sit or stand (or `lookAt(null)`); false when they are not in the room. */
+  lookAt(id: string | null): boolean;
   /** Draw you as this person (your avatar changed, or the art came late); null goes back to the premade look. */
   dressYou(sheet: CanvasImageSource | null, phones?: boolean, frameW?: number): void;
   /** Whether you are in a seat. */
@@ -261,7 +291,7 @@ export async function mountCafe(canvas: HTMLCanvasElement, overlay: HTMLElement,
 
 /** Mounts the study app's Grand Library: this room with real people in it (see `LiveHooks`). */
 export async function mountLibrary(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: Omit<CafeOptions, "mode">): Promise<LibraryHandle> {
-  const [A, W] = await Promise.all([loadAssets(), import("@/lib/studyapp/library/walk")]);
+  const [A, W] = await Promise.all([loadAssets(true), import("@/lib/studyapp/library/walk")]);
   const handle = new Cafe(canvas, overlay, A, { ...opts, mode: "library" }, W) as unknown as LibraryHandle;
   // in development only (compiled out of a production build): the page's tests read where you stand through it
   if (process.env.NODE_ENV !== "production") (window as unknown as { __plumiLibrary?: LibraryHandle }).__plumiLibrary = handle;
@@ -292,7 +322,16 @@ class Cafe implements CafeHandle {
   private region: { x: number; y: number; w: number; h: number };
   private labels = new Map<Person, HTMLElement>();
   private widths = new WeakMap<HTMLElement, number>();
+  /** Where each label was last put (whole CSS pixels) and how opaque: a label that has not moved is not written again. */
+  private placed = new WeakMap<HTMLElement, { x: number; y: number; o: number }>();
+  private items: DrawItem[] = [];          // this frame's, in draw order
+  private itemPool: DrawItem[] = [];
+  private itemN = 0;
+  private stepBuf: Person[] = [];
+  private vx0 = 0; private vy0 = 0; private vx1 = 0; private vy1 = 0;   // what is near the window this frame
   private pops: { el: HTMLElement; x: number; y: number; born: number }[] = [];
+  private bubbles = new Map<Person, { el: HTMLElement; lift: number; timer: ReturnType<typeof setTimeout> }>();   // library mode: speech bubbles, one per person
+  private looking: Person | null = null;        // library mode: the view is on them, not on you (lookAt)
   private timers: Person[] = [];
   private nextTimers = 0;
   private nextPop = 4;
@@ -573,7 +612,11 @@ class Cafe implements CafeHandle {
   private step(dt: number) {
     this.t += dt;
     const t = this.t;
-    for (const p of [...this.people]) {
+    // a copy, because remove() takes people out of the list as we go (kept, not made afresh every step)
+    const people = this.stepBuf;
+    people.length = 0;
+    for (const q of this.people) people.push(q);
+    for (const p of people) {
       if (p.remote && p.doing !== "leave" && p.alpha < 1) p.alpha = Math.min(1, p.alpha + dt * 2.5);
       if (this.W && p === this.you && this.keyStep(p, dt)) continue;
       if (p.path.length) this.walk(p, dt);
@@ -903,24 +946,35 @@ class Cafe implements CafeHandle {
     return m >= this.camX + 24 && m < this.camX + this.viewW - 24 && y >= this.camY + 8 && y + 20 < this.camY + this.viewH;
   }
 
+  /** Puts a label or pop at an art-pixel spot, in CSS pixels over the canvas; it never runs off the window. Writes nothing if it is where it was. */
+  private putAt(el: HTMLElement, x: number, y: number, s: number, ow: number) {
+    let px = (x - this.camX) * s + this.offX / this.dpr, py = (y - this.camY) * s + this.offY / this.dpr;
+    const half = (this.widths.get(el) ?? 0) / 2;
+    if (half) px = Math.min(Math.max(px, half + 4), ow - half - 4);   // a label never runs off the window
+    py = Math.max(py, 24);
+    const rx = Math.round(px), ry = Math.round(py);
+    let c = this.placed.get(el);
+    if (!c) { c = { x: NaN, y: NaN, o: NaN }; this.placed.set(el, c); }
+    if (c.x !== rx || c.y !== ry) { c.x = rx; c.y = ry; el.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -100%)`; }
+  }
+
   /** Where each label sits: over its person's head, in CSS pixels over the canvas. */
   private place() {
     const s = this.k / this.dpr;
     const ow = this.overlay.clientWidth;
-    const at = (x: number, y: number, el: HTMLElement) => {
-      let px = (x - this.camX) * s + this.offX / this.dpr, py = (y - this.camY) * s + this.offY / this.dpr;
-      const half = (this.widths.get(el) ?? 0) / 2;
-      if (half) px = Math.min(Math.max(px, half + 4), ow - half - 4);   // a label never runs off the window
-      py = Math.max(py, 24);
-      return `translate(${Math.round(px)}px, ${Math.round(py)}px) translate(-50%, -100%)`;
-    };
     this.showCard();
     for (const [p, el] of this.labels) {
-      const [x, y] = this.spriteAt(p);
-      el.style.transform = at(x + this.half(p), y + this.crown(p), el);
-      el.style.opacity = String(this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha);
+      this.putAt(el, this.spriteX(p) + this.half(p), this.spriteY(p) + this.crown(p), s, ow);
+      const o = this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha;
+      const c = this.placed.get(el)!;
+      if (c.o !== o) { c.o = o; el.style.opacity = String(o); }
     }
-    for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
+    for (const q of this.pops) this.putAt(q.el, q.x, q.y, s, ow);
+    for (const [p, b] of this.bubbles) {
+      this.putAt(b.el, this.spriteX(p) + this.half(p), this.spriteY(p) + (this.labels.has(p) ? -24 : -2) - b.lift * 34, s, ow);
+      const o = p.alpha > .3 ? "" : "0";
+      if (b.el.style.opacity !== o) b.el.style.opacity = o;
+    }
     if (this.card && this.cardFor) {
       // over their head, or under their feet when there isn't room above
       const [x, y] = this.spriteAt(this.cardFor), el = this.card, half = el.offsetWidth / 2;
@@ -934,16 +988,20 @@ class Cafe implements CafeHandle {
   }
 
   /* ---------- drawing ---------- */
-  /** The top left of the frame drawn for a person. A frame wider than the people's 16 (the fox's) is centred on the same feet, so it starts further left. */
+  /** The top left of the frame drawn for a person. A frame wider than the people's 16 (an animal's) is centred on the same feet, so it starts further left. */
   private spriteAt(p: Person): [number, number] {
-    const sh = p.fw ? (p.fw - 16) / 2 : 0;
-    if (p.at && p.spot) return [p.spot.x - sh, p.spot.y];
-    return [Math.round(p.x) - 8 - sh, Math.round(p.y) - 31];
+    return [this.spriteX(p), this.spriteY(p)];
   }
+  /** `spriteAt`, one number at a time, for the frame loop (no array made). */
+  private spriteX(p: Person): number {
+    const sh = p.fw ? (p.fw - 16) / 2 : 0;
+    return (p.at && p.spot ? p.spot.x : Math.round(p.x) - 8) - sh;
+  }
+  private spriteY(p: Person): number { return p.at && p.spot ? p.spot.y : Math.round(p.y) - 31; }
 
   /** Half a frame: where the feet are across the frame (8 for a person). */
   private half(p: Person) { return p.fw ? p.fw / 2 : 8; }
-  /** Where the name tag meets the sprite: just above a person's head, the fox's ears are higher. */
+  /** Where the name tag meets the sprite: just above a person's head, an animal's ears are higher. */
   private crown(p: Person) { return p.fw ? 2 : 5; }
 
   private z(p: Person) { return p.at && p.spot ? p.spot.sort : p.y; }
@@ -961,40 +1019,68 @@ class Cafe implements CafeHandle {
     return R.idle + d * 6 + (Math.floor(tick / 6) + p.phase) % 6;
   }
 
+  /** The next free item in this frame's list (from the pool), at depth `z`. */
+  private item(z: number, kind: DrawItem["kind"]): DrawItem {
+    const pool = this.itemPool;
+    let it = pool[this.itemN];
+    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false }; pool.push(it); }
+    this.itemN++;
+    it.z = z; it.kind = kind;
+    this.items.push(it);
+    return it;
+  }
+
+  private near(x: number, y: number, w: number, h: number) { return x < this.vx1 && x + w > this.vx0 && y < this.vy1 && y + h > this.vy0; }
+
+  private drawItem(it: DrawItem) {
+    const { sc, a } = this;
+    switch (it.kind) {
+      case 1: { const an = it.an!; sc.drawImage(a.anims, it.fx, it.fy, an.w, an.h, an.x, an.y, an.w, an.h); break; }
+      case 2: { const pc = it.pc!; sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h); break; }
+      case 3: {
+        const img = it.img!, fw = it.p!.fw ?? 16;
+        if (it.outline) this.outline(it.f, img, it.sy, it.x, it.y, fw);
+        sc.globalAlpha = it.p!.alpha;
+        sc.drawImage(img, it.f * fw, it.sy, fw, 32, it.x, it.y, fw, 32);
+        sc.globalAlpha = 1;
+        break;
+      }
+      default: sc.drawImage(it.img!, it.x, it.y);
+    }
+  }
+
   private draw() {
     const { L, sc, a } = this;
     const tick = Math.floor(this.t * L.fps);
     sc.globalAlpha = 1;
     sc.drawImage(a.bg, 0, 0);
-    type Item = { z: number; draw: () => void };
-    const items: Item[] = [];
+    const items = this.items;
+    items.length = 0;
+    this.itemN = 0;
     // only what is near the window: the library is several windows wide
-    const m = 64, vx0 = this.camX - m, vy0 = this.camY - m, vx1 = this.camX + this.viewW + m, vy1 = this.camY + this.viewH + m;
-    const near = (x: number, y: number, w: number, h: number) => x < vx1 && x + w > vx0 && y < vy1 && y + h > vy0;
+    const m = 64;
+    this.vx0 = this.camX - m; this.vy0 = this.camY - m; this.vx1 = this.camX + this.viewW + m; this.vy1 = this.camY + this.viewH + m;
     for (const an of L.anims) {
-      if (!near(an.x, an.y, an.w, an.h)) continue;
+      if (!this.near(an.x, an.y, an.w, an.h)) continue;
       const [fx, fy] = an.frames[an.seq[tick % an.seq.length]];
-      const draw = () => sc.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h);
-      if (an.z === 0) draw(); else items.push({ z: an.z, draw });
+      if (an.z === 0) { sc.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h); continue; }
+      const it = this.item(an.z, 1);
+      it.an = an; it.fx = fx; it.fy = fy;
     }
-    for (const pc of L.pieces) if (near(pc.x, pc.y, pc.w, pc.h)) items.push({ z: pc.z, draw: () => sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h) });
+    for (const pc of L.pieces) if (this.near(pc.x, pc.y, pc.w, pc.h)) { const it = this.item(pc.z, 2); it.pc = pc; }
     const lit = this.picked ?? this.hover;
     for (const p of this.people) {
       if (p.alpha <= 0) continue;
-      const [x, y] = this.spriteAt(p), f = this.frame(p, tick);
-      const fw = p.fw ?? 16;
-      if (!near(x, y, fw, 32)) continue;
-      items.push({ z: this.z(p) + .01, draw: () => {
-        const [img, sy] = this.art(p);
-        if (p === lit && !p.you) this.outline(f, img, sy, x, y, fw);
-        sc.globalAlpha = p.alpha;
-        sc.drawImage(img, f * fw, sy, fw, 32, x, y, fw, 32);
-        sc.globalAlpha = 1;
-      } });
+      const x = this.spriteX(p), y = this.spriteY(p), f = this.frame(p, tick);
+      if (!this.near(x, y, p.fw ?? 16, 32)) continue;
+      const it = this.item(this.z(p) + .01, 3);
+      it.p = p; it.x = x; it.y = y; it.f = f;
+      it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
+      it.outline = p === lit && !p.you;
     }
-    if (this.W) this.addRings(items, tick, near);
-    items.sort((p, q) => p.z - q.z);
-    for (const it of items) it.draw();
+    if (this.W) this.addRings(tick);
+    items.sort(byDepth);
+    for (let i = 0; i < items.length; i++) this.drawItem(items[i]);
     sc.drawImage(this.lamp, 0, 0);
     if (this.fire) { sc.globalAlpha = (.30 + .04 * (Math.floor(tick / 3) % 3)) / .38; sc.drawImage(this.fire, 0, 0); sc.globalAlpha = 1; }
     if (!this.o.reduced) this.notes(tick);
@@ -1007,11 +1093,6 @@ class Cafe implements CafeHandle {
     this.follow(this.o.reduced);
     ctx.drawImage(this.scene, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, this.viewW * this.k, this.viewH * this.k);
     this.place();
-  }
-
-  /** Where a person's frames are: their own drawn row (library mode, from their avatar) or their row of the premade sheet. */
-  private art(p: Person): [CanvasImageSource, number] {
-    return p.sheet ? [p.sheet, 0] : [this.a.people, p.look * 32];
   }
 
   /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
@@ -1036,7 +1117,7 @@ class Cafe implements CafeHandle {
       const ph = (tick + i * 23 + p.phase * 7) % 90;
       i++;
       if (ph >= 30) continue;
-      const k = 1 - Math.max(0, ph - 20) / 10, [x, y] = this.spriteAt(p);
+      const k = 1 - Math.max(0, ph - 20) / 10, x = this.spriteX(p), y = this.spriteY(p);
       sc.globalAlpha = .9 * k;
       sc.fillStyle = NOTE_COLS[i % 4];
       for (const [nx, ny] of NOTE) sc.fillRect(x + 12 + (Math.floor(ph / 6) % 2) + nx, y + 2 - Math.floor(ph / 2) + ny, 1, 1);
@@ -1048,10 +1129,8 @@ class Cafe implements CafeHandle {
   private resize() {
     const box = this.canvas.getBoundingClientRect();
     if (!box.width) return;
-    const dpr = Math.min(3, window.devicePixelRatio || 1);
-    this.dpr = dpr;
-    const W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
-    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
+    let dpr = Math.min(3, window.devicePixelRatio || 1);
+    let W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
     const r = this.region;
     // the hero is a window onto part of the library, at the size the café was drawn at, that follows you about
     const want = this.playable ? (box.width < 560 ? 240 : 400) : r.w;
@@ -1059,6 +1138,15 @@ class Cafe implements CafeHandle {
     let k = Math.max(1, Math.round(exact));
     if (W / k > r.w * 1.04 || H / k > (this.playable ? this.L.h : r.h) * 1.04) k = Math.ceil(exact);
     if ((k - exact) / exact > .3 && dpr < 2) k = exact;                // a large crop on a low-density screen: fit instead
+    // The study app's room is a full window: 2560 x 1440 at 3x is 33 million pixels to clear and scale every frame. Past
+    // the budget, fewer device pixels go to each art pixel (k) and the density drops to match, so an art pixel is the
+    // same size on screen and the view shows the same room, only on a smaller canvas the browser scales the last bit.
+    if (this.o.mode === "library" && W * H > LIBRARY_PIXELS) {
+      const k2 = Math.max(1, Math.floor(k * Math.sqrt(LIBRARY_PIXELS / (W * H))));
+      if (k2 < k) { dpr = dpr * k2 / k; W = Math.round(box.width * dpr); H = Math.round(box.height * dpr); k = k2; }
+    }
+    this.dpr = dpr;
+    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
     this.k = k;
     this.viewW = Math.min(this.L.w, W / k);
     this.viewH = Math.min(this.L.h, H / k);
@@ -1071,8 +1159,8 @@ class Cafe implements CafeHandle {
     let cx: number, cy: number;
     if (this.playable && this.you && this.viewW < this.L.w - 1) {
       // a little ahead of you, up into the room: the entrance is at the bottom and the library opens out above it
-      const [x, y] = this.spriteAt(this.you);
-      cx = x + this.half(this.you); cy = y + 18 - this.viewH * .2;
+      const [x, y] = this.looking ? this.spriteAt(this.looking) : this.spriteAt(this.you);
+      cx = x + this.half(this.looking ?? this.you); cy = y + 18 - (this.looking ? 0 : this.viewH * .2);
     } else {
       cx = this.region.x + this.region.w / 2; cy = this.region.y + this.region.h / 2;
     }
@@ -1308,17 +1396,18 @@ class Cafe implements CafeHandle {
   private get typingNow() { return typingIn(document.activeElement); }
 
   /** Draws each free chair's ring into the depth order: above the chair's own art, below anyone standing in front of it. */
-  private addRings(items: { z: number; draw: () => void }[], tick: number, near: (x: number, y: number, w: number, h: number) => boolean) {
+  private addRings(tick: number) {
     const art = (this.libArt ??= this.buildArt());
     const lit = this.nearSeat(), frame = this.o.reduced ? 0 : Math.floor(tick / 5) % 2;
     let n = 0;
     for (const s of this.ringSeats) {
       if (s.who) continue;
       n++;
-      if (!near(s.x - 4, s.y, 24, 32)) continue;
+      if (!this.near(s.x - 4, s.y, 24, 32)) continue;
       const on = s === lit || s === this.hoverSeat;
       const img = art.rings[on ? "near" : "idle"][frame], w = img.width, h = img.height;
-      items.push({ z: s.sort + .005, draw: () => this.sc.drawImage(img, Math.round(s.x + RING.x - w / 2 + .5), Math.round(s.y + RING.y - h / 2 + .5)) });
+      const it = this.item(s.sort + .005, 4);
+      it.img = img; it.x = Math.round(s.x + RING.x - w / 2 + .5); it.y = Math.round(s.y + RING.y - h / 2 + .5);
     }
     const prompt = this.promptFor(lit);
     const mark = `${n}|${prompt}|${lit ? this.ipadOf.get(lit) ?? "" : ""}`;
@@ -1443,7 +1532,7 @@ class Cafe implements CafeHandle {
     return spot;
   }
 
-  private youChanged() { this.live?.onYou?.(); }
+  private youChanged() { this.looking = null; this.live?.onYou?.(); }
 
   dressYou(sheet: CanvasImageSource | null, phones = false, frameW?: number) {
     const you = this.you;
@@ -1518,6 +1607,45 @@ class Cafe implements CafeHandle {
     if (p && p.alpha > .3) this.pop(p, text);
   }
 
+  bubble(who: string, text: string, ms: number): boolean {
+    const p = who === "you" ? this.you : this.remotes.get(who);
+    if (!p || !this.live || this.dead || p.alpha <= .3) return false;
+    this.clearBubble(p);
+    // beside someone else's bubble it goes up a line; with two there already, it is left out rather than pile up
+    const [x, y] = this.spriteAt(p), s = this.k / this.dpr;
+    let lift = 0;
+    for (const [q, b] of this.bubbles) {
+      const [qx, qy] = this.spriteAt(q);
+      if (Math.abs(qx - x) * s < 150 && Math.abs(qy - y) * s < 50 + b.lift * 34) lift = Math.max(lift, b.lift + 1);
+    }
+    if (lift > 1) return false;
+    while (this.bubbles.size >= 4) this.clearBubble(this.bubbles.keys().next().value as Person);
+    const el = document.createElement("div");
+    el.className = this.cn.bub;
+    el.textContent = text;
+    el.style.setProperty("--bub-ms", `${ms}ms`);
+    this.overlay.appendChild(el);
+    this.widths.set(el, el.offsetWidth);
+    this.bubbles.set(p, { el, lift, timer: setTimeout(() => this.clearBubble(p), ms + 100) });
+    this.place();
+    return true;
+  }
+
+  private clearBubble(p: Person) {
+    const b = this.bubbles.get(p);
+    if (!b) return;
+    clearTimeout(b.timer);
+    b.el.remove();
+    this.bubbles.delete(p);
+  }
+
+  lookAt(id: string | null): boolean {
+    const p = id ? this.remotes.get(id) ?? null : null;
+    this.looking = p;
+    if (this.o.reduced) this.draw();
+    return id === null || !!p;
+  }
+
   /** Tells the room who else is in it. Each person is placed where they said (or in a free chair, if they said nothing of the floor). */
   setRemotes(list: readonly LiveRemote[]) {
     if (!this.live || this.dead) return;
@@ -1525,6 +1653,11 @@ class Cafe implements CafeHandle {
     for (const r of list) {
       seen.add(r.id);
       let p = this.remotes.get(r.id);
+      if (!p) {
+        // back within the fade-out of having left: the same sprite, not a second one beside it
+        const leaving = this.people.find(q => q.id === r.id && q.doing === "leave");
+        if (leaving) { p = leaving; p.doing = "idle"; p.rev = -1; this.remotes.set(r.id, p); }
+      }
       if (!p) {
         const d = this.L.door;
         p = this.person(r.look, d.x, d.y, "front");
@@ -1549,16 +1682,22 @@ class Cafe implements CafeHandle {
 
   /** One person's place: their seat if they sit (and it is theirs), else where they stand and the walk they are on. */
   private place_(p: Person, r: LiveRemote) {
-    if (p.known && r.rev === p.rev) return;     // nothing new about where they are: they carry on as they were
-    p.rev = r.rev;
+    if (p.known && r.rev === p.rev && r.seated === p.said) return;     // nothing new about where they are: they carry on as they were
+    p.rev = r.rev; p.said = r.seated;
     const seat = r.seat !== null ? this.byIpad.get(r.seat) : undefined;
     if (seat && (!seat.who || seat.who === p) && seat !== this.you?.spot) {
       if (p.spot !== seat || !p.at) { this.release(p); this.seatAt(p, seat, Infinity); }
       p.path = []; p.known = true;
       return;
     }
+    // No fresh news of the floor (Realtime is down, or they have not spoken for a while): the server's word on whether they sit is all there is.
+    if (!r.pos && r.seated) {
+      if (p.at && p.spot && this.canSit(p.spot)) { p.path = []; p.known = true; return; }          // they sat where they were: they stay there
+      const chair = this.chairFor(p);
+      if (chair) { this.release(p); this.seatAt(p, chair, Infinity); p.path = []; p.known = true; return; }
+    }
     const wasSeated = p.at;
-    if (wasSeated) { this.release(p); p.doing = "idle"; }
+    if (wasSeated) { this.release(p); p.doing = "idle"; if (!r.pos) [p.x, p.y] = this.feet(this.nearestTile(p.x, p.y)); }
     if (r.pos) {
       const feet: ArtPoint = [r.pos[0] + 8, r.pos[1] + 31];
       // near where they are drawn they carry on from there; far, or just up from a seat, they are put where they said
@@ -1570,14 +1709,37 @@ class Cafe implements CafeHandle {
       p.doing = p.path.length ? "walk" : "idle";
       return;
     }
-    if (!p.spot && !p.known) {
-      // nothing said about the floor (an older app, or the socket has not reached us): a chair, as the iPad seats a student whose app says nothing of it
-      const free = this.free();
-      let h = 5381;
-      for (const c of p.id ?? "") h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
-      const s = free[h % Math.max(1, free.length)];
-      if (s) { this.seatAt(p, s, Infinity); p.known = true; }
+    // Standing, and nothing said of where: out of the chairs (they are not sitting), near the door, the same place for everyone who looks
+    if (!p.known) { this.standNear(p); p.known = true; }
+  }
+
+  /** A person's id as a number, the same on every screen. */
+  private hashOf(id: string | undefined) {
+    let h = 5381;
+    for (const c of id ?? "") h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
+    return h;
+  }
+
+  /** The chair a seated person is drawn in when nobody has said which: their own place in the table, then the next free one on. */
+  private chairFor(p: Person): Spot | null {
+    const all = [...(this.libSeats ?? [])];
+    const h = this.hashOf(p.id);
+    for (let i = 0; i < all.length; i++) {
+      const s = all[(h + i) % all.length];
+      if (!s.who || s.who === p) return s;
     }
+    return null;
+  }
+
+  /** Somewhere to stand among the tiles nearest the door, picked by their id: a standing student whose place is not known is not put in a chair. */
+  private standNear(p: Person) {
+    if (!this.W || !this.grid) return;
+    const tiles = this.W.reach(this.grid, this.L.door.tile);
+    if (!tiles.length) return;
+    const from = Math.min(3, tiles.length - 1), span = Math.max(1, Math.min(tiles.length - from, 80));
+    const k = tiles[from + (this.hashOf(p.id) % span)];
+    [p.x, p.y] = this.feet([k % this.L.cols, Math.floor(k / this.L.cols)]);
+    p.path = []; p.doing = "idle"; p.dir = "front";
   }
 
   /** The names over the heads of whoever is on screen: friends and the one you tapped first, then the nearest; never so many they pile up. */
@@ -1609,6 +1771,7 @@ class Cafe implements CafeHandle {
     for (const f of this.cleanup) f();
     for (const el of this.labels.values()) el.remove();
     for (const q of this.pops) q.el.remove();
+    for (const p of [...this.bubbles.keys()]) this.clearBubble(p);
     this.card?.remove();
   }
 }

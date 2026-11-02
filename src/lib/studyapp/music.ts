@@ -10,6 +10,11 @@ import { useSyncExternalStore } from "react";
  *
  * One player for the whole visit. It lives in the app's layout, so moving between Desk, Study and Flashcards
  * never stops the music. It never starts by itself: only a tap on the record starts it, and another stops it.
+ *
+ * Spotify's script and player (about a megabyte, from another site) are not fetched until the student shows interest:
+ * pointing at or focusing the record, or tapping it (the record spins while it gets ready). Only on the Desk and
+ * the other quiet pages is it fetched once the browser is idle, so a tap there starts at once; the Grand Library,
+ * which is already busy drawing a room, asks for nothing from Spotify until then.
  * ⏮ / ⏭ skip (looping round), songs run on into the next, and the Spotify card can be tucked away so only the
  * record shows. The songs come in a fresh order every visit.
  */
@@ -43,6 +48,7 @@ export interface LofiState {
   cardHidden: boolean;   // the student tucked the Spotify card away
   cardOpen: boolean;
   line: string | null;   // a note under the player
+  loading: boolean;      // tapped, and Spotify's player is still on its way
 }
 
 const CARD_KEY = "plumi-study-music-card";
@@ -96,20 +102,27 @@ class LofiPlayer {
       track: this.track(), label: LABELS[this.order[this.at] % LABELS.length],
       playing: this.playing, wanted: this.wanted, begun: this.begun, everPlayed: this.everPlayed,
       cardHidden: this.cardHidden, cardOpen: this.forced || (!this.cardHidden && (this.wanted || this.playing)), line: this.line,
+      loading: this.wanted && !this.controller && !this.plain,
     };
   }
   private changed() { this.state = this.make(); this.listeners.forEach((l) => l()); }
   private say(line: string | null) { this.line = line; }
 
-  /** The card's slot for Spotify's player. Called by the record player when it appears; the player is got ready early, so a tap starts the music straight away. */
+  /**
+   * The card's slot for Spotify's player. Called by the record player when it appears. Nothing is fetched from
+   * Spotify here, except on the quiet pages once the browser is idle (the Grand Library waits for a hand on the record).
+   */
   attach(host: HTMLElement) {
     if (!this.slot) {
       this.slot = document.createElement("div");
-      setTimeout(() => this.load(), 600);
+      if (!inLibrary()) whenIdle(() => this.load());
     }
     const el = this.plain ?? this.slot;
     if (el.parentElement !== host) host.appendChild(el);
   }
+
+  /** The student is reaching for the record (pointing at it, focusing it): get Spotify's player on its way. */
+  warm() { this.load(); }
 
   private setPlaying(on: boolean) {
     this.playing = on;
@@ -151,6 +164,7 @@ class LofiPlayer {
       api.createController(this.slot, { uri: this.track().uri, width: "100%", height: 80 }, (c) => {
         this.controller = c;
         this.loaded = this.at;
+        this.changed();
         c.addListener("playback_update", (e) => {
           const d = e.data ?? {};
           if (!this.songStarted) return;                                      // the player's opening report
@@ -222,7 +236,8 @@ class LofiPlayer {
 
   /** The record: play, or pause. */
   toggle() {
-    const starting = this.wanted && Date.now() - this.lastStart < 3000;
+    const loading = !this.controller && !this.plain;     // still getting Spotify: a second tap means "never mind", as it does just after a start
+    const starting = this.wanted && (loading || Date.now() - this.lastStart < 3000);
     if (this.playing || starting) this.pause(); else this.play();
   }
 
@@ -273,6 +288,17 @@ class LofiPlayer {
   }
 }
 
+/** Whether this page is the Grand Library (on the website's /study/library or the app host's /library). */
+function inLibrary(): boolean {
+  try { return /(^|\/)library(\/|$)/.test(window.location.pathname); } catch { return false; }
+}
+
+/** When the browser has nothing else to do (or in a few seconds, where it cannot say). */
+function whenIdle(fn: () => void) {
+  const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+  if (ric) ric(fn, { timeout: 5000 }); else setTimeout(fn, 2500);
+}
+
 function shuffled(n: number) {
   const a = Array.from({ length: n }, (_, i) => i);
   for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
@@ -285,7 +311,7 @@ export function lofi() { return (player ??= new LofiPlayer()); }
 
 const SERVER: LofiState = {
   track: LOFI[0], label: LABELS[0], playing: false, wanted: false, begun: false, everPlayed: true,
-  cardHidden: false, cardOpen: false, line: null,
+  cardHidden: false, cardOpen: false, line: null, loading: false,
 };
 export function useLofi(): LofiState {
   return useSyncExternalStore((cb) => lofi().subscribe(cb), () => lofi().state, () => SERVER);

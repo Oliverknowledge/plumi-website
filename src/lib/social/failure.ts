@@ -18,7 +18,8 @@ export type Failure =
   | { kind: "signedOut" }
   | { kind: "notOptedIn" }
   | { kind: "offline" }
-  | { kind: "unavailable" }
+  /** `retryAfterMs`: the server said it is busy (429): do not ask again before then. */
+  | { kind: "unavailable"; retryAfterMs?: number }
   | { kind: "refused"; reason: Refusal };
 
 export type Result<T> = { ok: true; value: T } | { ok: false; failure: Failure };
@@ -120,7 +121,8 @@ export interface ApiError { message: string; code?: string; status?: number }
 export function failureFor(error: ApiError): Failure {
   const refused = raised(error.message);
   if (refused) return refused;
-  if (/failed to fetch|fetch failed|networkerror|network request failed|load failed/i.test(error.message)) return { kind: "offline" };
+  if (/failed to fetch|fetch failed|networkerror|network request failed|load failed|aborterror|signal is aborted|operation was aborted|timed? ?out/i.test(error.message)) return { kind: "offline" };
+  if (error.status === 429) return { kind: "unavailable", retryAfterMs: 30_000 };
   if (error.status === 401 || /jwt|not authenticated/i.test(error.message)) return { kind: "signedOut" };
   if (error.status === 403 || error.code === "42501") return { kind: "refused", reason: "not_allowed" };
   // PGRST202 / 404: the function (or table) is not on this project: an older server.
