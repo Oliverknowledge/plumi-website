@@ -75,7 +75,8 @@ import edexcelGcseComputerScience from "./questionBank/edexcel-gcse-computer-sci
 import ocrGcseComputerScience from "./questionBank/ocr-gcse-computer-science.json";
 import edexcelGcseGeographyB from "./questionBank/edexcel-gcse-geography-b.json";
 import ocrGcseGeographyB from "./questionBank/ocr-gcse-geography-b.json";
-import ocrCnEngineeringManufacture from "./questionBank/ocr-cn-engineering-manufacture.json";import ocrGcseEconomics from "./questionBank/ocr-gcse-economics.json";
+import ocrCnEngineeringManufacture from "./questionBank/ocr-cn-engineering-manufacture.json";
+import ocrGcseEconomics from "./questionBank/ocr-gcse-economics.json";
 import edexcelGcseBusiness from "./questionBank/edexcel-gcse-business.json";import edexcelGcseHistory from "./questionBank/edexcel-gcse-history.json";import edexcelGcseEnglishLanguage from "./questionBank/edexcel-gcse-english-language.json";
 import edexcelGcseEnglishLiterature from "./questionBank/edexcel-gcse-english-literature.json";
 import ocrBiology from "./questionBank/ocr-a-level-biology-a.json";
