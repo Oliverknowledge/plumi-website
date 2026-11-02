@@ -162,6 +162,9 @@ def main():
             "series": [{"id": s, "label": series_label(s)} for s in series],
             "wholes": {k: v for k, v in sorted(wholes.items()) if k.split("-")[0] in comps and k.split("-")[1] in series},
             "note": NOTE,
+            # 3: re-cut with labels read in the shifted font and "(b) (ii)" over the page, so parts that held a
+            # sibling's lines no longer do (2 November 2026); above MS_VERSION so the scheme crops refresh too
+            "cropVersion": 3,
             "count": len(rows), "firstYear": min(years), "lastYear": max(years),
             "sample": rows[:20],
         }

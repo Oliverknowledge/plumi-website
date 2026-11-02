@@ -5,7 +5,7 @@
 
 Pearson sets its International A Level papers and schemes as it does its A-Levels, so this is
 edexcel_sciences/cut_pearson.py run on this bank's papers, with edexcel_igcse/cut_igcse.py's one
-patch and five of its own, here only so no other bank's crops move:
+patch and seven of its own, here only so no other bank's crops move:
   - the end of a question paper ("END") is read in capitals, so a diagram's own "end" label no
     longer ends a part above it;
   - a scheme's levels grid set overleaf from its row ("Level 0 | 0 | No awardable content") has its
@@ -29,7 +29,12 @@ patch and five of its own, here only so no other bank's crops move:
   - where a part opens with a built-up fraction ("(iii) Plot a graph of I against 1/d²"), cut_pearson.py
     starts it 9pt above the fraction's top, through the marks of the part above ("(2)", WPH13
     January 2024 4(b)): the boundary moves down to the foot of any line it would cut that ends
-    above the label.
+    above the label;
+  - WPH11 and WPH12 June 2019 set some lines in a font whose codes run 29 below its letters
+    ("\\x0bD\\x0c\\x03'UDZ" for "(a) Draw"): such spans are read as their letters, or their part labels
+    are missed and one part holds the rest of its question (WPH11 Q13 to Q17, WPH12 15(c) and Q16);
+  - a sub-part over the page can print its letter again, "(b) (ii)" (WBI16 January 2023, WCH14
+    October 2023): at the labels' margin that is read as "(ii)", or (b)(i) runs on through it.
 Writes <work-dir>/img/*.webp and <work-dir>/parts.json, as cut_pearson.py.
 """
 import os, re, sys
@@ -91,8 +96,26 @@ cp.carried = lambda found, doc: _carried(stray(found, doc), doc)
 _lines_of = cp.lines_of
 
 
+def shifted(t):
+    """A span in a font whose codes run 29 below its letters ("\\x0bD\\x0c\\x03'UDZ" for "(a) Draw")."""
+    return "".join(chr(ord(c) + 29) if 3 <= ord(c) <= 0x5D and c != " " else c for c in t)
+
+
 def lines_of(page, clip=None, visible=False):
     out = _lines_of(page, clip, visible)
+    for l in out:
+        if any("\x03" in sp["text"] for sp in l["spans"]):
+            l["spans"] = [{**sp, "text": shifted(sp["text"])} if "\x03" in sp["text"] else sp for sp in l["spans"]]
+            text = l["spans"][0]["text"]
+            for a, b in zip(l["spans"], l["spans"][1:]):
+                text += (" " if b["bbox"][0] - a["bbox"][2] > 1.5 and not a["text"].endswith((" ", "\t")) else "") + b["text"]
+            l["text"] = re.sub(r"\s+", " ", text).strip()
+    if "-qp-" in os.path.basename(page.parent.name):
+        for l in out:
+            # "(b) (ii)" over the page from "(b) (i)": the letter again, then the next sub-part. At the
+            # part labels' margin only: a line of text can wrap to open on "(b)(iii) and (c)(i)."
+            if l["x0"] < 72:
+                l["text"] = re.sub(r"^\(([a-z])\)\s*(\((?:ii|iii|iv|v|vi|vii|viii)\))", r"\2", l["text"])
     split = [l for l in out if re.fullmatch(r"Questio(?: n)?", l["text"])]
     for l in split:
         l["text"] = "Question"

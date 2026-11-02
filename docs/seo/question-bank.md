@@ -713,8 +713,8 @@ python3 scripts/question-bank/ms_fallback.py cut --bank=edexcel-igcse-chemistry 
 `/question-bank/edexcel-ial-biology`, `-chemistry` and `-physics`, added 2 November 2026: every
 question from Pearson Edexcel's International A Level Biology (WBI11-WBI16), Chemistry
 (WCH11-WCH16) and Physics (WPH11-WPH16) unit papers that Pearson publishes, January 2019 to June
-2025. That is 10,096 question parts from 294 papers (Biology
-3,125 from 98, Chemistry 4,116 from 99, Physics 2,855 from 97), cut part by part with their mark scheme rows and examiner's reports. Every
+2025. That is 10,109 question parts from 294 papers (Biology
+3,127 from 98, Chemistry 4,117 from 99, Physics 2,865 from 97), cut part by part with their mark scheme rows and examiner's reports. Every
 paper adds up to its unit's 80, 90 or 50 marks. The hub shows them as "Edexcel International A
 Level" on the A-Level shelf, after the UK boards' books (level `IAL`, read by `bankLevel`; the
 Edexcel IAL Maths banks use the same naming), and each links to the past paper library's
@@ -737,18 +737,25 @@ Edexcel IAL Maths banks use the same naming), and each links to the past paper l
   Chemistry 50, Physics 38, each subject's tiles its topics (Physics: its unit headings, "4.4
   Electric and magnetic fields"). A last tile, "Practical skills (Units 3 and 6)", holds the
   practical papers' parts that test skill with no content to speak of. Units 1 and 2 are year 1.
-- **Cutting:** `cut_ial.py` runs `cut_pearson.py` with six patches, here only: "END" in capitals
+- **Cutting:** `cut_ial.py` runs `cut_pearson.py` with eight patches, here only: "END" in capitals
   (from `cut_igcse.py`); a levels grid's "0" row isn't a question label; nor is anything else in the
   label column that can't start a row (`stray()`: a boxed digit numbering a long answer's indicative
   content, a bare number whose question has parts, a label out of question order such as a formula's
   "1" or a nuclide's "40", or one met before but not just before); a header split "Questio / n" is
   read as "Question"; Cambria Math's inflated line boxes are measured by their size, so a scheme row
-  starts at its rule (WPH14 June 2022); and a part opening with a built-up fraction doesn't start
-  through the marks above it. Every crop was checked edge by edge against the page's text lines:
+  starts at its rule (WPH14 June 2022); a part opening with a built-up fraction doesn't start
+  through the marks above it; text in a font whose codes run 29 below its letters (WPH11 and WPH12
+  June 2019, "\x0bD\x0c\x03'UDZ" for "(a) Draw") is read as its letters, so its part labels count;
+  and a sub-part over the page that prints its letter again, "(b) (ii)", is read as (ii), so it no
+  longer runs on inside "(b) (i)" (WBI16 January 2023, WBI16 June 2021, WCH14 October 2023). Every crop was checked edge by edge against the page's text lines:
   no question crop runs through a line. Marks
   the cutter can't read are set in `labels/` (`wch1101-jan24`, `wch1201-jan21`, `wph1301-jan24`,
   `wbi1101-jan19`), as are multiple-choice letters no scheme row gives (`wbi1401-jan22`, whose
-  first page heads its table "Answer | Mark" with no "Question").
+  first page heads its table "Answer | Mark" with no "Question"), and a scheme row that misprints
+  its label is matched to its part (`ms_alias`: "15(a)*" for the one-part Q15 in `wph1101-oct21`,
+  "1(b)(i)" and "3(a)(i)" for parts with no sub-parts in `wbi1501-jun21` and `wbi1501-oct24`).
+  Every scheme was also swept label by label (2 November 2026): no scheme crop holds another
+  question's label, and every scheme row has a part of its own. `cropVersion` 3 marks that re-cut.
 - **Multiple choice:** a part whose own words set out options A to D keeps its letter as `k`,
   read by `cut_pearson.py` or, where Biology and Physics word the row their own way ("1(a)(i) B A
   is incorrect because…", "Computer C …"), by `build_ial.py`'s `scheme_key`.
@@ -762,8 +769,8 @@ Gaps, honestly:
   2020.
 - Three sittings have no public mark scheme, so their parts are left out: Chemistry Unit 1 June
   2023, Chemistry Unit 6 October 2023 and Physics Unit 3 October 2020.
-- 23 parts (Biology 5, Chemistry 8, Physics 10) link their whole mark scheme instead of a crop of
-  their row: 15 whose rows the reader doesn't find, and 8 whose rows Pearson lays out across a table
+- 15 parts (Biology 3, Chemistry 8, Physics 4) link their whole mark scheme instead of a crop of
+  their row: 7 whose rows the reader doesn't find, and 8 whose rows Pearson lays out across a table
   rule (an equation or mechanism drawn over the border, a merged "clip with" row), listed in
   `labels/`'s `wholeScheme`. Every part has a scheme. A few dozen scheme crops still graze a line
   of maths whose glyph box overhangs a table rule; each was looked at and reads whole.
