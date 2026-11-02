@@ -708,6 +708,38 @@ python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-i
 python3 scripts/question-bank/ms_fallback.py cut --bank=edexcel-igcse-chemistry   # and -biology, -physics; upload --crops-only --checksum, then apply
 ```
 
+## Edexcel International GCSE Islamic Studies (4IS1)
+
+Added 2 November 2026: `/question-bank/edexcel-igcse-islamic-studies`, Pearson Edexcel International GCSE Islamic
+Studies, every series Pearson's own site has public.
+
+| Paper | Sittings | Questions | Scheme crops | Reports |
+| --- | --- | --- | --- | --- |
+| 4IS1/01 (the only paper, 90 marks) | 7: June 2019, November 2020, June 2021, June 2022 to June 2025 | 168 | 168 | 144 parts (36 questions) |
+
+A candidate answers Question 1 or 2 (Section A), 3 or 4 (Section B), then 5 and 6 (Section C); every sitting's
+Questions 1, 3, 5 and 6 add up to its 90 marks, and 1 to 2, 3 to 4 (`check_igcse_islamic.py`).
+
+- **Naming:** as the other Edexcel International GCSE banks (board "Edexcel", level "IGCSE", shown as "International
+  GCSE"); subject "Islamic Studies", a book of its own on the GCSE & IGCSE shelf. There is no past paper library page
+  for it, so the bank's "whole papers" credit links to `/past-papers`.
+- **Sources, Pearson's own site only:** its search index lists every 4IS1 paper, scheme and report; the series is
+  Pearson's own tag on each file (November 2020's scheme is dated February 2021). June 2021 is the assessment
+  material Pearson published for the year exams were cancelled, with its scheme; it has no report. Whole papers are on
+  R2 under `edexcel-igcse/` (`4is1-01-qp-jun24.pdf`), crops under `bank/`.
+- **Not in:** June 2026, which Pearson keeps for teachers (`/secure/`); there are no January, November (other than
+  2020) or "R" sittings of 4IS1. The specimen paper and the legacy Islamiyat (4IS0) papers are left out.
+- **Arabic:** every (d) is set on a Qur'an or Hadith passage printed in Arabic with its English under it. The crops
+  are rendered from the PDF, so the Arabic shows as printed. Its text layer does not read (presentation forms, wrong
+  order), so the Arabic is left out of the search text and the part is searched by its English.
+- **Cutting:** `cut_igcse_islamic.py` runs `edexcel_sciences/cut_pearson.py --extracts` (a long answer is cut at its
+  marks) with patches here only: the control character Pearson sets before each label and the mirrored marks
+  (")12(") read as typeset; each (d) starts at its passage above the label; a scheme row carried over a page runs to
+  its column rules' foot (June 2023 2(b) and 4(a)); the levels grid's "0" is not a label; the company notice under the
+  last scheme table is left out; the 2024 and 2025 reports' ligature glyphs ("QuesƟon") are spelt out.
+- **Topics:** the specification's 27 numbered subject content items, 1.1 to 3.9, in its three sections. Tagged by
+  hand (`tags_igcse_islamic.json`, rules in `tag.md`); every topic has at least three parts.
+
 ## OCR and OCR MEI
 
 Added 25 October 2026, after the bank's video went viral and students asked for OCR:
@@ -1288,6 +1320,42 @@ python3 scripts/question-bank/ocr_gcse_geography/build_ocr_gcse_geography.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-geography/r2 --pdf-prefix=ocr/   # r2/img links to ../img
 ```
 
+## OCR GCSE Economics
+
+Added 2 November 2026: `/question-bank/ocr-gcse-economics`, every question from OCR's GCSE (9-1)
+Economics (J205) Paper 1 (Introduction to economics) and Paper 2 (National and international
+economics) that OCR publishes on ocr.org.uk: November 2021 and June 2022 to June 2025. That is 379
+parts from 10 papers, every one with its own mark scheme crop and tagged to a topic of the
+specification, and 163 questions with the examiner's comments (November 2021 has no reports).
+
+- **Topics:** the specification's 22 topics in its four sections, coded as it numbers them ("2.3
+  Supply", "4.2 Balance of payments"). Paper 1 tests sections 1 and 2, Paper 2 sections 3 and 4.
+- **Section A:** twenty multiple-choice questions a paper. Each carries its letter (`k`) as well as
+  its row of the scheme's key table, all 199 checked against OCR's tables.
+- **Section B:** three questions a paper, each opening with an extract (text, a table or a graph),
+  then (a) to (d)(iii). Every part shows its question's extract as its stem.
+- **Cutting:** `cut_ocr_gcse_economics.py` runs `ocr_economics/cut_ocr_economics.py` (and
+  `cut_pearson.py`, both unchanged) with J205 patches: an "Extract 1" heading belongs to its
+  question, a part ends at its marks line (and its answer box), the page footer is painted out of
+  crops, scheme labels split as "(d)" over or beside "(i)" are read as one, the assessment-objective
+  grid at a scheme's back is left out, and a row's last cell carried over a page goes back to it.
+- **Gaps:** OCR's public page lists only November 2021 on; June 2019 and November 2020 are on Teach
+  Cambridge only. June 2022 Paper 1's question 17 is left out: OCR withdrew it after the exam (a
+  post-exam correction, every candidate given the mark). The modified papers and the sample
+  assessment materials are left out. No past paper library page yet; the whole papers are on R2
+  under `ocr/OCR-J205-*`.
+
+```bash
+python3 scripts/question-bank/ocr_gcse_economics/fetch_ocr_gcse_economics.py
+python3 scripts/question-bank/ocr_gcse_economics/spec_ocr_gcse_economics.py
+python3 scripts/question-bank/ocr_gcse_economics/cut_ocr_gcse_economics.py
+python3 scripts/question-bank/ocr_gcse_economics/tag_ocr_gcse_economics.py split   # then tag each batch (tag.md)
+python3 scripts/question-bank/ocr_gcse_economics/tag_ocr_gcse_economics.py merge
+python3 scripts/question-bank/ocr_gcse_economics/build_ocr_gcse_economics.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-economics/r2 --pdf-prefix=ocr/
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-economics --crops-only
+```
+
 ## Edexcel GCSE Business
 
 Added 1 November 2026: `/question-bank/edexcel-gcse-business`, every question from Pearson Edexcel's
@@ -1745,6 +1813,62 @@ python3 scripts/question-bank/aqa_gcse_business/tag_gcse_business.py split   # t
 python3 scripts/question-bank/aqa_gcse_business/tag_gcse_business.py merge
 python3 scripts/question-bank/aqa_gcse_business/build_gcse_business.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-business
+```
+## AQA GCSE Psychology
+
+Added 2 November 2026: `/question-bank/aqa-gcse-psychology`, every question from AQA's GCSE
+Psychology (8182) Paper 1 (Cognition and behaviour) and Paper 2 (Social context and
+behaviour) that AQA still publishes, November 2020 to June 2025. That is 375 questions and
+parts from 12 papers (100 marks each), every one tagged to a topic; 61 multiple-choice
+questions with their answer letters ("B", or "C and E" for "Shade two boxes"), the other 314
+with their mark scheme cropped, and 153 questions with the examiner's comments (AQA published
+no report for November 2020 or November 2021).
+
+- **Questions.** The A-Level Psychology cutter (`aqa_psychology/cut_psychology.py`, so
+  `cut.py`): questions are numbered through the paper ("0 5"), with parts ("0 4 . 2") only
+  under a stimulus ("Read the following information."), which is their stem (142 parts, 41
+  stems). Two GCSE fixes, made from `cut_gcse_psychology.py` without changing either file:
+  a multiple-choice question keeps all its options (`cut.py`'s `move_setups` took option B, a
+  full sentence after the marks, for the next part's setup); Paper 2's Section B heading
+  ("Language, thought and communication / Answer all questions…") is cut off the question
+  under it. Question 1 starts at its label, below the paper's multiple-choice instructions.
+- **Mark schemes:** each question reprints itself in a box under its label, then its guidance,
+  and for an extended answer the whole levels grid and the possible content, up to the next
+  label, across pages. Scheme labels are read bold only and kept only where the question paper
+  has them: answers at the margin ("81.6", "28", "19.075") had ended schemes early. The frame
+  runs to the footer rule and 565pt across (the A-Level's stopped at 766pt and 541pt, cutting
+  a grid's last row and the ends of wide lines), and a scheme ends on the next question's box
+  rule. The cutter checks every 9-mark scheme, and any other with a levels grid, for the whole
+  grid and its content. Most 6-mark "design a study" questions are marked point by point.
+- **Checks:** `check_gcse_psychology.py` re-reads every crop's pieces and lists any edge that
+  runs through a line of text, a question 1 with front matter, a section heading in a
+  question, a multiple-choice question missing an option, and a label read twice. It lists
+  none.
+- **Reports:** "Question 4.1: …" in prose (read by sentence, as the A-Level's Paper 3), or "Q3.1"
+  headings (Paper 2, June 2024); kept by question.
+- **Topics:** the specification's eight areas as tiles (3.1.1 Memory to 3.2.4 Psychological
+  problems) and the 49 rows of their Content columns as topics (`3.1.2.4 Visual illusions`).
+  Any question may take any topic: research methods is examined in both papers and each
+  synoptic 9-mark question draws on the other paper. 3.1.3.3 (Piaget's theory in education)
+  has no question yet.
+- **Pipeline:** `scripts/question-bank/aqa_gcse_psychology/`: `fetch_gcse_psychology.py`
+  (`fetch_aqa.py` over 8182), `spec_gcse_psychology.py`, `cut_gcse_psychology.py`,
+  `check_gcse_psychology.py`, `tag_gcse_psychology.py` (briefed by tag.md's AQA GCSE
+  Psychology section) and `build_gcse_psychology.py`. Papers are on R2 under `aqa/AQA-8182*`,
+  crops under `bank/8182*`.
+- **Gaps:** June 2019, the first sitting, is no longer on AQA's site (its file store redirects),
+  so the bank starts at November 2020. The specimen papers are left out, as for the other AQA
+  banks. No library page (`/past-papers`) yet.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_psychology/fetch_gcse_psychology.py
+python3 scripts/question-bank/aqa_gcse_psychology/spec_gcse_psychology.py
+python3 scripts/question-bank/aqa_gcse_psychology/cut_gcse_psychology.py
+python3 scripts/question-bank/aqa_gcse_psychology/check_gcse_psychology.py
+python3 scripts/question-bank/aqa_gcse_psychology/tag_gcse_psychology.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_gcse_psychology/tag_gcse_psychology.py merge
+python3 scripts/question-bank/aqa_gcse_psychology/build_gcse_psychology.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-psychology
 ```
 ## AQA GCSE History
 
@@ -4181,3 +4305,34 @@ python3 scripts/question-bank/aqa_gcse_languages/build_gcse_languages.py
 python3 scripts/question-bank/tiers.py aqa-gcse-french aqa-gcse-spanish aqa-gcse-bengali
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-languages
 ```
+
+## OCR Cambridge National in Engineering Manufacture
+
+Added 2 November 2026, after a student asked for it on the Plumi Discord:
+`/question-bank/ocr-cn-engineering-manufacture`, every question from the exam unit of OCR's Level
+1/Level 2 Cambridge National in Engineering Manufacture (J823), R014 Principles of engineering
+manufacture, that OCR publishes on ocr.org.uk: January 2024, June 2024, January 2025 and June 2025,
+plus the sample assessment material ("Specimen"). That is 163 parts from 5 papers, every one with
+its own mark scheme crop and tagged to a topic, and 136 with the examiner's comments on its question
+(the sample paper has none, and OCR comments on only some Section A questions).
+
+- **Level:** a vocational Level 1/Level 2 qualification sat beside GCSE, so its bank has a `level` of
+  its own, `"Level 1/2"`, shelved with GCSE ("GCSE & IGCSE") on the hub and listed after IGCSE on
+  the homepage's index. `bankTitle` gives "OCR Level 1/2 Engineering Manufacture", and `fullName`
+  gives "Cambridge National in Engineering Manufacture" in the bank page's lead. A `note` says R015
+  and R016 are coursework and that OCR keeps its 2023 papers on Teach Cambridge.
+- **Left out:** R015 and R016 (NEA, no papers); the 2023 series (on Teach Cambridge only; OCR lists
+  only its moderators' report); the modified papers. The older Engineering Manufacture (J832/J842,
+  unit R109) page on ocr.org.uk no longer lists any papers.
+- **Topics:** R014's four topic areas as sections, with 1.2 (manufacturing processes) and 2.3
+  (materials) taken to the specification's own sub-headings: 20 topics, 1.1 Types of manufacturing
+  processes to 4.3 Globalisation.
+- **Papers:** each is 70 marks: Section A is ten multiple-choice questions with options "(a)" to
+  "(d)", Section B six structured questions. `cut_ocr_cn_engineering.py` runs
+  `ocr_gcse_cs/cut_ocr_gcse_cs.py` (and through it `cut_ocr_cs.py` and `cut_pearson.py`, all
+  unchanged) with R014 patches: no part labels above "Section B", so the options stay in their
+  question, and each multiple-choice question carries its letter as `k` (upper case, for the answer
+  buttons: 50 of 50); sub-part labels set past the scheme's "Question" header (January and June
+  2024); a table's marks set level with the margin one (January 2025 13(a), 6 marks); a mark at the
+  page's foot, level with "Turn over", kept whole; and a first sub-part's own line kept where it has
+  no word of three letters ("(i) AF", January 2025 16(a)(i)). Every paper's parts add up to 70.

@@ -174,6 +174,61 @@ them. The brief is the one at the top, with these differences:
   biological approach is `4.2.1`; one on the nervous system, neurons, hormones, the
   brain or biological rhythms is `4.2.2`.
 
+## AQA GCSE Psychology
+
+`aqa_gcse_psychology/tag_gcse_psychology.py split` writes batches of AQA GCSE Psychology
+(8182) questions to `.work/aqa-gcse-psychology/tag/`, and `merge` collects them. The brief
+is the one at the top, with these differences:
+
+- `gcse-psychology-topics.txt` lists one topic per line: `code | area | title — what the
+  specification says beside it`. Codes have four numbers (`3.1.2.4`); never an area like
+  `3.1.2`. Two rows of the specification share their words (3.2.2.1 and 3.2.2.2, 3.2.4.1 and
+  3.2.4.2, 3.1.3.2 and 3.1.3.3, 3.2.4.5 and 3.2.4.6, 3.2.4.8 and 3.2.4.9): choose by the
+  title.
+- Each line is a question or part with its `paper`, `marks`, the `setup` it is set on (a
+  scenario or table), its own words and the start of its scheme. Multiple-choice questions
+  carry their answer as `scheme` ("Answer: C and E").
+- Any code is allowed on either paper. Paper 1 is mostly 3.1 (Memory, Perception,
+  Development, Research methods), Paper 2 mostly 3.2 (Social influence; Language, thought and
+  communication; Brain and neuropsychology; Psychological problems), but research methods
+  is examined in both and each paper's synoptic 9-mark question draws on the other's content.
+- A research-methods question set in a topic's context ("identify the experimental design",
+  "calculate the mean", "write a hypothesis" about a memory study) gets its research-methods
+  topic; add the context's topic second only when the answer needs knowledge of it too.
+  A "design a study to investigate X" question is `3.1.4.4` Designing research (or the
+  research-methods topic its bullets mostly ask for), with X's topic second.
+- Where things live: encoding, storage, retrieval, episodic, semantic, procedural `3.1.1.1`;
+  multi-store model, coding, capacity, duration, primacy and recency, Murdock `3.1.1.2`;
+  reconstructive memory, Bartlett, interference, context, false memories `3.1.1.3`;
+  sensation versus perception `3.1.2.1`; depth cues, retinal disparity, convergence `3.1.2.2`;
+  Gibson, motion parallax `3.1.2.3`; illusions (Ponzo, Muller-Lyer, Rubin's vase, Ames room,
+  Kanizsa, Necker cube) and their explanations `3.1.2.4`; Gregory `3.1.2.5`; perceptual set,
+  culture, motivation, emotion, expectation, Gilchrist and Nesberg, Bruner and Minturn
+  `3.1.2.6`; early brain development, nature and nurture `3.1.3.1`; Piaget's stages,
+  assimilation, accommodation, conservation, egocentrism, McGarrigle and Donaldson, Hughes
+  `3.1.3.2`; Piaget in education, readiness `3.1.3.3`; Dweck's mindset, praise, self-efficacy,
+  learning styles, Willingham `3.1.3.4`; hypotheses `3.1.4.1`; variables `3.1.4.2`; sampling
+  `3.1.4.3`; experiments, experimental designs, interviews, questionnaires, case studies,
+  observations `3.1.4.4`; correlation, scatter diagrams `3.1.4.5`; standardised procedures,
+  randomisation, counterbalancing, extraneous variables `3.1.4.6`; reliability, validity,
+  pilot studies `3.1.4.7`; ethics `3.1.4.8`; quantitative and qualitative data `3.1.4.9`;
+  primary and secondary data `3.1.4.10`; fractions, percentages, ratios, decimals,
+  significant figures, estimates `3.1.4.11`; mean, median, mode, range `3.1.4.12`; tables,
+  bar charts, histograms, drawing graphs `3.1.4.13`; normal distribution `3.1.4.14`;
+  conformity, Asch `3.2.1.1`; obedience, Milgram, authoritarian personality `3.2.1.2`;
+  bystanders, Piliavin `3.2.1.3`; crowds, deindividuation, social loafing `3.2.1.4`;
+  Piaget and Sapir-Whorf on language and thought `3.2.2.1`, its effects on recall and colour
+  recognition `3.2.2.2`; animal communication, von Frisch `3.2.2.3`; non-verbal communication,
+  eye contact, body language, personal space `3.2.2.4`; Darwin, innate or learned non-verbal
+  behaviour, Yuki `3.2.2.5`; nervous system divisions, fight or flight, James-Lange
+  `3.2.3.1`; neurons, synapses, Hebb `3.2.3.2`; lobes, cerebellum, localisation, Penfield
+  `3.2.3.3`; neuropsychology, scanning, Tulving, brain damage `3.2.3.4`; what mental health
+  is, cultural beliefs, stigma `3.2.4.1` and how its incidence changes `3.2.4.2`; effects on
+  individuals and society `3.2.4.3`; depression's characteristics and ICD `3.2.4.4`, its
+  theories `3.2.4.5`, its treatments, antidepressants, CBT, Wiles `3.2.4.6`; addiction's
+  characteristics `3.2.4.7`, its theories, Kaij, peer influence `3.2.4.8`, its treatments,
+  aversion therapy, self-management `3.2.4.9`.
+
 ## Edexcel Economics A
 
 `edexcel_economics/tag_economics.py split` writes batches of Pearson Edexcel A-Level
@@ -1574,3 +1629,49 @@ question's topics. The brief is the one at the top, with these differences:
   what the question is about.
 - The 2026 specimens (8652, 8692) have new themes; tag them to these topics all the same (celebrity culture is
   `1.3.2` or `1.3.1`, media and technology `1.2.1` or `1.2.2`).
+## Edexcel International GCSE Islamic Studies (4IS1)
+
+168 parts, so tagged by hand, not in batches: `edexcel_igcse_islamic/tags_igcse_islamic.json` (`{"<part id>": ["2.7"]}`),
+read by `build_igcse_islamic.py`. To tag new parts, add them there by the same rules:
+
+- Codes are the specification's numbered subject content, `1.1` to `3.9` (`1.4` Opposition and Hijrah, `2.7`
+  Shari'ah, `3.5` Hajj); its lettered statements are what each covers. A question in Section A (Questions 1 and 2)
+  is on a `1.x` topic, Section B (3, 4) on `2.x`, Section C (5, 6) on `3.x`, as the paper sets them.
+- Tag the part's own question. A 12-mark (d) is tagged by its statement, not its passage: "The Night of Power is the
+  most important event in Islam" on Surah 97 is `1.2`; "Belief in Akhirah is what motivates Muslims" `2.5`.
+- One topic, and a second only where the question names both: the support of Abu Bakr, Ali, Uthman or Umar is `1.4`;
+  the Prophet's wives and children `1.1` (with `1.6` where it asks about respect for women); birth and funeral
+  ceremonies `3.8`; Laylat al-Qadr today `3.3`; Khums and charity `3.4`; a Muslim leader today `3.9`.
+## OCR Cambridge National Engineering Manufacture
+
+`ocr_cn_engineering/tag_ocr_cn_engineering.py split` writes batches of OCR Cambridge National in
+Engineering Manufacture (J823, exam unit R014) parts to `.work/ocr-cn-engineering/tag/`, and `merge`
+collects them. The brief is the one at the top, with these differences:
+
+- `eng-topics.txt` lists one topic per line: `code | section | title — the specification's words`.
+  1.2 and 2.3 are their sub-headings (`1.2.1` wasting processes, `2.3.2` polymers); choose those,
+  never `1.2` or `2.3`.
+- A machine's parts, hazards and safety measures go with its process (a lathe or pillar drill is
+  `1.2.1`); a material's forms of supply and applications with its material (`2.3.x`).
+- Jigs, fixtures, templates, moulds as aids, CAM and automation are `3.2`; quality control and
+  assurance `3.3`; drawing conventions, abbreviations, BS 8888 and tolerances `3.1`.
+## OCR GCSE Economics
+
+`ocr_gcse_economics/tag_ocr_gcse_economics.py split` writes batches of OCR GCSE (9-1)
+Economics (J205) parts to `.work/ocr-gcse-economics/tag/`, and `merge` collects them. The
+brief is the one at the top, with these differences:
+
+- `economics-topics.txt` lists the specification's 22 topics: `code | section | title — what
+  learners should be able to do`. Codes are two numbers as the specification prints them
+  (`2.3` Supply, `3.5` Fiscal policy); choose from these, never a section like `2`.
+- Each line has its `paper` and `marks`. Paper 1 (Introduction to economics) tests sections
+  1 and 2, codes `1.x` and `2.x`; Paper 2 (National and international economics) sections 3
+  and 4, `3.x` and `4.x`. A Paper 2 question can still need a Paper 1 topic (interest rates
+  and saving are `2.8`), but this is rare.
+- Questions 1 to 20 are multiple choice: `question` holds the stem and options A to D,
+  `scheme` the key ("Key: B."); tag the concept tested.
+- Questions 21 to 23 are set on an extract, whose start is the `setup`: tag by what the part
+  asks and its scheme, not by the extract's subject (a calculation of a firm's profit from a
+  garden business's costs is `2.6`; "Explain what is meant by division of labour" is `2.1`).
+- The 6-mark "Evaluate" and "Analyse" parts often span topics: give the main one first and a
+  second only when the scheme's indicative content genuinely needs it.
