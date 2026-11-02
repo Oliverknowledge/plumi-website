@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Town scale comparison</title>
+<style>
+:root{--bg:#262026;--fg:#fff4dc}@media (prefers-color-scheme:light){:root{--bg:#f6efe2;--fg:#3b2a2e}}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px system-ui,sans-serif}
+img{image-rendering:pixelated;display:block;max-width:none;margin:12px 0}
+label{margin-right:12px}
+</style></head><body>
+<h1>Town scale comparison</h1>
+<p><label>Zoom <select id="z"><option value="0.5">fit-ish (50%)</option><option value="1" selected>100%</option><option value="2">200%</option></select></label></p>
+<div style="overflow:auto"><img id="a" src="scale-compare.png" alt="Three scales side by side"></div>
+<div style="overflow:auto"><img id="b" src="scale-compare-detail.png" alt="The cafe door at each scale"></div>
+<div style="overflow:auto"><img id="c" src="scale-compare-crisp.png" alt="Character crispness at x1, 1.5, 1.62, 2"></div>
+<script>
+const z=document.getElementById('z');
+function apply(){for(const id of ['a','b','c']){const i=document.getElementById(id);i.style.width=(i.naturalWidth*z.value)+'px';}}
+z.onchange=apply;window.onload=apply;
+</script></body></html>

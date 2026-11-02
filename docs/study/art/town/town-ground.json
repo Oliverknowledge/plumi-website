@@ -1,0 +1,7384 @@
+{
+ "image": "town-ground.png",
+ "image32": "town-ground-32.png",
+ "tile": 16,
+ "tile32": 32,
+ "cols": 12,
+ "rows": 9,
+ "nativePixelCanvasPx": [
+  4.0,
+  4.0
+ ],
+ "source": "docs/study/art/source/ground-swatches.png",
+ "tool": "tools/art/ground_tiles.py",
+ "palette": [
+  "#7d6e2e",
+  "#956831",
+  "#777b37",
+  "#a37636",
+  "#9a7d40",
+  "#7f8c3e",
+  "#968840",
+  "#d16d2f",
+  "#b7854d",
+  "#bb8d45",
+  "#b49451",
+  "#94a24c",
+  "#ca9958",
+  "#e88d3c",
+  "#a6b459",
+  "#c7aa5d",
+  "#d5a966",
+  "#eba43d",
+  "#ddaa5e",
+  "#e2ae5a",
+  "#b1bf5c",
+  "#d6c05b",
+  "#eab969",
+  "#e4bc77",
+  "#edbb60",
+  "#f4bb3e",
+  "#c0ce6b",
+  "#f3c773",
+  "#f0cc54",
+  "#d6d56f",
+  "#f4cd7f",
+  "#cfdc77",
+  "#f6d58f",
+  "#f4e683",
+  "#f8f2a4"
+ ],
+ "criteria": {
+  "seamless": "the wrapped line is no busier than the busiest inside line (+0.5 dE, +0.04 hard fraction, hard = dE > 12.0) on both axes",
+  "joinSlackDE": 3.0
+ },
+ "fillFamilies": {
+  "grass_a": [
+   "grass_a_01",
+   "grass_a_02",
+   "grass_a_03",
+   "grass_a_04",
+   "grass_a_05",
+   "grass_a_06",
+   "grass_a_07",
+   "grass_a_08",
+   "grass_a_09",
+   "grass_a_10",
+   "grass_a_11",
+   "grass_a_12"
+  ],
+  "grass_flower": [
+   "grass_flower_01",
+   "grass_flower_02",
+   "grass_flower_03",
+   "grass_flower_04",
+   "grass_flower_05",
+   "grass_flower_06",
+   "grass_flower_07",
+   "grass_flower_08",
+   "grass_flower_09",
+   "grass_flower_10",
+   "grass_flower_11",
+   "grass_flower_12"
+  ],
+  "grass_leaves": [
+   "grass_leaves_01",
+   "grass_leaves_02",
+   "grass_leaves_03",
+   "grass_leaves_04",
+   "grass_leaves_05",
+   "grass_leaves_06",
+   "grass_leaves_07",
+   "grass_leaves_08",
+   "grass_leaves_09",
+   "grass_leaves_10",
+   "grass_leaves_11",
+   "grass_leaves_12"
+  ],
+  "plaza": [
+   "plaza_01",
+   "plaza_02",
+   "plaza_03",
+   "plaza_04",
+   "plaza_05",
+   "plaza_06",
+   "plaza_07",
+   "plaza_08",
+   "plaza_09",
+   "plaza_10",
+   "plaza_11",
+   "plaza_12"
+  ],
+  "plaza_mossy": [
+   "plaza_mossy_01",
+   "plaza_mossy_02",
+   "plaza_mossy_03",
+   "plaza_mossy_04",
+   "plaza_mossy_05",
+   "plaza_mossy_06",
+   "plaza_mossy_07",
+   "plaza_mossy_08",
+   "plaza_mossy_09",
+   "plaza_mossy_10",
+   "plaza_mossy_11",
+   "plaza_mossy_12"
+  ],
+  "dirt": [
+   "dirt_01",
+   "dirt_02",
+   "dirt_03",
+   "dirt_04",
+   "dirt_05",
+   "dirt_06",
+   "dirt_07",
+   "dirt_08",
+   "dirt_10",
+   "dirt_11",
+   "dirt_12"
+  ]
+ },
+ "edgeSets": {
+  "dirt": {
+   "edge_E": {
+    "id": "dirt_edge_02",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "edge_N": {
+    "id": "dirt_edge_01",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "edge_S": {
+    "id": "dirt_edge_03",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "edge_W": {
+    "id": "dirt_edge_04",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": [
+     "dirt_edge_08"
+    ]
+   },
+   "inner_NE": {
+    "id": "dirt_edge_10",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "inner_NW": {
+    "id": "dirt_edge_09",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": [
+     "dirt_edge_12"
+    ]
+   },
+   "inner_SE": {
+    "id": "dirt_edge_d04",
+    "derived": true,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "inner_SW": {
+    "id": "dirt_edge_11",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_NE": {
+    "id": "dirt_edge_06",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_NW": {
+    "id": "dirt_edge_05",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_SE": {
+    "id": "dirt_edge_d03",
+    "derived": true,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_SW": {
+    "id": "dirt_edge_07",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   }
+  },
+  "plaza": {
+   "edge_E": {
+    "id": "plaza_edge_02",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "edge_N": {
+    "id": "plaza_edge_01",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "edge_S": {
+    "id": "plaza_edge_03",
+    "derived": false,
+    "joinsOK": false,
+    "alternates": []
+   },
+   "edge_W": {
+    "id": "plaza_edge_08",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": [
+     "plaza_edge_04"
+    ]
+   },
+   "inner_NE": {
+    "id": "plaza_edge_10",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "inner_NW": {
+    "id": "plaza_edge_12",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": [
+     "plaza_edge_09"
+    ]
+   },
+   "inner_SE": {
+    "id": "plaza_edge_d02",
+    "derived": true,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "inner_SW": {
+    "id": "plaza_edge_11",
+    "derived": false,
+    "joinsOK": false,
+    "alternates": []
+   },
+   "outer_NE": {
+    "id": "plaza_edge_06",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_NW": {
+    "id": "plaza_edge_05",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_SE": {
+    "id": "plaza_edge_d01",
+    "derived": true,
+    "joinsOK": true,
+    "alternates": []
+   },
+   "outer_SW": {
+    "id": "plaza_edge_07",
+    "derived": false,
+    "joinsOK": true,
+    "alternates": []
+   }
+  }
+ },
+ "tiles": [
+  {
+   "id": "grass_a_01",
+   "row": 0,
+   "col": 0,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 3.4,
+     "insideMaxDE": 6.16,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.64,
+     "insideMaxDE": 5.05,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.86,
+    "insideDE": 3.02,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 3.39,
+     "insideMaxDE": 6.16,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.65,
+     "insideMaxDE": 5.05,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.69,
+    "insideDE": 3.02,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 4.19,
+     "insideMaxDE": 6.31,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.15,
+     "insideMaxDE": 7.55,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -4.34,
+    "insideDE": 4.67,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 0
+  },
+  {
+   "id": "grass_a_02",
+   "row": 0,
+   "col": 1,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.66,
+     "insideMaxDE": 5.91,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.11,
+     "insideMaxDE": 5.43,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.38,
+    "insideDE": 2.38,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.66,
+     "insideMaxDE": 5.91,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.11,
+     "insideMaxDE": 5.43,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.38,
+    "insideDE": 2.38,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 3.13,
+     "insideMaxDE": 4.53,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.53,
+     "insideMaxDE": 8.96,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -3.83,
+    "insideDE": 3.83,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 0
+  },
+  {
+   "id": "grass_a_03",
+   "row": 0,
+   "col": 2,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 1.27,
+     "insideMeanDE": 3.02,
+     "insideMaxDE": 7.73,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.48,
+     "insideMaxDE": 6.27,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.12,
+    "insideDE": 2.75,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 2.97,
+     "insideMeanDE": 2.95,
+     "insideMaxDE": 7.73,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.51,
+     "insideMaxDE": 6.27,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -1.24,
+    "insideDE": 2.73,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 4.0,
+     "insideMeanDE": 3.6,
+     "insideMaxDE": 6.49,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.78,
+     "insideMaxDE": 9.36,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.19,
+    "insideDE": 4.19,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 0
+  },
+  {
+   "id": "grass_a_04",
+   "row": 0,
+   "col": 3,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.97,
+     "insideMaxDE": 6.05,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.22,
+     "insideMaxDE": 4.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.6,
+    "insideDE": 2.6,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 2.98,
+     "insideMaxDE": 6.05,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 2.23,
+     "insideMaxDE": 4.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.44,
+    "insideDE": 2.6,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 3.06,
+     "insideMaxDE": 5.78,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 4.38,
+     "insideMaxDE": 7.78,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.4,
+    "insideDE": 3.72,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 0
+  },
+  {
+   "id": "grass_a_05",
+   "row": 0,
+   "col": 4,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.78,
+     "insideMaxDE": 6.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.09,
+     "insideMaxDE": 4.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.43,
+    "insideDE": 2.43,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.49,
+     "insideMeanDE": 2.77,
+     "insideMaxDE": 6.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.11,
+     "insideMaxDE": 4.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.19,
+    "insideDE": 2.44,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.97,
+     "insideMeanDE": 3.34,
+     "insideMaxDE": 6.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.06,
+     "insideMaxDE": 7.47,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.21,
+    "insideDE": 3.7,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 0
+  },
+  {
+   "id": "grass_a_06",
+   "row": 0,
+   "col": 5,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 3.01,
+     "insideMaxDE": 5.39,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.33,
+     "insideMaxDE": 6.55,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -2.51,
+    "insideDE": 2.67,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 1.09,
+     "insideMeanDE": 2.98,
+     "insideMaxDE": 5.39,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.35,
+     "insideMaxDE": 6.55,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -2.12,
+    "insideDE": 2.67,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.85,
+     "insideMeanDE": 3.28,
+     "insideMaxDE": 5.49,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.53,
+     "insideMaxDE": 7.61,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.98,
+    "insideDE": 3.91,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 0
+  },
+  {
+   "id": "grass_a_07",
+   "row": 0,
+   "col": 6,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.42,
+     "insideMaxDE": 5.56,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 1.82,
+     "insideMaxDE": 4.02,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.125
+    },
+    "excess": -2.12,
+    "insideDE": 2.12,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.43,
+     "insideMaxDE": 5.56,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 1.82,
+     "insideMaxDE": 4.02,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.125
+    },
+    "excess": -2.04,
+    "insideDE": 2.12,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.52,
+     "insideMaxDE": 4.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 3.36,
+     "insideMaxDE": 6.26,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -2.78,
+    "insideDE": 2.94,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 0
+  },
+  {
+   "id": "grass_a_08",
+   "row": 0,
+   "col": 7,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.71,
+     "insideMaxDE": 5.49,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 1.95,
+     "insideMaxDE": 4.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.33,
+    "insideDE": 2.33,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.48,
+     "insideMeanDE": 2.73,
+     "insideMaxDE": 5.49,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.81,
+     "insideMeanDE": 1.95,
+     "insideMaxDE": 4.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -1.69,
+    "insideDE": 2.34,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.63,
+     "insideMeanDE": 3.09,
+     "insideMaxDE": 7.31,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 1.31,
+     "insideMeanDE": 3.73,
+     "insideMaxDE": 7.02,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.44,
+    "insideDE": 3.41,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 0
+  },
+  {
+   "id": "grass_a_09",
+   "row": 0,
+   "col": 8,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.48,
+     "insideMeanDE": 2.73,
+     "insideMaxDE": 6.34,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 2.17,
+     "insideMaxDE": 5.41,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.13,
+    "insideDE": 2.45,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.94,
+     "insideMeanDE": 2.72,
+     "insideMaxDE": 6.34,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.64,
+     "insideMeanDE": 2.18,
+     "insideMaxDE": 5.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -1.66,
+    "insideDE": 2.45,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.24,
+     "insideMeanDE": 3.12,
+     "insideMaxDE": 6.88,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.97,
+     "insideMeanDE": 4.45,
+     "insideMaxDE": 8.15,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -2.68,
+    "insideDE": 3.79,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 0
+  },
+  {
+   "id": "grass_a_10",
+   "row": 0,
+   "col": 9,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 3.02,
+     "insideMaxDE": 6.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.32,
+     "insideMaxDE": 4.6,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.67,
+    "insideDE": 2.67,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.64,
+     "insideMeanDE": 3.0,
+     "insideMaxDE": 6.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.34,
+     "insideMaxDE": 4.6,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.156
+    },
+    "excess": -2.35,
+    "insideDE": 2.67,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.97,
+     "insideMeanDE": 3.04,
+     "insideMaxDE": 6.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.7,
+     "insideMaxDE": 10.32,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.39,
+    "insideDE": 3.87,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 0
+  },
+  {
+   "id": "grass_a_11",
+   "row": 0,
+   "col": 10,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 3.03,
+     "insideMaxDE": 6.73,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.26,
+     "insideMaxDE": 5.57,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "excess": -2.64,
+    "insideDE": 2.64,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 3.01,
+     "insideMaxDE": 6.73,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.29,
+     "insideMaxDE": 5.9,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "excess": -2.32,
+    "insideDE": 2.65,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 4.02,
+     "insideMaxDE": 6.66,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.56,
+     "insideMaxDE": 9.63,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.96,
+    "insideDE": 4.29,
+    "seamless": true
+   },
+   "x": 10,
+   "y": 0
+  },
+  {
+   "id": "grass_a_12",
+   "row": 0,
+   "col": 11,
+   "kind": "grass_a",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.71,
+     "insideMaxDE": 5.83,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.15,
+     "insideMaxDE": 5.47,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.43,
+    "insideDE": 2.43,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.71,
+     "insideMaxDE": 5.83,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 2.15,
+     "insideMaxDE": 5.47,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "excess": -2.43,
+    "insideDE": 2.43,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 3.23,
+     "insideMaxDE": 6.29,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.188
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.5,
+     "insideMaxDE": 9.3,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.87,
+    "insideDE": 3.87,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 0
+  },
+  {
+   "id": "grass_flower_01",
+   "row": 1,
+   "col": 0,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 5.0,
+     "insideMaxDE": 10.78,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.36,
+     "insideMaxDE": 9.15,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -1.98,
+    "insideDE": 4.68,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.87,
+     "insideMeanDE": 4.96,
+     "insideMaxDE": 10.78,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.23,
+     "insideMaxDE": 9.15,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -4.16,
+    "insideDE": 4.6,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.35,
+     "insideMeanDE": 6.5,
+     "insideMaxDE": 13.99,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 6.71,
+     "insideMaxDE": 10.76,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "excess": -5.93,
+    "insideDE": 6.61,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_02",
+   "row": 1,
+   "col": 1,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 4.65,
+     "insideMaxDE": 10.48,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 4.02,
+     "insideMaxDE": 8.63,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -1.79,
+    "insideDE": 4.33,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 4.78,
+     "insideMaxDE": 11.28,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 2.93,
+     "insideMeanDE": 3.78,
+     "insideMaxDE": 8.63,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.25
+    },
+    "excess": -2.62,
+    "insideDE": 4.28,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 6.45,
+     "insideMaxDE": 16.4,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 5.24,
+     "insideMeanDE": 6.1,
+     "insideMaxDE": 9.9,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.47,
+    "insideDE": 6.28,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_03",
+   "row": 1,
+   "col": 2,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.21,
+     "insideMaxDE": 10.53,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 3.82,
+     "insideMaxDE": 6.5,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -1.47,
+    "insideDE": 4.01,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.26,
+     "insideMaxDE": 11.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 1.31,
+     "insideMeanDE": 3.61,
+     "insideMaxDE": 6.5,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -3.28,
+    "insideDE": 3.93,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 6.34,
+     "insideMaxDE": 12.2,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 1.95,
+     "insideMeanDE": 6.72,
+     "insideMaxDE": 10.91,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.5
+    },
+    "excess": -5.55,
+    "insideDE": 6.53,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_04",
+   "row": 1,
+   "col": 3,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.72,
+     "insideMaxDE": 9.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.14,
+     "insideMaxDE": 8.71,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -1.89,
+    "insideDE": 4.43,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.78,
+     "insideMaxDE": 9.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 1.19,
+     "insideMeanDE": 3.94,
+     "insideMaxDE": 8.71,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.77,
+    "insideDE": 4.36,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 7.16,
+     "insideMaxDE": 11.04,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 2.01,
+     "insideMeanDE": 7.26,
+     "insideMaxDE": 11.37,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.562
+    },
+    "excess": -6.21,
+    "insideDE": 7.21,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_05",
+   "row": 1,
+   "col": 4,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.49,
+     "insideMaxDE": 8.89,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.01,
+     "insideMaxDE": 9.28,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "excess": -1.71,
+    "insideDE": 4.25,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.33,
+     "insideMeanDE": 4.5,
+     "insideMaxDE": 9.21,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 0.33,
+     "insideMeanDE": 3.87,
+     "insideMaxDE": 9.6,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "excess": -3.86,
+    "insideDE": 4.19,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 6.18,
+     "insideMaxDE": 11.43,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 7.05,
+     "insideMaxDE": 13.29,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -5.96,
+    "insideDE": 6.62,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_06",
+   "row": 1,
+   "col": 5,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.79,
+     "insideMaxDE": 9.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 3.94,
+     "insideMaxDE": 8.99,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.375
+    },
+    "excess": -1.83,
+    "insideDE": 4.37,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 4.82,
+     "insideMaxDE": 9.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 1.91,
+     "insideMeanDE": 3.77,
+     "insideMaxDE": 8.99,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.18,
+    "insideDE": 4.29,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.63,
+     "insideMeanDE": 6.0,
+     "insideMaxDE": 10.29,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 3.16,
+     "insideMeanDE": 6.1,
+     "insideMaxDE": 10.65,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.562
+    },
+    "excess": -4.15,
+    "insideDE": 6.05,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_07",
+   "row": 1,
+   "col": 6,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.61,
+     "insideMaxDE": 11.53,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.41,
+     "insideMaxDE": 10.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "excess": -1.97,
+    "insideDE": 4.51,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.49,
+     "insideMeanDE": 4.68,
+     "insideMaxDE": 11.9,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 2.03,
+     "insideMeanDE": 4.21,
+     "insideMaxDE": 10.23,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.25
+    },
+    "excess": -3.19,
+    "insideDE": 4.45,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.65,
+     "insideMeanDE": 6.64,
+     "insideMaxDE": 12.69,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 2.71,
+     "insideMeanDE": 7.27,
+     "insideMaxDE": 13.95,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.375
+    },
+    "excess": -5.28,
+    "insideDE": 6.96,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_08",
+   "row": 1,
+   "col": 7,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.4,
+     "insideMaxDE": 8.92,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 3.97,
+     "insideMaxDE": 8.44,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -1.73,
+    "insideDE": 4.19,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.64,
+     "insideMeanDE": 4.4,
+     "insideMaxDE": 8.92,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.79,
+     "insideMeanDE": 3.83,
+     "insideMaxDE": 8.44,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.4,
+    "insideDE": 4.12,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.97,
+     "insideMeanDE": 6.55,
+     "insideMaxDE": 10.02,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 1.58,
+     "insideMeanDE": 6.75,
+     "insideMaxDE": 12.57,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.5
+    },
+    "excess": -5.38,
+    "insideDE": 6.65,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_09",
+   "row": 1,
+   "col": 8,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 4.94,
+     "insideMaxDE": 12.06,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 4.76,
+     "insideMeanDE": 4.15,
+     "insideMaxDE": 6.73,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.08,
+    "insideDE": 4.54,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.95,
+     "insideMaxDE": 12.06,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 0.51,
+     "insideMeanDE": 3.98,
+     "insideMaxDE": 6.73,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -4.21,
+    "insideDE": 4.46,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 6.44,
+     "insideMaxDE": 13.21,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 1.02,
+     "insideMeanDE": 7.17,
+     "insideMaxDE": 9.32,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -6.29,
+    "insideDE": 6.8,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_10",
+   "row": 1,
+   "col": 9,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.85,
+     "insideMaxDE": 10.29,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 4.34,
+     "insideMaxDE": 9.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -2.13,
+    "insideDE": 4.59,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 4.89,
+     "insideMaxDE": 10.29,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 1.7,
+     "insideMeanDE": 4.15,
+     "insideMaxDE": 9.38,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.51,
+    "insideDE": 4.52,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 6.89,
+     "insideMaxDE": 10.4,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 2.06,
+     "insideMeanDE": 7.07,
+     "insideMaxDE": 12.78,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.562
+    },
+    "excess": -5.79,
+    "insideDE": 6.98,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_11",
+   "row": 1,
+   "col": 10,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.88,
+     "insideMaxDE": 9.54,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 4.39,
+     "insideMaxDE": 8.17,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -2.17,
+    "insideDE": 4.63,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.83,
+     "insideMeanDE": 4.87,
+     "insideMaxDE": 9.54,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 4.26,
+     "insideMaxDE": 8.17,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -3.89,
+    "insideDE": 4.56,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.67,
+     "insideMeanDE": 6.07,
+     "insideMaxDE": 10.18,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 6.82,
+     "insideMaxDE": 11.82,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -5.1,
+    "insideDE": 6.45,
+    "seamless": true
+   },
+   "x": 10,
+   "y": 1
+  },
+  {
+   "id": "grass_flower_12",
+   "row": 1,
+   "col": 11,
+   "kind": "grass_flower",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.78,
+     "insideMaxDE": 10.89,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.14,
+     "insideMaxDE": 7.46,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -1.92,
+    "insideDE": 4.46,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 1.06,
+     "insideMeanDE": 4.82,
+     "insideMaxDE": 11.22,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 1.37,
+     "insideMeanDE": 4.01,
+     "insideMaxDE": 7.46,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.2,
+    "insideDE": 4.42,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.8,
+     "insideMeanDE": 6.09,
+     "insideMaxDE": 12.29,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 2.75,
+     "insideMeanDE": 7.04,
+     "insideMaxDE": 10.54,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.438
+    },
+    "excess": -4.29,
+    "insideDE": 6.56,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 1
+  },
+  {
+   "id": "grass_leaves_01",
+   "row": 2,
+   "col": 0,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.69,
+     "insideMaxDE": 12.21,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.95,
+     "insideMaxDE": 9.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.28,
+    "insideDE": 4.82,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.64,
+     "insideMeanDE": 4.7,
+     "insideMaxDE": 12.21,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 1.13,
+     "insideMeanDE": 4.77,
+     "insideMaxDE": 9.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.85,
+    "insideDE": 4.73,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.97,
+     "insideMeanDE": 7.81,
+     "insideMaxDE": 13.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 8.63,
+     "insideMaxDE": 16.94,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -7.09,
+    "insideDE": 8.22,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_02",
+   "row": 2,
+   "col": 1,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 5.03,
+     "insideMaxDE": 10.72,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 5.12,
+     "insideMaxDE": 10.44,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "excess": -2.54,
+    "insideDE": 5.08,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.19,
+     "insideMeanDE": 5.13,
+     "insideMaxDE": 10.72,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 2.17,
+     "insideMeanDE": 4.91,
+     "insideMaxDE": 10.44,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.406
+    },
+    "excess": -3.84,
+    "insideDE": 5.02,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 7.77,
+     "insideMaxDE": 15.44,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 4.02,
+     "insideMeanDE": 8.95,
+     "insideMaxDE": 12.96,
+     "wrapHard": 0.062,
+     "insideMaxHard": 0.438
+    },
+    "excess": -6.16,
+    "insideDE": 8.36,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_03",
+   "row": 2,
+   "col": 2,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 5.43,
+     "insideMaxDE": 10.8,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 5.32,
+     "insideMaxDE": 11.17,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -2.83,
+    "insideDE": 5.38,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 5.4,
+     "insideMaxDE": 10.65,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 5.18,
+     "insideMaxDE": 11.17,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -5.02,
+    "insideDE": 5.29,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 8.8,
+     "insideMaxDE": 16.32,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 9.57,
+     "insideMaxDE": 15.84,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -8.84,
+    "insideDE": 9.19,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_04",
+   "row": 2,
+   "col": 3,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 4.78,
+     "insideMaxDE": 10.98,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.54,
+     "insideMaxDE": 9.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -1.93,
+    "insideDE": 4.66,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 4.45,
+     "insideMeanDE": 4.65,
+     "insideMaxDE": 10.98,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.46,
+     "insideMaxDE": 10.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -2.33,
+    "insideDE": 4.55,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 5.4,
+     "insideMeanDE": 8.0,
+     "insideMaxDE": 15.63,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 8.7,
+     "insideMaxDE": 14.51,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -5.65,
+    "insideDE": 8.35,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_05",
+   "row": 2,
+   "col": 4,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.37,
+     "insideMaxDE": 10.58,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.31,
+     "insideMaxDE": 12.7,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -1.8,
+    "insideDE": 4.34,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.41,
+     "insideMaxDE": 10.74,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 1.36,
+     "insideMeanDE": 4.11,
+     "insideMaxDE": 12.7,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -3.58,
+    "insideDE": 4.26,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 6.69,
+     "insideMaxDE": 16.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 2.09,
+     "insideMeanDE": 8.39,
+     "insideMaxDE": 15.75,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -6.5,
+    "insideDE": 7.54,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_06",
+   "row": 2,
+   "col": 5,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.48,
+     "insideMeanDE": 4.94,
+     "insideMaxDE": 12.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 4.76,
+     "insideMeanDE": 5.14,
+     "insideMaxDE": 11.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "excess": -2.42,
+    "insideDE": 5.04,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.16,
+     "insideMeanDE": 4.92,
+     "insideMaxDE": 12.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.98,
+     "insideMaxDE": 11.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "excess": -4.87,
+    "insideDE": 4.95,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 7.66,
+     "insideMaxDE": 18.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 8.98,
+     "insideMaxDE": 15.11,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.562
+    },
+    "excess": -8.16,
+    "insideDE": 8.32,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_07",
+   "row": 2,
+   "col": 6,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.13,
+     "insideMaxDE": 12.94,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 4.76,
+     "insideMeanDE": 5.4,
+     "insideMaxDE": 9.7,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -2.89,
+    "insideDE": 5.27,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 5.12,
+     "insideMaxDE": 12.94,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 0.19,
+     "insideMeanDE": 5.25,
+     "insideMaxDE": 9.7,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -4.93,
+    "insideDE": 5.19,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.32,
+     "insideMeanDE": 8.69,
+     "insideMaxDE": 17.95,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 9.43,
+     "insideMaxDE": 16.38,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "excess": -8.71,
+    "insideDE": 9.06,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_08",
+   "row": 2,
+   "col": 7,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.42,
+     "insideMaxDE": 13.94,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 4.99,
+     "insideMeanDE": 5.73,
+     "insideMaxDE": 11.76,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -3.08,
+    "insideDE": 5.58,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.57,
+     "insideMeanDE": 5.39,
+     "insideMaxDE": 14.13,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 5.57,
+     "insideMaxDE": 11.76,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -5.01,
+    "insideDE": 5.48,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.76,
+     "insideMeanDE": 9.55,
+     "insideMaxDE": 16.34,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 10.67,
+     "insideMaxDE": 22.5,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.625
+    },
+    "excess": -9.54,
+    "insideDE": 10.11,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_09",
+   "row": 2,
+   "col": 8,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.67,
+     "insideMaxDE": 8.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 5.08,
+     "insideMeanDE": 4.94,
+     "insideMaxDE": 12.68,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -2.26,
+    "insideDE": 4.8,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.67,
+     "insideMaxDE": 8.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 4.77,
+     "insideMaxDE": 12.68,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "excess": -4.72,
+    "insideDE": 4.72,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 6.95,
+     "insideMaxDE": 14.91,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 8.53,
+     "insideMaxDE": 15.28,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -7.74,
+    "insideDE": 7.74,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_10",
+   "row": 2,
+   "col": 9,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.5,
+     "insideMaxDE": 18.26,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 5.56,
+     "insideMaxDE": 12.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -3.07,
+    "insideDE": 5.53,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.51,
+     "insideMaxDE": 18.45,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 0.57,
+     "insideMeanDE": 5.39,
+     "insideMaxDE": 12.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.375
+    },
+    "excess": -5.16,
+    "insideDE": 5.45,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 9.84,
+     "insideMaxDE": 23.54,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.76,
+     "insideMeanDE": 9.84,
+     "insideMaxDE": 17.23,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "excess": -9.46,
+    "insideDE": 9.84,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_11",
+   "row": 2,
+   "col": 10,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.3,
+     "insideMaxDE": 11.86,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 4.99,
+     "insideMeanDE": 5.41,
+     "insideMaxDE": 13.99,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.469
+    },
+    "excess": -2.86,
+    "insideDE": 5.36,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 5.29,
+     "insideMaxDE": 11.89,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 0.19,
+     "insideMeanDE": 5.24,
+     "insideMaxDE": 13.99,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.469
+    },
+    "excess": -5.17,
+    "insideDE": 5.27,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 9.32,
+     "insideMaxDE": 16.27,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 9.82,
+     "insideMaxDE": 17.42,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.625
+    },
+    "excess": -9.38,
+    "insideDE": 9.57,
+    "seamless": true
+   },
+   "x": 10,
+   "y": 2
+  },
+  {
+   "id": "grass_leaves_12",
+   "row": 2,
+   "col": 11,
+   "kind": "grass_leaves",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 0.19,
+     "insideMeanDE": 5.55,
+     "insideMaxDE": 14.08,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 4.92,
+     "insideMeanDE": 5.49,
+     "insideMaxDE": 12.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -2.96,
+    "insideDE": 5.52,
+    "seamless": true
+   },
+   "method": "ring",
+   "seam": {
+    "x": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 5.53,
+     "insideMaxDE": 13.93,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 0.38,
+     "insideMeanDE": 5.32,
+     "insideMaxDE": 12.03,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.312
+    },
+    "excess": -5.05,
+    "insideDE": 5.43,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.76,
+     "insideMeanDE": 8.92,
+     "insideMaxDE": 20.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 0.76,
+     "insideMeanDE": 10.04,
+     "insideMaxDE": 16.5,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.5
+    },
+    "excess": -8.72,
+    "insideDE": 9.48,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 2
+  },
+  {
+   "id": "plaza_01",
+   "row": 3,
+   "col": 0,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 19.52,
+     "insideMeanDE": 9.11,
+     "insideMaxDE": 14.92,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 11.78,
+     "insideMeanDE": 9.07,
+     "insideMaxDE": 13.21,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.562
+    },
+    "excess": 6.56,
+    "insideDE": 9.09,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 8.95,
+     "insideMeanDE": 8.41,
+     "insideMaxDE": 16.28,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 7.03,
+     "insideMeanDE": 8.4,
+     "insideMaxDE": 12.65,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.406
+    },
+    "excess": -0.42,
+    "insideDE": 8.41,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 12.99,
+     "insideMeanDE": 11.16,
+     "insideMaxDE": 19.23,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.688
+    },
+    "y": {
+     "wrapDE": 13.34,
+     "insideMeanDE": 12.54,
+     "insideMaxDE": 15.22,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.625
+    },
+    "excess": 1.31,
+    "insideDE": 11.85,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 3
+  },
+  {
+   "id": "plaza_02",
+   "row": 3,
+   "col": 1,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 12.43,
+     "insideMeanDE": 9.03,
+     "insideMaxDE": 15.08,
+     "wrapHard": 0.469,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 17.07,
+     "insideMeanDE": 8.82,
+     "insideMaxDE": 13.5,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.562
+    },
+    "excess": 5.82,
+    "insideDE": 8.93,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.77,
+     "insideMeanDE": 8.95,
+     "insideMaxDE": 15.58,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 10.38,
+     "insideMeanDE": 8.67,
+     "insideMaxDE": 10.82,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.438
+    },
+    "excess": 0.27,
+    "insideDE": 8.81,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.82,
+     "insideMeanDE": 13.69,
+     "insideMaxDE": 21.62,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 15.47,
+     "insideMeanDE": 13.93,
+     "insideMaxDE": 20.14,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.75
+    },
+    "excess": -0.66,
+    "insideDE": 13.81,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 3
+  },
+  {
+   "id": "plaza_03",
+   "row": 3,
+   "col": 2,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 14.87,
+     "insideMeanDE": 8.33,
+     "insideMaxDE": 12.55,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 14.77,
+     "insideMeanDE": 8.45,
+     "insideMaxDE": 12.17,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.406
+    },
+    "excess": 6.43,
+    "insideDE": 8.39,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.93,
+     "insideMeanDE": 7.98,
+     "insideMaxDE": 11.62,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 9.7,
+     "insideMeanDE": 8.32,
+     "insideMaxDE": 11.48,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.438
+    },
+    "excess": 0.16,
+    "insideDE": 8.15,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.26,
+     "insideMeanDE": 11.36,
+     "insideMaxDE": 16.37,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 12.59,
+     "insideMeanDE": 11.46,
+     "insideMaxDE": 16.28,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.812
+    },
+    "excess": -0.48,
+    "insideDE": 11.41,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 3
+  },
+  {
+   "id": "plaza_04",
+   "row": 3,
+   "col": 3,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 15.09,
+     "insideMeanDE": 8.95,
+     "insideMaxDE": 17.28,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 14.54,
+     "insideMeanDE": 8.96,
+     "insideMaxDE": 12.85,
+     "wrapHard": 0.531,
+     "insideMaxHard": 0.438
+    },
+    "excess": 5.86,
+    "insideDE": 8.96,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.18,
+     "insideMeanDE": 8.34,
+     "insideMaxDE": 17.38,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 9.8,
+     "insideMeanDE": 8.36,
+     "insideMaxDE": 11.25,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.469
+    },
+    "excess": -0.36,
+    "insideDE": 8.35,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 6.21,
+     "insideMeanDE": 12.15,
+     "insideMaxDE": 22.97,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 15.2,
+     "insideMeanDE": 11.36,
+     "insideMaxDE": 15.97,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.562
+    },
+    "excess": -1.05,
+    "insideDE": 11.75,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 3
+  },
+  {
+   "id": "plaza_05",
+   "row": 3,
+   "col": 4,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 15.34,
+     "insideMeanDE": 9.59,
+     "insideMaxDE": 16.77,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 16.89,
+     "insideMeanDE": 9.48,
+     "insideMaxDE": 14.39,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.531
+    },
+    "excess": 6.58,
+    "insideDE": 9.54,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.31,
+     "insideMeanDE": 9.26,
+     "insideMaxDE": 15.92,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 10.02,
+     "insideMeanDE": 9.33,
+     "insideMaxDE": 13.04,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.438
+    },
+    "excess": -0.63,
+    "insideDE": 9.29,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.48,
+     "insideMeanDE": 13.48,
+     "insideMaxDE": 23.42,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 14.0,
+     "insideMeanDE": 13.28,
+     "insideMaxDE": 17.84,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.562
+    },
+    "excess": -1.64,
+    "insideDE": 13.38,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 3
+  },
+  {
+   "id": "plaza_06",
+   "row": 3,
+   "col": 5,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.81,
+     "insideMeanDE": 9.25,
+     "insideMaxDE": 17.84,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 14.37,
+     "insideMeanDE": 9.43,
+     "insideMaxDE": 12.94,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.469
+    },
+    "excess": 6.25,
+    "insideDE": 9.34,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.01,
+     "insideMeanDE": 9.09,
+     "insideMaxDE": 18.58,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.688
+    },
+    "y": {
+     "wrapDE": 9.34,
+     "insideMeanDE": 9.1,
+     "insideMaxDE": 12.5,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.469
+    },
+    "excess": -0.92,
+    "insideDE": 9.09,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.0,
+     "insideMeanDE": 13.63,
+     "insideMaxDE": 25.19,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 15.86,
+     "insideMeanDE": 14.38,
+     "insideMaxDE": 19.63,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.688
+    },
+    "excess": -1.58,
+    "insideDE": 14.01,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 3
+  },
+  {
+   "id": "plaza_07",
+   "row": 3,
+   "col": 6,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.17,
+     "insideMeanDE": 8.99,
+     "insideMaxDE": 15.55,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 14.24,
+     "insideMeanDE": 9.04,
+     "insideMaxDE": 16.15,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.625
+    },
+    "excess": 6.19,
+    "insideDE": 9.02,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.77,
+     "insideMeanDE": 8.19,
+     "insideMaxDE": 14.3,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 7.25,
+     "insideMeanDE": 8.18,
+     "insideMaxDE": 11.32,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.438
+    },
+    "excess": -0.67,
+    "insideDE": 8.18,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.59,
+     "insideMeanDE": 11.55,
+     "insideMaxDE": 16.98,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 13.65,
+     "insideMeanDE": 12.31,
+     "insideMaxDE": 15.66,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.625
+    },
+    "excess": -0.31,
+    "insideDE": 11.93,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 3
+  },
+  {
+   "id": "plaza_08",
+   "row": 3,
+   "col": 7,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 14.37,
+     "insideMeanDE": 9.01,
+     "insideMaxDE": 16.26,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 16.54,
+     "insideMeanDE": 9.28,
+     "insideMaxDE": 13.94,
+     "wrapHard": 0.812,
+     "insideMaxHard": 0.406
+    },
+    "excess": 6.31,
+    "insideDE": 9.14,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 9.63,
+     "insideMeanDE": 9.32,
+     "insideMaxDE": 16.25,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 9.06,
+     "insideMeanDE": 9.5,
+     "insideMaxDE": 12.05,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.438
+    },
+    "excess": -0.06,
+    "insideDE": 9.41,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.88,
+     "insideMeanDE": 14.5,
+     "insideMaxDE": 22.82,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.875
+    },
+    "y": {
+     "wrapDE": 12.56,
+     "insideMeanDE": 14.08,
+     "insideMaxDE": 18.67,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.625
+    },
+    "excess": -3.07,
+    "insideDE": 14.29,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 3
+  },
+  {
+   "id": "plaza_09",
+   "row": 3,
+   "col": 8,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.24,
+     "insideMeanDE": 8.83,
+     "insideMaxDE": 17.09,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 14.08,
+     "insideMeanDE": 8.84,
+     "insideMaxDE": 11.57,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.375
+    },
+    "excess": 6.32,
+    "insideDE": 8.84,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.38,
+     "insideMeanDE": 8.58,
+     "insideMaxDE": 17.2,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 8.41,
+     "insideMeanDE": 8.65,
+     "insideMaxDE": 12.0,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.438
+    },
+    "excess": -1.22,
+    "insideDE": 8.62,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 8.13,
+     "insideMeanDE": 14.22,
+     "insideMaxDE": 27.08,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 16.3,
+     "insideMeanDE": 13.46,
+     "insideMaxDE": 17.78,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.75
+    },
+    "excess": -1.62,
+    "insideDE": 13.84,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 3
+  },
+  {
+   "id": "plaza_10",
+   "row": 3,
+   "col": 9,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 17.35,
+     "insideMeanDE": 9.15,
+     "insideMaxDE": 17.05,
+     "wrapHard": 0.812,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 16.82,
+     "insideMeanDE": 9.34,
+     "insideMaxDE": 13.83,
+     "wrapHard": 0.719,
+     "insideMaxHard": 0.438
+    },
+    "excess": 7.84,
+    "insideDE": 9.25,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.81,
+     "insideMeanDE": 8.71,
+     "insideMaxDE": 16.3,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 10.76,
+     "insideMeanDE": 8.83,
+     "insideMaxDE": 13.17,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.469
+    },
+    "excess": 0.52,
+    "insideDE": 8.77,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.16,
+     "insideMeanDE": 12.37,
+     "insideMaxDE": 18.33,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.688
+    },
+    "y": {
+     "wrapDE": 14.44,
+     "insideMeanDE": 13.17,
+     "insideMaxDE": 18.46,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.688
+    },
+    "excess": -0.97,
+    "insideDE": 12.77,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 3
+  },
+  {
+   "id": "plaza_11",
+   "row": 3,
+   "col": 10,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 11.3,
+     "insideMeanDE": 9.61,
+     "insideMaxDE": 16.68,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 16.12,
+     "insideMeanDE": 9.62,
+     "insideMaxDE": 13.54,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.5
+    },
+    "excess": 4.1,
+    "insideDE": 9.61,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.26,
+     "insideMeanDE": 9.38,
+     "insideMaxDE": 16.75,
+     "wrapHard": 0.094,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 9.72,
+     "insideMeanDE": 9.19,
+     "insideMaxDE": 12.22,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.469
+    },
+    "excess": -1.29,
+    "insideDE": 9.29,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.94,
+     "insideMeanDE": 12.73,
+     "insideMaxDE": 20.84,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 14.87,
+     "insideMeanDE": 12.37,
+     "insideMaxDE": 16.36,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.625
+    },
+    "excess": -0.15,
+    "insideDE": 12.55,
+    "seamless": true
+   },
+   "x": 10,
+   "y": 3
+  },
+  {
+   "id": "plaza_12",
+   "row": 3,
+   "col": 11,
+   "kind": "plaza",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 13.4,
+     "insideMeanDE": 9.05,
+     "insideMaxDE": 17.41,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 14.36,
+     "insideMeanDE": 9.29,
+     "insideMaxDE": 12.8,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.438
+    },
+    "excess": 4.71,
+    "insideDE": 9.17,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 5.93,
+     "insideMeanDE": 8.86,
+     "insideMaxDE": 17.8,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 8.97,
+     "insideMeanDE": 8.92,
+     "insideMaxDE": 12.96,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.438
+    },
+    "excess": -1.44,
+    "insideDE": 8.89,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 8.12,
+     "insideMeanDE": 13.32,
+     "insideMaxDE": 24.79,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 15.48,
+     "insideMeanDE": 13.45,
+     "insideMaxDE": 19.14,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.688
+    },
+    "excess": -1.58,
+    "insideDE": 13.38,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 3
+  },
+  {
+   "id": "plaza_mossy_01",
+   "row": 4,
+   "col": 0,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 22.98,
+     "insideMeanDE": 10.67,
+     "insideMaxDE": 17.57,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 12.5,
+     "insideMeanDE": 10.35,
+     "insideMaxDE": 15.68,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.562
+    },
+    "excess": 7.23,
+    "insideDE": 10.51,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 8.98,
+     "insideMeanDE": 9.82,
+     "insideMaxDE": 18.44,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 7.63,
+     "insideMeanDE": 9.55,
+     "insideMaxDE": 15.69,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.5
+    },
+    "excess": -1.38,
+    "insideDE": 9.69,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 14.1,
+     "insideMeanDE": 13.91,
+     "insideMaxDE": 21.54,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 12.06,
+     "insideMeanDE": 14.14,
+     "insideMaxDE": 21.07,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.75
+    },
+    "excess": -0.95,
+    "insideDE": 14.03,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_02",
+   "row": 4,
+   "col": 1,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.21,
+     "insideMeanDE": 9.89,
+     "insideMaxDE": 17.74,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 16.02,
+     "insideMeanDE": 9.79,
+     "insideMaxDE": 12.66,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.406
+    },
+    "excess": 6.28,
+    "insideDE": 9.84,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 5.57,
+     "insideMeanDE": 9.8,
+     "insideMaxDE": 16.09,
+     "wrapHard": 0.156,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 8.68,
+     "insideMeanDE": 10.02,
+     "insideMaxDE": 14.0,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.469
+    },
+    "excess": -2.79,
+    "insideDE": 9.91,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.71,
+     "insideMeanDE": 14.6,
+     "insideMaxDE": 22.2,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.875
+    },
+    "y": {
+     "wrapDE": 16.56,
+     "insideMeanDE": 15.47,
+     "insideMaxDE": 22.09,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.875
+    },
+    "excess": -1.4,
+    "insideDE": 15.04,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_03",
+   "row": 4,
+   "col": 2,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.84,
+     "insideMeanDE": 9.28,
+     "insideMaxDE": 16.05,
+     "wrapHard": 0.719,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 11.49,
+     "insideMeanDE": 9.17,
+     "insideMaxDE": 11.71,
+     "wrapHard": 0.406,
+     "insideMaxHard": 0.438
+    },
+    "excess": 4.94,
+    "insideDE": 9.22,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.13,
+     "insideMeanDE": 9.01,
+     "insideMaxDE": 14.94,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 9.86,
+     "insideMeanDE": 8.97,
+     "insideMaxDE": 14.32,
+     "wrapHard": 0.406,
+     "insideMaxHard": 0.531
+    },
+    "excess": -1.0,
+    "insideDE": 8.99,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 8.25,
+     "insideMeanDE": 13.43,
+     "insideMaxDE": 21.31,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 14.3,
+     "insideMeanDE": 13.34,
+     "insideMaxDE": 19.44,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.688
+    },
+    "excess": -2.11,
+    "insideDE": 13.38,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_04",
+   "row": 4,
+   "col": 3,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.25,
+     "insideMeanDE": 9.83,
+     "insideMaxDE": 18.79,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 10.06,
+     "insideMeanDE": 9.94,
+     "insideMaxDE": 12.94,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.5
+    },
+    "excess": 3.27,
+    "insideDE": 9.88,
+    "seamless": true
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 8.66,
+     "insideMeanDE": 8.91,
+     "insideMaxDE": 17.87,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.719
+    },
+    "y": {
+     "wrapDE": 8.84,
+     "insideMeanDE": 9.25,
+     "insideMaxDE": 13.12,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.438
+    },
+    "excess": -0.33,
+    "insideDE": 9.08,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.88,
+     "insideMeanDE": 13.2,
+     "insideMaxDE": 22.64,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 15.76,
+     "insideMeanDE": 14.44,
+     "insideMaxDE": 21.79,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.812
+    },
+    "excess": -0.5,
+    "insideDE": 13.82,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_05",
+   "row": 4,
+   "col": 4,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.66,
+     "insideMeanDE": 10.25,
+     "insideMaxDE": 18.84,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 14.94,
+     "insideMeanDE": 10.22,
+     "insideMaxDE": 14.85,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.531
+    },
+    "excess": 5.57,
+    "insideDE": 10.23,
+    "seamless": true
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.69,
+     "insideMeanDE": 9.86,
+     "insideMaxDE": 16.82,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 10.56,
+     "insideMeanDE": 9.91,
+     "insideMaxDE": 16.17,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.656
+    },
+    "excess": -1.26,
+    "insideDE": 9.88,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 12.68,
+     "insideMeanDE": 13.65,
+     "insideMaxDE": 24.94,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.938
+    },
+    "y": {
+     "wrapDE": 16.39,
+     "insideMeanDE": 14.02,
+     "insideMaxDE": 21.19,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.812
+    },
+    "excess": 0.7,
+    "insideDE": 13.84,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_06",
+   "row": 4,
+   "col": 5,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 18.67,
+     "insideMeanDE": 9.53,
+     "insideMaxDE": 18.1,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 10.01,
+     "insideMeanDE": 9.63,
+     "insideMaxDE": 12.57,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.5
+    },
+    "excess": 4.76,
+    "insideDE": 9.58,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 5.87,
+     "insideMeanDE": 9.09,
+     "insideMaxDE": 17.8,
+     "wrapHard": 0.156,
+     "insideMaxHard": 0.688
+    },
+    "y": {
+     "wrapDE": 8.61,
+     "insideMeanDE": 9.0,
+     "insideMaxDE": 13.28,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.594
+    },
+    "excess": -1.8,
+    "insideDE": 9.04,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 8.03,
+     "insideMeanDE": 14.29,
+     "insideMaxDE": 21.02,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 16.6,
+     "insideMeanDE": 14.4,
+     "insideMaxDE": 19.1,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.688
+    },
+    "excess": -2.03,
+    "insideDE": 14.34,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_07",
+   "row": 4,
+   "col": 6,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 19.03,
+     "insideMeanDE": 10.29,
+     "insideMaxDE": 18.08,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 14.89,
+     "insideMeanDE": 10.04,
+     "insideMaxDE": 14.46,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.469
+    },
+    "excess": 6.8,
+    "insideDE": 10.16,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 10.4,
+     "insideMeanDE": 9.86,
+     "insideMaxDE": 19.8,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 9.55,
+     "insideMeanDE": 9.66,
+     "insideMaxDE": 14.33,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.531
+    },
+    "excess": 0.22,
+    "insideDE": 9.76,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 12.04,
+     "insideMeanDE": 14.23,
+     "insideMaxDE": 23.19,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 10.92,
+     "insideMeanDE": 14.11,
+     "insideMaxDE": 22.94,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.75
+    },
+    "excess": -2.69,
+    "insideDE": 14.17,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_08",
+   "row": 4,
+   "col": 7,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 17.17,
+     "insideMeanDE": 9.74,
+     "insideMaxDE": 16.79,
+     "wrapHard": 0.75,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 15.54,
+     "insideMeanDE": 9.61,
+     "insideMaxDE": 12.89,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.438
+    },
+    "excess": 6.68,
+    "insideDE": 9.68,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.53,
+     "insideMeanDE": 9.69,
+     "insideMaxDE": 16.37,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 11.17,
+     "insideMeanDE": 9.83,
+     "insideMaxDE": 13.37,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.5
+    },
+    "excess": -0.41,
+    "insideDE": 9.76,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.59,
+     "insideMeanDE": 14.44,
+     "insideMaxDE": 20.62,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.938
+    },
+    "y": {
+     "wrapDE": 16.98,
+     "insideMeanDE": 15.5,
+     "insideMaxDE": 22.88,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.75
+    },
+    "excess": -1.18,
+    "insideDE": 14.97,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_09",
+   "row": 4,
+   "col": 8,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.31,
+     "insideMeanDE": 9.62,
+     "insideMaxDE": 18.09,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.719
+    },
+    "y": {
+     "wrapDE": 10.93,
+     "insideMeanDE": 9.67,
+     "insideMaxDE": 12.15,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.5
+    },
+    "excess": 3.97,
+    "insideDE": 9.64,
+    "seamless": true
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.54,
+     "insideMeanDE": 9.64,
+     "insideMaxDE": 16.92,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.656
+    },
+    "y": {
+     "wrapDE": 9.71,
+     "insideMeanDE": 9.61,
+     "insideMaxDE": 14.43,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.562
+    },
+    "excess": -1.5,
+    "insideDE": 9.62,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.5,
+     "insideMeanDE": 14.12,
+     "insideMaxDE": 23.46,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 16.09,
+     "insideMeanDE": 14.03,
+     "insideMaxDE": 22.49,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.875
+    },
+    "excess": -0.78,
+    "insideDE": 14.07,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_10",
+   "row": 4,
+   "col": 9,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 17.7,
+     "insideMeanDE": 9.45,
+     "insideMaxDE": 17.28,
+     "wrapHard": 0.781,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 12.4,
+     "insideMeanDE": 9.38,
+     "insideMaxDE": 12.55,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.406
+    },
+    "excess": 5.64,
+    "insideDE": 9.41,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.51,
+     "insideMeanDE": 9.33,
+     "insideMaxDE": 16.49,
+     "wrapHard": 0.188,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 8.88,
+     "insideMeanDE": 9.34,
+     "insideMaxDE": 12.65,
+     "wrapHard": 0.281,
+     "insideMaxHard": 0.406
+    },
+    "excess": -1.14,
+    "insideDE": 9.34,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 10.05,
+     "insideMeanDE": 13.64,
+     "insideMaxDE": 20.9,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.688
+    },
+    "y": {
+     "wrapDE": 16.02,
+     "insideMeanDE": 14.52,
+     "insideMaxDE": 20.89,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.812
+    },
+    "excess": -1.04,
+    "insideDE": 14.08,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_11",
+   "row": 4,
+   "col": 10,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 11.96,
+     "insideMeanDE": 9.73,
+     "insideMaxDE": 16.98,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.562
+    },
+    "y": {
+     "wrapDE": 12.4,
+     "insideMeanDE": 9.77,
+     "insideMaxDE": 13.39,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.469
+    },
+    "excess": 2.43,
+    "insideDE": 9.75,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 6.21,
+     "insideMeanDE": 9.57,
+     "insideMaxDE": 17.16,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 9.67,
+     "insideMeanDE": 9.38,
+     "insideMaxDE": 13.41,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.469
+    },
+    "excess": -1.54,
+    "insideDE": 9.48,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 9.44,
+     "insideMeanDE": 14.58,
+     "insideMaxDE": 25.91,
+     "wrapHard": 0.25,
+     "insideMaxHard": 0.812
+    },
+    "y": {
+     "wrapDE": 21.46,
+     "insideMeanDE": 14.03,
+     "insideMaxDE": 20.38,
+     "wrapHard": 0.75,
+     "insideMaxHard": 0.812
+    },
+    "excess": 1.14,
+    "insideDE": 14.3,
+    "seamless": false
+   },
+   "x": 10,
+   "y": 4
+  },
+  {
+   "id": "plaza_mossy_12",
+   "row": 4,
+   "col": 11,
+   "kind": "plaza_mossy",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 15.74,
+     "insideMeanDE": 9.53,
+     "insideMaxDE": 17.16,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 10.95,
+     "insideMeanDE": 9.83,
+     "insideMaxDE": 13.33,
+     "wrapHard": 0.344,
+     "insideMaxHard": 0.406
+    },
+    "excess": 3.66,
+    "insideDE": 9.68,
+    "seamless": true
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 7.46,
+     "insideMeanDE": 9.13,
+     "insideMaxDE": 16.97,
+     "wrapHard": 0.312,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 9.61,
+     "insideMeanDE": 9.39,
+     "insideMaxDE": 13.15,
+     "wrapHard": 0.219,
+     "insideMaxHard": 0.438
+    },
+    "excess": -0.73,
+    "insideDE": 9.26,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 11.48,
+     "insideMeanDE": 13.41,
+     "insideMaxDE": 23.24,
+     "wrapHard": 0.562,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 13.23,
+     "insideMeanDE": 14.6,
+     "insideMaxDE": 19.31,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.688
+    },
+    "excess": -1.65,
+    "insideDE": 14.0,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 4
+  },
+  {
+   "id": "dirt_01",
+   "row": 5,
+   "col": 0,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 3.62,
+     "insideMeanDE": 1.03,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 5.43,
+     "insideMeanDE": 1.13,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 3.45,
+    "insideDE": 1.08,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 0.78,
+     "insideMeanDE": 1.09,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.23,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.26,
+    "insideDE": 1.16,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 2.17,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 2.14,
+     "insideMaxDE": 4.65,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.35,
+    "insideDE": 2.16,
+    "seamless": true
+   },
+   "x": 0,
+   "y": 5
+  },
+  {
+   "id": "dirt_02",
+   "row": 5,
+   "col": 1,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 2.95,
+     "insideMeanDE": 0.97,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.031
+    },
+    "y": {
+     "wrapDE": 4.59,
+     "insideMeanDE": 1.07,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.031
+    },
+    "excess": 2.75,
+    "insideDE": 1.02,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 0.78,
+     "insideMeanDE": 1.02,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.031
+    },
+    "y": {
+     "wrapDE": 1.81,
+     "insideMeanDE": 1.0,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.031
+    },
+    "excess": 0.28,
+    "insideDE": 1.01,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.59,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 3.1,
+     "insideMeanDE": 1.86,
+     "insideMaxDE": 4.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.34,
+    "insideDE": 1.73,
+    "seamless": true
+   },
+   "x": 1,
+   "y": 5
+  },
+  {
+   "id": "dirt_03",
+   "row": 5,
+   "col": 2,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 2.33,
+     "insideMeanDE": 0.9,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.14,
+     "insideMeanDE": 1.01,
+     "insideMaxDE": 3.88,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 2.28,
+    "insideDE": 0.96,
+    "seamless": true
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 0.71,
+     "insideMeanDE": 0.91,
+     "insideMaxDE": 1.81,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 1.0,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.34,
+    "insideDE": 0.96,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 1.69,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.72,
+     "insideMaxDE": 4.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.93,
+    "insideDE": 1.71,
+    "seamless": true
+   },
+   "x": 2,
+   "y": 5
+  },
+  {
+   "id": "dirt_04",
+   "row": 5,
+   "col": 3,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 3.36,
+     "insideMeanDE": 0.99,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.65,
+     "insideMeanDE": 0.96,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 3.03,
+    "insideDE": 0.97,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 1.01,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 0.96,
+     "insideMaxDE": 2.84,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.31,
+    "insideDE": 0.98,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 2.59,
+     "insideMeanDE": 1.69,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.59,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.17,
+    "insideDE": 1.64,
+    "seamless": true
+   },
+   "x": 3,
+   "y": 5
+  },
+  {
+   "id": "dirt_05",
+   "row": 5,
+   "col": 4,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 3.34,
+     "insideMeanDE": 0.92,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.85,
+     "insideMeanDE": 0.94,
+     "insideMaxDE": 2.97,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 3.17,
+    "insideDE": 0.93,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 0.9,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 0.92,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.38,
+    "insideDE": 0.91,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.66,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 1.76,
+     "insideMaxDE": 4.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.42,
+    "insideDE": 1.71,
+    "seamless": true
+   },
+   "x": 4,
+   "y": 5
+  },
+  {
+   "id": "dirt_06",
+   "row": 5,
+   "col": 5,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.05,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 3.88,
+     "insideMeanDE": 0.99,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 1.95,
+    "insideDE": 1.02,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 0.94,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 0.93,
+     "insideMaxDE": 1.81,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.23,
+    "insideDE": 0.94,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.52,
+     "insideMaxDE": 2.59,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.72,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.07,
+    "insideDE": 1.62,
+    "seamless": true
+   },
+   "x": 5,
+   "y": 5
+  },
+  {
+   "id": "dirt_07",
+   "row": 5,
+   "col": 6,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 1.22,
+     "insideMeanDE": 0.94,
+     "insideMaxDE": 1.81,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.33,
+     "insideMeanDE": 0.95,
+     "insideMaxDE": 1.81,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 1.83,
+    "insideDE": 0.94,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 1.03,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 1.03,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.12,
+    "insideDE": 1.03,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.79,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 2.0,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.35,
+    "insideDE": 1.9,
+    "seamless": true
+   },
+   "x": 6,
+   "y": 5
+  },
+  {
+   "id": "dirt_08",
+   "row": 5,
+   "col": 7,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 4.83,
+     "insideMeanDE": 0.96,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.83,
+     "insideMeanDE": 0.97,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.0
+    },
+    "excess": 3.87,
+    "insideDE": 0.96,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.0,
+     "insideMaxDE": 2.84,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 1.08,
+     "insideMaxDE": 2.59,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.12,
+    "insideDE": 1.04,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 1.69,
+     "insideMaxDE": 4.65,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.52,
+     "insideMaxDE": 4.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.21,
+    "insideDE": 1.6,
+    "seamless": true
+   },
+   "x": 7,
+   "y": 5
+  },
+  {
+   "id": "dirt_09",
+   "row": 5,
+   "col": 8,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 5.17,
+     "insideMeanDE": 1.07,
+     "insideMaxDE": 2.59,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 4.4,
+     "insideMeanDE": 1.14,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 3.68,
+    "insideDE": 1.1,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 2.59,
+     "insideMeanDE": 1.02,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 1.18,
+     "insideMaxDE": 2.84,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.45,
+    "insideDE": 1.1,
+    "seamless": false
+   },
+   "usable": false,
+   "seam16": {
+    "x": {
+     "wrapDE": 2.59,
+     "insideMeanDE": 1.48,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 1.93,
+     "insideMaxDE": 3.62,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.41,
+    "insideDE": 1.71,
+    "seamless": true
+   },
+   "x": 8,
+   "y": 5
+  },
+  {
+   "id": "dirt_10",
+   "row": 5,
+   "col": 9,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 1.48,
+     "insideMeanDE": 0.93,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.031
+    },
+    "y": {
+     "wrapDE": 5.35,
+     "insideMeanDE": 0.99,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.031,
+     "insideMaxHard": 0.0
+    },
+    "excess": 2.46,
+    "insideDE": 0.96,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 0.71,
+     "insideMeanDE": 0.97,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.031
+    },
+    "y": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 0.92,
+     "insideMaxDE": 2.0,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.05,
+    "insideDE": 0.95,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.0,
+     "insideMeanDE": 1.66,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.59,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.59,
+    "insideDE": 1.62,
+    "seamless": true
+   },
+   "x": 9,
+   "y": 5
+  },
+  {
+   "id": "dirt_11",
+   "row": 5,
+   "col": 10,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 1.29,
+     "insideMeanDE": 0.83,
+     "insideMaxDE": 1.81,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 5.69,
+     "insideMeanDE": 0.97,
+     "insideMaxDE": 3.36,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 2.59,
+    "insideDE": 0.9,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 0.78,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 0.78,
+     "insideMeanDE": 0.83,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.1,
+    "insideDE": 0.8,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 2.07,
+     "insideMeanDE": 1.24,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.52,
+     "insideMaxDE": 4.14,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 0.17,
+    "insideDE": 1.38,
+    "seamless": true
+   },
+   "x": 10,
+   "y": 5
+  },
+  {
+   "id": "dirt_12",
+   "row": 5,
+   "col": 11,
+   "kind": "dirt",
+   "fill": true,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 4.4,
+     "insideMeanDE": 0.82,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 2.59,
+     "insideMeanDE": 0.91,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": 2.63,
+    "insideDE": 0.86,
+    "seamless": false
+   },
+   "method": "heal",
+   "seam": {
+    "x": {
+     "wrapDE": 0.26,
+     "insideMeanDE": 0.9,
+     "insideMaxDE": 2.07,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.03,
+     "insideMeanDE": 1.01,
+     "insideMaxDE": 2.33,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.31,
+    "insideDE": 0.96,
+    "seamless": true
+   },
+   "usable": true,
+   "seam16": {
+    "x": {
+     "wrapDE": 0.52,
+     "insideMeanDE": 1.48,
+     "insideMaxDE": 3.1,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "y": {
+     "wrapDE": 1.55,
+     "insideMeanDE": 1.55,
+     "insideMaxDE": 2.59,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.0
+    },
+    "excess": -0.48,
+    "insideDE": 1.52,
+    "seamless": true
+   },
+   "x": 11,
+   "y": 5
+  },
+  {
+   "id": "plaza_edge_01",
+   "row": 6,
+   "col": 0,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 8.09,
+     "insideMeanDE": 6.84,
+     "insideMaxDE": 10.46,
+     "wrapHard": 0.375,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 38.04,
+     "insideMeanDE": 6.7,
+     "insideMaxDE": 18.94,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.75
+    },
+    "excess": 16.29,
+    "insideDE": 6.77,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "edge",
+   "name": "edge_N",
+   "sides": {
+    "N": 1.0,
+    "S": 0.0,
+    "W": 0.5,
+    "E": 0.48
+   },
+   "state": {
+    "N": "other",
+    "S": "grass",
+    "W": "mixed",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.93,
+    "NE": 0.95,
+    "SW": 0.0,
+    "SE": 0.0
+   },
+   "otherFraction": 0.47,
+   "joins": {
+    "N": {
+     "state": "other",
+     "fillDE": 11.04,
+     "limit": 12.13,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_11",
+     "mateDE": 7.84,
+     "mateLimit": 12.13
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_01",
+     "mateDE": 8.26,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 0,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_02",
+   "row": 6,
+   "col": 1,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 35.23,
+     "insideMeanDE": 6.39,
+     "insideMaxDE": 22.04,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.781
+    },
+    "y": {
+     "wrapDE": 8.45,
+     "insideMeanDE": 5.68,
+     "insideMaxDE": 7.66,
+     "wrapHard": 0.156,
+     "insideMaxHard": 0.312
+    },
+    "excess": 15.8,
+    "insideDE": 6.04,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "edge",
+   "name": "edge_E",
+   "sides": {
+    "N": 0.44,
+    "S": 0.49,
+    "W": 0.0,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "grass",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.87,
+    "SW": 0.0,
+    "SE": 0.96
+   },
+   "otherFraction": 0.46,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_11",
+     "mateDE": 8.58,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 10.67,
+     "limit": 12.13,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_12",
+     "mateDE": 5.7,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 1,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_03",
+   "row": 6,
+   "col": 2,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 12.27,
+     "insideMeanDE": 7.25,
+     "insideMaxDE": 10.94,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.406
+    },
+    "y": {
+     "wrapDE": 30.87,
+     "insideMeanDE": 7.19,
+     "insideMaxDE": 16.99,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.656
+    },
+    "excess": 14.35,
+    "insideDE": 7.22,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "edge",
+   "name": "edge_S",
+   "sides": {
+    "N": 0.0,
+    "S": 1.0,
+    "W": 0.43,
+    "E": 0.5
+   },
+   "state": {
+    "N": "grass",
+    "S": "other",
+    "W": "mixed",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.0,
+    "SW": 0.89,
+    "SE": 0.93
+   },
+   "otherFraction": 0.45,
+   "joins": {
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_03",
+     "mateDE": 7.03,
+     "mateLimit": 12.13
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 12.49,
+     "limit": 12.13,
+     "ok": false
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_03",
+     "mateDE": 7.03,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": false,
+   "x": 2,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_04",
+   "row": 6,
+   "col": 3,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 26.17,
+     "insideMeanDE": 7.23,
+     "insideMaxDE": 21.45,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.781
+    },
+    "y": {
+     "wrapDE": 11.2,
+     "insideMeanDE": 6.38,
+     "insideMaxDE": 9.22,
+     "wrapHard": 0.438,
+     "insideMaxHard": 0.281
+    },
+    "excess": 11.88,
+    "insideDE": 6.8,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "edge",
+   "name": "edge_W",
+   "sides": {
+    "N": 0.43,
+    "S": 0.5,
+    "W": 1.0,
+    "E": 0.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "other",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.89,
+    "NE": 0.0,
+    "SW": 0.93,
+    "SE": 0.0
+   },
+   "otherFraction": 0.45,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_04",
+     "mateDE": 9.36,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_10",
+     "mateDE": 5.73,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 12.22,
+     "limit": 12.13,
+     "ok": false
+    }
+   },
+   "joinsOK": false,
+   "x": 3,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_05",
+   "row": 6,
+   "col": 4,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 18.58,
+     "insideMeanDE": 6.11,
+     "insideMaxDE": 11.13,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.469
+    },
+    "y": {
+     "wrapDE": 20.44,
+     "insideMeanDE": 5.3,
+     "insideMaxDE": 9.46,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.312
+    },
+    "excess": 13.8,
+    "insideDE": 5.71,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "outer",
+   "name": "outer_NW",
+   "sides": {
+    "N": 0.56,
+    "S": 0.0,
+    "W": 0.6,
+    "E": 0.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "grass",
+    "W": "mixed",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.95,
+    "NE": 0.06,
+    "SW": 0.1,
+    "SE": 0.0
+   },
+   "otherFraction": 0.28,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_04",
+     "mateDE": 10.6,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_06",
+     "mateDE": 8.35,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 4,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_06",
+   "row": 6,
+   "col": 5,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 20.63,
+     "insideMeanDE": 5.53,
+     "insideMaxDE": 9.72,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 27.05,
+     "insideMeanDE": 4.9,
+     "insideMaxDE": 10.23,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.375
+    },
+    "excess": 18.62,
+    "insideDE": 5.21,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "outer",
+   "name": "outer_NE",
+   "sides": {
+    "N": 0.62,
+    "S": 0.0,
+    "W": 0.0,
+    "E": 0.58
+   },
+   "state": {
+    "N": "mixed",
+    "S": "grass",
+    "W": "grass",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.1,
+    "NE": 0.95,
+    "SW": 0.0,
+    "SE": 0.07
+   },
+   "otherFraction": 0.28,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_02",
+     "mateDE": 10.74,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_05",
+     "mateDE": 8.35,
+     "mateLimit": 12.13
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 5,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_07",
+   "row": 6,
+   "col": 6,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 16.9,
+     "insideMeanDE": 5.79,
+     "insideMaxDE": 11.79,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 20.31,
+     "insideMeanDE": 5.16,
+     "insideMaxDE": 10.03,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.406
+    },
+    "excess": 13.13,
+    "insideDE": 5.47,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "outer",
+   "name": "outer_SW",
+   "sides": {
+    "N": 0.0,
+    "S": 0.66,
+    "W": 0.56,
+    "E": 0.0
+   },
+   "state": {
+    "N": "grass",
+    "S": "mixed",
+    "W": "mixed",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.07,
+    "NE": 0.0,
+    "SW": 0.96,
+    "SE": 0.16
+   },
+   "otherFraction": 0.3,
+   "joins": {
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_05",
+     "mateDE": 11.9,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_03",
+     "mateDE": 10.1,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 6,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_08",
+   "row": 6,
+   "col": 7,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 30.37,
+     "insideMeanDE": 7.31,
+     "insideMaxDE": 14.81,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 22.03,
+     "insideMeanDE": 6.56,
+     "insideMaxDE": 11.21,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.375
+    },
+    "excess": 19.27,
+    "insideDE": 6.93,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "edge",
+   "name": "edge_W",
+   "sides": {
+    "N": 0.29,
+    "S": 0.91,
+    "W": 1.0,
+    "E": 0.01
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "other",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.71,
+    "NE": 0.0,
+    "SW": 1.0,
+    "SE": 0.41
+   },
+   "otherFraction": 0.53,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_01",
+     "mateDE": 10.01,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.93,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_01",
+     "mateDE": 13.93,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 8.67,
+     "limit": 12.13,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 7,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_09",
+   "row": 6,
+   "col": 8,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 27.37,
+     "insideMeanDE": 8.74,
+     "insideMaxDE": 15.52,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.625
+    },
+    "y": {
+     "wrapDE": 23.24,
+     "insideMeanDE": 8.5,
+     "insideMaxDE": 14.66,
+     "wrapHard": 0.875,
+     "insideMaxHard": 0.5
+    },
+    "excess": 16.68,
+    "insideDE": 8.62,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "inner",
+   "name": "inner_NW",
+   "sides": {
+    "N": 0.54,
+    "S": 1.0,
+    "W": 0.51,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.21,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.8,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_11",
+     "mateDE": 8.02,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 8.59,
+     "limit": 12.13,
+     "ok": true
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 10.91,
+     "limit": 12.13,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_10",
+     "mateDE": 8.4,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 8,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_10",
+   "row": 6,
+   "col": 9,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 21.07,
+     "insideMeanDE": 8.91,
+     "insideMaxDE": 14.08,
+     "wrapHard": 0.719,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 20.81,
+     "insideMeanDE": 8.84,
+     "insideMaxDE": 13.86,
+     "wrapHard": 0.812,
+     "insideMaxHard": 0.469
+    },
+    "excess": 12.06,
+    "insideDE": 8.88,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "inner",
+   "name": "inner_NE",
+   "sides": {
+    "N": 0.52,
+    "S": 1.0,
+    "W": 1.0,
+    "E": 0.54
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "other",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 0.29,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.82,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_04",
+     "mateDE": 5.73,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_12",
+     "mateDE": 7.75,
+     "mateLimit": 12.13
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 10.67,
+     "limit": 12.13,
+     "ok": true
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 10.46,
+     "limit": 12.13,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 9,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_11",
+   "row": 6,
+   "col": 10,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 22.18,
+     "insideMeanDE": 8.77,
+     "insideMaxDE": 14.73,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.5
+    },
+    "y": {
+     "wrapDE": 21.85,
+     "insideMeanDE": 8.66,
+     "insideMaxDE": 15.07,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.562
+    },
+    "excess": 13.3,
+    "insideDE": 8.71,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "inner",
+   "name": "inner_SW",
+   "sides": {
+    "N": 1.0,
+    "S": 0.48,
+    "W": 0.53,
+    "E": 1.0
+   },
+   "state": {
+    "N": "other",
+    "S": "mixed",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 1.0,
+    "SW": 0.14,
+    "SE": 0.99
+   },
+   "otherFraction": 0.78,
+   "joins": {
+    "N": {
+     "state": "other",
+     "fillDE": 11.6,
+     "limit": 12.13,
+     "ok": true
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 13.84,
+     "limit": 12.13,
+     "ok": false
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_09",
+     "mateDE": 8.02,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_01",
+     "mateDE": 7.84,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": false,
+   "x": 10,
+   "y": 6
+  },
+  {
+   "id": "plaza_edge_12",
+   "row": 6,
+   "col": 11,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 21.47,
+     "insideMeanDE": 8.31,
+     "insideMaxDE": 15.76,
+     "wrapHard": 0.719,
+     "insideMaxHard": 0.531
+    },
+    "y": {
+     "wrapDE": 20.28,
+     "insideMeanDE": 8.32,
+     "insideMaxDE": 14.77,
+     "wrapHard": 0.844,
+     "insideMaxHard": 0.469
+    },
+    "excess": 12.56,
+    "insideDE": 8.32,
+    "seamless": false
+   },
+   "material": "plaza",
+   "shape": "inner",
+   "name": "inner_NW",
+   "sides": {
+    "N": 0.53,
+    "S": 1.0,
+    "W": 0.5,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.2,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.8,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "plaza_edge_02",
+     "mateDE": 5.7,
+     "mateLimit": 12.13
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 8.7,
+     "limit": 12.13,
+     "ok": true
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 10.7,
+     "limit": 12.13,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "plaza_edge_10",
+     "mateDE": 7.75,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 11,
+   "y": 6
+  },
+  {
+   "id": "dirt_edge_01",
+   "row": 7,
+   "col": 0,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 3.01,
+     "insideMeanDE": 3.96,
+     "insideMaxDE": 7.82,
+     "wrapHard": 0.0,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 39.04,
+     "insideMeanDE": 3.54,
+     "insideMaxDE": 20.3,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.844
+    },
+    "excess": 17.27,
+    "insideDE": 3.75,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "edge",
+   "name": "edge_N",
+   "sides": {
+    "N": 1.0,
+    "S": 0.0,
+    "W": 0.5,
+    "E": 0.5
+   },
+   "state": {
+    "N": "other",
+    "S": "grass",
+    "W": "mixed",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.95,
+    "NE": 0.95,
+    "SW": 0.0,
+    "SE": 0.0
+   },
+   "otherFraction": 0.47,
+   "joins": {
+    "N": {
+     "state": "other",
+     "fillDE": 2.84,
+     "limit": 3.99,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 2.34,
+     "mateLimit": 3.99
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_01",
+     "mateDE": 3.24,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 0,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_02",
+   "row": 7,
+   "col": 1,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 38.25,
+     "insideMeanDE": 3.68,
+     "insideMaxDE": 16.42,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.594
+    },
+    "y": {
+     "wrapDE": 6.31,
+     "insideMeanDE": 3.18,
+     "insideMaxDE": 5.38,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.188
+    },
+    "excess": 18.85,
+    "insideDE": 3.43,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "edge",
+   "name": "edge_E",
+   "sides": {
+    "N": 0.44,
+    "S": 0.49,
+    "W": 0.0,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "grass",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.86,
+    "SW": 0.0,
+    "SE": 0.96
+   },
+   "otherFraction": 0.45,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 3.61,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 2.84,
+     "limit": 3.99,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_02",
+     "mateDE": 4.11,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 1,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_03",
+   "row": 7,
+   "col": 2,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 5.27,
+     "insideMeanDE": 3.6,
+     "insideMaxDE": 6.34,
+     "wrapHard": 0.125,
+     "insideMaxHard": 0.219
+    },
+    "y": {
+     "wrapDE": 38.18,
+     "insideMeanDE": 3.65,
+     "insideMaxDE": 16.67,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.656
+    },
+    "excess": 18.1,
+    "insideDE": 3.62,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "edge",
+   "name": "edge_S",
+   "sides": {
+    "N": 0.0,
+    "S": 1.0,
+    "W": 0.44,
+    "E": 0.5
+   },
+   "state": {
+    "N": "grass",
+    "S": "other",
+    "W": "mixed",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.0,
+    "SW": 0.88,
+    "SE": 0.92
+   },
+   "otherFraction": 0.45,
+   "joins": {
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_12",
+     "mateDE": 2.85,
+     "mateLimit": 3.99
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 2.07,
+     "limit": 3.99,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_03",
+     "mateDE": 4.24,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 2,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_04",
+   "row": 7,
+   "col": 3,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 35.5,
+     "insideMeanDE": 4.02,
+     "insideMaxDE": 18.48,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.75
+    },
+    "y": {
+     "wrapDE": 6.0,
+     "insideMeanDE": 3.24,
+     "insideMaxDE": 5.74,
+     "wrapHard": 0.094,
+     "insideMaxHard": 0.156
+    },
+    "excess": 17.12,
+    "insideDE": 3.63,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "edge",
+   "name": "edge_W",
+   "sides": {
+    "N": 0.43,
+    "S": 0.47,
+    "W": 1.0,
+    "E": 0.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "other",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.89,
+    "NE": 0.0,
+    "SW": 0.91,
+    "SE": 0.0
+   },
+   "otherFraction": 0.45,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_04",
+     "mateDE": 4.83,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_10",
+     "mateDE": 4.69,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 2.33,
+     "limit": 3.99,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 3,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_05",
+   "row": 7,
+   "col": 4,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 22.19,
+     "insideMeanDE": 4.25,
+     "insideMaxDE": 10.93,
+     "wrapHard": 0.656,
+     "insideMaxHard": 0.438
+    },
+    "y": {
+     "wrapDE": 22.91,
+     "insideMeanDE": 3.46,
+     "insideMaxDE": 7.93,
+     "wrapHard": 0.594,
+     "insideMaxHard": 0.281
+    },
+    "excess": 18.7,
+    "insideDE": 3.85,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "outer",
+   "name": "outer_NW",
+   "sides": {
+    "N": 0.56,
+    "S": 0.0,
+    "W": 0.6,
+    "E": 0.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "grass",
+    "W": "mixed",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.96,
+    "NE": 0.06,
+    "SW": 0.1,
+    "SE": 0.0
+   },
+   "otherFraction": 0.28,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_07",
+     "mateDE": 7.53,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_06",
+     "mateDE": 3.51,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 4,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_06",
+   "row": 7,
+   "col": 5,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 23.04,
+     "insideMeanDE": 4.06,
+     "insideMaxDE": 8.68,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 27.94,
+     "insideMeanDE": 3.35,
+     "insideMaxDE": 8.29,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.344
+    },
+    "excess": 21.79,
+    "insideDE": 3.71,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "outer",
+   "name": "outer_NE",
+   "sides": {
+    "N": 0.62,
+    "S": 0.0,
+    "W": 0.0,
+    "E": 0.56
+   },
+   "state": {
+    "N": "mixed",
+    "S": "grass",
+    "W": "grass",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.1,
+    "NE": 0.94,
+    "SW": 0.0,
+    "SE": 0.08
+   },
+   "otherFraction": 0.28,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_02",
+     "mateDE": 9.37,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_05",
+     "mateDE": 3.51,
+     "mateLimit": 3.99
+    },
+    "S": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 5,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_07",
+   "row": 7,
+   "col": 6,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 22.74,
+     "insideMeanDE": 3.81,
+     "insideMaxDE": 8.91,
+     "wrapHard": 0.625,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 25.29,
+     "insideMeanDE": 3.18,
+     "insideMaxDE": 9.56,
+     "wrapHard": 0.688,
+     "insideMaxHard": 0.375
+    },
+    "excess": 20.52,
+    "insideDE": 3.5,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "outer",
+   "name": "outer_SW",
+   "sides": {
+    "N": 0.0,
+    "S": 0.68,
+    "W": 0.56,
+    "E": 0.0
+   },
+   "state": {
+    "N": "grass",
+    "S": "mixed",
+    "W": "mixed",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.05,
+    "NE": 0.0,
+    "SW": 0.95,
+    "SE": 0.17
+   },
+   "otherFraction": 0.29,
+   "joins": {
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_05",
+     "mateDE": 7.53,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_10",
+     "mateDE": 4.51,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 6,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_08",
+   "row": 7,
+   "col": 7,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 36.7,
+     "insideMeanDE": 3.8,
+     "insideMaxDE": 7.28,
+     "wrapHard": 1.0,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 25.12,
+     "insideMeanDE": 3.11,
+     "insideMaxDE": 6.04,
+     "wrapHard": 0.719,
+     "insideMaxHard": 0.188
+    },
+    "excess": 27.46,
+    "insideDE": 3.46,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "edge",
+   "name": "edge_W",
+   "sides": {
+    "N": 0.26,
+    "S": 0.92,
+    "W": 1.0,
+    "E": 0.01
+   },
+   "state": {
+    "N": "mixed",
+    "S": "mixed",
+    "W": "other",
+    "E": "grass"
+   },
+   "quadrants": {
+    "NW": 0.69,
+    "NE": 0.0,
+    "SW": 1.0,
+    "SE": 0.42
+   },
+   "otherFraction": 0.53,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_04",
+     "mateDE": 10.17,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "grass",
+     "fillDE": 0.98,
+     "limit": 6.97,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 5.15,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 2.07,
+     "limit": 3.99,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 7,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_09",
+   "row": 7,
+   "col": 8,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 20.74,
+     "insideMeanDE": 2.57,
+     "insideMaxDE": 7.13,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.281
+    },
+    "y": {
+     "wrapDE": 19.98,
+     "insideMeanDE": 2.45,
+     "insideMaxDE": 6.77,
+     "wrapHard": 0.531,
+     "insideMaxHard": 0.281
+    },
+    "excess": 17.85,
+    "insideDE": 2.51,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "inner",
+   "name": "inner_NW",
+   "sides": {
+    "N": 0.53,
+    "S": 1.0,
+    "W": 0.5,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.18,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.79,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 3.11,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 2.59,
+     "limit": 3.99,
+     "ok": true
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 0.26,
+     "limit": 3.99,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_10",
+     "mateDE": 2.91,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 8,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_10",
+   "row": 7,
+   "col": 9,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 18.4,
+     "insideMeanDE": 2.52,
+     "insideMaxDE": 7.27,
+     "wrapHard": 0.469,
+     "insideMaxHard": 0.25
+    },
+    "y": {
+     "wrapDE": 19.84,
+     "insideMeanDE": 2.41,
+     "insideMaxDE": 6.87,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.219
+    },
+    "excess": 16.65,
+    "insideDE": 2.46,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "inner",
+   "name": "inner_NE",
+   "sides": {
+    "N": 0.52,
+    "S": 1.0,
+    "W": 1.0,
+    "E": 0.56
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "other",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 0.27,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.82,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_04",
+     "mateDE": 4.69,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_12",
+     "mateDE": 2.13,
+     "mateLimit": 3.99
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 0.26,
+     "limit": 3.99,
+     "ok": true
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 1.55,
+     "limit": 3.99,
+     "ok": true
+    }
+   },
+   "joinsOK": true,
+   "x": 9,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_11",
+   "row": 7,
+   "col": 10,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 18.88,
+     "insideMeanDE": 3.02,
+     "insideMaxDE": 10.49,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.344
+    },
+    "y": {
+     "wrapDE": 19.74,
+     "insideMeanDE": 2.56,
+     "insideMaxDE": 7.54,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.219
+    },
+    "excess": 16.52,
+    "insideDE": 2.79,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "inner",
+   "name": "inner_SW",
+   "sides": {
+    "N": 1.0,
+    "S": 0.49,
+    "W": 0.53,
+    "E": 1.0
+   },
+   "state": {
+    "N": "other",
+    "S": "mixed",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 1.0,
+    "SW": 0.15,
+    "SE": 0.99
+   },
+   "otherFraction": 0.79,
+   "joins": {
+    "N": {
+     "state": "other",
+     "fillDE": 1.03,
+     "limit": 3.99,
+     "ok": true
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 0.78,
+     "limit": 3.99,
+     "ok": true
+    },
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_12",
+     "mateDE": 2.65,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_01",
+     "mateDE": 2.34,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 10,
+   "y": 7
+  },
+  {
+   "id": "dirt_edge_12",
+   "row": 7,
+   "col": 11,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": false,
+   "seamAsDrawn": {
+    "x": {
+     "wrapDE": 18.75,
+     "insideMeanDE": 2.5,
+     "insideMaxDE": 9.75,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.375
+    },
+    "y": {
+     "wrapDE": 19.78,
+     "insideMeanDE": 2.5,
+     "insideMaxDE": 8.93,
+     "wrapHard": 0.5,
+     "insideMaxHard": 0.312
+    },
+    "excess": 16.77,
+    "insideDE": 2.5,
+    "seamless": false
+   },
+   "material": "dirt",
+   "shape": "inner",
+   "name": "inner_NW",
+   "sides": {
+    "N": 0.53,
+    "S": 1.0,
+    "W": 0.5,
+    "E": 1.0
+   },
+   "state": {
+    "N": "mixed",
+    "S": "other",
+    "W": "mixed",
+    "E": "other"
+   },
+   "quadrants": {
+    "NW": 0.17,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 1.0
+   },
+   "otherFraction": 0.79,
+   "joins": {
+    "N": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 2.65,
+     "mateLimit": 3.99
+    },
+    "E": {
+     "state": "other",
+     "fillDE": 1.81,
+     "limit": 3.99,
+     "ok": true
+    },
+    "S": {
+     "state": "other",
+     "fillDE": 2.07,
+     "limit": 3.99,
+     "ok": true
+    },
+    "W": {
+     "state": "mixed",
+     "mate": "dirt_edge_10",
+     "mateDE": 2.13,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 11,
+   "y": 7
+  },
+  {
+   "id": "plaza_edge_d01",
+   "row": 8,
+   "col": 0,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": true,
+   "from": "plaza_edge_05",
+   "transform": "rot180",
+   "shape": "outer",
+   "name": "outer_SE",
+   "sides": {
+    "N": 0.0,
+    "S": 0.56,
+    "W": 0.0,
+    "E": 0.6
+   },
+   "state": {
+    "N": "grass",
+    "S": "mixed",
+    "W": "grass",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.1,
+    "SW": 0.06,
+    "SE": 0.95
+   },
+   "otherFraction": 0.28,
+   "material": "plaza",
+   "joins": {
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_04",
+     "mateDE": 10.6,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_06",
+     "mateDE": 8.35,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 0,
+   "y": 8
+  },
+  {
+   "id": "plaza_edge_d02",
+   "row": 8,
+   "col": 1,
+   "kind": "plaza_edge",
+   "fill": false,
+   "derived": true,
+   "from": "plaza_edge_12",
+   "transform": "rot180",
+   "shape": "inner",
+   "name": "inner_SE",
+   "sides": {
+    "N": 1.0,
+    "S": 0.53,
+    "W": 1.0,
+    "E": 0.5
+   },
+   "state": {
+    "N": "other",
+    "S": "mixed",
+    "W": "other",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 0.2
+   },
+   "otherFraction": 0.8,
+   "material": "plaza",
+   "joins": {
+    "S": {
+     "state": "mixed",
+     "mate": "plaza_edge_02",
+     "mateDE": 5.7,
+     "mateLimit": 12.13
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 8.7,
+     "limit": 12.13,
+     "ok": true
+    },
+    "N": {
+     "state": "other",
+     "fillDE": 10.7,
+     "limit": 12.13,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "plaza_edge_10",
+     "mateDE": 7.75,
+     "mateLimit": 12.13
+    }
+   },
+   "joinsOK": true,
+   "x": 1,
+   "y": 8
+  },
+  {
+   "id": "dirt_edge_d03",
+   "row": 8,
+   "col": 2,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": true,
+   "from": "dirt_edge_05",
+   "transform": "rot180",
+   "shape": "outer",
+   "name": "outer_SE",
+   "sides": {
+    "N": 0.0,
+    "S": 0.56,
+    "W": 0.0,
+    "E": 0.6
+   },
+   "state": {
+    "N": "grass",
+    "S": "mixed",
+    "W": "grass",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 0.0,
+    "NE": 0.1,
+    "SW": 0.06,
+    "SE": 0.96
+   },
+   "otherFraction": 0.28,
+   "material": "dirt",
+   "joins": {
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_07",
+     "mateDE": 7.53,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "N": {
+     "state": "grass",
+     "fillDE": 0.0,
+     "limit": 6.97,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_06",
+     "mateDE": 3.51,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 2,
+   "y": 8
+  },
+  {
+   "id": "dirt_edge_d04",
+   "row": 8,
+   "col": 3,
+   "kind": "dirt_edge",
+   "fill": false,
+   "derived": true,
+   "from": "dirt_edge_09",
+   "transform": "rot180",
+   "shape": "inner",
+   "name": "inner_SE",
+   "sides": {
+    "N": 1.0,
+    "S": 0.53,
+    "W": 1.0,
+    "E": 0.5
+   },
+   "state": {
+    "N": "other",
+    "S": "mixed",
+    "W": "other",
+    "E": "mixed"
+   },
+   "quadrants": {
+    "NW": 1.0,
+    "NE": 1.0,
+    "SW": 1.0,
+    "SE": 0.18
+   },
+   "otherFraction": 0.79,
+   "material": "dirt",
+   "joins": {
+    "S": {
+     "state": "mixed",
+     "mate": "dirt_edge_11",
+     "mateDE": 3.11,
+     "mateLimit": 3.99
+    },
+    "W": {
+     "state": "other",
+     "fillDE": 2.59,
+     "limit": 3.99,
+     "ok": true
+    },
+    "N": {
+     "state": "other",
+     "fillDE": 0.26,
+     "limit": 3.99,
+     "ok": true
+    },
+    "E": {
+     "state": "mixed",
+     "mate": "dirt_edge_10",
+     "mateDE": 2.91,
+     "mateLimit": 3.99
+    }
+   },
+   "joinsOK": true,
+   "x": 3,
+   "y": 8
+  }
+ ]
+}

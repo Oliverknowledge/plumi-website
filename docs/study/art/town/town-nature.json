@@ -1,0 +1,835 @@
+{
+ "image": "town-nature.png",
+ "size": [
+  512,
+  91
+ ],
+ "scale": 5.0,
+ "tile": 32,
+ "palette": [
+  "#5a3526",
+  "#6a2f1b",
+  "#6b2f30",
+  "#803a0f",
+  "#8c3025",
+  "#814b37",
+  "#ae322a",
+  "#98573c",
+  "#b74426",
+  "#c63a2d",
+  "#c15c23",
+  "#af6945",
+  "#d4502d",
+  "#e04836",
+  "#b76f41",
+  "#e25e24",
+  "#d67026",
+  "#d5802a",
+  "#e38124",
+  "#f87e29",
+  "#ea9128",
+  "#d69e6e",
+  "#f7a029",
+  "#f1a52f",
+  "#f4b256",
+  "#fbb73c",
+  "#edbc8b",
+  "#fcc444"
+ ],
+ "source": "docs/study/art/source/trees-sheet-01.png",
+ "tool": "tools/art/world_objects.py",
+ "objects": [
+  {
+   "name": "tree_l_gold_round",
+   "x": 44,
+   "y": 0,
+   "w": 46,
+   "h": 52,
+   "anchorX": 23,
+   "anchorY": 51,
+   "sourceBox": [
+    14,
+    60,
+    245,
+    322
+   ],
+   "footprint": {
+    "x": 17,
+    "y": 48,
+    "w": 13,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 16,
+    "y": 42,
+    "w": 17,
+    "h": 10
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 47
+   },
+   "trunkTopY": 42,
+   "sortY": 51
+  },
+  {
+   "name": "tree_l_orange_wide",
+   "x": 189,
+   "y": 0,
+   "w": 53,
+   "h": 49,
+   "anchorX": 26,
+   "anchorY": 48,
+   "sourceBox": [
+    261,
+    78,
+    524,
+    322
+   ],
+   "footprint": {
+    "x": 20,
+    "y": 45,
+    "w": 13,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 20,
+    "y": 40,
+    "w": 13,
+    "h": 9
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 53,
+    "h": 42
+   },
+   "trunkTopY": 40,
+   "sortY": 48
+  },
+  {
+   "name": "tree_l_amber_tall",
+   "x": 0,
+   "y": 0,
+   "w": 42,
+   "h": 56,
+   "anchorX": 20,
+   "anchorY": 55,
+   "sourceBox": [
+    539,
+    44,
+    746,
+    322
+   ],
+   "footprint": {
+    "x": 15,
+    "y": 52,
+    "w": 12,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 15,
+    "y": 48,
+    "w": 13,
+    "h": 8
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 42,
+    "h": 51
+   },
+   "trunkTopY": 48,
+   "sortY": 55
+  },
+  {
+   "name": "tree_l_red",
+   "x": 92,
+   "y": 0,
+   "w": 47,
+   "h": 50,
+   "anchorX": 23,
+   "anchorY": 49,
+   "sourceBox": [
+    768,
+    72,
+    998,
+    322
+   ],
+   "footprint": {
+    "x": 18,
+    "y": 46,
+    "w": 11,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 15,
+    "y": 41,
+    "w": 14,
+    "h": 9
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 47,
+    "h": 44
+   },
+   "trunkTopY": 41,
+   "sortY": 49
+  },
+  {
+   "name": "tree_l_gold_twin",
+   "x": 244,
+   "y": 0,
+   "w": 52,
+   "h": 48,
+   "anchorX": 26,
+   "anchorY": 47,
+   "sourceBox": [
+    1014,
+    84,
+    1277,
+    322
+   ],
+   "footprint": {
+    "x": 21,
+    "y": 44,
+    "w": 11,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 21,
+    "y": 38,
+    "w": 15,
+    "h": 10
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 52,
+    "h": 43
+   },
+   "trunkTopY": 38,
+   "sortY": 47
+  },
+  {
+   "name": "tree_l_mixed",
+   "x": 141,
+   "y": 0,
+   "w": 46,
+   "h": 50,
+   "anchorX": 22,
+   "anchorY": 49,
+   "sourceBox": [
+    1292,
+    72,
+    1522,
+    322
+   ],
+   "footprint": {
+    "x": 16,
+    "y": 46,
+    "w": 13,
+    "h": 4
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 16,
+    "y": 42,
+    "w": 13,
+    "h": 8
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 46,
+    "h": 44
+   },
+   "trunkTopY": 42,
+   "sortY": 49
+  },
+  {
+   "name": "tree_m_gold_round",
+   "x": 331,
+   "y": 0,
+   "w": 35,
+   "h": 36,
+   "anchorX": 17,
+   "anchorY": 35,
+   "sourceBox": [
+    48,
+    388,
+    219,
+    568
+   ],
+   "footprint": {
+    "x": 13,
+    "y": 33,
+    "w": 9,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 5,
+    "y": 26,
+    "w": 17,
+    "h": 10
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 35,
+    "h": 30
+   },
+   "trunkTopY": 26,
+   "sortY": 35
+  },
+  {
+   "name": "tree_m_orange_wide",
+   "x": 441,
+   "y": 0,
+   "w": 39,
+   "h": 34,
+   "anchorX": 19,
+   "anchorY": 33,
+   "sourceBox": [
+    289,
+    400,
+    484,
+    569
+   ],
+   "footprint": {
+    "x": 15,
+    "y": 31,
+    "w": 9,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 15,
+    "y": 27,
+    "w": 9,
+    "h": 7
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 39,
+    "h": 29
+   },
+   "trunkTopY": 27,
+   "sortY": 33
+  },
+  {
+   "name": "tree_m_amber_tall",
+   "x": 298,
+   "y": 0,
+   "w": 31,
+   "h": 40,
+   "anchorX": 15,
+   "anchorY": 39,
+   "sourceBox": [
+    564,
+    372,
+    720,
+    570
+   ],
+   "footprint": {
+    "x": 11,
+    "y": 37,
+    "w": 9,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 11,
+    "y": 34,
+    "w": 9,
+    "h": 6
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 31,
+    "h": 35
+   },
+   "trunkTopY": 34,
+   "sortY": 39
+  },
+  {
+   "name": "tree_m_red",
+   "x": 368,
+   "y": 0,
+   "w": 34,
+   "h": 35,
+   "anchorX": 16,
+   "anchorY": 34,
+   "sourceBox": [
+    804,
+    395,
+    972,
+    569
+   ],
+   "footprint": {
+    "x": 12,
+    "y": 32,
+    "w": 9,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 12,
+    "y": 29,
+    "w": 9,
+    "h": 6
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 30
+   },
+   "trunkTopY": 29,
+   "sortY": 34
+  },
+  {
+   "name": "tree_m_gold_twin",
+   "x": 0,
+   "y": 58,
+   "w": 42,
+   "h": 33,
+   "anchorX": 20,
+   "anchorY": 32,
+   "sourceBox": [
+    1042,
+    407,
+    1251,
+    569
+   ],
+   "footprint": {
+    "x": 16,
+    "y": 30,
+    "w": 10,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 14,
+    "y": 26,
+    "w": 12,
+    "h": 7
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 42,
+    "h": 29
+   },
+   "trunkTopY": 26,
+   "sortY": 32
+  },
+  {
+   "name": "tree_m_mixed",
+   "x": 404,
+   "y": 0,
+   "w": 35,
+   "h": 35,
+   "anchorX": 16,
+   "anchorY": 34,
+   "sourceBox": [
+    1317,
+    395,
+    1490,
+    570
+   ],
+   "footprint": {
+    "x": 13,
+    "y": 32,
+    "w": 8,
+    "h": 3
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "trunkRect": {
+    "x": 10,
+    "y": 28,
+    "w": 13,
+    "h": 7
+   },
+   "canopyRect": {
+    "x": 0,
+    "y": 0,
+    "w": 35,
+    "h": 30
+   },
+   "trunkTopY": 28,
+   "sortY": 34
+  },
+  {
+   "name": "bush_gold_round",
+   "x": 201,
+   "y": 58,
+   "w": 34,
+   "h": 23,
+   "anchorX": 16,
+   "anchorY": 22,
+   "sourceBox": [
+    48,
+    636,
+    218,
+    750
+   ],
+   "footprint": {
+    "x": 1,
+    "y": 13,
+    "w": 30,
+    "h": 10
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 22
+  },
+  {
+   "name": "bush_orange_round",
+   "x": 237,
+   "y": 58,
+   "w": 36,
+   "h": 22,
+   "anchorX": 18,
+   "anchorY": 21,
+   "sourceBox": [
+    288,
+    636,
+    468,
+    744
+   ],
+   "footprint": {
+    "x": 2,
+    "y": 11,
+    "w": 32,
+    "h": 11
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 21
+  },
+  {
+   "name": "bush_red_long",
+   "x": 275,
+   "y": 58,
+   "w": 43,
+   "h": 22,
+   "anchorX": 21,
+   "anchorY": 21,
+   "sourceBox": [
+    526,
+    643,
+    742,
+    751
+   ],
+   "footprint": {
+    "x": 2,
+    "y": 9,
+    "w": 39,
+    "h": 13
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 21
+  },
+  {
+   "name": "bush_gold_hedge",
+   "x": 320,
+   "y": 58,
+   "w": 42,
+   "h": 22,
+   "anchorX": 20,
+   "anchorY": 21,
+   "sourceBox": [
+    788,
+    643,
+    998,
+    750
+   ],
+   "footprint": {
+    "x": 1,
+    "y": 9,
+    "w": 39,
+    "h": 13
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 21
+  },
+  {
+   "name": "bush_orange_twin",
+   "x": 391,
+   "y": 58,
+   "w": 44,
+   "h": 21,
+   "anchorX": 22,
+   "anchorY": 20,
+   "sourceBox": [
+    1046,
+    642,
+    1266,
+    745
+   ],
+   "footprint": {
+    "x": 2,
+    "y": 7,
+    "w": 41,
+    "h": 14
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 20
+  },
+  {
+   "name": "bush_mixed",
+   "x": 161,
+   "y": 58,
+   "w": 38,
+   "h": 24,
+   "anchorX": 18,
+   "anchorY": 23,
+   "sourceBox": [
+    1310,
+    630,
+    1500,
+    750
+   ],
+   "footprint": {
+    "x": 1,
+    "y": 12,
+    "w": 35,
+    "h": 12
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 23
+  },
+  {
+   "name": "stump_small",
+   "x": 364,
+   "y": 58,
+   "w": 25,
+   "h": 22,
+   "anchorX": 12,
+   "anchorY": 21,
+   "sourceBox": [
+    68,
+    842,
+    192,
+    950
+   ],
+   "footprint": {
+    "x": 5,
+    "y": 17,
+    "w": 15,
+    "h": 5
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 21
+  },
+  {
+   "name": "stump_big",
+   "x": 82,
+   "y": 58,
+   "w": 38,
+   "h": 26,
+   "anchorX": 18,
+   "anchorY": 25,
+   "sourceBox": [
+    287,
+    842,
+    472,
+    969
+   ],
+   "footprint": {
+    "x": 5,
+    "y": 17,
+    "w": 26,
+    "h": 9
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 25
+  },
+  {
+   "name": "log",
+   "x": 472,
+   "y": 58,
+   "w": 40,
+   "h": 20,
+   "anchorX": 19,
+   "anchorY": 19,
+   "sourceBox": [
+    538,
+    853,
+    737,
+    950
+   ],
+   "footprint": {
+    "x": 1,
+    "y": 8,
+    "w": 37,
+    "h": 12
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 19
+  },
+  {
+   "name": "branch_fallen",
+   "x": 44,
+   "y": 58,
+   "w": 36,
+   "h": 31,
+   "anchorX": 22,
+   "anchorY": 30,
+   "sourceBox": [
+    799,
+    828,
+    978,
+    980
+   ],
+   "footprint": {
+    "x": 9,
+    "y": 22,
+    "w": 27,
+    "h": 9
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 30
+  },
+  {
+   "name": "branch_forked",
+   "x": 122,
+   "y": 58,
+   "w": 37,
+   "h": 26,
+   "anchorX": 14,
+   "anchorY": 25,
+   "sourceBox": [
+    1061,
+    828,
+    1242,
+    957
+   ],
+   "footprint": {
+    "x": 4,
+    "y": 19,
+    "w": 20,
+    "h": 7
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 25
+  },
+  {
+   "name": "log_hollow",
+   "x": 437,
+   "y": 58,
+   "w": 33,
+   "h": 21,
+   "anchorX": 16,
+   "anchorY": 20,
+   "sourceBox": [
+    1317,
+    848,
+    1484,
+    950
+   ],
+   "footprint": {
+    "x": 1,
+    "y": 11,
+    "w": 31,
+    "h": 10
+   },
+   "footprintTiles": [
+    1,
+    1
+   ],
+   "canopyRect": null,
+   "sortY": 20
+  }
+ ]
+}

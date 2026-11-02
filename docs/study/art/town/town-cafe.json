@@ -1,0 +1,101 @@
+{
+ "image": "town-cafe.png",
+ "size": [
+  283,
+  144
+ ],
+ "scale": 5.0,
+ "tile": 32,
+ "palette": [
+  "#280b02",
+  "#460f04",
+  "#373214",
+  "#5e2509",
+  "#74190a",
+  "#932110",
+  "#7e390e",
+  "#3e5a2d",
+  "#ab2814",
+  "#366a0e",
+  "#9b4c14",
+  "#885c2b",
+  "#be3216",
+  "#b8440a",
+  "#4e7845",
+  "#ce3f15",
+  "#b45d1c",
+  "#7e811a",
+  "#df4f16",
+  "#698d5e",
+  "#b8772e",
+  "#cc6c20",
+  "#629906",
+  "#e96116",
+  "#789965",
+  "#f87018",
+  "#af9c0c",
+  "#fb7d1a",
+  "#fc821b",
+  "#f59015",
+  "#b0ac75",
+  "#db9f4f",
+  "#f8a21b",
+  "#fbbc04",
+  "#f0be71",
+  "#f7d08c",
+  "#f6d613",
+  "#f9e1a8",
+  "#fdeebf",
+  "#fcf1cd"
+ ],
+ "source": "docs/study/art/source/cafe-01.png",
+ "tool": "tools/art/world_objects.py",
+ "building": {
+  "name": "cafe",
+  "x": 0,
+  "y": 0,
+  "w": 283,
+  "h": 144,
+  "anchorX": 141,
+  "anchorY": 143,
+  "sourceBox": [
+   62,
+   253,
+   1478,
+   971
+  ],
+  "door": {
+   "x": 220,
+   "y": 112,
+   "w": 21,
+   "h": 25
+  },
+  "doorCentreX": 230.5,
+  "doorBottomY": 136,
+  "entry": {
+   "x": 230,
+   "y": 144
+  },
+  "entryOffsetFromAnchor": [
+   89,
+   1
+  ],
+  "entryTileOffset": [
+   2,
+   0
+  ],
+  "footprint": {
+   "x": 0,
+   "y": 132,
+   "w": 283,
+   "h": 12
+  },
+  "roofRect": {
+   "x": 0,
+   "y": 0,
+   "w": 283,
+   "h": 87
+  },
+  "textOnSprite": "CAFE (kept: the sign is part of the drawing)"
+ }
+}

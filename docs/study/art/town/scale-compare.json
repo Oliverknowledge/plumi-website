@@ -1,0 +1,121 @@
+{
+ "sourcePx": {
+  "largeTree": {
+   "h": 254,
+   "w": 237
+  },
+  "mediumTree": {
+   "h": 176,
+   "w": 179
+  },
+  "bush": {
+   "h": 110,
+   "w": 198
+  },
+  "cafe": {
+   "h": 718,
+   "w": 1416
+  },
+  "door": {
+   "h": 125,
+   "w": 105
+  }
+ },
+ "personRows": 25,
+ "at5.0": {
+  "largeTree": {
+   "h": 50.7,
+   "w": 47.5,
+   "hInPersons": 2.03,
+   "wInPersons": 1.9
+  },
+  "mediumTree": {
+   "h": 35.3,
+   "w": 35.7,
+   "hInPersons": 1.41,
+   "wInPersons": 1.43
+  },
+  "bush": {
+   "h": 22.0,
+   "w": 39.5,
+   "hInPersons": 0.88,
+   "wInPersons": 1.58
+  },
+  "cafe": {
+   "h": 143.6,
+   "w": 283.2,
+   "hInPersons": 5.74,
+   "wInPersons": 11.33
+  },
+  "door": {
+   "h": 25.0,
+   "w": 21.0,
+   "hInPersons": 1.0,
+   "wInPersons": 0.84
+  }
+ },
+ "at6.1": {
+  "largeTree": {
+   "h": 41.6,
+   "w": 38.9,
+   "hInPersons": 1.66,
+   "wInPersons": 1.56
+  },
+  "mediumTree": {
+   "h": 28.9,
+   "w": 29.3,
+   "hInPersons": 1.16,
+   "wInPersons": 1.17
+  },
+  "bush": {
+   "h": 18.0,
+   "w": 32.4,
+   "hInPersons": 0.72,
+   "wInPersons": 1.3
+  },
+  "cafe": {
+   "h": 117.7,
+   "w": 232.1,
+   "hInPersons": 4.71,
+   "wInPersons": 9.29
+  },
+  "door": {
+   "h": 20.5,
+   "w": 17.2,
+   "hInPersons": 0.82,
+   "wInPersons": 0.69
+  }
+ },
+ "at8.1": {
+  "largeTree": {
+   "h": 31.3,
+   "w": 29.3,
+   "hInPersons": 1.25,
+   "wInPersons": 1.17
+  },
+  "mediumTree": {
+   "h": 21.8,
+   "w": 22.1,
+   "hInPersons": 0.87,
+   "wInPersons": 0.88
+  },
+  "bush": {
+   "h": 13.6,
+   "w": 24.4,
+   "hInPersons": 0.54,
+   "wInPersons": 0.98
+  },
+  "cafe": {
+   "h": 88.6,
+   "w": 174.8,
+   "hInPersons": 3.55,
+   "wInPersons": 6.99
+  },
+  "door": {
+   "h": 15.4,
+   "w": 13.0,
+   "hInPersons": 0.62,
+   "wInPersons": 0.52
+  }
+ }
+}

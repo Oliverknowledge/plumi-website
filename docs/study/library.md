@@ -269,6 +269,12 @@ gate's hinges survive) in the `-fine` files. The sheet's own pixels are about 5 
 the character sheets), so at the characters' scale the props are cut to roughly 60% of their drawn detail; at the fine scale they are
 finer than anything else in the room, and a lamp post is 42 art rows against a person's 24. The world scale decision is open.
 
+**Ground, trees, cafe and the scale comparison.** `docs/study/art/town/README.md`: `tools/art/ground_tiles.py` (96 swatches: 32 x 32 native
+pixels at 4.0 canvas px, seams measured and repaired, 24 edge pieces classified, 2 corners per set derived), `tools/art/world_objects.py`
+(24 trees, bushes and logs and the cafe, at 5.0, 6.1 and 8.1, with anchors, footprints, canopy and roof rects), `tools/art/scale_compare.py`
+(`scale-compare.png`: the same scene at the character scale, the town scale and with characters x2). The measured sizes: a large tree is
+about 2 persons tall at 5.0, the cafe door one person.
+
 ## Safety (students are 13 to 18)
 
 - Nothing is shared until the student joins (`LibraryPage`: signed out and not-joined states touch no lobby call).
