@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DemoLibrary } from "@/components/studyapp/library/DemoLibrary";
 import "../../library.css";
+import "../../entry.css";
 
 export const metadata: Metadata = { title: "Study", robots: { index: false, follow: false } };
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LibraryPage } from "@/components/studyapp/library/LibraryPage";
 import "../library.css";
+import "../entry.css";
 
 export const metadata: Metadata = { title: "Study" };
 

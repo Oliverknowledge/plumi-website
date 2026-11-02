@@ -604,3 +604,277 @@ describe("a student never sees an error", () => {
     assert.deepEqual(toWire([472.4, 624.5]), [945, 1249]);
   });
 });
+
+/* ── The friends list ──────────────────────────────────────────────────── */
+
+const D = "dddddddd-0000-4000-8000-000000000004", E = "eeeeeeee-0000-4000-8000-000000000005", F = "ffffffff-0000-4000-8000-000000000006";
+
+/** A world for the friends list: Bea is a friend and in this library, Dev is a friend studying elsewhere, Eve is a friend who is nowhere, Cal is a stranger here. */
+function friendsRig() {
+  const r = rig();
+  r.world.add(D, { nickname: "Wise Hare", display: "Dev", colour: 4, streak: 6 });
+  r.world.add(E, { nickname: "Keen Lynx", display: "Eve", colour: 5, streak: 0 });
+  r.world.add(F, { nickname: "Gentle Panda", display: "Fiona Realname", colour: 6, streak: 3 });
+  r.world.students.get(B)!.streak = 9;
+  r.world.befriend(A, B); r.world.befriend(A, D); r.world.befriend(A, E);
+  r.world.studying(D, "maths", 30);
+  return r;
+}
+const names = (s: LibrarySession) => (s.snapshot().friends ?? []).map((f) => f.name);
+
+describe("the friends list", () => {
+  it("is null until the first read has been answered, and all friends are there once it is", async () => {
+    const r = friendsRig();
+    const a = r.make(A);
+    assert.equal(a.snapshot().friends, null);
+    await a.start();
+    assert.deepEqual(names(a), ["Dev", "Bea", "Eve"], "nobody is in this library yet: studying elsewhere (Dev), then the rest by name");
+    assert.deepEqual(a.snapshot().requests, []);
+    const b = r.make(B);
+    await b.start();
+    r.clock.advance(6000); await a.tick();
+    assert.deepEqual(names(a), ["Bea", "Dev", "Eve"], "Bea walks in: in this library first, then studying elsewhere, then the rest");
+  });
+
+  it("marks a friend who is in this library and carries their live status; a friend elsewhere carries their presence", async () => {
+    const r = friendsRig();
+    const a = r.make(A), b = r.make(B);
+    await a.start(); await b.start();
+    r.clock.advance(6000);
+    await a.tick();
+    const [bea, dev, eve] = a.snapshot().friends!;
+    assert.equal(bea.here?.id, B);
+    assert.equal(bea.here?.seated, false);
+    assert.equal(bea.streak, 9);
+    assert.deepEqual(dev.elsewhere, { subjectId: "maths", phase: "work" });
+    assert.equal(dev.here, null);
+    assert.equal(eve.here, null);
+    assert.equal(eve.elsewhere, null, "nothing is invented for a friend with no presence");
+    assert.equal(eve.streak, null);
+    // Bea sits down and starts a timer: the friend's row follows the room, not the friends read
+    b.roomChanged();
+    r.world.place(B, 1, { seated: true, subject: "chemistry", focusSince: r.clock.now() - 24 * 60_000 });
+    r.clock.advance(6000);
+    await a.tick();
+    const now = a.snapshot().friends![0].here!;
+    assert.deepEqual([now.seated, now.subjectId, Math.round((r.clock.now() - now.focusSince!) / 60_000)], [true, "chemistry", 24]);
+  });
+
+  it("is joined by id: a stranger in the room is not a friend, and a friend is not listed twice", async () => {
+    const r = friendsRig();
+    const a = r.make(A), c = r.make(C);
+    await a.start(); await c.start();
+    r.clock.advance(6000); await a.tick();
+    assert.deepEqual(names(a), ["Dev", "Bea", "Eve"]);
+    assert.ok(!names(a).includes("Cal"));
+    assert.ok(!JSON.stringify(a.snapshot().friends).includes(C), "Cal is only in the room");
+  });
+
+  it("reads on joining, not again when you switch library, again after a minute, and at once when asked", async () => {
+    const r = friendsRig();
+    const a = r.make(A);
+    const count = () => r.world.calls.filter((c) => c === "loadFriends").length;
+    await a.start();
+    assert.equal(count(), 1);
+    await a.switchTo(2);
+    assert.equal(count(), 1, "switching library does not ask again");
+    r.clock.advance(30_000); await a.tick();
+    assert.equal(count(), 1);
+    r.clock.advance(31_000); await a.tick();
+    assert.equal(count(), 2, "every minute while the visit is live");
+    r.clock.advance(5000);
+    await a.refreshFriends();
+    assert.equal(count(), 3, "at once when the People tab opens");
+    await a.refreshFriends();
+    assert.equal(count(), 3, "but a tab tapped on and off is not a read each time");
+    r.clock.advance(5000);
+    const p1 = a.refreshFriends(), p2 = a.refreshFriends();
+    await Promise.all([p1, p2]);
+    assert.equal(count(), 4, "two asks while one is on its way share it");
+  });
+
+  it("keeps the last good list when a read fails, and says nothing", async () => {
+    const r = friendsRig();
+    const a = r.make(A);
+    await a.start();
+    const before = a.snapshot().friends;
+    r.world.failing.add("loadFriends"); r.world.failing.add("lobbyFriendRequests");
+    r.clock.advance(5000);
+    const reads = r.world.calls.filter((c) => c === "loadFriends").length;
+    await a.refreshFriends();
+    assert.equal(r.world.calls.filter((c) => c === "loadFriends").length, reads + 1, "it did ask, and it failed");
+    assert.deepEqual(a.snapshot().friends, before);
+    assert.equal(a.snapshot().phase, "live");
+    assert.ok(!r.events[A].some((e) => e.type === "notice"), "no line for a failed read");
+    r.world.failing.clear();
+    r.world.befriend(A, C);
+    r.clock.advance(5000);
+    await a.refreshFriends();
+    assert.ok(names(a).includes("Cal"), "and the next good read is used");
+  });
+
+  it("when the first read cannot be answered, the friends in the room are still there (by the name the server gave) and nothing else", async () => {
+    const r = friendsRig();
+    r.world.failing.add("loadFriends");
+    const a = r.make(A), b = r.make(B);
+    await b.start(); await a.start();
+    r.clock.advance(6000); await a.tick();
+    assert.deepEqual(names(a), ["Bea"]);
+    r.world.failing.clear();
+    await a.refreshFriends();
+    assert.deepEqual(names(a), ["Bea", "Dev", "Eve"]);
+  });
+
+  it("never lists someone you block, in the room or out of it, now or after the next read", async () => {
+    const r = friendsRig();
+    const a = r.make(A), b = r.make(B);
+    await a.start(); await b.start();
+    r.clock.advance(6000); await a.tick();
+    await a.blockPerson(B);
+    assert.ok(!names(a).includes("Bea"));
+    await a.refreshFriends();
+    r.clock.advance(6000); await a.tick();
+    assert.ok(!names(a).includes("Bea"));
+    assert.ok(!JSON.stringify(a.snapshot()).includes("Bea"));
+  });
+
+  it("removing a friend takes them off the list at once and their name off the room, behind a read", async () => {
+    const r = friendsRig();
+    const a = r.make(A), b = r.make(B);
+    await a.start(); await b.start();
+    r.clock.advance(6000); await a.tick();
+    assert.equal(a.snapshot().people.find((p) => p.id === B)?.displayName, "Bea");
+    const out = await a.removeFriend(B);
+    assert.deepEqual(out, { ok: true, line: "Friend removed" });
+    assert.ok(!names(a).includes("Bea"));
+    const p = a.snapshot().people.find((x) => x.id === B)!;
+    assert.deepEqual([p.isFriend, p.displayName], [false, null], "a stranger is a nickname again");
+    await r.flush();
+    assert.ok(!names(a).includes("Bea"), "and the read behind it agrees");
+    assert.ok(!r.world.students.get(B)!.friends.has(A), "on the server too");
+  });
+
+  it("a failed removal keeps the friend and says one plain line", async () => {
+    const r = friendsRig();
+    const a = r.make(A);
+    await a.start();
+    r.world.failing.add("removeFriend");
+    const out = await a.removeFriend(D);
+    assert.equal(out.ok, false);
+    assert.ok(!/error|failed|social:/i.test(out.line));
+    assert.ok(names(a).includes("Dev"));
+  });
+});
+
+describe("requests waiting on you", () => {
+  it("lists an ordinary request by name and a library request by nickname only, never the real name", async () => {
+    const r = friendsRig();
+    r.world.plainAsk(C, A);                              // Cal typed Alex's friend code
+    r.world.libraryAsk(F, A);                            // Fiona asked in the library (not in the room)
+    const a = r.make(A);
+    await a.start();
+    const list = a.snapshot().requests;
+    assert.deepEqual(list.map((q) => [q.name, q.fromLibrary]).sort(), [["Cal", false], ["Gentle Panda", true]]);
+    assert.ok(!JSON.stringify(a.snapshot()).includes("Fiona"), "the sender's real name is nowhere in what the page holds");
+    assert.ok(!JSON.stringify(a.snapshot()).includes("Realname"));
+  });
+
+  it("Accept makes them a friend and the request goes at once; Not now clears it and they are not a friend", async () => {
+    const r = friendsRig();
+    r.world.libraryAsk(F, A); r.world.plainAsk(C, A);
+    const a = r.make(A);
+    await a.start();
+    const yes = await a.answerRequest(F, true);
+    assert.deepEqual(yes, { ok: true, line: "You’re friends now" });
+    assert.deepEqual(a.snapshot().requests.map((q) => q.name), ["Cal"]);
+    await r.flush(); await r.flush();
+    assert.ok(names(a).includes("Fiona Realname"), "after accepting, the real name is shared: that is the moment, by their choice");
+    const no = await a.answerRequest(C, false);
+    assert.deepEqual(no, { ok: true, line: "Okay, not now" });
+    assert.deepEqual(a.snapshot().requests, []);
+    await r.flush(); await r.flush();
+    assert.ok(!names(a).includes("Cal"));
+    assert.ok(!r.world.students.get(A)!.friends.has(C));
+  });
+
+  it("a failed answer keeps the request and says one plain line", async () => {
+    const r = friendsRig();
+    r.world.libraryAsk(F, A);
+    const a = r.make(A);
+    await a.start();
+    r.world.failing.add("respondToFriendRequest");
+    const out = await a.answerRequest(F, true);
+    assert.equal(out.ok, false);
+    assert.ok(!/error|failed|social:/i.test(out.line));
+    assert.equal(a.snapshot().requests.length, 1);
+  });
+
+  it("when the server has no library requests yet (before 0125) the list is just the ordinary ones, and nothing breaks", async () => {
+    const r = friendsRig();
+    r.world.plainAsk(C, A); r.world.libraryAsk(F, A);
+    r.world.failing.add("lobbyFriendRequests");
+    const a = r.make(A);
+    await a.start();
+    assert.deepEqual(a.snapshot().requests.map((q) => q.name), ["Cal"]);
+    assert.deepEqual(names(a), ["Dev", "Bea", "Eve"], "the friends are unaffected");
+  });
+
+  it("asking back to someone's library request is accepting it: they become a friend and the request goes", async () => {
+    const r = friendsRig();
+    const a = r.make(A), c = r.make(C);
+    await a.start(); await c.start();
+    r.world.libraryAsk(C, A);
+    r.clock.advance(6000); await a.tick();
+    await a.refreshFriends();
+    assert.equal(a.snapshot().requests.length, 1);
+    const out = await a.addFriend(C);
+    assert.equal(out.outcome, "now_friends");
+    await r.flush(); await r.flush();
+    assert.deepEqual(a.snapshot().requests, []);
+    assert.ok(names(a).includes("Cal"));
+  });
+});
+
+describe("what the friends list may ask and show", () => {
+  it("asks only for friends and requests: nothing about anyone who is not a friend or in the room", async () => {
+    const r = friendsRig();
+    r.world.libraryAsk(F, A);
+    const a = r.make(A);
+    await a.start(); r.clock.advance(5000); await a.refreshFriends(); await a.refreshFriends(true);
+    const allowed = new Set(["joinLobby", "setLobbyPosition", "lobbyPeople", "libraryMessages", "lobbyServers", "loadFriends", "lobbyFriendRequests"]);
+    assert.deepEqual([...new Set(r.world.calls)].filter((c) => !allowed.has(c)), []);
+  });
+
+  it("never holds a stranger's real name or a friend code, whoever they are and wherever they are", async () => {
+    const r = friendsRig();
+    r.world.libraryAsk(F, A);
+    const a = r.make(A), c = r.make(C);
+    await a.start(); await c.start();
+    r.clock.advance(6000); await a.tick();
+    const text = JSON.stringify(a.snapshot());
+    assert.ok(!text.includes("Fiona") && !text.includes("Realname"));
+    assert.ok(!/"[A-Z0-9]{4}-[A-Z0-9]{4}"/.test(text), "no friend code anywhere");
+    assert.ok(text.includes("Calm Heron"), "Cal in the room is a nickname");
+    assert.ok(!text.includes('"Cal"'), "and never a name");
+  });
+
+  it("the friends list only ever contains accepted friends (a pending request is not one)", async () => {
+    const r = friendsRig();
+    r.world.plainAsk(C, A); r.world.libraryAsk(F, A);
+    const a = r.make(A);
+    await a.start();
+    for (const f of a.snapshot().friends!) assert.ok(r.world.students.get(A)!.friends.has(f.id), `${f.name} is accepted`);
+    assert.ok(!names(a).includes("Cal") && !names(a).includes("Fiona Realname"));
+  });
+
+  it("leaving the library stops the reads", async () => {
+    const r = friendsRig();
+    const a = r.make(A);
+    await a.start();
+    a.leave();
+    r.clock.advance(120_000);
+    await a.tick();
+    await a.refreshFriends();
+    assert.equal(r.world.calls.filter((c) => c === "loadFriends").length, 1);
+  });
+});

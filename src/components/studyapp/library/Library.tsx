@@ -15,7 +15,8 @@ import { libraryFocus } from "@/lib/studyapp/timer";
 import { timer } from "@/lib/studyapp/timerStore";
 import { TimerChip } from "@/components/studyapp/timer/TimerChip";
 import type { LibraryDriver } from "./driver";
-import { Chat, SeatCard, Servers, WhoHere } from "./parts";
+import { Chat, SeatCard, Servers } from "./parts";
+import { WhoHere } from "./People";
 import { RoomCanvas } from "./RoomCanvas";
 import { Wardrobe } from "./Wardrobe";
 import { useSnapshot } from "./useVisit";
@@ -181,7 +182,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           </div>
           <div className="lb-dbody">
             {drawer === "chat" && <Chat session={session} snap={snap} me={driver.me} />}
-            {drawer === "people" && <WhoHere session={session} snap={snap} picked={picked} onPick={pick} onPullUp={pullUp} />}
+            {drawer === "people" && <WhoHere session={session} snap={snap} you={you} picked={picked} onPick={pick} onPullUp={pullUp} />}
             {drawer === "outfit" && <Wardrobe social={driver.social} avatar={avatar} colour={colour} me={driver.me} onSaved={dressed} />}
             {drawer === "libraries" && <><Servers session={session} snap={snap} />{leaveBlock}</>}
           </div>
@@ -225,7 +226,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
           <div className="lb-side">
             {outfitOpen && <div className="lb-slot lb-s-outfit"><Wardrobe social={driver.social} avatar={avatar} colour={colour} me={driver.me} onSaved={dressed} /></div>}
             <div className="lb-slot lb-s-seat"><SeatCard session={session} snap={snap} handleRef={handle} /></div>
-            <div className="lb-slot lb-s-who"><WhoHere session={session} snap={snap} picked={picked} onPick={pick} onPullUp={pullUp} /></div>
+            <div className="lb-slot lb-s-who"><WhoHere session={session} snap={snap} you={you} picked={picked} onPick={pick} onPullUp={pullUp} /></div>
             <div className="lb-slot lb-s-servers"><Servers session={session} snap={snap} /></div>
             <div className="lb-slot lb-s-foot">{leaveBlock}</div>
           </div>

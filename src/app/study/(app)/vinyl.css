@@ -100,7 +100,7 @@
 
 /* the full-screen library: chalk lines on the dark room's floor, and beside its drawer, not over it */
 .pa:has(.lb-full) .rp-vinyl { color: #f5f9ff; filter: drop-shadow(3px 3px 0 rgba(245, 249, 255, .55)); }
-.pa:has(.lb-full[data-drawer]) .rp { right: calc(min(380px, 100% - 24px) + 24px + env(safe-area-inset-right, 0px)); }
+/* the record stays in the bottom right corner; the library's panel stops above it (library.css) */
 
 /* phones: the card sits above the record, as wide as the screen allows */
 @media (max-width: 700px) {

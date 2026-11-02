@@ -99,7 +99,7 @@ export function BankHub() {
   const all = shelves();
   const total = bankSubjects.reduce((a, s) => a + s.count, 0);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every exam question from the AQA, Pearson Edexcel, OCR, OCR MEI, Eduqas, WJEC and Cambridge (CAIE) GCSE, International GCSE, Level 2 and A-Level papers the boards publish, across maths, the sciences, English, history, geography, religious studies, computer science, business, economics, psychology, sociology, politics, law and more, sorted by topic, each with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every exam question from the AQA, Pearson Edexcel, OCR, OCR MEI, Eduqas, WJEC and Cambridge (CAIE) GCSE, International GCSE, Level 2 and A-Level papers the boards publish, across maths, the sciences, English, French, Spanish, history, geography, religious studies, computer science, business, economics, psychology, sociology, politics, law and more, sorted by topic, each with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap qb-hub-hero">
           <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>

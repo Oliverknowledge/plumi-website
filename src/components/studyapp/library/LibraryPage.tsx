@@ -6,12 +6,12 @@ import { useLibrary } from "@/lib/library";
 import { browserDriver } from "@/lib/studyapp/library/browserDriver";
 import { publishLive } from "@/lib/studyapp/live";
 import { JoinCard, SignedOutCard, Waiting } from "./Cards";
-import { LibraryRoom } from "./Library";
+import { LibraryFront } from "./LibraryFront";
 
 /**
  * Study is the Grand Library. Signed out: what it is, and a way in. Signed in but not joined: a name and a colour.
- * Joined: the room, with real students in it. Until the server has answered nothing is claimed, here or on the
- * Desk (publishLive).
+ * Joined: the front door (Enter), then the room, with real students in it. All of it is one scene (Front.tsx), so the
+ * way in is one place. Until the server has answered nothing is claimed, here or on the Desk (publishLive).
  */
 export function LibraryPage() {
   const account = useAccount();
@@ -33,5 +33,5 @@ export function LibraryPage() {
   if (!lib.checked) return <Waiting />;
   if (!joined) return <JoinCard accountName={account.name} />;
   if (!driver) return <Waiting />;
-  return <LibraryRoom key={uid} driver={driver} />;
+  return <LibraryFront key={uid} driver={driver} />;
 }

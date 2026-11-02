@@ -1,6 +1,8 @@
 import { fail, ok, type Result } from "../../social/failure";
 import { check as libraryCheck } from "../../social/librarySpam";
-import { sanitised, LOBBY_CAP, type LibraryMessage, type LobbyEmote, type LobbyAskOutcome, type LobbyEmoteOutcome, type LobbyJoin, type LobbyPerson, type LobbyServers } from "../../social/lobby";
+import { sanitised, LOBBY_CAP, type LibraryMessage, type LobbyEmote, type LobbyAskOutcome, type LobbyEmoteOutcome, type LobbyFriendRequest, type LobbyJoin, type LobbyPerson, type LobbyServers } from "../../social/lobby";
+import type { FriendRequest, FriendsSnapshot, SocialPerson } from "../../social/types";
+import { dayOf } from "../time";
 import type { LobbyChannel, LobbyRealtime } from "./lobbyWatch";
 import { presenceFields, type FloorPresence } from "./room";
 import { LIBRARY_TILE } from "./room";
@@ -87,6 +89,8 @@ interface Student {
   said: number[]; reportedHidden: number;
   /** social_profile.avatar */
   avatar: Record<string, string> | null;
+  /** study_presence: studying somewhere (in or out of a library) until `until` (epoch ms). */
+  presence: { subject: string; phase: "work" | "break"; since: number; until: number } | null;
 }
 interface Msg { id: number; shard: number; sender: string; body: string; at: number; hidden: boolean; reporters: Set<string> }
 
@@ -97,6 +101,12 @@ export class FakeLibraryWorld {
   userReports: { user: string; by: string; reason: string }[] = [];
   /** Open friend requests made in the library, as "from>to". */
   asked = new Set<string>();
+  /** When each was made. */
+  askedAt = new Map<string, number>();
+  /** Open ordinary friend requests (the sender typed a friend code), as "from>to". Their sender's name is readable by the one asked. */
+  plain = new Map<string, number>();
+  /** The name of every call, in order (so a test can say what was NOT asked). */
+  calls: string[] = [];
   private nextId = 1;
   /** Calls that should fail, by name: a test of "the network went", never an error on screen. */
   failing = new Set<string>();
@@ -107,12 +117,21 @@ export class FakeLibraryWorld {
   add(id: string, o: Partial<Student> & { nickname: string; display: string }): Student {
     const s: Student = {
       id, colour: 0, friends: new Set(), blocked: new Set(), pro: false, visible: true, shard: null, seated: false, subject: null, focusSince: null,
-      beat: 0, emote: null, emoteAt: null, emoteLast: -Infinity, streak: 0, level: 1, said: [], reportedHidden: 0, avatar: null, ...o,
+      beat: 0, emote: null, emoteAt: null, emoteLast: -Infinity, streak: 0, level: 1, said: [], reportedHidden: 0, avatar: null, presence: null, ...o,
     };
     this.students.set(id, s);
     return s;
   }
   befriend(a: string, b: string) { this.students.get(a)!.friends.add(b); this.students.get(b)!.friends.add(a); }
+  unfriend(a: string, b: string) { this.students.get(a)?.friends.delete(b); this.students.get(b)?.friends.delete(a); }
+  /** A request made in the library: `from` asked `to` (the recipient reads it as a nickname only). */
+  libraryAsk(from: string, to: string, at = this.now()) { this.asked.add(`${from}>${to}`); this.askedAt.set(`${from}>${to}`, at); }
+  /** An ordinary request: `from` typed `to`'s friend code. */
+  plainAsk(from: string, to: string, at = this.now()) { this.plain.set(`${from}>${to}`, at); }
+  /** `id` is studying `subject` for the next `minutes` (a fresh presence), wherever they are. */
+  studying(id: string, subject: string, minutes = 25, phase: "work" | "break" = "work") {
+    this.students.get(id)!.presence = { subject, phase, since: this.now(), until: this.now() + minutes * 60_000 };
+  }
   /** Puts a student in a shard without a join (a scripted student already there). */
   place(id: string, shard: number, o: { seated?: boolean; subject?: string | null; focusSince?: number | null } = {}) {
     const s = this.students.get(id)!;
@@ -131,8 +150,17 @@ export class FakeLibraryWorld {
   /** The lobby calls, as one student (the same shape the real service returns). */
   social(me: string): LibrarySocial {
     const self = () => this.students.get(me)!;
-    const gate = <T,>(name: string, f: () => Result<T>): Promise<Result<T>> =>
-      Promise.resolve(this.failing.has(name) ? fail<T>({ kind: "offline" }) : f());
+    const gate = <T,>(name: string, f: () => Result<T>): Promise<Result<T>> => {
+      this.calls.push(name);
+      return Promise.resolve(this.failing.has(name) ? fail<T>({ kind: "offline" }) : f());
+    };
+    const iso = (t: number) => new Date(t).toISOString();
+    /** A friend as `social_profile` and the presence and summary reads give them (never a stranger: only called for accepted friends and open ordinary requests). */
+    const profile = (x: Student, withExtras: boolean): SocialPerson => ({
+      id: x.id, displayName: x.display, colour: x.colour, avatar: x.avatar,
+      ...(withExtras && x.presence ? { presence: { subjectId: x.presence.subject, mode: "timer" as const, phase: x.presence.phase, startedAt: iso(x.presence.since), endsAt: null, expiresAt: iso(x.presence.until) } } : {}),
+      ...(withExtras ? { summary: { day: dayOf(this.now()), todaySeconds: 0, weekSeconds: 0, weekXp: 0, level: x.level, streak: x.streak, streakDay: x.streak > 0 ? dayOf(this.now()) : null, updatedAt: iso(this.now()) } } : {}),
+    });
     const notMember = <T,>() => fail<T>({ kind: "refused", reason: "not_member" });
     return {
       joinLobby: (_tile, want) => gate("joinLobby", () => {
@@ -169,14 +197,48 @@ export class FakeLibraryWorld {
         return ok(true);
       }),
       leaveLobby: () => gate("leaveLobby", () => { self().shard = null; return ok(undefined); }),
+      // `friendship` table reads under RLS: accepted friends, and ordinary pending requests. A pending LIBRARY request is hidden from the table (0125).
+      loadFriends: () => gate("loadFriends", () => {
+        const s = self();
+        const friends = [...s.friends].flatMap((id) => { const x = this.students.get(id); return x && !this.blockedEither(s, x) ? [profile(x, true)] : []; });
+        const requests = [...this.plain].flatMap(([k, at]): FriendRequest[] => {
+          const [from, to] = k.split(">");
+          if (to !== me && from !== me) return [];
+          const other = this.students.get(from === me ? to : from);
+          if (!other || this.blockedEither(s, other)) return [];
+          return [{ otherUserId: other.id, direction: from === me ? "outgoing" : "incoming", person: profile(other, false), createdAt: iso(at) }];
+        });
+        return ok<FriendsSnapshot>({ friends, requests });
+      }),
+      // lobby_friend_requests (0125): your open library requests, both ways, as a nickname and a look. No name, no code.
+      lobbyFriendRequests: () => gate("lobbyFriendRequests", () => ok([...this.asked].flatMap((k): LobbyFriendRequest[] => {
+        const [from, to] = k.split(">");
+        if (from !== me && to !== me) return [];
+        const x = this.students.get(from === me ? to : from);
+        if (!x || this.blockedEither(self(), x)) return [];
+        return [{ userId: x.id, direction: from === me ? "outgoing" : "incoming", nickname: x.nickname, colour: x.colour, avatar: x.avatar, streak: x.streak, level: x.level, createdAt: this.askedAt.get(k) ?? this.now() }];
+      }))),
+      respondToFriendRequest: (from, accept) => gate("respondToFriendRequest", () => {
+        const key = `${from}>${me}`;
+        const open = this.asked.has(key) || this.plain.has(key);
+        this.asked.delete(key); this.plain.delete(key);
+        if (open && accept && this.students.has(from)) this.befriend(me, from);
+        return ok(undefined);
+      }),
+      removeFriend: (id) => gate("removeFriend", () => {
+        this.unfriend(me, id);
+        for (const k of [`${me}>${id}`, `${id}>${me}`]) { this.asked.delete(k); this.plain.delete(k); }
+        return ok(undefined);
+      }),
       canRequestFriends: true,
       probeFriendRequests: async () => true,
       sendLobbyFriendRequest: (id) => gate("sendLobbyFriendRequest", () => {
         const s = self(), t = this.students.get(id);
         if (!t || t === s || !s.visible || !t.visible || s.shard === null || s.shard !== t.shard || this.blockedEither(s, t)) return ok<LobbyAskOutcome>("not_here");
         if (s.friends.has(id)) return ok<LobbyAskOutcome>("already_friends");
+        if (this.asked.has(`${id}>${me}`)) { this.asked.delete(`${id}>${me}`); this.befriend(me, id); return ok<LobbyAskOutcome>("now_friends"); }   // asking back is the acceptance
         if (this.asked.has(`${me}>${id}`)) return ok<LobbyAskOutcome>("already_asked");
-        this.asked.add(`${me}>${id}`);
+        this.libraryAsk(me, id);
         return ok<LobbyAskOutcome>("sent");
       }),
       lobbyPeople: (shard) => gate("lobbyPeople", () => {

@@ -1241,6 +1241,53 @@ python3 scripts/question-bank/edexcel_gcse_geography/build_gcse_geography.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-gcse-geography --pdf-prefix=edexcel/
 ```
 
+## OCR GCSE Geography B
+
+Added 1 November 2026: `/question-bank/ocr-gcse-geography-b`, every question from OCR's GCSE (9-1)
+Geography B (Geography for Enquiring Minds, J384) Papers 1-3 that OCR publishes on ocr.org.uk:
+November 2021 and June 2022 to June 2025. That is 320 parts from 15 papers, every one with its own
+mark scheme crop and tagged to a sub-question of the specification, and 256 with the examiner's
+comments on its question (November 2021 has no reports).
+
+- **Topics:** the specification's eight topics as tiles ("Global Hazards" … "Resource Reliance") with
+  their enquiry sub-questions under them, coded as the specification numbers them ("1.1a Why do we
+  have weather extremes?"), plus 9.1-9.4 Geographical Skills and fieldwork's six assessed areas
+  (F1-F6, codes of our own, not shown). Paper 3 is synoptic: its parts take the content topic they
+  draw on. A question's parts take the topic of the heading it is printed under
+  (`tag_ocr_gcse_geography.py` rejects anything else). 7.2a (the UK's political role) has no
+  questions yet.
+- **Figures:** every paper prints its figures in a separate Resource Booklet ("Look at Fig. 3a in the
+  Resource Booklet"). Each question's stem is its opening words and every booklet figure its parts
+  name, read from the booklet caption to caption; a question set on the booklet as a whole, and
+  Paper 3's 12-mark decision-making essay, has the whole booklet. Landscape pages are turned
+  upright; June 2022 Paper 2's booklet is pictures and is read by OCR. The booklets are each
+  sitting's insert (`ins`) in `wholes`.
+- **Schemes:** `cut_ocr_gcse_geography.py` runs `ocr_gcse/cut_ocr_gcse.py` (and `cut_pearson.py`,
+  both unchanged) with J384 patches: "(d*)" starred labels, sub-part romans set plain or past the
+  "Question" header (June 2025 Paper 1), one-line rows 13pt apart, "4 (a) (i)" printed for a
+  one-part 4(a). Each long answer's crop runs over pages with its levels and all of its indicative
+  content, and stops at the scheme's appendix; the 15 SPaG questions show their own marks (`m`
+  without the SPaG 3) and get the SPaG assessment grid added. `check_ocr_gcse_geography.py` checks
+  every paper's total, levels and indicative content on every 6+ mark part, the SPaG grid, a stem
+  wherever the booklet is named, and that every scheme crop opens on its own row: all 15 pass.
+  48 of 49 multiple-choice parts carry their letter (`k`).
+- **Gaps:** OCR's public page lists only November 2021 on; June 2018, June 2019 and November 2020 are
+  on Teach Cambridge only (a June 2018 Paper 1 scheme is still on ocr.org.uk, but no paper). The
+  modified papers and the sample assessment materials are left out. June 2022 Paper 1 had a choice
+  of options (49 marks sat, 75 cut). No past paper library page yet; the whole papers are on R2
+  under `ocr/OCR-J384-*`.
+
+```bash
+python3 scripts/question-bank/ocr_gcse_geography/fetch_ocr_gcse_geography.py
+python3 scripts/question-bank/ocr_gcse_geography/spec_ocr_gcse_geography.py
+python3 scripts/question-bank/ocr_gcse_geography/cut_ocr_gcse_geography.py
+python3 scripts/question-bank/ocr_gcse_geography/check_ocr_gcse_geography.py
+python3 scripts/question-bank/ocr_gcse_geography/tag_ocr_gcse_geography.py split   # tag the batches, then:
+python3 scripts/question-bank/ocr_gcse_geography/tag_ocr_gcse_geography.py merge
+python3 scripts/question-bank/ocr_gcse_geography/build_ocr_gcse_geography.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-geography/r2 --pdf-prefix=ocr/   # r2/img links to ../img
+```
+
 ## Edexcel GCSE Business
 
 Added 1 November 2026: `/question-bank/edexcel-gcse-business`, every question from Pearson Edexcel's
@@ -2907,6 +2954,67 @@ python3 scripts/question-bank/aqa_history/build_history.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-history
 ```
 
+## AQA A-Level French and Spanish
+
+Added 1 November 2026: `/question-bank/aqa-a-level-french` and `/question-bank/aqa-a-level-spanish`,
+every question from AQA's A-Level French (7652) and Spanish (7692) Papers 1 and 2 that AQA still
+publishes, November 2020 to June 2025, with the AS papers (7651, 7691: November 2020, then June
+2022 on) marked AS. French: 845 parts from 22 papers; Spanish: 862 from 22. Every part has its
+mark scheme cropped; 176 French and 138 Spanish questions have the examiner's comments.
+
+- **Paper 1 (Listening, reading and writing) includes listening.** AQA publishes each sitting's
+  recording on its own site ("SF-TRACKED" zips, an MP3 per track) and the transcript ("TR").
+  The paper names each question's tracks ("Tracks: 02–14"), so `audio_languages.py` joins them
+  into one MP3 per question (mono, 64 kbps) on R2 under `aqa/audio/`. November 2020 was only
+  published as one untracked MP3: it is cut at the long silence between passages nearest where
+  each passage should end (the paper prints each passage's length). A part carries its recording
+  as `au`; QuestionRow plays it above the question and links the transcript (`wholes` "tr").
+- **Topics:** the specification's four themes and their twelve sub-themes (Year 1: the two AS
+  themes; Year 2: the other two), placed passage by passage by hand in `tag_languages.py`
+  (titles rarely say: "Le Café Renaissance" is about prison); the skill each question tests
+  (listening, reading, summaries, literary extracts, translation into English, translation into
+  the language); the grammar points a scheme row demands ("must be pluperfect", "Must be in the
+  future tense": AQA's schemes seldom say, so only a handful); and Paper 2's set texts and films,
+  sixteen per language, so a student picks the works they study, as with English Literature.
+- **Choices:** each work has two essays, either .1 or .2: the second is the alternative (`or`).
+  Every Paper 1 adds up to 100 (AS: 90).
+- **Mark schemes:** Paper 1's are a table per row headed "Qu"; the translations' box tables
+  ("Box 1" to "30") print box numbers where question numbers go, so a whole question's number
+  counts only as the first label under a "Qu" header, under a "Question 10" heading, or in drawn
+  boxes. A translation into the language starts at its "Guidance on level of accuracy" heading
+  and runs through its box table and conversion grid. Summaries (scheme rows "Bullet point 1")
+  get the AO3 language grid; essays get the AO3 and AO4 grids; AS Paper 2's five translated
+  sentences each get the conversion grid printed after the last. A row never runs on into the
+  marking guidance pages or past a "Section B" heading. Paper 2's schemes are no table: a row
+  starts at its boxed label (cut.py's row_start took the rule AQA draws under the essay above,
+  which cut that essay's scheme to its first line). Every essay's crop was checked for its
+  possible content and both grids by height (3,300px and up).
+- **AS Paper 2** prints its essay questions in the insert: they are cut from it.
+- **Reports** comment by question on Paper 1 ("Question 9.1 - 9.8", "Question 9.9") and by essay on
+  Paper 2 ("1.1 Students...", "Question 1.1. (55%)", or under the work's title in June 2022);
+  each essay's comment sits under a "Question 01.1" line so the page shows it as that part's own.
+- **Search** folds accents in the browser, so "benevolat" finds "bénévolat" and "nino" finds
+  "niño"; the stored search text keeps them.
+- **Pipeline:** `scripts/question-bank/aqa_languages/`: `fetch_languages.py` (fetch_aqa.py over the
+  four specifications, plus the recordings; `--audio` for those alone), `audio_languages.py`,
+  `cut_languages.py` (cut.py with the patches above), `tag_languages.py`, `build_languages.py`.
+  Papers are on R2 under `aqa/AQA-765*` and `aqa/AQA-769*`, crops under `bank/765*` and
+  `bank/769*`, recordings under `aqa/audio/`. `upload_r2.py` uploads a work dir's `audio-out/`
+  when there is one.
+- **Gaps:** AQA no longer publishes June 2017 to June 2019, so the banks start at November 2020.
+  AS French June 2022's Q08 (a summary of an interview) is left out: AQA's copyright-removed
+  paper blanks the interview. Paper 3 (speaking) has no written questions and isn't here, and
+  the specimen papers are left out, as in the other AQA banks.
+
+```bash
+python3 scripts/question-bank/aqa_languages/fetch_languages.py
+python3 scripts/question-bank/aqa_languages/audio_languages.py
+python3 scripts/question-bank/aqa_languages/cut_languages.py
+python3 scripts/question-bank/aqa_languages/tag_languages.py
+python3 scripts/question-bank/aqa_languages/build_languages.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-languages
+```
+
 ## Cambridge International (CAIE)
 
 Added 25 October 2026, after a student asked for CAIE:
@@ -4012,4 +4120,64 @@ python3 scripts/question-bank/edexcel_igcse_maths/build_igcse_maths.py && python
 python3 scripts/question-bank/edexcel_igcse_maths/tag_igcse_maths.py split   # tag the batches, then:
 python3 scripts/question-bank/edexcel_igcse_maths/tag_igcse_maths.py merge && python3 scripts/question-bank/edexcel_igcse_maths/build_igcse_maths.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-igcse-maths --crops-only   # the library-less PDFs: --pdf-prefix=edexcel/
+```
+
+## AQA GCSE French, Spanish and Bengali
+
+Added 1 November 2026: `/question-bank/aqa-gcse-french`, `/question-bank/aqa-gcse-spanish` and
+`/question-bank/aqa-gcse-bengali`, on the GCSE shelf. Every file is AQA's own, from the five
+specifications' assessment-resources pages. Whole papers are on R2 under AQA's names, normalised
+(`aqa/AQA-8658RH-QP-JUN24.pdf`), the crops under `bank/8658*`, `bank/8698*`, `bank/8652*`,
+`bank/8692*` and `bank/8638*`, and the Listening recordings under `aqa/audio/` (`aqa/audio/8658lh-jun24-07.mp3`,
+beside the A-Level languages' `aqa/audio/76521-…`).
+
+- **3,409 parts:** French 1,177 (42 papers), Spanish 1,232 (42), Bengali 1,000 (36). Every part has its
+  own scheme crop; every paper adds up to its marks, less the left-out questions below. 3,385 parts are
+  tagged (the rest: the specimens' dictations and grammar gap-fills, and a few picture-only questions).
+- **Papers:** Paper 1 Listening, Paper 3 Reading and Paper 4 Writing, Higher and Foundation, named
+  as the GCSE science banks' are ("Paper 3 Reading Higher"), with `tiers.json` for the both-tiers
+  switch. Series: November 2020, November 2021, June 2022 to June 2025 (June 2018 and 2019 are
+  withdrawn from AQA's site; 2020 and 2021's summers were cancelled).
+- **Two French and two Spanish specifications.** 8658 and 8698 were examined 2018 to 2025; 8652 and
+  8692 are first examined in summer 2026, and AQA has published only their specimen papers, which are
+  in the banks as "2026 specimen", their papers titled "2026 format" (the others "2018 to 2025 format"),
+  with a "Specification" filter (the options mechanism). The bank note says the format changed in 2026.
+  Bengali 8638 has no new specification.
+- **Listening with AQA's recordings.** AQA publishes each Listening paper's recording, tracked one MP3
+  per question (track 007 is question 07, as the transcripts number them). Each Listening part plays
+  its question's track, re-encoded at 48 kbps mono (`au`); November 2020 has only the whole recording,
+  which those parts play (`auw`). The 2026 specimens' dictation (Section B, unnumbered) is cut as the
+  question after the last, its five sentence tracks joined. The player (`.qb-listen` in `QuestionRow`) is the
+  A-Level languages bank's (PR #132), with a note for a whole-paper recording.
+- **Writing schemes** are each question's own Part 2 section: the levels grids, then the option's own
+  bullet notes and model answer (the other option's are left out). Choices of task ("Either 01.1 or
+  01.2") mark the alternatives `or`. Foundation Question 1's sentences share their question's scheme
+  (`msq`).
+- **Topics:** the three themes as sections and their twelve topics, split into sub-topics where the
+  specification has them (`1.3.4` Sport): 19 topics, tagged per question (tag.md's section). The 2026
+  specimens are tagged to the same topics.
+- **Bengali** text layers are a legacy font's glyph order, unreadable, so Bengali script is left out of
+  search text and `x` (the English instructions and questions stay); questions in Bengali only were
+  tagged from their rendered crops.
+- **Left out:** Paper 2 Speaking (teacher-marked role-plays and photo cards); questions whose text AQA
+  removes from its copyright-removed copies, the only copies it publishes of nine Reading papers (Bengali
+  Reading June 2024 and 2025, both tiers; Spanish Reading Foundation November 2020 and June 2024, Higher
+  June 2022, June 2024 and November 2020): 15 questions; the old specifications' 2016 specimens; the
+  modified (enlarged) papers. Spanish Foundation Reading June 2024's page 5 is a picture with no text
+  layer: its question 4 is cut from set coordinates (`IMAGE_PAGES`).
+- **Pipeline:** `scripts/question-bank/aqa_gcse_languages/`: `fetch_gcse_languages.py` (fetch_aqa.py
+  over the five pages, three naming schemes read as one component code; the recordings), `cut_gcse_languages.py`
+  (cut.py imported and patched: Bengali and specimen labels, Writing schemes, titles printed above a
+  question's first part, marks printed beside the next label, copyright-removed questions, audio),
+  `spec_gcse_languages.py`, `tag_gcse_languages.py`, `build_gcse_languages.py`; `upload_r2.py` uploads
+  `<work-dir>/audio-out` to `aqa/audio/` (as the A-Level languages bank does).
+
+```bash
+python3 scripts/question-bank/aqa_gcse_languages/fetch_gcse_languages.py
+python3 scripts/question-bank/aqa_gcse_languages/cut_gcse_languages.py   # needs ffmpeg
+python3 scripts/question-bank/aqa_gcse_languages/tag_gcse_languages.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_gcse_languages/tag_gcse_languages.py merge
+python3 scripts/question-bank/aqa_gcse_languages/build_gcse_languages.py
+python3 scripts/question-bank/tiers.py aqa-gcse-french aqa-gcse-spanish aqa-gcse-bengali
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-languages
 ```

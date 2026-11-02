@@ -429,3 +429,156 @@ Library mode only; the homepage's `hero` and `friends` modes keep their tile ste
 **Homepage unchanged.** The production site was built from the original and from the new `cafeScene.ts` (two copies of the
 source), run with a seeded `Math.random` and reduced motion, and the `toDataURL` of both canvases on `/` (the hero 569 x 394 and
 the friends window 204 x 150) hashed identically, before and after a tap and arrow-key hops.
+
+## Friends list (founder, 1 November)
+
+The People tab is now a scrollable panel: **Requests** (only when there are some), **Friends** (all of them), **In the library**
+(everyone else in the room, you first), each person with their head. Web only; the iPad has its own People screen. No migration, no new
+server function: it reads what the web already could (`loadFriends`, `lobby_friend_requests`) and writes what it already could
+(`respondToFriendRequest`, `removeFriend`).
+
+| | |
+|---|---|
+| `components/studyapp/library/People.tsx` | The panel (`WhoHere`): sections, rows, request rows, the small card for a friend who is not here, empty and loading states. |
+| `components/studyapp/library/Head.tsx` | `Head`: a person's head in a rounded tile in their colour, sizes 32, 40, 56. |
+| `lib/studyapp/library/people/headCrop.ts` | The crop and the whole-number scaling (pure, tested on the real art). |
+| `lib/studyapp/library/friends.ts` | `buildFriends`, `buildRequests`, `friendStatus`, `inHeldOrder`, `keepSame` (pure). |
+| `lib/studyapp/library/session.ts` | `Snapshot.friends`, `Snapshot.requests`, `refreshFriends`, `answerRequest`, `removeFriend`. |
+| `lib/studyapp/library/fake.ts`, `demo.ts` | The scripted world has friends in another library, one studying elsewhere (presence), one quiet, and two requests (one by friend code, one from the library). `/study/library/demo?people=40&friends=30` adds a crowd; `?friends=none` is the empty state. |
+
+### The head
+
+The front-facing idle frame (frame 18 of the 78) cropped to the **whole head and the top of the shoulders**: the full 16 px frame
+width by 16 rows from row 7 (the chibi head is rows 8 to 21). The tips of the two tallest hairstyles are left out (03 and 26 by one
+row, 11's two thin tufts by three); `people/headCrop.test.ts` goes over every hairstyle in the catalogue. It is drawn from the SAME
+built row the room uses (`peopleStore()`, graded as the room's art is), never a second copy of the layers: a person already in the
+room costs nothing extra; a friend who is not in the room is built once, by the store, like anyone else.
+
+- **Crisp at 1x, 2x and 3x.** The picture is made at the *device's* resolution at the largest whole-number scale that fits (40 css px:
+  2x at 1x, 5x at 2x, 7x at 3x) and shown 1:1, so the browser never stretches it. Checked in Chromium at all three ratios: the
+  picture is 40, 80 and 120 device px and every art pixel is a whole 2x2, 5x5 or 7x7 block.
+- **Caching.** One PNG data URL per look and size (400 kept), shared by every row, card and tile showing that look. A 16 x 16 crop is
+  read from the row once (1 KB). Nothing is painted again when a list updates.
+- **Placeholder and failure.** A neutral tile until the row is built; if the layers never load, or a row will not build, the tile is the
+  person's colour with their initial. Nothing says why.
+
+### What the lists hold (the privacy rules; `friends.test.ts` and `session.test.ts` hold them)
+
+- **Friends are only accepted friends**, by the name they gave you. Anyone you blocked this visit is gone from the lists at once and
+  stays gone after the next read.
+- **A request from the library is a nickname** and "from the library": `lobby_friend_requests` has no name and no code column (0125).
+  If the same person also appears in the ordinary requests, the library's version wins, so a real name cannot arrive by the other list.
+  An ordinary request (someone typed your friend code) shows the name that person gave, as the iPad does (see "Not verified").
+- **A stranger is a nickname** everywhere, as before (`sanitised`); no friend code is shown or held anywhere. A removed friend's name
+  leaves the room's list at once (they are a nickname again).
+- **Nothing asks the server about people who are not friends or in the room.** The new reads are the two above, with no ids.
+
+### Reading and refreshing
+
+Once on joining (not again when you switch library), every 60 s while the visit is live, at once when the People tab opens (not twice
+within 3 s), and after any friend action (accept, not now, remove, adding back someone who asked). A failed read keeps the last good
+list and says nothing; a first read that cannot be answered falls back to the friends the room itself marks. Friends are joined to
+the room by lowercase user id on every read of the room (2 to 5 s), so a friend who sits down or starts a timer changes at once.
+
+**Order.** Friends in this library first (a lit row; "In this library, Chemistry 24 min", "sitting" or "standing"), then those
+studying elsewhere (only from a *fresh* presence, that is one with an end still ahead: "Studying Maths now", "On a break"), then the rest
+by name with no second line. Nothing is invented: no "online", no last seen. The day streak is shown only while it can be alive
+(counted today or yesterday, London days) or from the room.
+
+**Steady under a finger.** While a pointer is down on the panel and for 350 ms after it scrolls, the lists keep the order they had
+(`inHeldOrder`); a row never moves under a tap. Rows are memoised and the session hands back the same row objects when a read changed
+nothing (`keepSame`), so a quiet list does no DOM work.
+
+### Checked
+
+`npm run library:test` (friends, session, headCrop added), `npm run app:test`, `npm run social:test`, `tsc`, `eslint`. In Chromium against the demo
+page: sections and order; Accept and Not now; a friend who is not here; a friend here opens their card and selects them on the map;
+Remove behind a confirm; heads non-blank, different for different avatars, the derived person for no avatar; 1x, 2x, 3x crispness;
+scrolling with sticky headers (35 friends, 44 in the room); the order held under a pointer; keyboard (Tab, Enter, Space, focus ring);
+reduced motion; no horizontal overflow at 1280, 390 and the windowed layout; no console errors. With 82 heads in the panel: all drawn
+within about 0.8 s of opening the tab (one 150 to 240 ms task while the rows are built, once), 60 fps while scrolling the whole list,
+and no DOM changes in 10 s of idle (the room reading every 2 to 5 s).
+
+### Not verified
+
+- **Real data.** Nothing here ran against a real Supabase project: not `loadFriends` over real RLS, not `lobby_friend_requests`, not
+  `study_presence` (so how often presence is still fresh for real friends is unknown), not the iPad writing any of it.
+- **An ordinary request shows the sender's real name.** That is what the iPad's request list does and what the server allows
+  (`has_pending_request`), because the sender typed your friend code. If the founder wants those to read as "someone" too, it is one
+  line in `buildRequests`. A library request never does.
+- **Safari and a real iPad.** `color-mix()` (the tile tint) and `image-rendering: pixelated` are in Safari 16.2+ and 10+; the sticky
+  headers and `overscroll-behavior` were only seen in Chromium. Touch scrolling was emulated, not done on a device.
+- **No student has used it** (CLAUDE.md evidence levels 1 and 2 are empty). The row heights, the order and the wording are the
+  founder's brief, not observed student behaviour.
+
+
+## Entry screen (the front door, 1 November 2026)
+
+Founder: "when the user presses on Study there should be like an enter button and a really nice entry into the app that
+feels super premium, like lofi.town has". Study now opens on a door, and the student walks in.
+
+**What it is.** One full-viewport scene for every state of Study before the room: Enter, signed out, the join card, the
+waiting moment (`Front.tsx` `FrontScene`; `EntryScreen.tsx`; `LibraryFront.tsx` owns the flow; `Cards.tsx` restyled;
+`entry.css`). The picture is the room's own art (`bg.png`, which Enter needs anyway, so it costs nothing extra), seen
+out of focus from the doorway at a whole multiple of its pixels, lit by the room's own lamps (the `lights` of
+`layout.json`, three CSS layers with a fire and candle flicker) for the student's hour (dawn 05 to 08, day 08 to 17,
+evening 17 to 20, night 20 to 05, their own clock; the season only colours the dust), with light beams by day, dust
+motes, a vignette and grain. The scene leans a little toward the pointer (art slowest, lettering the other way); off for
+reduced motion and for touch. "The Grand Library" is a CSS logotype in the site's pixel face (three stacked copies:
+deep outline and drop, gold edge, cream face), always two lines, sized from the stage's width and the window's height,
+Plumi (`plumi-welcoming.svg`) perched on its corner. One key, ENTER with a return glyph, a pixel keycap that goes down
+when pressed. Log out top right, Back to Desk top left, nothing else.
+
+**Why ENTER, and not "Enter the library".** It is the one word that is also the key that presses it, it fits at 320px,
+and the lettering above already says where. The accessible name is "Enter the Grand Library".
+
+**When the door shows.** Every time Study is opened after a load, and after more than 10 minutes away from the room
+(`QUICK_RETURN_MS`). A student who was in the room and stepped out to the Desk or Flashcards for less than that comes
+straight back: the same scene is only a 0.4 s veil lifting off the room, no key, no new press (the Study tab tap is the
+gesture, as before). A reload always shows the door: it forgot the browser's full screen and the sound, and the press is
+what asks for both again. The tab's memory is `entryMemory` (module state, so a reload resets it).
+
+**Pressing Enter** (click, tap, Enter or Space; with nothing else focused the keys press it too, and the key has focus on
+arrival): the browser's full screen is requested (`enterBrowserFullscreen`, best effort), the key's "thock" and a soft
+three-note bell are made with WebAudio (`entrySound.ts`, only from this press; no WebAudio, silence), and only then does
+the room mount, which is when the student joins the lobby. On the door nobody is announced. `door` then `press`
+(the key is down, the lettering steps back, the camera leans in, the room draws behind) then `go` (the scene rushes
+toward the student and loses its blur while the light grows and the door fades; the room comes forward out of it) then
+`in`. About 1.0 to 1.3 s: 0.3 s press, 0.7 s walk, and the walk waits for the room to be drawn (at most 4 s). Any tap or
+key during it lets the student straight in. Reduced motion: a 0.22 s cross-fade, no zoom, no parallax, no drift, no
+dust. The room is `.lb-full` (z 50, dark `#2a1d1a`) under the door (z 52), so there is never a white or notebook frame.
+The top bar and the record player are hidden while any front-door screen is up, by CSS only (`.pa:has(.en) .top, .rp`),
+so `Vinyl.tsx` is untouched and any music already playing carries on.
+
+**Preload while the door is up** (`preload.ts`, `preloadRoom` in `entry.ts`, tested): the room engine chunk and the
+walking maths, `layout.json`, `bg.png`, `pieces.png`, `anims.png`, `people.png` (fetched and decoded and held), then
+the people layers and this student's own person built (`peopleStore`). A failed file is retried next time.
+`lobby_*` is never called by it.
+
+**The two lines** under the key come from `lobby_servers` read once (counts only; `LibrarySocial.lobbyServers`, as the
+Desk's beacon does) and `lobby_me` for "hidden": "N students studying right now" (the servers' total), "N friends
+are in" (the sum of `friends`; the server never says who), and "You're hidden, so nobody will see you". Names ("Maya and
+Josh are in") only when the room published them in the last two minutes and the count still agrees, which in practice
+is only just after leaving the room. Nothing is shown until the server answers, and the space is already reserved, so
+nothing moves. Unknown means no line, never a number.
+
+**Fallbacks.** Art fails or is slow: a wine-and-amber glow with the beams and dust, the key at once. No WebAudio:
+silence. Reduced motion: above. 320px: the lettering is 22% of the width and wraps nowhere; landscape phones lose
+Plumi and "The" and put the two lines side by side; 2560 and very tall screens scale with the window. The card states
+(`Plaque`) scroll inside the stage if a phone is too short.
+
+**Dev views** (no Supabase): `/study/library/demo?entry=1` (the door; `&tod=dawn|day|evening|night`, `&live=none|quiet`,
+`&hidden=1`), `?entry=signedout`, `?entry=join`, `?entry=wait`, `?entry=quick` (back from a step out). Without `entry`
+the demo opens the room as before.
+
+**Measured** (headless Chromium on a laptop-class CPU with software rendering and a development server, so slower than a
+device): Enter to the first drawn room frame (`performance.measure("plumi:enter-to-room")`, press to `data-ready` and one
+frame) 320 to 500 ms; Enter to the door gone 1.3 to 1.6 s (the blurred scene animates at about 15 fps in software; the
+design time is 1.0 s); after Enter the only request is the engine's own `layout.json`. Not verified: Safari (`:has`,
+`cqi`, `-webkit-text-stroke` on three stacked copies, `backdrop-filter`), a real iPad or phone, a slow network, the
+real Supabase `lobby_servers` and `lobby_me` answers (the demo is scripted), and what the three stacked copies of the
+lettering cost on a low-end phone.
+
+**Tests.** `src/lib/studyapp/library/entry.test.ts` (27): when the door shows, the hour and season, both lines' wording,
+the preload order and that it never throws, the lamplight against `layout.json`, the art's cover scale at 11 window
+sizes, the transition's timing rules.

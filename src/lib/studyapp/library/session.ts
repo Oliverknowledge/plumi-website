@@ -4,10 +4,12 @@ import {
   emoteLine, emoteOf, listPeople, mergeMessages, totalHere,
   type LibraryMessage, type LobbyEmote, type LobbyPerson, type LobbyServers,
 } from "../../social/lobby";
-import type { MessageReportReason, UserReportReason } from "../../social/types";
+import type { FriendsSnapshot, MessageReportReason, UserReportReason } from "../../social/types";
+import type { LobbyFriendRequest } from "../../social/lobby";
 import type { LiveSummary } from "../live";
 import { composeRemotes, labelFor, type HeardFloor, type RemoteState } from "./compose";
 import { friendRequestFromLobby, type FriendAsk } from "./friendRequest";
+import { buildFriends, buildRequests, friendsFromRoom, keepSame, type FriendEntry, type RequestEntry } from "./friends";
 import { watchLobby, type LobbyRealtime, type LobbySignal, type LobbyWatch } from "./lobbyWatch";
 import { LIBRARY_TILE, type FloorPresence } from "./room";
 
@@ -25,6 +27,9 @@ import { LIBRARY_TILE, type FloorPresence } from "./room";
  *   chat        `library_messages` every 4 seconds (GroupChatModel.pollInterval), the newest 100 afresh every
  *               sixth read so a hidden message goes (fullReadEvery)
  *   servers     `lobby_servers` every 20 seconds, for the picker and the count
+ *   friends     `loadFriends` + `lobbyFriendRequests` once on joining, then every 60 seconds while the visit is live,
+ *               at once when the People tab opens (`refreshFriends`), and after any friend action. A failed read
+ *               keeps the last good list and says nothing.
  *
  * A student never sees an error: a failed read keeps what was last good; a failed write says one quiet line.
  */
@@ -37,7 +42,8 @@ export type Phase = "idle" | "joining" | "live" | "hidden" | "unavailable";
 export type LibrarySocial = Pick<SocialService,
   "joinLobby" | "lobbyServers" | "setLobbyPosition" | "leaveLobby" | "lobbyPeople" | "lobbyEmote" | "libraryMessages" |
   "sendLibraryMessage" | "reportLibraryMessage" | "block" | "reportUser" | "setLobbyVisible" | "setAvatar" |
-  "sendLobbyFriendRequest" | "probeFriendRequests" | "canRequestFriends">;
+  "sendLobbyFriendRequest" | "probeFriendRequests" | "canRequestFriends" |
+  "loadFriends" | "respondToFriendRequest" | "removeFriend" | "lobbyFriendRequests">;
 
 export interface Snapshot {
   phase: Phase;
@@ -53,6 +59,14 @@ export interface Snapshot {
   chatLoaded: boolean;
   /** Your steps reach the others as you take them (your own Realtime topic is joined). */
   live: boolean;
+  /**
+   * ALL your accepted friends, each joined by id to who is in this library now (in this library first, then studying
+   * elsewhere, then the rest by name). Null until the first read has been answered; if that first read cannot be
+   * answered, the friends the room itself marks. A later failure keeps the last good list.
+   */
+  friends: FriendEntry[] | null;
+  /** Requests waiting on you: library ones as a nickname only, ordinary ones by name. Never your own, never a friend's. */
+  requests: RequestEntry[];
 }
 
 export type SessionEvent =
@@ -77,6 +91,9 @@ export const PEOPLE_LIVE_EVERY_MS = 5_000;
 export const CHAT_EVERY_MS = 4_000;
 export const CHAT_FULL_EVERY = 6;
 export const SERVERS_EVERY_MS = 20_000;
+export const FRIENDS_EVERY_MS = 60_000;
+/** Opening the People tab reads at once, but not twice within this (a student tapping the tab on and off is not asking the server each time). */
+export const FRIENDS_MIN_GAP_MS = 3_000;
 export const RETRY_MS = 10_000;
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -91,8 +108,16 @@ export function sendLine(f: Failure): string {
 export class LibrarySession {
   private s: Snapshot = {
     phase: "idle", shard: null, nickname: null, people: [], servers: null, seated: false, subject: null, focusSince: null,
-    messages: [], chatLoaded: false, live: false,
+    messages: [], chatLoaded: false, live: false, friends: null, requests: [],
   };
+  /** What the last good reads said (the snapshot's `friends` and `requests` are these joined to the room). */
+  private rawFriends: FriendsSnapshot | null = null;
+  private rawAsked: LobbyFriendRequest[] = [];
+  private friendsTried = false;
+  private friendsInFlight: Promise<void> | null = null;
+  private lastFriends = -Infinity;
+  /** Blocked this visit: never listed as a friend or a request, whatever the next read says. */
+  private blocked = new Set<string>();
   private listeners = new Set<() => void>();
   private floorListeners = new Set<() => void>();
   private eventListeners = new Set<(e: SessionEvent) => void>();
@@ -179,7 +204,7 @@ export class LibrarySession {
     if (!r.ok) { this.set({ phase: "unavailable" }); this.ensureTicker(); return; }
     if (r.value.shard === null) {
       this.dropWatch();
-      this.set({ phase: "hidden", nickname: r.value.nickname, shard: null, people: [], messages: [], live: false });
+      this.set({ phase: "hidden", nickname: r.value.nickname, shard: null, people: [], messages: [], live: false, ...this.view([]) });
       this.ensureTicker();
       return;
     }
@@ -194,7 +219,7 @@ export class LibrarySession {
     this.statusDirty = true; this.lastPos = -Infinity; this.lastPeople = -Infinity; this.lastChat = -Infinity; this.chatReads = 0;
     // The server forgets what you were doing when you join (seated and the timer are cleared): say it again if the room still has you in a seat.
     const seated = this.floorNow()?.seat != null;
-    this.set({ phase: "live", shard, nickname, people: [], messages: [], chatLoaded: false, live: false, seated, ...(seated ? {} : { subject: null, focusSince: null }) });
+    this.set({ phase: "live", shard, nickname, people: [], messages: [], chatLoaded: false, live: false, seated, ...this.view([]), ...(seated ? {} : { subject: null, focusSince: null }) });
     void this.d.social.probeFriendRequests();          // does the server have "Add friend" yet (0125)? Asked once; the card hides the button until it says yes
     const rt = this.d.realtime?.() ?? null;
     if (rt) {
@@ -228,7 +253,7 @@ export class LibrarySession {
     if (visible) await this.start(); else {
       this.gen++;
       this.dropWatch();
-      this.set({ phase: "hidden", shard: null, people: [], messages: [], live: false, seated: false, focusSince: null, subject: null });
+      this.set({ phase: "hidden", shard: null, people: [], messages: [], live: false, seated: false, focusSince: null, subject: null, ...this.view([]) });
       this.floorChanged();
     }
   }
@@ -241,7 +266,7 @@ export class LibrarySession {
     const was = this.s.phase === "live";
     this.watch?.leave(); this.watch = null;
     if (was) void this.d.social.leaveLobby();
-    this.set({ phase: "idle", shard: null, people: [], live: false, seated: false, focusSince: null, subject: null });
+    this.set({ phase: "idle", shard: null, people: [], live: false, seated: false, focusSince: null, subject: null, ...this.view([]) });
   }
 
   /* ── The beat ─────────────────────────────────────────────────────── */
@@ -262,6 +287,8 @@ export class LibrarySession {
       if (t - this.lastChat >= CHAT_EVERY_MS) await this.readChat(gen);
       if (gen !== this.gen) return;
       if (t - this.lastServers >= SERVERS_EVERY_MS) await this.readServers(gen);
+      if (gen !== this.gen) return;
+      if (t - this.lastFriends >= FRIENDS_EVERY_MS) await this.refreshFriends();
     } finally {
       this.busy = false;
     }
@@ -279,6 +306,8 @@ export class LibrarySession {
       await this.readChat(gen);
       if (gen !== this.gen) return;
       await this.readServers(gen);
+      if (gen !== this.gen) return;
+      if (!this.friendsTried || this.now() - this.lastFriends >= FRIENDS_EVERY_MS) await this.refreshFriends();   // once on joining, not again on every switch of library
     } finally { this.busy = false; }
   }
 
@@ -302,7 +331,7 @@ export class LibrarySession {
     if (!r.ok) return;
     if (r.value.shard === null) {
       this.dropWatch();
-      this.set({ phase: "hidden", shard: null, people: [], messages: [], live: false });
+      this.set({ phase: "hidden", shard: null, people: [], messages: [], live: false, ...this.view([]) });
       return;
     }
     if (r.value.shard !== want) { this.adopt(r.value.shard, r.value.nickname); return; }
@@ -320,7 +349,7 @@ export class LibrarySession {
       if (r.failure.kind === "refused" && r.failure.reason === "not_member") await this.rejoin(gen);
       return;
     }
-    const people = listPeople(r.value.filter((p) => p.id !== this.me));
+    const people = keepSame(this.s.people, listPeople(r.value.filter((p) => p.id !== this.me)));
     const ids = new Set(people.map((p) => p.id));
     for (const id of [...this.floor.keys()]) if (!ids.has(id)) this.floor.delete(id);
     for (const id of [...this.gone.keys()]) if (!ids.has(id)) this.gone.delete(id);
@@ -329,7 +358,7 @@ export class LibrarySession {
       if (kind && p.emoteAt !== null && this.lastEmote.get(p.id) !== p.emoteAt) { this.lastEmote.set(p.id, p.emoteAt); this.emit({ type: "emote", id: p.id, kind }); }
     }
     this.watch?.setPeople(people.map((p) => p.id));
-    this.set({ people });
+    this.set({ people, ...this.view(people) });
     this.floorChanged();
   }
 
@@ -356,6 +385,79 @@ export class LibrarySession {
 
   /** Reads the servers now (the picker opened). */
   async refreshServers() { if (this.stopped || this.s.phase !== "live") return; await this.readServers(this.gen); }
+
+  /* ── Friends ──────────────────────────────────────────────────────── */
+
+  /**
+   * The friends list and the requests waiting on you, joined to the room (`Snapshot.friends`, `requests`). Called when
+   * joining, every minute, when the People tab opens and after a friend action; asking again while one is on its way
+   * shares it, unless `fresh` (after an action, which must not be answered by a read that began before it).
+   * Never throws and never says a word: a failed read keeps what was last good.
+   */
+  refreshFriends(fresh = false): Promise<void> {
+    if (this.stopped || this.s.phase !== "live") return Promise.resolve();
+    if (this.friendsInFlight && !fresh) return this.friendsInFlight;
+    if (!fresh && this.friendsTried && this.now() - this.lastFriends < FRIENDS_MIN_GAP_MS) return Promise.resolve();
+    const before = this.friendsInFlight;
+    const run: Promise<void> = (async () => {
+      if (before) await before;
+      await this.readFriends();
+    })().finally(() => { if (this.friendsInFlight === run) this.friendsInFlight = null; });
+    this.friendsInFlight = run;
+    return run;
+  }
+
+  private async readFriends() {
+    this.lastFriends = this.now();
+    let f, q;
+    try { [f, q] = await Promise.all([this.d.social.loadFriends(), this.d.social.lobbyFriendRequests()]); } catch { f = q = undefined; }
+    if (this.stopped) return;
+    this.friendsTried = true;
+    if (f?.ok) this.rawFriends = f.value;
+    if (q?.ok) this.rawAsked = q.value;
+    this.set(this.view(this.s.people));
+  }
+
+  /** The friends and requests the panel shows: the last good reads, joined to the people in the room now. */
+  private view(people: readonly LobbyPerson[]): Pick<Snapshot, "friends" | "requests"> {
+    const t = this.now();
+    const built = this.rawFriends ? buildFriends(this.rawFriends.friends, people, this.blocked, t) : this.friendsTried ? friendsFromRoom(people, this.blocked) : null;
+    const friends = built ? keepSame(this.s.friends ?? [], built) : null;
+    const requests = keepSame(this.s.requests, buildRequests(this.rawFriends?.requests ?? [], this.rawAsked, new Set((friends ?? []).map((x) => x.id)), this.blocked, t));
+    return { friends, requests };
+  }
+
+  /** Accept, or "Not now", a request waiting on you. The row goes at once; the list is read again behind it. */
+  async answerRequest(id: string, accept: boolean): Promise<{ ok: boolean; line: string }> {
+    const them = id.toLowerCase();
+    const r = await this.d.social.respondToFriendRequest(them, accept);
+    if (!r.ok) return { ok: false, line: "That didn’t go through. Try again in a moment" };
+    this.forget(them);
+    void this.refreshFriends(true);
+    return { ok: true, line: accept ? "You’re friends now" : "Okay, not now" };
+  }
+
+  /** Takes someone off your friends. The name goes from the room at once too: a stranger is only a nickname. */
+  async removeFriend(id: string): Promise<{ ok: boolean; line: string }> {
+    const them = id.toLowerCase();
+    const r = await this.d.social.removeFriend(them);
+    if (!r.ok) return { ok: false, line: "That didn’t go through. Try again in a moment" };
+    this.forget(them);
+    const people = this.s.people.map((p) => (p.id === them ? { ...p, isFriend: false, displayName: null, friendRequest: null } : p));
+    this.set({ people, ...this.view(people) });
+    void this.refreshFriends(true);
+    return { ok: true, line: "Friend removed" };
+  }
+
+  /** Someone gone from what was last read (answered, removed): out of the held lists now, before the next read says so. */
+  private forget(id: string) {
+    this.rawAsked = this.rawAsked.filter((q) => q.userId.toLowerCase() !== id);
+    if (this.rawFriends) this.rawFriends = {
+      friends: this.rawFriends.friends.filter((x) => x.id.toLowerCase() !== id),
+      requests: this.rawFriends.requests.filter((x) => x.otherUserId.toLowerCase() !== id),
+    };
+    this.set(this.view(this.s.people));
+  }
 
   /* ── Realtime ─────────────────────────────────────────────────────── */
 
@@ -445,6 +547,7 @@ export class LibrarySession {
     const asked = await friendRequestFromLobby(this.d.social, id);
     if (asked.settled) this.set({ people: this.s.people.map((p) => p.id === id
       ? { ...p, friendRequest: asked.nowFriends ? null : "sent", isFriend: p.isFriend || asked.nowFriends } : p) });
+    if (asked.nowFriends) void this.refreshFriends(true);
     return asked;
   }
 
@@ -487,7 +590,9 @@ export class LibrarySession {
   private dropPerson(id: string) {
     this.floor.delete(id);
     this.gone.set(id, this.now());
-    this.set({ people: this.s.people.filter((p) => p.id !== id), messages: this.s.messages.filter((m) => m.senderId !== id) });
+    this.blocked.add(id);
+    const people = this.s.people.filter((p) => p.id !== id);
+    this.set({ people, messages: this.s.messages.filter((m) => m.senderId !== id), ...this.view(people) });
     this.floorChanged();
   }
 }

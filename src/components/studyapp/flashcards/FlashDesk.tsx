@@ -133,7 +133,7 @@ export function FlashDesk({
             </span>
           ))}
         </div>
-        <p className="dsk-keys"><kbd>Space</kbd> turn over <span aria-hidden="true">&middot;</span> <kbd>1</kbd> Again <kbd>2</kbd> Hard <kbd>3</kbd> Good <kbd>4</kbd> Easy</p>
+        <p className="dsk-keys"><kbd>Space</kbd> or <kbd>Enter</kbd> turn over <span aria-hidden="true">&middot;</span> <kbd>1</kbd> Again <kbd>2</kbd> Hard <kbd>3</kbd> Good <kbd>4</kbd> Easy</p>
       </div>
     </section>
   );

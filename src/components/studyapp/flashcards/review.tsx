@@ -74,7 +74,7 @@ export function waitLine(waitUntil: number | null, now: number): string {
   return hours < 24 ? `Next card in ${hours} hour${hours === 1 ? "" : "s"}` : "Next card tomorrow";
 }
 
-/** Space turns the card over and 1 to 4 grade it, anywhere on the page except while typing. */
+/** Space or Enter turns the card over and 1 to 4 grade it, anywhere on the page except while typing. */
 export function useReviewKeys(review: Review, enabled = true) {
   useEffect(() => {
     if (!enabled) return;
@@ -82,9 +82,9 @@ export function useReviewKeys(review: Review, enabled = true) {
       const t = e.target as HTMLElement | null;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      // A focused button or link keeps its own Space (it presses it); only elsewhere does Space turn the card over.
-      if (e.key === " " && /^(BUTTON|A|SUMMARY)$/.test(t?.tagName ?? "")) return;
-      if (e.key === " " && review.card && !review.shown) { e.preventDefault(); review.show(); }
+      // A focused button or link keeps its own Space and Enter (it presses it); only elsewhere do they turn the card over.
+      if ((e.key === " " || e.key === "Enter") && /^(BUTTON|A|SUMMARY)$/.test(t?.tagName ?? "")) return;
+      if ((e.key === " " || e.key === "Enter") && !e.repeat && review.card && !review.shown) { e.preventDefault(); review.show(); }
       else if (/^[1-4]$/.test(e.key) && review.shown) { e.preventDefault(); review.grade(Number(e.key) as Grade); }
     };
     window.addEventListener("keydown", onKey);
@@ -103,7 +103,7 @@ export function FlipCard({ review, big = false, position }: { review: Review; bi
         <button type="button" className="fc-face" onClick={review.show} aria-label="Show the answer" tabIndex={shown ? -1 : 0} data-testid="card-front">
           <span className="fc-top"><span>{deckTitle}</span><span>{position}</span></span>
           <span className="fc-q" data-long={long(card.front) || undefined}>{card.front}</span>
-          <span className="fc-hint">Click or press Space</span>
+          <span className="fc-hint">Click, or press Space or Enter</span>
         </button>
         <div className="fc-face fc-back" inert={!shown} data-testid="card-back">
           <span className="fc-top"><span>{deckTitle}</span><span>{position}</span></span>
