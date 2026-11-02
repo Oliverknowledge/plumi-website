@@ -182,9 +182,14 @@ export function focusTag(p: LobbyPerson, now: number): string | null {
   return subject ? `${subject} · ${m} min` : `${m} min`;
 }
 
-/** The wave over a head, while it is new. The server sends one for ten seconds; either side of the clocks counts. */
-export function emoteOf(p: LobbyPerson, now: number): LobbyEmote | null {
-  return p.emote && p.emoteAt !== null && Math.abs(now - p.emoteAt) < 10_000 ? p.emote : null;
+/**
+ * The wave over a head, while it is new. `lobby_people` lists a wave for ten seconds and no longer (the server's
+ * clock decides, 0117), so being listed is being new, and this device's clock is not asked: a clock a few seconds out
+ * used to make every wave vanish. (`_now` is kept so existing callers need not change.)
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function emoteOf(p: LobbyPerson, _now?: number): LobbyEmote | null {
+  return p.emote && p.emoteAt !== null ? p.emote : null;
 }
 
 /** The count line for a timer: "12:05" under an hour, "1 h 05 min" over. */

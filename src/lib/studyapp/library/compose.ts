@@ -10,8 +10,8 @@ import { lookFor, toArt, type FloorPresence, type Pt } from "./room";
 /** Where someone last said they stand on the floor, and when we heard it. */
 export interface HeardFloor { floor: FloorPresence; at: number; seq: number }
 
-/** Floor news older than this is not believed: a standing student resends every ten seconds (RESEND_MS). */
-export const FLOOR_FRESH_MS = 45_000;
+/** Floor news older than this is not believed: a standing student resends every thirty seconds (RESEND_MS), so this is three misses. */
+export const FLOOR_FRESH_MS = 90_000;
 /**
  * Someone who said they left stays gone this long even if the server still lists them: its list holds a row for
  * 30 seconds after the last beat (`lobby_fresh`). HallLive.gone does the same on the iPad (freshFor + 5).

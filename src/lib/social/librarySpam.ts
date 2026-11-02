@@ -1,4 +1,4 @@
-import { check as chatCheck, fold, tidy, type ChatRefusal } from "./chatRules";
+import { check as chatCheck, cleanInput, fold, tidy, type ChatRefusal } from "./chatRules";
 
 /**
  * The Grand Library chat's spam rule, so a student is told before sending that a message looks like spam,
@@ -71,7 +71,7 @@ export function repeats(body: string, recent: readonly Said[], now: number): boo
 
 /** Everything the page can tell before sending, in the server's order: chat rules, spam, then saying it again. */
 export function check(raw: string, recent: readonly Said[] = [], now = Date.now()): LibraryVerdict {
-  const v = chatCheck(raw);
+  const v = chatCheck(cleanInput(raw));
   if (!v.ok) return v;
   const s = spam(v.body);
   if (s) return { ok: false, refusal: s };

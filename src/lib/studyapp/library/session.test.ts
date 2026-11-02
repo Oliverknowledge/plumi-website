@@ -23,7 +23,8 @@ function rig() {
   const events: Record<string, SessionEvent[]> = { [A]: [], [B]: [], [C]: [] };
   const floors: Record<string, () => ReturnType<typeof presenceFields> | null> = {};
   const make = (me: string, realtime = true) => {
-    const s = new LibrarySession({ social: world.social(me), realtime: realtime ? () => hub.client(me) : undefined, me, now: clock.now, publish: (x) => summaries[me].push(x) });
+    // the tests' clock arithmetic is the old cadences (list every 5 s with Realtime up, topics joined at once); the new defaults have their own tests
+    const s = new LibrarySession({ social: world.social(me), realtime: realtime ? () => hub.client(me) : undefined, me, now: clock.now, publish: (x) => summaries[me].push(x), peopleLiveEveryMs: 5_000, listenGapMs: 0 });
     s.onEvent((e) => events[me].push(e));
     return s;
   };
@@ -363,16 +364,16 @@ describe("the floor in real time", () => {
     assert.ok(r.hub.sent.filter((s) => s.user === A).length - before >= 1, "the change that had to wait went on the next beat");
   });
 
-  it("sends your place again every ten seconds while you stand still", async () => {
+  it("sends your place again every thirty seconds while you stand still (a change goes at once)", async () => {
     const r = rig();
     const a = r.make(A);
     a.attachRoom(() => ({ x: 4, y: 4, seat: null, path: [] }));
     await a.start();
     await r.flush();
     const base = r.hub.sent.filter((s) => s.user === A && s.event === "move").length;
-    for (let i = 0; i < 25; i++) { r.clock.advance(1000); await a.tick(); }
+    for (let i = 0; i < 65; i++) { r.clock.advance(1000); await a.tick(); }
     const resent = r.hub.sent.filter((s) => s.user === A && s.event === "move").length - base;
-    assert.ok(resent >= 2 && resent <= 3, `resent ${resent} times in 25 s`);
+    assert.ok(resent >= 2 && resent <= 3, `resent ${resent} times in 65 s`);
   });
 
   it("hears a student on an iPad (lx, ly, ls) and a student who left", async () => {
@@ -427,7 +428,7 @@ describe("the floor in real time", () => {
     assert.deepEqual([rem[0].pos, rem[0].seat, rem[0].seated], [null, null, true]);
   });
 
-  it("ignores floor news that is older than 45 seconds", async () => {
+  it("ignores floor news that is older than 90 seconds", async () => {
     const r = rig();
     const a = r.make(A);
     r.world.add(C, { nickname: "Calm Heron", display: "Cal" });
@@ -437,7 +438,10 @@ describe("the floor in real time", () => {
     const bot = new FakeBot(r.hub.client(C), C, 1, `walk:lobby-1:${C}`);
     bot.at({ x: 200, y: 200, seat: null, path: [] });
     assert.ok(a.remotes()[0].pos);
-    r.clock.advance(46_000);
+    r.clock.advance(60_000);
+    r.world.place(C, 1);
+    assert.ok(a.remotes()[0].pos, "a resend is thirty seconds apart, so a minute without one is not yet stale");
+    r.clock.advance(31_000);
     r.world.place(C, 1);
     assert.equal(a.remotes()[0].pos, null);
   });

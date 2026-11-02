@@ -29,23 +29,45 @@ a clock and a ticker, so a scripted world drives it in tests and in the demo. Th
 |---|---|---|
 | `lobby_join(x, y[, want])` | on entry, switching, and when the server says "rejoin" | `SocialModel.enterLobby / switchLobby`, `SocialModel.swift:880, 908` |
 | `lobby_set_position(shard, x, y, seated, subject, focus_since)` | when seated or the subject changes, and every 10 s | `HallPositions.heartbeat` 10 s (`HallPositions.swift:38`), `lobbyBeat` (`SocialModel.swift:1018`) |
-| `lobby_people(shard)` | every 2 s, every 5 s while the floor is live | `lobbyReadEvery` 2 (`SocialModel.swift:876`), `liveReadEvery` 5 (`HallPositions.swift:46`) |
-| `library_messages(shard, since)` | every 4 s; the newest 100 afresh every sixth read | `GroupChatModel.pollInterval / fullReadEvery` (`GroupChatModel.swift:61, 64`) |
-| `lobby_servers()` | every 20 s, and when the picker shows | `SocialModel.loadLobbyServers` |
-| `lobby_leave()` | on leaving the page | `SocialModel.leaveHall` |
+| `lobby_people(shard)` | every 2 s; every **12 s** while the floor is live (the web saves calls: Realtime already carries the walking and the leavers, so the list is for newcomers and details; a new face shows within about 15 s) | `lobbyReadEvery` 2 (`SocialModel.swift:876`), `liveReadEvery` 5 (`HallPositions.swift:46`) |
+| `library_messages(shard, since)` | every 4 s **while the chat is on screen**, every 20 s otherwise (only to count what is new); the newest 100 afresh every sixth read | `GroupChatModel.pollInterval / fullReadEvery` (`GroupChatModel.swift:61, 64`) |
+| `lobby_servers()` | every 20 s while the picker is open, every 60 s otherwise (the Desk's count); at once when it opens | `SocialModel.loadLobbyServers` |
+| `lobby_leave()` | on leaving the page, **and the moment the tab closes** (a `keepalive` request signed as the student the visit began as; below) | `SocialModel.leaveHall` |
 
 Failures are values (`Result`), never thrown at a view. A failed read keeps what was last good; a failed write says one
 short line in the student's words (`failure.ts`); a student never sees a rule name, a code or "error". If the server
 says `not_member` (hidden since, or the row went stale) the visit joins again by itself.
 
+### When things go wrong (sync and lifecycle; each was measured before it was fixed)
+
+| Case | What the visit does | Where |
+|---|---|---|
+| A request that never answers (a half-open connection after the laptop slept) | Every call to the data API is aborted after 8 s (`timedFetch`, the Supabase client's `global.fetch`) and the session gives up on any call after 8 s too (`guarded`), so it is an ordinary network failure. A beat stuck for 45 s is abandoned. Before: one hung call froze position, people and chat for the rest of the visit. | `serverTime.ts`, `session.ts` |
+| A failing call | Each kind of call (position, people, chat, servers, join) backs off 1, 2, 4 ... 30 s with full jitter (joins 2 s upward), longer when the server answers 429. After 3 failures in a row the page says "Catching up" (`Snapshot.online`). Before: 116 position pushes in 120 s. | `session.ts` (`bad`/`good`) |
+| Two tabs of one student | One tab per student is in the library: a Web Lock named for the student. Another tab shows "You’re in the library in another tab" with a **Move here** button and asks the server for nothing. Moving is a tap; the old tab steps aside without sending a leave (that would take the new tab out). Before: 64 joins in 45 s and the seat flipping. Where Web Locks do not exist, the tabs behave as they did. It cannot help two *browsers* or a browser and an iPad (one server row each; the SQL side keeps a same-library rejoin from clearing the seat). | `lease.ts`, `Elsewhere.tsx` |
+| Another account signs in, in another tab | The visit is for one student. It checks the browser's student every beat; if it is someone else it leaves as the student it began as and stops. The leave is a plain `fetch` with that student's last token (`farewell.ts`), never the shared client, which now speaks as the new account. | `farewell.ts`, `session.ts` (`foreign`) |
+| The tab closes | `pagehide` sends `lobby_leave` at once, as a `keepalive` request that outlives the page (measured: the row is gone under a second after the tab closes; before, the student stood in the room for the 30 s the server waits). If the page returns from the back/forward cache (`pageshow`, persisted) the visit goes in again. A hidden tab is not left: a student timing a session in another tab is still in the library. | `pageLifecycle.ts` |
+| A hidden tab | For the first minute, as normal but without the reads. After that one position push every 25 s (the server forgets a student after 30 s, `lobby_fresh`) and nothing else. Seen again: everything is read at once. Hidden or untouched for 10 minutes with no study timer running, the visit ends ("You stepped away", **Rejoin**) so nobody stands in an empty room. **Not solved:** a browser that throttles timers to once a minute after minutes in the background (Chrome intensive throttling) can still miss the 30 s window; only the server could widen it for a hidden tab. | `session.ts` (`visible`, `stepAway`) |
+| A leave that did not happen | `leave()` asks the server whenever a join might have reached it (a lost answer, a failed switch), not only from `live`. A tab that never held the lease never leaves. | `session.ts` |
+| A clock that is out | Every time the server gives (when someone began focusing, a wave) is written into the device's clock where it comes in, using the `Date` header of the answers (about a second) and, failing that, the rows themselves (`lobby_people` lists only rows written in the last 30 s, so the server's now lies between the newest and the oldest). A wave is shown if the server lists it (it lists ten seconds), whatever the device says. Measured at 8 s, 12 s, 30 s and 5 minutes either way: the tag and the wave are right. A `server_now` returned with `lobby_people` would make it exact. | `serverClock.ts`, `serverTime.ts` |
+| Chat input | NUL and half a surrogate pair are dropped, and no more than three combining marks in a row go out (a stack of 200 did). The server still tidies and judges the text. | `chatRules.cleanInput` |
+
 ### Realtime (the floor)
 
 `walk:lobby-<shard>:<user>`, private, as the iPad (`LobbyRules.hallKey` `LobbyTypes.swift:272`,
 `RealtimeTopic.walk` `RealtimeProtocol.swift:265`, the topic rule in `0117_publicLobby.sql` `realtime_may`). Your own
-topic tracks presence (key = your id) and broadcasts `move`; everyone else in `lobby_people` is listened to (at most
-50: `SocialRealtime.maxPeople`, `SocialRealtime.swift:44`). A step is one message, with a 100 ms floor and a resend every
-10 s while you stand (`SocialRealtime.swift:46, 48`). Realtime is an enhancement: with no socket the page works a few
-seconds behind and says "Catching up".
+topic tracks presence (key = your id) and broadcasts `move`; everyone else in `lobby_people` is listened to, up to 59: a
+full library is 60 (`lobby_cap()`), and with the iPad's 50 the last nine people were never heard and every viewer drew them
+in a hashed chair (`MAX_LISTEN = LOBBY_CAP - 1`; a visit holds at most 60 of Realtime's ~100 channels; the topics are
+joined five at a time, 100 ms apart, so a reconnect is not 59 joins in one instant). A step is one message, with a 100 ms
+floor; a change goes at once, and standing still the place is resent every **30 s** (the iPad: 10 s, `SocialRealtime.swift:46,
+48`). Every send reaches every listener, so this is the largest line in Realtime's bill. Someone who arrives between two
+resends is told where you rest by your **presence**, which is tracked again each time you come to rest. Floor news is
+believed for 90 s (three resends). Realtime is an enhancement: with no socket the page works a few seconds behind (the list is
+then read every 2 s), says "Catching up", and draws each person from `lobby_people` alone: **sitting** if the server says
+so (in the chair they were drawn in, else a chair picked by their id, the same for every viewer), **standing near the door**
+if not (their exact place is only ever on the socket; `lobby_people`'s tile is the library's, the same for all). Future cut, not
+taken here because the iPad shares the topics: one topic per library instead of one per person.
 
 ### Two layers of position (what the lead's brief assumed, and what the iPad does)
 
@@ -137,8 +159,8 @@ failing the save. A failed save says one plain line and keeps the choice on scre
 at once; the avatar is also remembered in the profile store.
 
 **How fast a friend sees it.** `lobby_people` returns `social_profile.avatar`, and the visit reads it every 2 s
-(every 5 s while the floor is live; `PEOPLE_EVERY_MS`, `PEOPLE_LIVE_EVERY_MS`), so a web friend's room changes within
-5 s of the save landing. An iPad friend reads on `lobbyReadEvery`/`liveReadEvery` (2 s and 5 s), but draws the person in
+(every 12 s while the floor is live; `PEOPLE_EVERY_MS`, `PEOPLE_LIVE_EVERY_MS`), so a web friend's room changes within
+12 s of the save landing. An iPad friend reads on `lobbyReadEvery`/`liveReadEvery` (2 s and 5 s), but draws the person in
 cards and lists, not in its library scene (above).
 
 **Known conflict, not solved: two devices, one avatar.** The iPad also writes the avatar (`SocialModel.publishAvatar`,

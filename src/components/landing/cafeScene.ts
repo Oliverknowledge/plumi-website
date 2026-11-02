@@ -114,6 +114,7 @@ interface Person {
   remote?: boolean;
   known?: boolean;                // library mode: they have said where they stand
   rev?: number;                   // library mode: the last news about their place that was acted on
+  said?: boolean;                 // library mode: whether the server last said they are seated
   sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
   moving?: boolean;               // library mode, you: walking under the keys (not along a path)
@@ -1509,6 +1510,11 @@ class Cafe implements CafeHandle {
       seen.add(r.id);
       let p = this.remotes.get(r.id);
       if (!p) {
+        // back within the fade-out of having left: the same sprite, not a second one beside it
+        const leaving = this.people.find(q => q.id === r.id && q.doing === "leave");
+        if (leaving) { p = leaving; p.doing = "idle"; p.rev = -1; this.remotes.set(r.id, p); }
+      }
+      if (!p) {
         const d = this.L.door;
         p = this.person(r.look, d.x, d.y, "front");
         p.id = r.id; p.remote = true; p.speed = LIVE_SPEED; p.who = ""; p.alpha = this.o.reduced ? 1 : 0;
@@ -1532,16 +1538,22 @@ class Cafe implements CafeHandle {
 
   /** One person's place: their seat if they sit (and it is theirs), else where they stand and the walk they are on. */
   private place_(p: Person, r: LiveRemote) {
-    if (p.known && r.rev === p.rev) return;     // nothing new about where they are: they carry on as they were
-    p.rev = r.rev;
+    if (p.known && r.rev === p.rev && r.seated === p.said) return;     // nothing new about where they are: they carry on as they were
+    p.rev = r.rev; p.said = r.seated;
     const seat = r.seat !== null ? this.byIpad.get(r.seat) : undefined;
     if (seat && (!seat.who || seat.who === p) && seat !== this.you?.spot) {
       if (p.spot !== seat || !p.at) { this.release(p); this.seatAt(p, seat, Infinity); }
       p.path = []; p.known = true;
       return;
     }
+    // No fresh news of the floor (Realtime is down, or they have not spoken for a while): the server's word on whether they sit is all there is.
+    if (!r.pos && r.seated) {
+      if (p.at && p.spot && this.canSit(p.spot)) { p.path = []; p.known = true; return; }          // they sat where they were: they stay there
+      const chair = this.chairFor(p);
+      if (chair) { this.release(p); this.seatAt(p, chair, Infinity); p.path = []; p.known = true; return; }
+    }
     const wasSeated = p.at;
-    if (wasSeated) { this.release(p); p.doing = "idle"; }
+    if (wasSeated) { this.release(p); p.doing = "idle"; if (!r.pos) [p.x, p.y] = this.feet(this.nearestTile(p.x, p.y)); }
     if (r.pos) {
       const feet: ArtPoint = [r.pos[0] + 8, r.pos[1] + 31];
       // near where they are drawn they carry on from there; far, or just up from a seat, they are put where they said
@@ -1553,14 +1565,37 @@ class Cafe implements CafeHandle {
       p.doing = p.path.length ? "walk" : "idle";
       return;
     }
-    if (!p.spot && !p.known) {
-      // nothing said about the floor (an older app, or the socket has not reached us): a chair, as the iPad seats a student whose app says nothing of it
-      const free = this.free();
-      let h = 5381;
-      for (const c of p.id ?? "") h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
-      const s = free[h % Math.max(1, free.length)];
-      if (s) { this.seatAt(p, s, Infinity); p.known = true; }
+    // Standing, and nothing said of where: out of the chairs (they are not sitting), near the door, the same place for everyone who looks
+    if (!p.known) { this.standNear(p); p.known = true; }
+  }
+
+  /** A person's id as a number, the same on every screen. */
+  private hashOf(id: string | undefined) {
+    let h = 5381;
+    for (const c of id ?? "") h = (Math.imul(h, 33) + c.charCodeAt(0)) >>> 0;
+    return h;
+  }
+
+  /** The chair a seated person is drawn in when nobody has said which: their own place in the table, then the next free one on. */
+  private chairFor(p: Person): Spot | null {
+    const all = [...(this.libSeats ?? [])];
+    const h = this.hashOf(p.id);
+    for (let i = 0; i < all.length; i++) {
+      const s = all[(h + i) % all.length];
+      if (!s.who || s.who === p) return s;
     }
+    return null;
+  }
+
+  /** Somewhere to stand among the tiles nearest the door, picked by their id: a standing student whose place is not known is not put in a chair. */
+  private standNear(p: Person) {
+    if (!this.W || !this.grid) return;
+    const tiles = this.W.reach(this.grid, this.L.door.tile);
+    if (!tiles.length) return;
+    const from = Math.min(3, tiles.length - 1), span = Math.max(1, Math.min(tiles.length - from, 80));
+    const k = tiles[from + (this.hashOf(p.id) % span)];
+    [p.x, p.y] = this.feet([k % this.L.cols, Math.floor(k / this.L.cols)]);
+    p.path = []; p.doing = "idle"; p.dir = "front";
   }
 
   /** The names over the heads of whoever is on screen: friends and the one you tapped first, then the nearest; never so many they pile up. */

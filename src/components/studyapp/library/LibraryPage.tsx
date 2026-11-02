@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { accountsOn, useAccount } from "@/lib/account";
 import { useLibrary } from "@/lib/library";
-import { browserDriver } from "@/lib/studyapp/library/browserDriver";
+import { browserDriver, visitOf } from "@/lib/studyapp/library/browserDriver";
 import { publishLive } from "@/lib/studyapp/live";
 import { JoinCard, SignedOutCard, Waiting } from "./Cards";
 import { LibraryFront } from "./LibraryFront";
@@ -19,7 +19,7 @@ export function LibraryPage() {
   const uid = account.user?.id ?? null;
   const joined = !!lib.profile;
   const [base] = useState(() => (typeof window === "undefined" ? null : browserDriver()));
-  const driver = useMemo(() => (base && uid ? { ...base, me: uid.toLowerCase() } : null), [base, uid]);
+  const driver = useMemo(() => (base && uid ? { ...base, me: uid.toLowerCase(), ...visitOf(uid) } : null), [base, uid]);
 
   useEffect(() => {
     if (!accountsOn) publishLive({ state: "off", revising: null, friendsIn: [] });

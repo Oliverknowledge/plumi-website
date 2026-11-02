@@ -9,12 +9,14 @@ import { totalHere } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
 import { publishLive } from "@/lib/studyapp/live";
 import { enterBrowserFullscreen, enterBrowserFullscreenIfJustTapped, exitBrowserFullscreen } from "@/lib/studyapp/library/fullscreen";
+import { bindPage } from "@/lib/studyapp/library/pageLifecycle";
 import { markFull, markRoom } from "@/lib/studyapp/library/roomOpen";
 import { LibrarySession } from "@/lib/studyapp/library/session";
 import { libraryFocus } from "@/lib/studyapp/timer";
 import { timer } from "@/lib/studyapp/timerStore";
 import { TimerChip } from "@/components/studyapp/timer/TimerChip";
 import type { LibraryDriver } from "./driver";
+import { Elsewhere } from "./Elsewhere";
 import { Chat, SeatCard, Servers } from "./parts";
 import { WhoHere } from "./People";
 import { RoomCanvas } from "./RoomCanvas";
@@ -38,6 +40,7 @@ const TAB_TITLE: Record<Tab, string> = { chat: "Chat", people: "People", librari
 export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: LibraryDriver; onLeave?: () => Promise<boolean> }) {
   const [session] = useState(() => new LibrarySession({
     social: driver.social, realtime: driver.realtime, me: driver.me, publish: publishLive,
+    farewell: driver.farewell, current: driver.current, lease: driver.lease,
     every: (fn, ms) => { const t = setInterval(fn, ms); return () => clearInterval(t); },
   }));
   const snap = useSnapshot(session);
@@ -63,7 +66,8 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     markRoom(true);
     void session.start();
     const stopScene = scene?.();
-    return () => { stopScene?.(); session.leave(); markRoom(false); };
+    const unbind = bindPage(session);              // closing the tab leaves the library; a hidden tab keeps its place; coming back reads at once
+    return () => { unbind(); stopScene?.(); session.leave(); markRoom(false); };
   }, [session, scene]);
 
   // The study timer drives what the others see (one way: the timer tells the visit). Work running while you are seated is
@@ -93,12 +97,15 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
   }, [full, drawer]);
 
   // While the room covers the top bar, the top bar's timer chip steps aside (this toolbar carries one), so there is only ever one.
-  const covering = full && snap.phase !== "hidden";
+  const covering = full && snap.phase !== "hidden" && snap.phase !== "elsewhere" && snap.phase !== "away";
   useEffect(() => {
     if (!covering) return;
     markFull(true);
     return () => markFull(false);
   }, [covering]);
+
+  // What is on screen decides what is read: the chat every few seconds only while it is shown, the libraries' counts only while the picker is
+  useEffect(() => { session.setPanels({ chat: !full || drawer === "chat", libraries: !full || drawer === "libraries" }); }, [session, full, drawer]);
 
   const messages = snap.messages.length;
   const unread = drawer === "chat" ? 0 : Math.max(0, messages - seen);
@@ -147,6 +154,9 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     ? <><i className="dot" aria-hidden="true" />{here} here{revising !== null && revising > here ? ` \u00b7 ${revising} in all` : ""}</>
     : snap.phase === "unavailable" ? "One moment" : null;
 
+  if (snap.phase === "elsewhere") return <Elsewhere kind="elsewhere" onAction={() => void session.takeOver()} />;
+  if (snap.phase === "away") return <Elsewhere kind="away" onAction={() => void session.comeBack()} />;
+
   if (full && snap.phase !== "hidden") {
     return (
       <main className="wrap lb lb-full" data-testid="library" data-full="1" data-drawer={drawer ?? undefined}>
@@ -156,7 +166,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
         <div className="lb-hud lb-hud-l">
           <AppLink className="btn lb-hbtn" href="/study" aria-label="Back to your desk">{"\u2190"} Desk</AppLink>
           {status && <span className="lb-hpill">{status}{snap.shard !== null && <small>Library {snap.shard}</small>}</span>}
-          {snap.phase === "live" && !snap.live && <span className="lb-hpill is-quiet" title="Steps may take a few seconds to show">Catching up</span>}
+          {snap.phase === "live" && (!snap.live || !snap.online) && <span className="lb-hpill is-quiet" title="Steps may take a few seconds to show">Catching up</span>}
         </div>
         <div className="lb-hud lb-hud-r" role="toolbar" aria-label="Library">
           <TimerChip where="hud" />
@@ -220,7 +230,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
               <span className="lb-live"><i className="dot" aria-hidden="true" />{here} here{revising !== null && revising > here ? ` \u00b7 ${revising} in all` : ""}</span>
             )}
             {snap.phase === "unavailable" && <span className="lb-live is-quiet">One moment</span>}
-            {snap.phase === "live" && !snap.live && <span className="lb-sync" title="Steps may take a few seconds to show">Catching up</span>}
+            {snap.phase === "live" && (!snap.live || !snap.online) && <span className="lb-sync" title="Steps may take a few seconds to show">Catching up</span>}
           </section>
           {/* The panel comes straight after the room in reading and tab order, and is placed beside it by the grid */}
           <div className="lb-side">
