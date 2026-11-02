@@ -16,6 +16,7 @@
  */
 
 import { artUrl } from "@/lib/studyapp/library/art";
+import { poseSlot } from "@/lib/studyapp/library/walk";
 /** Library mode's free movement: the pure maths (src/lib/studyapp/library/walk.ts), loaded only when the library mounts, so the homepage's chunk never carries it. */
 type Walk = typeof import("@/lib/studyapp/library/walk");
 
@@ -261,7 +262,6 @@ const LIVE_SPEED = 70;
  * hero and friends windows: they keep the 30 Hz step, whole art pixel placement and the shared 5 Hz walk clock.
  */
 /** A walk's poses change this many times a second, counted from the step the walk began (the same for people and animals). */
-const POSE_HZ = 12;
 /** A person who has just stopped holds one pose for this long (room seconds) before the standing frames start to move. */
 const STILL_FIRST = 2;
 /** How fast the camera catches up with someone it is not yet locked to, art pixels a second (you walk at 70). */
@@ -279,6 +279,15 @@ const GOV_RETURN_MS = 5;
 /** A frame this late (ms since the one before) missed a display refresh; a quarter of the last 90 doing so is a fallback too. */
 const GOV_LATE_MS = 24;
 const GOV_WINDOW = 90;
+/** After the page, a tab or the window changed (visibility, resize) lateness is not counted for this long (ms): decoding and layout make frames late that say nothing about the device. */
+const GOV_QUIET_MS = 3000;
+/** `?hz=30|60|auto` (and the `plumi-hz` localStorage key), read once. */
+function readHzMode(): "auto" | "30" | "60" {
+  try {
+    const v = new URLSearchParams(location.search).get("hz") ?? localStorage.getItem("plumi-hz");
+    return v === "30" || v === "60" ? v : "auto";
+  } catch { return "auto"; }
+}
 /** The soft shadow under a standing person: stepped rows of this many art pixels wide, 14 across and 4 high. The reference's is 0.475 of the body's height measured as the patch you can see round the feet; a body 25 rows tall hides the middle of it, so the whole ellipse is a little wider (0.56) to show that much. */
 const SHADOW_ROWS = [10, 14, 14, 10] as const;
 const SHADOW_RGB = "rgb(44,14,86)";
@@ -368,6 +377,9 @@ class Cafe implements CafeHandle {
   private camMoved = false;                  // smooth mode: the camera moved in the last follow
   private motion = false;                    // smooth mode: something in view moved in the last frame (so 60 Hz is worth it)
   private hz60 = true;                       // smooth mode: the frame governor's verdict
+  private hzMode: "auto" | "30" | "60" = "auto";   // `?hz=` or the `plumi-hz` storage key, read once: 30 or 60 pins the rate, the governor only watches
+  private hzWant: boolean | null = null;      // a change the governor asked for, applied while you walk (a standing sprite would jump by up to 2 css px)
+  private hzSaid = false;
   private govWork = new Float32Array(GOV_WINDOW); private govSort = new Float32Array(GOV_WINDOW);
   private govLate = new Uint8Array(GOV_WINDOW);
   private govI = 0; private govN = 0; private govTick = 0; private lateI = 0; private lateSum = 0;
@@ -426,6 +438,9 @@ class Cafe implements CafeHandle {
     this.live = o.mode === "library" ? o.live : undefined;
     if (this.W && !this.live) this.W = undefined;
     this.smooth = !!this.live && !o.reduced;
+    this.hzMode = readHzMode();
+    if (this.hzMode === "30") this.hz60 = false;
+    if (this.smooth) canvas.dataset.hzWhy = this.hzMode === "auto" ? "auto" : `forced ${this.hzMode}`;
     if (this.W) this.grid = this.W.gridOf(this.L.walk, this.L.cols);
     if (this.W) this.keyHints = typeof matchMedia === "function" && !matchMedia("(pointer: coarse)").matches;
     if (this.live) this.libraryTable();
@@ -1079,7 +1094,7 @@ class Cafe implements CafeHandle {
 
   private frame(p: Person, tick: number): number {
     const R = this.L.people.rows, d = DIRS.indexOf(p.dir);
-    if (p.path.length || p.moving) return R.walk + d * 6 + (this.smooth ? Math.floor(p.stride * POSE_HZ) % 6 : (Math.floor(tick / 2) + p.phase) % 6);
+    if (p.path.length || p.moving) return R.walk + d * 6 + (this.smooth ? poseSlot(p.stride) % 6 : (Math.floor(tick / 2) + p.phase) % 6);
     if (p.at && p.spot) {
       const s = p.spot;
       if (s.pose === "sit") return R.sit + (s.face === "right" ? 0 : 6) + (Math.floor(tick / 8) + p.phase) % 6;
@@ -1127,6 +1142,22 @@ class Cafe implements CafeHandle {
     }
   }
 
+  /**
+   * A full-room layer onto the screen: the visible part, at k device pixels to the art pixel. The camera sits on the device pixel grid, so its art coordinate has a
+   * fraction (a multiple of 1/k); a fractional SOURCE rectangle is what WebKit may sample differently from Chromium (movement-verify.md, iPad risk 2). So the
+   * source offset is the integer art pixel and the fraction moves the DESTINATION by whole device pixels: the same pixels in Chromium, nothing fractional for Safari.
+   */
+  private blitView(img: CanvasImageSource, iw: number, ih: number) {
+    const { ctx, k } = this;
+    const sx = Math.max(0, Math.floor(this.camX)), sy = Math.max(0, Math.floor(this.camY));
+    const sw = Math.min(Math.ceil(this.viewW + (this.camX - sx)), iw - sx), sh = Math.min(Math.ceil(this.viewH + (this.camY - sy)), ih - sy);
+    // clipped to the view: the extra column and row on the far side, and a shifted start on the near side, must not land in the letterbox margin
+    ctx.save();
+    ctx.beginPath(); ctx.rect(this.offX, this.offY, this.viewW * k, this.viewH * k); ctx.clip();
+    ctx.drawImage(img, sx, sy, sw, sh, this.offX - Math.round((this.camX - sx) * k), this.offY - Math.round((this.camY - sy) * k), sw * k, sh * k);
+    ctx.restore();
+  }
+
   private draw() {
     if (this.smooth && this.hz60) { this.drawLive(); return; }
     const { L, sc, a } = this;
@@ -1171,7 +1202,8 @@ class Cafe implements CafeHandle {
     ctx.fillStyle = "#2a1d1a";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     this.follow(this.o.reduced);
-    ctx.drawImage(this.scene, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, this.viewW * this.k, this.viewH * this.k);
+    if (this.smooth) this.blitView(this.scene, this.L.w, this.L.h);       // the library (WebKit-safe source rectangle); the homepage keeps its own call exactly
+    else ctx.drawImage(this.scene, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, this.viewW * this.k, this.viewH * this.k);
     this.place();
   }
 
@@ -1193,7 +1225,7 @@ class Cafe implements CafeHandle {
     ctx.imageSmoothingEnabled = false;
     ctx.globalAlpha = 1;
     if (view < canvas.width - .5 || tall < canvas.height - .5) { ctx.fillStyle = "#2a1d1a"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-    ctx.drawImage(a.bg, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, view, tall);
+    this.blitView(a.bg, this.L.w, this.L.h);
     // art pixel coordinates from here on: one art pixel is k device pixels, the origin on the device pixel grid
     const tx = this.offX - Math.round(this.camX * k), ty = this.offY - Math.round(this.camY * k);
     ctx.setTransform(k, 0, 0, k, tx, ty);
@@ -1230,7 +1262,7 @@ class Cafe implements CafeHandle {
     for (let i = 0; i < items.length; i++) this.drawItemLive(items[i], tx, ty);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     // the lamplight and the fire's flicker in one layer (made once per flicker step): one blend over the screen, not two
-    ctx.drawImage(this.lampLayer(tick), this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, view, tall);
+    this.blitView(this.lampLayer(tick), this.L.w, this.L.h);
     ctx.setTransform(k, 0, 0, k, tx, ty);
     this.notes(tick, ctx);
     this.drawPrompt(tick, ctx);
@@ -1425,6 +1457,7 @@ class Cafe implements CafeHandle {
    */
   private frameLive(now: number) {
     const gap = now - this.last;
+    if (this.hzWant !== null && this.youWalking()) this.applyHz(this.hzWant);
     const fast = this.hz60 && (this.motion || this.keysDown.size > 0);
     if (gap < (fast ? GAP_60 : GAP_30)) return;
     const w0 = performance.now();
@@ -1442,7 +1475,7 @@ class Cafe implements CafeHandle {
    * canvas says which (and `hz` on the handle, in development).
    */
   private govern(work: number, gap: number, fast: boolean, reset: boolean) {
-    if (reset) { this.govN = 0; this.govI = 0; this.govTick = 0; this.govLate.fill(0); this.lateSum = 0; this.lateI = 0; this.govFrom = performance.now() + 1500; this.setHz(this.hz60); return; }
+    if (reset) { this.govN = 0; this.govI = 0; this.govTick = 0; this.govLate.fill(0); this.lateSum = 0; this.lateI = 0; this.govFrom = performance.now() + GOV_QUIET_MS; this.applyHz(this.hz60); return; }
     const W = this.govWork;
     W[this.govI] = work; this.govI = (this.govI + 1) % W.length; if (this.govN < W.length) this.govN++;
     if (fast && performance.now() > this.govFrom) {            // not the first moments after the page, a tab or the room woke (decoding, layout)
@@ -1455,14 +1488,26 @@ class Cafe implements CafeHandle {
     for (let i = 0; i < this.govN; i++) S[i] = W[i];
     const sorted = S.subarray(0, this.govN).sort();
     const p95 = sorted[Math.floor((this.govN - 1) * .95)], now = performance.now();
+    if (this.hzMode !== "auto") return;                       // pinned: watched, never changed
     if (this.hz60) {
-      if (p95 > GOV_KEEP_MS || this.lateSum >= this.govLate.length / 4) { this.govFalls++; this.govAt = now; this.setHz(false); }
+      const slow = p95 > GOV_KEEP_MS, late = this.lateSum >= this.govLate.length / 4;
+      if (slow || late) {
+        this.govFalls++; this.govAt = now; this.wantHz(false);
+        const why = slow ? `work p95 ${p95.toFixed(1)} ms over ${GOV_KEEP_MS}` : `${this.lateSum} of ${this.govLate.length} frames late`;
+        this.canvas.dataset.hzWhy = `fell: ${why}`;
+        if (!this.hzSaid) { this.hzSaid = true; console.info(`[library] 60 Hz fell back to 30: ${why}. Pin it with ?hz=60 or localStorage plumi-hz.`); }
+      }
     } else if (p95 < GOV_RETURN_MS && now - this.govAt > 30_000 * 2 ** Math.min(4, this.govFalls - 1)) {
-      this.govAt = now; this.govLate.fill(0); this.lateSum = 0; this.setHz(true);
+      this.govAt = now; this.govLate.fill(0); this.lateSum = 0; this.wantHz(true); this.canvas.dataset.hzWhy = "back to 60: work is low again";
     }
   }
 
-  private setHz(on: boolean) {
+  /** The governor's wish. A standing sprite is placed on the device pixel grid at 60 Hz and on the art pixel grid at 30, so switching while you stand would move it
+   *  (and its shadow and name) by up to 2 css px; while you walk the camera is locked to you and nothing on screen can pop. So the switch waits for a walk. */
+  private wantHz(on: boolean) { this.hzWant = on === this.hz60 ? null : on; if (this.hzWant !== null && this.youWalking()) this.applyHz(this.hzWant); }
+  private youWalking(): boolean { const y = this.you; return this.keysDown.size > 0 || (!!y && (y.path.length > 0 || !!y.moving)); }
+  private applyHz(on: boolean) {
+    this.hzWant = null;
     if (on && !this.hz60) this.motion = true;
     this.hz60 = on;
     this.canvas.dataset.hz = on ? "60" : "30";
@@ -1519,8 +1564,8 @@ class Cafe implements CafeHandle {
     const io = new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; if (this.visible) this.start(); else this.stop(); });
     io.observe(this.canvas);
     this.cleanup.push(() => io.disconnect());
-    on(document, "visibilitychange", () => { if (document.hidden) this.stop(); else this.start(); });
-    const ro = new ResizeObserver(() => { this.resize(); this.draw(); });
+    on(document, "visibilitychange", () => { if (document.hidden) this.stop(); else { this.govFrom = performance.now() + GOV_QUIET_MS; this.start(); } });
+    const ro = new ResizeObserver(() => { this.govFrom = performance.now() + GOV_QUIET_MS; this.resize(); this.draw(); });
     ro.observe(this.canvas);
     this.cleanup.push(() => ro.disconnect());
   }

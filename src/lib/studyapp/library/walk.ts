@@ -275,3 +275,13 @@ export function facing(dx: number, dy: number, prev: Face): Face {
   const side = wasSide ? !(ay > ax * 1.35) : ax > ay * 1.35;
   return side ? (dx >= 0 ? "right" : "left") : (dy >= 0 ? "front" : "back");
 }
+
+/**
+ * The walk's pose clock: a pose changes this many times a second, counted from the step the walk began. `POSE_BIAS` moves the slot boundaries off
+ * the display frame boundaries: at 60 Hz the stride grows by exactly 0.2 slots a frame, so without it a boundary lands ON a frame and float noise or
+ * a late frame makes 30 percent of slots 4 or 6 frames long (docs/study/art/movement-verify.md, risk 2). With 0.1 every boundary falls mid frame,
+ * slots are 5, 5, 5 frames at 60 Hz and stay so through half a frame (8 ms) of jitter.
+ */
+export const POSE_HZ = 12;
+export const POSE_BIAS = 0.1;
+export const poseSlot = (stride: number): number => Math.floor(stride * POSE_HZ + POSE_BIAS);

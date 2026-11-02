@@ -1,3 +1,5 @@
+import { POSE_BIAS } from "../studyapp/library/walk";
+
 /**
  * HOW THE TOWN MOVES. Every number that decides how walking feels is here, so a measured target drops in without touching the engine.
  * Sources: the Grand Library's own (cafeScene.ts `LIVE_SPEED`, walk.ts `facing`) and the movement critic's measurement of the reference game
@@ -56,6 +58,6 @@ export function approach(v: number, target: number, dt: number): number {
 }
 
 /** The walk frame (0 to 5) after `stride` seconds of walking: the clock restarts at 0 whenever a walk starts. */
-export const walkFrame = (stride: number): number => Math.floor(stride * MOVE.walkPoseHz) % MOVE.walkFrames;
+export const walkFrame = (stride: number): number => Math.floor(stride * MOVE.walkPoseHz + POSE_BIAS) % MOVE.walkFrames;
 /** The idle frame after `t` seconds standing: still at first, then the breath. */
 export const idleFrame = (t: number): number => (t < MOVE.idleStillSecs ? 0 : Math.floor((t - MOVE.idleStillSecs) * MOVE.idleHz) % 6);
