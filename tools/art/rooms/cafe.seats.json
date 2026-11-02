@@ -1,0 +1,531 @@
+{
+ "about": "The cafe's seats. APPEND ONLY: an id is never changed, reused or deleted (a seat that goes is marked \"retired\": true and keeps its place), because the seat's index is what a future multiplayer cafe sends on the wire. `at` is the chair's centre (where the ring is drawn); the sprite's top left is at - (8, 20). `side` is the side of its table the chair is on (n s e w), `table` names a piece whose z the person sorts against.",
+ "seats": [
+  {
+   "id": "long-n1",
+   "at": [
+    289,
+    247
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-long",
+   "side": "n",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "long-n2",
+   "at": [
+    319,
+    247
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-long",
+   "side": "n",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "long-n3",
+   "at": [
+    350,
+    247
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-long",
+   "side": "n",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "long-s1",
+   "at": [
+    289,
+    296
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-long",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "long-s2",
+   "at": [
+    320,
+    296
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-long",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "long-s3",
+   "at": [
+    350,
+    296
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-long",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "long-w",
+   "at": [
+    263,
+    272
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-long",
+   "side": "w"
+  },
+  {
+   "id": "long-e",
+   "at": [
+    377,
+    272
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-long",
+   "side": "e"
+  },
+  {
+   "id": "rl-w",
+   "at": [
+    248,
+    183
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-rl",
+   "side": "w"
+  },
+  {
+   "id": "rl-e",
+   "at": [
+    295,
+    183
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-rl",
+   "side": "e"
+  },
+  {
+   "id": "rl-s",
+   "at": [
+    272,
+    212
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-rl",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "rr-w",
+   "at": [
+    350,
+    183
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-rr",
+   "side": "w"
+  },
+  {
+   "id": "rr-e",
+   "at": [
+    397,
+    183
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-rr",
+   "side": "e"
+  },
+  {
+   "id": "rr-s",
+   "at": [
+    374,
+    212
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-rr",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "nb1-n",
+   "at": [
+    63,
+    80
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-nb1",
+   "side": "n",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "nb1-w",
+   "at": [
+    46,
+    92
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-nb1",
+   "side": "w"
+  },
+  {
+   "id": "nb1-e",
+   "at": [
+    80,
+    92
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-nb1",
+   "side": "e"
+  },
+  {
+   "id": "nb2-n",
+   "at": [
+    141,
+    80
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-nb2",
+   "side": "n",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "nb2-w",
+   "at": [
+    124,
+    92
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-nb2",
+   "side": "w"
+  },
+  {
+   "id": "nb2-e",
+   "at": [
+    158,
+    92
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-nb2",
+   "side": "e"
+  },
+  {
+   "id": "nr-w",
+   "at": [
+    82,
+    138
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-nr",
+   "side": "w"
+  },
+  {
+   "id": "nr-e",
+   "at": [
+    123,
+    138
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-nr",
+   "side": "e"
+  },
+  {
+   "id": "sun-sofa1",
+   "at": [
+    78,
+    262
+   ],
+   "face": "front",
+   "pose": "read",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "sun-sofa2",
+   "at": [
+    104,
+    262
+   ],
+   "face": "front",
+   "pose": "read",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "sun-sofa3",
+   "at": [
+    130,
+    262
+   ],
+   "face": "front",
+   "pose": "read",
+   "flag": "front-facing (read frame)"
+  },
+  {
+   "id": "st1-w",
+   "at": [
+    53,
+    284
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-st1",
+   "side": "w"
+  },
+  {
+   "id": "st1-e",
+   "at": [
+    90,
+    284
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-st1",
+   "side": "e"
+  },
+  {
+   "id": "st1-s",
+   "at": [
+    72,
+    298
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-st1",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "st2-w",
+   "at": [
+    121,
+    284
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-st2",
+   "side": "w"
+  },
+  {
+   "id": "st2-e",
+   "at": [
+    158,
+    284
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-st2",
+   "side": "e"
+  },
+  {
+   "id": "st2-s",
+   "at": [
+    140,
+    298
+   ],
+   "face": "back",
+   "pose": "chairback",
+   "table": "table-st2",
+   "side": "s",
+   "flag": "back-to-camera (stool frame)"
+  },
+  {
+   "id": "sr-w",
+   "at": [
+    85,
+    325
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-sr",
+   "side": "w"
+  },
+  {
+   "id": "sr-e",
+   "at": [
+    126,
+    325
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-sr",
+   "side": "e"
+  },
+  {
+   "id": "lounge-l1",
+   "at": [
+    508,
+    166
+   ],
+   "face": "right",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "lounge-l2",
+   "at": [
+    508,
+    184
+   ],
+   "face": "right",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "lounge-l3",
+   "at": [
+    508,
+    202
+   ],
+   "face": "right",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "lounge-r1",
+   "at": [
+    577,
+    166
+   ],
+   "face": "left",
+   "pose": "sit",
+   "maxStand": 52
+  },
+  {
+   "id": "lounge-r2",
+   "at": [
+    577,
+    184
+   ],
+   "face": "left",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "lounge-r3",
+   "at": [
+    577,
+    202
+   ],
+   "face": "left",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "arm-l",
+   "at": [
+    517,
+    238
+   ],
+   "face": "right",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "arm-r",
+   "at": [
+    572,
+    238
+   ],
+   "face": "left",
+   "pose": "sit",
+   "maxStand": 48
+  },
+  {
+   "id": "bA-n",
+   "at": [
+    498,
+    271
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-bA",
+   "side": "n",
+   "flag": "front-facing (read frame)",
+   "maxStand": 40
+  },
+  {
+   "id": "bA-w",
+   "at": [
+    477,
+    288
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-bA",
+   "side": "w",
+   "maxStand": 40
+  },
+  {
+   "id": "bA-e",
+   "at": [
+    519,
+    288
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-bA",
+   "side": "e",
+   "maxStand": 40
+  },
+  {
+   "id": "bB-n",
+   "at": [
+    581,
+    271
+   ],
+   "face": "front",
+   "pose": "read",
+   "table": "table-bB",
+   "side": "n",
+   "flag": "front-facing (read frame)",
+   "maxStand": 40
+  },
+  {
+   "id": "bB-w",
+   "at": [
+    560,
+    288
+   ],
+   "face": "right",
+   "pose": "sit",
+   "table": "table-bB",
+   "side": "w",
+   "maxStand": 40
+  },
+  {
+   "id": "bB-e",
+   "at": [
+    602,
+    288
+   ],
+   "face": "left",
+   "pose": "sit",
+   "table": "table-bB",
+   "side": "e",
+   "maxStand": 40
+  }
+ ]
+}

@@ -10,6 +10,7 @@ import { publishLive } from "@/lib/studyapp/live";
 import { enterBrowserFullscreen, enterBrowserFullscreenIfJustTapped, exitBrowserFullscreen } from "@/lib/studyapp/library/fullscreen";
 import { bindPage } from "@/lib/studyapp/library/pageLifecycle";
 import { markFull, markRoom } from "@/lib/studyapp/library/roomOpen";
+import { LIBRARY_ROOM, type RoomDef } from "@/lib/studyapp/library/rooms";
 import { LibrarySession } from "@/lib/studyapp/library/session";
 import { libraryFocus } from "@/lib/studyapp/timer";
 import { timer } from "@/lib/studyapp/timerStore";
@@ -42,7 +43,7 @@ const TAB_TITLE: Record<Tab, string> = { chat: "Chat", people: "People", librari
  * closes ONE thing, innermost first: the Leave question, the More menu, the timer's card, the panel; only with
  * none of those open does it give the notebook page back. It never leaves the library or hides you.
  */
-export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: LibraryDriver; onLeave?: () => Promise<boolean> }) {
+export function LibraryRoom({ driver, onLeave = leaveLibrary, room }: { driver: LibraryDriver; onLeave?: () => Promise<boolean>; room?: RoomDef }) {
   const [session] = useState(() => new LibrarySession({
     social: driver.social, realtime: driver.realtime, me: driver.me, publish: publishLive,
     farewell: driver.farewell, current: driver.current, lease: driver.lease,
@@ -222,7 +223,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
     return (
       <main className="wrap lb lb-full" data-testid="library" data-full="1" data-drawer={drawer ?? undefined} data-hidden={hidden || undefined} data-awake={awake || undefined}>
         <div className="lb-fstage" inert={hidden ? true : undefined}>
-          <RoomCanvas session={session} handleRef={handle} onPick={pick} onReady={() => setAwake(true)} label="The Grand Library. Tap the floor to walk and a free seat to sit. W A S D or the arrow keys walk, E sits down, Enter or Space also sit." you={you} />
+          <RoomCanvas session={session} handleRef={handle} onPick={pick} onReady={() => setAwake(true)} label={(room ?? LIBRARY_ROOM).label} you={you} room={room} />
         </div>
         <Hud awake={awake} hidden={hidden} here={here} revising={revising} shard={snap.shard} live={snap.live && snap.online} unavailable={snap.phase === "unavailable"} online={snap.phase === "live"}
           drawer={drawer} unread={unread} onTab={(t) => open(drawer === t ? null : t)} actions={menuActions} />
@@ -278,7 +279,7 @@ export function LibraryRoom({ driver, onLeave = leaveLibrary }: { driver: Librar
       ) : (
         <div className="lb-grid">
           <section className="card lb-stage" aria-label="The library floor">
-            <RoomCanvas session={session} handleRef={handle} onPick={pick} label="The Grand Library. Tap the floor to walk and a free seat to sit. W A S D or the arrow keys walk, E sits down, Enter or Space also sit." you={you} />
+            <RoomCanvas session={session} handleRef={handle} onPick={pick} label={(room ?? LIBRARY_ROOM).label} you={you} room={room} />
             {snap.phase === "live" && (
               <span className="lb-live"><i className="dot" aria-hidden="true" />{here} here{revising !== null && revising > here ? ` \u00b7 ${revising} in all` : ""}</span>
             )}

@@ -7,7 +7,8 @@ import { EMOTE_TITLE } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
 import { BUBBLE_MS, BubbleFeed } from "@/lib/studyapp/library/bubbles";
 import { PRIORITY, peopleStore } from "@/lib/studyapp/library/people/store";
-import { floorFromArt, seatTable } from "@/lib/studyapp/library/room";
+import { floorFromArt } from "@/lib/studyapp/library/room";
+import { LIBRARY_ROOM, type RoomDef } from "@/lib/studyapp/library/rooms";
 import type { LibrarySession } from "@/lib/studyapp/library/session";
 
 /**
@@ -34,7 +35,7 @@ function savedLook(): number | undefined {
 /** How long the room waits for your own person before it opens with the premade one (the layers are 0.6 MB). */
 const WAIT_FOR_YOU_MS = 1500;
 
-export function RoomCanvas({ session, handleRef, onPick, onReady, label, you }: {
+export function RoomCanvas({ session, handleRef, onPick, onReady, label, you, room = LIBRARY_ROOM }: {
   session: LibrarySession;
   handleRef: RefObject<LibraryHandle | null>;
   onPick: (id: string | null) => void;
@@ -43,6 +44,8 @@ export function RoomCanvas({ session, handleRef, onPick, onReady, label, you }: 
   label: string;
   /** Your avatar and colour (the profile's): you are drawn as the person they make. */
   you: YouAre;
+  /** The room to mount: the Grand Library unless a page says otherwise (the dev-only cafe). */
+  room?: RoomDef;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const overlay = useRef<HTMLDivElement>(null);
@@ -74,11 +77,12 @@ export function RoomCanvas({ session, handleRef, onPick, onReady, label, you }: 
     Promise.all([import("@/components/landing/cafeScene"), waited])
       .then(([m, you]) => m.mountLibrary(cv, ov, {
         reduced,
+        art: room.art,
         look: savedLook(),
         youSheet: you ? { sheet: you.sheet, phones: you.phones, frameW: you.frame.w } : null,
         cls: { nm: "lb-nm", timer: "lb-nm", you: "lb-nm is-you", pop: "lb-pop", tick: "is-tick", ink: "is-ink", who: "lb-who", bub: "lb-bub" },
         live: {
-          seats: seatTable,
+          seats: room.seats,
           onYou: () => session.roomChanged(),
           onPick: (id) => pick.current(id),
           describe: session.describe,
@@ -127,7 +131,7 @@ export function RoomCanvas({ session, handleRef, onPick, onReady, label, you }: 
       handleRef.current = null;
       mounted?.destroy();
     };
-  }, [session, handleRef]);
+  }, [session, handleRef, room]);
 
   return (
     <div className="lb-room" data-ready={ready || undefined}>
