@@ -1,4 +1,5 @@
 import { totalHere, type LobbyServers } from "../../social/lobby";
+import { artUrl } from "./art";
 
 /**
  * The front door of the Grand Library (components/studyapp/library/EntryScreen.tsx): the logic that does not need a
@@ -146,10 +147,9 @@ export function lampLayers(): { fire: string; tables: string; steady: string } {
 
 /* ── Getting the room ready while the door is up ────────────────────── */
 
-const BASE = "/library/";
-/** What the room draws with, in the order it needs it (the engine's own list: cafeScene.ts `loadAssets`). */
-export const ROOM_ART = ["bg.png", "pieces.png", "anims.png", "people.png"].map((n) => BASE + n);
-export const ROOM_LAYOUT = BASE + "layout.json";
+/** What the room draws with, in the order it needs it (the engine's own list: cafeScene.ts `loadAssets`), by the same fingerprinted URLs the engine asks for, so its request is the one already made. */
+export const ROOM_ART = ["bg.png", "pieces.png", "anims.png", "people.png"].map(artUrl);
+export const ROOM_LAYOUT = artUrl("layout.json");
 
 export interface PreloadDeps {
   /** `import("@/components/landing/cafeScene")` */

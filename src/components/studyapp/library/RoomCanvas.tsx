@@ -5,7 +5,7 @@ import type { LibraryHandle, LiveRemote } from "@/components/landing/cafeScene";
 import { toast } from "@/components/studyapp/toast";
 import { EMOTE_TITLE } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
-import { peopleStore } from "@/lib/studyapp/library/people/store";
+import { PRIORITY, peopleStore } from "@/lib/studyapp/library/people/store";
 import { floorFromArt, seatTable } from "@/lib/studyapp/library/room";
 import type { LibrarySession } from "@/lib/studyapp/library/session";
 
@@ -86,11 +86,16 @@ export function RoomCanvas({ session, handleRef, onPick, label, you }: {
         handleRef.current = h;
         session.attachRoom(() => { const y = h.youNow(); return y ? floorFromArt(y) : null; });
         // Everyone as themselves: a person whose row is built wears it; the rest wear the premade look until it is.
-        const remotes = (): LiveRemote[] => session.remotes().map((r) => {
-          const d = store.row(store.lookOf(r.avatar, r.colour, r.id));
-          return d ? { ...r, sheet: d.sheet, phones: d.phones } : r;
-        });
-        const dressYou = () => { const d = store.row(lookOfYou()); if (d) h.dressYou(d.sheet, d.phones); };
+        // Rows are built nearest to you first (and one at a time, see the store), so a crowd arriving does not freeze the page.
+        const remotes = (): LiveRemote[] => {
+          const me = h.youNow();
+          return session.remotes().map((r) => {
+            const near = me && r.pos ? (r.pos[0] - me.x) ** 2 + (r.pos[1] - me.y) ** 2 : Number.MAX_SAFE_INTEGER;
+            const d = store.row(store.lookOf(r.avatar, r.colour, r.id), true, near);
+            return d ? { ...r, sheet: d.sheet, phones: d.phones } : r;
+          });
+        };
+        const dressYou = () => { const d = store.row(lookOfYou(), true, PRIORITY.you); if (d) h.dressYou(d.sheet, d.phones); };
         redress.current = () => { dressYou(); h.setRemotes(remotes()); };
         offs.push(() => { redress.current = () => {}; });
         offs.push(store.subscribe(() => { dressYou(); h.setRemotes(remotes()); }));

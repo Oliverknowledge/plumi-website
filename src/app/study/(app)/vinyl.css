@@ -26,7 +26,7 @@
 }
 .pa .rp-vinyl > svg:first-child { width: 100%; height: 100%; display: block; }
 .pa .rp-disc { transform-box: fill-box; transform-origin: center; animation: rp-spin 2.4s linear infinite; animation-play-state: paused; }
-.pa .rp.is-playing .rp-disc { animation-play-state: running; }
+.pa .rp.is-playing .rp-disc, .pa .rp.is-loading .rp-disc { animation-play-state: running; }   /* the record spins while Spotify is getting ready after a tap */
 @keyframes rp-spin { to { transform: rotate(360deg); } }
 .pa .rp-arm {
   position: absolute; top: -6px; right: -10px; width: 26px; height: 40px;

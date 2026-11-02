@@ -167,11 +167,25 @@ export interface RowOptions {
 /**
  * The 78 frames for one person, as a 1248 x 32 RGBA picture the engine draws a frame at a time (see the mapping at
  * the top). Null when the body layer is missing (the art did not load); a missing hair or outfit is left off.
+ *
+ * Whole, in one go: for tests and for anything that can afford ~20 ms. The room builds its rows with
+ * `composeRowSteps` instead and gives the browser a turn between steps.
  */
 export function composeRow(cat: PeopleCatalogue, input: PersonLook, layer: LayerSource, opts: RowOptions = {}): Uint8ClampedArray | null {
+  const steps = composeRowSteps(cat, input, layer, opts);
+  for (;;) { const r = steps.next(); if (r.done) return r.value; }
+}
+
+/**
+ * The same row, made in steps: it pauses (yields) after the layers are laid and after each group of six frames, so a
+ * caller can stop between steps and let the page breathe (building 50 people at once took long tasks of half a second).
+ * Run to the end it is exactly `composeRow`.
+ */
+export function* composeRowSteps(cat: PeopleCatalogue, input: PersonLook, layer: LayerSource, opts: RowOptions = {}): Generator<void, Uint8ClampedArray | null, void> {
   const look = known(cat, input);
   const sheet = laySheet(look, layer);
   if (!sheet) return null;
+  yield;
   const book = opts.book ? layer("book/" + opts.book) : null;
   const cols = cat.headphones[look.phones ?? ""] ?? null;
   const cup = cols ? hexColour(cols[0]) : null, light = cols ? hexColour(cols[1]) : null, band = hexColour(cat.band);
@@ -189,10 +203,12 @@ export function composeRow(cat: PeopleCatalogue, input: PersonLook, layer: Layer
   };
   const sideOf = (dir: number) => (dir === 0 ? 1 : dir === 2 ? -1 : 0);
   let n = 0;
-  for (const row of [0, 1]) for (let dir = 0; dir < 4; dir++) for (let i = 0; i < 6; i++) put(n++, make(row, dir * 6 + i, sideOf(dir)));
-  for (let d = 0; d < 2; d++) for (let i = 0; i < 6; i++) put(n++, make(2, d * 6 + i, d === 0 ? 1 : -1));
+  for (const row of [0, 1]) for (let dir = 0; dir < 4; dir++) { for (let i = 0; i < 6; i++) put(n++, make(row, dir * 6 + i, sideOf(dir))); yield; }
+  for (let d = 0; d < 2; d++) { for (let i = 0; i < 6; i++) put(n++, make(2, d * 6 + i, d === 0 ? 1 : -1)); yield; }
   for (let i = 0; i < 6; i++) put(n++, make(2, 12 + i, 0));
+  yield;
   for (let i = 0; i < 6; i++) put(n++, make(2, 18 + i, 0, true));
+  yield;
   for (let i = 0; i < 6; i++) {
     const back = lengthen(make(0, 6 + i, 0), cat.stretch);
     const f = new Uint8Array(FRAME_W * FRAME_H * 4);

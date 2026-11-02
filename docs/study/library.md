@@ -537,3 +537,23 @@ lettering cost on a low-end phone.
 **Tests.** `src/lib/studyapp/library/entry.test.ts` (27): when the door shows, the hour and season, both lines' wording,
 the preload order and that it never throws, the lamplight against `layout.json`, the art's cover scale at 11 window
 sizes, the transition's timing rules.
+
+## Speed (client side, 2 November 2026)
+
+A perf critic measured the room (1280 x 800 at 2x and 4x CPU slowdown, 50 people, software raster). What was changed, and
+where it is held:
+
+| | What | Held by |
+|---|---|---|
+| `personOf` | Memoised by (avatar, colour, id) in a capped map (256, per catalogue), palette colours read once per catalogue, the legacy look not computed when the avatar names all six parts. Output identical: the old implementation is kept in the test as the oracle. 37.9 us a call before, 8.7 us cold, 0.8 us from the memo. | `people/personOf.oracle.test.ts` (6000 random and hostile avatars, again from the memo) |
+| Art caching | `next.config.ts` fingerprints `public/library` (a hash of its files) into `NEXT_PUBLIC_LIBRARY_ART`; the room, door and sign-in page ask for `/library/<file>?v=<hash>` (`lib/studyapp/library/art.ts`), served `immutable` for a year. The homepage keeps its plain URLs (`landing.css` shares those files) and the default. `people-layers.bin` is served as `text/plain` so a CDN compresses it (it was `application/octet-stream`: 587 KB raw, never compressed). | `entry.test.ts` (the preload names exist) |
+| Spotify | Fetched on interest, not on page load. See app.md, Lofi. | `music.test.ts` |
+| Entry spike | Person rows are built one at a time, you first and then nearest to you, each in 6 ms slices with the page given a turn between them (`scheduler.yield()`, else a message). Until a row is built the person wears the premade look. `composeRowSteps` is `composeRow` in steps. | `people/store.test.ts` (order, turns, identical output) |
+| Engine garbage | `cafeScene.ts` draw/step make no per-frame closures, arrays or tuples (pooled `DrawItem`s, one comparator, `spriteX/Y`), labels are written only when they move. The homepage's pixels are unchanged (a virtual-clock hash of both homepage canvases over 300 frames, with clicks and keys, is identical). | the hash script, not a unit test |
+| Pixel budget | In library mode the canvas is held to 6 million device pixels by giving each art pixel fewer device pixels (`k`) and lowering the density to match, so the room looks the same size. 1280 x 800 at 2x (4.1 M) is untouched; 2560 x 1440 at 3x went from 33 M to 5.9 M. | screenshots |
+
+Tried and dropped: loading the room (`Library.tsx`, with the visit, people, chat and wardrobe) as its own chunk saved only 6.5 KB of the
+/study/library page's 331 KB gzip first load (webpack build), not worth a second chunk.
+
+Not changed: the lamplight (`lightLayer`) is one synchronous 60 ms (at 1x) pass in the engine's constructor, the biggest
+long task left at entry; Supabase's client loads on every Study route because `account.ts` imports it.

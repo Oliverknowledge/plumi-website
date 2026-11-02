@@ -7,6 +7,7 @@ import { Suspense, useEffect, useId, useState } from "react";
 import { GoogleMark } from "@/components/account/Account";
 import { safeNext, sendCode, sendReset, setPassword, signInHref, signInWithGoogle, signInWithPassword, signUpWithPassword, useAccount, verifyCode, type SignInReason } from "@/lib/account";
 import { track } from "@/lib/analytics";
+import { artUrl } from "@/lib/studyapp/library/art";
 
 /**
  * /sign-in and /sign-up: the form on one side and the Grand Library on the other, students
@@ -50,8 +51,8 @@ export function AuthPage({ start }: { start: "sign-in" | "sign-up" }) {
       </section>
       <div className="au-art" aria-hidden="true">
         <picture>
-          <source media="(prefers-reduced-motion: reduce)" srcSet="/library/library-door-still.webp" />
-          <img src="/library/library-door.webp" alt="" width={660} height={600} />
+          <source media="(prefers-reduced-motion: reduce)" srcSet={artUrl("library-door-still.webp")} />
+          <img src={artUrl("library-door.webp")} alt="" width={660} height={600} />
         </picture>
       </div>
     </main>

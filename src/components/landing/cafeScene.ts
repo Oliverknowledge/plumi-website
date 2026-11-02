@@ -15,6 +15,7 @@
  * Browser only, and loaded with import() after first paint (CafeScene in LandingClient.tsx).
  */
 
+import { artUrl } from "@/lib/studyapp/library/art";
 /** Library mode's free movement: the pure maths (src/lib/studyapp/library/walk.ts), loaded only when the library mounts, so the homepage's chunk never carries it. */
 type Walk = typeof import("@/lib/studyapp/library/walk");
 
@@ -42,25 +43,30 @@ interface Layout {
 interface Assets { L: Layout; bg: HTMLImageElement; pieces: HTMLImageElement; anims: HTMLImageElement; people: HTMLImageElement }
 
 const BASE = "/library/";
-let loading: Promise<Assets> | null = null;
+/** The most device pixels the study app's room paints (1280 x 800 at 2x is 4.1 million, and stays whole; 4K at 2x is 33). */
+const LIBRARY_PIXELS = 6_000_000;
+/** The homepage asks for the art by its plain URL (landing.css shares those files); the study app's room asks for its fingerprinted URL, cached for a year. */
+const loading: Record<"plain" | "versioned", Promise<Assets> | null> = { plain: null, versioned: null };
 
-function image(name: string): Promise<HTMLImageElement> {
+function image(name: string, url: (n: string) => string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const im = new Image();
     im.decoding = "async";
     im.onload = () => resolve(im);
     im.onerror = () => reject(new Error(`cafe: ${name}`));
-    im.src = BASE + name;
+    im.src = url(name);
   });
 }
 
-function loadAssets(): Promise<Assets> {
-  loading ??= Promise.all([
-    fetch(BASE + "layout.json").then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
-    image("bg.png"), image("pieces.png"), image("anims.png"), image("people.png"),
-  ]).then(([L, bg, pieces, anims, people]) => ({ L, bg, pieces, anims, people }));
-  loading.catch(() => { loading = null; });
-  return loading;
+function loadAssets(versioned = false): Promise<Assets> {
+  const kind = versioned ? "versioned" : "plain";
+  const url = versioned ? artUrl : (n: string) => BASE + n;
+  const p = (loading[kind] ??= Promise.all([
+    fetch(url("layout.json")).then(r => { if (!r.ok) throw new Error("layout.json"); return r.json() as Promise<Layout>; }),
+    image("bg.png", url), image("pieces.png", url), image("anims.png", url), image("people.png", url),
+  ]).then(([L, bg, pieces, anims, people]) => ({ L, bg, pieces, anims, people })));
+  p.catch(() => { if (loading[kind] === p) loading[kind] = null; });
+  return p;
 }
 
 /* ---------- the lamplight: the kit's Canvas.light, composited once into an overlay ---------- */
@@ -89,6 +95,22 @@ function lightLayer(L: Layout, lights: Light[], boost = 0): HTMLCanvasElement {
   c.putImageData(img, 0, 0);
   return cv;
 }
+
+/**
+ * One thing to draw this frame, in depth order. Kept in a pool and reused, so a frame makes no garbage: it used to make
+ * an object and a closure for every piece, animation, person and ring in view, about 30 times a second.
+ */
+interface DrawItem {
+  z: number;
+  kind: 1 | 2 | 3 | 4;            // 1 animation, 2 piece, 3 person, 4 chair ring
+  an: Anim | null; pc: Piece | null; p: Person | null;
+  img: CanvasImageSource | null;
+  x: number; y: number;           // where (a person's or a ring's sprite top left)
+  f: number; sy: number;          // a person's frame and the row of their sheet
+  fx: number; fy: number;         // an animation's frame in its sheet
+  outline: boolean;
+}
+const byDepth = (p: DrawItem, q: DrawItem) => p.z - q.z;
 
 /* ---------- people ---------- */
 type Doing = "enter" | "walk" | "sit" | "stand" | "leave" | "idle";
@@ -255,7 +277,7 @@ export async function mountCafe(canvas: HTMLCanvasElement, overlay: HTMLElement,
 
 /** Mounts the study app's Grand Library: this room with real people in it (see `LiveHooks`). */
 export async function mountLibrary(canvas: HTMLCanvasElement, overlay: HTMLElement, opts: Omit<CafeOptions, "mode">): Promise<LibraryHandle> {
-  const [A, W] = await Promise.all([loadAssets(), import("@/lib/studyapp/library/walk")]);
+  const [A, W] = await Promise.all([loadAssets(true), import("@/lib/studyapp/library/walk")]);
   const handle = new Cafe(canvas, overlay, A, { ...opts, mode: "library" }, W) as unknown as LibraryHandle;
   // in development only (compiled out of a production build): the page's tests read where you stand through it
   if (process.env.NODE_ENV !== "production") (window as unknown as { __plumiLibrary?: LibraryHandle }).__plumiLibrary = handle;
@@ -286,6 +308,13 @@ class Cafe implements CafeHandle {
   private region: { x: number; y: number; w: number; h: number };
   private labels = new Map<Person, HTMLElement>();
   private widths = new WeakMap<HTMLElement, number>();
+  /** Where each label was last put (whole CSS pixels) and how opaque: a label that has not moved is not written again. */
+  private placed = new WeakMap<HTMLElement, { x: number; y: number; o: number }>();
+  private items: DrawItem[] = [];          // this frame's, in draw order
+  private itemPool: DrawItem[] = [];
+  private itemN = 0;
+  private stepBuf: Person[] = [];
+  private vx0 = 0; private vy0 = 0; private vx1 = 0; private vy1 = 0;   // what is near the window this frame
   private pops: { el: HTMLElement; x: number; y: number; born: number }[] = [];
   private timers: Person[] = [];
   private nextTimers = 0;
@@ -567,7 +596,11 @@ class Cafe implements CafeHandle {
   private step(dt: number) {
     this.t += dt;
     const t = this.t;
-    for (const p of [...this.people]) {
+    // a copy, because remove() takes people out of the list as we go (kept, not made afresh every step)
+    const people = this.stepBuf;
+    people.length = 0;
+    for (const q of this.people) people.push(q);
+    for (const p of people) {
       if (p.remote && p.doing !== "leave" && p.alpha < 1) p.alpha = Math.min(1, p.alpha + dt * 2.5);
       if (this.W && p === this.you && this.keyStep(p, dt)) continue;
       if (p.path.length) this.walk(p, dt);
@@ -895,24 +928,30 @@ class Cafe implements CafeHandle {
     return x + 8 >= this.camX + 24 && x + 8 < this.camX + this.viewW - 24 && y >= this.camY + 8 && y + 20 < this.camY + this.viewH;
   }
 
+  /** Puts a label or pop at an art-pixel spot, in CSS pixels over the canvas; it never runs off the window. Writes nothing if it is where it was. */
+  private putAt(el: HTMLElement, x: number, y: number, s: number, ow: number) {
+    let px = (x - this.camX) * s + this.offX / this.dpr, py = (y - this.camY) * s + this.offY / this.dpr;
+    const half = (this.widths.get(el) ?? 0) / 2;
+    if (half) px = Math.min(Math.max(px, half + 4), ow - half - 4);   // a label never runs off the window
+    py = Math.max(py, 24);
+    const rx = Math.round(px), ry = Math.round(py);
+    let c = this.placed.get(el);
+    if (!c) { c = { x: NaN, y: NaN, o: NaN }; this.placed.set(el, c); }
+    if (c.x !== rx || c.y !== ry) { c.x = rx; c.y = ry; el.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -100%)`; }
+  }
+
   /** Where each label sits: over its person's head, in CSS pixels over the canvas. */
   private place() {
     const s = this.k / this.dpr;
     const ow = this.overlay.clientWidth;
-    const at = (x: number, y: number, el: HTMLElement) => {
-      let px = (x - this.camX) * s + this.offX / this.dpr, py = (y - this.camY) * s + this.offY / this.dpr;
-      const half = (this.widths.get(el) ?? 0) / 2;
-      if (half) px = Math.min(Math.max(px, half + 4), ow - half - 4);   // a label never runs off the window
-      py = Math.max(py, 24);
-      return `translate(${Math.round(px)}px, ${Math.round(py)}px) translate(-50%, -100%)`;
-    };
     this.showCard();
     for (const [p, el] of this.labels) {
-      const [x, y] = this.spriteAt(p);
-      el.style.transform = at(x + 8, y + 5, el);
-      el.style.opacity = String(this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha);
+      this.putAt(el, this.spriteX(p) + 8, this.spriteY(p) + 5, s, ow);
+      const o = this.card && this.cardFor === p ? 0 : this.W && this.tagOnPrompt(p, el) ? 0 : p.alpha;
+      const c = this.placed.get(el)!;
+      if (c.o !== o) { c.o = o; el.style.opacity = String(o); }
     }
-    for (const q of this.pops) q.el.style.transform = at(q.x, q.y, q.el);
+    for (const q of this.pops) this.putAt(q.el, q.x, q.y, s, ow);
     if (this.card && this.cardFor) {
       // over their head, or under their feet when there isn't room above
       const [x, y] = this.spriteAt(this.cardFor), el = this.card, half = el.offsetWidth / 2;
@@ -930,6 +969,9 @@ class Cafe implements CafeHandle {
     if (p.at && p.spot) return [p.spot.x, p.spot.y];
     return [Math.round(p.x) - 8, Math.round(p.y) - 31];
   }
+  /** `spriteAt`, one number at a time, for the frame loop (no array made). */
+  private spriteX(p: Person): number { return p.at && p.spot ? p.spot.x : Math.round(p.x) - 8; }
+  private spriteY(p: Person): number { return p.at && p.spot ? p.spot.y : Math.round(p.y) - 31; }
 
   private z(p: Person) { return p.at && p.spot ? p.spot.sort : p.y; }
 
@@ -946,39 +988,68 @@ class Cafe implements CafeHandle {
     return R.idle + d * 6 + (Math.floor(tick / 6) + p.phase) % 6;
   }
 
+  /** The next free item in this frame's list (from the pool), at depth `z`. */
+  private item(z: number, kind: DrawItem["kind"]): DrawItem {
+    const pool = this.itemPool;
+    let it = pool[this.itemN];
+    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false }; pool.push(it); }
+    this.itemN++;
+    it.z = z; it.kind = kind;
+    this.items.push(it);
+    return it;
+  }
+
+  private near(x: number, y: number, w: number, h: number) { return x < this.vx1 && x + w > this.vx0 && y < this.vy1 && y + h > this.vy0; }
+
+  private drawItem(it: DrawItem) {
+    const { sc, a } = this;
+    switch (it.kind) {
+      case 1: { const an = it.an!; sc.drawImage(a.anims, it.fx, it.fy, an.w, an.h, an.x, an.y, an.w, an.h); break; }
+      case 2: { const pc = it.pc!; sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h); break; }
+      case 3: {
+        const img = it.img!;
+        if (it.outline) this.outline(it.f, img, it.sy, it.x, it.y);
+        sc.globalAlpha = it.p!.alpha;
+        sc.drawImage(img, it.f * 16, it.sy, 16, 32, it.x, it.y, 16, 32);
+        sc.globalAlpha = 1;
+        break;
+      }
+      default: sc.drawImage(it.img!, it.x, it.y);
+    }
+  }
+
   private draw() {
     const { L, sc, a } = this;
     const tick = Math.floor(this.t * L.fps);
     sc.globalAlpha = 1;
     sc.drawImage(a.bg, 0, 0);
-    type Item = { z: number; draw: () => void };
-    const items: Item[] = [];
+    const items = this.items;
+    items.length = 0;
+    this.itemN = 0;
     // only what is near the window: the library is several windows wide
-    const m = 64, vx0 = this.camX - m, vy0 = this.camY - m, vx1 = this.camX + this.viewW + m, vy1 = this.camY + this.viewH + m;
-    const near = (x: number, y: number, w: number, h: number) => x < vx1 && x + w > vx0 && y < vy1 && y + h > vy0;
+    const m = 64;
+    this.vx0 = this.camX - m; this.vy0 = this.camY - m; this.vx1 = this.camX + this.viewW + m; this.vy1 = this.camY + this.viewH + m;
     for (const an of L.anims) {
-      if (!near(an.x, an.y, an.w, an.h)) continue;
+      if (!this.near(an.x, an.y, an.w, an.h)) continue;
       const [fx, fy] = an.frames[an.seq[tick % an.seq.length]];
-      const draw = () => sc.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h);
-      if (an.z === 0) draw(); else items.push({ z: an.z, draw });
+      if (an.z === 0) { sc.drawImage(a.anims, fx, fy, an.w, an.h, an.x, an.y, an.w, an.h); continue; }
+      const it = this.item(an.z, 1);
+      it.an = an; it.fx = fx; it.fy = fy;
     }
-    for (const pc of L.pieces) if (near(pc.x, pc.y, pc.w, pc.h)) items.push({ z: pc.z, draw: () => sc.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h) });
+    for (const pc of L.pieces) if (this.near(pc.x, pc.y, pc.w, pc.h)) { const it = this.item(pc.z, 2); it.pc = pc; }
     const lit = this.picked ?? this.hover;
     for (const p of this.people) {
       if (p.alpha <= 0) continue;
-      const [x, y] = this.spriteAt(p), f = this.frame(p, tick);
-      if (!near(x, y, 16, 32)) continue;
-      items.push({ z: this.z(p) + .01, draw: () => {
-        const [img, sy] = this.art(p);
-        if (p === lit && !p.you) this.outline(f, img, sy, x, y);
-        sc.globalAlpha = p.alpha;
-        sc.drawImage(img, f * 16, sy, 16, 32, x, y, 16, 32);
-        sc.globalAlpha = 1;
-      } });
+      const x = this.spriteX(p), y = this.spriteY(p), f = this.frame(p, tick);
+      if (!this.near(x, y, 16, 32)) continue;
+      const it = this.item(this.z(p) + .01, 3);
+      it.p = p; it.x = x; it.y = y; it.f = f;
+      it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
+      it.outline = p === lit && !p.you;
     }
-    if (this.W) this.addRings(items, tick, near);
-    items.sort((p, q) => p.z - q.z);
-    for (const it of items) it.draw();
+    if (this.W) this.addRings(tick);
+    items.sort(byDepth);
+    for (let i = 0; i < items.length; i++) this.drawItem(items[i]);
     sc.drawImage(this.lamp, 0, 0);
     if (this.fire) { sc.globalAlpha = (.30 + .04 * (Math.floor(tick / 3) % 3)) / .38; sc.drawImage(this.fire, 0, 0); sc.globalAlpha = 1; }
     if (!this.o.reduced) this.notes(tick);
@@ -991,11 +1062,6 @@ class Cafe implements CafeHandle {
     this.follow(this.o.reduced);
     ctx.drawImage(this.scene, this.camX, this.camY, this.viewW, this.viewH, this.offX, this.offY, this.viewW * this.k, this.viewH * this.k);
     this.place();
-  }
-
-  /** Where a person's frames are: their own drawn row (library mode, from their avatar) or their row of the premade sheet. */
-  private art(p: Person): [CanvasImageSource, number] {
-    return p.sheet ? [p.sheet, 0] : [this.a.people, p.look * 32];
   }
 
   /** A one-pixel white outline round a person: their frame as a white silhouette, drawn a pixel each way. */
@@ -1020,7 +1086,7 @@ class Cafe implements CafeHandle {
       const ph = (tick + i * 23 + p.phase * 7) % 90;
       i++;
       if (ph >= 30) continue;
-      const k = 1 - Math.max(0, ph - 20) / 10, [x, y] = this.spriteAt(p);
+      const k = 1 - Math.max(0, ph - 20) / 10, x = this.spriteX(p), y = this.spriteY(p);
       sc.globalAlpha = .9 * k;
       sc.fillStyle = NOTE_COLS[i % 4];
       for (const [nx, ny] of NOTE) sc.fillRect(x + 12 + (Math.floor(ph / 6) % 2) + nx, y + 2 - Math.floor(ph / 2) + ny, 1, 1);
@@ -1032,10 +1098,8 @@ class Cafe implements CafeHandle {
   private resize() {
     const box = this.canvas.getBoundingClientRect();
     if (!box.width) return;
-    const dpr = Math.min(3, window.devicePixelRatio || 1);
-    this.dpr = dpr;
-    const W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
-    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
+    let dpr = Math.min(3, window.devicePixelRatio || 1);
+    let W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
     const r = this.region;
     // the hero is a window onto part of the library, at the size the café was drawn at, that follows you about
     const want = this.playable ? (box.width < 560 ? 240 : 400) : r.w;
@@ -1043,6 +1107,15 @@ class Cafe implements CafeHandle {
     let k = Math.max(1, Math.round(exact));
     if (W / k > r.w * 1.04 || H / k > (this.playable ? this.L.h : r.h) * 1.04) k = Math.ceil(exact);
     if ((k - exact) / exact > .3 && dpr < 2) k = exact;                // a large crop on a low-density screen: fit instead
+    // The study app's room is a full window: 2560 x 1440 at 3x is 33 million pixels to clear and scale every frame. Past
+    // the budget, fewer device pixels go to each art pixel (k) and the density drops to match, so an art pixel is the
+    // same size on screen and the view shows the same room, only on a smaller canvas the browser scales the last bit.
+    if (this.o.mode === "library" && W * H > LIBRARY_PIXELS) {
+      const k2 = Math.max(1, Math.floor(k * Math.sqrt(LIBRARY_PIXELS / (W * H))));
+      if (k2 < k) { dpr = dpr * k2 / k; W = Math.round(box.width * dpr); H = Math.round(box.height * dpr); k = k2; }
+    }
+    this.dpr = dpr;
+    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
     this.k = k;
     this.viewW = Math.min(this.L.w, W / k);
     this.viewH = Math.min(this.L.h, H / k);
@@ -1292,17 +1365,18 @@ class Cafe implements CafeHandle {
   private get typingNow() { return typingIn(document.activeElement); }
 
   /** Draws each free chair's ring into the depth order: above the chair's own art, below anyone standing in front of it. */
-  private addRings(items: { z: number; draw: () => void }[], tick: number, near: (x: number, y: number, w: number, h: number) => boolean) {
+  private addRings(tick: number) {
     const art = (this.libArt ??= this.buildArt());
     const lit = this.nearSeat(), frame = this.o.reduced ? 0 : Math.floor(tick / 5) % 2;
     let n = 0;
     for (const s of this.ringSeats) {
       if (s.who) continue;
       n++;
-      if (!near(s.x - 4, s.y, 24, 32)) continue;
+      if (!this.near(s.x - 4, s.y, 24, 32)) continue;
       const on = s === lit || s === this.hoverSeat;
       const img = art.rings[on ? "near" : "idle"][frame], w = img.width, h = img.height;
-      items.push({ z: s.sort + .005, draw: () => this.sc.drawImage(img, Math.round(s.x + RING.x - w / 2 + .5), Math.round(s.y + RING.y - h / 2 + .5)) });
+      const it = this.item(s.sort + .005, 4);
+      it.img = img; it.x = Math.round(s.x + RING.x - w / 2 + .5); it.y = Math.round(s.y + RING.y - h / 2 + .5);
     }
     const prompt = this.promptFor(lit);
     const mark = `${n}|${prompt}|${lit ? this.ipadOf.get(lit) ?? "" : ""}`;

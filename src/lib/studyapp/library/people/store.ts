@@ -1,19 +1,42 @@
+import { artUrl } from "../art";
 import { LayerPack } from "./layers";
 import { lookKey, personOf, stableHash, known, type AvatarKeys, type PeopleCatalogue, type PersonLook } from "./look";
-import { FRAME_H, ROW_W, composeRow, layerKeys } from "./sheet";
+import { FRAME_H, ROW_W, composeRowSteps, layerKeys } from "./sheet";
 
 /**
  * The browser side of the people: fetches the app's layers once (only where this is used, never the homepage), and
  * hands out each person's 78-frame row as a canvas, built when first asked for and cached per distinct look. Asking
  * is synchronous and cheap: a row that is not ready yet answers null (the room keeps the premade person) and tells
  * subscribers when it is. Nothing here throws at a view; if the art cannot be had, every answer is null.
+ *
+ * Rows are built one at a time, nearest first, each in small steps with the browser given a turn between them: a row
+ * is ~20 ms of work, and 50 people arriving together used to be a half-second freeze. The people not built yet wear
+ * the premade look meanwhile (the room already does that).
  */
 
 export interface DrawnPerson { sheet: HTMLCanvasElement; phones: boolean; look: PersonLook }
 
-const BASE = "/library/";
 const KEEP_ROWS = 80;
 const RETRY_AFTER_MS = 30_000;
+/** How long a build may run before it lets the page have a turn (a long task is 50 ms; a slow phone is several times a laptop). */
+const SLICE_MS = 6;
+/** Priorities: lower is built sooner. Yourself, then whoever the page is waiting for, then the room by distance from you. */
+export const PRIORITY = { you: -2, asked: -1, room: 0 } as const;
+
+/** Gives the browser a turn: `scheduler.yield()` where there is one (it keeps its place in the queue), else a message. */
+function yieldToBrowser(): Promise<void> {
+  const sched = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
+  if (sched?.yield) return sched.yield();
+  if (typeof MessageChannel === "undefined") return new Promise((r) => setTimeout(r, 0));
+  return new Promise((resolve) => { const c = new MessageChannel(); c.port1.onmessage = () => { c.port1.close(); resolve(); }; c.port2.postMessage(0); });
+}
+
+/** Asking again: a wanted job (you, or a caller waiting) stays ahead of the room; the room's own are as near as they were last asked. */
+function reprioritise(job: { priority: number }, priority: number) {
+  job.priority = priority < 0 ? Math.min(job.priority, priority) : job.priority < 0 ? job.priority : priority;
+}
+
+interface Job { key: string; look: PersonLook; graded: boolean; priority: number; waiters: ((d: DrawnPerson | null) => void)[] }
 
 export interface PeopleFetch { (url: string): Promise<{ ok: boolean; json(): Promise<unknown>; arrayBuffer(): Promise<ArrayBuffer> }> }
 
@@ -22,10 +45,16 @@ export class PeopleStore {
   private loading: Promise<boolean> | null = null;
   private failedAt = -Infinity;
   private rows = new Map<string, DrawnPerson>();
-  private building = new Set<string>();
+  private jobs = new Map<string, Job>();
+  private working = false;
   private listeners = new Set<() => void>();
 
-  constructor(private get: PeopleFetch = (u) => fetch(u), private now: () => number = Date.now) {}
+  constructor(
+    private get: PeopleFetch = (u) => fetch(u),
+    private now: () => number = Date.now,
+    private yieldNow: () => Promise<void> = yieldToBrowser,
+    private clock: () => number = () => (typeof performance !== "undefined" ? performance.now() : Date.now()),
+  ) {}
 
   get catalogue(): PeopleCatalogue | null { return this.pack?.catalogue ?? null; }
 
@@ -39,7 +68,7 @@ export class PeopleStore {
     if (this.now() - this.failedAt < RETRY_AFTER_MS) return Promise.resolve(false);
     this.loading = (async () => {
       try {
-        const [cj, bj] = await Promise.all([this.get(BASE + "people-layers.json"), this.get(BASE + "people-layers.bin")]);
+        const [cj, bj] = await Promise.all([this.get(artUrl("people-layers.json")), this.get(artUrl("people-layers.bin"))]);
         if (!cj.ok || !bj.ok) throw new Error("people: fetch");
         const cat = (await cj.json()) as PeopleCatalogue;
         const bin = new Uint8Array(await bj.arrayBuffer());
@@ -70,55 +99,96 @@ export class PeopleStore {
     return cat ? known(cat, look) : null;
   }
 
+  /** How many rows are built (for tests). */
+  cached(): number { return this.rows.size; }
+
   /** A drawn person if it is ready; changes nothing and starts nothing (for a render). */
   peek(look: PersonLook | null, graded = true): DrawnPerson | null {
     return look ? this.rows.get(lookKey(look) + (graded ? "" : "#plain")) ?? null : null;
   }
 
-  /** The drawn person for a look: ready now, or null (and on its way: subscribers are told). */
-  row(look: PersonLook | null, graded = true): DrawnPerson | null {
+  /**
+   * The drawn person for a look: ready now, or null (and on its way: subscribers are told). `priority` says how soon:
+   * lower is sooner (the room passes each person's distance from you); asking again moves it.
+   */
+  row(look: PersonLook | null, graded = true, priority: number = PRIORITY.room): DrawnPerson | null {
     if (!look) return null;
     const key = lookKey(look) + (graded ? "" : "#plain");
     const hit = this.rows.get(key);
     if (hit) { this.rows.delete(key); this.rows.set(key, hit); return hit; }
-    if (this.pack && !this.building.has(key)) void this.build(key, look, graded);
-    else if (!this.pack) void this.ready();
+    if (!this.pack) { void this.ready(); return null; }
+    const queued = this.jobs.get(key);
+    if (queued) reprioritise(queued, priority);
+    else this.enqueue(key, look, graded, priority);
     return null;
   }
 
   /** Builds a look's row and waits for it (the room waits a moment for you before it opens, so you are not seen changing). */
-  async make(look: PersonLook, graded = true): Promise<DrawnPerson | null> {
+  async make(look: PersonLook, graded = true, priority: number = PRIORITY.asked): Promise<DrawnPerson | null> {
     if (!(await this.ready())) return null;
     const key = lookKey(look) + (graded ? "" : "#plain");
-    return this.rows.get(key) ?? (await this.build(key, look, graded));
+    const hit = this.rows.get(key);
+    if (hit) return hit;
+    const queued = this.jobs.get(key) ?? this.enqueue(key, look, graded, priority);
+    reprioritise(queued, priority);
+    return new Promise((resolve) => queued.waiters.push(resolve));
   }
 
-  private async build(key: string, input: PersonLook, graded: boolean): Promise<DrawnPerson | null> {
+  private enqueue(key: string, look: PersonLook, graded: boolean, priority: number): Job {
+    const job: Job = { key, look, graded, priority, waiters: [] };
+    this.jobs.set(key, job);
+    void this.work();
+    return job;
+  }
+
+  /** Builds what is queued, the most wanted first, giving the page a turn between rows. */
+  private async work() {
+    if (this.working) return;
+    this.working = true;
+    try {
+      await this.yieldNow();       // not inside whatever asked: a render, a signal
+      for (;;) {
+        let best: Job | null = null;
+        for (const j of this.jobs.values()) if (best === null || j.priority < best.priority) best = j;
+        if (!best) break;
+        let person: DrawnPerson | null = null;
+        try { person = await this.build(best); } catch { person = null; }
+        this.jobs.delete(best.key);
+        if (person) {
+          if (this.rows.size >= KEEP_ROWS) this.rows.delete(this.rows.keys().next().value as string);
+          this.rows.set(best.key, person);
+          this.changed();
+        }
+        best.waiters.forEach((w) => w(person));
+        await this.yieldNow();
+      }
+    } finally {
+      this.working = false;
+    }
+  }
+
+  private async build(job: Job): Promise<DrawnPerson | null> {
     const pack = this.pack;
     if (!pack || typeof document === "undefined") return null;
-    this.building.add(key);
-    try {
-      const look = known(pack.catalogue, input);
-      const books = pack.catalogue.parts.books;
-      const book = books.length ? books[stableHash(lookKey(look)) % books.length].id : null;
-      await pack.load([...layerKeys(look), ...(book ? ["book/" + book] : [])]);
-      const data = composeRow(pack.catalogue, look, pack.source, { book, graded });
-      if (!data) return null;
-      const canvas = document.createElement("canvas");
-      canvas.width = ROW_W; canvas.height = FRAME_H;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
-      ctx.putImageData(new ImageData(data as Uint8ClampedArray<ArrayBuffer>, ROW_W, FRAME_H), 0, 0);
-      const person: DrawnPerson = { sheet: canvas, phones: look.phones !== null, look };
-      if (this.rows.size >= KEEP_ROWS) this.rows.delete(this.rows.keys().next().value as string);
-      this.rows.set(key, person);
-      this.changed();
-      return person;
-    } catch {
-      return null;
-    } finally {
-      this.building.delete(key);
+    const look = known(pack.catalogue, job.look);
+    const books = pack.catalogue.parts.books;
+    const book = books.length ? books[stableHash(lookKey(look)) % books.length].id : null;
+    await pack.load([...layerKeys(look), ...(book ? ["book/" + book] : [])]);
+    const steps = composeRowSteps(pack.catalogue, look, pack.source, { book, graded: job.graded });
+    let since = this.clock();
+    let step = steps.next();
+    while (!step.done) {
+      if (this.clock() - since >= SLICE_MS) { await this.yieldNow(); since = this.clock(); }
+      step = steps.next();
     }
+    const data = step.value;
+    if (!data) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = ROW_W; canvas.height = FRAME_H;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.putImageData(new ImageData(data as Uint8ClampedArray<ArrayBuffer>, ROW_W, FRAME_H), 0, 0);
+    return { sheet: canvas, phones: look.phones !== null, look };
   }
 }
 

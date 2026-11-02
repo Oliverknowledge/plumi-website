@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, type CSSProperties, type ReactNode, type Ref } from "react";
 import { preload } from "react-dom";
 import { AppLink } from "@/components/studyapp/AppLink";
+import { artUrl } from "@/lib/studyapp/library/art";
 import { lampLayers, type TimeOfDay } from "@/lib/studyapp/library/entry";
 import { useCoverScale, useParallax, useReducedMotion, useScrollLock, useSky } from "./useFront";
 
@@ -53,7 +54,7 @@ export function FrontScene({ children, onLogOut, tod, stage = "door", quick = fa
   const root = useRef<HTMLElement | null>(null);
   const sky = useSky();
   const reduced = useReducedMotion();
-  preload("/library/bg.png", { as: "image" });
+  preload(artUrl("bg.png"), { as: "image" });
   useCoverScale(root);
   useParallax(root, reduced);
   useScrollLock();
@@ -71,7 +72,7 @@ export function FrontScene({ children, onLogOut, tod, stage = "door", quick = fa
     >
       <div className="en-world" aria-hidden="true">
         <div className="en-cam">
-          <div className="en-art" />
+          <div className="en-art" style={{ backgroundImage: `url(${artUrl("bg.png")})` }} />
           <div className="en-lamps is-steady" style={{ backgroundImage: LAMPS.steady }} />
           <div className="en-lamps is-tables" style={{ backgroundImage: LAMPS.tables }} />
           <div className="en-lamps is-fire" style={{ backgroundImage: LAMPS.fire }} />
