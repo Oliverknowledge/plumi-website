@@ -155,7 +155,15 @@
     "#d1864a",
     "#ba966b",
     "#dab787",
-    "#f7dbab"
+    "#f7dbab",
+    "#f5aa5f",
+    "#efc282",
+    "#cda064",
+    "#392004",
+    "#fff1c9",
+    "#ffeaaa",
+    "#df9143",
+    "#aa814d"
   ],
   "outline": "#1b0502",
   "jumper": [
@@ -177,5 +185,20 @@
   "sourceScale": 8.1,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-capybara.png",
-  "tool": "tools/art/animal_sheet.py"
+  "tool": "tools/art/animal_sheet.py",
+  "basePalette": 16,
+  "sit": {
+    "kind": "drawn",
+    "source": "docs/study/art/source/animal-sit-sheet-01.png",
+    "scale": 9.1,
+    "poses": {
+      "sit right": "right",
+      "sit left": "left",
+      "phone": "front",
+      "read": "front",
+      "stool": "back"
+    },
+    "loop": "breath, nod and pen stroke synthesised from the one drawn pose (animal_sit.py)",
+    "tool": "tools/art/animal_sit.py"
+  }
 }

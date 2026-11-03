@@ -602,7 +602,10 @@ def write_registry() -> None:
         if not f.exists():
             continue
         m = json.loads(f.read_text())
-        out.append({"id": an.id, "title": an.title, "jumper": m["jumper"], "tail": {d: an.tail.get(d) for d in DIRS}})
+        entry = {"id": an.id, "title": an.title, "jumper": m["jumper"], "tail": {d: an.tail.get(d) for d in DIRS}}
+        if m.get("sit", {}).get("kind") == "drawn":
+            entry["seated"] = "drawn"                    # the seated frames are drawn art (tools/art/animal_sit.py); the others are the standing art made to sit
+        out.append(entry)
     REGISTRY.write_text(json.dumps(out, indent=1) + "\n")
 
 
@@ -646,6 +649,8 @@ def main(argv: list[str]) -> int:
         hs = [int((f >= 0).any(1).sum()) for f in res["frames"]]
         print(f"{an.id}: {FRAMES} frames, {a.method}, scale {res['scale']}, widths {min(ws)}-{max(ws)}, heights {min(hs)}-{max(hs)}, palette {len(res['palette'])}")
     if not a.out:
+        import animal_sit                                # a rebuilt strip has stand-in seated frames: the animals with a drawn seated sheet get theirs back
+        animal_sit.apply([an.id for an in todo])
         write_registry()
     return 0
 

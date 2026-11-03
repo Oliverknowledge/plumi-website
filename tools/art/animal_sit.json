@@ -1,0 +1,55 @@
+{
+  "_doc": "Config of tools/art/animal_sit.py: SEATED sheets of animals (drawn leaning over a desk, writing), and how each is placed in the engine's 34 x 32 frame. See docs/study/library.md, 'Characters'.",
+  "sheets": [
+    {
+      "source": "docs/study/art/source/animal-sit-sheet-01.png",
+      "rows": [
+        "fox",
+        "capybara",
+        "axolotl",
+        "badger"
+      ],
+      "cols": [
+        "left",
+        "right",
+        "front",
+        "back"
+      ]
+    }
+  ],
+  "pose": {
+    "_doc": "base: the frame row the bottom of the figure is on (the lap line); neck (front view): the frame row the neck is on (the table covers what is below it); torso (side views): the frame column the torso (the jumper's mean column) is on for the right-facing pose, the left-facing one is on the mirrored column; cx: the frame column the middle of the figure is on; cut: rows of the figure's bottom dropped (the back view is cut like a person's stool frames)",
+    "side": {
+      "base": 30,
+      "torso": 13
+    },
+    "front": {
+      "neck": 21,
+      "cx": 16.5
+    },
+    "back": {
+      "base": 22,
+      "cx": 16.5,
+      "cut": 0
+    }
+  },
+  "animals": {
+    "fox": {
+      "scale": 9.1,
+      "dark": 1.8
+    },
+    "capybara": {
+      "scale": 9.1,
+      "dark": 1.8
+    },
+    "axolotl": {
+      "scale": 9.1,
+      "dark": 1.8
+    },
+    "badger": {
+      "scale": 9.1,
+      "dark": 1.8,
+      "feature": 0.15
+    }
+  }
+}

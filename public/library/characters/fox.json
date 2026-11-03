@@ -155,7 +155,15 @@
     "#f2d197",
     "#f5ddab",
     "#f9f1cf",
-    "#fdf7c5"
+    "#fdf7c5",
+    "#bb3c57",
+    "#0d0200",
+    "#84a7c9",
+    "#8d2639",
+    "#fff0ad",
+    "#5a2028",
+    "#aecce4",
+    "#f4c57c"
   ],
   "outline": "#230703",
   "jumper": [
@@ -177,5 +185,21 @@
   "sourceScale": 8.1,
   "method": "vote",
   "source": "docs/study/art/source/fox-sheet-01.png",
-  "tool": "tools/art/animal_sheet.py"
+  "sitSource": null,
+  "tool": "tools/art/animal_sheet.py",
+  "basePalette": 16,
+  "sit": {
+    "kind": "drawn",
+    "source": "docs/study/art/source/animal-sit-sheet-01.png",
+    "scale": 9.1,
+    "poses": {
+      "sit right": "right",
+      "sit left": "left",
+      "phone": "front",
+      "read": "front",
+      "stool": "back"
+    },
+    "loop": "breath, nod and pen stroke synthesised from the one drawn pose (animal_sit.py)",
+    "tool": "tools/art/animal_sit.py"
+  }
 }

@@ -21,9 +21,11 @@ export interface Animal {
   jumper: readonly string[];
   /** The swish of the idle: how many columns past the torso's centre the tail starts, per direction (null: it does not swish). */
   tail: Readonly<Record<StripDir, number | null>>;
+  /** "drawn": its seated frames (sit right and left, phone, read, stool: strip frames 48 to 77) are art drawn for sitting (tools/art/animal_sit.py), not the standing art made to sit. Absent: the stand-in. */
+  seated?: "drawn";
 }
 
-export const ANIMALS: readonly Animal[] = registry;
+export const ANIMALS: readonly Animal[] = registry as readonly Animal[];
 export const ANIMAL_IDS: readonly string[] = ANIMALS.map((a) => a.id);
 /** The animal an id names, or null. */
 export const animalOf = (id: string | null | undefined): Animal | null => (typeof id === "string" ? ANIMALS.find((a) => a.id === id) ?? null : null);

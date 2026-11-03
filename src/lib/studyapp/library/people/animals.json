@@ -11,7 +11,8 @@
    "left": 5,
    "up": null,
    "right": 5
-  }
+  },
+  "seated": "drawn"
  },
  {
   "id": "capybara",
@@ -25,7 +26,8 @@
    "left": null,
    "up": null,
    "right": null
-  }
+  },
+  "seated": "drawn"
  },
  {
   "id": "axolotl",
@@ -38,7 +40,8 @@
    "left": 5,
    "up": null,
    "right": 5
-  }
+  },
+  "seated": "drawn"
  },
  {
   "id": "redpanda",
@@ -66,7 +69,8 @@
    "left": 5,
    "up": null,
    "right": 5
-  }
+  },
+  "seated": "drawn"
  },
  {
   "id": "hedgehog",

@@ -159,7 +159,11 @@
     "#eab340",
     "#e1bf9e",
     "#f9efda",
-    "#faf0ce"
+    "#faf0ce",
+    "#fceeb8",
+    "#eec48e",
+    "#995b0b",
+    "#fb9f8a"
   ],
   "outline": "#120804",
   "jumper": [
@@ -181,5 +185,20 @@
   "sourceScale": 8.43,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-badger.png",
-  "tool": "tools/art/animal_sheet.py"
+  "tool": "tools/art/animal_sheet.py",
+  "basePalette": 20,
+  "sit": {
+    "kind": "drawn",
+    "source": "docs/study/art/source/animal-sit-sheet-01.png",
+    "scale": 9.1,
+    "poses": {
+      "sit right": "right",
+      "sit left": "left",
+      "phone": "front",
+      "read": "front",
+      "stool": "back"
+    },
+    "loop": "breath, nod and pen stroke synthesised from the one drawn pose (animal_sit.py)",
+    "tool": "tools/art/animal_sit.py"
+  }
 }

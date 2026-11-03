@@ -18,6 +18,12 @@ For each animal listed in src/lib/studyapp/library/people/animals.json the strip
                   mean foot speed, which no 24 px sprite can bring to 0 at this cadence (a person's is reported beside it).
   SIT             nothing hangs below the lap line (the hip row + SIT_LAP), and a tail it has is tucked: no drawn pixel on the far side
                   of the torso, below the shoulders, beyond the tail's own start.
+  DRAWN SEATED    (animals whose json says `sit.kind` is "drawn": tools/art/animal_sit.py, a sheet drawn for sitting; the others keep the stand-in
+                  rules above) in frames 48-77: the figure is 18 to 27 rows and at most 28 columns, the side views' lowest row is the pose's
+                  baseline (animal_sit.json) in all six frames and the back view's is its own, the right and left views are mirror placed
+                  (the centres of their boxes add up to the frame's width, give or take 2), the loop moves the head at most 2 rows and the centre of mass
+                  at most 1 px between frames (a breath, a nod, a stroke of the pen: calm), the loop is not a still picture,
+                  and the head is as wide as the standing animal's (the mean over the four facings within 2 columns, each within 4).
   SIZE            the strips are small: the bundle under 400 KB.
 """
 import json
@@ -26,6 +32,9 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # python3 -I does not add the script's folder
+import animal_sit  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 DIR = ROOT / "public/library/characters"
@@ -39,6 +48,11 @@ FOOT_MIN, FOOT_MAX, FOOT_JUMP = 0.3, 6.0, 12.0   # a foot lifted off the bottom 
 SIT_LAP = 5
 MAX_COLOURS = 24
 BUNDLE_LIMIT = 400_000
+SIT_FIG_ROWS = (18, 27)
+SIT_FIG_COLS = 28
+SIT_PAIR_SLACK = 2
+SIT_MAX_STEP = 1.0           # px the centre of mass of a seated figure may move between two frames of its loop
+SIT_HEAD_MEAN, SIT_HEAD_EACH = 2.0, 4
 WALK = {"right": 24, "back": 30, "left": 36, "front": 42}
 IDLE = {"right": 0, "back": 6, "left": 12, "front": 18}
 
@@ -196,6 +210,9 @@ def check(animal: dict) -> tuple[list[str], str]:
     # sit
     hip = rig["hip"]
     tail = rig["tail"]
+    drawn = meta.get("sit", {}).get("kind") == "drawn"
+    if drawn:
+        errs += check_drawn_sit(aid, frames, meta, animal)
     for name, o, face in (("sit right", 48, "right"), ("sit left", 54, "left"), ("phone", 60, "down"), ("read", 66, "down"), ("stool", 72, "up")):
         six = frames[o:o + 6]
         lows = {int(np.where(f[..., 3] > 0)[0].max()) for f in six}
@@ -204,7 +221,7 @@ def check(animal: dict) -> tuple[list[str], str]:
         if name != "stool" and max(lows) > hip + SIT_LAP:
             errs.append(f"{aid}: {name}: something hangs below the lap line (row {max(lows)}, the line is {hip + SIT_LAP})")
         at = tail.get(face)
-        if at is not None and name in ("sit right", "sit left"):
+        if at is not None and name in ("sit right", "sit left") and not drawn:    # a drawn seated animal keeps the tail it was drawn with
             for f in six:
                 jc = torso(f)
                 if jc is None:
@@ -217,6 +234,45 @@ def check(animal: dict) -> tuple[list[str], str]:
     size = (DIR / f"{aid}.png").stat().st_size
     foot = float(np.mean(speeds)) if speeds else 0.0
     return errs, f"{aid} {len(colours)}c bob {bobs} torso-slide {worst_torso:.1f} foot-speed {foot:.2f} px/frame skate {TRAVEL - foot:.1f}/{TRAVEL:.0f} {size}B"
+
+
+def check_drawn_sit(aid: str, frames: list[np.ndarray], meta: dict, animal: dict) -> list[str]:
+    errs: list[str] = []
+    pose = json.loads((Path(animal_sit.CONFIG)).read_text())["pose"]
+    boxes = {}
+    for name, o in (("sit right", 48), ("sit left", 54), ("phone", 60), ("read", 66), ("stool", 72)):
+        six = frames[o:o + 6]
+        bb = []
+        for f in six:
+            ys, xs = np.where(f[..., 3] > 0)
+            bb.append((int(ys.min()), int(ys.max()), int(xs.min()), int(xs.max())))
+        boxes[name] = bb
+        h = bb[0][1] - bb[0][0] + 1
+        w = max(b[3] - b[2] + 1 for b in bb)
+        if not SIT_FIG_ROWS[0] <= h <= SIT_FIG_ROWS[1] + 3 or w > SIT_FIG_COLS:
+            errs.append(f"{aid}: {name}: the figure is {h} rows x {w} columns (rows {SIT_FIG_ROWS[0]} to {SIT_FIG_ROWS[1]}, at most {SIT_FIG_COLS} columns)")
+        base = {"sit right": pose["side"]["base"], "sit left": pose["side"]["base"], "stool": pose["back"]["base"]}.get(name)
+        if base is not None and {b[1] for b in bb} != {base}:
+            errs.append(f"{aid}: {name}: the bottom of the figure is on rows {sorted({b[1] for b in bb})}, the baseline is {base}")
+        tops = [b[0] for b in bb]
+        if max(tops) - min(tops) > 2:
+            errs.append(f"{aid}: {name}: the head moves {max(tops) - min(tops)} rows over the loop (at most 2: a breath and a nod)")
+        cm = [np.array(np.where(f[..., 3] > 0)).mean(1) for f in six]
+        step = max(float(np.abs(cm[i] - cm[(i + 1) % 6]).max()) for i in range(6))
+        if step > SIT_MAX_STEP:
+            errs.append(f"{aid}: {name}: the figure's centre of mass moves {step:.2f} px between two frames of the loop (more than {SIT_MAX_STEP}: it would jitter)")
+        if len({f.tobytes() for f in six}) < 3:
+            errs.append(f"{aid}: {name}: the loop is a still picture")
+    cr = (boxes["sit right"][0][2] + boxes["sit right"][0][3]) / 2
+    cl = (boxes["sit left"][0][2] + boxes["sit left"][0][3]) / 2
+    if abs(cr + cl - (FW - 1)) > SIT_PAIR_SLACK + 1:
+        errs.append(f"{aid}: the right and left seated views are not mirror placed (centres {cr} and {cl} in a frame {FW} wide)")
+    jumper = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in animal["jumper"]}
+    st, sd = animal_sit.standing_heads(aid, jumper), animal_sit.seated_heads(aid, jumper)
+    diffs = {k: abs(st[k] - sd[k]) for k in st}
+    if float(np.mean(list(diffs.values()))) > SIT_HEAD_MEAN or max(diffs.values()) > SIT_HEAD_EACH:
+        errs.append(f"{aid}: the seated head is not the standing head's size: standing {st}, seated {sd}")
+    return errs
 
 
 def main() -> int:
@@ -234,7 +290,7 @@ def main() -> int:
     if errs:
         print("\n".join(errs))
         return 1
-    print(f"ok: {len(animals)} animals, 78 frames each, alpha binary, one piece per frame, feet on one row, walk bobs and strides, seated tucked, no magenta, {total} bytes")
+    print(f"ok: {len(animals)} animals, 78 frames each, alpha binary, one piece per frame, feet on one row, walk bobs and strides, seated tucked (stand-in) or drawn (checked against the standing size), no magenta, {total} bytes")
     if "-v" in sys.argv:
         print("\n".join(notes))
         print(f"a person's feet move {people_skate()} px/frame in the same measure (side walks, looks 0 to 10)")

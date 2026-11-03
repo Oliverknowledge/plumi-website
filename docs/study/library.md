@@ -229,9 +229,36 @@ iPad table has: right and left at the long tables, the arm chairs, the pod stool
 - **Idle**: a 1 px breath, the tail's swish, and a blink facing the camera.
 - **Sit** (right, left): head and torso as drawn, the tail tucked (cut at the torso), the far leg gone, the near leg folded forward, one row
   lower, moved 5 px away from the desk, a breath and a nod of the head (people only breathe); phone and read are the front view the same way,
-  the stool the back view lowered and cut. **Where the standing art cannot be made to sit** (dragon, badger, triceratops, capybara) a SEATED sheet
-  is the fix: `docs/study/art/chatgpt-animal-sit-prompts.md` has the prompts and `animal_sheet.py --ingest-sit` the entry point; a sheet
-  named `animal-sit-<id>.png` is used as drawn (the pipeline is exercised with a synthetic sheet; no real one exists yet).
+  the stool the back view lowered and cut. This is the **stand-in** seated pose: **red panda, raccoon, hedgehog, triceratops and dragon still use it**.
+- **Sit, drawn (fox, capybara, axolotl, badger; `tools/art/animal_sit.py`).** The founder drew a SEATED sheet in ChatGPT
+  (`docs/study/art/source/animal-sit-sheet-01.png`, 1536 x 1024, magenta: 4 rows = the four animals, 4 columns = leaning over a table writing, facing left,
+  right, the camera (head tipped down, seen from above) and away; one static pose each; legs and lap not drawn, the table hides them; about 3.5 source
+  px per art pixel, finer than the standing 8 to 9). `animal_sit.py` (config `tools/art/animal_sit.json`, so a second sheet is one more entry) turns it into
+  frames 48 to 77 of each strip: **sit right** and **sit left** (the two profiles, placed mirror image on one baseline, row 30, the torso on column 13 and
+  20), **phone** and **read** (the front pose, twice) and **stool** (the back pose, its bottom on row 22). Idle and walk (frames 0 to 47) are byte for byte what
+  they were (the tool asserts it) and the other five animals are untouched.
+  **Drawn:** the figure, its colours, the ears, the sweater, the face, the tail, the pen, the paws. **Synthesised, deterministically:** the 6 frame working
+  loop (one frame per 8 ticks, like the people's): the body one row up on frames 2 and 3 (a breath, the lap stays put), the head one row down on frame 5
+  (a nod) and the pen paw one column toward the body on frames 1 and 3 (a stroke of the pen); the back view has no pen. Never more than a 1 row step.
+  **Method:** the magenta is keyed out strictly (the lilac hoodie and the pink gills stay), the 16 sprites are found as connected components (the grid
+  drifts), each is brought to the engine's scale with ONE scale for all four, **9.1 source px per art pixel** (`--measure` tries 7.6 to 9.7 against the
+  standing head: the seated head is within 1 to 2 columns of the standing one, mean error 1.0 to 2.0, every facing within 3; the profile heads of the standing
+  art are drawn broader than the seated ones, so a one column match per facing is not reachable with one scale per animal; the fox, axolotl and badger
+  were measured at 9.1 and the capybara at 9.4, 9.1 is kept for all so the four are one size). A grid of art pixels is laid on each sprite, a cell is animal when
+  half of it is, the outline is drawn, a cell's colour is the palette entry nearest the median of its source pixels (smooth shading stays one colour; the
+  palette's near shades, within Lab 16, are merged for the seated frames), except that a colour that stands out (an eye, a pen, a paw, a glass rim) wins the
+  cell when it holds a quarter of it (a tenth in the face's fur); the animal's own palette is extended with the few colours the new art has that it lacked, at
+  most 24. Binary alpha, one piece, a 1 px outline. **Placed so the figure sits ON the chair:** the table piece covers the lap, the head and the
+  sweater show above it; at a front seat the NECK is on row 21, which is where the table's edge cuts, so the face is above the table and the paws and the pen
+  (drawn on the table top) are under it, which means **the pen is only seen at the side seats and the booths' sides**; a back seat shows the whole figure on
+  the seat, the tail on the chair; at the ends of the long table and the round tables the tail hangs out over the chair back by 3 to 6 px (accepted: a trim
+  cost the silhouette more than it gave).
+  Run: `python3 tools/art/animal_sit.py` (idempotent); `animal_sheet.py` calls it after it rebuilds a strip, so a rebuilt animal keeps its drawn seats.
+  `animals.json` has `"seated": "drawn"` for the four; each strip's json has `sit` (the sheet, the scale) and `basePalette` (the walk's colours; the strip's
+  palette is those plus the extras).
+  **2x detail (not integrated):** the new art is 2.6x finer than the engine's pixel; a 4.5 source px variant would be 40 to 48 columns by 40 rows per
+  figure, which needs a 2x frame in the engine (its own frame width through `Person.fw`, a 2x seat table, 2x walks, or the seated animals the only fine thing in a room
+  of coarse ones). Not done: it would mix two pixel sizes in one room. On the clip, where only the camera matters, it would look better.
 - **Numbers** (`check_animals.py -v`): the head bobs 1 to 2 rows in every direction; the torso slides at most 2.3 columns between frames
   (usually under 1); foot motion (the change of the feet's extent on the bottom two rows, a frame to the next) is 3.6 to 6.0 columns a frame
   against a person's 5.5. FOOT SKATE: the room moves a walker 14 art px a frame and no foot of a 24 px sprite can step back that fast, so every

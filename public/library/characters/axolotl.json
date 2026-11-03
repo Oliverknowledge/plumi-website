@@ -159,7 +159,11 @@
     "#f8b4af",
     "#fbb8a8",
     "#f7bead",
-    "#fcd5c7"
+    "#fcd5c7",
+    "#110303",
+    "#9d64b7",
+    "#d74950",
+    "#4e1e5c"
   ],
   "outline": "#28030a",
   "jumper": [
@@ -180,5 +184,20 @@
   "sourceScale": 8.77,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-axolotl.png",
-  "tool": "tools/art/animal_sheet.py"
+  "tool": "tools/art/animal_sheet.py",
+  "basePalette": 20,
+  "sit": {
+    "kind": "drawn",
+    "source": "docs/study/art/source/animal-sit-sheet-01.png",
+    "scale": 9.1,
+    "poses": {
+      "sit right": "right",
+      "sit left": "left",
+      "phone": "front",
+      "read": "front",
+      "stool": "back"
+    },
+    "loop": "breath, nod and pen stroke synthesised from the one drawn pose (animal_sit.py)",
+    "tool": "tools/art/animal_sit.py"
+  }
 }

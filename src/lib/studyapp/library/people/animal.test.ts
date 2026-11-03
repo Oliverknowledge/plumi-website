@@ -154,8 +154,11 @@ for (const animal of ANIMALS) {
       const s = await strip();
       const row = composeAnimal(s, animal, { graded: false })!;
       const at = (n: number) => torsoX(frameAt(row.rgba, n), jumper);
-      assert.ok(at(POSE.sit) < at(0) - 3, "facing right its torso sits back to the left");
-      assert.ok(at(POSE.sit + 6) > at(12) + 3, "facing left its torso sits back to the right");
+      const drawn = animal.seated === "drawn";
+      if (!drawn) {
+        assert.ok(at(POSE.sit) < at(0) - 3, "facing right its torso sits back to the left");
+        assert.ok(at(POSE.sit + 6) > at(12) + 3, "facing left its torso sits back to the right");
+      }
       for (const first of [POSE.sit, POSE.sit + 6, POSE.phone, POSE.read, POSE.stool]) {
         const six = Array.from({ length: 6 }, (_, i) => frameAt(row.rgba, first + i));
         assert.equal(new Set(six.map(bottom)).size, 1, `pose at ${first}: the lowest row does not move`);
@@ -163,8 +166,25 @@ for (const animal of ANIMALS) {
         for (const f of six) { assert.ok(rows(f, ANIMAL_W).length > 10 && cols(f, ANIMAL_W).length > 8); assert.ok(cols(f, ANIMAL_W)[0] >= 0); }
         if (first !== POSE.stool) assert.ok(bottom(six[0]) <= meta.rig.hip + 5, `pose at ${first}: nothing hangs below the lap line (${bottom(six[0])})`);
       }
-      // the stool frames are cut to the top 20 rows as a person's are: nothing below row 19
-      for (let i = POSE.stool; i < POSE.stool + 6; i++) assert.ok(bottom(frameAt(row.rgba, i)) <= 19);
+      // the stool frames are cut to the top 20 rows as a person's are (a drawn seated figure is whole: it ends on row 22, the seat)
+      for (let i = POSE.stool; i < POSE.stool + 6; i++) assert.ok(bottom(frameAt(row.rgba, i)) <= (drawn ? 22 : 19));
+    });
+    it(`has the seated art the registry says: ${animal.seated === "drawn" ? "drawn for sitting (the sheet's own right, left, front and back poses), a breath, a nod and a pen stroke made from it, the same size as standing" : "the standing art made to sit"}`, async () => {
+      const m = metaOf(animal) as Meta & { sit?: { kind: string; scale: number } };
+      if (animal.seated !== "drawn") { assert.equal(m.sit, undefined); return; }
+      assert.equal(m.sit?.kind, "drawn");
+      const row = composeAnimal(await strip(), animal, { graded: false })!;
+      const box = (n: number) => { const f = frameAt(row.rgba, n); const c = cols(f, ANIMAL_W), r = rows(f, ANIMAL_W); return { x0: c[0], x1: c[c.length - 1], y0: r[0], y1: r[r.length - 1] }; };
+      // the two profiles are placed as mirror images of each other, on one baseline (the lap line, row 30), the loop's head moves 2 rows at most
+      const R = box(POSE.sit), L = box(POSE.sit + 6);
+      assert.ok(Math.abs((R.x0 + R.x1) + (L.x0 + L.x1) - 2 * (ANIMAL_W - 1)) <= 6, `right and left sit mirror placed (${JSON.stringify(R)} ${JSON.stringify(L)})`);
+      assert.equal(R.y1, 30); assert.equal(L.y1, 30);
+      for (const first of [POSE.sit, POSE.sit + 6, POSE.phone, POSE.read, POSE.stool]) {
+        const tops = Array.from({ length: 6 }, (_, i) => top(frameAt(row.rgba, first + i)));
+        assert.ok(Math.max(...tops) - Math.min(...tops) <= 2, `pose at ${first}: the head moves ${tops}`);
+      }
+      // phone and read are the one drawn front pose, and facing the camera it is as wide as the standing front frame's head (+- 4)
+      assert.deepEqual([...frameAt(row.rgba, POSE.phone)], [...frameAt(row.rgba, POSE.read)]);
     });
     it("finds the head from the art: the ears down to the jumper, inside the frame (for a friends list or a card)", async () => {
       const s = await strip();
