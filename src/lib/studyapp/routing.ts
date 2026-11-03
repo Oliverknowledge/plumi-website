@@ -4,8 +4,8 @@ import { site } from "@/config/site";
  * Which site a request belongs to, decided from its host and path alone (no cookies), so it can run in
  * src/proxy.ts in front of every cached page.
  *
- *   study.tryplumi.app   the web app. `/`, `/library` and `/flashcards` are the app's three places and are
- *                        served from /study, /study/library and /study/flashcards; the sign-in pages and
+ *   study.tryplumi.app   the web app. `/`, `/library`, `/questions` and `/flashcards` are the app's four places and are
+ *                        served from /study, /study/library, /study/questions and /study/flashcards; the sign-in pages and
  *                        Next's own files pass through; the marketing pages are not here, so they go to
  *                        tryplumi.app. The address bar never shows a /study/ prefix.
  *   tryplumi.app         the marketing site. Its old /study, /study/library and /study/flashcards go to the
@@ -19,9 +19,9 @@ import { site } from "@/config/site";
 export const STUDY_HOST = new URL(site.studyDomain).hostname;
 const MAIN_HOSTS = new Set([new URL(site.domain).hostname, `www.${new URL(site.domain).hostname}`]);
 
-/** The app's three places: visible path to where they are served from. */
-export const APP_PLACES = { "/": "/study", "/library": "/study/library", "/flashcards": "/study/flashcards" } as const;
-const CANONICAL_TO_VISIBLE: Record<string, string> = { "/study": "/", "/study/library": "/library", "/study/flashcards": "/flashcards" };
+/** The app's four places: visible path to where they are served from. */
+export const APP_PLACES = { "/": "/study", "/library": "/study/library", "/questions": "/study/questions", "/flashcards": "/study/flashcards" } as const;
+const CANONICAL_TO_VISIBLE: Record<string, string> = { "/study": "/", "/study/library": "/library", "/study/questions": "/questions", "/study/flashcards": "/flashcards" };
 /** Pages the app host serves as they are: signing in and out, and Supabase's return trip. */
 const AUTH_PATHS = ["/sign-in", "/sign-up", "/auth/callback"];
 

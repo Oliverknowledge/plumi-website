@@ -117,8 +117,12 @@
 .pa .tab { padding: 0 9px; font-size: 16px; }
 }
 @media (max-width: 520px) {
-.pa .tabs { overflow-x: auto; scrollbar-width: none; }
-.pa .tab { font-size: 14.5px; padding: 0 7px; }
+.pa .tabs { overflow-x: auto; scrollbar-width: none; gap: 0; }
+.pa .tab { font-size: 13.5px; padding: 0 5px; }
+/* four places and the timer have to fit in 390px: the idle timer is its dot alone, the brand is just the mark */
+.pa .top .tm-chipbtn.is-idle { padding: 0; width: 44px; }
+.pa .top .tm-chipbtn.is-idle .tm-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pa .top .wrap { gap: 2px; }
 .pa .avatar { display: none; }
 }
 /* ---------- DESK ---------- */

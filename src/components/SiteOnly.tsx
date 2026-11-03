@@ -24,7 +24,7 @@ import { isStudyHostname } from "@/lib/studyapp/routing";
  * into the app). Other paths there (/sign-in, /sign-up, /auth/callback) are the website's own static pages,
  * furniture and all, and stay as they are.
  */
-const APP_PLACES = new Set(["/", "/library", "/flashcards"]);
+const APP_PLACES = new Set(["/", "/library", "/questions", "/flashcards"]);
 const never = () => () => {};
 const onStudyHost = () => typeof window !== "undefined" && isStudyHostname(window.location.hostname);
 

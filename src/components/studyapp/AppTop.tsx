@@ -13,13 +13,14 @@ import { useDueCount } from "@/lib/studyapp/store";
 import { TimerChip } from "./timer/TimerChip";
 
 /**
- * The top bar: Plumi, then the three places (Desk, Study, Flashcards), then the student. Study is the Grand
+ * The top bar: Plumi, then the four places (Desk, Study, Questions, Flashcards), then the student. Study is the Grand
  * Library, and carries a badge when friends are in it; Flashcards carries how many are due. Nothing is badged
  * that is not true: no number is shown until the app actually knows it.
  */
 const TABS = [
   { href: "/study", label: "Desk", on: (p: string) => p === "/study" },
   { href: "/study/library", label: "Study", on: (p: string) => p.startsWith("/study/library") },
+  { href: "/study/questions", label: "Questions", on: (p: string) => p.startsWith("/study/questions") },
   { href: "/study/flashcards", label: "Flashcards", on: (p: string) => p.startsWith("/study/flashcards") },
 ] as const;
 

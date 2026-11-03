@@ -11,6 +11,17 @@ describe("the app's own host", () => {
     assert.deepEqual(routeFor(S, "/library"), { kind: "rewrite", to: "/study/library" });
     assert.deepEqual(routeFor(S, "/flashcards/", "?deck=x"), { kind: "rewrite", to: "/study/flashcards?deck=x" });
   });
+  test("Questions is a place too: /questions is served from /study/questions, the prefix redirects", () => {
+    assert.deepEqual(routeFor(S, "/questions"), { kind: "rewrite", to: "/study/questions" });
+    assert.deepEqual(routeFor(S, "/questions/", "?set=1"), { kind: "rewrite", to: "/study/questions?set=1" });
+    assert.deepEqual(routeFor(S, "/study/questions"), { kind: "redirect", to: "/questions" });
+    // the subject lists the picker fetches go by their /study/ address on either host
+    assert.deepEqual(routeFor(S, "/study/questions/subjects/aqa-gcse-physics"), { kind: "pass" });
+    assert.deepEqual(routeFor(M, "/study/questions"), { kind: "redirect", to: "https://study.tryplumi.app/questions" });
+    assert.equal(canonicalPath("/questions"), "/study/questions");
+    assert.equal(hostPath(true, "/study/questions"), "/questions");
+    assert.equal(hostPath(false, "/study/questions"), "/study/questions");
+  });
   test("the /study prefix is never shown: it redirects to the clean path", () => {
     assert.deepEqual(routeFor(S, "/study"), { kind: "redirect", to: "/" });
     assert.deepEqual(routeFor(S, "/study/library"), { kind: "redirect", to: "/library" });
