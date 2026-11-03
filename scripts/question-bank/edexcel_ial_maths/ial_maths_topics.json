@@ -1,0 +1,449 @@
+{
+ "source": "Pearson Edexcel International Advanced Subsidiary/Advanced Level in Mathematics, Further Mathematics and Pure Mathematics, Specification Issue 3 (April 2019): each unit's numbered content topics, as the unit content prints them (FP1's 5 reads 'Matrix algebra integration', a misprint for 'Matrix algebra').",
+ "units": [
+  {
+   "unit": "P1",
+   "name": "Pure Mathematics 1",
+   "code": "WMA11",
+   "as": true,
+   "topics": [
+    {
+     "code": "P1.1",
+     "title": "Algebra and functions"
+    },
+    {
+     "code": "P1.2",
+     "title": "Coordinate geometry in the (x, y) plane"
+    },
+    {
+     "code": "P1.3",
+     "title": "Trigonometry"
+    },
+    {
+     "code": "P1.4",
+     "title": "Differentiation"
+    },
+    {
+     "code": "P1.5",
+     "title": "Integration"
+    }
+   ]
+  },
+  {
+   "unit": "P2",
+   "name": "Pure Mathematics 2",
+   "code": "WMA12",
+   "as": true,
+   "topics": [
+    {
+     "code": "P2.1",
+     "title": "Proof"
+    },
+    {
+     "code": "P2.2",
+     "title": "Algebra and functions"
+    },
+    {
+     "code": "P2.3",
+     "title": "Coordinate geometry in the (x, y) plane"
+    },
+    {
+     "code": "P2.4",
+     "title": "Sequences and series"
+    },
+    {
+     "code": "P2.5",
+     "title": "Exponentials and logarithms"
+    },
+    {
+     "code": "P2.6",
+     "title": "Trigonometry"
+    },
+    {
+     "code": "P2.7",
+     "title": "Differentiation"
+    },
+    {
+     "code": "P2.8",
+     "title": "Integration"
+    }
+   ]
+  },
+  {
+   "unit": "P3",
+   "name": "Pure Mathematics 3",
+   "code": "WMA13",
+   "as": false,
+   "topics": [
+    {
+     "code": "P3.1",
+     "title": "Algebra and functions"
+    },
+    {
+     "code": "P3.2",
+     "title": "Trigonometry"
+    },
+    {
+     "code": "P3.3",
+     "title": "Exponentials and logarithms"
+    },
+    {
+     "code": "P3.4",
+     "title": "Differentiation"
+    },
+    {
+     "code": "P3.5",
+     "title": "Integration"
+    },
+    {
+     "code": "P3.6",
+     "title": "Numerical methods"
+    }
+   ]
+  },
+  {
+   "unit": "P4",
+   "name": "Pure Mathematics 4",
+   "code": "WMA14",
+   "as": false,
+   "topics": [
+    {
+     "code": "P4.1",
+     "title": "Proof"
+    },
+    {
+     "code": "P4.2",
+     "title": "Algebra and functions"
+    },
+    {
+     "code": "P4.3",
+     "title": "Coordinate geometry in the (x, y) plane"
+    },
+    {
+     "code": "P4.4",
+     "title": "Binomial expansion"
+    },
+    {
+     "code": "P4.5",
+     "title": "Differentiation"
+    },
+    {
+     "code": "P4.6",
+     "title": "Integration"
+    },
+    {
+     "code": "P4.7",
+     "title": "Vectors"
+    }
+   ]
+  },
+  {
+   "unit": "FP1",
+   "name": "Further Pure Mathematics 1",
+   "code": "WFM01",
+   "as": false,
+   "topics": [
+    {
+     "code": "FP1.1",
+     "title": "Complex numbers"
+    },
+    {
+     "code": "FP1.2",
+     "title": "Roots of quadratic equations"
+    },
+    {
+     "code": "FP1.3",
+     "title": "Numerical solution of equations"
+    },
+    {
+     "code": "FP1.4",
+     "title": "Coordinate systems"
+    },
+    {
+     "code": "FP1.5",
+     "title": "Matrix algebra"
+    },
+    {
+     "code": "FP1.6",
+     "title": "Transformations using matrices"
+    },
+    {
+     "code": "FP1.7",
+     "title": "Series"
+    },
+    {
+     "code": "FP1.8",
+     "title": "Proof"
+    }
+   ]
+  },
+  {
+   "unit": "FP2",
+   "name": "Further Pure Mathematics 2",
+   "code": "WFM02",
+   "as": false,
+   "topics": [
+    {
+     "code": "FP2.1",
+     "title": "Inequalities"
+    },
+    {
+     "code": "FP2.2",
+     "title": "Series"
+    },
+    {
+     "code": "FP2.3",
+     "title": "Further complex numbers"
+    },
+    {
+     "code": "FP2.4",
+     "title": "First order differential equations"
+    },
+    {
+     "code": "FP2.5",
+     "title": "Second order differential equations"
+    },
+    {
+     "code": "FP2.6",
+     "title": "Maclaurin and Taylor series"
+    },
+    {
+     "code": "FP2.7",
+     "title": "Polar coordinates"
+    }
+   ]
+  },
+  {
+   "unit": "FP3",
+   "name": "Further Pure Mathematics 3",
+   "code": "WFM03",
+   "as": false,
+   "topics": [
+    {
+     "code": "FP3.1",
+     "title": "Hyperbolic functions"
+    },
+    {
+     "code": "FP3.2",
+     "title": "Further coordinate systems"
+    },
+    {
+     "code": "FP3.3",
+     "title": "Differentiation"
+    },
+    {
+     "code": "FP3.4",
+     "title": "Integration"
+    },
+    {
+     "code": "FP3.5",
+     "title": "Vectors"
+    },
+    {
+     "code": "FP3.6",
+     "title": "Further matrix algebra"
+    }
+   ]
+  },
+  {
+   "unit": "M1",
+   "name": "Mechanics 1",
+   "code": "WME01",
+   "as": true,
+   "topics": [
+    {
+     "code": "M1.1",
+     "title": "Mathematical models in mechanics"
+    },
+    {
+     "code": "M1.2",
+     "title": "Vectors in mechanics"
+    },
+    {
+     "code": "M1.3",
+     "title": "Kinematics of a particle moving in a straight line"
+    },
+    {
+     "code": "M1.4",
+     "title": "Dynamics of a particle moving in a straight line or plane"
+    },
+    {
+     "code": "M1.5",
+     "title": "Statics of a particle"
+    },
+    {
+     "code": "M1.6",
+     "title": "Moments"
+    }
+   ]
+  },
+  {
+   "unit": "M2",
+   "name": "Mechanics 2",
+   "code": "WME02",
+   "as": false,
+   "topics": [
+    {
+     "code": "M2.1",
+     "title": "Kinematics of a particle moving in a straight line or plane"
+    },
+    {
+     "code": "M2.2",
+     "title": "Centres of mass"
+    },
+    {
+     "code": "M2.3",
+     "title": "Work and energy"
+    },
+    {
+     "code": "M2.4",
+     "title": "Collisions"
+    },
+    {
+     "code": "M2.5",
+     "title": "Statics of rigid bodies"
+    }
+   ]
+  },
+  {
+   "unit": "M3",
+   "name": "Mechanics 3",
+   "code": "WME03",
+   "as": false,
+   "topics": [
+    {
+     "code": "M3.1",
+     "title": "Further kinematics"
+    },
+    {
+     "code": "M3.2",
+     "title": "Elastic strings and springs"
+    },
+    {
+     "code": "M3.3",
+     "title": "Further dynamics"
+    },
+    {
+     "code": "M3.4",
+     "title": "Motion in a circle"
+    },
+    {
+     "code": "M3.5",
+     "title": "Statics of rigid bodies"
+    }
+   ]
+  },
+  {
+   "unit": "S1",
+   "name": "Statistics 1",
+   "code": "WST01",
+   "as": true,
+   "topics": [
+    {
+     "code": "S1.1",
+     "title": "Mathematical models in probability and statistics"
+    },
+    {
+     "code": "S1.2",
+     "title": "Representation and summary of data"
+    },
+    {
+     "code": "S1.3",
+     "title": "Probability"
+    },
+    {
+     "code": "S1.4",
+     "title": "Correlation and regression"
+    },
+    {
+     "code": "S1.5",
+     "title": "Discrete random variables"
+    },
+    {
+     "code": "S1.6",
+     "title": "The Normal distribution"
+    }
+   ]
+  },
+  {
+   "unit": "S2",
+   "name": "Statistics 2",
+   "code": "WST02",
+   "as": false,
+   "topics": [
+    {
+     "code": "S2.1",
+     "title": "The Binomial and Poisson distributions"
+    },
+    {
+     "code": "S2.2",
+     "title": "Continuous random variables"
+    },
+    {
+     "code": "S2.3",
+     "title": "Continuous distributions"
+    },
+    {
+     "code": "S2.4",
+     "title": "Hypothesis tests"
+    }
+   ]
+  },
+  {
+   "unit": "S3",
+   "name": "Statistics 3",
+   "code": "WST03",
+   "as": false,
+   "topics": [
+    {
+     "code": "S3.1",
+     "title": "Combinations of random variables"
+    },
+    {
+     "code": "S3.2",
+     "title": "Sampling"
+    },
+    {
+     "code": "S3.3",
+     "title": "Estimation, confidence intervals and tests"
+    },
+    {
+     "code": "S3.4",
+     "title": "Goodness of fit and contingency tables"
+    },
+    {
+     "code": "S3.5",
+     "title": "Regression and correlation"
+    }
+   ]
+  },
+  {
+   "unit": "D1",
+   "name": "Decision Mathematics 1",
+   "code": "WDM11",
+   "as": true,
+   "topics": [
+    {
+     "code": "D1.1",
+     "title": "Algorithms"
+    },
+    {
+     "code": "D1.2",
+     "title": "Algorithms on graphs"
+    },
+    {
+     "code": "D1.3",
+     "title": "Algorithms on graphs II"
+    },
+    {
+     "code": "D1.4",
+     "title": "Critical path analysis"
+    },
+    {
+     "code": "D1.5",
+     "title": "Linear programming"
+    }
+   ]
+  }
+ ]
+}
