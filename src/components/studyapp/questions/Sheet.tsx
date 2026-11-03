@@ -5,10 +5,11 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { INK_TOTAL_CAP, REF_W } from "@/lib/studyapp/questions/ink";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import {
-  blockScore, blocks, cutWords, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
+  blockScore, blocks, cutWords, feedId, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
   zoneHeight, type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
 } from "@/lib/studyapp/questions/model";
 import { qa, useQuestions } from "@/lib/studyapp/questions/store";
+import { rememberPos, updateFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useWindowed } from "./useWindowed";
 import { useMatch } from "./useMatch";
@@ -207,7 +208,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
             </ol>
           </nav>
         </div>
-        {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} marked</span>}
+        {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} parts marked</span>}
         <PagePopover prefs={prefs} />
         <button type="button" className="btn qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
       </div>
@@ -294,7 +295,7 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, 
       {block.stem && (
         <Crop className="qs-stem" src={stemImage(block.stem, set.cv)} alt={`The start of question ${block.n}`} eager={block.n <= 2} guess={3.2} zoom />
       )}
-      {block.parts.map((p) => <PartBlock key={p.id} set={set} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} prefs={prefs} startNear={eager || block.n <= 2} />)}
+      {block.parts.map((p) => <PartBlock key={p.id} set={set} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} feed={set.feed ? undefined : answers[keyOf(feedId(set.subject), p.id)]} prefs={prefs} startNear={eager || block.n <= 2} />)}
       <footer className="qs-qfoot">
         {sc && sc.marked > 0 && (
           <span className="qs-qscore" role="img" aria-label={`You gave yourself ${sc.got} out of ${sc.total} for question ${block.n}`} data-testid="block-score">{sc.got}/{sc.total}</span>
@@ -304,13 +305,13 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, 
     </section>
   );
 }, (a, b) => a.index === b.index && a.first === b.first && a.eager === b.eager && a.block === b.block && a.prefs === b.prefs && sameSet(a.set, b.set) && a.block.parts.every((p) => {
-  const k = keyOf(a.set.id, p.id);
-  return a.answers[k] === b.answers[k];
+  const k = keyOf(a.set.id, p.id), f = keyOf(feedId(a.set.subject), p.id);
+  return a.answers[k] === b.answers[k] && a.answers[f] === b.answers[f];
 }));
 
-interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
+interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; /** The same question's answer in the subject's feed, if the student has one there. */ feed: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
 
-const PartBlock = memo(function PartBlock({ set, part, block, answer, prefs, startNear }: PProps) {
+const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, prefs, startNear }: PProps) {
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
@@ -342,10 +343,18 @@ const PartBlock = memo(function PartBlock({ set, part, block, answer, prefs, sta
               <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>
             )}
           </div>
+          {feed && (isAnswered(feed) || isMarked(feed)) && (
+            <p className="qs-also">Also {isMarked(feed) ? "marked" : "written"} in your feed. <button type="button" className="qs-link" onClick={() => {
+              // back to the feed, at this question
+              updateFeedPrefs((p) => ({ ...p, last: set.subject, view: { ...p.view, [set.subject]: "questions" } }));
+              rememberPos(set.subject, { id: part.id, off: 0 });
+              qa.open(null);
+            }}>See it</button></p>
+          )}
           <Check set={set} part={part} answer={answer} />
           <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
         </>
       )}
     </div>
   );
-}, (a, b) => a.part === b.part && a.block === b.block && a.answer === b.answer && a.prefs === b.prefs && sameSet(a.set, b.set));
+}, (a, b) => a.part === b.part && a.block === b.block && a.answer === b.answer && a.feed === b.feed && a.prefs === b.prefs && sameSet(a.set, b.set));

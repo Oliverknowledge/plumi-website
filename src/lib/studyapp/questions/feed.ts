@@ -184,8 +184,14 @@ export const toggleIn = (list: readonly string[], v: string): string[] => (list.
 
 /** The wording of the calculator choice: a bank that sorts calculator papers from the rest (GCSE Maths) says so; the others only know which questions ask for a calculation. */
 export function calcWords(meta: Pick<SubjectMeta, "calcPapers">): { label: string; only: string; none: string } {
-  return meta.calcPapers ? { label: "Calculator", only: "Allowed", none: "Not allowed" } : { label: "Calculations", only: "Only these", none: "Leave out" };
+  return meta.calcPapers ? { label: "Calculator", only: "Allowed", none: "Not allowed" } : { label: "Calculation questions", only: "Only", none: "Skip" };
 }
+/** Whether the student has written, marked or opened a scheme on any question in any subject's feed (the cue for where to write goes once they have). */
+export function hasFeedAnswer(answers: Record<string, unknown>): boolean {
+  for (const k in answers) if (k.startsWith("feed-")) return true;
+  return false;
+}
+
 /** Whether a subject has a calculator choice to offer at all (the bank says maths and criminology do not; a subject with no calculation in it has nothing to sort). */
 export const hasCalcChoice = (meta: Pick<SubjectMeta, "noCalc">, rows: readonly BankRow[]): boolean => !meta.noCalc && rows.some((r) => r.calc) && rows.some((r) => !r.calc);
 
@@ -212,6 +218,8 @@ export interface QState {
   /** Where the answer lives: the feed, or a paper or set the question is also in (then `where` is its name). */
   from: "feed" | "set";
   where?: string;
+  /** For work done elsewhere: the set it is in, so the card can open it at this question. */
+  setId?: string;
 }
 
 /** "Not started", "Written", "Marked 2 of 3": one honest line for a question. */
@@ -230,6 +238,21 @@ export function stateOf(a: QAnswer | undefined, m: number | null): QState {
 }
 
 /**
+ * How a question stands overall: the better of the feed's own answer and work done elsewhere (a paper, a set), marked over written over nothing, the feed's own
+ * on a tie. The card and the subject's progress line then agree.
+ */
+export function bestState(own: QState, other: QState | undefined): QState {
+  const rank = (s: QState) => (s.state === "marked" ? 2 : s.state === "written" ? 1 : 0);
+  return other && rank(other) > rank(own) ? other : own;
+}
+
+/** The quiet line under the writing space for work done elsewhere: "You also wrote this in June 2025 Paper 1." (null when there is none). */
+export function alsoLine(own: QState, other: QState | undefined): string | null {
+  if (!other || other.state === "new" || !other.where) return null;
+  return `${other.state === "marked" ? "You marked this" : own.state === "new" ? "You wrote this" : "You also wrote this"} in ${other.where}.`;
+}
+
+/**
  * Where else this subject's questions have been answered: in a paper or a set the student made, which keeps its own answers (an answer belongs to the set
  * it was written in; the feed's questions are the feed's). The feed shows it as a quiet line on a question it has no answer for, and counts it in the
  * subject's progress, so work done in a paper is not "not started" in the feed. Best of the sets wins (marked over written).
@@ -245,8 +268,8 @@ export function elsewhere(q: Pick<QuestionsData, "sets" | "answers">, slug: stri
     const set = at > 0 ? sets.get(k.slice(0, at)) : undefined;
     if (!set) continue;
     const m = marks.get(k) ?? null;
-    const st: QState = isMarked(a) ? { state: "marked", got: m != null ? Math.min(a.got ?? 0, m) : a.got, of: m, from: "set", where: set.name }
-      : isAnswered(a) ? { state: "written", of: m, from: "set", where: set.name } : { state: "new", of: m, from: "set" };
+    const st: QState = isMarked(a) ? { state: "marked", got: m != null ? Math.min(a.got ?? 0, m) : a.got, of: m, from: "set", where: set.name, setId: set.id }
+      : isAnswered(a) ? { state: "written", of: m, from: "set", where: set.name, setId: set.id } : { state: "new", of: m, from: "set" };
     if (st.state === "new") continue;
     const id = k.slice(at + 1);
     const have = out.get(id);

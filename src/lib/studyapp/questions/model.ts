@@ -509,10 +509,28 @@ export function feedTouch(q: QuestionsData, info: FeedInfo, part: QPart, names: 
   if (!q.sets.some((s) => s.id === id)) {
     const set: QSet = { id, name: clampStr(`Feed: ${info.title}`, 80), subject: info.subject, title: info.title, cv: info.cv, rq: info.rq, names: {}, createdAt: now, updatedAt: now, parts: [], topics: {}, at: 0, feed: 1 };
     base = { ...q, sets: [...q.sets, set] };
+  } else {
+    const have = base.sets.find((s) => s.id === id)!;
+    if (have.parts.some((p) => p.id === part.id)) return { q, ok: true };
+    // Full: questions that were touched but hold nothing (no writing, no mark, no scheme opened) make room first.
+    if (have.parts.length >= MAX_FEED_PARTS) base = { ...base, sets: base.sets.map((s) => (s.id === id ? { ...s, parts: s.parts.filter((p) => feedHolds(base.answers[keyOf(id, p.id)])) } : s)) };
   }
   const r = addParts(base, id, [part], { names, topics }, now);
   const has = r.q.sets.find((s) => s.id === id)?.parts.some((p) => p.id === part.id) ?? false;
   return { q: has ? r.q : q, ok: has };
+}
+
+/** An answer worth keeping a place for: something written, marked, or its scheme opened. */
+export const feedHolds = (a: QAnswer | undefined): boolean => !!a && (isAnswered(a) || isMarked(a) || !!a.chk);
+
+/**
+ * Whether the feed can take this question now (it is in the set, there is room, or an empty touched question can make way): asked BEFORE the student writes, so a
+ * full feed says so up front and never accepts writing the document would not know about.
+ */
+export function feedHasRoom(q: Pick<QuestionsData, "sets" | "answers">, slug: string, partId: string): boolean {
+  const set = q.sets.find((s) => s.id === feedId(slug));
+  if (!set || set.parts.length < MAX_FEED_PARTS || set.parts.some((p) => p.id === partId)) return true;
+  return set.parts.some((p) => !feedHolds(q.answers[keyOf(set.id, p.id)]));
 }
 
 /** Questions the feed holds for a subject, and how many of them are written on and marked (what the quiet "x marked" line says). */

@@ -16,7 +16,13 @@ const reports = new Map<string, Promise<Record<string, string>>>();
 function reportsFor(slug: string): Promise<Record<string, string>> {
   let p = reports.get(slug);
   if (!p) {
-    p = fetch(bankFile(slug, "reports")).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Record<string, string>>; });
+    // 15 s to arrive, and one quiet second go: a stalled request is a failure the student can retry, never "Opening..." for good.
+    const once = () => {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), 15_000);
+      return fetch(bankFile(slug, "reports"), { signal: c.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Record<string, string>>; }).finally(() => clearTimeout(t));
+    };
+    p = once().catch(() => new Promise<void>((go) => setTimeout(go, 1200)).then(once));
     reports.set(slug, p);
     p.catch(() => reports.delete(slug));
   }
@@ -95,30 +101,28 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
   const reportState = useReport(set, part, er);
   const [pic, setPic] = useState<"wait" | "ok" | "fail">("wait");
   const [onPaper, setOnPaper] = useState(false);
+  // Opened under a question that is near the foot of the screen: it comes into view, not out of sight below.
+  const card = useRef<HTMLDivElement>(null);
+  useEffect(() => { card.current?.scrollIntoView({ block: "nearest" }); }, []);
   const label = `${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
   const pdf = part.msf ? `${papersBase}/${part.msf}` : undefined;
   // A mark scheme that would not load: marking waits until the student has it some other way, so nobody marks blind by accident.
   const blind = !!part.ms && pic === "fail" && !onPaper;
   return (
-    <div className="qs-scheme" id={id} data-testid="scheme">
+    <div className="qs-scheme" id={id} data-testid="scheme" ref={card}>
       <span className="qs-tape" aria-hidden="true" />
       {part.er && !reportOutside && (
         <button type="button" className={`qs-er-btn${er ? " on" : ""}`} aria-expanded={er} aria-controls={er ? `${id}-er` : undefined} aria-label="Examiner's report" title="Examiner's report" onClick={() => setEr((v) => !v)}><ReportIcon /></button>
       )}
-      {blind ? (
+      {blind && (
         <button type="button" className="qs-mini" onClick={() => setOnPaper(true)}>I have the mark scheme</button>
-      ) : (
-        <div className="qs-selfblock">
-          <MarkYourself set={set} part={part} got={answer?.got} />
-          <MarkKey set={set} part={part} />
-        </div>
       )}
       <div className="qs-schemetable">
         {part.ms ? (
           <>
             <p className="qs-scheme-label">What the examiner wants</p>
             {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
-            <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} onState={(s) => setPic(s)} />
+            <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} />
             <SchemeText set={set} part={part} />
           </>
         ) : part.k ? (
@@ -129,6 +133,12 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
           <p className="qs-scheme-note">No mark scheme is published for this part.</p>
         )}
       </div>
+      {!blind && (
+        <div className="qs-selfblock">
+          <MarkYourself set={set} part={part} got={answer?.got} />
+          <MarkKey set={set} part={part} />
+        </div>
+      )}
       {part.er && er && !reportOutside && (
         <div className="qs-er" id={`${id}-er`}>
           <ReportBody part={part} state={reportState} />

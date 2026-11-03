@@ -3,11 +3,11 @@
 import Image from "next/image";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  bandsFor, cleanFeedFilters, elsewhere, feedActive, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine,
+  bandsFor, cleanFeedFilters, elsewhere, feedActive, hasFeedAnswer, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine,
   type FeedFilters, type FeedSort,
 } from "@/lib/studyapp/questions/feed";
 import { holdScroll, rememberPos, savedPos, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
-import { blocks, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { blocks, feedHasRoom, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { groupPapers, paperKey, paperSetInput, paperState } from "@/lib/studyapp/questions/papers";
 import { buildSetInput, hasScheme, partsByQuestion, type BankRow } from "@/lib/studyapp/questions/picker";
 import { currentQuestions, qa } from "@/lib/studyapp/questions/store";
@@ -16,9 +16,9 @@ import { cardEstimate } from "@/lib/studyapp/questions/virtual";
 import { toast } from "../toast";
 import { useBankText, useSubject } from "./bankData";
 import { FeedCard, type FeedLookup } from "./FeedCard";
-import { FeedFilterBody, FeedHead, FeedPills } from "./FeedBar";
+import { FeedActs, FeedFilterBody, FeedHead, FeedPills } from "./FeedBar";
 import { FeedList } from "./FeedList";
-import { PenTray } from "./PenTray";
+import { FeedPen } from "./FeedPen";
 import { useMatch } from "./useMatch";
 
 const NO_IDS: ReadonlySet<string> = new Set();
@@ -65,9 +65,9 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const slug = entry.slug;
   const phone = useMatch("(max-width: 640px)");
   const prefs = useFeedPrefs();
-  // The filters are open on a desk and folded on a phone, until the student says otherwise (remembered for the subject).
+  // The filters start folded everywhere, so the first screen is a question; they stay as the student leaves them (remembered for the subject).
   const folded = prefs.folded[slug];
-  const bodyOpen = folded === undefined ? !phone : !folded;
+  const bodyOpen = folded === undefined ? false : !folded;
   const head = useRef<HTMLDivElement>(null);
 
   /* ── the filters ───────────────────────────────────────────────── */
@@ -118,6 +118,9 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const ids = useMemo(() => new Set(rows.map((r) => r.id)), [rows]);
   const progress = useMemo(() => feedProgress(q, slug, ids, other), [q, slug, ids, other]);
   const line = progressLine(progress);
+  const full = !feedHasRoom(q, slug, "\0");
+  const wrote = hasFeedAnswer(q.answers);
+  const [here, setHere] = useState<BankRow | null>(null);
 
   /* ── actions ───────────────────────────────────────────────────── */
   const onTopic = useCallback((code: string) => change({ topics: [code] }), [change]);
@@ -133,11 +136,19 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     if (at > 0) qa.at(id, at);
     if (st.set) qa.open(id);
   }, [rows, meta, slug]);
+  /** "You also wrote this in June 2025 Paper 1. See it": that paper or set, at this question. */
+  const onSee = useCallback((setId: string, partId: string) => {
+    const set = currentQuestions().sets.find((x) => x.id === setId);
+    if (!set) return;
+    const at = blocks(set.parts).findIndex((b) => b.parts.some((p) => p.id === partId));
+    if (at > 0) qa.at(setId, at);
+    qa.open(setId);
+  }, []);
   const practise = () => {
     const r = practiseRows(list);
     if (!r.rows.length) return;
-    qa.start(buildSetInput(meta, r.rows));
-    if (r.left > 0) toast(`A set holds up to ${MAX_SET_PARTS} questions. These are the first ${MAX_SET_PARTS}.`);
+    qa.start(buildSetInput(meta, r.rows, { name: `${meta.title}, ${r.rows.length} ${r.rows.length === 1 ? "question" : "questions"}` }));
+    if (r.left > 0) toast(`A set holds up to ${MAX_SET_PARTS} questions: this is the first ${MAX_SET_PARTS}.`);
   };
   const setSort = (s: FeedSort) => change(s === "mix" ? { sort: "mix", seed: newSeed() } : { sort: s });
   const mixUp = () => change({ sort: "mix", seed: newSeed() });
@@ -152,17 +163,20 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
 
   const hasSchemeFilter = useMemo(() => rows.some(hasScheme) && rows.some((r) => !hasScheme(r)), [rows]);
   const hasCalc = useMemo(() => hasCalcChoice(meta, rows), [meta, rows]);
-  const [start] = useState(() => savedPos(slug));
+  // Where the list was left is for the first drawing of the list only: a different list (a search cleared, a filter changed) starts at its top.
+  const [start, setStart] = useState(() => savedPos(slug));
   useLayoutEffect(() => { if (start) holdScroll(); }, [start]);
+  const firstKey = useRef(listKey);
+  useEffect(() => { if (listKey !== firstKey.current) setStart(null); }, [listKey]);
   const [shownMarked] = useState(() => progress.marked > 0);
   const hasDone = shownMarked || progress.marked > 0 || filters.hideDone;
 
   const render = useCallback((p: BankRow, i: number) => {
     const sib = byQuestion.get(questionKeyOf(p)) ?? [p];
     return (
-      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} onTopic={onTopic} onWhole={onWhole} />
+      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} full={full} cue={!wrote && i < 3} onTopic={onTopic} onWhole={onWhole} onSee={onSee} />
     );
-  }, [byQuestion, view, info, lookup, q.answers, q.prefs, other, onTopic, onWhole]);
+  }, [byQuestion, view, info, lookup, q.answers, q.prefs, other, full, wrote, onTopic, onWhole, onSee]);
 
   /** The reading line: where the sticky strip ends when it is stuck (its own top and its height), the same whether or not it is stuck yet. */
   const gap = useCallback(() => {
@@ -175,29 +189,41 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const searchNote = searching && !bank.text && !bank.failed ? <span className="qf-note-l"> {"·"} looking through the papers</span>
     : searching && bank.failed ? <span className="qf-note-l"> {"·"} searching titles only <button type="button" className="qs-link" onClick={bank.retry}>Try again</button></span> : null;
 
+  const first = list.length > MAX_SET_PARTS;
+  const acts = (
+    <FeedActs mixed={filters.sort === "mix"} onMix={mixUp} onPractise={practise} count={list.length} practiseLabel={first ? `Practise the first ${MAX_SET_PARTS}` : "Practise these"}
+      practiseNote={first ? `The first ${MAX_SET_PARTS} of these` : "Make a set of these questions"} />
+  );
+  const allTiers = entry.tiers ?? [];
+  const hereLine = here ? `Q${here.l}${here.m ? ` \u00b7 ${here.m} ${here.m === 1 ? "mark" : "marks"}` : ""}` : null;
+  const skip = (e: React.MouseEvent) => { e.preventDefault(); const el = document.getElementById("qf-results"); el?.scrollIntoView({ block: "start" }); el?.focus({ preventScroll: true }); };
+
   return (
     <div className="qf-feed" style={{ "--tint": tint } as React.CSSProperties} data-testid="feed" data-slug={slug}>
+      <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
-        mixed={filters.sort === "mix"} onMix={mixUp} onPractise={practise} tier={tier} phone={phone}
-        practiseNote={list.length > MAX_SET_PARTS ? `The first ${MAX_SET_PARTS} of these` : "Make a set of these questions"}
+        tier={tier} phone={phone} here={here ? hereLine : null} acts={acts}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
-      <FeedFilterBody meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen} />
+      <FeedFilterBody
+        meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen}
+        acts={phone ? acts : undefined} tiers={allTiers} tierNow={tier} onTier={(t) => qa.tiers(slug, t ? [t] : [], allTiers)}
+      />
       {phone && bodyOpen && (
         <button type="button" className="btn gold qf-showall" onClick={() => { setFolded(true); window.scrollTo({ top: 0 }); }} data-testid="feed-show">
           Show {list.length.toLocaleString("en-GB")} {list.length === 1 ? "question" : "questions"}
         </button>
       )}
+      <h2 className="qs-sr" id="qf-results" tabIndex={-1}>Questions</h2>
       {rows.length === 0 ? (
         <div className="qs-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>No questions here yet</b></div>
       ) : list.length === 0 ? (
         <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>Nothing matches</b><button type="button" className="btn" onClick={clearAll}>Clear filters</button></div>
       ) : (
-        <FeedList items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => rememberPos(slug, pos)} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
+        <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => rememberPos(slug, pos)} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
       )}
-      <PenTray prefs={q.prefs} />
+      <FeedPen prefs={q.prefs} />
     </div>
   );
 }
-

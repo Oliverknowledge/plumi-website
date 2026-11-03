@@ -59,3 +59,18 @@ export const viewFor = (p: FeedPrefs, slug: string): FeedViewKind => p.view[slug
 export function subjectFor(p: FeedPrefs, mine: readonly string[]): string | null {
   return p.last && mine.includes(p.last) ? p.last : mine[0] ?? null;
 }
+
+/** `stored` with this tab's own changes over it. */
+export function mergePrefs(stored: FeedPrefs, mine: FeedPrefs, d: { last: boolean; view: ReadonlySet<string>; filters: ReadonlySet<string>; pos: ReadonlySet<string>; folded: ReadonlySet<string> }): FeedPrefs {
+  const over = <T,>(from: Record<string, T>, own: Record<string, T>, keys: ReadonlySet<string>) => {
+    const out = { ...from };
+    for (const k of keys) if (k in own) out[k] = own[k];
+    return out;
+  };
+  return {
+    last: d.last ? mine.last : stored.last,
+    view: over(stored.view, mine.view, d.view), filters: over(stored.filters, mine.filters, d.filters),
+    pos: over(stored.pos, mine.pos, d.pos), folded: over(stored.folded, mine.folded, d.folded),
+  };
+}
+

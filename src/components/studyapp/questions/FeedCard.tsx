@@ -1,12 +1,11 @@
 "use client";
 
-import { memo, useCallback, useId, useMemo, useState } from "react";
+import { memo, useEffect, useId, useMemo, useState } from "react";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
-import { qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
+import { alsoLine, bestState, qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
 import { cutWords, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs, type QSet } from "@/lib/studyapp/questions/model";
 import { toQPart, type BankRow } from "@/lib/studyapp/questions/picker";
-import { qa } from "@/lib/studyapp/questions/store";
-import { toast } from "../toast";
+import { registerFeedPart } from "@/lib/studyapp/questions/store";
 import { AnswerZone } from "./AnswerZone";
 import { Check, ReportBody, useReport } from "./Check";
 import { Crop } from "./Crop";
@@ -31,8 +30,14 @@ export interface FeedCardProps {
   /** The parts of this question in printed order (this one among them). */
   siblings: readonly BankRow[];
   eager: boolean;
+  /** The feed is full of answers and this question has none: it says so instead of offering a writing space that would not be kept. */
+  full: boolean;
+  /** Show the "write in the box below" cue (until the student has written in the feed). */
+  cue: boolean;
   onTopic(code: string): void;
   onWhole(part: BankRow): void;
+  /** Open the paper or set where this question was also answered, at this question. */
+  onSee(setId: string, partId: string): void;
 }
 
 /**
@@ -41,7 +46,7 @@ export interface FeedCardProps {
  * screen the margins fold above and below. An answer belongs to its question: it is kept under the subject's feed set, which a question joins the first time
  * the student writes on it, opens its scheme or marks it.
  */
-export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, answer, other, prefs, siblings, eager, onTopic, onWhole }: FeedCardProps) {
+export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, answer, other, prefs, siblings, eager, full, cue, onTopic, onWhole, onSee }: FeedCardProps) {
   const [stem, setStem] = useState(false);
   const series = lookup.series.get(part.s) ?? part.s;
   const paper = lookup.papers.get(part.p.toLowerCase()) ?? part.p;
@@ -50,33 +55,31 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const stemPart = useMemo(() => siblings.find((s) => s.st) ?? null, [siblings]);
   const earlier = at > 0 ? siblings.slice(0, at) : [];
   const hasStart = !!stemPart || earlier.length > 0;
-  const st = answer ? stateOf(answer, part.m) : other ?? stateOf(undefined, part.m);
+  const st = bestState(stateOf(answer, part.m), other);
+  const also = alsoLine(stateOf(answer, part.m), other);
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
   const startId = useId();
-  // The first time the student reaches for the writing space, the mark scheme or the marking, the question joins the feed set (see `qa.feedTouch`).
-  const joined = answer !== undefined;
-  const join = useCallback((e: React.SyntheticEvent) => {
-    if (joined || !(e.target as Element).closest?.(".qs-zone, .qs-check")) return;
+  // The card tells the store what this question is; the question joins the feed set at the first real write on it (see `registerFeedPart`), never on a touch or a look.
+  useEffect(() => {
     const names: Record<string, string> = { [part.s]: series, [part.p]: paper };
     const topics: Record<string, string> = {};
     for (const c of part.t) { const t = lookup.topics.get(c); if (t) topics[c] = t; }
     // (What the feed set keeps of a question is what it needs to find its answer: not the opening words, which the card reads from the bank.)
     const kept = toQPart(part);
     delete kept.x;
-    if (!qa.feedTouch(info, kept, names, topics)) toast("Your feed is full of answers. Delete some in Your sets, or practise these questions in a set.");
-  }, [joined, part, series, paper, lookup, info]);
+    registerFeedPart(info, kept, names, topics);
+  }, [part, series, paper, lookup, info]);
 
   const label = `${series} ${paper}, question ${part.l}`;
   return (
     <article
       className={`qf-card${st.state === "marked" ? " is-marked" : st.state === "written" ? " is-written" : ""}`} aria-label={label} data-testid="feed-card" data-part={part.id}
-      onPointerDownCapture={join} onKeyDownCapture={join} onFocusCapture={join}
     >
       <div className="qf-left">
         <span className="qf-num" aria-hidden="true">{n}</span>
-        <p className="qf-q">Q{part.l}</p>
+        <h3 className="qf-q"><span className="qs-sr">Question </span>Q{part.l}</h3>
         <p className="qf-meta">{series}<span aria-hidden="true"> {"·"} </span><span className="qs-sr">, </span>{paper}</p>
         <div className="qf-tags">
           <p className={`qf-state is-${st.state}${st.from === "set" ? " is-set" : ""}`} data-testid="feed-state">{qStateLine(st)}</p>
@@ -110,11 +113,19 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           <Crop src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom />
           <ReadAsText set={view} part={part} />
         </div>
-        <div className="qs-answer qf-answer">
-          <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
-          {answer?.got !== undefined && part.m != null && <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>}
-        </div>
-        <Check set={view} part={part} answer={answer} reportOutside />
+        {full && answer === undefined ? (
+          <p className="qf-full" role="status">Your feed is full of answers. Delete some in Your sets, or practise these questions in a set.</p>
+        ) : (
+          <>
+            {cue && <p className="qf-cue" aria-hidden="true">write in the box below<svg viewBox="0 0 40 28" width="34" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4c4 12 12 16 24 17" /><path d="M24 14l7 7-9 4" /></svg></p>}
+            <div className="qs-answer qf-answer">
+              <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
+              {answer?.got !== undefined && part.m != null && <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>}
+            </div>
+            {also && other?.setId && <p className="qf-also" data-testid="feed-also">{also} <button type="button" className="qs-link" onClick={() => onSee(other.setId!, part.id)}>See it</button></p>}
+            <Check set={view} part={part} answer={answer} reportOutside />
+          </>
+        )}
         <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
       </div>
 
@@ -123,8 +134,8 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   );
 }, (a, b) =>
   a.n === b.n && a.part === b.part && a.view === b.view && a.info === b.info && a.lookup === b.lookup && a.answer === b.answer && a.prefs === b.prefs && a.siblings === b.siblings
-  && a.eager === b.eager && a.onTopic === b.onTopic && a.onWhole === b.onWhole
-  && a.other?.state === b.other?.state && a.other?.got === b.other?.got && a.other?.where === b.other?.where);
+  && a.eager === b.eager && a.full === b.full && a.cue === b.cue && a.onTopic === b.onTopic && a.onWhole === b.onWhole && a.onSee === b.onSee
+  && a.other?.state === b.other?.state && a.other?.got === b.other?.got && a.other?.where === b.other?.where && a.other?.setId === b.other?.setId);
 
 /** The examiner's report, a taped note in the right margin (below the card on a narrow screen): opened by the student, fetched when it is. */
 function ExaminerNote({ view, part }: { view: QSet; part: BankRow }) {

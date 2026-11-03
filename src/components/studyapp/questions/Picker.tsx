@@ -23,7 +23,7 @@ const plural = (n: number, one: string, many: string) => `${n.toLocaleString("en
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * The picker: choose a subject, then search, filter (one Filters sheet), tick the questions to do (or let "Mix for me"
+ * The picker: choose a subject, then search, filter (one Filters sheet), tick the questions to do (or let "Mix them up"
  * choose), and Start. A set can hold up to 60 parts. The subject and topics are remembered on this device.
  */
 export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: CatalogueSubject[]; q: QuestionsData; mine: string[]; autoMix: boolean; onHome(): void }) {
@@ -50,7 +50,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
         <div className="qs-col">
           <header className="qs-head">
             <div className="qs-head-text">
-              <button type="button" className="qs-homeback" onClick={onHome} data-testid="back-to-papers"><BackIcon />My papers</button>
+              <button type="button" className="qs-homeback" onClick={onHome} data-testid="back-to-papers"><BackIcon />Back</button>
               <h1 ref={h1} tabIndex={-1}>Questions</h1>
               {browsing ? (
                 <button type="button" className="qs-subj" onClick={() => setChoosing(true)} data-testid="change-subject" aria-label={`${title}. Change subject`}>
@@ -70,7 +70,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
             return (
               <div className="qs-resume" data-testid="resume">
                 <Image src="/study/mascot/plumi-focused.svg" alt="" width={44} height={44} unoptimized />
-                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} marked</span></div>
+                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} parts marked</span></div>
                 <button type="button" className="btn" onClick={() => qa.open(resume.id)} data-testid="resume-btn">Pick up</button>
               </div>
             );
@@ -177,7 +177,7 @@ function Loaded({ meta, rows, q, autoMix, onChange, onLeave }: { meta: SubjectMe
     setMixed({ rows: picked, n });
     setLive(`Mixed ${plural(picked.length, "question", "questions")}`);
   };
-  // "Mix for me" on a shelf arrives here with ten already mixed (once, when the list is there)
+  // "Mix them up" on a shelf arrives here with ten already mixed (once, when the list is there)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (autoMix) doMix(10); }, []);
   const chosen = [...sel.values()];
@@ -227,7 +227,7 @@ function Loaded({ meta, rows, q, autoMix, onChange, onLeave }: { meta: SubjectMe
           <button type="button" className={`qs-tbtn${nFilters > 0 ? " on" : ""}`} aria-haspopup="dialog" onClick={() => setFopen(true)} data-testid="filters-toggle">
             <FilterIcon /><span>Filters</span>{nFilters > 0 && <span className="qs-badge" aria-label={`${nFilters} on`}>{nFilters}</span>}
           </button>
-          <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(mixed?.n ?? 10)} data-testid="mix"><ShuffleIcon /><span>Mix for me</span></button>
+          <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(mixed?.n ?? 10)} data-testid="mix"><ShuffleIcon /><span>Mix them up</span></button>
         </div>
         {hasRail && !inMix && (
           <div className="qs-rail" role="group" aria-label="Topics and filters">

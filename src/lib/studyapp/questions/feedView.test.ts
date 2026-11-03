@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { NO_FEED } from "./feed";
-import { cleanFilters, EMPTY_FEED_PREFS, isPlain, parseFeedPrefs, subjectFor, viewFor } from "./feedView";
+import { cleanFilters, EMPTY_FEED_PREFS, mergePrefs, isPlain, parseFeedPrefs, subjectFor, viewFor } from "./feedView";
 
 describe("the feed's remembered choices", () => {
   test("nothing, or nonsense, is nothing remembered", () => {
@@ -45,4 +45,22 @@ describe("the feed's remembered choices", () => {
     assert.equal(isPlain({ ...NO_FEED, q: "x" }), false);
   });
   test("cleanFilters of nothing is no filters", () => assert.deepEqual(cleanFilters(undefined), NO_FEED));
+});
+
+describe("two tabs", () => {
+  const none = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>() };
+  const stored = parseFeedPrefs(JSON.stringify({ last: "a", view: { a: "papers" }, filters: { a: { ...NO_FEED, q: "x" } }, pos: { a: { id: "p1", off: 1 } }, folded: { a: true } }));
+  const mine = parseFeedPrefs(JSON.stringify({ last: "b", view: { b: "questions" }, filters: { b: { ...NO_FEED, q: "y" } }, pos: { b: { id: "p2", off: 2 } }, folded: { b: false } }));
+  test("nothing changed here: what is stored stands", () => {
+    assert.deepEqual(mergePrefs(stored, mine, none), stored);
+  });
+  test("only this tab's changes go over what another tab stored, the other tab's subject stays", () => {
+    const m = mergePrefs(stored, mine, { ...none, last: true, pos: new Set(["b"]), filters: new Set(["b"]) });
+    assert.equal(m.last, "b");
+    assert.equal(m.view.a, "papers");
+    assert.equal(m.filters.a.q, "x");
+    assert.equal(m.filters.b.q, "y");
+    assert.deepEqual(m.pos, { a: { id: "p1", off: 1 }, b: { id: "p2", off: 2 } });
+    assert.equal(m.folded.a, true);
+  });
 });

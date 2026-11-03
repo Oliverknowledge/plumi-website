@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { bankFile, subjectFile } from "@/lib/studyapp/questions/cropUrls";
 import { cleanRows, cleanText, fold, type BankRow } from "@/lib/studyapp/questions/picker";
+import { FEED_KEY } from "@/lib/studyapp/questions/feedView";
+import { QUESTIONS_KEY } from "@/lib/studyapp/questions/persist";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
 import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 
@@ -33,18 +35,33 @@ function timeoutSignal(ms: number): { signal: AbortSignal; done(): void } {
   return { signal: c.signal, done: () => clearTimeout(t) };
 }
 /**
- * The page's own first moments start the fetch of the subject the student was last in (a few lines in questions/page.tsx, before any of this has loaded),
- * and leave the promises in `window.__pw` for the first asker: the questions are then on their way while the app is still starting up, and are not asked for twice.
- * A promise that fails is as if it had not been made (the file is asked for in the usual way, with its timeout and its retry).
+ * The subject the student was last in (the feed opens on it) is asked for as soon as this file is loaded, which is when the Questions page's code arrives (on a
+ * hard load before the app has started, on a tap on the tab as the page is being made): the promises wait here for the first asker, so the questions are on their way
+ * while the app starts and are not asked for twice. It reads only what this device remembers; no student, no subject or a failure is nothing, and a promise that
+ * fails is as if it had not been made (the file is asked for in the usual way, with its timeout and its retry).
  */
-function early(url: string): Promise<unknown> | undefined {
-  const w = typeof window === "undefined" ? undefined : (window as { __pw?: Record<string, Promise<unknown> | undefined> }).__pw;
-  const p = w?.[url];
-  if (w && p) w[url] = undefined;
-  return p;
+const early = new Map<string, Promise<unknown>>();
+function warmLast() {
+  try {
+    const f = JSON.parse(localStorage.getItem(FEED_KEY) ?? "null") ?? {};
+    const d = JSON.parse(localStorage.getItem(QUESTIONS_KEY) ?? "null");
+    const mine: unknown = d?.q?.mine;
+    if (!Array.isArray(mine)) return;
+    const slug = typeof f.last === "string" && mine.includes(f.last) ? f.last : mine[0];
+    if (typeof slug !== "string" || !/^[a-z0-9-]+$/.test(slug) || f.view?.[slug] === "papers") return;
+    for (const url of [subjectFile(slug), bankFile(slug, "parts")]) {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+      const p = fetch(url, { signal: c.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<unknown>; }).finally(() => clearTimeout(t));
+      p.catch(() => undefined);
+      early.set(url, p);
+    }
+  } catch { /* nothing remembered, or storage is blocked */ }
 }
+if (typeof window !== "undefined") warmLast();
 const json = (url: string): Promise<unknown> => {
-  const p = early(url);
+  const p = early.get(url);
+  early.delete(url);
   return p ? p.catch(() => fetched(url)) : fetched(url);
 };
 const fetched = (url: string): Promise<unknown> =>

@@ -26,6 +26,8 @@ export interface FeedListProps<T extends { id: string }> {
   /** Open here: the item (by id) and how far into it the reading line was. */
   start: FeedPos | null;
   onPos(pos: FeedPos): void;
+  /** The item under the reading line, as it changes while scrolling (null when there is none). */
+  onHere?(item: T | null): void;
   /** How far down the screen the reading line is: the bottom of whatever sticks to the top of the page (the nav and the bar). */
   gap(): number;
   label: string;
@@ -40,15 +42,15 @@ const model = <T extends { id: string }>(list: readonly T[], w: number, estimate
 /** Move the page now, whatever smooth scrolling the page asks for (a position read straight after must be the new one). */
 const jump = (y: number) => window.scrollTo({ top: Math.max(0, y), left: window.scrollX, behavior: "instant" as ScrollBehavior });
 
-export function FeedList<T extends { id: string }>({ items, estimate, render, listKey, start, onPos, gap, label }: FeedListProps<T>) {
+export function FeedList<T extends { id: string }>({ items, estimate, render, listKey, start, onPos, onHere, gap, label }: FeedListProps<T>) {
   const box = useRef<HTMLDivElement>(null);
   const [measured] = useState(() => new Map<string, number>());
   const [width, setWidth] = useState(() => (typeof window === "undefined" ? 1000 : Math.min(1184, Math.max(320, window.innerWidth - 32))));
   const [tick, setTick] = useState(0);
   const pinned = useRef<number | null>(null);
   const ahead = useRef(AHEAD_AT_FIRST);
-  const latest = useRef({ items, gap, onPos, estimate, width });
-  useLayoutEffect(() => { latest.current = { items, gap, onPos, estimate, width }; });
+  const latest = useRef({ items, gap, onPos, onHere, estimate, width });
+  useLayoutEffect(() => { latest.current = { items, gap, onPos, onHere, estimate, width }; });
 
   const index = useMemo(() => new Map(items.map((it, i) => [it.id, i])), [items]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,13 +86,13 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
 
   // The item at the reading line as the page shows it (the first drawn item that ends below the line), and where its top is: when a height changes anywhere above
   // it, this is what moved, and the page is scrolled back by exactly that. Read from the page itself, so a wrong guess in the model cannot put it in the wrong place.
-  const anchor = useRef<{ id: string; top: number } | null>(null);
+  const anchor = useRef<{ id: string; top: number; h: number } | null>(null);
   const capture = useCallback(() => {
     const g = latest.current.gap();
     anchor.current = null;
     for (const el of box.current?.querySelectorAll<HTMLElement>("[data-k]") ?? []) {
       const r = el.getBoundingClientRect();
-      if (r.bottom > g) { anchor.current = { id: el.dataset.k ?? "", top: r.top }; return; }
+      if (r.bottom > g) { anchor.current = { id: el.dataset.k ?? "", top: r.top, h: r.height }; return; }
     }
   }, []);
   // one observer for every drawn item: a change of height is taken into the model, and the page follows it when it was above the reading line
@@ -99,6 +101,8 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     if (!el) return;
     if (!ro.current) {
       ro.current = new ResizeObserver((entries) => {
+        // The list's own width changed in this very frame (a turn of the screen): every height is about to be a guess again, and the width watcher puts the page back.
+        if (box.current && Math.abs(box.current.offsetWidth - latest.current.width) > 1) return;
         const old = offsRef.current;
         let changed = false;
         for (const e of entries) {
@@ -130,7 +134,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   useEffect(() => () => { ro.current?.disconnect(); ro.current = null; }, []);
 
   // the list's own width: when it changes every height is a guess again, and the reading line is put back where it was
-  const keep = useRef<{ id: string; off: number } | null>(null);
+  const keep = useRef<{ id: string; frac: number } | null>(null);
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -139,20 +143,29 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     const watch = new ResizeObserver(() => {
       const nw = el.offsetWidth;
       if (nw <= 0 || Math.abs(nw - latest.current.width) <= 1) return;
-      const h = here();
-      keep.current = h ? { id: latest.current.items[h.i]?.id, off: h.off } : null;
+      // The item at the reading line and how far down it the line was, as a fraction of its height (from the last frame before the turn).
+      const a = anchor.current;
+      keep.current = a && a.h > 0 ? { id: a.id, frac: Math.min(1, Math.max(0, (latest.current.gap() - a.top) / a.h)) } : null;
+      anchor.current = null;
       measured.clear();
       setWidth(nw);
     });
     watch.observe(el);
     return () => watch.disconnect();
-  }, [here, width, measured]);
+  }, [width, measured]);
   useLayoutEffect(() => {
     const k = keep.current;
     keep.current = null;
     if (!k) return;
-    const i = indexRef.current.get(k.id);
-    if (i !== undefined) jump(boxTop() + offsRef.current[i] + k.off - latest.current.gap());
+    // The item is drawn (it was at the reading line): read where it is now from the page and put the same fraction of it at the line. Only if it is not drawn is the model used.
+    const at = box.current?.querySelector<HTMLElement>(`[data-k="${k.id}"]`);
+    if (at) {
+      const r = at.getBoundingClientRect();
+      jump(window.scrollY + r.top + k.frac * r.height - latest.current.gap());
+    } else {
+      const i = indexRef.current.get(k.id);
+      if (i !== undefined) jump(boxTop() + offsRef.current[i] + k.frac * (offsRef.current[i + 1] - offsRef.current[i]) - latest.current.gap());
+    }
     capture();
     fit();
   }, [offs, fit, capture]);
@@ -163,13 +176,19 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     const it = h ? latest.current.items[h.i] : undefined;
     if (h && it) latest.current.onPos({ id: it.id, off: h.off });
   }, [here]);
+  const lastHere = useRef<string | undefined>(undefined);
   useEffect(() => {
     let raf = 0;
     let quiet: ReturnType<typeof setTimeout> | undefined;
     const run = () => {
       raf = 0;
+      // A turn of the screen is in this frame: the width watcher has the reading line as it was (the page already shows the new layout), so it is not read again here.
+      if (box.current && Math.abs(box.current.offsetWidth - latest.current.width) > 1) return;
       capture();
       fit();
+      const h = here();
+      const it = h ? latest.current.items[h.i] : undefined;
+      if (it?.id !== lastHere.current) { lastHere.current = it?.id; latest.current.onHere?.(it ?? null); }
       clearTimeout(quiet);
       quiet = setTimeout(report, 180);
     };
@@ -181,7 +200,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     ahead.current = AHEAD_AT_FIRST;
     const widen = setTimeout(() => { ahead.current = AHEAD; fit(); }, 900);
     return () => { clearTimeout(widen); window.removeEventListener("scroll", on); window.removeEventListener("resize", on); window.removeEventListener("pagehide", report); clearTimeout(quiet); if (raf) cancelAnimationFrame(raf); };
-  }, [fit, report, capture]);
+  }, [fit, report, capture, here]);
   // (Leaving the list is not the moment to read the page: by then the next screen is already in it. A press or a tap inside the list says where it is first.)
 
   // opening: the page is put where the list was left before anything is painted (the window was drawn round that place)
@@ -237,6 +256,20 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     return () => { el.removeEventListener("focusin", inn); el.removeEventListener("focusout", out); };
   }, []);
 
+  // A card with the keyboard that is far off the screen is let go; focus then goes to the nearest drawn card instead of to the page.
+  useEffect(() => {
+    if (pinned.current === null) return;
+    const el = box.current;
+    if (!el || el.contains(document.activeElement)) return;
+    if (document.activeElement && document.activeElement !== document.body) { pinned.current = null; return; }
+    const drawn = [...el.querySelectorAll<HTMLElement>("[data-i]")];
+    const gone = pinned.current;
+    pinned.current = null;
+    if (!drawn.length) return;
+    drawn.sort((a, b) => Math.abs(Number(a.dataset.i) - gone) - Math.abs(Number(b.dataset.i) - gone));
+    drawn[0].focus({ preventScroll: true });
+  }, [win]);
+
   const n = items.length;
   const from = Math.min(win.from, Math.max(0, n - 1)), to = Math.min(win.to, n);
   const shown = items.slice(from, to);
@@ -244,7 +277,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     <div ref={box} className="qf-list" role="list" aria-label={label} data-testid="feed-list" data-from={from} data-to={to} data-total={n} onPointerDownCapture={report} onClickCapture={report}>
       <div aria-hidden="true" className="qf-spacer" style={{ height: offs[from] ?? 0 }} />
       {shown.map((it, k) => (
-        <div key={it.id} ref={observe} role="listitem" className="qf-item" aria-posinset={from + k + 1} aria-setsize={n} data-k={it.id} data-i={from + k} data-odd={(from + k) % 2}>
+        <div key={it.id} ref={observe} role="listitem" tabIndex={-1} className="qf-item" aria-posinset={from + k + 1} aria-setsize={n} data-k={it.id} data-i={from + k} data-odd={(from + k) % 2}>
           {render(it, from + k)}
         </div>
       ))}

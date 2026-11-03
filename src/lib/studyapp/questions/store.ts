@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { removeInk, removeSetInk } from "./inkDb";
 import {
   againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
-  type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
+  feedId, type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
 import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
 
@@ -139,6 +139,27 @@ export function useQuestionsValue<T>(pick: (q: QuestionsData) => T): T {
 
 const now = () => Date.now();
 
+/**
+ * The questions the feed has drawn and may be written on: a question joins its subject's feed set at the moment of the first real write on it (typing, a pen or mouse stroke,
+ * a mode tab, the scheme opened, a mark), never before, and never on a finger that is only scrolling. The card says what a question is when it appears; the join is done here,
+ * inside the same change as the write, so there is no write the document does not know about. Kept in memory only; the newest are kept.
+ */
+const MAX_DRAWN = 600;
+const drawn = new Map<string, { info: FeedInfo; part: QPart; names: Record<string, string>; topics: Record<string, string> }>();
+export function registerFeedPart(info: FeedInfo, part: QPart, names: Record<string, string>, topics: Record<string, string>) {
+  const k = keyOf(feedId(info.subject), part.id);
+  drawn.delete(k);
+  drawn.set(k, { info, part, names, topics });
+  if (drawn.size > MAX_DRAWN) drawn.delete(drawn.keys().next().value as string);
+}
+/** The data with the question in its feed set, if the write is on a drawn feed question that is not in it yet. */
+function joined(q: QuestionsData, setId: string, partId: string): QuestionsData {
+  if (!setId.startsWith("feed-")) return q;
+  const d = drawn.get(keyOf(setId, partId));
+  if (!d) return q;
+  return feedTouch(q, d.info, d.part, d.names, d.topics, now()).q;
+}
+
 /** Told when making a new set pushed older ones out (the cap), so the page can say so instead of letting a set vanish unannounced. */
 const droppedListeners = new Set<(n: number) => void>();
 export function onSetsDropped(fn: (n: number) => void): () => void {
@@ -160,7 +181,7 @@ function flushInkMeta() {
   const items = [...inkQueue.values()];
   inkQueue.clear();
   inkFirst = 0;
-  apply((q) => items.reduce((acc, i) => setInkMeta(acc, i.setId, i.partId, i.n, i.b, now()), q));
+  apply((q) => items.reduce((acc, i) => setInkMeta(joined(acc, i.setId, i.partId), i.setId, i.partId, i.n, i.b, now()), q));
 }
 function queueInkMeta(setId: string, partId: string, n: number, bytes: number) {
   inkQueue.set(keyOf(setId, partId), { setId, partId, n, b: bytes });
@@ -212,17 +233,17 @@ export const qa = {
   /** Typed answer. False if it did not all fit (the part's or the device's cap). */
   text(setId: string, partId: string, text: string): boolean {
     let ok = true;
-    changeQuestions((q) => { const r = setText(q, setId, partId, text, now()); ok = r.ok; return r.q; });
+    changeQuestions((q) => { const r = setText(joined(q, setId, partId), setId, partId, text, now()); ok = r.ok; return r.q; });
     if (text) askToKeep();
     return ok;
   },
-  mode: (setId: string, partId: string, mode: Mode) => changeQuestions((q) => setMode(q, setId, partId, mode, now())),
-  height: (setId: string, partId: string, h: number) => changeQuestions((q) => setHeight(q, setId, partId, h, now())),
+  mode: (setId: string, partId: string, mode: Mode) => changeQuestions((q) => setMode(joined(q, setId, partId), setId, partId, mode, now())),
+  height: (setId: string, partId: string, h: number) => changeQuestions((q) => setHeight(joined(q, setId, partId), setId, partId, h, now())),
   ink(setId: string, partId: string, n: number, bytes: number) { queueInkMeta(setId, partId, n, bytes); if (n > 0) askToKeep(); },
-  check: (setId: string, partId: string) => changeQuestions((q) => (q.answers[keyOf(setId, partId)]?.chk ? q : checkPart(q, setId, partId, now()))),
-  mark: (setId: string, partId: string, got: number | null) => changeQuestions((q) => markPart(q, setId, partId, got, now())),
+  check: (setId: string, partId: string) => changeQuestions((q) => (q.answers[keyOf(setId, partId)]?.chk ? q : checkPart(joined(q, setId, partId), setId, partId, now()))),
+  mark: (setId: string, partId: string, got: number | null) => changeQuestions((q) => markPart(joined(q, setId, partId), setId, partId, got, now())),
   /** Clear a part's answer. (Its ink is cleared by its zone, which also keeps the undo.) */
-  reset(setId: string, partId: string) { changeQuestions((q) => resetPart(q, setId, partId, now())); },
+  reset(setId: string, partId: string) { changeQuestions((q) => resetPart(joined(q, setId, partId), setId, partId, now())); },
   finish: (id: string) => changeQuestions((q) => finishSet(q, id, now())),
   reopen: (id: string) => changeQuestions((q) => reopenSet(q, id)),
   pick: (subject: string | null, topics: readonly string[]) => changeQuestions((q) => setPick(q, subject, topics)),

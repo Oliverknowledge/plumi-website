@@ -91,12 +91,12 @@ export function MoreCard({ more, onClick, tint, n, stop, attach, focused }: { mo
   );
 }
 
-/** "Mix for me" and "Pick your own": two small pills in a shelf's header, always there (they need no list to be drawn). */
+/** "Mix them up" and "Choose questions": two small pills in a shelf's header, always there (they need no list to be drawn). */
 export function ShelfPills({ onMix, onPick, name }: { onMix(): void; onPick(): void; name: string }) {
   return (
     <span className="qh-pills" role="group" aria-label={`${name} questions`}>
-      <button type="button" className="qh-pill mix" onClick={onMix} data-testid="card-mix"><span className="qh-pill-ico" aria-hidden="true"><ShuffleIcon /></span>Mix for me</button>
-      <button type="button" className="qh-pill pick" onClick={onPick} data-testid="card-pick"><span className="qh-pill-ico" aria-hidden="true"><SearchIcon /></span>Pick your own</button>
+      <button type="button" className="qh-pill mix" onClick={onMix} data-testid="card-mix"><span className="qh-pill-ico" aria-hidden="true"><ShuffleIcon /></span>Mix them up</button>
+      <button type="button" className="qh-pill pick" onClick={onPick} data-testid="card-pick"><span className="qh-pill-ico" aria-hidden="true"><SearchIcon /></span>Choose questions</button>
     </span>
   );
 }

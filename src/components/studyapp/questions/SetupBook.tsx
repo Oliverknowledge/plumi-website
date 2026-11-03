@@ -12,7 +12,7 @@ import { bookArt, SETUP_ART } from "./BookArt";
  * The cover is fixed in size, so nothing around it moves when it is ticked. What it looks like is all in BookArt.tsx and the EXERCISE BOOK ART
  * block of questions-setup.css.
  */
-export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, onToggle, onBoard, onTier, onOpen, onClose }: {
+export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, tierOnly, onToggle, onBoard, onTier, onOpen, onClose }: {
   choice: SubjectChoice;
   /** The draft key (level and subject): how the page finds this book again. */
   dataKey: string;
@@ -20,16 +20,23 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   slug: string | undefined;
   /** The tiers of the chosen board's papers (two or more, or none). */
   tierOptions: string[];
-  tierChosen: string[];
+  /** The tier(s) they chose: undefined if they have not (the label then asks), every tier for "any tier". */
+  tierChosen: string[] | undefined;
   /** The flap is out. */
   open: boolean;
-  onToggle(): void; onBoard(slug: string): void; onTier(t: string): void; onOpen(): void; onClose(): void;
+  /** The flap shows only the tier stickers (the board is already chosen). */
+  tierOnly: boolean;
+  onToggle(): void; onBoard(slug: string): void; onTier(sel: string[]): void; onOpen(): void; onClose(): void;
 }) {
   const art = bookArt(choice.base);
   const on = slug !== undefined;
   const board = slug ? choice.boards.find((b) => b.slug === slug)?.label ?? null : null;
-  const sel = tierChosen.filter((t) => tierOptions.includes(t));
-  const tiersShown = tierOptions.length >= 2 && sel.length < tierOptions.length ? sortTiers(sel) : [];
+  const tiered = tierOptions.length >= 2;
+  const sel = (tierChosen ?? []).filter((t) => tierOptions.includes(t));
+  const tierSet = tiered && sel.length > 0;
+  const anyTier = tierSet && sel.length === tierOptions.length;
+  const tiersShown = tiered && tierSet && !anyTier ? sortTiers(sel) : [];
+  const askTier = on && !!board && tiered && !tierSet;
   const choices = choice.boards.length > 1 || tierOptions.length >= 2;
   const flapId = useId();
   const flap = useRef<HTMLDivElement>(null);
@@ -54,13 +61,13 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
         <span className="qk-plate" aria-hidden="true"><b>{choice.base}</b></span>
         <span className="qk-doodle" aria-hidden="true"><Doodle /></span>
         <span className="qk-stamp" aria-hidden="true"><SETUP_ART.TickStamp /></span>
-        <button ref={cover} type="button" className="qk-cover" aria-label={bookLabel(choice.base, on, board, tiersShown)} onClick={onToggle} data-testid={`tick-${choice.base}`} />
-        {!on && <span className="qk-label" aria-hidden="true" />}
+        <button ref={cover} type="button" className="qk-cover" aria-label={bookLabel(choice.base, on, board, tiersShown, askTier)} onClick={onToggle} data-testid={`tick-${choice.base}`} />
+        {!on && <span className="qk-label qk-label-empty" aria-hidden="true" />}
         {on && (choices ? (
-          <button type="button" className="qk-label qk-label-btn" aria-expanded={showFlap} aria-controls={showFlap ? flapId : undefined} onClick={showFlap ? onClose : onOpen}
-            aria-label={board ? `${choice.base} exam board ${board}${tierOptions.length >= 2 ? `, ${tiersShown.length ? tiersShown.join(" and ") : "any tier"}` : ""}. Change` : `Pick the exam board for ${choice.base}`} data-testid={`label-${choice.base}`}>
+          <button type="button" className="qk-label qk-label-btn" aria-expanded={showFlap} aria-controls={showFlap ? flapId : undefined} onClick={showFlap && !tierOnly ? onClose : onOpen}
+            aria-label={board ? `${choice.base} exam board ${board}${tiered ? `, ${askTier ? "pick a tier" : anyTier ? "any tier" : tiersShown.join(" and ")}` : ""}. Change` : `Pick the exam board for ${choice.base}`} data-testid={`label-${choice.base}`}>
             {board ? <span className="qk-sticker">{board}</span> : <span className="qk-sticker qk-sticker-ask">Pick a board</span>}
-            {board && tierOptions.length >= 2 && (tiersShown.length ? tiersShown.map((t) => <span key={t} className="qk-sticker qk-sticker-tier">{t}</span>) : <span className="qk-sticker qk-sticker-tier qk-sticker-any">Any tier</span>)}
+            {board && tiered && (askTier ? <span className="qk-sticker qk-sticker-ask"><span className="qk-long">Pick a tier</span><span className="qk-short">Tier?</span></span> : anyTier ? <span className="qk-sticker qk-sticker-tier qk-sticker-any">Any tier</span> : tiersShown.map((t) => <span key={t} className="qk-sticker qk-sticker-tier">{t}</span>))}
           </button>
         ) : (
           <span className="qk-label"><span className="qk-sticker" data-testid="board-fixed">{choice.boards[0].label}</span></span>
@@ -68,20 +75,25 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
       </div>
       {showFlap && (
         <div className="qk-flap" id={flapId} ref={flap} onClick={(e) => { if (!(e.target as Element).closest("button")) onClose(); }}>
-          <div className="qk-tags" role="group" aria-label={`Exam board for ${choice.base}`}>
-            {choice.boards.map((b) => (
-              <button key={b.slug} type="button" className={`qk-tag${slug === b.slug ? " on" : ""}`} aria-pressed={slug === b.slug} onClick={() => { onBoard(b.slug); cover.current?.focus({ preventScroll: true }); }} data-testid={`board-${b.slug}`}>
-                <span>{b.label}</span>
-              </button>
-            ))}
-          </div>
-          {tierOptions.length >= 2 && (
-            <div className="qk-tags qk-tags-tier" role="group" aria-label={`Which tier of ${choice.base}. Choose neither to see both.`} data-testid={`tiers-${choice.base}`}>
+          {!tierOnly && (
+            <div className="qk-tags" role="group" aria-label={`Exam board for ${choice.base}`}>
+              {choice.boards.map((b) => (
+                <button key={b.slug} type="button" className={`qk-tag${slug === b.slug ? " on" : ""}`} aria-pressed={slug === b.slug} onClick={() => { onBoard(b.slug); cover.current?.focus({ preventScroll: true }); }} data-testid={`board-${b.slug}`}>
+                  <span>{b.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {tiered && board && (
+            <div className="qk-tags qk-tags-tier" role="group" aria-label={`Which tier of ${choice.base}`} data-testid={`tiers-${choice.base}`}>
               {tierOptions.map((t) => (
-                <button key={t} type="button" className={`qk-tag qk-tier${sel.includes(t) ? " on" : ""}`} aria-pressed={sel.includes(t)} onClick={() => onTier(t)} data-testid={`tier-${choice.base}-${t}`}>
+                <button key={t} type="button" className={`qk-tag qk-tier${tierSet && !anyTier && sel.includes(t) ? " on" : ""}`} aria-pressed={tierSet && !anyTier && sel.includes(t)} onClick={() => { onTier([t]); cover.current?.focus({ preventScroll: true }); }} data-testid={`tier-${choice.base}-${t}`}>
                   <span>{t}</span>
                 </button>
               ))}
+              <button type="button" className={`qk-tag qk-tier${anyTier ? " on" : ""}`} aria-pressed={anyTier} onClick={() => { onTier([...tierOptions]); cover.current?.focus({ preventScroll: true }); }} data-testid={`tier-${choice.base}-any`}>
+                <span>Any tier</span>
+              </button>
             </div>
           )}
         </div>

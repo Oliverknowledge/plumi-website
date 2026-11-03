@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { EMPTY, sanitise } from "../model";
 import { describe, test } from "node:test";
 import {
-  addParts, feedCounts, feedId, feedTouch, MAX_FEED_PARTS, visibleSets,
+  addParts, feedCounts, feedHasRoom, feedHolds, feedId, feedTouch, MAX_FEED_PARTS, visibleSets,
   blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, droppedLine, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, answerHint, MAX_PAPER_PARTS, MAX_SET_PARTS, MAX_SETS, openSet, partDots, setTiers, summaryView, ZONE_MCQ_H,
   progress, redoInput, resetPart, sanitiseQuestions, scoreSet, setHeight, setInkMeta, setMode, setText, TEXT_PART_CAP, TEXT_TOTAL_CAP, zoneHeight,
   type QPart, type QuestionsData, type SetInput,
@@ -532,16 +532,35 @@ describe("the feed set", () => {
     const q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
     assert.equal(openSet(q, fid).open, null);
   });
-  test("it holds up to MAX_FEED_PARTS and says so past that", () => {
+  test("it holds up to MAX_FEED_PARTS; past that only questions with something in them keep their place, and a full feed says no", () => {
     let q = touch(EMPTY_QUESTIONS, P("p0", "01.1")).q;
     const many = Array.from({ length: MAX_FEED_PARTS + 20 }, (_, i) => P(`p${i + 1}`, `01.${i + 2}`));
     const added = addParts(q, fid, many, {}, T0);
     assert.equal(added.q.sets[0].parts.length, MAX_FEED_PARTS);
     assert.equal(added.added, MAX_FEED_PARTS - 1);
     q = added.q;
-    const over = touch(q, P("late", "05.1"));
+    // every one is only touched, none holds anything: one of them makes way
+    assert.equal(feedHasRoom(q, INFO.subject, "late"), true);
+    const roomy = touch(q, P("late", "05.1"));
+    assert.equal(roomy.ok, true);
+    assert.ok(roomy.q.sets[0].parts.some((p) => p.id === "late"));
+    assert.ok(roomy.q.sets[0].parts.length <= MAX_FEED_PARTS);
+    // now every one holds an answer: full, refused before the student writes
+    const answers: QuestionsData["answers"] = {};
+    for (const p of q.sets[0].parts) answers[keyOf(fid, p.id)] = { text: "x", at: 1 };
+    const full = { ...q, answers };
+    assert.equal(feedHasRoom(full, INFO.subject, "late"), false);
+    assert.equal(feedHasRoom(full, INFO.subject, "p5"), true);
+    const over = touch(full, P("late", "05.1"));
     assert.equal(over.ok, false);
-    assert.equal(over.q, q);
+    assert.equal(over.q, full);
+  });
+  test("a question with only its scheme opened keeps its place", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    q = checkPart(q, fid, "a", T0);
+    assert.equal(feedHolds(q.answers[keyOf(fid, "a")]), true);
+    assert.equal(feedHolds(undefined), false);
+    assert.equal(feedHolds({ at: 1, mode: "type" }), false);
   });
   test("addParts skips what a set has and leaves its answers alone", () => {
     const { q, id } = make();

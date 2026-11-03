@@ -10,12 +10,12 @@ export const artSlug = (base: string) => base.toLowerCase().replace(/&/g, " and 
 
 /**
  * What a screen reader hears on a book: "Maths, not chosen", "Maths, AQA, chosen", "Maths, AQA, Higher, chosen".
- * A chosen book with no board yet says so ("Maths, chosen, pick a board"), so the missing step is never silent.
+ * A chosen book with no board yet says so ("Maths, chosen, pick a board"), and a tiered one with no tier yet says "pick a tier", so a missing step is never silent.
  */
-export function bookLabel(base: string, chosen: boolean, board: string | null, tiers: readonly string[] = []): string {
+export function bookLabel(base: string, chosen: boolean, board: string | null, tiers: readonly string[] = [], askTier = false): string {
   if (!chosen) return `${base}, not chosen`;
   if (!board) return `${base}, chosen, pick a board`;
-  return [base, board, ...tiers, "chosen"].join(", ");
+  return [base, board, ...tiers, ...(askTier ? ["pick a tier"] : []), "chosen"].join(", ");
 }
 
 /** A small crooked angle for a book with no entry of its own: the same every time for the same subject, never flat, never more than 2.6 degrees. */
@@ -63,3 +63,10 @@ export const countAt = (draft: ReadonlyMap<string, string>, level: string) => [.
 
 /** Does a book at this level have anything to choose once ticked: more than one board, or (its board known) a tier? */
 export const hasChoices = (boards: number, tiers: number) => boards > 1 || tiers >= 2;
+
+/** More is raised, with its levels under it, only while one of those levels is on screen; a main level collapses it. */
+export const isMoreOpen = (level: string, main: readonly string[], other: readonly string[]) => other.length > 0 && !main.includes(level);
+
+/** The tier a kept subject starts the setup with: what they chose, or every tier ("any tier", an answer) so coming back never asks again. */
+export const keptTier = (saved: readonly string[] | undefined, all: readonly string[] | undefined): string[] | null =>
+  !all || all.length < 2 ? null : saved && saved.length ? [...saved] : [...all];

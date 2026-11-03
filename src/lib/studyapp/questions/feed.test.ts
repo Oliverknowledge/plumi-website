@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters } from "./feed";
+import { hasFeedAnswer, alsoLine, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
 import { compareLabels, EMPTY_QUESTIONS, feedId, feedTouch, markPart, MAX_SET_PARTS, setText, type QPart, type QuestionsData } from "./model";
 import { sortRows, type BankRow } from "./picker";
 
@@ -72,7 +72,8 @@ describe("the other filters", () => {
     assert.equal(hasCalcChoice({ noCalc: 1 }, FIX), false);
     assert.equal(hasCalcChoice({}, FIX.filter((r) => !r.calc)), false);
     assert.equal(calcWords({ calcPapers: 1 }).only, "Allowed");
-    assert.equal(calcWords({}).only, "Only these");
+    assert.equal(calcWords({}).only, "Only");
+    assert.equal(calcWords({}).label, "Calculation questions");
   });
 });
 
@@ -206,6 +207,32 @@ describe("how a question stands", () => {
     q = markPart(q, feedId(INFO.subject), PART.id, 1, 5000);
     assert.deepEqual([...markedIds(q, INFO.subject)], [PART.id]);
     assert.equal(markedIds(q, "another-subject").size, 0);
+  });
+});
+
+describe("the better of the feed and a paper", () => {
+  const set = (state: "written" | "marked"): QState => ({ state, of: 3, got: state === "marked" ? 2 : undefined, from: "set", where: "June 2025 Paper 1", setId: "qs_1" });
+  const own = (state: "new" | "written" | "marked"): QState => ({ state, of: 3, got: state === "marked" ? 1 : undefined, from: "feed" });
+  test("marked beats written beats nothing, the feed's own wins a tie", () => {
+    assert.equal(bestState(own("new"), set("marked")).state, "marked");
+    assert.equal(bestState(own("written"), set("marked")).from, "set");
+    assert.equal(bestState(own("marked"), set("written")).from, "feed");
+    assert.equal(bestState(own("written"), set("written")).from, "feed");
+    assert.equal(bestState(own("new"), undefined).state, "new");
+  });
+  test("the line says where, and never claims more than was done", () => {
+    assert.equal(alsoLine(own("new"), set("written")), "You wrote this in June 2025 Paper 1.");
+    assert.equal(alsoLine(own("written"), set("written")), "You also wrote this in June 2025 Paper 1.");
+    assert.equal(alsoLine(own("new"), set("marked")), "You marked this in June 2025 Paper 1.");
+    assert.equal(alsoLine(own("new"), undefined), null);
+  });
+});
+
+describe("the write-here cue", () => {
+  test("goes once any answer exists in a feed", () => {
+    assert.equal(hasFeedAnswer({}), false);
+    assert.equal(hasFeedAnswer({ "qs_1/a": {} }), false);
+    assert.equal(hasFeedAnswer({ "qs_1/a": {}, "feed-x/b": {} }), true);
   });
 });
 

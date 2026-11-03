@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { draftKey } from "./mine";
-import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, pileOf } from "./setupBooks";
+import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, isMoreOpen, keptTier, pileOf } from "./setupBooks";
 import type { CatalogueSubject } from "./subject";
 
 const c = (slug: string, board: string, level: string, subject: string): CatalogueSubject => ({ slug, title: slug, board, level, subject, count: 10 });
@@ -20,6 +20,9 @@ describe("setup books", () => {
     assert.equal(bookLabel("Maths", true, "AQA"), "Maths, AQA, chosen");
     assert.equal(bookLabel("Maths", true, "AQA", ["Higher"]), "Maths, AQA, Higher, chosen");
     assert.equal(bookLabel("Maths", true, null), "Maths, chosen, pick a board");
+    assert.equal(bookLabel("Maths", true, "AQA", [], true), "Maths, AQA, pick a tier, chosen");
+    assert.equal(bookLabel("Maths", false, "AQA", [], true), "Maths, not chosen");
+    assert.equal(bookLabel("Maths", true, null, [], true), "Maths, chosen, pick a board");
   });
   test("a fallback tilt is the same every time, never flat and never wild", () => {
     for (const s of ["maths", "law", "sociology", "x", "religious-studies", "a-very-long-subject-name"]) {
@@ -56,5 +59,18 @@ describe("setup books", () => {
     assert.equal(hasChoices(1, 0), false);
     assert.equal(hasChoices(3, 0), true);
     assert.equal(hasChoices(1, 2), true);
+  });
+  test("More is open only while one of its levels is on screen", () => {
+    assert.equal(isMoreOpen("GCSE", ["GCSE", "A-Level"], ["IGCSE"]), false);
+    assert.equal(isMoreOpen("A-Level", ["GCSE", "A-Level"], ["IGCSE"]), false);
+    assert.equal(isMoreOpen("IGCSE", ["GCSE", "A-Level"], ["IGCSE"]), true);
+    assert.equal(isMoreOpen("GCSE", ["GCSE"], []), false);
+  });
+  test("a kept tiered subject starts with its tier, or any tier, never with a gap", () => {
+    assert.deepEqual(keptTier(["Higher"], ["Higher", "Foundation"]), ["Higher"]);
+    assert.deepEqual(keptTier([], ["Higher", "Foundation"]), ["Higher", "Foundation"]);
+    assert.deepEqual(keptTier(undefined, ["Higher", "Foundation"]), ["Higher", "Foundation"]);
+    assert.equal(keptTier(["Higher"], undefined), null);
+    assert.equal(keptTier([], ["Core"]), null);
   });
 });

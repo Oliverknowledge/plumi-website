@@ -8,6 +8,7 @@ import { updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStor
 import { qa } from "@/lib/studyapp/questions/store";
 import { baseSubject, boardLabel, subjectTint, tierLine, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { Feed } from "./Feed";
+import { Radios } from "./FeedBar";
 import { PlusIcon } from "./icons";
 import { SetsSheet } from "./SetsSheet";
 import { Shelf } from "./Shelf";
@@ -50,12 +51,10 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
         <div className="qs-col">
           <header className="qs-head">
             <div className="qs-head-text">
-              <h1 ref={h1} tabIndex={-1}>Questions</h1>
+              <h1 ref={h1} tabIndex={-1}>{baseSubject(entry.subject)}<span className="qs-sr"> questions</span></h1>
             </div>
             <div className="qf-head-acts">
-              <div className="qf-views" role="radiogroup" aria-label="Show">
-                {VIEWS.map((v) => <button key={v.id} type="button" role="radio" aria-checked={view === v.id} className={view === v.id ? "is-on" : ""} onClick={() => setView(v.id)} data-testid={`view-${v.id}`}>{v.label}</button>)}
-              </div>
+              <Radios className="qf-views" label="Show" value={view} options={VIEWS.map((v) => [v.id, v.label])} onPick={(v) => setView(v as FeedViewKind)} testid="view" />
               {q.sets.length > 0 && <button type="button" className="btn ghost" onClick={() => setSets(true)} data-testid="your-sets">Your sets{mine1.length > 0 && <span className="k">{mine1.length}</span>}</button>}
             </div>
           </header>
@@ -65,7 +64,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
             return (
               <div className="qs-resume" data-testid="resume">
                 <Image src="/study/mascot/plumi-focused.svg" alt="" width={44} height={44} unoptimized />
-                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} marked</span></div>
+                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} parts marked</span></div>
                 <button type="button" className="btn" onClick={() => qa.open(resume.id)} data-testid="resume-btn">Pick up</button>
               </div>
             );
@@ -83,7 +82,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
                       className={`qf-tab${on ? " on" : ""}`} style={{ "--tint": subjectTint(e.subject) } as React.CSSProperties} onClick={() => choose(e.slug)} onKeyDown={(ev) => onTabKey(ev, i)} data-testid="subject-tab" data-slug={e.slug}
                     >
                       <span className="qf-tab-name">{baseSubject(e.subject)}</span>
-                      <span className="qf-tab-sub">{boardLabel(e)}{tier ? ` \u00b7 ${tier}` : ""}</span>
+                      <span className="qf-tab-sub">{`${boardLabel(e)} \u00b7 ${e.level}${tier ? ` \u00b7 ${tier}` : ""}`}</span>
                     </button>
                   );
                 })}

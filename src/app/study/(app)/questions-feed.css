@@ -228,3 +228,119 @@
 @media (prefers-reduced-motion: reduce) {
   .pa .qf-tab, .pa .qf-topic, .pa .qf-views button { transition: none; }
 }
+
+/* ═══ Round 4 ═══════════════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ── the page's ground: the same warm cream and lamp as the setup, with its ruled page and red margin (no cold blue behind the questions) ── */
+.pa .qf-home {
+  --qf-rule: rgba(172, 134, 100, .26);
+  background:
+    radial-gradient(ellipse 54% 44% at 88% -10%, rgba(255, 203, 108, .5), rgba(255, 203, 108, 0) 72%),
+    radial-gradient(ellipse 80% 38% at 8% 112%, rgba(122, 74, 42, .14), rgba(122, 74, 42, 0) 72%),
+    repeating-linear-gradient(transparent 0 35px, var(--qf-rule) 35px 37px),
+    #fbf2de;
+  box-shadow: inset 0 0 130px rgba(122, 74, 42, .1);
+}
+.pa:has(.qf-home) { background: #fbf2de; }
+.pa:has(.qf-home)::before { background: #fbf2de; }
+.pa .qf-head { background: rgba(251, 242, 222, .95); border-bottom-color: rgba(172, 134, 100, .4); }
+.pa .qf-home .qs-search, .pa .qf-home .qs-tbtn { border-color: rgba(122, 74, 42, .35); }
+.pa .qf-home .qs-search { background: #fffaf0; }
+.pa .qf-home .qs-chip, .pa .qf-home .qf-open { background: #f1e4c8; }
+.pa .qf-home .qs-chip.on { background: var(--navy); }
+.pa .qf-home .qs-chip:hover, .pa .qf-home .qf-open:hover { background: #ead8b4; }
+.pa .qf-home .qs-chip.on:hover { background: var(--navy); }
+.pa .qf-home .qf-body { background: #fffaf0; }
+.pa .qf-views { background: #fffaf0; }
+.pa .qf-head-acts .btn.ghost { border-color: var(--ink); background: #fffaf0; box-shadow: 0 3px 0 var(--ink); }
+.pa .qf-change { color: var(--ink); font-weight: 800; text-decoration-color: var(--gold); text-decoration-thickness: 2px; }
+.pa .qf-feed { padding-bottom: 150px; }
+@media (min-width: 981px) { .pa .qf-list { padding-right: 64px; } }   /* the lofi record and its bubble sit in the corner: keep the examiner's notes clear of them */
+
+/* ── the strip: nothing sticks when the screen is short (a zoomed or a landscape phone), the Skip link, where the student is ── */
+@media (max-height: 520px) { .pa .qf-head { position: static; } .pa .qf-left { position: static; } }
+.pa .qf-feed > .qs-skip:focus { position: fixed; left: 12px; top: 76px; }
+.pa .qf-here { margin: 0 0 0 8px; font: 800 12px/1.2 var(--f-body); color: var(--ink); white-space: nowrap; }
+.pa .qf-prog-n + .qf-here::before { content: "\00b7"; margin-right: 8px; color: var(--mute); }
+.pa .qf-actsrow { gap: 8px; }
+.pa .qf-actsrow .qs-tbtn { flex: 1 1 auto; justify-content: center; }
+.pa #qf-results:focus { outline: none; }
+
+/* ── a narrow phone: the strip is ONE slim row (search, Filters, where you are), Mix and Practise are in the Filters card ── */
+@media (max-width: 640px) {
+  .pa .qf-head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 6px; padding: 5px 10px; min-height: 0; }
+  .pa .qf-search { grid-column: 1; grid-row: 1; min-height: 44px; padding: 0 10px; gap: 6px; flex: none; min-width: 0; }
+  .pa .qf-fbtn { grid-column: 2; grid-row: 1; min-height: 44px; padding: 0 10px; gap: 5px; }
+  .pa .qf-count { grid-column: 3; grid-row: 1; justify-items: end; text-align: right; }
+  .pa .qf-nres { font-size: 12px; white-space: normal; }
+  .pa .qf-nres b { font-size: 17px; }
+  .pa .qf-nres, .pa .qf-here, .pa .qf-prog { max-width: 96px; overflow: hidden; text-overflow: ellipsis; }
+  .pa .qf-prog-n { display: none; }
+  .pa .qf-here { margin: 0; }
+  .pa .qf-home .qs-head { flex-wrap: wrap; padding: 12px 0 4px; }
+}
+@media (max-width: 480px) {
+  .pa .qf-head-acts { flex: 1 1 100%; justify-content: space-between; }
+  .pa .qf-views { flex: 1; }
+  .pa .qf-views button { flex: 1; }
+}
+
+/* ── the subjects: on a phone they wrap (ten GCSE subjects fit), the + sits after them, contrast at least 4.5 to 1 ── */
+.pa .qf-tab-sub { color: #3b4768; }
+.pa .qf-tab-add { min-width: 48px; }
+@media (max-width: 640px) {
+  .pa .qf-tabs { flex-wrap: wrap; overflow: visible; row-gap: 4px; align-items: flex-end; padding-top: 6px; border-bottom: 0; }
+  .pa .qf-tablist { flex-wrap: wrap; min-width: 0; row-gap: 4px; }
+  .pa .qf-tab { transform: none; border-bottom: 2px solid var(--ink); border-radius: 14px; max-width: 100%; }
+  .pa .qf-tab:hover, .pa .qf-tab.on { transform: none; }
+  .pa .qf-tab-add { border-bottom-style: dashed; }
+  .pa .qf-tabrow { align-items: center; }
+}
+
+/* ── a question: the cue for where to write, work done elsewhere, a feed that is full ── */
+.pa .qf-cue { display: flex; align-items: flex-end; justify-content: flex-end; gap: 4px; margin: 0 6px -4px; font: 700 23px/1 var(--f-hand); color: var(--accent); transform: rotate(-1.5deg); }
+.pa .qf-cue svg { transform: translateY(6px); }
+.pa .qf-also, .pa .qs-also { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 2px 4px 6px; font: 700 13.5px/1.35 var(--f-body); color: var(--soft); }
+.pa .qf-full { margin: 10px 0 16px; padding: 14px 16px; border: 1.5px dashed rgba(176, 106, 7, .6); border-radius: 12px; background: #fff3cf; font: 800 14px/1.4 var(--f-body); }
+.pa .qf-card.is-marked .qf-also, .pa .qf-card.is-written .qf-also { color: var(--ink); }
+
+/* the mark scheme comes first, then marking yourself */
+.pa .qs-scheme > .qs-schemetable { padding-top: 0; border-top: 0; padding-bottom: 12px; border-bottom: 2px dashed rgba(120, 96, 50, .22); }
+.pa .qs-scheme > .qs-selfblock { padding-right: 0; }
+.pa .qs-scheme > .qs-schemetable + .qs-selfblock { padding-right: 48px; }
+@media (max-width: 640px) {
+  /* the scheme's picture fits the width of the card (the "Mark" column is not cut off); tap it for the large one */
+  .pa .qf-sheet .qs-scheme .qs-cropbox { overflow: visible; }
+  .pa .qf-sheet .qs-scheme .qs-crop { min-width: 0; }
+  .pa dialog.qs-zoomd .qs-zoomd-img { width: 100%; }
+}
+
+/* ── the toast never covers the paper's name bar ── */
+.pa:has(.qs-sheet-page) .toast { top: auto; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── the pen tray: in the margin on a wide screen, away while a scheme is open ── */
+.pa .qf-feed:has(.qs-scheme) .qf-pen { display: none; }
+@media (min-width: 981px) {
+  .pa .qf-pen .qs-pen { left: 16px; transform: none; flex-direction: column; height: auto; padding: 6px 0; max-width: none; bottom: 120px; }
+  .pa .qf-pen .qs-pen.is-away { transform: translateY(14px); }
+  .pa .qf-pen .qs-pen-fly { left: calc(100% + 10px); bottom: 0; transform: none; }
+  .pa .qf-pen .qs-pen-sep { width: 24px; height: 1.5px; margin: 4px 0; }
+}
+
+/* ── hit areas and the dropdowns ── */
+.pa .qf-topic { position: relative; }
+.pa .qf-topic::after { content: ""; position: absolute; inset: -9px -2px; }
+.pa .qf-multi-list label { min-height: 44px; }
+.pa .qf-multi-head { display: none; }
+@media (max-width: 640px) {
+  .pa .qf-multi-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 6px 8px; position: sticky; top: -8px; background: var(--card); }
+  .pa .qf-multi-head b { font: 600 20px var(--f-px); }
+  .pa .qf-multi[open]::after { content: ""; position: fixed; inset: 0; z-index: 29; background: rgba(60, 40, 30, .32); }
+  .pa .qf-multi-list { z-index: 31; }
+}
+@media (max-width: 640px) {
+  .pa .qf-nres { white-space: nowrap; max-width: none; font-size: 11.5px; }
+  .pa .qf-nres b { font-size: 16px; }
+  .pa .qf-here { max-width: 110px; }
+  .pa .qf-search input { min-width: 0; }
+}
