@@ -1,4 +1,4 @@
-"""The topics of AQA's A-Level French (7652) and Spanish (7692): the bank's topic tree.
+"""The topics of AQA's A-Level French (7652), Spanish (7692) and German (7662): the bank's topic tree.
 
 Paper 1's reading, listening and translation passages are each set in one of the
 specification's four themes, three sub-themes apiece: two themes are AS (Year 1, sat at AS
@@ -53,6 +53,28 @@ THEMES = {
             ("movements", "Popular movements", "Movimientos populares"),
         ]),
     ],
+    "german": [
+        ("t1", "Aspects of German-speaking society", 1, [
+            ("family", "The changing state of the family", "Familie im Wandel"),
+            ("digital", "The digital world", "Die digitale Welt"),
+            ("youth-culture", "Youth culture: fashion and trends, music, television", "Jugendkultur: Mode, Musik und Fernsehen"),
+        ]),
+        ("t2", "Artistic culture in the German-speaking world", 1, [
+            ("festivals", "Festivals and traditions", "Feste und Traditionen"),
+            ("art", "Art and architecture", "Kunst und Architektur"),
+            ("berlin", "Cultural life in Berlin, past and present", "Das Berliner Kulturleben damals und heute"),
+        ]),
+        ("t3", "Multiculturalism in German-speaking society", 2, [
+            ("immigration", "Immigration", "Einwanderung"),
+            ("integration", "Integration", "Integration"),
+            ("racism", "Racism", "Rassismus"),
+        ]),
+        ("t4", "Aspects of political life in German-speaking society", 2, [
+            ("eu", "Germany and the European Union", "Deutschland und die Europäische Union"),
+            ("politics-youth", "Politics and youth", "Die Politik und die Jugend"),
+            ("reunification", "German re-unification and its consequences", "Die Wiedervereinigung und ihre Folgen"),
+        ]),
+    ],
 }
 
 # Paper 2 (and AS Paper 2's Sections B and C): (section, title, [(code, title, pattern)]).
@@ -99,6 +121,28 @@ WORKS = {
             ("maria-llena-eres-de-gracia", "Joshua Marston: María, llena eres de gracia", r"llena eres de gracia"),
             ("ocho-apellidos-vascos", "Emilio Martínez-Lázaro: Ocho apellidos vascos", r"Ocho apellidos vascos"),
             ("volver", "Pedro Almodóvar: Volver", r"Volver\b"),
+        ]),
+    ],
+    "german": [
+        ("books", "Literary texts", [
+            ("katharina-blum", "Heinrich Böll: Die verlorene Ehre der Katharina Blum", r"Katharina Blum|Böll"),
+            ("mutter-courage", "Bertolt Brecht: Mutter Courage und ihre Kinder", r"Mutter Courage|Brecht"),
+            ("besuch-der-alten-dame", "Friedrich Dürrenmatt: Der Besuch der alten Dame", r"Besuch der alten Dame|Dürrenmatt"),
+            ("andorra", "Max Frisch: Andorra", r"Andorra|Max Frisch"),
+            ("heine", "Heinrich Heine: Gedichte – Buch der Lieder", r"Buch der Lieder|Heine\b"),
+            ("zonenkinder", "Jana Hensel: Zonenkinder", r"Zonenkinder|Hensel"),
+            ("die-verwandlung", "Franz Kafka: Die Verwandlung", r"Verwandlung|Kafka"),
+            ("russendisko", "Wladimir Kaminer: Russendisko", r"Russendisko|Kaminer"),
+            ("fundbuero", "Siegfried Lenz: Fundbüro", r"Fundbüro|Lenz\b"),
+            ("der-vorleser", "Bernhard Schlink: Der Vorleser", r"Vorleser|Schlink"),
+        ]),
+        ("films", "Films", [
+            ("good-bye-lenin", "Wolfgang Becker: Good bye, Lenin!", r"Good ?[Bb]ye,? Lenin"),
+            ("das-leben-der-anderen", "Florian Henckel von Donnersmarck: Das Leben der Anderen", r"Leben der [Aa]nderen|Donnersmarck"),
+            ("die-fetten-jahre", "Hans Weingartner: Die fetten Jahre sind vorbei", r"fetten Jahre|Weingartner"),
+            ("almanya", "Yasemin Şamdereli: Almanya – Willkommen in Deutschland", r"Almanya|Samdereli|Şamdereli"),
+            ("sophie-scholl", "Marc Rothemund: Sophie Scholl – Die letzten Tage", r"Sophie Scholl|Rothemund"),
+            ("lola-rennt", "Tom Tykwer: Lola rennt", r"Lola rennt|Tykwer"),
         ]),
     ],
 }

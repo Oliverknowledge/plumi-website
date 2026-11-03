@@ -34,6 +34,7 @@ export const subjectColours: Record<string, string> = {
   History: "#c98a6b",
   French: "#8fb0dc",
   Spanish: "#e0a07a",
+  German: "#9fb59a", // a fir green
   "Physical Education": "#e06a5a",
 };
 

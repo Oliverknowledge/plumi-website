@@ -95,7 +95,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   // (Edexcel's GCSE names them "Text 1" and "Text 2", or just "the writer".)
   const insert = whole?.ins && parts.some(p => p.src || /\bsources?\b|\bextracts?\b|\blines? \d|\btext [A-D12]\b|\btwo texts\b|\bthe writers?\b/i.test(p.x)) ? whole.ins : undefined;
   // A language paper's insert is a reading text, whatever the question's own words.
-  const insertTexts = subject.subject === "French" || subject.subject === "Spanish" || parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
+  const insertTexts = subject.subject === "French" || subject.subject === "Spanish" || subject.subject === "German" || parts.some(p => /\btext [A-D12]\b|\btwo texts\b/i.test(p.x));
   // A listening question's recording, and its transcript to check against afterwards (AQA languages).
   const listen = parts.find(p => p.au)?.au;
   // An essay choice, "EITHER (d) OR (e)", counts once. A question that is itself the
