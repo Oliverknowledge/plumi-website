@@ -21,7 +21,7 @@ mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work", "aqa-gcse-languages")
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 150
 TAG = os.path.join(WORK, "tag")
-LANGUAGE = {"8658": "French", "8652": "French", "8698": "Spanish", "8692": "Spanish", "8638": "Bengali"}
+LANGUAGE = {"8658": "French", "8652": "French", "8698": "Spanish", "8692": "Spanish", "8668": "German", "8662": "German", "8638": "Bengali"}
 SKILL = {"L": "Paper 1 Listening", "R": "Paper 3 Reading", "W": "Paper 4 Writing"}
 TIER = {"F": "Foundation", "H": "Higher"}
 

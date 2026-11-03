@@ -1,4 +1,4 @@
-"""Cut AQA's GCSE French, Spanish and Bengali papers into question parts, each with its mark scheme and, for Listening, its recording.
+"""Cut AQA's GCSE French, Spanish, German and Bengali papers into question parts, each with its mark scheme and, for Listening, its recording.
 
     python3 scripts/question-bank/aqa_gcse_languages/cut_gcse_languages.py [work-dir] [--only=8658rh]   # default scripts/question-bank/.work/aqa-gcse-languages
 
@@ -110,6 +110,15 @@ def left_labels(page, max_x, bold_only, with_x=False):
             if m and s["bbox"][0] < 115 and ("Bold" in s["font"] or (qu and s["bbox"][0] < 70)) and not taken(s["bbox"][1]):
                 found.append((s["bbox"][1], f"{int(m.group(1)):02d}", m.group(2), s["bbox"][0]))
     found = sorted(found)
+    if not bold_only:
+        # A scheme's first label under a "Section B" heading starts there: the 2026 specimens' translation sets its "38"
+        # mid-way down a merged cell, under the heading and the table's top rows.
+        for s in spans:
+            if "Bold" in s["font"] and re.fullmatch(r"Section [B-D]", s["text"].strip()):
+                below = [k for k, f in enumerate(found) if f[0] > s["bbox"][1]]
+                if below:
+                    k = below[0]
+                    found[k] = (s["bbox"][1] - 2, *found[k][1:])
     return [f if with_x else f[:3] for f in found]
 
 
@@ -149,6 +158,8 @@ def writing_events(ms):
                     events.append((n, y - 6, "content" if m.group(2) else "question", q, m.group(2)))
                 elif t.startswith("The following indicative content"):
                     events.append((n, y - 6, "intro", None, None))
+                elif bold and re.fullmatch(r"Section [B-D]", t):  # the 2026 specimens' next section: in no question's crop
+                    events.append((n, y - 6, "section", None, None))
         # A row labelled "01.1" (or "Question" over "01.1"): an option's model answer, or one of Question 1's sentences.
         for s in spans:
             m = re.fullmatch(r"(\d{2})\.(\d{1,2})", s["text"].strip())
@@ -167,7 +178,7 @@ def writing_events(ms):
     for n, y, kind, eq, part in events:
         if kind == "question":
             q = eq
-        elif kind == "intro":
+        elif kind in ("intro", "section"):
             eq = q
         if eq is None:
             continue
@@ -188,10 +199,11 @@ def writing_regions(ms):
         for pg in range(n, end[0] + 1):
             f = page_frame(ms[pg])
             top = y if pg == n else f.y0
-            bottom = end[1] if pg == end[0] else f.y1
+            bottom = end[1] + (2 if kind == "row" else 0) if pg == end[0] else f.y1  # a row keeps its closing rule
             if bottom - top > 10 and ms[pg].get_text("text", clip=pymupdf.Rect(f.x0, top, f.x1, bottom)).strip():
                 pieces.append((pg, pymupdf.Rect(f.x0, top, f.x1, bottom)))
-        segments.append((q, part if kind in ("content", "row") else None, pieces))
+        if kind != "section":
+            segments.append((q, part if kind in ("content", "row") else None, pieces))
     out = []
     text = lambda pieces: "\n".join(ms[pg].get_text("text", clip=r) for pg, r in pieces)  # noqa: E731
     for q in dict.fromkeys(s[0] for s in segments):
@@ -263,7 +275,10 @@ def tidy(doc, out):
         counted once;
       - a question with no parts that is followed by the next question's title and instructions
         ("Family. Your French friend, Flora, is talking about her family.") keeps them, as
-        cut.move_setups only moves them on from a part: move them on from such a question too."""
+        cut.move_setups only moves them on from a part: move them on from such a question too;
+      - two crops meeting on a page part above any box between them (unsplit_boxes), and the last stops at
+        "END OF QUESTIONS" (end_of_questions);
+      - on a Writing paper, the next question's routing below a task's marks is dropped (drop_routing)."""
     starts = {e[0]: (e[1][0][0], e[1][0][1].y0) for e in out if e[1]}
     if not writing:
         orphans(doc, out)
@@ -282,11 +297,16 @@ def tidy(doc, out):
         start = starts.get(e[0])
         if start and e[0][1] is None and e[0][0] not in parted:
             lead = [(pg, pymupdf.Rect(r.x0, r.y0, r.x1, min(r.y1, start[1]) if pg == start[0] else r.y1)) for pg, r in e[1] if (pg, r.y0) < (start[0], start[1] - 1)]
+            if lead and lead[-1][0] == start[0]:  # its foot clear of the boxes beside the label below
+                pg, r = lead[-1]
+                lead[-1] = (pg, pymupdf.Rect(r.x0, r.y0, r.x1, clear_edge(doc[pg], pymupdf.Rect(r.x0, r.y1, r.x1, r.y1), r.y0)))
             if lead:
                 LEADS[(doc.name, e[0][0])] = lead
             own = [(pg, pymupdf.Rect(r.x0, max(r.y0, start[1]), r.x1, r.y1)) for pg, r in e[1] if pg == start[0] and r.y1 > start[1]]
             if has_title(doc, own):
                 TITLED.add((doc.name, e[0][0]))
+    unsplit_boxes(doc, out)
+    end_of_questions(doc, out)
     # Last, so that nothing after it reads the part before's extended crop as its own.
     for n in range(1, len(out)):
         (ppg, pr), (pg, r) = out[n - 1][1][-1] if out[n - 1][1] else (None, None), out[n][1][0] if out[n][1] else (None, None)
@@ -304,6 +324,82 @@ def tidy(doc, out):
         MASKS.setdefault((doc.name, pg, round(prev.y0, 1)), []).append(pymupdf.Rect(r.x0, r.y0 + 3, max((b.x1 for b in mine if b.y0 < end), default=r.x0) + 3, end + 1))
         MASKS.setdefault((doc.name, pg, round(r.y0, 1)), []).extend(pymupdf.Rect(b.x0 - 2, r.y0, b.x1 + 2, b.y1 + 1) for b in theirs)
         out[n][2] = "\n".join(t for b, t in lines if b.y0 >= r.y0 + 4) + "\n" + "\n".join(doc[p].get_text("text", clip=c) for p, c in out[n][1][1:])
+    # Marks printed across a crop's foot, at the frame's edge (Higher Reading, November 2020, 10.2), stay whole.
+    for e in out:
+        for k, (pg, r) in enumerate(e[1]):
+            cross = [b.y1 for b, t in lines_in(doc[pg], r) if MARKS.search(t) and b.y0 < r.y1 - 1 < r.y1 + 1 < b.y1 and b.y1 - r.y1 < 16]
+            if cross:
+                e[1][k] = (pg, pymupdf.Rect(r.x0, r.y0, r.x1, max(cross) + 1))
+    if writing:
+        drop_routing(doc, out)
+
+
+def clear_edge(page, r, floor):
+    """Where a crop starting at r.y0 should start so that its top edge cuts through no box inside the crop's width (drawn
+    whole or as edges, a rule falling on the edge included; the marking tally boxes in the outer margin don't count) and
+    no line of text: above them, unless that is more than 40pt up or within 12pt of `floor`."""
+    y = r.y0
+    boxes = [d["rect"] for d in page.get_drawings() if 6 < d["rect"].height < 60 and d["rect"].width < page.rect.width * 0.6
+             and r.x0 <= d["rect"].x0 and d["rect"].x1 <= r.x1 and d["rect"].y0 < y + 2 < d["rect"].y1]
+    text = [b for b, t in lines_in(page, pymupdf.Rect(r.x0, y - 30, r.x1, y + 30))
+            if b.y0 < y - 1 < y + 1 < b.y1 and not MARKS.search(t)]  # the part before's marks are masked (tidy)
+    if not boxes and not text:
+        return y
+    new = min(b.y0 for b in boxes + text) - 4
+    return y if y - new > 40 or new < floor + 12 else new
+
+
+def unsplit_boxes(doc, out):
+    """Two crops that meet on a page part above any answer box or option box their edge would cut through ("emails" in the
+    2026 Foundation specimen's question 7 sits higher than its part's label) or line of text, so neither shows a sliver of the other's."""
+    for n in range(1, len(out)):
+        if not out[n - 1][1] or not out[n][1]:
+            continue
+        (ppg, pr), (pg, r) = out[n - 1][1][-1], out[n][1][0]
+        if ppg != pg or abs(pr.y1 - r.y0) > 1:
+            continue
+        new = clear_edge(doc[pg], r, pr.y0)
+        if new == r.y0:
+            continue
+        out[n - 1][1][-1] = (ppg, pymupdf.Rect(pr.x0, pr.y0, pr.x1, new))
+        out[n][1][0] = (pg, pymupdf.Rect(r.x0, new, r.x1, r.y1))
+        for e in (out[n - 1], out[n]):
+            e[2] = "\n".join(doc[p].get_text("text", clip=c) for p, c in e[1])
+
+
+def end_of_questions(doc, out):
+    """The paper's last crop stops at "END OF QUESTIONS", leaving out the blank lines and copyright notice after it."""
+    for e in out[-1:]:
+        for k, (pg, r) in enumerate(e[1]):
+            end = [b for b, t in lines_in(doc[pg], r) if re.match(r"END\s+OF\s+QUESTIONS", t)]
+            if end:
+                e[1] = e[1][:k] + ([(pg, pymupdf.Rect(r.x0, r.y0, r.x1, end[0].y0 - 4))] if end[0].y0 - 4 > r.y0 + 8 else [])
+                e[2] = "\n".join(doc[p].get_text("text", clip=c) for p, c in e[1])
+                break
+
+
+ROUTING = re.compile(r"^(Answer\s+either\b.*|You must (only|not) answer.*|Either|EITHER|Or|OR|Section [A-C]|Question \d\.\d|END\s+OF\s+QUESTIONS|Turn over.*)$")
+
+
+def drop_routing(doc, out):
+    """A Writing task's crop ends above the next question's routing printed at its foot ("Answer either Question 4.1 or
+    Question 4.2.", "Or", "Section B"), and the "END OF QUESTIONS" and blank answer lines after a last task."""
+    for e in out:
+        pieces = e[1]
+        lines = [(k, b, t) for k, (pg, r) in enumerate(pieces) for b, t in lines_in(doc[pg], r)]
+        lines.sort(key=lambda kbt: (kbt[0], kbt[1].y0))
+        cut_at = None
+        for k, b, t in reversed(lines):
+            if ROUTING.match(t):
+                cut_at = (k, b)
+            elif WORDS.search(t):
+                break
+        if not cut_at:
+            continue
+        k, b = cut_at
+        pg, r = pieces[k]
+        e[1] = pieces[:k] + ([(pg, pymupdf.Rect(r.x0, r.y0, r.x1, b.y0 - 4))] if b.y0 - 4 > r.y0 + 8 else [])
+        e[2] = "\n".join(doc[p].get_text("text", clip=c) for p, c in e[1])
 
 
 LEADS = {}  # (file, question): the title and instructions a question with no parts starts with (tidy)
@@ -325,10 +421,20 @@ def orphans(doc, out):
         above = pymupdf.Rect(f.x0, f.y0, f.x1, r.y0)
         lines = [(b, t) for b, t in lines_in(doc[pg], above) if b.y1 <= r.y0 + 1]
         words = [(b, t) for b, t in lines if WORDS.search(t) and not HEADINGS.match(t) and not t.startswith("Do not write")]
-        if not words:
+        if words:
+            top = min(b.y0 for b, t in words) - 6
+            out[n][1] = pieces = [(pg, pymupdf.Rect(r.x0, top, r.x1, r.y1))] + pieces[1:]
+        # The paper's first question can set its text on the page before its label, which no crop reaches
+        # (the Higher Reading specimen's "Lifestyle" blog; page 0 is the cover).
+        if n == 0 and pg >= 2:
+            f = cut.frame(doc[pg - 1])
+            before = [b for b, t in lines_in(doc[pg - 1], f) if WORDS.search(t) and not HEADINGS.match(t) and not t.startswith(("Do not write", "outside the", "box", "Turn over"))]
+            if before:
+                pieces = [(pg - 1, pymupdf.Rect(f.x0, min(b.y0 for b in before) - 6, f.x1, max(b.y1 for b in before) + 6))] + pieces
+                out[n][1] = pieces
+                print(f"  {doc.name}: first question takes page {pg}'s text", file=sys.stderr)
+        if not words and len(pieces) == 1:
             continue
-        top = min(b.y0 for b, t in words) - 6
-        out[n][1] = [(pg, pymupdf.Rect(r.x0, top, r.x1, r.y1))] + pieces[1:]
         out[n][2] = "\n".join(doc[p].get_text("text", clip=c) for p, c in out[n][1])
 
 
@@ -366,14 +472,19 @@ def move_titles(doc, out):
         lines = [(k, b, t) for k, (pg, r) in enumerate(pieces) for b, t in lines_in(doc[pg], r)]
         marks = [(k, b.y1) for k, b, t in lines if MARKS.search(t)]
         # The text margin: where the part's own words start, or, for a part that is only an answer grid ("1 6 [2 marks]"), anyone's.
-        own = ([b.x0 for k, b, t in lines if k == 0 and b.x0 > pieces[0][1].x0 + 30 and WORDS.search(t) and not MARKS.search(t) and b.y1 <= (marks[-1][1] if marks and marks[-1][0] == 0 else 1e9)]
-               or [b.x0 for k, b, t in lines if b.x0 > pieces[0][1].x0 + 30 and b.x0 < pieces[0][1].x0 + 120 and WORDS.search(t) and not MARKS.search(t)])
+        own = ([(b.y0, b.x0) for k, b, t in lines if k == 0 and b.x0 > pieces[0][1].x0 + 30 and WORDS.search(t) and not MARKS.search(t) and b.y1 <= (marks[-1][1] if marks and marks[-1][0] == 0 else 1e9)]
+               or [(b.y0, b.x0) for k, b, t in lines if b.x0 > pieces[0][1].x0 + 30 and b.x0 < pieces[0][1].x0 + 120 and WORDS.search(t) and not MARKS.search(t)])
         if not marks or not own:
             n += 1
             continue
-        margin, (mk, my) = min(own), marks[-1]
+        # The text margin: the leftmost words, or where the part's first line starts (a table's first column, "Katharina", can sit left of it).
+        margin, first, (mk, my) = min(x for y, x in own), min(own)[1], marks[-1]
+        # and a rule across the page after the marks ("[1 mark]", a rule, "Healthy living"), or the turn of a page, parts this question from the next
+        rules = [(k, d["rect"].y0) for k, (pg, r) in enumerate(pieces) for d in doc[pg].get_drawings()
+                 if d["rect"].height < 2 and d["rect"].width > r.width * 0.6 and r.y0 < d["rect"].y0 < r.y1]
+        ruled = lambda k, b: any((mk, my) < (rk, ry) < (k, b.y0) for rk, ry in rules)  # noqa: E731
         after = [(k, b) for k, b, t in lines if (k, b.y0) > (mk, my - 2) and WORDS.search(t) and not t.startswith("Turn over")
-                 and (abs(b.x0 - margin) < 5 or b.x0 < margin - 30 or re.match(r"Section [A-C]$", t))]
+                 and (abs(b.x0 - margin) < 5 or abs(b.x0 - first) < 5 or b.x0 < margin - 30 or re.match(r"Section [A-C]$", t) or ruled(k, b) or k > mk)]
         if not after:
             n += 1
             continue
@@ -477,7 +588,7 @@ def share_leads(qp_path, set_id, parts):
     current = None
     for p in parts:
         q = p["question"]
-        if q in parted:
+        if q in parted or re.search(r"Section B\s+Dictation", p["text"]):  # a specimen's dictation (German Higher's follows a run of news items)
             current = None
         elif (qp_path, q) in LEADS:
             current = q
@@ -487,6 +598,29 @@ def share_leads(qp_path, set_id, parts):
             pieces = LEADS[(qp_path, current)]
             p["stem"] = cut.save(cut.stack([cut.trim_bottom(cut.render(qp[pg], r), 16) for pg, r in pieces]), f"{set_id}-{q}-stem.webp")
             p["text"] = "\n".join(qp[pg].get_text("text", clip=r) for pg, r in pieces) + "\n" + p["text"]
+
+
+BARE = re.compile(r"^Answer (both|all) parts of (the )?question( \d+)?\.?\s+\d \d \. \d")
+
+
+def bare_starts(qp_path, set_id, parts):
+    """A question with parts whose own start is only "Answer both parts of the question." asks about the setting printed
+    above the question before ("Food. Two Swiss students…", German Higher Listening, November 2021, questions 11 and 12):
+    it shows that question's start instead."""
+    prev = None  # (stem, its text) of the question before
+    for q in dict.fromkeys(p["question"] for p in parts):
+        group = [p for p in parts if p["question"] == q]
+        g = group[0]
+        if g["part"] and g["stem"] and BARE.match(g["text"]) and prev:
+            if os.path.exists(os.path.join(IMG, g["stem"])):
+                os.remove(os.path.join(IMG, g["stem"]))
+            for p in group:
+                p["stem"], p["text"] = prev[0], prev[1] + " " + p["text"]
+        elif g["part"] and g["stem"]:
+            label = re.search(r"\b" + " ".join(q) + r" \. \d", g["text"])
+            prev = (g["stem"], g["text"][:label.start()].strip() if label else "")
+        else:
+            prev = None
 
 
 def cut_set(qp_path, ms_path, er_path, set_id, meta):
@@ -512,6 +646,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
         problems.append(f"{set_id}: left out questions {sorted(gone)} ({dropped} marks), their texts removed for copyright")
     if not writing:
         share_leads(qp_path, set_id, parts)
+        bare_starts(qp_path, set_id, parts)
     by_q = {}
     for p in parts:
         by_q.setdefault(p["question"], []).append(p)
@@ -561,7 +696,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta):
             extra = sorted(set(found) - {p["question"] for p in parts})
             if extra:
                 problems.append(f"{set_id}: tracks for no question: {extra}")
-    total = (TOTAL_NEW if comp[:4] in ("8652", "8692") else TOTAL)[skill][tier] - dropped
+    total = (TOTAL_NEW if comp[:4] in ("8652", "8692", "8662") else TOTAL)[skill][tier] - dropped
     marks = sum(p["marks"] or 0 for p in parts if not p.get("or"))
     if marks != total:
         problems.append(f"{set_id}: {marks} marks, not {total}")
@@ -584,7 +719,17 @@ def run_set(job):
         return set_id, [], [], traceback.format_exc()
 
 
-cut.left_labels, cut.regions, cut.render = left_labels, regions, render
+_row_start = cut.row_start
+
+
+def row_start(page, y, floor=0):
+    """The 2026 specimens' scheme rows are tables of their own, each under its "Qu | Accept | Mark" heading: a row starts at its heading."""
+    top = _row_start(page, y, floor)
+    heads = [s["bbox"][1] for s in spans_of(page) if s["text"].strip() == "Qu" and "Bold" in s["font"] and max(top - 40, floor) < s["bbox"][1] < top + 2]
+    return heads[-1] - 5 if heads else top
+
+
+cut.left_labels, cut.regions, cut.render, cut.row_start = left_labels, regions, render, row_start
 
 
 def main():
