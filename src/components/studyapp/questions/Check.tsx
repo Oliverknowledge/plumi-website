@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { bankFile, papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
-import { markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
+import { hasInk, hasText, markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { splitReport } from "@/lib/studyapp/questions/report";
 import { qa } from "@/lib/studyapp/questions/store";
 import { Crop } from "./Crop";
 import { CheckIcon } from "./icons";
+import { ChevronIcon } from "./pickerIcons";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
 const reports = new Map<string, Promise<Record<string, string>>>();
@@ -21,8 +22,10 @@ function reportsFor(slug: string): Promise<Record<string, string>> {
 }
 
 /**
- * "Check": the pull-up of the mark scheme under a part (the picture of the scheme, or the answer letter of a multiple-choice
- * part, or the PDF where no crop exists), with "Mark yourself" beside it. Nothing is ever marked for the student.
+ * "Mark scheme": the pull-up of the mark scheme under a part (the picture of the scheme, or the answer letter of a multiple-choice
+ * part, or the PDF where no crop exists), with "Mark yourself" under it. Nothing is ever marked for the student: the button is
+ * named for what it shows, so it never reads as "Plumi will check my answer". It is quiet until something is written, and
+ * it is never gold (the sheet's one gold button is Finish set).
  */
 export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: QAnswer | undefined }) {
   const [shut, setShut] = useState(false);
@@ -33,11 +36,12 @@ export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: Q
     qa.check(set.id, part.id);
   };
   const id = `scheme-${part.id}`;
+  const ready = hasInk(answer) || hasText(answer);
   return (
     <div className="qs-check">
       <div className="qs-check-bar">
-        <button type="button" className={`btn${open ? "" : " gold"} qs-check-btn`} aria-expanded={open} aria-controls={id} onClick={toggle} data-testid="check" title="Open the mark scheme and mark yourself">
-          {open ? "Hide the scheme" : "Check"}
+        <button type="button" className={`qs-schemebtn${ready || open ? " is-ready" : ""}${open ? " is-open" : ""}`} aria-expanded={open} aria-controls={id} onClick={toggle} data-testid="check">
+          {open ? "Hide mark scheme" : "Mark scheme"}<ChevronIcon />
         </button>
       </div>
       {open && <Scheme id={id} set={set} part={part} answer={answer} />}
@@ -68,7 +72,6 @@ function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart;
   return (
     <div className="qs-scheme" id={id} data-testid="scheme">
       <span className="qs-tape" aria-hidden="true" />
-      <p className="qs-scheme-label">Mark scheme</p>
       {part.ms ? (
         <>
           {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
@@ -88,7 +91,7 @@ function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart;
       )}
       {part.er && (
         <div className="qs-er">
-          <button type="button" className="qs-mini" aria-expanded={er} onClick={() => setEr((v) => !v)}>Examiner&apos;s report</button>
+          <button type="button" className="qs-link qs-er-btn" aria-expanded={er} onClick={() => setEr((v) => !v)}>Examiner&apos;s report<ChevronIcon /></button>
           {er && (failed ? (
             <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={() => { setFailed(false); setTries((t) => t + 1); }}>Try again</button></p>
           ) : report === null ? <p className="qs-scheme-note">Opening...</p> : !report ? <p className="qs-scheme-note">No report for this question.</p> : (

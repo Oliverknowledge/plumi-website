@@ -55,13 +55,13 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
           {s.skipped.length > 0 && (
             <div className="qs-sum-block">
               <p className="lbl">Skipped</p>
-              <div className="qs-chips">{s.skipped.map((p) => <button key={p.id} type="button" className="chip" onClick={() => onReview(p.id)} aria-label={`Skipped: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
+              <div className="qs-chips">{s.skipped.map((p) => <button key={p.id} type="button" className="qs-chip" onClick={() => onReview(p.id)} aria-label={`Skipped: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
             </div>
           )}
           {waiting.length > 0 && (
             <div className="qs-sum-block">
               <p className="lbl">Not marked yet</p>
-              <div className="qs-chips">{waiting.map((p) => <button key={p.id} type="button" className="chip" onClick={() => onReview(p.id)} aria-label={`Not marked yet: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
+              <div className="qs-chips">{waiting.map((p) => <button key={p.id} type="button" className="qs-chip" onClick={() => onReview(p.id)} aria-label={`Not marked yet: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
             </div>
           )}
 

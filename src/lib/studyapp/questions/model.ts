@@ -107,7 +107,7 @@ export interface QuestionsData {
   prefs: QPrefs;
 }
 
-export const DEFAULT_PREFS: QPrefs = { bg: "ruled", tool: "pen", colour: 0, width: 1 };
+export const DEFAULT_PREFS: QPrefs = { bg: "plain", tool: "pen", colour: 0, width: 1 };
 export const EMPTY_QUESTIONS: QuestionsData = { sets: [], answers: {}, recent: [], open: null, pick: { subject: null, topics: [] }, prefs: DEFAULT_PREFS };
 
 export const MAX_SETS = 40;
@@ -196,22 +196,6 @@ export const isMarked = (a: QAnswer | undefined) => a?.got !== undefined;
 export function zoneHeight(p: Pick<QPart, "m">, a?: QAnswer): number {
   const base = Math.max(ZONE_MIN_H, (p.m ?? 0) * ZONE_PER_MARK);
   return Math.min(ZONE_MAX_H, Math.max(a?.h ?? 0, base));
-}
-
-/**
- * How tall a question will be on the sheet before it has been laid out, as `px + wide * W` where W is the paper's width in px:
- * the pictures scale with the width (their shapes are known, the setup's is guessed at 3.2 to 1) and so does the writing space
- * (800 logical units wide); the rest (headings, buttons, gaps) is fixed. The sheet gives this to the browser as the size to
- * assume for a question that is off the screen, so that jumping or restoring to one lands on it.
- */
-export function estimateBlock(b: Pick<Block, "stem" | "parts">): { px: number; wide: number } {
-  let px = 70 + 64 + 40;   // heading, foot, gaps
-  let wide = b.stem ? 1 / 3.2 : 0;
-  for (const p of b.parts) {
-    px += 32 + 44 + 22 + 60 + 16;   // "Read as text", the zone head and grip, the Check bar, margins
-    wide += (p.w > 0 ? p.h / p.w : 0.4) + zoneHeight(p) / 800;
-  }
-  return { px, wide };
 }
 
 /** Marks a student can give themselves: none if the paper prints none. */
@@ -375,6 +359,9 @@ export function createSet(q: QuestionsData, input: SetInput, now: number): { q: 
   const next = { ...q, sets, open: id };
   return { q: dropped.length ? removeAnswers(next, new Set(dropped)) : next, id, dropped };
 }
+
+/** The one calm line for when a new set made room by removing older ones (never silent: a finished set goes first, then the oldest). */
+export const droppedLine = (n: number): string => (n === 1 ? "An old set was removed to make room." : `${n} old sets were removed to make room.`);
 
 function removeAnswers(q: QuestionsData, ids: ReadonlySet<string>): QuestionsData {
   const answers: Record<string, QAnswer> = {};

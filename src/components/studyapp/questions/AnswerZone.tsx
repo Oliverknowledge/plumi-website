@@ -6,7 +6,7 @@ import { hasInk, hasText, inkTotal, ZONE_MAX_H, zoneHeight, type QAnswer, type Q
 import { currentQuestions, qa } from "@/lib/studyapp/questions/store";
 import { InkCanvas, type InkCanvasHandle } from "./InkCanvas";
 import { setZoneVisible, useIsActiveInk, usePenSeen } from "./inkBus";
-import { CloseIcon, PenSmallIcon, PlusIcon, TypeIcon } from "./icons";
+import { CloseIcon, ExpandIcon, PenSmallIcon, TypeIcon } from "./icons";
 import { TypePad } from "./TypePad";
 import { useMatch } from "./useMatch";
 
@@ -47,6 +47,19 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   const fingerScrolls = prefs.fingerScrolls ?? coarse;
   const label = `Answer for part ${part.l}`;
   const written = hasInk(answer), typed = hasText(answer);
+  const has = written || typed || answer?.got !== undefined;
+
+  // "Clear this answer?": the safe answer (Keep) has focus, Escape is Keep, and focus goes back to where it was (Reset after Keep, the tab after Clear).
+  const resetBtn = useRef<HTMLButtonElement>(null);
+  const keepBtn = useRef<HTMLButtonElement>(null);
+  const modeBtn = useRef<HTMLButtonElement>(null);
+  const back = useRef<"reset" | "tab" | null>(null);
+  useEffect(() => {
+    if (asking) { keepBtn.current?.focus(); return; }
+    const to = back.current;
+    back.current = null;
+    if (to) (to === "reset" ? resetBtn.current : modeBtn.current)?.focus();
+  }, [asking]);
 
   // A canvas only while the zone is near the screen: measured before the first paint (so writing on screen is there at once), then watched.
   useLayoutEffect(() => {
@@ -77,7 +90,9 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
 
   const setMode = (m: "ink" | "type") => { if (answer?.mode !== m) qa.mode(set.id, part.id, m); };
   const more = () => qa.height(set.id, part.id, Math.min(ZONE_MAX_H, base + 120));
+  const keep = () => { back.current = "reset"; setAsking(false); };
   const reset = () => {
+    back.current = "tab";
     setAsking(false);
     ink.current?.clear();
     qa.reset(set.id, part.id);
@@ -106,32 +121,35 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   const showFinger = mode === "ink" && fingerScrolls && coarse && !penSeen;
 
   return (
-    <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
-      <div className="qs-zone-head">
-        <div className="qs-mode">
-          <button type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Write by hand${written ? ", has writing" : ""}`}>
-            <PenSmallIcon /> Write{written && <i aria-hidden="true" />}
-          </button>
-          <button type="button" aria-pressed={mode === "type"} onClick={() => setMode("type")} aria-label={`Type${typed ? ", has typing" : ""}`}>
-            <TypeIcon /> Type{typed && <i aria-hidden="true" />}
-          </button>
-        </div>
-        <span className="grow" />
-        {showFinger && !asking && <button type="button" className="qs-mini qs-fingerbtn" onClick={() => { qa.prefs({ fingerScrolls: false }); setHint(false); }} title="Fingers scroll the page. Tap to write with a finger instead.">Draw with my finger</button>}
-        {asking ? (
-          <span className="qs-ask" role="alertdialog" aria-label="Clear this answer?">
-            <span>Clear this answer?</span>
-            <button type="button" className="qs-mini danger" onClick={reset} autoFocus>Clear</button>
-            <button type="button" className="qs-mini" onClick={() => setAsking(false)}>Keep</button>
-          </span>
-        ) : (
-          <>
-            <button type="button" className="qs-mini" onClick={more} disabled={base >= ZONE_MAX_H} title="Make the answer space taller"><PlusIcon /> <span className="qs-more">More</span><span className="qs-more-w"> space</span></button>
-            <button type="button" className="qs-mini" onClick={() => setAsking(true)} disabled={!written && !typed && answer?.got === undefined}>Reset</button>
-          </>
-        )}
-      </div>
+    <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}${has ? " is-has" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
       <div className="qs-zone-body">
+        <div className="qs-zone-head">
+          <div className="qs-mode">
+            <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Write by hand${written ? ", has writing" : ""}`}>
+              <PenSmallIcon /> Write{written && <i aria-hidden="true" />}
+            </button>
+            <button ref={mode === "type" ? modeBtn : undefined} type="button" aria-pressed={mode === "type"} onClick={() => setMode("type")} aria-label={`Type${typed ? ", has typing" : ""}`}>
+              <TypeIcon /> Type{typed && <i aria-hidden="true" />}
+            </button>
+          </div>
+          <span className="grow" />
+          {showFinger && !asking && <button type="button" className="qs-mini qs-fingerbtn" onClick={() => { qa.prefs({ fingerScrolls: false }); setHint(false); }} title="Fingers scroll the page. Tap to write with a finger instead.">Draw with my finger</button>}
+          {asking ? (
+            <span
+              className="qs-ask" role="group" aria-label="Clear this answer?"
+              onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); keep(); } }}
+            >
+              <span>Clear this answer?</span>
+              <button ref={keepBtn} type="button" className="qs-mini" onClick={keep} data-testid="clear-keep">Keep</button>
+              <button type="button" className="qs-mini danger" onClick={reset} data-testid="clear-yes">Clear</button>
+            </span>
+          ) : (
+            <span className="qs-zone-tools">
+              <button type="button" className="qs-mini qs-icon" onClick={more} disabled={base >= ZONE_MAX_H} title="More space" aria-label="More space"><ExpandIcon /></button>
+              {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Reset</button>}
+            </span>
+          )}
+        </div>
         {mode === "ink" ? (
           near ? (
             <InkCanvas

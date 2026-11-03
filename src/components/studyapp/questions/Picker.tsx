@@ -35,6 +35,12 @@ export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: Que
   const resume = q.sets.filter((s) => !s.finishedAt).sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const browsing = !!saved && !choosing;
   const title = catalogue.find((c) => c.slug === saved)?.title ?? saved ?? "";
+  // Back from a sheet (or a first visit) puts focus on the page's heading, so a keyboard or a screen reader starts at the top, not on nothing.
+  const h1 = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const a = document.activeElement;
+    if (!a || a === document.body) h1.current?.focus({ preventScroll: true });
+  }, []);
 
   return (
     <main className={`qs-page qs-picker${leaving ? " is-leaving" : ""}`} data-testid="picker" id="qs-main">
@@ -42,7 +48,7 @@ export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: Que
         <div className="qs-col">
           <header className="qs-head">
             <div className="qs-head-text">
-              <h1>Questions</h1>
+              <h1 ref={h1} tabIndex={-1}>Questions</h1>
               {browsing ? (
                 <button type="button" className="qs-subj" onClick={() => setChoosing(true)} data-testid="change-subject" aria-label={`${title}. Change subject`}>
                   <span>{title}</span><ChevronIcon />

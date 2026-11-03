@@ -5,7 +5,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { INK_TOTAL_CAP } from "@/lib/studyapp/questions/ink";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import {
-  blockScore, blocks, cutWords, estimateBlock, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
+  blockScore, blocks, cutWords, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
   type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
 } from "@/lib/studyapp/questions/model";
 import { qa, useQuestions } from "@/lib/studyapp/questions/store";
@@ -79,12 +79,24 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
     return () => clearTimeout(t);
   }, [cur, set.at, set.id]);
 
-  // Return to the question that was open.
+  // Return to the question that was open. Pictures and the writing spaces above it settle for a second or two after the page opens, and
+  // each would move it, so it is put back in place every time its position has drifted (nothing is chased once the student has touched the page).
   useEffect(() => {
     if (set.finishedAt && !reviewing) return;
-    const go = () => { if (set.at > 0 && window.scrollY < 40) refs.current[set.at]?.scrollIntoView({ block: "start" }); };
-    const ts = [60, 500, 1400].map((ms) => setTimeout(go, ms));
-    return () => ts.forEach(clearTimeout);
+    let touched = false, aligned: number | null = null;
+    const stop = () => { touched = true; };
+    const evs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
+    evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
+    const go = () => {
+      const el = refs.current[set.at];
+      if (touched || set.at <= 0 || !el) return;
+      const top = el.getBoundingClientRect().top;
+      if (aligned !== null && Math.abs(top - aligned) < 6) return;
+      el.scrollIntoView({ block: "start" });
+      aligned = el.getBoundingClientRect().top;
+    };
+    const ts = [60, 250, 500, 800, 1100, 1400, 1800, 2300].map((ms) => setTimeout(go, ms));
+    return () => { evs.forEach((e) => window.removeEventListener(e, stop)); ts.forEach(clearTimeout); };
     // only on opening a set
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [set.id, reviewing]);
@@ -176,7 +188,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
         </div>
         {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} marked</span>}
         <PagePopover prefs={prefs} />
-        <button type="button" className="btn gold qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
+        <button type="button" className="btn qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
       </div>
       <p className="qs-sr" role="status" data-testid="progress-status">{prog.of > 0 ? `${prog.done} of ${prog.of} parts marked` : ""}</p>
       <p className="qs-sr" role="status" aria-live="polite" data-testid="sheet-say">{said}</p>
@@ -193,7 +205,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
             <QuestionBlock key={b.key} set={set} block={b} answers={q.answers} prefs={prefs} first={i === 0} setRef={setRef} index={i} />
           ))}
           <section className="qs-end" aria-label="End of the set">
-            <Image src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={56} height={56} unoptimized />
+            <Image src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={64} height={64} unoptimized />
             <div>
               <b>That is the set</b>
               {check.unmarked > 0 && <p>{check.unmarked} {check.unmarked === 1 ? "part" : "parts"} not marked yet.</p>}
@@ -242,18 +254,13 @@ interface QProps {
 /** Redrawn only when this question's own parts, the preferences, or the set itself change: a stroke or a keystroke in one part redraws that part alone. */
 const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, first, setRef, index }: QProps) {
   const sc = blockScore(set, block, answers);
-  // The height to assume while this question is off the screen (questions.css gives it `content-visibility: auto` where this is set).
-  const est = useMemo(() => estimateBlock(block), [block]);
-  const qh = `calc(${est.px}px + ${est.wide.toFixed(3)} * var(--qs-w, 780px))`;
   const p0 = block.parts[0];
   const small = [nameOf(set.names, p0.s) ?? p0.s, nameOf(set.names, p0.p) ?? p0.p].filter(Boolean).join(" · ");
   return (
-    <section className="qs-q" ref={(el) => setRef(index, el)} style={{ "--qh": qh } as React.CSSProperties} data-n={block.n} id={`q-${block.n}`} data-testid="question-block">
+    <section className="qs-q" ref={(el) => setRef(index, el)} data-n={block.n} id={`q-${block.n}`} data-testid="question-block">
       <header className="qs-qhead">
-        <span className="qs-qnum" aria-hidden="true">{block.n}</span>
-        <h2 className="qs-qmeta"><span className="qs-sr">Question {block.n}. </span>{small}</h2>
-        <span className="grow" />
-        {first && <Image className="qs-qmascot" src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={40} height={40} unoptimized />}
+        <h2 className="qs-qmeta"><span className="qs-sr">Question {block.n}. </span><span aria-hidden="true">Q{block.n}{small ? " \u00b7 " : ""}</span>{small}</h2>
+        {first && <Image className="qs-qmascot" src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={56} height={56} unoptimized />}
       </header>
       {block.stem && (
         <Crop className="qs-stem" src={stemImage(block.stem, set.cv)} alt={`The start of question ${block.n}`} eager={block.n <= 2} guess={3.2} />

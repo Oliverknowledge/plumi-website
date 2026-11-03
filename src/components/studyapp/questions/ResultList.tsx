@@ -113,7 +113,7 @@ export function ResultList({ rows, meta, selected, done, groups, onToggle, onAdd
             </span>
             {canAddAll && (
               // A tap target, not a button inside the option: the keyboard does the same with A (or Shift+Enter).
-              <span className={`qs-addq${full ? " is-off" : ""}`} data-addall aria-hidden="true">Whole question</span>
+              <span className={`qs-addq${full ? " is-off" : ""}`} data-addall aria-hidden="true">{on ? "Add the rest" : "Whole question"}</span>
             )}
           </div>
         );

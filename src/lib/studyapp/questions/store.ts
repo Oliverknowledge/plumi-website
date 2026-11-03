@@ -114,6 +114,13 @@ export function useQuestionsValue<T>(pick: (q: QuestionsData) => T): T {
 
 const now = () => Date.now();
 
+/** Told when making a new set pushed older ones out (the cap), so the page can say so instead of letting a set vanish unannounced. */
+const droppedListeners = new Set<(n: number) => void>();
+export function onSetsDropped(fn: (n: number) => void): () => void {
+  droppedListeners.add(fn);
+  return () => { droppedListeners.delete(fn); };
+}
+
 export const qa = {
   /** Make a set from chosen parts and put it on the desk. Ink of any set pushed out by the cap is deleted. */
   start(input: SetInput): string {
@@ -121,6 +128,7 @@ export const qa = {
     let dropped: string[] = [];
     changeQuestions((q) => { const r = createSet(q, input, now()); id = r.id; dropped = r.dropped; return r.q; });
     for (const d of dropped) void removeSetInk(d);
+    if (dropped.length) droppedListeners.forEach((f) => f(dropped.length));
     return id;
   },
   open: (id: string | null) => changeQuestions((q) => openSet(q, id)),

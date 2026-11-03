@@ -2,7 +2,7 @@
 
 The fourth place in the study app: **Desk | Study | Questions | Flashcards**, at `/study/questions` (`study.tryplumi.app/questions`).
 A student picks past-paper parts from the question bank, then works through them on a lofi sheet, writing the answer
-directly under each part (a pen, a mouse, a finger, or the keyboard), checks the mark scheme and marks themselves.
+directly under each part (a pen, a mouse, a finger, or the keyboard), pulls up the mark scheme and marks themselves.
 Behind the same sign-in gate as the rest. **There is no AI marking in this version.**
 
 ## What is on screen
@@ -11,9 +11,9 @@ Behind the same sign-in gate as the rest. **There is no AI marking in this versi
 |---|---|---|
 | Subject | Level, board, tile (every bank subject, about 120). The last choice and its topics are remembered | `SubjectChooser.tsx` |
 | Pick | Search first, one **Filters** sheet (topics, paper, series, marks, mark scheme), a rail of topic chips (areas in a long spec), **Mix for me** (the picks are shown as "your mix" with 5 / 10 / 15 and Shuffle). Rows: tick, thumbnail, "Q2.3, 2 marks", topic and paper, one opening line, "Whole question" (key A or Shift+Enter). The Start bar appears only when something is picked. Up to 60 parts a set | `Picker.tsx`, `ResultList.tsx` |
-| Sheet | Cream paper on a wooden desk. Per question: the setup picture (if any), then each part's picture with its answer zone, **Check**, and margin mark under it; "(Total for Question 1 is 5 marks)" at the foot. Quiet progress bar, pen tray, Page settings | `Sheet.tsx` |
-| Answer zone | **Write** (ink) or **Type**, switchable per part, remembered, both can hold content (a dot on the tab shows which does). Height: 90 units a mark, at least 140; "More space" or drag the grip | `AnswerZone.tsx` |
-| Check | Opens the mark scheme picture (or the answer letter of a multiple-choice part, or the PDF link where no crop exists), the examiner's report if there is one, and **Mark yourself**: one tick circle per mark. The mark is written in the margin in a green hand (amber if partial, red if none). Nothing is ever awarded for the student | `Check.tsx` |
+| Sheet | Cream paper on a wooden desk. A slim bar (Questions, the set's name, one capsule per question, "2 of 5 marked", Page, Finish). Per question: a small "Q2 · June 2025 · Paper 1 Foundation" line, the setup picture (if any), then each part's picture with its answer zone, **Mark scheme**, and margin mark under it; "(Total for Question 1 is 5 marks)" at the foot, then one gold **Finish set**. Pen tray, Page settings | `Sheet.tsx` |
+| Answer zone | One soft frame directly under the part's picture, with its tools along the top: **Write** and **Type** (switchable per part, remembered, both can hold content: a dot on the tab shows which does), then **More space** (icon) and **Reset** (only once there is something to clear), which appear when you reach for the zone (hover, focus, writing) and always on a touch screen. Reset asks "Clear this answer?" with **Keep** focused, Escape means Keep, and focus goes back to Reset (or to the tab after Clear). The paper is **plain** by default (the printed answer lines in the picture above are the lines); Lined, Dots and Graph are in Page. Height: 90 units a mark, at least 140; drag the grip | `AnswerZone.tsx` |
+| Mark scheme | A quiet button named for what it shows (never "Check", which read as "Plumi will check my answer"; never gold). Opens the mark scheme picture (or the answer letter of a multiple-choice part, or the PDF link where no crop exists), the examiner's report link if there is one, and **Mark yourself**: one numbered circle per mark. The mark is written in the margin in a green hand (amber if partial, red if none). Nothing is ever awarded for the student | `Check.tsx` |
 | Re-mark | **Removed** (a disabled button on every question read as a bug). No AI marking; the student marks themselves | |
 | Summary | Marks, percent, per-topic bars, skipped parts, parts not marked yet. **Redo the ones you dropped marks on** (a new set, no answers carried over), **Keep going** (back to the picker), Review the sheet | `Summary.tsx` |
 
@@ -32,9 +32,9 @@ one-line-per-subject catalogue, a static route serves one subject's topic tree, 
 (a test holds them equal to `partImage` / `stemImage`).
 
 **Volume.** A board set is about 6,400 parts (one subject up to about 3,000). `parts.json` is fetched when the subject is chosen
-(a few hundred KB); filtering is a pass over the array per change. The list is **windowed**: fixed 100 px rows, only the rows in
+(a few hundred KB); filtering is a pass over the array per change. The list is **windowed**: fixed 96 px rows, only the rows in
 view plus six either side exist in the DOM (`windowOf`), scrolling with the page (no nested scroller, which is poor on an iPad).
-It is a listbox (arrows, Page Up/Down, Home/End, Space/Enter to tick). Thumbnails are the full crop clipped to 124 x 76 px at a third of its size, lazy loaded.
+It is a listbox (arrows, Page Up/Down, Home/End, Space/Enter to tick). Thumbnails are the full crop clipped to 132 x 70 px, lazy loaded.
 Text search folds 1 MB of paper text once, in slices of 400, after the first keystroke.
 
 **Mix for me** (`mix`): from what the filters leave, n parts spread across the chosen topics (round robin), skipping parts done
@@ -64,8 +64,11 @@ seen (strokes are identified by a hash of their content), and a BroadcastChannel
 erased, one the other tab erased and this one still holds is kept: nothing a student wrote is lost to a merge. A record with `v` above 1 (a newer app) is read but never overwritten.
 
 **Resume.** `open` is the set on the desk; closing the tab and coming back to `/study/questions` reopens it, scrolled to the question
-that was at the top (`at`, written 600 ms after it changes; restored with three retries while pictures settle). The picker also
+that was at the top (`at`, written 600 ms after it changes). The restore scrolls to it, then puts it back each time the pictures and writing spaces above it have
+moved it (eight checks over the first 2.3 s, none once the student has touched or scrolled the page), so it lands on the right question every time (measured below). The picker also
 shows "Pick up" for an unfinished set. **Back** (Questions, top left) returns to the picker without closing the set.
+
+Starting a set when 40 are kept removes the oldest finished one (else the oldest) and says so ("An old set was removed to make room."), never silently.
 
 Known storage limits: no sync across devices; clearing site data deletes everything; **Safari deletes a site's script-written
 storage after seven days without a visit unless it is added to the Home Screen**; a tab still running the site from before this
@@ -140,14 +143,15 @@ being written is not under the tray (smooth, instant under reduced motion).
 
 ## Accessibility
 
-Listbox with `aria-activedescendant`, `aria-multiselectable` and a live count; every control a button or a native input with a name; 44 px touch targets
-(the tray, tick circles, mode tabs); the ink surface is `role="img"` with a name that says to choose **Type** for the keyboard, and **Type** is one tap on every zone;
-tick circles are a `radiogroup`; the grip is a keyboard-operable separator (arrow keys); dialogs are `<dialog>`; `prefers-reduced-motion` stills the loading shimmer
-(and the app's global rule stops the rest).
+- **Keyboard and screen reader.** The picker list is a listbox with `aria-activedescendant`, `aria-multiselectable`, `aria-setsize` and `aria-posinset`, the active row is always in the DOM, the count is a live region, there is a "Skip to the questions" link, and A (or Shift+Enter) adds the rest of a row's question (no button inside an option). The sheet has one h1 (the set's name), an h2 per question, labelled groups per part, two skip links, progress as `nav > ol > button[aria-current]` plus a "3 of 8 parts marked" status, and radios with arrow keys for the self-mark. Dialogs (Your sets, Filters, Page, "Finish anyway?") are native `<dialog>`s: focus is kept, Escape closes, focus returns to the button. "Clear this answer?" in a zone puts focus on **Keep**, Escape is Keep and focus goes back to Reset (to the tab after Clear). Focus goes to the heading when the picker is reached by Back, and when a set opens.
+- **Pointer and touch.** Every press target is 44 px on a touch screen (tray, tick circles, tabs, the More space icon); the pen tray and sticky bars are never on top of a focused control (scroll padding); sticky bars become static on a short screen (400% zoom).
+- **Focus ring.** One two-tone ring (navy 3px, white halo) everywhere; round the whole frame for the writing space (the canvas or the textarea has no ring of its own).
+- **Ink.** The surface is `role="img"` with a name that says to choose **Type** for the keyboard, and Type is one tap on every zone.
+- **Forced colours.** The paper, the pictures and the writing stay white and dark, every selected state gets an outline (including the Page and finish dialogs and a picture that did not load). **Reduced motion** stills every slide, fade and shimmer.
 
 ## Tests
 
-`npm run app:test` includes `src/lib/studyapp/questions/*.test.ts` (65 tests): stroke simplification, encode and decode round trip, storage cleaning,
+`npm run app:test` (308 tests in all) includes `src/lib/studyapp/questions/*.test.ts`: stroke simplification, encode and decode round trip, storage cleaning,
 eraser hit tests, undo and redo; picker filters, search, order, mix (spread, recent, seeded), window; sets, grouping, self-mark totals and clamps, redo set,
 summary, caps, the sanitiser, the document round trip; routing for `/questions`; picture addresses equal the bank's. Browser scripts used for this work
 (Playwright, real crops from R2) are not in the repo: they drove picking, writing with a synthetic pen, erasing, undo, reload, typing, check, self-mark, finish, redo,
@@ -155,7 +159,7 @@ resume, touch behaviour, at 1280 x 800, 1024 x 768, 820 x 1180 and 390 x 844.
 
 ## Not built, and why
 
-- **AI marking.** "Re-mark" is a disabled button. Marking handwriting needs a decision: cost per mark, DeepSeek consent in the privacy policy (the
+- **AI marking.** There is no Re-mark button (a disabled one on every question read as a bug); the student marks themselves. Marking handwriting needs a decision: cost per mark, DeepSeek consent in the privacy policy (the
   Supabase `ai` edge function), a vision model for handwriting (a text model cannot read the PNG), and what a student is told when the model is unsure.
   `getAnswerImage` and `getAnswerText` are ready for it; the truthful-assessment rule (never award what was not done) applies.
 - **Handwriting to text on the web.** Same decision, plus accuracy on maths notation.
@@ -164,7 +168,7 @@ resume, touch behaviour, at 1280 x 800, 1024 x 768, 820 x 1180 and 390 x 844.
   undo that survives a reload; a search over mark scheme text only; the bank's tier and option filters (Higher or Foundation is the paper filter); the
   worked solutions the bank page has; audio for listening questions; the insert (sources) for English Language; "Show question so far" for a single later part
   (the setup is shown, earlier parts are not).
-- The crops include the paper's own printed answer lines, so a part shows those and then the zone under it.
+- The crops include the paper's own printed answer lines, so a part shows those and then the zone directly under it (plain by default, so there is no second set of lines). **Needs from the bank build:** `ay` per part (where the printed answer lines start), so the picture can end there and the zone replace them: one writing surface. It cannot be found in the browser (the pictures are cross-origin, so their pixels cannot be read).
 
 ## Sheet, data and accessibility (fix round 1)
 
@@ -194,7 +198,7 @@ roving tabindex and arrow keys; focus goes to the heading on Start, Review and F
 Page also has **Always type** (every part starts in Type; a part switched to Write keeps its choice) and **Typing size** Normal or Large (1rem, 1.375rem). On a phone Page is a sheet at the foot.
 
 **Speed.** `QuestionBlock` and `PartBlock` are memoised on their own set identity (not `updatedAt`), part, answers and prefs: typing or marking in one part of a 30-part sheet redraws that part (2 renders), not 30.
-Each question carries `--qh` (`estimateBlock`) for `content-visibility: auto`.
+`content-visibility: auto` on questions was measured and **left out** (see the last section).
 
 
 ## Picker, chooser and the tab's CSS (fix round 1, picker fixer)
@@ -205,4 +209,4 @@ Each question carries `--qh` (`estimateBlock`) for `content-visibility: auto`.
 - **Chooser.** GCSE and A-Level first, other levels under More, a board rail only when there is a choice, tiles grouped by board, every subject tinted (`--t-*`), Maths / Biology / Chemistry / Physics first. The last level and board are remembered (localStorage key `plumi-qs-chooser`, per-visitor, optional).
 - **Bad data.** `parts.json`, `text.json` and the subject file are validated on arrival (`cleanRows`, `cleanText`, `cleanMeta`): anything malformed reads as "did not load" with Try again (a retry shows the skeleton), never a crash. Slow (over 8 s) says so with Try again. `text.json` failing says "searching titles only" with Try again after one quiet retry. `questions/error.tsx` catches anything else: "Try again" clears the saved subject and closes the open set (kept in Your sets), nothing is deleted. Note: this Next version passes `retry` (not `reset`) to error.tsx.
 - **CSS.** `questions.css` (picker, chooser, dialogs, desk, shared), `questions-ink.css` (pen, zone, tray), `questions-sheet.css` (sheet parts) load in that order from `questions/page.tsx`. Type scale: Pixelify 38 / 22 / 16, Nunito 800 15 / 13 / 12, Caveat 25 / 44 / 76. One focus ring on this tab (navy 3px over a white 5px halo). Forced colours: the paper and crops stay white, every selected state gets an outline. Short screens (max-height 520px, 400% zoom): sticky bars become static. `html:has(.pa)` is `color-scheme: light` (no dark scrollbar).
-- **content-visibility on `.qs-q`** is written but off: it applies only under `.qs-desk.is-settled`, which nothing sets. Turned on from the start it made a reopened set land about 4,900px from the right question (270px, correct, with it off), because the restore scrolls before the questions above are laid out.
+- **content-visibility on `.qs-q`: tried twice, not used.** On a 30-part sheet (7 questions, 820 x 1180) with the CPU throttled 4x and a 55-key typing run: applying it to every question after reopening did cut typing cost (events averaging 84 to 92 ms against about 129 ms, long tasks 1.0 to 1.5 s against 4.9 s, one run each side) **but a reopened set then landed up to 300 px from the right place** (top of the target at 556, 259, 503, 22, minus 27 px against the correct 270 in five of seven runs), and `content-visibility` isolates its content, so the pictures' `mix-blend-multiply` lost the cream paper and showed as white slabs (fixed by giving each question the paper's own cream and grain, which is more weight to carry). Applying it only to questions more than a screen below the reader (so nothing in view or above can move) landed correctly every time but made no measurable difference to typing (average event 170 to 243 ms with it, 167 to 187 ms without, on a noisy machine). So the rule, `--qh` and `estimateBlock` are deleted. The reopen restore was fixed on the way: it re-aligns to the question whenever the content above has moved it (eight checks in the first 2.3 s, stopped by any wheel, touch, key or pointer press), and lands on the right question in seven of seven runs (270 px, the scroll margin), cold or warm, where the old three retries did not re-align once the page had moved more than 40 px.

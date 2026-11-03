@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { EMPTY, sanitise } from "../model";
 import { describe, test } from "node:test";
 import {
-  blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, estimateBlock, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, MAX_SET_PARTS, MAX_SETS, openSet,
+  blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, droppedLine, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, MAX_SET_PARTS, MAX_SETS, openSet,
   progress, redoInput, resetPart, sanitiseQuestions, scoreSet, setHeight, setInkMeta, setMode, setText, TEXT_PART_CAP, TEXT_TOTAL_CAP, zoneHeight,
   type QPart, type QuestionsData, type SetInput,
 } from "./model";
@@ -54,6 +54,11 @@ describe("making a set", () => {
     assert.ok(r.q.answers[keyOf(ids[0], "s0")]);
     const r2 = createSet(r.q, { ...INPUT, parts: [part("fresh2", "1.1", 1, [])] }, T0 + 300);
     assert.deepEqual(r2.dropped, [ids[0]]);
+  });
+  test("a set pushed out is never silent: the line the page shows for it is calm, plain and has no dash", () => {
+    assert.equal(droppedLine(1), "An old set was removed to make room.");
+    assert.equal(droppedLine(3), "3 old sets were removed to make room.");
+    assert.ok(!/\u2014|\u2013/.test(droppedLine(1) + droppedLine(2)));
   });
 });
 
@@ -299,7 +304,7 @@ describe("reading storage", () => {
   });
   test("preferences: unknown values fall back, valid ones stay", () => {
     const s = sanitiseQuestions({ prefs: { bg: "tartan", tool: "laser", colour: 9, width: -1, fingerScrolls: false, hand: "yes", keys: "no", alwaysType: 1, typeSize: "huge" } });
-    assert.deepEqual(s.prefs, { bg: "ruled", tool: "pen", colour: 2, width: 0, fingerScrolls: false });
+    assert.deepEqual(s.prefs, { bg: "plain", tool: "pen", colour: 2, width: 0, fingerScrolls: false });
     const t = sanitiseQuestions({ prefs: { keys: false, alwaysType: true, typeSize: "large" } });
     assert.deepEqual([t.prefs.keys, t.prefs.alwaysType, t.prefs.typeSize], [false, true, "large"]);
   });
@@ -354,24 +359,5 @@ describe("words for the picture", () => {
     assert.equal(nameOf({ JUN25: "June 2025" }, "JUN25"), "June 2025");
     assert.equal(nameOf({}, "constructor"), undefined);
     assert.equal(nameOf({}, "__proto__"), undefined);
-  });
-});
-
-describe("how tall a question is assumed to be before it is laid out", () => {
-  test("grows with its parts, their pictures and their writing space; a setup adds a picture", () => {
-    const one = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500 })])[0];
-    const two = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500 }), part("b", "1.2", 4, [], { w: 1000, h: 250 })])[0];
-    const withStem = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500, st: 1 })])[0];
-    const at = (b: { px: number; wide: number }, w: number) => b.px + b.wide * w;
-    const [e1, e2, es] = [estimateBlock(one), estimateBlock(two), estimateBlock(withStem)];
-    assert.ok(at(e2, 800) > at(e1, 800) + 300);
-    assert.ok(at(es, 800) > at(e1, 800));
-    assert.ok(at(e1, 800) > at(e1, 340), "a narrower paper is shorter");
-    // 2 marks: 500/1000 of the width for the picture, 180/800 for the writing space
-    assert.ok(Math.abs(e1.wide - (0.5 + 180 / 800)) < 1e-9);
-  });
-  test("a part with no size does not break it", () => {
-    const e = estimateBlock({ stem: null, parts: [part("a", "1.1", null, [], { w: 0, h: 0 })] });
-    assert.ok(Number.isFinite(e.px) && Number.isFinite(e.wide) && e.wide > 0);
   });
 });

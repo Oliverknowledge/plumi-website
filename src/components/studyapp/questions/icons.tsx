@@ -19,3 +19,4 @@ export const PenSmallIcon = () => <I size={18}><path d="M4 20l1-4L16.5 4.5a2.1 2
 export const PlusIcon = () => <I size={18}><path d="M12 5v14M5 12h14" /></I>;
 export const CloseIcon = () => <I size={18}><path d="M6 6l12 12M18 6L6 18" /></I>;
 export const SearchIcon = () => <I size={18}><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></I>;
+export const ExpandIcon = () => <I size={18}><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" /></I>;

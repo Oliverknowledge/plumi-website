@@ -19,11 +19,11 @@
 .pa .qs-pn li { flex: 1 1 0; min-width: 24px; display: flex; }
 @media (pointer: coarse) { .pa .qs-pn li { min-width: 44px; } }
 .pa .qs-pn-b { flex: 1; display: grid; place-items: center; min-width: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
-.pa .qs-pn-b i { display: block; width: 100%; height: 10px; border: 1.5px solid var(--ink); border-radius: 5px; background: #fff; transition: height .15s, background .15s; }
-.pa .qs-pn-b:hover i { background: #fff3cf; }
-.pa .qs-pn-b.done i { background: #8fb35a; }
-.pa .qs-pn-b.here i { height: 16px; background: var(--gold); }
-.pa .qs-pn-b.done.here i { background: linear-gradient(90deg, #8fb35a 50%, var(--gold) 50%); }
+.pa .qs-pn-b i { display: block; width: 100%; height: 8px; border: 1.5px solid rgba(34, 48, 77, .35); border-radius: 5px; background: #fff; transition: height .15s, background .15s, border-color .15s; }
+.pa .qs-pn-b:hover i { background: #e6eefa; border-color: var(--navy); }
+.pa .qs-pn-b.done i { background: #8fb35a; border-color: #6f9a45; }
+.pa .qs-pn-b.here i { height: 14px; background: var(--navy); border-color: var(--navy); }
+.pa .qs-pn-b.done.here i { background: linear-gradient(90deg, #8fb35a 50%, var(--navy) 50%); }
 @media (max-width: 640px) {
   .pa .qs-bar .qs-bar-mid { gap: 0; }
   .pa .qs-bar .qs-bar-mid .qs-bar-title { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; flex: none; }
@@ -72,9 +72,6 @@
 .pa .qs-confirm-line { margin: 0 0 16px; font: 800 17px/1.4 var(--f-body); }
 .pa .qs-confirm-acts { display: flex; flex-wrap: wrap; gap: 10px; }
 .pa .qs-confirm-acts .btn { min-height: 48px; }
-
-/* ── the paper's inner width, for the height each question is assumed to have while it is off the screen (Sheet.tsx: --qh) ── */
-.pa .qs-paper { --qs-w: calc(min(880px, 100vw - 28px) - 2 * clamp(14px, 4.4vw, 46px)); }
 
 /* ── forced colours: the progress capsules keep their meaning without the fills ── */
 @media (forced-colors: active) {

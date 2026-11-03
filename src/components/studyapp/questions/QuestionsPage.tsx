@@ -1,8 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useQuestions } from "@/lib/studyapp/questions/store";
+import { useEffect } from "react";
+import { droppedLine } from "@/lib/studyapp/questions/model";
+import { onSetsDropped, useQuestions } from "@/lib/studyapp/questions/store";
 import type { CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { toast } from "../toast";
 import { Picker } from "./Picker";
 import { Sheet } from "./Sheet";
 
@@ -12,6 +15,8 @@ import { Sheet } from "./Sheet";
  */
 export function QuestionsPage({ catalogue }: { catalogue: CatalogueSubject[] }) {
   const { ready, q } = useQuestions();
+  // A new set that pushed an older one out (the cap) says so, so nothing is deleted without a word.
+  useEffect(() => onSetsDropped((n) => toast(droppedLine(n))), []);
   if (!ready) {
     return (
       <main className="qs-page qs-wait" role="status" aria-label="Opening your questions">
