@@ -5035,7 +5035,9 @@ up to its 100 marks, every one tagged.
   its crop (`SHARED` in `cut_dt.py`).
 - **Answer spaces.** A big empty box or gap for sketching is cut down to about 60pt, so it doesn't
   bloat a crop; an isometric grid, a part-drawn figure and a plan-view box under 170pt tall stay
-  whole. Ruled answer lines stay: `lib/questionSetPdf.ts` looks for them in a printed set.
+  whole. Ruled answer lines stay: `lib/questionSetPdf.ts` looks for them in a printed set. A crop
+  ends above the page's own border: `cut_food.py`'s frame takes that border for a table's bottom
+  rule, which would keep all the white space above it (81 crops here).
 - **Mark schemes:** each part's row of AQA's "Qu | Part | Marking Guidance" table, cut from its label
   to the next and across pages (160 crops). Each multiple-choice key is read from Section A's "B Brass
   1 mark" rows and checked against the question paper's option B before it is kept. November 2020's

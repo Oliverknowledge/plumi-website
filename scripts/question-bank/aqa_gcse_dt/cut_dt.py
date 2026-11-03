@@ -67,9 +67,13 @@ _frame = cut.frame
 
 
 def frame(page, portrait=True):
-    """Food's frame, ending above "END  OF  QUESTIONS" and "Question 7 continues on the next page"."""
+    """Food's frame, ending above "END  OF  QUESTIONS" and "Question 7 continues on the next page", and above the page's own
+    border at its foot, which Food's frame takes for a table's bottom rule: trim_bottom would keep all the white space above it."""
     f = _frame(page, portrait)
     if portrait:
+        for d in page.get_drawings():
+            if d["rect"].width >= 480 and d["rect"].height < 3 and d["rect"].y0 > page.rect.height - 90:
+                f.y1 = min(f.y1, d["rect"].y0 - 1)
         for block in page.get_text("dict")["blocks"]:
             for line in block.get("lines", []):
                 if re.match(r"END\s+OF\s+QUESTIONS|Question \d+ continues", "".join(s["text"] for s in line["spans"]).strip()):
