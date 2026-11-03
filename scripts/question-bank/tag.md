@@ -97,6 +97,26 @@ collects them. The brief is the Edexcel one above, with these differences:
 - Physics's "Units" sub-topics are left out: a question on a unit gets the sub-topic that uses it.
 - Practicals get the content sub-topic they sit in.
 
+## Edexcel International A Level sciences
+
+`edexcel_ial/tag_ial.py split` writes batches for Pearson Edexcel's International A Level
+Biology (WBI11-16), Chemistry (WCH11-16) and Physics (WPH11-16) to `.work/edexcel-ial/tag/`, and
+`merge` collects them. The brief is the Edexcel one above, with these differences:
+
+- Chemistry's codes are its lettered sub-topics where the specification has them (`8.B` is "8B
+  The elements of Groups 1 and 2"); elsewhere, and in Biology and Physics, a code is a group of
+  the specification's numbered statements (shown in brackets): `6.2` is the second group of
+  Topic 6, not statement 6.2, and Physics' `2.3.4` is the fourth group of heading 2.3. Tag by content.
+- Each line has a `paper`, its unit ("AS Unit 2", "Unit 5"). Units 1 and 2 test the topics marked
+  [AS]; Units 4 and 5 the [A-Level only] ones, and can lean on AS content.
+- Units 3 and 6 are the practical skills papers. Tag each part to the content topic its
+  experiment is about (a titration's calculation is the titration topic; an enzyme experiment is
+  "Proteins and enzymes"). Use `P.1` ("Practical skills") only when the part tests practical
+  skill with no content to speak of: uncertainty and percentage error, choosing apparatus,
+  plotting or reading a graph, safety, improving a method. A part can have a content topic and
+  `P.1`.
+- Practicals in Units 1, 2, 4 and 5 get the content topic they sit in.
+
 ## OCR sciences
 
 `ocr/tag_ocr.py split` writes batches for OCR's A-Level Biology A, Chemistry A
@@ -1675,3 +1695,80 @@ brief is the one at the top, with these differences:
   garden business's costs is `2.6`; "Explain what is meant by division of labour" is `2.1`).
 - The 6-mark "Evaluate" and "Analyse" parts often span topics: give the main one first and a
   second only when the scheme's indicative content genuinely needs it.
+
+## AQA A-Level Chemistry, legacy units (2420, 2010–2016)
+
+`aqa_chem_legacy/tag_legacy.py split` writes batches of the old CHEM1, CHEM2, CHEM4 and CHEM5
+parts to `.work-chem-legacy/tag/`, and `merge` collects them. They were tagged on 2 November 2026
+by Claude subagents with the brief above, against the current specification (7405), with these
+differences:
+
+- `chemistry-topics.txt` lists 7405's topics and, under each, its sub-topics with the start of
+  what the specification says. Answer with the topic code (`3.2.2`), as above.
+- Each line has a `unit` and a `label` ("2(b)(ii)"). The old units mixed content differently
+  (CHEM2 had industrial chemistry, CHEM5 had both energetics and transition metals), so tag by
+  what the part tests, not by unit.
+- These questions were written for the old specification. If what a student needs to score the
+  marks is not in 7405 at all, answer `["off", "<a few words why>"]` and the part is left out of
+  the bank. Examples: extracting iron, aluminium, copper or tungsten (the blast furnace,
+  electrolysis of alumina, scrap iron), recycling metals, deflecting ions in a magnetic-sector
+  mass spectrometer (7405 teaches time of flight). But extracting titanium with magnesium is in
+  7405 (3.2.2), as are cracking, CFCs and ozone, carbon neutrality and biofuels, IR absorption
+  by CO2, methane and water and global warming (3.3.6), and an ion gaining an electron at the
+  detector (3.1.1). The first brief also named the detector and the greenhouse effect as off;
+  the parts tagged off for those were put back by hand (`tag/overrides.json`). Mark a part off only when its marks depend on the missing content;
+  a part that merely mentions an old context but tests on-spec chemistry gets its topic.
+
+## AQA Physics A legacy (2450)
+
+`aqa_physics_legacy/tag_legacy.py split` writes the 2010–2016 Physics A units (PHYA1, PHYA2,
+PHYA4, PHYA5 and its four options, from `aqa_physics_legacy/cut_legacy.py`) to
+`.work/phya/tag/`, and `merge` collects them into `.work/phya/tags.json`. The brief is the
+one above, with the 7408 specification's topics (`topics.txt`), so the old questions sit
+under the topics the bank already has. Each line has the `unit` it comes from, its `setup`,
+its own words (`question`, answer lines shown as "…") and the start of its `scheme`, or the
+`key` of a multiple-choice question (PHYA4 Section A, whose `question` includes options A–D).
+
+- Tag what the part tests on the current specification. The legacy units map onto it:
+  PHYA1 → 3.2 Particles and radiation and 3.5 Electricity; PHYA2 → 3.4 Mechanics and
+  materials and 3.3 Waves; PHYA4 → 3.4.1 (momentum and impulse), 3.6.1 (circular motion,
+  simple harmonic motion, resonance) and 3.7 Fields (gravitational, electric, capacitance,
+  magnetic fields, electromagnetic induction, alternating current, transformers); PHYA5
+  Section A → 3.8 Nuclear physics and 3.6.2 Thermal physics; option A Astrophysics → 3.9;
+  option B Medical physics → 3.10; option C Applied physics (rotational dynamics,
+  thermodynamics and engines) → 3.11 Engineering physics; option D Turning points → 3.12.
+  A part that turns on measurement and uncertainty (reading a graph's gradient with its
+  uncertainty, percentage uncertainties, precision) may take 3.1.2 as a second code.
+- Where 7408's topics are broad, choose by what the part asks: 3.4.1 covers scalars and
+  vectors, moments, motion, Newton's laws, momentum, work, energy and power; 3.4.2 density,
+  Hooke's law, the Young modulus, stress, strain, elastic strain energy; 3.3.1 wave
+  properties, polarisation, superposition and stationary waves; 3.3.2 path difference,
+  interference, Young's slits, diffraction gratings, refraction, total internal reflection
+  and fibres; 3.2.1 particles, antiparticles, the strong and weak interactions, quarks,
+  hadrons, leptons and conservation laws; 3.2.2 the photoelectric effect, energy levels,
+  excitation and ionisation, line spectra and wave–particle duality; 3.5.1 current,
+  potential difference, resistance, resistivity, superconductivity, circuits, potential
+  dividers, emf and internal resistance; 3.7.1 is fields in general (only for a part that
+  compares field types); 3.7.2 gravitational fields and orbits; 3.7.3 electric fields;
+  3.7.4 capacitance; 3.7.5 magnetic fields, flux, induction, alternating currents and
+  transformers; 3.8.1 radioactivity, nuclear radius, mass and energy, fission and fusion.
+- A part whose physics is not on the 7408 specification at all gets `[]`, with a short
+  reason in `batch-NN.off.json` (`{"<id>": "why"}`). These are left out of the bank and
+  counted in the PR. Be strict about this only when the content is genuinely absent from
+  7408 (not when it is merely worded differently): check `topics.txt` and the lines above.
+- Tag every multiple-choice question on its own, from its stem and options.
+
+## Edexcel International A Level Maths and Further Maths (YMA01, YFM01)
+
+`edexcel_ial_maths/tag_ial_maths.py split` writes batches of Pearson Edexcel's International A Level unit papers
+(P1-P4, FP1-FP3, M1-M3, S1-S3, D1) to `.work/edexcel-ial-maths/tag/`, and `merge` collects them into `tags.json`.
+The brief is the one at the top, with these differences:
+
+- Each line is a whole question from one unit, and carries `topics`: that unit's own numbered topics as the
+  specification prints them (`P3.4 Differentiation`, `S2.1 The Binomial and Poisson distributions`). Choose from
+  those only; merge keeps nothing else. `ial-maths-topics.txt` lists every unit's.
+- Tag what the marks are for, by the scheme: a P4 question that differentiates parametric equations is `P4.5`,
+  not `P4.3`; a P3 question that solves a trig equation is `P3.2`. Give a second code only where a large share of
+  the marks needs a second topic (an S1 question half on probability, half on the Normal distribution).
+- Prior knowledge a unit assumes (differentiation in M2, integration in S2's continuous random variables) is not a
+  topic of its own: tag the unit topic the question is set in.

@@ -56,7 +56,7 @@ const bankQuestions = bankSubjects.reduce((n, s) => n + s.count, 0);
 
 /** Boards and levels in the order students look for them; one added to the bank later goes at the end. */
 const boardOrder = ["AQA", "Edexcel", "OCR", "OCR MEI", "Eduqas", "CAIE", "WJEC"];
-const levelOrder = ["A-Level", "GCSE", "IGCSE", "Level 1/2", "Level 3"];
+const levelOrder = ["A-Level", "IAL", "GCSE", "IGCSE", "Level 1/2", "Level 3"];
 const byOrder = (order: string[]) => (a: string, b: string) => ((order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
 const boardName: Record<string, string> = { CAIE: "Cambridge (CAIE)" };
 /** Each board's colour: its column's header in the index, and the dot on its chip in the card. */
@@ -352,7 +352,7 @@ export function CosyHome({ variant }: { variant?: string }) {
                 <div className="lp-bank-levels">
                   {b.levels.map(l => (
                     <div key={l.level} className="lp-bank-level">
-                      <h4>{l.level}</h4>
+                      <h4>{l.level === "IAL" ? "International A Level" : l.level}</h4>
                       <ul>
                         {l.subjects.map(s => (
                           <li key={s.slug}>

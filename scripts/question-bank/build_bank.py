@@ -19,6 +19,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, ".work")
 
 SUBJECTS = [("aqa-a-level-biology", "Biology", ("7401", "7402")),
+            # Chemistry's old-spec units (CHEM1-5, 2010-2016) go in after this: aqa_chem_legacy/build_legacy.py.
             ("aqa-a-level-chemistry", "Chemistry", ("7404", "7405")),
             ("aqa-a-level-physics", "Physics", ("7407", "7408"))]
 MONTH = {"JUN": "June", "NOV": "November"}
