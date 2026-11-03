@@ -72,6 +72,8 @@ export interface QAnswer {
 export type Bg = "plain" | "ruled" | "dotted" | "graph";
 export const BGS: readonly Bg[] = ["plain", "ruled", "dotted", "graph"];
 export type Tool = "pen" | "eraser";
+export type TypeSize = "normal" | "large";
+export const TYPE_REM: Record<TypeSize, number> = { normal: 1, large: 1.375 };
 
 export interface QPrefs {
   /** "Finger scrolls, pen writes": fingers move the page and only a pen draws. Unset means the device's default. */
@@ -80,6 +82,12 @@ export interface QPrefs {
   penSeen?: boolean;
   /** Typed answers in the handwriting font. */
   hand?: boolean;
+  /** Single-key shortcuts (N B P E Z) on the sheet: on unless switched off. They only act while focus is on the writing surface or the pen tray; Alt plus the key works anywhere. */
+  keys?: boolean;
+  /** Every part starts in Type rather than Write (a part the student switched keeps its own choice). */
+  alwaysType?: boolean;
+  /** Size of typed answers: Normal is 1rem, Large 1.375rem. */
+  typeSize?: TypeSize;
   bg: Bg;
   tool: Tool;
   colour: number;
@@ -190,6 +198,22 @@ export function zoneHeight(p: Pick<QPart, "m">, a?: QAnswer): number {
   return Math.min(ZONE_MAX_H, Math.max(a?.h ?? 0, base));
 }
 
+/**
+ * How tall a question will be on the sheet before it has been laid out, as `px + wide * W` where W is the paper's width in px:
+ * the pictures scale with the width (their shapes are known, the setup's is guessed at 3.2 to 1) and so does the writing space
+ * (800 logical units wide); the rest (headings, buttons, gaps) is fixed. The sheet gives this to the browser as the size to
+ * assume for a question that is off the screen, so that jumping or restoring to one lands on it.
+ */
+export function estimateBlock(b: Pick<Block, "stem" | "parts">): { px: number; wide: number } {
+  let px = 70 + 64 + 40;   // heading, foot, gaps
+  let wide = b.stem ? 1 / 3.2 : 0;
+  for (const p of b.parts) {
+    px += 32 + 44 + 22 + 60 + 16;   // "Read as text", the zone head and grip, the Check bar, margins
+    wide += (p.w > 0 ? p.h / p.w : 0.4) + zoneHeight(p) / 800;
+  }
+  return { px, wide };
+}
+
 /** Marks a student can give themselves: none if the paper prints none. */
 export const markable = (p: QPart) => p.m != null && p.m > 0;
 
@@ -197,35 +221,45 @@ export const markable = (p: QPart) => p.m != null && p.m > 0;
 
 export interface TopicScore { code: string; title: string; got: number; total: number }
 export interface Score {
+  /** Marks the student gave themselves, on the parts they marked. */
   got: number;
+  /** Marks printed on the parts they marked: a part nobody marked is not a zero, it is simply not in the score. */
   total: number;
-  /** 0 to 100, or null when no marks were available. */
+  /** Marks printed on every part that counts, marked or not. */
+  printed: number;
+  /** 0 to 100 over the marked parts, or null when nothing is marked (or no marks were printed on what was). */
   pct: number | null;
+  /** Marked parts only, by topic. */
   perTopic: TopicScore[];
   /** Parts with nothing written and no mark given. */
   skipped: QPart[];
-  /** Parts marked below full marks, plus answered parts not yet marked? No: only self-marked ones. */
+  /** Parts self-marked below full marks. */
   dropped: QPart[];
-  /** Parts not yet marked yourself. */
+  /** Parts with marks to give that the student has not marked yet. */
   unmarked: QPart[];
+  /** Parts marked by the student. */
   marked: number;
+  /** Parts that have marks to give (marked or not). */
+  markable: number;
   parts: number;
 }
 
 export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics">, answers: Record<string, QAnswer>): Score {
-  let got = 0, total = 0, marked = 0;
+  let got = 0, total = 0, printed = 0, marked = 0, markableN = 0;
   const topics = new Map<string, TopicScore>();
   const skipped: QPart[] = [], dropped: QPart[] = [], unmarked: QPart[] = [];
   for (const b of blocks(set.parts)) {
     for (const p of b.parts) {
       const a = answers[keyOf(set.id, p.id)];
       const done = isMarked(a);
-      if (done) marked++; else unmarked.push(p);
+      if (markable(p)) { markableN++; if (done) marked++; else unmarked.push(p); }
       if (!isAnswered(a) && !done) skipped.push(p);
       if (!counts(p, b.parts)) continue;
-      const g = done ? Math.min(a!.got ?? 0, p.m ?? 0) : 0;
+      printed += p.m ?? 0;
+      if (!done) continue;   // not marked: not scored, neither as a mark nor as a zero
+      const g = Math.min(a!.got ?? 0, p.m ?? 0);
       got += g; total += p.m ?? 0;
-      if (done && g < (p.m ?? 0)) dropped.push(p);
+      if (g < (p.m ?? 0)) dropped.push(p);
       const code = p.t[0] ?? "other";
       const t = topics.get(code) ?? { code, title: set.topics[code] ?? "Other", got: 0, total: 0 };
       t.got += g; t.total += p.m ?? 0;
@@ -233,28 +267,71 @@ export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics">, answers: Re
     }
   }
   return {
-    got, total, pct: total > 0 ? Math.round((got / total) * 100) : null,
-    perTopic: [...topics.values()], skipped, dropped, unmarked, marked, parts: set.parts.length,
+    got, total, printed, pct: total > 0 ? Math.round((got / total) * 100) : null,
+    perTopic: [...topics.values()], skipped, dropped, unmarked, marked, markable: markableN, parts: set.parts.length,
   };
 }
 
-/** What a block scored: marks given and marks available. null if none are printed. */
+/** What a block scored: marks given and the marks printed on the parts marked. null if none are printed; `marked` counts parts marked. */
 export function blockScore(set: Pick<QSet, "id">, b: Block, answers: Record<string, QAnswer>): { got: number; total: number; marked: number } | null {
   if (b.marks == null) return null;
-  let got = 0, marked = 0;
+  let got = 0, total = 0, marked = 0;
   for (const p of b.parts) {
     const a = answers[keyOf(set.id, p.id)];
-    if (isMarked(a)) marked++;
-    if (counts(p, b.parts) && isMarked(a)) got += Math.min(a!.got ?? 0, p.m ?? 0);
+    if (!isMarked(a)) continue;
+    marked++;
+    if (counts(p, b.parts)) { got += Math.min(a!.got ?? 0, p.m ?? 0); total += p.m ?? 0; }
   }
-  return { got, total: b.marks, marked };
+  return { got, total, marked };
 }
 
-/** Parts the student has dealt with (written, checked or marked), for the progress bar. */
+/** Parts that have marks to give, and how many the student has marked, for the progress line. */
 export function progress(set: Pick<QSet, "id" | "parts">, answers: Record<string, QAnswer>): { done: number; of: number } {
-  let done = 0;
-  for (const p of set.parts) { const a = answers[keyOf(set.id, p.id)]; if (isMarked(a)) done++; }
-  return { done, of: set.parts.length };
+  let done = 0, of = 0;
+  for (const p of set.parts) { if (!markable(p)) continue; of++; if (isMarked(answers[keyOf(set.id, p.id)])) done++; }
+  return { done, of };
+}
+
+/** Before finishing: how many parts with marks to give are not marked, and how many of those are blank. */
+export function finishCheck(set: Pick<QSet, "id" | "parts">, answers: Record<string, QAnswer>): { unmarked: number; blank: number } {
+  let unmarked = 0, blank = 0;
+  for (const p of set.parts) {
+    if (!markable(p)) continue;
+    const a = answers[keyOf(set.id, p.id)];
+    if (isMarked(a)) continue;
+    unmarked++;
+    if (!isAnswered(a)) blank++;
+  }
+  return { unmarked, blank };
+}
+
+/** A name from a set's table of names, only if the set really has it (never something inherited by an object). */
+export function nameOf(names: Record<string, string>, key: string): string | undefined {
+  return Object.prototype.hasOwnProperty.call(names, key) ? names[key] : undefined;
+}
+
+/** The words of `text` up to `max` characters, cut at a word and marked with an ellipsis when something was left out. */
+export function cutWords(text: string, max: number): { text: string; cut: boolean } {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return { text: t, cut: false };
+  const head = t.slice(0, max + 1);
+  const at = head.lastIndexOf(" ");
+  const keep = (at > max * 0.5 ? head.slice(0, at) : head.slice(0, max)).replace(/[\s,;:.\-([{]+$/, "");
+  return { text: `${keep}\u2026`, cut: true };
+}
+
+/**
+ * The text a screen reader gets for a part's picture. The picture holds the question, and the bank keeps only its opening
+ * words (`x`), so this says what it has and where the rest is: a cut is never passed off as the whole question.
+ */
+export function partAlt(p: Pick<QPart, "l" | "m" | "x">): string {
+  const marks = p.m != null && p.m > 0 ? ` (${p.m} ${p.m === 1 ? "mark" : "marks"})` : "";
+  const head = `Question ${p.l}${marks}`;
+  const x = (p.x ?? "").replace(/\s+/g, " ").trim();
+  if (!x) return `${head}. A picture of the question. Open Read as text under it.`;
+  const c = cutWords(x, 110);
+  const whole = !c.cut && /\[\d+ marks?\]$/.test(x);
+  return whole ? `${head}: ${x}` : `${head}. It starts: ${c.text}${c.cut ? "" : "."} That is only the start. Open Read as text under the picture for more.`;
 }
 
 /* ── changes ─────────────────────────────────────────────────────────── */
@@ -387,6 +464,13 @@ export function redoInput(set: QSet, answers: Record<string, QAnswer>): SetInput
   return { name: `Redo: ${set.name}`.slice(0, 80), subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: dropped, redoOf: set.id };
 }
 
+/** A fresh set of the parts that were skipped (nothing written, nothing marked), with no answers carried over. */
+export function catchUpInput(set: QSet, answers: Record<string, QAnswer>): SetInput | null {
+  const { skipped } = scoreSet(set, answers);
+  if (!skipped.length) return null;
+  return { name: `Skipped: ${set.name}`.slice(0, 80), subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: skipped, redoOf: set.id };
+}
+
 /** Bytes of ink the answers say they hold, in total. */
 export const inkTotal = (q: QuestionsData) => Object.values(q.answers).reduce((n, a) => n + (a.ink?.b ?? 0), 0);
 export const inkOfSet = (q: QuestionsData, setId: string) => Object.entries(q.answers).reduce((n, [k, a]) => (k.startsWith(`${setId}/`) ? n + (a.ink?.b ?? 0) : n), 0);
@@ -487,6 +571,9 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
   if (typeof p.fingerScrolls === "boolean") prefs.fingerScrolls = p.fingerScrolls;
   if (typeof p.penSeen === "boolean") prefs.penSeen = p.penSeen;
   if (typeof p.hand === "boolean") prefs.hand = p.hand;
+  if (typeof p.keys === "boolean") prefs.keys = p.keys;
+  if (typeof p.alwaysType === "boolean") prefs.alwaysType = p.alwaysType;
+  if (p.typeSize === "normal" || p.typeSize === "large") prefs.typeSize = p.typeSize;
   if (p.bg && BGS.includes(p.bg)) prefs.bg = p.bg;
   if (p.tool === "pen" || p.tool === "eraser") prefs.tool = p.tool;
   prefs.colour = int(p.colour, 0, 2, 0);

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { EMPTY, sanitise } from "../model";
 import { describe, test } from "node:test";
 import {
-  blockScore, blocks, checkPart, createSet, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, MAX_SET_PARTS, MAX_SETS, openSet,
+  blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, estimateBlock, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, MAX_SET_PARTS, MAX_SETS, openSet,
   progress, redoInput, resetPart, sanitiseQuestions, scoreSet, setHeight, setInkMeta, setMode, setText, TEXT_PART_CAP, TEXT_TOTAL_CAP, zoneHeight,
   type QPart, type QuestionsData, type SetInput,
 } from "./model";
@@ -82,11 +82,46 @@ describe("self-marking", () => {
     const { q, id } = setup();
     assert.equal(markPart(q, id, "q3a", 1, T0), q);
   });
-  test("nothing is awarded on its own: an unmarked part scores 0 of its marks", () => {
+  test("nothing is awarded on its own, and nothing unmarked is a zero: no marks given, no score", () => {
     const { q } = setup();
     const s = scoreSet(q.sets[0], q.answers);
-    assert.deepEqual([s.got, s.total, s.pct, s.marked], [0, 10, 0, 0]);
-    assert.equal(s.unmarked.length, 5);
+    assert.deepEqual([s.got, s.total, s.pct, s.marked, s.printed, s.markable], [0, 0, null, 0, 10, 4]);
+    assert.equal(s.unmarked.length, 4);   // the part with no printed marks has nothing to mark
+    assert.deepEqual(s.perTopic, []);
+  });
+  test("only the parts marked are scored: 2 of 2 marked, two never marked, is 2/2 and 100%, not 2/10", () => {
+    let { q, id } = setup();
+    q = markPart(q, id, "q1a", 2, T0);
+    q = setText(q, id, "q2a", "typed, never marked", T0).q;
+    const s = scoreSet(q.sets[0], q.answers);
+    assert.deepEqual([s.got, s.total, s.pct, s.marked, s.printed], [2, 2, 100, 1, 10]);
+    assert.deepEqual(s.perTopic.map((t) => [t.code, t.got, t.total]), [["4.1.1", 2, 2]]);   // 4.3.1 was not marked: not a topic at 0
+    assert.deepEqual(s.dropped, []);
+    assert.deepEqual(s.skipped.map((p) => p.id), ["q1b", "q1c", "q3a"]);   // not q2a: it was answered, only not marked
+  });
+  test("a skipped part is skipped, and a catch-up set holds exactly those, with no answers carried over", () => {
+    let { q, id } = setup();
+    q = markPart(q, id, "q1a", 1, T0);
+    q = setText(q, id, "q1b", "x", T0).q;
+    const s = scoreSet(q.sets[0], q.answers);
+    assert.deepEqual(s.skipped.map((p) => p.id).sort(), ["q1c", "q2a", "q3a"]);
+    const input = catchUpInput(q.sets[0], q.answers)!;
+    assert.deepEqual(input.parts.map((p) => p.id).sort(), ["q1c", "q2a", "q3a"]);
+    assert.equal(input.redoOf, id);
+    assert.match(input.name!, /^Skipped: /);
+    const r = createSet(q, input, T0 + 5);
+    assert.equal(Object.keys(r.q.answers).filter((k) => k.startsWith(r.id)).length, 0);
+    q = markPart(markPart(markPart(q, id, "q1c", 0, T0), id, "q2a", 0, T0), id, "q3a", null, T0);
+    assert.equal(catchUpInput(q.sets[0], q.answers)!.parts.map((p) => p.id).join(), "q3a");   // a part with no marks stays skipped until something is written
+  });
+  test("before finishing: how many are not marked, and how many of those are blank", () => {
+    let { q, id } = setup();
+    assert.deepEqual(finishCheck(q.sets[0], q.answers), { unmarked: 4, blank: 4 });
+    q = setText(q, id, "q1b", "x", T0).q;
+    q = markPart(q, id, "q1a", 2, T0);
+    assert.deepEqual(finishCheck(q.sets[0], q.answers), { unmarked: 3, blank: 2 });
+    for (const p of ["q1b", "q1c", "q2a"]) q = markPart(q, id, p, 0, T0);
+    assert.deepEqual(finishCheck(q.sets[0], q.answers), { unmarked: 0, blank: 0 });
   });
   test("totals, percent, per topic, dropped and skipped", () => {
     let { q, id } = setup();
@@ -98,18 +133,19 @@ describe("self-marking", () => {
     q = setText(q, id, "q2a", "kinetic", T0).q;   // answered, not marked
     const s = scoreSet(set, q.answers);
     assert.equal(s.got, 4);
-    assert.equal(s.total, 10);
-    assert.equal(s.pct, 40);
+    assert.equal(s.total, 6);   // the marks printed on the three parts marked
+    assert.equal(s.printed, 10);
+    assert.equal(s.pct, 67);
     assert.deepEqual(s.dropped.map((p) => p.id), ["q1b", "q1c"]);
     assert.deepEqual(s.skipped.map((p) => p.id), ["q3a"]);
     assert.equal(s.marked, 3);
     const t = Object.fromEntries(s.perTopic.map((x) => [x.code, [x.got, x.total, x.title]]));
     assert.deepEqual(t["4.1.1"], [4, 5, "Energy stores"]);
     assert.deepEqual(t["4.1.2"], [0, 1, "Conservation"]);
-    assert.deepEqual(t["4.3.1"], [0, 4, "Particles"]);
+    assert.equal(t["4.3.1"], undefined);   // nothing marked in it
     const b = blocks(set.parts)[0];
     assert.deepEqual(blockScore(set, b, q.answers), { got: 4, total: 6, marked: 3 });
-    assert.deepEqual(progress(set, q.answers), { done: 3, of: 5 });
+    assert.deepEqual(progress(set, q.answers), { done: 3, of: 4 });   // the part with no marks is not one to mark
   });
   test("a part marked with nothing written is not skipped; a written one is not skipped unmarked", () => {
     let { q, id } = setup();
@@ -262,8 +298,10 @@ describe("reading storage", () => {
     assert.equal(s.sets[0].at, 2);   // 3 questions: the last index
   });
   test("preferences: unknown values fall back, valid ones stay", () => {
-    const s = sanitiseQuestions({ prefs: { bg: "tartan", tool: "laser", colour: 9, width: -1, fingerScrolls: false, hand: "yes" } });
+    const s = sanitiseQuestions({ prefs: { bg: "tartan", tool: "laser", colour: 9, width: -1, fingerScrolls: false, hand: "yes", keys: "no", alwaysType: 1, typeSize: "huge" } });
     assert.deepEqual(s.prefs, { bg: "ruled", tool: "pen", colour: 2, width: 0, fingerScrolls: false });
+    const t = sanitiseQuestions({ prefs: { keys: false, alwaysType: true, typeSize: "large" } });
+    assert.deepEqual([t.prefs.keys, t.prefs.alwaysType, t.prefs.typeSize], [false, true, "large"]);
   });
 });
 
@@ -289,5 +327,51 @@ describe("in the app's one document", () => {
     const d = sanitise({ ...JSON.parse(JSON.stringify(EMPTY)), tasks: [], questions: { sets: "no" } });
     assert.deepEqual(d.questions.sets, []);
     assert.equal(d.v, 1);
+  });
+});
+
+describe("words for the picture", () => {
+  test("a part's alt text never cuts a word and never passes a cut off as the whole question", () => {
+    const x = "Describe the difference between renewable energy resources and non-renewable energy resources. [2 marks] Figure 1 shows a new design of tidal turbine to generat";
+    const alt = partAlt({ l: "01.1", m: 2, x });
+    assert.match(alt, /^Question 01\.1 \(2 marks\)\. It starts: Describe the difference/);
+    assert.match(alt, /That is only the start\. Open Read as text/);
+    assert.ok(!/generat\b/.test(alt), alt);
+    const quoted = alt.match(/It starts: (.*?)\u2026/)![1];
+    assert.ok(x.startsWith(quoted.trimEnd()), "the quoted words are the real opening, ending on a whole word");
+    assert.ok(/\s/.test(x[quoted.trimEnd().length]) , "the next character in the source is a space: no word was cut");
+  });
+  test("a short question that ends on its own marks is given whole; one with nothing is pointed to the text", () => {
+    assert.equal(partAlt({ l: "3(b)", m: 1, x: "Name the unit of power. [1 mark]" }), "Question 3(b) (1 mark): Name the unit of power. [1 mark]");
+    assert.match(partAlt({ l: "4", m: null, x: "" }), /^Question 4\. A picture of the question\. Open Read as text/);
+  });
+  test("cutWords stops on a word and says it cut", () => {
+    assert.deepEqual(cutWords("one two three", 20), { text: "one two three", cut: false });
+    assert.deepEqual(cutWords("alpha beta gamma delta", 12), { text: "alpha beta\u2026", cut: true });
+    assert.equal(cutWords("supercalifragilistic", 8).text, "supercal\u2026");
+  });
+  test("a name from a set's table is only ever the set's own", () => {
+    assert.equal(nameOf({ JUN25: "June 2025" }, "JUN25"), "June 2025");
+    assert.equal(nameOf({}, "constructor"), undefined);
+    assert.equal(nameOf({}, "__proto__"), undefined);
+  });
+});
+
+describe("how tall a question is assumed to be before it is laid out", () => {
+  test("grows with its parts, their pictures and their writing space; a setup adds a picture", () => {
+    const one = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500 })])[0];
+    const two = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500 }), part("b", "1.2", 4, [], { w: 1000, h: 250 })])[0];
+    const withStem = blocks([part("a", "1.1", 2, [], { w: 1000, h: 500, st: 1 })])[0];
+    const at = (b: { px: number; wide: number }, w: number) => b.px + b.wide * w;
+    const [e1, e2, es] = [estimateBlock(one), estimateBlock(two), estimateBlock(withStem)];
+    assert.ok(at(e2, 800) > at(e1, 800) + 300);
+    assert.ok(at(es, 800) > at(e1, 800));
+    assert.ok(at(e1, 800) > at(e1, 340), "a narrower paper is shorter");
+    // 2 marks: 500/1000 of the width for the picture, 180/800 for the writing space
+    assert.ok(Math.abs(e1.wide - (0.5 + 180 / 800)) < 1e-9);
+  });
+  test("a part with no size does not break it", () => {
+    const e = estimateBlock({ stem: null, parts: [part("a", "1.1", null, [], { w: 0, h: 0 })] });
+    assert.ok(Number.isFinite(e.px) && Number.isFinite(e.wide) && e.wide > 0);
   });
 });

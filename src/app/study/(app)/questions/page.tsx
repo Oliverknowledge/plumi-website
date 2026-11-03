@@ -3,6 +3,8 @@ import { QuestionsPage } from "@/components/studyapp/questions/QuestionsPage";
 import { bankLevel, bankSubjects, bankTitle } from "@/content/questionBank";
 import type { CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import "../questions.css";
+import "../questions-ink.css";
+import "../questions-sheet.css";
 
 export const metadata: Metadata = { title: "Questions" };
 

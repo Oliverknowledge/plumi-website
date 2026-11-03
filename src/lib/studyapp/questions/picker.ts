@@ -143,6 +143,37 @@ export function windowOf(total: number, rowH: number, scrollTop: number, viewH: 
   return { from, to };
 }
 
+/**
+ * A row's opening words, as one quiet line: the printed "[2 marks]" and stray symbols left out, cut at a word (never
+ * mid-word) with an ellipsis when it is cut.
+ */
+export function snippet(x: string, max = 110): string {
+  const t = x.replace(/\[\s*\d+\s*marks?\s*\]/gi, " ").replace(/[\uE000-\uF8FF]/g, " ").replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max + 1);
+  const at = cut.lastIndexOf(" ");
+  return `${(at > max * 0.5 ? cut.slice(0, at) : t.slice(0, max)).replace(/[\s,;:.\-]+$/, "")}\u2026`;
+}
+
+/** Roughly how long a set of this many marks takes: about a minute a mark. */
+export const minutesFor = (marks: number) => Math.max(1, Math.round(marks * 1.1));
+
+/** An area of a specification is all, some or none chosen. */
+export function areaState(codes: readonly string[], chosen: readonly string[]): "all" | "some" | "none" {
+  const n = codes.filter((c) => chosen.includes(c)).length;
+  return n === 0 ? "none" : n === codes.length ? "all" : "some";
+}
+
+/** Tapping an area: every topic of it, unless they all are chosen already (then none of them). Other areas are untouched. */
+export function toggleArea(chosen: readonly string[], codes: readonly string[]): string[] {
+  if (areaState(codes, chosen) === "all") return chosen.filter((c) => !codes.includes(c));
+  return [...chosen, ...codes.filter((c) => !chosen.includes(c))];
+}
+
+/** How many filters are doing something (a topic counts one each; the search words are not counted, they have their own box). */
+export const filterCount = (f: Pick<Filters, "paper" | "series" | "band" | "scheme">, topics: readonly string[]) =>
+  topics.length + (f.paper ? 1 : 0) + (f.series ? 1 : 0) + (f.band !== "any" ? 1 : 0) + (f.scheme ? 1 : 0);
+
 /** What a set remembers of a bank row. */
 export function toQPart(r: BankRow): QPart {
   const p: QPart = { id: r.id, p: r.p, s: r.s, l: r.l, m: r.m, t: r.t, w: r.w, h: r.h, x: r.x.slice(0, 140) };
@@ -167,4 +198,38 @@ export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[]): SetI
     for (const code of r.t) { const t = meta.topics.find((x) => x.code === code); if (t) topics[code] = t.short ?? t.title; }
   }
   return { subject: meta.slug, title: meta.title, cv: meta.cv, rq: meta.rq, names, topics, parts: rows.map(toQPart) };
+}
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const str = (v: unknown): v is string => typeof v === "string";
+
+/**
+ * `parts.json` as the browser got it, made safe to draw: rows without a string id, label, paper or series are
+ * dropped, the rest get the fields the list reads (topics, text, size). Throws when it is not a list, or when it is a
+ * list whose every row was unusable, so a bad file reads as "did not load" (with a retry) instead of a crash.
+ */
+export function cleanRows(raw: unknown): BankRow[] {
+  if (!Array.isArray(raw)) throw new Error("parts is not a list");
+  const out: BankRow[] = [];
+  for (const r of raw) {
+    if (!isObj(r) || !str(r.id) || !str(r.l) || !str(r.p) || !str(r.s)) continue;
+    out.push({
+      ...(r as unknown as BankRow),
+      m: typeof r.m === "number" && Number.isFinite(r.m) ? r.m : null,
+      t: Array.isArray(r.t) ? r.t.filter(str) : [],
+      w: typeof r.w === "number" ? r.w : 0,
+      h: typeof r.h === "number" ? r.h : 0,
+      x: str(r.x) ? r.x : "",
+    });
+  }
+  if (raw.length > 0 && out.length === 0) throw new Error("parts has no usable rows");
+  return out;
+}
+
+/** `text.json`: part id to its text. Anything else throws (so the search says it is using titles only). */
+export function cleanText(raw: unknown): Record<string, string> {
+  if (!isObj(raw)) throw new Error("text is not a map");
+  const out: Record<string, string> = Object.create(null);
+  for (const k of Object.keys(raw)) if (str(raw[k])) out[k] = raw[k];
+  return out;
 }

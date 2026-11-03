@@ -12,7 +12,13 @@ import { getStroke } from "perfect-freehand";
  *   { c: colour index, w: width index, sp?: 1 (pressure was simulated: a mouse or a finger), d: [x0, y0, p0, dx, dy, p, ...] }
  * `d` is whole numbers: x and y in tenths of a logical unit, pressure 0 to 100, every point after the first as a
  * difference from the one before it. A stroke is simplified (Ramer-Douglas-Peucker) before it is encoded, so a
- * long line costs a handful of points and a page of working a few tens of kilobytes.
+ * long line costs a handful of points and a page of working a few tens of kilobytes. The simplified points are
+ * for STORAGE only: before a stroke is drawn (live, committed, reloaded or exported) it is resampled to at most
+ * `MAX_GAP` units between points (`densify`), so a sharp corner is drawn where the pen put it and the line on the
+ * screen does not change shape when the pen lifts.
+ *
+ * Width: a pen's stroke has the pen's own pressure; a mouse or finger stroke (`sp: 1`) is one even width. Nothing is
+ * simulated from speed, so the width cannot change between the live line and the stored one.
  */
 
 export const REF_W = 800;
@@ -21,7 +27,12 @@ export const INK_COLOUR_NAMES = ["Black", "Blue", "Green"] as const;
 /** Pen widths in logical units (about css pixels in a zone 800 wide). */
 export const INK_WIDTHS = [2.1, 3.4, 5.6] as const;
 export const INK_WIDTH_NAMES = ["Fine", "Medium", "Bold"] as const;
-export const ERASER_RADIUS = 11;
+/** The eraser's reach in logical units (plus half the pen width of the stroke it meets). Small enough to take one line of an equals sign. */
+export const ERASER_RADIUS = 8;
+/** perfect-freehand's lag behind the pen: low, so a corner is reached (the tip trails by about a quarter of the gap between points). */
+export const STREAMLINE = 0.25;
+/** The most space between two points handed to the outline, in logical units. */
+export const MAX_GAP = 2;
 
 export interface Pt { x: number; y: number; p: number }
 export interface Stroke { c: number; w: number; sp?: 1; d: number[] }
@@ -106,7 +117,7 @@ export function decodeStroke(s: Stroke): Pt[] {
 export function cleanStroke(raw: unknown): Stroke | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Partial<Stroke>;
-  if (!Array.isArray(r.d) || r.d.length < 3 || r.d.length % 3 !== 0 || r.d.length > 60_000) return null;
+  if (!Array.isArray(r.d) || r.d.length < 3 || r.d.length % 3 !== 0 || r.d.length > MAX_STROKE_NUMBERS) return null;
   for (const n of r.d) if (typeof n !== "number" || !Number.isFinite(n)) return null;
   const c = typeof r.c === "number" ? clamp(Math.round(r.c), 0, INK_COLOURS.length - 1) : 0;
   const w = typeof r.w === "number" ? clamp(Math.round(r.w), 0, INK_WIDTHS.length - 1) : 1;
@@ -115,7 +126,15 @@ export function cleanStroke(raw: unknown): Stroke | null {
   return s;
 }
 
-export function cleanInk(raw: unknown, max = 4000): Stroke[] {
+/**
+ * What a part's ink may hold, set so that nothing the 400 KB cap lets a student write is ever dropped on the way back
+ * (a dot is about 42 bytes, so the cap allows under 10 000 strokes; a number is at least 2 bytes, so a single stroke
+ * under the cap has under 200 000 of them). Only data that no version of the app wrote is refused.
+ */
+export const MAX_STROKE_NUMBERS = 200_000;
+export const MAX_STROKES = 12_000;
+
+export function cleanInk(raw: unknown, max = MAX_STROKES): Stroke[] {
   if (!Array.isArray(raw)) return [];
   const out: Stroke[] = [];
   for (const s of raw) {
@@ -126,10 +145,28 @@ export function cleanInk(raw: unknown, max = 4000): Stroke[] {
   return out;
 }
 
+const sizes = new WeakMap<Stroke, number>();
+function numLen(v: number): number {
+  if (!Number.isInteger(v)) return String(v).length;
+  let a = Math.abs(v), n = v < 0 ? 2 : 1;
+  while (a >= 10) { a = Math.floor(a / 10); n++; }
+  return n;
+}
+/** Bytes one stroke takes, counted as the JSON it is stored as (worked out once). */
+export function strokeBytes(s: Stroke): number {
+  let n = sizes.get(s);
+  if (n === undefined) {
+    n = 28;
+    for (const v of s.d) n += numLen(v) + 1;
+    sizes.set(s, n);
+  }
+  return n;
+}
+
 /** Bytes a part's ink takes, counted as the JSON it is stored as. */
 export function inkBytes(ink: Ink): number {
   let n = 2;
-  for (const s of ink) n += 28 + s.d.reduce((sum, v) => sum + String(v).length + 1, 0);
+  for (const s of ink) n += strokeBytes(s);
   return n;
 }
 
@@ -137,7 +174,7 @@ export function inkBytes(ink: Ink): number {
 export const INK_PART_CAP = 400_000;
 export const INK_TOTAL_CAP = 20_000_000;
 
-/* ── eraser ──────────────────────────────────────────────────────────── */
+/* ── geometry and the eraser ─────────────────────────────────────────── */
 
 const boxes = new WeakMap<Stroke, [number, number, number, number]>();
 function box(s: Stroke): [number, number, number, number] {
@@ -151,6 +188,28 @@ function box(s: Stroke): [number, number, number, number] {
   return b;
 }
 
+export interface Rect { x0: number; y0: number; x1: number; y1: number }
+
+/** Where a stroke's ink can be, in logical units: its points plus the widest a line of its pen gets. */
+export function strokeBounds(s: Stroke): Rect {
+  const [x0, y0, x1, y1] = box(s);
+  const pad = INK_WIDTHS[s.w] * 0.8 + 1;
+  return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}
+
+/** Where all of an answer's ink is, or null if there is none. */
+export function inkBounds(ink: Ink): Rect | null {
+  let r: Rect | null = null;
+  for (const s of ink) {
+    const b = strokeBounds(s);
+    r = r ? { x0: Math.min(r.x0, b.x0), y0: Math.min(r.y0, b.y0), x1: Math.max(r.x1, b.x1), y1: Math.max(r.y1, b.y1) } : b;
+  }
+  return r;
+}
+
+export const rectsMeet = (a: Rect, b: Rect) => a.x0 <= b.x1 && a.x1 >= b.x0 && a.y0 <= b.y1 && a.y1 >= b.y0;
+export const rectUnion = (a: Rect | null, b: Rect | null): Rect | null => (a && b ? { x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) } : a ?? b);
+
 function segPointDist2(ax: number, ay: number, bx: number, by: number, x: number, y: number): number {
   const dx = bx - ax, dy = by - ay;
   const len2 = dx * dx + dy * dy;
@@ -158,21 +217,40 @@ function segPointDist2(ax: number, ay: number, bx: number, by: number, x: number
   return sq(ax + t * dx - x) + sq(ay + t * dy - y);
 }
 
-/** Does a round eraser of `radius` at (x, y) touch the stroke (its centre line, thickened by half its pen width)? */
-export function touches(s: Stroke, x: number, y: number, radius = ERASER_RADIUS): boolean {
+const orient = (ax: number, ay: number, bx: number, by: number, cx: number, cy: number) => (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+
+/** Squared distance between two segments (0 if they cross). */
+function segSegDist2(ax: number, ay: number, bx: number, by: number, cx: number, cy: number, dx: number, dy: number): number {
+  const o1 = orient(ax, ay, bx, by, cx, cy), o2 = orient(ax, ay, bx, by, dx, dy), o3 = orient(cx, cy, dx, dy, ax, ay), o4 = orient(cx, cy, dx, dy, bx, by);
+  if (((o1 > 0 && o2 < 0) || (o1 < 0 && o2 > 0)) && ((o3 > 0 && o4 < 0) || (o3 < 0 && o4 > 0))) return 0;
+  return Math.min(segPointDist2(ax, ay, bx, by, cx, cy), segPointDist2(ax, ay, bx, by, dx, dy), segPointDist2(cx, cy, dx, dy, ax, ay), segPointDist2(cx, cy, dx, dy, bx, by));
+}
+
+/**
+ * Does a round eraser of `radius` touch the stroke (its centre line, thickened by half its pen width)? The eraser
+ * is at (x, y); if `from` is given it came from there in a straight line, so everything on the way counts (a fast
+ * scrub across a thin line does not slip between two samples).
+ */
+export function touches(s: Stroke, x: number, y: number, radius = ERASER_RADIUS, from?: { x: number; y: number }): boolean {
   const reach = radius + INK_WIDTHS[s.w] / 2;
+  const fx = from?.x ?? x, fy = from?.y ?? y;
   const [x0, y0, x1, y1] = box(s);
-  if (x < x0 - reach || x > x1 + reach || y < y0 - reach || y > y1 + reach) return false;
+  if (Math.max(x, fx) < x0 - reach || Math.min(x, fx) > x1 + reach || Math.max(y, fy) < y0 - reach || Math.min(y, fy) > y1 + reach) return false;
   const pts = decodeStroke(s);
-  if (pts.length === 1) return sq(pts[0].x - x) + sq(pts[0].y - y) <= reach * reach;
-  for (let i = 1; i < pts.length; i++) if (segPointDist2(pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y, x, y) <= reach * reach) return true;
+  const r2 = reach * reach;
+  const still = fx === x && fy === y;
+  if (pts.length === 1) return segPointDist2(fx, fy, x, y, pts[0].x, pts[0].y) <= r2;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    if (still ? segPointDist2(a.x, a.y, b.x, b.y, x, y) <= r2 : segSegDist2(a.x, a.y, b.x, b.y, fx, fy, x, y) <= r2) return true;
+  }
   return false;
 }
 
-/** Indexes of the strokes under the eraser. */
-export function strokesAt(ink: Ink, x: number, y: number, radius = ERASER_RADIUS): number[] {
+/** Indexes of the strokes under the eraser (and along the way from `from`). */
+export function strokesAt(ink: Ink, x: number, y: number, radius = ERASER_RADIUS, from?: { x: number; y: number }): number[] {
   const out: number[] = [];
-  for (let i = 0; i < ink.length; i++) if (touches(ink[i], x, y, radius)) out.push(i);
+  for (let i = 0; i < ink.length; i++) if (touches(ink[i], x, y, radius, from)) out.push(i);
   return out;
 }
 
@@ -183,21 +261,91 @@ export function inkBottom(ink: Ink): number {
   return m;
 }
 
+/* ── two tabs, one answer ────────────────────────────────────────────── */
+
+const hashes = new WeakMap<Stroke, string>();
+/** A stroke's identity: a hash of what is in it, so the same stroke in two tabs (or two loads) is the same stroke. */
+export function strokeHash(s: Stroke): string {
+  let h = hashes.get(s);
+  if (!h) {
+    let a = 0x811c9dc5, b = 0x01000193 ^ s.d.length;
+    const mix = (n: number) => { a = Math.imul(a ^ (n | 0), 0x01000193); b = Math.imul(b + (n | 0) + 0x9e3779b9, 0x85ebca6b); b ^= b >>> 13; };
+    mix(s.c); mix(s.w); mix(s.sp ? 1 : 0);
+    for (const v of s.d) mix(v);
+    h = ((a >>> 0).toString(36) + (b >>> 0).toString(36));
+    hashes.set(s, h);
+  }
+  return h;
+}
+
+/** Ids of the strokes in an answer: the hash, and for an identical stroke drawn twice, a count after it. */
+export function inkIds(ink: Ink): string[] {
+  const n = new Map<string, number>();
+  return ink.map((s) => {
+    const h = strokeHash(s);
+    const k = n.get(h) ?? 0;
+    n.set(h, k + 1);
+    return k ? `${h}#${k}` : h;
+  });
+}
+
+/**
+ * The strokes in `theirs` that `ours` does not have and has never seen (`seen` is every id this tab has held for the
+ * answer): what another tab added. One we erased stays erased; one they erased and we still hold, we keep. Nothing
+ * a student wrote is lost to a merge.
+ */
+export function strokesToAdd(ours: Ink, theirs: Ink, seen: ReadonlySet<string> = new Set()): Stroke[] {
+  if (!theirs.length) return [];
+  const have = new Set(inkIds(ours));
+  const ids = inkIds(theirs);
+  const add: Stroke[] = [];
+  theirs.forEach((s, i) => { if (!have.has(ids[i]) && !seen.has(ids[i])) add.push(s); });
+  return add;
+}
+
 /* ── outline ─────────────────────────────────────────────────────────── */
 
-/** perfect-freehand's outline for a stroke as an SVG path (quadratic curves through the midpoints). Logical units. */
-export function outlinePath(points: readonly Pt[], width: number, simulatePressure: boolean, complete = true): string {
-  if (points.length === 0) return "";
-  const outline = getStroke(points.map((p) => [p.x, p.y, p.p]), {
-    size: width, thinning: simulatePressure ? 0.35 : 0.55, smoothing: 0.55, streamline: 0.45,
-    simulatePressure, last: complete,
-  });
-  if (outline.length < 2) {
-    // a dot: perfect-freehand returns a small ring for a single point; a bare tap with no outline still leaves a mark
-    const p = points[0];
-    const r = Math.max(0.6, width / 2);
-    return `M ${p.x - r} ${p.y} a ${r} ${r} 0 1 0 ${2 * r} 0 a ${r} ${r} 0 1 0 ${-2 * r} 0 Z`;
+/** Points as [x, y, pressure] with no gap wider than `maxGap` (linear in all three), so the outline follows a corner instead of cutting it. */
+export function densify(points: readonly Pt[], maxGap = MAX_GAP, flat = false): number[][] {
+  const n = points.length;
+  const out: number[][] = [];
+  if (!n) return out;
+  const pr = (p: Pt) => (flat ? 0.5 : p.p);
+  let len = 0;
+  for (let i = 1; i < n; i++) len += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+  const gap = Math.max(maxGap, len / 40_000);   // a runaway stroke stays bounded
+  out.push([points[0].x, points[0].y, pr(points[0])]);
+  for (let i = 1; i < n; i++) {
+    const a = points[i - 1], b = points[i];
+    const k = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / gap);
+    for (let j = 1; j < k; j++) { const t = j / k; out.push([a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, pr(a) + (pr(b) - pr(a)) * t]); }
+    out.push([b.x, b.y, pr(b)]);
   }
+  return out;
+}
+
+/**
+ * The polygon of a stroke's ink (perfect-freehand). The one place a line's shape is decided: live, committed, reloaded
+ * and exported strokes all come through here, so they look the same. `flat` is one even width (a mouse or a finger).
+ */
+export function strokeOutline(points: readonly Pt[], width: number, flat: boolean): number[][] {
+  if (points.length === 0) return [];
+  return getStroke(densify(points, MAX_GAP, flat), {
+    size: width, thinning: flat ? 0 : 0.55, smoothing: 0.55, streamline: STREAMLINE, simulatePressure: false, last: true,
+  });
+}
+
+/** A tap leaves a mark even where perfect-freehand gives no outline. */
+export function dotOutline(p: Pt, width: number): number[][] {
+  const r = Math.max(0.6, width / 2);
+  return Array.from({ length: 16 }, (_, i) => [p.x + r * Math.cos((i / 16) * Math.PI * 2), p.y + r * Math.sin((i / 16) * Math.PI * 2)]);
+}
+
+/** The outline as an SVG path (quadratic curves through the midpoints). Logical units. */
+export function outlinePath(points: readonly Pt[], width: number, flat: boolean): string {
+  if (points.length === 0) return "";
+  let outline = strokeOutline(points, width, flat);
+  if (outline.length < 2) outline = dotOutline(points[0], width);
   const f = (n: number) => Math.round(n * 100) / 100;
   let d = `M ${f(outline[0][0])} ${f(outline[0][1])} Q`;
   for (let i = 0; i < outline.length; i++) {

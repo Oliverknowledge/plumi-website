@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { compareLabels, questionKeyOf } from "./model";
-import { buildSetInput, filterRows, fold, matches, mix, NO_FILTERS, partsByQuestion, seeded, sortRows, windowOf, words, type BankRow, type Filters } from "./picker";
+import { areaState, buildSetInput, cleanRows, cleanText, filterCount, filterRows, fold, matches, minutesFor, mix, NO_FILTERS, partsByQuestion, seeded, snippet, sortRows, toggleArea, windowOf, words, type BankRow, type Filters } from "./picker";
+import { cleanMeta, subjectOrder } from "./subject";
 
 const row = (id: string, o: Partial<BankRow> = {}): BankRow => ({ id, p: "84631H", s: "JUN25", l: "01.1", m: 2, t: ["4.1.1"], w: 1086, h: 400, x: "Describe the difference between renewable resources", ...o });
 const FIX: BankRow[] = [
@@ -132,5 +133,71 @@ describe("making a set from rows", () => {
     assert.equal("calc" in input.parts[2], false);
     assert.equal(input.parts[1].k, "B");
     assert.equal(input.parts[0].ms, 1);
+  });
+});
+
+describe("a row's opening words", () => {
+  test("short text is kept, the printed mark count and stray symbols are left out", () => {
+    assert.equal(snippet("Write down the equation. [1 mark] Tick (\uf0fc) one box."), "Write down the equation. Tick ( ) one box.");
+  });
+  test("a long one is cut at a word, never mid-word, with an ellipsis", () => {
+    const x = "Describe the difference between renewable energy resources and non-renewable energy resources in detail";
+    const s = snippet(x, 40);
+    assert.ok(s.endsWith("\u2026"));
+    assert.ok(s.length <= 41);
+    assert.ok(x.startsWith(s.slice(0, -1)), s);
+    assert.ok(/\s/.test(x[s.length - 1] ?? " "), "cut falls on a word boundary");
+  });
+  test("one very long word is still cut", () => assert.ok(snippet("x".repeat(300), 50).length <= 51));
+});
+
+describe("time and filters", () => {
+  test("about a minute a mark, never zero", () => { assert.equal(minutesFor(10), 11); assert.equal(minutesFor(0), 1); });
+  test("an area is all, some or none chosen; tapping it chooses all, or clears all, leaving other areas", () => {
+    const area = ["4.5.1", "4.5.2", "4.5.3"];
+    assert.equal(areaState(area, []), "none");
+    assert.equal(areaState(area, ["4.5.2"]), "some");
+    assert.equal(areaState(area, [...area, "9"]), "all");
+    assert.deepEqual(toggleArea(["9"], area), ["9", ...area]);
+    assert.deepEqual(toggleArea(["9", "4.5.2"], area), ["9", "4.5.2", "4.5.1", "4.5.3"]);
+    assert.deepEqual(toggleArea(["9", ...area], area), ["9"]);
+  });
+  test("the filter count counts topics, paper, series, marks and mark scheme", () => {
+    assert.equal(filterCount({ paper: null, series: null, band: "any", scheme: false }, []), 0);
+    assert.equal(filterCount({ paper: "p", series: "s", band: "3-4", scheme: true }, ["a", "b"]), 6);
+  });
+  test("subjects most students want come first", () => {
+    assert.ok(subjectOrder("Maths") < subjectOrder("Physics"));
+    assert.ok(subjectOrder("Physics") < subjectOrder("History"));
+    assert.equal(subjectOrder("Chemistry A"), subjectOrder("Chemistry"));
+  });
+});
+
+describe("bank files that are not what they should be", () => {
+  test("rows: unusable ones are dropped, the rest get safe fields", () => {
+    const rows = cleanRows([{ id: "a", l: "01.1", p: "P1", s: "JUN25", m: 2 }, null, { id: 5 }, { id: "b", l: "01.2", p: "P1", s: "JUN25", m: "x", t: "nope", x: 3 }]);
+    assert.deepEqual(rows.map((r) => r.id), ["a", "b"]);
+    assert.deepEqual(rows[0].t, []);
+    assert.equal(rows[0].x, "");
+    assert.equal(rows[1].m, null);
+    assert.deepEqual(rows[1].t, []);
+  });
+  test("rows: not a list, or a list with nothing usable, throws (the picker shows 'did not load'); an empty list is fine", () => {
+    for (const bad of [{}, null, "x", 5, [null], [{}], [{ id: "a" }]]) assert.throws(() => cleanRows(bad));
+    assert.deepEqual(cleanRows([]), []);
+  });
+  test("text: only a map of strings", () => {
+    assert.deepEqual({ ...cleanText({ a: "x", b: 2 }) }, { a: "x" });
+    for (const bad of [null, [1, 2, 3], "x", 7]) assert.throws(() => cleanText(bad));
+    assert.equal(({} as Record<string, unknown>).polluted, undefined);
+    assert.equal(cleanText({ ["__proto__"]: "x" }).constructor, undefined);
+  });
+  test("subject: needs a slug and a title; its lists are lists of well-formed entries", () => {
+    for (const bad of [null, {}, { slug: "x" }, [], "x"]) assert.throws(() => cleanMeta(bad));
+    const m = cleanMeta({ slug: "x", title: "X", topics: [{ code: "1", title: "A", section: "s" }, null, { code: 2 }], sections: "no", papers: [{ id: "p", name: "P" }, 3], series: undefined });
+    assert.equal(m.topics.length, 1);
+    assert.deepEqual(m.sections, []);
+    assert.equal(m.papers.length, 1);
+    assert.deepEqual(m.series, []);
   });
 });

@@ -1,0 +1,42 @@
+/* Questions: the handwriting engine's own styles (pen tray, the one-line notes, the finger button).
+   Owned by the ink engine; imported from questions/page.tsx. Scoped under .pa like questions.css. */
+
+/* ── the pen tray: one small pill, only while a writing zone is on screen ── */
+.pa .qs-pen { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 40; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; height: 56px; padding: 0 6px; max-width: calc(100vw - 120px); background: rgba(251, 247, 238, .96); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1.5px solid rgba(91, 71, 65, .35); border-radius: 28px; box-shadow: 0 8px 24px rgba(60, 40, 30, .18); transition: opacity .18s ease, transform .18s ease; }
+.pa .qs-pen.is-away { opacity: 0; transform: translate(-50%, 14px); pointer-events: none; }
+.pa .qs-pb { position: relative; flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 22px; background: transparent; color: var(--ink); cursor: pointer; transition: background .12s ease, box-shadow .12s ease; }
+.pa .qs-pb:hover:not(:disabled) { background: rgba(255, 255, 255, .75); }
+.pa .qs-pb[aria-pressed="true"] { background: #fff; box-shadow: inset 0 0 0 2px var(--ink); }
+.pa .qs-pb:disabled { opacity: .35; cursor: default; }
+.pa .qs-pb:focus-visible, .pa .qs-fly-clear:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; box-shadow: 0 0 0 5px #fff; }
+.pa .qs-nib { display: block; flex: none; border-radius: 50%; }
+.pa .qs-dot { display: block; width: 24px; height: 24px; border-radius: 50%; box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px rgba(34, 48, 77, .55); }
+.pa .qs-pb[aria-pressed="true"] .qs-dot { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ink); }
+.pa .qs-pen-sep { flex: none; width: 1.5px; height: 24px; margin: 0 4px; background: rgba(91, 71, 65, .22); border-radius: 1px; }
+.pa .qs-pen-fly[hidden] { display: none; }
+.pa .qs-pen-fly { position: absolute; left: 50%; bottom: calc(100% + 10px); transform: translateX(-50%); display: grid; gap: 4px; padding: 8px; background: rgba(251, 247, 238, .98); border: 1.5px solid rgba(91, 71, 65, .35); border-radius: 22px; box-shadow: 0 10px 28px rgba(60, 40, 30, .2); }
+.pa .qs-fly-row { display: flex; justify-content: center; gap: 2px; }
+.pa .qs-fly-clear { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 0; border-top: 1.5px solid rgba(91, 71, 65, .18); border-radius: 0 0 14px 14px; background: transparent; font: 800 13px var(--f-body); color: var(--soft); cursor: pointer; }
+.pa .qs-fly-clear:hover:not(:disabled) { color: var(--red-pen); }
+.pa .qs-fly-clear:disabled { opacity: .35; cursor: default; }
+.pa .qs-fly-clear svg { width: 18px; height: 18px; }
+@media (max-width: 640px) {
+  .pa .qs-pen { left: 12px; transform: none; max-width: calc(100vw - 96px); }
+  .pa .qs-pen.is-away { transform: translateY(14px); }
+  .pa .qs-pen-fly { left: 0; transform: none; }
+}
+
+/* ── one calm line when handwriting is not being kept ── */
+.pa .qs-ink-line { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 40; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); margin: 0; padding: 8px 14px; border-radius: 14px; background: #fff3cf; border: 1.5px solid rgba(176, 106, 7, .5); font: 700 13px/1.35 var(--f-body); color: var(--wood-text); text-align: center; box-shadow: 0 6px 18px rgba(60, 40, 30, .14); }
+@media (max-width: 640px) { .pa .qs-ink-line { left: 12px; transform: none; max-width: calc(100vw - 96px); text-align: left; } }
+.pa .qs-ink-fail { position: absolute; inset: 0; display: grid; place-content: center; margin: 0; padding: 12px; font: 700 14px var(--f-body); color: var(--soft); text-align: center; }
+
+/* ── the finger button and the dismissable hint in a writing zone ── */
+.pa .qs-fingerbtn { white-space: nowrap; }
+.pa .qs-hint .qs-hint-x { min-width: 44px; justify-content: center; padding: 0; }
+.pa .qs-hint .qs-hint-x svg { width: 18px; height: 18px; }
+
+@media (forced-colors: active) {
+  .pa .qs-pb[aria-pressed="true"] { outline: 3px solid Highlight; }
+  .pa .qs-nib, .pa .qs-dot { forced-color-adjust: none; }
+}

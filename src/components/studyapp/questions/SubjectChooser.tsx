@@ -2,27 +2,71 @@
 
 import { useMemo, useState } from "react";
 import { fold } from "@/lib/studyapp/questions/picker";
-import type { CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { subjectOrder, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { SearchIcon } from "./icons";
 
-const LEVELS = ["GCSE", "A-Level", "International GCSE", "IGCSE", "Level 2", "Level 1/2", "Level 3"];
-const TINT: Record<string, string> = { Chemistry: "var(--t-chem)", Physics: "var(--t-eng)", Biology: "var(--t-bio)", Maths: "var(--t-maths)", "Further Maths": "var(--t-fm)", "Combined Science": "var(--t-bio)" };
-const tint = (subject: string) => TINT[subject.replace(/ [AB]$/, "")] ?? "var(--card2)";
+const MAIN = ["GCSE", "A-Level"];
+const OTHER = ["International GCSE", "IGCSE", "Level 2", "Level 1/2", "Level 3"];
+const TINT: Record<string, string> = {
+  Chemistry: "var(--t-chem)", Physics: "var(--t-eng)", Biology: "var(--t-bio)", Maths: "var(--t-maths)", "Further Maths": "var(--t-fm)", "Combined Science": "var(--t-bio)",
+  Geography: "var(--t-geo)", History: "var(--t-hist)", "Computer Science": "var(--t-cs)",
+};
+const SPARE = ["var(--t-geo)", "var(--t-hist)", "var(--t-lang)", "var(--t-cs)", "var(--t-soc)"];
+/** Every subject has a tint (the same one each time), so the colour is a landmark and not just decoration. */
+const tint = (subject: string) => {
+  const name = subject.replace(/ [AB]$/, "");
+  if (TINT[name]) return TINT[name];
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return SPARE[h % SPARE.length];
+};
 
-/** Pick the subject: the level, the board, then a tile. Type to find one. */
+const KEY = "plumi-qs-chooser";
+/** The level and board last chosen here: a per-visitor convenience, so it must not matter if the browser will not keep it. */
+function remembered(): { level?: string; board?: string | null } {
+  try { const v = JSON.parse(localStorage.getItem(KEY) ?? "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; }
+}
+function remember(level: string, board: string | null) {
+  try { localStorage.setItem(KEY, JSON.stringify({ level, board })); } catch { /* not kept */ }
+}
+
+/** Pick the subject: GCSE or A-Level (the others under More), the board if there is a choice, then a tile. Type to find one. */
 export function SubjectChooser({ catalogue, recent, onPick, current }: { catalogue: CatalogueSubject[]; recent: string[]; onPick(slug: string): void; current: string | null }) {
-  const levels = useMemo(() => LEVELS.filter((l) => catalogue.some((c) => c.level === l)), [catalogue]);
-  const startLevel = (current && catalogue.find((c) => c.slug === current)?.level) || (levels.includes("GCSE") ? "GCSE" : levels[0]);
-  const [level, setLevel] = useState(startLevel);
-  const [board, setBoard] = useState<string | null>(null);
+  const has = useMemo(() => new Set(catalogue.map((c) => c.level)), [catalogue]);
+  const [start] = useState(() => {
+    const cur = current ? catalogue.find((c) => c.slug === current) : undefined;
+    if (cur) return { level: cur.level, board: cur.board as string | null };
+    const mem = remembered();
+    if (mem.level && has.has(mem.level)) return { level: mem.level, board: mem.board && catalogue.some((c) => c.level === mem.level && c.board === mem.board) ? mem.board : null };
+    return { level: has.has("GCSE") ? "GCSE" : [...has][0], board: null as string | null };
+  });
+  const [level, setLevel] = useState(start.level);
+  const [board, setBoard] = useState<string | null>(start.board);
+  const [more, setMore] = useState(!MAIN.includes(start.level));
   const [q, setQ] = useState("");
   const words = fold(q).split(/\s+/).filter(Boolean);
+  const mains = MAIN.filter((l) => has.has(l));
+  const others = OTHER.filter((l) => has.has(l));
   const inLevel = catalogue.filter((c) => c.level === level);
   const boards = [...new Set(inLevel.map((c) => c.board))];
-  const shown = words.length
+  const shown = (words.length
     ? catalogue.filter((c) => words.every((w) => fold(c.title).includes(w))).slice(0, 60)
-    : inLevel.filter((c) => !board || c.board === board);
+    : inLevel.filter((c) => !board || c.board === board)
+  ).slice().sort((a, b) => subjectOrder(a.subject) - subjectOrder(b.subject) || a.subject.localeCompare(b.subject) || a.board.localeCompare(b.board));
+  const grouped = !words.length && !board && boards.length > 1;
+  const groups = grouped ? boards.map((b) => ({ board: b, items: shown.filter((c) => c.board === b) })) : [{ board: "", items: shown }];
   const recents = recent.map((s) => catalogue.find((c) => c.slug === s)).filter((c): c is CatalogueSubject => !!c).slice(0, 4);
+  const pickLevel = (l: string) => { setLevel(l); setBoard(null); remember(l, null); };
+  const pickBoard = (b: string | null) => { setBoard(b); remember(level, b); };
+  const tile = (c: CatalogueSubject, quiet: boolean) => (
+    <li key={c.slug}>
+      <button type="button" className={`qs-tile${c.slug === current ? " on" : ""}`} style={{ "--tint": tint(c.subject) } as React.CSSProperties} onClick={() => onPick(c.slug)} data-testid={`subject-${c.slug}`}>
+        <b>{c.subject}</b>
+        {!quiet && <span>{c.board} {c.level}</span>}
+        <small>{c.count.toLocaleString("en-GB")} questions</small>
+      </button>
+    </li>
+  );
   return (
     <section className="qs-choose" aria-label="Choose a subject" data-testid="subject-chooser">
       <label className="qs-search">
@@ -32,31 +76,34 @@ export function SubjectChooser({ catalogue, recent, onPick, current }: { catalog
       {recents.length > 0 && !words.length && (
         <div className="qs-recent">
           <span className="lbl">Lately</span>
-          {recents.map((c) => <button key={c.slug} type="button" className="chip qs-chip-btn" onClick={() => onPick(c.slug)}>{c.title}</button>)}
+          {recents.map((c) => <button key={c.slug} type="button" className="qs-chip" onClick={() => onPick(c.slug)}>{c.title}</button>)}
         </div>
       )}
       {!words.length && (
-        <>
-          <div className="seg qs-levels" role="group" aria-label="Level">
-            {levels.map((l) => <button key={l} type="button" className={l === level ? "on" : ""} aria-pressed={l === level} onClick={() => { setLevel(l); setBoard(null); }}>{l}</button>)}
+        <div className="qs-pickers">
+          <div className="qs-levels" role="group" aria-label="Level">
+            {mains.map((l) => <button key={l} type="button" className={`qs-level${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => pickLevel(l)}>{l}</button>)}
+            {others.length > 0 && <button type="button" className={`qs-level qs-more${more || !MAIN.includes(level) ? " open" : ""}`} aria-expanded={more} onClick={() => setMore((m) => !m)}>More</button>}
           </div>
-          <div className="qs-boards" role="group" aria-label="Exam board">
-            <button type="button" className={`qs-pill${board === null ? " on" : ""}`} aria-pressed={board === null} onClick={() => setBoard(null)}>All boards</button>
-            {boards.map((b) => <button key={b} type="button" className={`qs-pill${board === b ? " on" : ""}`} aria-pressed={board === b} onClick={() => setBoard(board === b ? null : b)}>{b}</button>)}
-          </div>
-        </>
+          {(more || !MAIN.includes(level)) && others.length > 0 && (
+            <div className="qs-levels qs-levels-more" role="group" aria-label="Other levels">
+              {others.map((l) => <button key={l} type="button" className={`qs-chip${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => pickLevel(l)}>{l}</button>)}
+            </div>
+          )}
+          {boards.length > 1 && (
+            <div className="qs-boards" role="group" aria-label="Exam board">
+              <button type="button" className={`qs-chip${board === null ? " on" : ""}`} aria-pressed={board === null} onClick={() => pickBoard(null)}>All boards</button>
+              {boards.map((b) => <button key={b} type="button" className={`qs-chip${board === b ? " on" : ""}`} aria-pressed={board === b} onClick={() => pickBoard(board === b ? null : b)}>{b}</button>)}
+            </div>
+          )}
+        </div>
       )}
-      <ul className="qs-tiles">
-        {shown.map((c) => (
-          <li key={c.slug}>
-            <button type="button" className={`qs-tile${c.slug === current ? " on" : ""}`} style={{ "--tint": tint(c.subject) } as React.CSSProperties} onClick={() => onPick(c.slug)} data-testid={`subject-${c.slug}`}>
-              <b>{c.subject}</b>
-              <span>{c.board} {c.level}</span>
-              <small>{c.count.toLocaleString("en-GB")} parts</small>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {groups.map((g) => (
+        <div key={g.board || "all"} className="qs-group">
+          {g.board && <h2 className="qs-group-h">{g.board}</h2>}
+          <ul className="qs-tiles">{g.items.map((c) => tile(c, !!g.board))}</ul>
+        </div>
+      ))}
       {shown.length === 0 && <p className="qs-empty-line">No subject matches that.</p>}
     </section>
   );

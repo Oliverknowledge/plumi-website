@@ -1,17 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { bankFile, papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
-import { markable, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
+import { markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { splitReport } from "@/lib/studyapp/questions/report";
 import { qa } from "@/lib/studyapp/questions/store";
+import { Crop } from "./Crop";
 import { CheckIcon } from "./icons";
 
-/** Examiner's reports for a subject, fetched once the first time anyone opens one. */
-const reports: Record<string, Promise<Record<string, string>>> = {};
-const reportsFor = (slug: string) => (reports[slug] ??= fetch(bankFile(slug, "reports")).then((r) => r.json()).catch(() => ({})));
+/** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
+const reports = new Map<string, Promise<Record<string, string>>>();
+function reportsFor(slug: string): Promise<Record<string, string>> {
+  let p = reports.get(slug);
+  if (!p) {
+    p = fetch(bankFile(slug, "reports")).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Record<string, string>>; });
+    reports.set(slug, p);
+    p.catch(() => reports.delete(slug));
+  }
+  return p;
+}
 
-/** The "Check" button under a part, the mark scheme it opens, and "Mark yourself". Nothing is ever marked for the student. */
+/**
+ * "Check": the pull-up of the mark scheme under a part (the picture of the scheme, or the answer letter of a multiple-choice
+ * part, or the PDF where no crop exists), with "Mark yourself" beside it. Nothing is ever marked for the student.
+ */
 export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: QAnswer | undefined }) {
   const [shut, setShut] = useState(false);
   const open = !!answer?.chk && !shut;
@@ -20,51 +32,66 @@ export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: Q
     setShut(false);
     qa.check(set.id, part.id);
   };
+  const id = `scheme-${part.id}`;
   return (
     <div className="qs-check">
       <div className="qs-check-bar">
-        <button type="button" className={`btn${open ? "" : " gold"} qs-check-btn`} aria-expanded={open} onClick={toggle} data-testid="check">
+        <button type="button" className={`btn${open ? "" : " gold"} qs-check-btn`} aria-expanded={open} aria-controls={id} onClick={toggle} data-testid="check" title="Open the mark scheme and mark yourself">
           {open ? "Hide the scheme" : "Check"}
         </button>
       </div>
-      {open && <Scheme set={set} part={part} answer={answer} />}
+      {open && <Scheme id={id} set={set} part={part} answer={answer} />}
     </div>
   );
 }
 
-function Scheme({ set, part, answer }: { set: QSet; part: QPart; answer: QAnswer | undefined }) {
+function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart; answer: QAnswer | undefined }) {
   const [er, setEr] = useState(false);
   const [report, setReport] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  const [pic, setPic] = useState<"wait" | "ok" | "fail">("wait");
+  const [onPaper, setOnPaper] = useState(false);
   useEffect(() => {
     if (!er || report !== null) return;
     let live = true;
-    void reportsFor(set.subject).then((r) => { if (live) setReport(r[reportKey(!!set.rq, part.id)] ?? ""); });
+    reportsFor(set.subject)
+      .then((r) => { if (live) { setFailed(false); setReport(r[reportKey(!!set.rq, part.id)] ?? ""); } })
+      .catch(() => { if (live) setFailed(true); });
     return () => { live = false; };
-  }, [er, report, set.subject, set.rq, part.id]);
-  const label = `${set.names[part.s] ?? part.s} ${set.names[part.p.toUpperCase()] ?? set.names[part.p] ?? part.p}, question ${part.l}`;
+  }, [er, report, tries, set.subject, set.rq, part.id]);
+  const label = `${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
   const split = report ? splitReport(report, part.l) : null;
+  const pdf = part.msf ? `${papersBase}/${part.msf}` : undefined;
+  // A mark scheme that would not load: marking waits until the student has it some other way, so nobody marks blind by accident.
+  const blind = !!part.ms && pic === "fail" && !onPaper;
   return (
-    <div className="qs-scheme" data-testid="scheme">
+    <div className="qs-scheme" id={id} data-testid="scheme">
       <span className="qs-tape" aria-hidden="true" />
       <p className="qs-scheme-label">Mark scheme</p>
       {part.ms ? (
         <>
           {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="qs-crop" src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} loading="lazy" decoding="async" />
+          <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} onState={(s) => setPic(s)} />
         </>
       ) : part.k ? (
         <p className="qs-key">Answer <b>{part.k}</b></p>
-      ) : part.msf ? (
-        <p className="qs-scheme-note"><a href={`${papersBase}/${part.msf}`} target="_blank" rel="noopener">Open the mark scheme (PDF)</a></p>
+      ) : pdf ? (
+        <p className="qs-scheme-note"><a href={pdf} target="_blank" rel="noopener">Open the mark scheme (PDF)</a></p>
       ) : (
         <p className="qs-scheme-note">No mark scheme is published for this part.</p>
       )}
-      <MarkYourself set={set} part={part} got={answer?.got} />
+      {blind ? (
+        <button type="button" className="qs-mini" onClick={() => setOnPaper(true)}>I have the mark scheme</button>
+      ) : (
+        <MarkYourself set={set} part={part} got={answer?.got} />
+      )}
       {part.er && (
         <div className="qs-er">
           <button type="button" className="qs-mini" aria-expanded={er} onClick={() => setEr((v) => !v)}>Examiner&apos;s report</button>
-          {er && (report === null ? <p className="qs-scheme-note">Opening...</p> : !report ? <p className="qs-scheme-note">No report for this question.</p> : (
+          {er && (failed ? (
+            <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={() => { setFailed(false); setTries((t) => t + 1); }}>Try again</button></p>
+          ) : report === null ? <p className="qs-scheme-note">Opening...</p> : !report ? <p className="qs-scheme-note">No report for this question.</p> : (
             <div className="qs-er-text">
               {split && split.mine.length > 0 && <><p className="qs-scheme-label">On {part.l}</p>{split.mine.map((p, i) => <p key={i}>{p}</p>)}</>}
               {split && split.rest.length > 0 && (
@@ -84,9 +111,23 @@ function Scheme({ set, part, answer }: { set: QSet; part: QPart; answer: QAnswer
 /** One tap per mark. Tap the circle for the marks you earned; 0 if none. A part with no printed marks has nothing to tick. */
 export function MarkYourself({ set, part, got }: { set: QSet; part: QPart; got: number | undefined }) {
   if (!markable(part)) return <p className="qs-scheme-note">This part prints no marks, so there is nothing to tick.</p>;
+  return <Marking set={set} part={part} got={got} />;
+}
+
+function Marking({ set, part, got }: { set: QSet; part: QPart; got: number | undefined }) {
   const m = part.m ?? 0;
   const many = m > 12;
   const choose = (n: number) => qa.mark(set.id, part.id, n);
+  const radios = useRef<(HTMLButtonElement | null)[]>([]);
+  // Radios: one stop in the Tab order (the one chosen, or the first), the arrow keys move and choose, Home and End go to the ends.
+  const onKey = (e: React.KeyboardEvent, i: number) => {
+    const to = e.key === "ArrowRight" || e.key === "ArrowDown" ? Math.min(m, i + 1) : e.key === "ArrowLeft" || e.key === "ArrowUp" ? Math.max(0, i - 1) : e.key === "Home" ? 0 : e.key === "End" ? m : -1;
+    if (to < 0) return;
+    e.preventDefault();
+    choose(to);
+    radios.current[to]?.focus();
+  };
+  const stop = got ?? 0;
   return (
     <div className="qs-self">
       <p className="qs-self-label" id={`self-${part.id}`}>Mark yourself</p>
@@ -98,17 +139,20 @@ export function MarkYourself({ set, part, got }: { set: QSet; part: QPart; got: 
         </div>
       ) : (
         <div className="qs-ticks" role="radiogroup" aria-labelledby={`self-${part.id}`}>
-          <button type="button" role="radio" aria-checked={got === 0} className={`qs-zero${got === 0 ? " on" : ""}`} onClick={() => choose(0)} aria-label="0 marks">0</button>
+          <button ref={(el) => { radios.current[0] = el; }} type="button" role="radio" aria-checked={got === 0} tabIndex={stop === 0 ? 0 : -1} className={`qs-zero${got === 0 ? " on" : ""}`} onClick={() => choose(0)} onKeyDown={(e) => onKey(e, 0)} aria-label="0 marks">0</button>
           {Array.from({ length: m }, (_, i) => {
             const n = i + 1;
             const on = got !== undefined && n <= got;
             return (
-              <button key={n} type="button" role="radio" aria-checked={got === n} className={`qs-tick${on ? " on" : ""}`} onClick={() => choose(n)} aria-label={`${n} ${n === 1 ? "mark" : "marks"}`} data-testid={`tick-${n}`}>
-                {on && <CheckIcon />}
+              <button
+                key={n} ref={(el) => { radios.current[n] = el; }} type="button" role="radio" aria-checked={got === n} tabIndex={stop === n ? 0 : -1}
+                className={`qs-tick${on ? " on" : ""}`} onClick={() => choose(n)} onKeyDown={(e) => onKey(e, n)} aria-label={`${n} ${n === 1 ? "mark" : "marks"}`} data-testid={`tick-${n}`}
+              >
+                {on ? <CheckIcon /> : <span className="qs-num" aria-hidden="true">{n}</span>}
               </button>
             );
           })}
-          <span className="qs-of">{got === undefined ? `out of ${m}` : `${got} out of ${m}`}</span>
+          <span className="qs-of" aria-hidden="true">{got === undefined ? `out of ${m}` : `${got} out of ${m}`}</span>
         </div>
       )}
     </div>

@@ -1,0 +1,89 @@
+/* Questions: the practice sheet's own accessibility and data-state pieces (skip links, the progress list, a picture that did not
+   load, "Read as text", the Page dialog, the finish question). Imported by Sheet.tsx; questions.css has the rest of the sheet.
+   Every rule is under .pa .qs-... with one class more than the matching rule in questions.css where the two meet, so order does not matter. */
+
+/* ── skip links: out of sight until focused ──────────────────────────── */
+.pa .qs-skip { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pa .qs-skip:focus { position: fixed; left: 12px; top: 76px; z-index: 80; width: auto; height: auto; margin: 0; padding: 10px 16px; overflow: visible; clip: auto; border: 2px solid var(--ink); border-radius: 12px; background: #fff3cf; box-shadow: 0 3px 0 var(--ink); font: 800 14px var(--f-body); color: var(--ink); text-decoration: none; }
+
+/* ── headings are landmarks to move by, not things to tab to: no ring when script focuses them ── */
+.pa .qs-bar h1.qs-bar-title { margin: 0; font: 800 14px/1.2 var(--f-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .qs-qhead h2.qs-qmeta { margin: 0; }
+.pa .qs-sheet-page h1:focus, .pa .qs-summary h1:focus, .pa #qs-sheet:focus { outline: none; box-shadow: none; }
+
+/* ── progress: a list of buttons, one per question, 44px to press, a thin capsule drawn in each ── */
+.pa .qs-bar .qs-bar-mid { display: flex; align-items: center; gap: 14px; }
+.pa .qs-bar .qs-bar-mid .qs-bar-title { flex: 0 1 34%; min-width: 0; }
+.pa .qs-pn { flex: 1 1 auto; min-width: 0; }
+.pa .qs-pn ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 3px; height: 44px; overflow-x: auto; scrollbar-width: none; }
+.pa .qs-pn li { flex: 1 1 0; min-width: 24px; display: flex; }
+@media (pointer: coarse) { .pa .qs-pn li { min-width: 44px; } }
+.pa .qs-pn-b { flex: 1; display: grid; place-items: center; min-width: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+.pa .qs-pn-b i { display: block; width: 100%; height: 10px; border: 1.5px solid var(--ink); border-radius: 5px; background: #fff; transition: height .15s, background .15s; }
+.pa .qs-pn-b:hover i { background: #fff3cf; }
+.pa .qs-pn-b.done i { background: #8fb35a; }
+.pa .qs-pn-b.here i { height: 16px; background: var(--gold); }
+.pa .qs-pn-b.done.here i { background: linear-gradient(90deg, #8fb35a 50%, var(--gold) 50%); }
+@media (max-width: 640px) {
+  .pa .qs-bar .qs-bar-mid { gap: 0; }
+  .pa .qs-bar .qs-bar-mid .qs-bar-title { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; flex: none; }
+}
+
+/* ── a picture from the paper: a quiet place for it, and the calm line when it will not come ── */
+.pa .qs-cropbox { position: relative; }
+.pa .qs-cropbox:not(.is-ok):not(.is-fail) .qs-crop { opacity: 0; }
+.pa .qs-cropbox.is-ok .qs-crop { opacity: 1; transition: opacity .18s; }
+.pa .qs-cropwait { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(100deg, rgba(91, 71, 65, .05) 30%, rgba(91, 71, 65, .1) 50%, rgba(91, 71, 65, .05) 70%) 0 0 / 220% 100%; animation: qs-shimmer 1.5s linear infinite; pointer-events: none; }
+@keyframes qs-shimmer { to { background-position: -220% 0; } }
+.pa .qs-cropfail { display: grid; justify-items: start; gap: 8px; padding: 18px 16px; border: 1.5px dashed rgba(91, 71, 65, .38); border-radius: 12px; background: rgba(255, 255, 255, .55); }
+.pa .qs-cropfail-line { margin: 0; font: 800 14.5px var(--f-body); color: var(--ink); }
+.pa .qs-cropfail-words { margin: 0; font: 600 14px/1.45 var(--f-body); color: var(--soft); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pa .qs-cropfail-acts { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pa .qs-cropfail-acts .qs-link { min-height: 44px; display: inline-flex; align-items: center; }
+
+/* ── "Read as text" ──────────────────────────────────────────────────── */
+.pa .qs-astext { margin: 0 0 4px; }
+.pa .qs-astext summary { display: inline-flex; align-items: center; min-height: 32px; padding: 0 2px; font: 800 12.5px var(--f-body); color: var(--soft); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+@media (pointer: coarse) { .pa .qs-astext summary { min-height: 44px; } }
+.pa .qs-astext-body { padding: 6px 2px 10px; display: grid; gap: 6px; }
+.pa .qs-astext-body p { margin: 0; font: 600 15px/1.6 var(--f-body); color: var(--ink); }
+.pa .qs-astext-body p.qs-scheme-note { font-size: 13px; }
+
+/* ── marking: a number in each circle ────────────────────────────────── */
+.pa .qs-tick .qs-num { font: 800 14px var(--f-body); color: var(--soft); }
+.pa .qs-sum-line { margin: 0; font: 800 14px var(--f-body); color: var(--soft); }
+
+/* ── Page settings: a dialog under the bar on a laptop or iPad, a sheet at the foot of a phone ── */
+.pa .qs-popd { position: fixed; margin: 0; inset: auto 14px auto auto; top: 132px; width: min(340px, calc(100vw - 28px)); max-width: calc(100vw - 28px); max-height: calc(100dvh - 150px); overflow: auto; padding: 0; color: var(--ink); }
+.pa .qs-popd::backdrop { background: transparent; }
+.pa .qs-popd-in { display: grid; gap: 12px; padding: 14px; }
+.pa .qs-popd-head { display: flex; align-items: center; justify-content: space-between; }
+.pa .qs-popd h2 { margin: 0; font: 600 22px var(--f-px); }
+.pa .qs-popd-x { font: 400 26px/1 var(--f-body); }
+@media (max-width: 640px) {
+  .pa .qs-popd { inset: auto 0 0 0; top: auto; width: 100%; max-width: none; max-height: 84dvh; border-radius: 18px 18px 0 0; border-bottom-width: 0; box-shadow: 0 -10px 30px rgba(60, 40, 30, .25); }
+  .pa .qs-popd-in { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+  .pa .qs-popd::backdrop { background: rgba(60, 40, 30, .32); }
+}
+
+/* ── "3 parts are not marked yet. Finish anyway?" ────────────────────── */
+.pa .qs-confirm { margin: auto; width: min(430px, calc(100vw - 28px)); padding: 18px; color: var(--ink); }
+.pa .qs-confirm::backdrop { background: rgba(60, 40, 30, .32); }
+.pa .qs-confirm-line { margin: 0 0 16px; font: 800 17px/1.4 var(--f-body); }
+.pa .qs-confirm-acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.pa .qs-confirm-acts .btn { min-height: 48px; }
+
+/* ── the paper's inner width, for the height each question is assumed to have while it is off the screen (Sheet.tsx: --qh) ── */
+.pa .qs-paper { --qs-w: calc(min(880px, 100vw - 28px) - 2 * clamp(14px, 4.4vw, 46px)); }
+
+/* ── forced colours: the progress capsules keep their meaning without the fills ── */
+@media (forced-colors: active) {
+  .pa .qs-pn-b i { border-color: CanvasText; }
+  .pa .qs-pn-b.done i { background: Highlight; }
+  .pa .qs-pn-b.here i { outline: 2px solid CanvasText; outline-offset: 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa .qs-cropwait { animation: none; }
+  .pa .qs-cropbox.is-ok .qs-crop, .pa .qs-pn-b i { transition: none; }
+}

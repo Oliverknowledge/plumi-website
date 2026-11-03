@@ -6,7 +6,7 @@ import {
   removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last,
 } from "./model";
 import type { Grade } from "./srs";
-import type { QuestionsData } from "./questions/model";
+import { noteQuestionsKey, QUESTIONS_KEY, questionsAreDurable, withoutQuestions } from "./questions/persist";
 
 /**
  * The Desk's and the flashcards' data, kept on this device (localStorage) and shared between tabs. Signed out
@@ -39,12 +39,14 @@ function start() {
   if (started || typeof window === "undefined") return;
   started = true;
   state = load();
+  try { noteQuestionsKey(localStorage.getItem(QUESTIONS_KEY)); } catch { /* no storage */ }
   window.addEventListener("storage", (e) => { if (e.key === KEY) { state = load(); emit(); } });
 }
 
 function commit(next: AppData) {
   let persisted = state.persisted;
-  try { localStorage.setItem(KEY, JSON.stringify(next)); persisted = true; } catch { persisted = false; }
+  // The Questions data has its own key (questions/store.ts). Once it is safely there, this document lets go of its old copy.
+  try { localStorage.setItem(KEY, JSON.stringify(questionsAreDurable() ? withoutQuestions(next) : next)); persisted = true; } catch { persisted = false; }
   state = { ready: true, persisted, data: next };
   emit();
 }
@@ -59,11 +61,6 @@ export function useDueCount(now: number): number { const s = useApp(); return s.
 
 const change = (fn: (d: AppData) => AppData) => commit(fn(state.ready ? state.data : load().data));
 const now = () => Date.now();
-
-/** The Questions tab's data, changed by a pure function from questions/model.ts. */
-export function changeQuestions(fn: (q: QuestionsData) => QuestionsData) { change((d) => { const q = fn(d.questions); return q === d.questions ? d : { ...d, questions: q }; }); }
-/** The latest Questions data right now (not a render's snapshot), for a handler that must read what it just wrote. */
-export function currentQuestions(): QuestionsData { return (state.ready ? state.data : load().data).questions; }
 
 export const actions = {
   addTask: (text: string, due: string, subject?: string | null) => change((d) => addTask(d, text, due, now(), subject)),
