@@ -15,7 +15,17 @@ const metas = new Map<string, Promise<SubjectMeta>>();
 const parts = new Map<string, Promise<BankRow[]>>();
 const texts = new Map<string, Promise<Record<string, string>>>();
 
-const json = (url: string): Promise<unknown> => fetch(url).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); });
+/** At most this many files in flight at once: four shelves asking together must not starve the one the student is looking at. */
+const MAX_FLIGHT = 4;
+let flying = 0;
+const waiting: (() => void)[] = [];
+function slot(): Promise<void> {
+  if (flying < MAX_FLIGHT) { flying++; return Promise.resolve(); }
+  return new Promise((go) => waiting.push(() => { flying++; go(); }));
+}
+const release = () => { flying--; waiting.shift()?.(); };
+const json = (url: string): Promise<unknown> =>
+  slot().then(() => fetch(url).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }).finally(release));
 const once = <T,>(m: Map<string, Promise<T>>, key: string, make: () => Promise<T>) => {
   let p = m.get(key);
   if (!p) { p = make(); m.set(key, p); p.catch(() => m.delete(key)); }
@@ -24,17 +34,24 @@ const once = <T,>(m: Map<string, Promise<T>>, key: string, make: () => Promise<T
 
 export type Loaded = { state: "loading" } | { state: "error" } | { state: "ready"; meta: SubjectMeta; rows: BankRow[] };
 
-/** `attempt` is bumped to try again: the answer for an older attempt reads as loading, so a retry is seen to be running. */
-export function useSubject(slug: string | null, attempt = 0): Loaded {
+/** The subject's data if it has already arrived this visit (a shelf that was scrolled past, a picker opened from it): no waiting. */
+export const loadedSubject = new Map<string, { meta: SubjectMeta; rows: BankRow[] }>();
+
+/**
+ * `attempt` is bumped to try again: the answer for an older attempt reads as loading, so a retry is seen to be running.
+ * `enabled` false holds the fetch back (a shelf below the fold asks only when it is nearly seen).
+ */
+export function useSubject(slug: string | null, attempt = 0, enabled = true): Loaded {
   const [got, setGot] = useState<{ slug: string; attempt: number; res: { meta: SubjectMeta; rows: BankRow[] } | null } | null>(null);
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || !enabled) return;
     let live = true;
     Promise.all([once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta)), once(parts, slug, () => json(bankFile(slug, "parts")).then(cleanRows))])
-      .then(([meta, rows]) => { if (live) setGot({ slug, attempt, res: { meta, rows } }); })
+      .then(([meta, rows]) => { loadedSubject.set(slug, { meta, rows }); if (live) setGot({ slug, attempt, res: { meta, rows } }); })
       .catch(() => { if (live) setGot({ slug, attempt, res: null }); });
     return () => { live = false; };
-  }, [slug, attempt]);
+  }, [slug, attempt, enabled]);
+  if (slug && (!got || got.slug !== slug)) { const hit = loadedSubject.get(slug); if (hit) return { state: "ready", ...hit }; }
   if (!slug || !got || got.slug !== slug || got.attempt !== attempt) return { state: "loading" };
   return got.res ? { state: "ready", ...got.res } : { state: "error" };
 }

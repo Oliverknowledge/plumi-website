@@ -19,7 +19,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     ...(s.reportsBy === "question" ? { rq: 1 as const } : {}),
     topics: s.topics.map((t) => ({ code: t.code, ref: t.ref, title: t.title, short: t.short, section: t.section, count: t.count })),
     sections: s.sections.map((x) => ({ code: x.code, title: x.title })),
-    papers: s.papers.map((p) => ({ id: p.id, name: p.name })),
+    papers: s.papers.map((p) => ({ id: p.id, name: p.name, ...(p.title ? { title: p.title } : {}) })),
     series: s.series.map((x) => ({ id: x.id, label: x.label })),
   };
   return Response.json(meta);

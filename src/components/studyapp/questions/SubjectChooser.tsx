@@ -2,24 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { fold } from "@/lib/studyapp/questions/picker";
-import { subjectOrder, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { subjectOrder, subjectTint, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { SearchIcon } from "./icons";
 
 const MAIN = ["GCSE", "A-Level"];
 const OTHER = ["International GCSE", "IGCSE", "Level 2", "Level 1/2", "Level 3"];
-const TINT: Record<string, string> = {
-  Chemistry: "var(--t-chem)", Physics: "var(--t-eng)", Biology: "var(--t-bio)", Maths: "var(--t-maths)", "Further Maths": "var(--t-fm)", "Combined Science": "var(--t-bio)",
-  Geography: "var(--t-geo)", History: "var(--t-hist)", "Computer Science": "var(--t-cs)",
-};
-const SPARE = ["var(--t-geo)", "var(--t-hist)", "var(--t-lang)", "var(--t-cs)", "var(--t-soc)"];
-/** Every subject has a tint (the same one each time), so the colour is a landmark and not just decoration. */
-const tint = (subject: string) => {
-  const name = subject.replace(/ [AB]$/, "");
-  if (TINT[name]) return TINT[name];
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return SPARE[h % SPARE.length];
-};
+const tint = subjectTint;
 
 const KEY = "plumi-qs-chooser";
 /** The level and board last chosen here: a per-visitor convenience, so it must not matter if the browser will not keep it. */

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { catchUpInput, redoInput, scoreSet, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { againInput, catchUpInput, redoInput, scoreSet, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
 import { useDocumentTitle } from "./useDocumentTitle";
 
@@ -69,6 +69,7 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
             {redo && <button type="button" className="btn gold" onClick={() => { qa.redo(set.id); }} data-testid="redo-set">Redo the ones you dropped marks on <span className="k">{redo.parts.length}</span></button>}
             {catchUp && <button type="button" className={`btn${redo ? "" : " gold"}`} onClick={() => { qa.catchUp(set.id); }} data-testid="catchup-set">Do the skipped ones <span className="k">{catchUp.parts.length}</span></button>}
             <button type="button" className={`btn${redo || catchUp ? "" : " gold"}`} onClick={() => qa.open(null)} data-testid="keep-going">Keep going</button>
+            {againInput(set) && <button type="button" className="btn" onClick={() => { qa.again(set.id); }} data-testid="again-paper">Do this paper again</button>}
             <button type="button" className="btn ghost" onClick={() => onReview()} data-testid="review-sheet">Review the sheet</button>
           </div>
         </section>

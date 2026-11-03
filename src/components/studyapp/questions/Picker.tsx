@@ -12,7 +12,7 @@ import { qa } from "@/lib/studyapp/questions/store";
 import { toast } from "../toast";
 import { useBankText, useSubject } from "./bankData";
 import { FiltersDialog, topicName } from "./FiltersDialog";
-import { CloseIcon, PlusIcon, SearchIcon } from "./icons";
+import { BackIcon, CloseIcon, PlusIcon, SearchIcon } from "./icons";
 import { ChevronIcon, FilterIcon, ShuffleIcon } from "./pickerIcons";
 import { ResultList } from "./ResultList";
 import { SetsSheet } from "./SetsSheet";
@@ -26,7 +26,7 @@ const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefe
  * The picker: choose a subject, then search, filter (one Filters sheet), tick the questions to do (or let "Mix for me"
  * choose), and Start. A set can hold up to 60 parts. The subject and topics are remembered on this device.
  */
-export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: QuestionsData }) {
+export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: CatalogueSubject[]; q: QuestionsData; mine: string[]; autoMix: boolean; onHome(): void }) {
   const saved = q.pick.subject && catalogue.some((c) => c.slug === q.pick.subject) ? q.pick.subject : null;
   const [choosing, setChoosing] = useState(!saved);
   const [sets, setSets] = useState(false);
@@ -48,6 +48,7 @@ export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: Que
         <div className="qs-col">
           <header className="qs-head">
             <div className="qs-head-text">
+              <button type="button" className="qs-homeback" onClick={onHome} data-testid="back-to-papers"><BackIcon />My papers</button>
               <h1 ref={h1} tabIndex={-1}>Questions</h1>
               {browsing ? (
                 <button type="button" className="qs-subj" onClick={() => setChoosing(true)} data-testid="change-subject" aria-label={`${title}. Change subject`}>
@@ -75,9 +76,9 @@ export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: Que
 
           {!browsing ? (
             <SubjectChooser catalogue={catalogue} recent={[...(saved ? [saved] : []), ...recentSubjects].filter((s, i, a) => a.indexOf(s) === i)} current={saved}
-              onPick={(slug) => { qa.pick(slug, slug === saved ? q.pick.topics : []); setChoosing(false); }} />
+              onPick={(slug) => { qa.pick(slug, slug === saved ? q.pick.topics : []); if (!mine.includes(slug)) qa.mine([...mine, slug]); setChoosing(false); }} />
           ) : (
-            <Browse key={saved} slug={saved} q={q} title={title} onChange={() => setChoosing(true)} onLeave={setLeaving} />
+            <Browse key={saved} slug={saved} q={q} title={title} autoMix={autoMix} onChange={() => setChoosing(true)} onLeave={setLeaving} />
           )}
         </div>
       </div>
@@ -86,7 +87,7 @@ export function Picker({ catalogue, q }: { catalogue: CatalogueSubject[]; q: Que
   );
 }
 
-function Browse({ slug, q, title, onChange, onLeave }: { slug: string; q: QuestionsData; title: string; onChange(): void; onLeave(on: boolean): void }) {
+function Browse({ slug, q, title, autoMix, onChange, onLeave }: { slug: string; q: QuestionsData; title: string; autoMix: boolean; onChange(): void; onLeave(on: boolean): void }) {
   const [attempt, setAttempt] = useState(0);
   const data = useSubject(slug, attempt);
   const [slow, setSlow] = useState(false);
@@ -117,12 +118,12 @@ function Browse({ slug, q, title, onChange, onLeave }: { slug: string; q: Questi
       </div>
     );
   }
-  return <Loaded meta={data.meta} rows={data.rows} q={q} onChange={onChange} onLeave={onLeave} />;
+  return <Loaded meta={data.meta} rows={data.rows} q={q} autoMix={autoMix} onChange={onChange} onLeave={onLeave} />;
 }
 
 type Mixed = { rows: BankRow[]; n: number };
 
-function Loaded({ meta, rows, q, onChange, onLeave }: { meta: SubjectMeta; rows: BankRow[]; q: QuestionsData; onChange(): void; onLeave(on: boolean): void }) {
+function Loaded({ meta, rows, q, autoMix, onChange, onLeave }: { meta: SubjectMeta; rows: BankRow[]; q: QuestionsData; autoMix: boolean; onChange(): void; onLeave(on: boolean): void }) {
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [search, setSearch] = useState("");
   const [sel, setSel] = useState<Map<string, BankRow>>(new Map());
@@ -174,6 +175,9 @@ function Loaded({ meta, rows, q, onChange, onLeave }: { meta: SubjectMeta; rows:
     setMixed({ rows: picked, n });
     setLive(`Mixed ${plural(picked.length, "question", "questions")}`);
   };
+  // "Mix for me" on a shelf arrives here with ten already mixed (once, when the list is there)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autoMix) doMix(10); }, []);
   const chosen = [...sel.values()];
   const marks = marksOf(chosen);
   const start = () => {

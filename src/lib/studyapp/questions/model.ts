@@ -50,6 +50,8 @@ export interface QSet {
   at: number;
   finishedAt?: number;
   redoOf?: string;
+  /** Set when this is a whole past paper opened from a shelf: `"JUN25|84631h"` (series, paper code) of the subject, so the shelf can show its progress. */
+  paper?: string;
 }
 
 export type Mode = "ink" | "type";
@@ -104,6 +106,8 @@ export interface QuestionsData {
   open: string | null;
   /** The last subject and topics chosen in the picker. */
   pick: { subject: string | null; topics: string[] };
+  /** The subjects the student does, as bank slugs (the slug names the level and the exam board too), in the order chosen. Unset until they have chosen (`mine.ts` derives it for older data). */
+  mine?: string[];
   prefs: QPrefs;
 }
 
@@ -112,6 +116,9 @@ export const EMPTY_QUESTIONS: QuestionsData = { sets: [], answers: {}, recent: [
 
 export const MAX_SETS = 40;
 export const MAX_SET_PARTS = 60;
+/** A whole past paper can have more parts than a hand-picked set (the longest in the bank has 73). */
+export const MAX_PAPER_PARTS = 120;
+export const MAX_MINE = 40;
 export const MAX_RECENT = 500;
 export const TEXT_PART_CAP = 12_000;
 /** All typed answers together, in characters: localStorage holds about five million, and the rest of the app lives there too. */
@@ -330,6 +337,8 @@ export interface SetInput {
   topics: Record<string, string>;
   parts: readonly QPart[];
   redoOf?: string;
+  /** A whole paper from a shelf (see `QSet.paper`). */
+  paper?: string;
 }
 
 const clampStr = (s: unknown, n: number) => (typeof s === "string" ? s.slice(0, n) : "");
@@ -341,12 +350,13 @@ export function orderParts(parts: readonly QPart[]): QPart[] {
 
 export function createSet(q: QuestionsData, input: SetInput, now: number): { q: QuestionsData; id: string; dropped: string[] } {
   const seen = new Set<string>();
-  const unique = input.parts.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, MAX_SET_PARTS);
+  const unique = input.parts.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, input.paper ? MAX_PAPER_PARTS : MAX_SET_PARTS);
   const parts = orderParts(unique);
   const id = newId(now);
   const qs = blocks(parts).length;
   const name = clampStr(input.name?.trim() || `${input.title}, ${qs} question${qs === 1 ? "" : "s"}`, 80);
   const set: QSet = { id, name, subject: input.subject, title: input.title, cv: input.cv, rq: input.rq, names: input.names, createdAt: now, updatedAt: now, parts, topics: input.topics, at: 0, redoOf: input.redoOf };
+  if (input.paper) set.paper = input.paper;
   let sets = [set, ...q.sets];
   const dropped: string[] = [];
   while (sets.length > MAX_SETS) {
@@ -442,6 +452,8 @@ export function finishSet(q: QuestionsData, id: string, now: number): QuestionsD
 export const reopenSet = (q: QuestionsData, id: string): QuestionsData => ({ ...q, sets: q.sets.map((s) => (s.id === id ? { ...s, finishedAt: undefined } : s)) });
 
 export const setPick = (q: QuestionsData, subject: string | null, topics: readonly string[]): QuestionsData => ({ ...q, pick: { subject, topics: topics.slice(0, 80) } });
+/** The subjects the student does. Unknown or repeated slugs are dropped; the order is the order given. */
+export const setMine = (q: QuestionsData, slugs: readonly string[]): QuestionsData => ({ ...q, mine: [...new Set(slugs)].slice(0, MAX_MINE) });
 export const setPrefs = (q: QuestionsData, p: Partial<QPrefs>): QuestionsData => ({ ...q, prefs: { ...q.prefs, ...p } });
 
 /** A fresh set of the parts a student dropped marks on, with no answers carried over. */
@@ -456,6 +468,12 @@ export function catchUpInput(set: QSet, answers: Record<string, QAnswer>): SetIn
   const { skipped } = scoreSet(set, answers);
   if (!skipped.length) return null;
   return { name: `Skipped: ${set.name}`.slice(0, 80), subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: skipped, redoOf: set.id };
+}
+
+/** A whole paper again from the start (same parts, no answers carried over), or null if the set was not a whole paper. */
+export function againInput(set: QSet): SetInput | null {
+  if (!set.paper) return null;
+  return { name: set.name, subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: set.parts, paper: set.paper };
 }
 
 /** Bytes of ink the answers say they hold, in total. */
@@ -506,7 +524,7 @@ function cleanSet(raw: unknown): QSet | null {
   for (const p of Array.isArray(r.parts) ? r.parts : []) {
     const c = cleanPart(p);
     if (c && !seen.has(c.id)) { seen.add(c.id); parts.push(c); }
-    if (parts.length >= MAX_SET_PARTS) break;
+    if (parts.length >= (typeof r.paper === "string" ? MAX_PAPER_PARTS : MAX_SET_PARTS)) break;
   }
   if (!parts.length) return null;
   const set: QSet = {
@@ -519,6 +537,7 @@ function cleanSet(raw: unknown): QSet | null {
   if (r.rq) set.rq = 1;
   if (typeof r.finishedAt === "number" && Number.isFinite(r.finishedAt)) set.finishedAt = Math.round(r.finishedAt);
   if (typeof r.redoOf === "string") set.redoOf = r.redoOf.slice(0, 60);
+  if (typeof r.paper === "string" && r.paper) set.paper = r.paper.slice(0, 80);
   return set;
 }
 
@@ -569,8 +588,9 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
     .filter((x): x is { id: string; at: number } => !!x && typeof x.id === "string" && typeof x.at === "number" && Number.isFinite(x.at))
     .slice(0, MAX_RECENT).map((x) => ({ id: x.id.slice(0, 80), at: x.at }));
   const pk = (r.pick ?? {}) as Partial<QuestionsData["pick"]>;
+  const mine = Array.isArray(r.mine) ? [...new Set(r.mine.filter((x): x is string => typeof x === "string" && x.length > 0).map((x) => x.slice(0, 80)))].slice(0, MAX_MINE) : undefined;
   return {
-    sets, answers, recent, prefs,
+    sets, answers, recent, prefs, ...(mine ? { mine } : {}),
     open: typeof r.open === "string" && sets.some((s) => s.id === r.open) ? r.open : null,
     pick: { subject: typeof pk.subject === "string" ? pk.subject.slice(0, 80) : null, topics: Array.isArray(pk.topics) ? pk.topics.filter((t): t is string => typeof t === "string").slice(0, 80).map((t) => t.slice(0, 40)) : [] },
   };

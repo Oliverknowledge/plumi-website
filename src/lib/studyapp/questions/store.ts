@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { removeInk, removeSetInk } from "./inkDb";
 import {
-  checkPart, createSet, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
+  againInput, checkPart, createSet, setMine, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
   type Mode, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
 import { APP_KEY, QUESTIONS_KEY, QUESTIONS_RECOVERY_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
@@ -151,12 +151,20 @@ export const qa = {
   finish: (id: string) => changeQuestions((q) => finishSet(q, id, now())),
   reopen: (id: string) => changeQuestions((q) => reopenSet(q, id)),
   pick: (subject: string | null, topics: readonly string[]) => changeQuestions((q) => setPick(q, subject, topics)),
+  /** The subjects the student does (slugs, in the order chosen). */
+  mine: (slugs: readonly string[]) => changeQuestions((q) => setMine(q, slugs)),
   prefs: (p: Partial<QPrefs>) => changeQuestions((q) => setPrefs(q, p)),
   /** A redo set of the parts that lost marks, or null if none did. */
   redo(setId: string): string | null {
     const q = currentQuestions();
     const set = q.sets.find((s) => s.id === setId);
     const input = set ? redoInput(set, q.answers) : null;
+    return input ? qa.start(input) : null;
+  },
+  /** A whole paper again from the start (a fresh set, no answers carried over), or null if the set was not a whole paper. */
+  again(setId: string): string | null {
+    const set = currentQuestions().sets.find((s) => s.id === setId);
+    const input = set ? againInput(set) : null;
     return input ? qa.start(input) : null;
   },
   /** A new set of the parts that were skipped, or null if none were. */

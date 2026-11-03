@@ -189,7 +189,7 @@ export function toQPart(r: BankRow): QPart {
 }
 
 /** A new set from the rows chosen in a subject: the parts, and the names the sheet and summary will need without fetching the subject again. */
-export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[]): SetInput {
+export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[], extra: Pick<SetInput, "name" | "paper"> = {}): SetInput {
   const names: Record<string, string> = {};
   const topics: Record<string, string> = {};
   for (const r of rows) {
@@ -197,7 +197,7 @@ export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[]): SetI
     names[r.s] = meta.series.find((x) => x.id === r.s)?.label ?? r.s;
     for (const code of r.t) { const t = meta.topics.find((x) => x.code === code); if (t) topics[code] = t.short ?? t.title; }
   }
-  return { subject: meta.slug, title: meta.title, cv: meta.cv, rq: meta.rq, names, topics, parts: rows.map(toQPart) };
+  return { ...extra, subject: meta.slug, title: meta.title, cv: meta.cv, rq: meta.rq, names, topics, parts: rows.map(toQPart) };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
