@@ -1,10 +1,9 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { BankTopicPage } from "@/components/questionBank/BankPages";
-import { bankLevel, bankSubject, bankSubjects, bankTopic, bankTopicPath, bankYears, type BankPart } from "@/content/questionBank";
+import { bankLevel, bankSubject, bankSubjects, bankTopic, bankTopicPath, bankYears, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankParts } from "@/lib/bankParts";
 import { pastPaperMetadata } from "@/lib/pastPaperMeta";
 
 type Params = Promise<{ subject: string; topic: string }>;
@@ -17,9 +16,8 @@ export function generateStaticParams() {
 export const dynamicParams = false;
 
 /** The topic's questions, newest first, read from the same list the browser fetches. */
-function topicParts(slug: string, code: string): BankPart[] {
-  const all: BankPart[] = JSON.parse(readFileSync(path.join(process.cwd(), "public", "question-bank", slug, "parts.json"), "utf8"));
-  return all.filter(p => p.t.includes(code));
+async function topicParts(s: BankSubject, code: string): Promise<BankPart[]> {
+  return (await bankParts(s)).filter(p => p.t.includes(code));
 }
 
 async function resolve(params: Params) {
@@ -74,6 +72,6 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function Page({ params }: { params: Params }) {
   const found = await resolve(params);
   if (!found) notFound();
-  const parts = topicParts(found.s.slug, found.t.code);
+  const parts = await topicParts(found.s, found.t.code);
   return <BankTopicPage subject={found.s} topic={found.t} parts={parts.slice(0, 20)} index={parts} />;
 }

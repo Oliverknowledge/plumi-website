@@ -10,7 +10,7 @@ import { AnswerBox } from "./AnswerBox";
 import { useDarkCrop } from "@/lib/darkCrops";
 import { isEssaySubject } from "@/lib/markBands";
 import {
-  bankDataPath, bankTopicPath, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
+  bankTopicPath, fetchBankData, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
 
@@ -22,9 +22,9 @@ const WorkedSolution = dynamic(() => import("./WorkedSolution").then(m => m.Work
 
 /** Examiner's reports for a subject, fetched once the first time anyone opens one. */
 const reports: Record<string, Promise<Record<string, string>>> = {};
-function reportsFor(slug: string) {
-  reports[slug] ??= fetch(bankDataPath(slug, "reports")).then(r => r.json()).catch(() => ({}));
-  return reports[slug];
+function reportsFor(subject: BankSubject) {
+  reports[subject.slug] ??= fetchBankData<Record<string, string>>(subject, "reports").then(r => r ?? {}).catch(() => ({}));
+  return reports[subject.slug];
 }
 
 /**
@@ -129,7 +129,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
     const next = !open[key];
     setOpen(o => ({ ...o, [key]: next }));
     if (next && key !== "stem") track("bank_reveal", { subject: subject.slug, kind: key, part: many ? questionKey(part) : part.id });
-    if (key === "er" && next && report === null) reportsFor(subject.slug).then(r => setReport(r[reportKey(subject, part.id)] ?? ""));
+    if (key === "er" && next && report === null) reportsFor(subject).then(r => setReport(r[reportKey(subject, part.id)] ?? ""));
   }
 
   return (
@@ -239,7 +239,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
               {!embed && <SelfMark subject={subject.slug} part={p} many={many} />}
             </div>
           ))}
-        {open.sol && withSolution.map(p => <WorkedSolution key={`${p.id}-sol`} slug={subject.slug} id={p.id} question={p.l} />)}
+        {open.sol && withSolution.map(p => <WorkedSolution key={`${p.id}-sol`} subject={subject} id={p.id} question={p.l} />)}
         {/* Only the whole scheme as a PDF: mark yourself against it here, without opening anything first. */}
         {!embed && pdfOnly.map(p => <SelfMark key={`${p.id}-self`} subject={subject.slug} part={p} many={many} />)}
       </div>

@@ -55,6 +55,8 @@ scripts/past-papers/.cache/
 scripts/question-bank/.work/
 # local copies of our papers and crops, served at /papers-local in development (R2 in production)
 public/papers-local
+# the question bank's data, which the builders write here: the site reads it from R2 (scripts/question-bank/upload_data.py)
+public/question-bank/
 scripts/question-bank/.work-edexcel/
 scripts/question-bank/.work-chem-legacy/
 scripts/question-bank/.work-gcse/

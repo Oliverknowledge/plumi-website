@@ -25,9 +25,54 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
   `aqa/`, question crops under `bank/`. In development they're served from
   `public/papers-local` (a symlink into the gitignored work folder).
 - **Data the site reads:** `src/content/questionBank/*.json` (topics, papers,
-  series, the newest 20 parts; built into the pages) and
-  `public/question-bank/<subject>/{parts,text,reports}.json` (fetched by the
-  browser: the list, search text, examiner's reports).
+  series, the newest 20 parts; built into the pages) and the bank's data,
+  `{parts,text,reports}.json` (the list, search text, examiner's reports), on R2 under
+  `bank-data/<subject>/` (see "Bank data on R2" below): fetched by the browser, and
+  parts.json by the build for the topic pages.
+
+## Bank data on R2 (3 November 2026)
+
+The builders still write a bank's data to `public/question-bank/<slug>/` (parts, text,
+reports, and practicals, year13, tiers and `solutions/` where the bank has them), but git
+ignores that folder: 216 MB of JSON that every build cloned and deployed, and that every
+bank PR added to. The site reads the files from R2 instead, named by their content hash:
+
+- `bank-data/<slug>/parts.<hash>.json` (and text, reports, ...), and
+  `bank-data/<slug>/solutions.<hash>/<id>.json` for the worked solutions;
+- stored gzipped (R2's public URL doesn't compress) and cached for a year as immutable:
+  a new cut is a new name, and an older deployment keeps finding its own files;
+- the hashes sit in the bank's meta, `src/content/questionBank/<slug>.json`, as
+  `"data": {"parts": "…", …}`, which is what gets committed. `bankDataUrl` and
+  `bankSolutionUrl` build the URLs; `src/lib/bankParts.ts` reads parts.json for the topic
+  pages (at build) and the partner embed (on demand).
+
+**After building or re-cutting a bank** (and after any script that rewrites its data or meta:
+tiers.py, practicals.py merge, maths_years.py, the solutions):
+
+```bash
+python3 scripts/question-bank/upload_data.py <slug> [<slug> ...]   # --dry-run first to see what changes
+```
+
+It uploads only what is new, writes the hashes into the meta, and stops if a file the bank
+already has on R2 (practicals, year13, tiers) is missing on disk. Commit the meta; never
+`git add -f` anything under `public/question-bank/`. A builder that rewrites the meta drops
+`data`, and `next build` then stops at that bank's topic pages with the command to run.
+
+**In a fresh worktree** the folder is empty. Before re-cutting or rebuilding an existing bank,
+or running a script over every bank (tiers.py, practicals.py, ms_fallback.py,
+solutions/check_solutions.py), pull what is on R2 (no keys needed):
+
+```bash
+python3 scripts/question-bank/upload_data.py --pull <slug>   # or --pull --all
+```
+
+The old URLs, `/question-bank/<slug>/<file>.json`, redirect (307) to the bank's current file on R2
+(`bankDataRedirects` in next.config.ts), because the Discord bot's question of the day
+(`plumibot/bank.py`) still reads them.
+
+Previewing a bank locally needs its data uploaded first, as its crops do, and
+`NEXT_PUBLIC_PAPERS_URL` set: the pages fetch from R2 in development too. R2's CORS
+allows tryplumi.app and localhost:3000 only.
 
 ## Gaps, honestly
 
@@ -95,7 +140,8 @@ npm run bank:build
 npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 ```
 
-Then build, check a subject and a topic page, commit the JSON, and resubmit the
+Then `python3 scripts/question-bank/upload_data.py --all` (the bank data, see "Bank data on R2"),
+build, check a subject and a topic page, commit the meta JSON, and resubmit the
 sitemap in Search Console.
 
 ## Students' feedback of 29 October 2026
