@@ -6,7 +6,8 @@ SEATED art for the animals, from a ChatGPT sheet drawn for it (animals leaning o
     python3 tools/art/animal_sit.py [--id fox ...] [--sheet N]           # splices the seated frames into the animals' strips (idempotent)
     python3 tools/art/animal_sit.py --measure                            # the head widths and the scale they imply (to set `scale` in animal_sit.json)
     python3 tools/art/animal_sit.py --detail DIR                         # a 2x-detail preview (not used by the engine)
-    python3 tools/art/animal_sit.py --check                              # asserts the invariants of the seated frames (also run by check_animals.py)
+    python3 tools/art/animal_sit.py --dry DIR                            # only previews of the 30 seated frames per animal (the strips are not changed)
+    (the invariants of the seated frames are asserted by tools/art/check_animals.py)
 
 THE SHEET (animal_sit.json `sheets`): rows are animals (top to bottom), columns are the four facings: left (profile), right (profile), front (head
 tipped down, seen from above) and back (away). The legs and lap are not drawn (the table hides them). The pictures are drawn at 3 to 4 source px per
@@ -486,7 +487,7 @@ def build_animal(an_id: str, sprites: dict[str, Sprite], c: dict) -> dict:
     front = loop(ft, "front", fr["neck"] + (ft.shape[0] - nk) - 1, left_for(ft, jumper, None, fr["cx"]), ol, jumper, True)
     bg = fig["back"][: fig["back"].shape[0] - bk.get("cut", 0)] if bk.get("cut", 0) else fig["back"]
     back = loop(bg, "back", bk["base"], left_for(bg, jumper, None, bk["cx"]), ol, jumper, False)
-    return {"pal": pal, "frames": right + left + front + front + back, "base_n": len(base_pal)}
+    return {"pal": pal, "frames": right + left + front + front + back, "base_n": len(base_pal), "fig": fig}
 
 
 def splice(an_id: str, built: dict, sh: dict) -> None:
@@ -554,6 +555,36 @@ def measure(c: dict, sh: dict, sp) -> None:
         print(f"   best {best[1]} (error {best[0]:.2f}), config {c['animals'][an_id]['scale']}")
 
 
+def detail(out: Path, sheet_no: int = 1) -> None:
+    """A comparison picture (not used by the engine): each animal's four seated poses at the engine's scale and at 2x detail (half the source px per art px),
+    both at the same physical size, on the room's floor colour. The 2x version is 2x2 as many pixels: 40 to 48 columns, which the 34 wide frame cannot hold."""
+    c = cfg()
+    sh = c["sheets"][sheet_no - 1]
+    sp = sprites_for(sh)
+    out.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for an_id in sh["rows"]:
+        pair = []
+        for k in (1, 2):
+            cc = json.loads(json.dumps(c))
+            cc["animals"][an_id]["scale"] = c["animals"][an_id]["scale"] / k
+            fig = build_animal(an_id, sp[an_id], cc)["fig"]
+            tiles = []
+            for face in sh["cols"]:
+                f = fig[face]
+                t = np.zeros((56 * k, 56 * k, 4), np.uint8)
+                t[:] = (120, 92, 70, 255)
+                h, w = f.shape[:2]
+                y0, x0 = 56 * k - h - 2 * k, (56 * k - w) // 2
+                m = f[..., 3] > 0
+                t[y0:y0 + h, x0:x0 + w][m] = f[m]
+                tiles.append(np.kron(t, np.ones((8 // k, 8 // k, 1), np.uint8)))
+            pair.append(np.concatenate(tiles, axis=1))
+        rows.append(np.concatenate(pair, axis=0))
+    Image.fromarray(np.concatenate(rows, axis=0)[..., :3]).save(out / "seated-engine-vs-2x.png")
+    print(f"wrote {out / 'seated-engine-vs-2x.png'} (per animal: the engine's scale above, 2x detail below)")
+
+
 def apply(ids: list[str] | None = None, sheet_no: int = 1, dry: str | None = None) -> list[str]:
     """Splices the seated frames of every animal of the sheet (or of `ids`) into its strip; returns the ids done. animal_sheet.py calls this after it has
     rebuilt a strip, so a rebuilt animal keeps its drawn seated frames."""
@@ -588,10 +619,14 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--id", action="append")
     ap.add_argument("--sheet", type=int, default=1)
     ap.add_argument("--measure", action="store_true", help="print the head widths of the standing and the seated frames at several scales")
+    ap.add_argument("--detail", metavar="DIR", help="write a comparison of the seated poses at the engine scale and at 2x detail into DIR (not used by the engine)")
     ap.add_argument("--dry", metavar="DIR", help="write only previews of the 30 seated frames per animal into DIR (the strips are not changed)")
     a = ap.parse_args(argv)
     if a.ingest:
         ingest(Path(a.ingest), a.sheet)
+        return 0
+    if a.detail:
+        detail(Path(a.detail), a.sheet)
         return 0
     if a.measure:
         c = cfg()

@@ -258,7 +258,8 @@ iPad table has: right and left at the long tables, the arm chairs, the pod stool
   palette is those plus the extras).
   **2x detail (not integrated):** the new art is 2.6x finer than the engine's pixel; a 4.5 source px variant would be 40 to 48 columns by 40 rows per
   figure, which needs a 2x frame in the engine (its own frame width through `Person.fw`, a 2x seat table, 2x walks, or the seated animals the only fine thing in a room
-  of coarse ones). Not done: it would mix two pixel sizes in one room. On the clip, where only the camera matters, it would look better.
+  of coarse ones). Not done: it would mix two pixel sizes in one room. It looks clearly better (the ear's fluff, the tail, the paws and the pen, the face): `docs/study/art/animals/seated-engine-vs-2x.png`
+  (`python3 tools/art/animal_sit.py --detail DIR` writes it: the engine's scale above, 2x below, per animal).
 - **Numbers** (`check_animals.py -v`): the head bobs 1 to 2 rows in every direction; the torso slides at most 2.3 columns between frames
   (usually under 1); foot motion (the change of the feet's extent on the bottom two rows, a frame to the next) is 3.6 to 6.0 columns a frame
   against a person's 5.5. FOOT SKATE: the room moves a walker 14 art px a frame and no foot of a 24 px sprite can step back that fast, so every
