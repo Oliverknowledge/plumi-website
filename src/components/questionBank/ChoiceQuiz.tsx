@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { recordMark } from "@/lib/bankProgress";
+import { useDarkCrop } from "@/lib/darkCrops";
 import { paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 /**
@@ -31,6 +32,7 @@ function shuffled<T>(list: T[]) {
 
 export function ChoiceQuiz({ subject, pool, open, onClose }: { subject: BankSubject; pool: BankPart[]; open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const photo = useDarkCrop();
   const [phase, setPhase] = useState<Phase>("start");
   // How many: a number, 0 for all of them, or null for the default (15, or all if fewer).
   const [size, setSize] = useState<number | null>(null);
@@ -153,9 +155,9 @@ export function ChoiceQuiz({ subject, pool, open, onClose }: { subject: BankSubj
           <div className="qb-quiz-stage">
             <p className="qb-quiz-where">{where(part)}</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {part.st && <img src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} />}
+            {part.st && <img {...photo} src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} />}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={part.id} src={partImage(part.id, "qp", subject.cropVersion)} width={part.w} height={part.h} alt={`Question ${part.l}: ${part.x}`} />
+            <img key={part.id} {...photo} src={partImage(part.id, "qp", subject.cropVersion)} width={part.w} height={part.h} alt={`Question ${part.l}: ${part.x}`} />
           </div>
           <footer className="qb-zoom-foot">
             <div className="qb-self-keys qb-quiz-keys" role="group" aria-label="Your answer">

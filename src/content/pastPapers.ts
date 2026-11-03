@@ -312,7 +312,8 @@ export const boardOwner = (b: BoardPapers) => OWNERS[b.slug] ?? b.board;
 
 /** The question bank(s) for a board page's subject, where we have them. */
 export function bankFor(b: BoardPapers): { slug: string; name: string }[] {
-  const exact = bankSubject(`${b.slug}-${b.subject}`);
+  // (Pearson's International A Level banks drop the library's "a-level-": edexcel-ial-biology.)
+  const exact = bankSubject(`${b.slug}-${b.subject}`) ?? (b.slug === "edexcel-ial" ? bankSubject(`${b.slug}-${b.subject.replace(/^a-level-/, "")}`) : undefined);
   if (exact) return [{ slug: exact.slug, name: exact.subject }];
   return ["a", "b"].map(v => bankSubject(`${b.slug}-${b.subject}-${v}`)).filter(s => s !== undefined).map(s => ({ slug: s.slug, name: s.subject }));
 }

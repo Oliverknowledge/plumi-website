@@ -14,6 +14,8 @@
     "study:contrast": "tsx scripts/study-contrast.ts",
     "social:test": "tsx --test src/lib/social/social.test.ts",
     "app:test": "tsx --test src/lib/studyapp/*.test.ts src/lib/sessionStorage.test.ts src/lib/safePath.test.ts",
+    "dark:test": "tsx --test src/lib/darkQuestions.test.ts",
+    "dark:score": "tsx scripts/dark-questions/score.ts",
     "social:vectors": "tsx scripts/social-vectors.ts",
     "social:check-sql": "tsx scripts/social-check-sql.ts",
     "social:contract": "tsx scripts/social-contract.ts",
