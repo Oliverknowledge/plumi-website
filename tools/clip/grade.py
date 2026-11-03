@@ -65,6 +65,76 @@ def grade(img, P):
     out *= vig[..., None] * np.array([1.0, 0.985, 0.95], np.float32) ** (1 - vig[..., None]) if False else vig[..., None]
     return Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8))
 
+
+from PIL import ImageFilter
+
+def chunky(font_path, px, text, scale, outline, fill=(255, 250, 238), ink=(46, 28, 20), maxw=None, alpha=1.0):
+    """Big pixel type: the 1 bit glyphs scaled up by a whole number (one font pixel = `scale` screen pixels), a dark outline `outline` px wide and a soft shadow.
+    Wraps to two lines (or steps the scale down) when `maxw` would be exceeded."""
+    font = ImageFont.truetype(font_path, px)
+    def mask_of(t):
+        d0 = ImageDraw.Draw(Image.new("L", (1, 1))); d0.fontmode = "1"
+        bb = d0.textbbox((0, 0), t, font=font)
+        m = Image.new("L", (bb[2] - bb[0] + 2, bb[3] - bb[1] + 2), 0); d = ImageDraw.Draw(m); d.fontmode = "1"
+        d.text((1 - bb[0], 1 - bb[1]), t, font=font, fill=255)
+        return m
+    lines = [text]
+    sc = scale
+    while True:
+        ms = [mask_of(t) for t in lines]
+        w = max(m.width for m in ms) * sc
+        if maxw is None or w <= maxw: break
+        if len(lines) == 1 and " " in text:
+            words = text.split(" "); half = len(text) / 2; best = min(range(1, len(words)), key=lambda i: abs(len(" ".join(words[:i])) - half)); lines = [" ".join(words[:best]), " ".join(words[best:])]
+        else: sc -= 1
+    gap = 2
+    H = sum(m.height for m in ms) + gap * (len(ms) - 1); Wd = max(m.width for m in ms)
+    base = Image.new("L", (Wd, H), 0); y = 0
+    for m in ms: base.paste(m, (0, y)); y += m.height + gap
+    big = base.resize((Wd * sc, H * sc), Image.NEAREST)
+    pad = outline + 14
+    canvas = Image.new("L", (big.width + 2 * pad, big.height + 2 * pad), 0); canvas.paste(big, (pad, pad))
+    ol = canvas.filter(ImageFilter.MaxFilter(2 * outline + 1))
+    sh = ol.filter(ImageFilter.GaussianBlur(5))
+    out = np.zeros((canvas.height, canvas.width, 4), np.float32)
+    sha = np.asarray(sh).astype(np.float32) / 255 * 0.45
+    out[..., :3] = ink; out[..., 3] = 0
+    shifted = np.zeros_like(sha); shifted[6:] = sha[:-6]
+    out[..., 3] = shifted
+    ola = np.asarray(ol).astype(np.float32) / 255
+    out[..., :3] = np.where(ola[..., None] > 0.5, np.array(ink, np.float32), out[..., :3]); out[..., 3] = np.maximum(out[..., 3], ola)
+    fa = np.asarray(canvas).astype(np.float32) / 255
+    out[..., :3] = np.where(fa[..., None] > 0.5, np.array(fill, np.float32), out[..., :3]); out[..., 3] = np.maximum(out[..., 3], fa)
+    out[..., 3] *= 255 * alpha
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA"), pad
+
+def scrim(W, H, pos, strength, a):
+    """A soft dark gradient from the top (or bottom) edge, so type over a busy picture always reads."""
+    n = int(H * 0.30); ramp = (1 - np.linspace(0, 1, n)) ** 1.6 * strength * a
+    arr = np.zeros((H, W), np.float32)
+    if pos == "top": arr[:n] = ramp[:, None]
+    else: arr[H - n:] = ramp[::-1][:, None]
+    rgba = np.zeros((H, W, 4), np.uint8); rgba[..., 0], rgba[..., 1], rgba[..., 2] = 28, 16, 10; rgba[..., 3] = (arr * 255).astype(np.uint8)
+    return Image.fromarray(rgba, "RGBA")
+
+def aa(img, S):
+    """Anti-aliases the picture (the labels are not in it): a light gaussian then an unsharp mask, so stair steps soften but outlines stay readable."""
+    if not S: return img
+    im = img.filter(ImageFilter.GaussianBlur(S["sigma"]))
+    if S.get("unsharp"): im = im.filter(ImageFilter.UnsharpMask(S.get("radius", 1.6), S["unsharp"], 0))
+    return im
+
+def add_labels(img, base):
+    """The labels (name tags, bubbles) were captured over black and over white: colour and alpha come back from the pair, and go on top unsmoothed."""
+    kp, wp = base + "k.png", base + "w.png"
+    if not os.path.exists(kp): return img
+    k = np.asarray(Image.open(kp).convert("RGB")).astype(np.float32); w = np.asarray(Image.open(wp).convert("RGB")).astype(np.float32)
+    al = np.clip(1 - (w - k).mean(-1) / 255, 0, 1)
+    rgb = np.where(al[..., None] > 0.003, k / np.maximum(al[..., None], 0.003), 0)
+    base_a = np.asarray(img).astype(np.float32)
+    out = base_a * (1 - al[..., None]) + np.clip(rgb, 0, 255) * al[..., None]
+    return Image.fromarray(np.clip(out + 0.5, 0, 255).astype(np.uint8))
+
 class Text:
     """Pixel font text, crisp: drawn small with antialiasing off, outlined, then scaled up by a whole number so one font pixel is k art pixels."""
     def __init__(self, font_path, px, k):
@@ -98,24 +168,32 @@ def main():
         grade(img, P).save(a.out); return
     meta = json.load(open(os.path.join(a.frames, "meta.json"))); fps = meta["fps"]; na, nb = meta["a"], meta["b"]
     first = Image.open(os.path.join(a.frames, "a-0000.png")); W, H = first.size
-    k = 5; tx = Text(os.path.join(root, cfg["captionStyle"]["font"]), cfg["captionStyle"]["px"], k)
-    F = cfg["fade"]; total = round(cfg["total"] * fps)
+    k = 5; cs = cfg["captionStyle"]; F = cfg["fade"]; total = round(cfg["total"] * fps)
+    fontp = os.path.join(root, cs["font"]); chunk = cs.get("scale") is not None
+    if not chunk: tx = Text(fontp, cs["px"], k)
     ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(fps), "-i", "-",
                            "-c:v", "libx264", "-preset", "slow", "-crf", a.crf, "-pix_fmt", "yuv420p", "-movflags", "+faststart", a.out], stdin=subprocess.PIPE)
     cap_cache = {}
-    mark = tx.render(cfg["wordmark"], alpha=0.85)
+    if chunk:
+        msc = max(4, round(cs["scale"] * 0.6)); mark, mpad = chunky(fontp, cs["px"], cfg["wordmark"], msc, max(2, cs["outline"] - 1), alpha=0.92)
+    else: mark = tx.render(cfg["wordmark"], alpha=0.85)
     t_cut = na / fps
-    D0, D1 = F["dissolve"]; b0 = round(D0 * fps)          # the cafe's frames start at the dissolve's start
+    flash = F.get("mode") == "flash"
+    D0, D1 = (F["down"][0], F["down"][0]) if flash else F["dissolve"]; b0 = round(D0 * fps)          # the cafe's frames start at the dissolve's start
     def frame_at(f):
         t = f / fps
         parts = []
-        if f < na: parts.append(("a", f))
+        if f < na and not (flash and f >= b0): parts.append(("a", f))
         if f >= b0: parts.append(("b", min(f - b0, nb - 1)))
         out = []
         for k, j in parts:
-            img = Image.open(os.path.join(a.frames, f"{k}-{j:04d}.png"))
+            base = os.path.join(a.frames, f"{k}-{j:04d}")
+            img = Image.open(base + ".png").convert("RGB")
             P = cfg["grade"]["outdoor" if k == "a" else "indoor"]
-            out.append((k, (img.convert("RGB") if a.nograde else grade(img, P))))
+            if not a.nograde: img = grade(img, P)
+            img = aa(img, cfg.get("smooth"))
+            img = add_labels(img, base)
+            out.append((k, img))
         if len(out) == 1: return out[0][1]
         s = max(0.0, min(1.0, (t - D0) / (D1 - D0))); s = s * s * (3 - 2 * s)
         m = Image.blend(out[0][1], out[1][1], s)
@@ -132,12 +210,27 @@ def main():
                 al = min(1, (t - c["t0"]) / 0.25, (c["t1"] - t) / 0.25)
                 al = round(al * 4) / 4                                           # stepped, like the art
                 if al <= 0: continue
-                key = (c["text"], al)
-                if key not in cap_cache: cap_cache[key] = tx.render(c["text"], alpha=al)
-                im = cap_cache[key]
-                y = int(H * cfg["captionStyle"]["top"]) if c.get("pos", "top") == "top" else int(H * cfg["captionStyle"].get("bottom", 0.9)) - im.height
-                g.alpha_composite(im, ((W - im.width) // 2, y))
-        g.alpha_composite(mark, (W - mark.width - 3 * k, H - mark.height - 3 * k))
+                pos = c.get("posVertical", c.get("pos", "top")) if H > W else c.get("pos", "top")
+                if chunk:
+                    key = (c["text"], al, W)
+                    if key not in cap_cache: cap_cache[key] = chunky(fontp, cs["px"], c["text"], cs["scale"], cs["outline"], maxw=int(W * (1 - 2 * cs["left"])), alpha=al)
+                    im, pad = cap_cache[key]
+                    g.alpha_composite(scrim(W, H, pos, cs.get("scrim", 0.4), al), (0, 0))
+                    x = int(W * cs["left"]) - pad; y = int(H * cs["top"]) - pad if pos == "top" else int(H * cs["bottom"]) - im.height + pad
+                    g.alpha_composite(im, (x, y))
+                else:
+                    key = (c["text"], al)
+                    if key not in cap_cache: cap_cache[key] = tx.render(c["text"], alpha=al)
+                    im = cap_cache[key]
+                    y = int(H * cs["top"]) if pos == "top" else int(H * cs.get("bottom", 0.9)) - im.height
+                    g.alpha_composite(im, ((W - im.width) // 2, y))
+        if chunk: g.alpha_composite(mark, (W - mark.width - int(W * 0.03) + mpad, H - mark.height - int(H * 0.04) + mpad))
+        else: g.alpha_composite(mark, (W - mark.width - 3 * k, H - mark.height - 3 * k))
+        if flash:
+            u0, u1 = F["up"]; d0, d1 = F["down"]; v = 0.0
+            if u0 <= t < u1: v = (t - u0) / (u1 - u0); v = v * v
+            elif d0 <= t < d1: v = 1 - (t - d0) / (d1 - d0); v = v ** 0.8
+            if v > 0: g = Image.blend(g, Image.new("RGBA", (W, H), (*F["color"], 255)), float(min(1.0, v)))
         e = F["end"]
         if t >= cfg["total"] - e:
             veil = (t - (cfg["total"] - e)) / e; veil = max(0.0, min(1.0, veil)); veil = veil * veil * (3 - 2 * veil)

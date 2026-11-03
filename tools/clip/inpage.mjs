@@ -147,7 +147,8 @@ export function installRoomHelpers() {
   R.put = (c) => {
     const cur = R.crowd[c.id] || {};
     R.crowd[c.id] = { ...cur, ...c, rev: R.rev++ };
-    if (c.name !== undefined || c.tag !== undefined) R.labels[c.id] = { name: R.crowd[c.id].name, tag: R.crowd[c.id].tag ?? null, friend: false, pro: false };
+    if (c.nolabel) R.labels[c.id] = null;
+    else if (c.name !== undefined || c.tag !== undefined) R.labels[c.id] = { name: R.crowd[c.id].name, tag: R.crowd[c.id].tag ?? null, friend: false, pro: false };
     R.push();
   };
   /** The walk from a feet point to the standing tile of a chair (feet points). */
@@ -168,6 +169,20 @@ export function installRoomHelpers() {
     };
     h.follow(true);
   };
+  /** The room's zoom as a choice, see forceKTown: any whole `k` at the real density. Calling it again is a cut to another k. */
+  R.forceKRoom = (K) => {
+    const h = H();
+    h.resize = function () {
+      const box = this.canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1, W = Math.round(box.width * dpr), H2 = Math.round(box.height * dpr);
+      this.dpr = dpr;
+      if (this.canvas.width !== W || this.canvas.height !== H2) { this.canvas.width = W; this.canvas.height = H2; }
+      this.k = K; this.viewW = Math.min(this.L.w, W / K); this.viewH = Math.min(this.L.h, H2 / K);
+      this.offX = Math.max(0, Math.round((W - this.viewW * K) / 2)); this.offY = Math.max(0, Math.round((H2 - this.viewH * K) / 2));
+      this.follow(true);
+    };
+    h.resize();
+  };
   R.roomView = () => { const h = H(); return { k: h.k, w: h.viewW, h: h.viewH, camX: h.camX, camY: h.camY, door: h.L.door }; };
 }
 
@@ -183,6 +198,22 @@ export function installTownUi() {
   ov.className = "lb-ov"; ov.id = "clip-ov"; ov.style.cssText = "position:fixed;inset:0;z-index:45;pointer-events:none;overflow:hidden";
   host.appendChild(ov);
   const tags = [], bubs = [];
+  /**
+   * The engine picks its zoom from the screen (k = round(width / 400), or 240 under 560 css px) and caps the density at 3. For a recording the zoom is a choice:
+   * this replaces the engine's `resize` on this instance with one that takes any whole `k` at the browser's real density, so one art pixel is exactly k screenshot pixels.
+   */
+  R.forceKTown = (K) => {
+    const t = T();
+    t.resize = function () {
+      const cv = this.o.canvas, box = cv.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1, W = Math.round(box.width * dpr), H = Math.round(box.height * dpr);
+      this.dpr = dpr; this.k = K; this.W = W; this.H = H; this.viewW = W / K; this.viewH = H / K;
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      this.ctx.imageSmoothingEnabled = false;
+      this.camX = this.targetX(); this.camY = this.targetY(); this.clampCam();
+    };
+    t.resize();
+  };
   R.tag = (bot, name) => { const el = document.createElement("div"); el.className = "lb-nm"; el.textContent = name; ov.appendChild(el); tags.push({ el, bot }); };
   R.bub = (bot, text, ms, dx) => {
     const el = document.createElement("div"); el.className = "lb-bub"; el.textContent = text; el.style.setProperty("--bub-ms", ms + "ms"); ov.appendChild(el);
@@ -193,11 +224,11 @@ export function installTownUi() {
     const t = T(); if (!t) return;
     const k = t.k, dpr = t.dpr, cx = t.camPxX, cy = t.camPxY;
     const at = (p, up) => [Math.round(p.x * k - cx) / dpr, Math.round((p.y - up) * k - cy) / dpr];
-    for (const g of tags) { const p = t.people[1 + g.bot], [x, y] = at(p, 36); g.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; }
+    for (const g of tags) { const p = t.people[1 + g.bot], [x, y] = at(p, 31); g.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; }
     for (let i = bubs.length - 1; i >= 0; i--) {
       const g = bubs[i];
       if (performance.now() - g.born > g.ms + 50) { g.el.remove(); bubs.splice(i, 1); continue; }
-      const p = t.people[1 + g.bot], [x, y] = at(p, 36 + 14);
+      const p = t.people[1 + g.bot], [x, y] = at(p, 31 + 9);
       g.el.style.transform = `translate(${x + (g.dx || 0)}px, ${y}px) translate(-50%, -100%)`;
     }
   };

@@ -77,3 +77,17 @@ python3 tools/clip/grade.py --frames DIR/vertical --out plumi-social-vertical.mp
   toward cream, highlights warmed, a soft vignette. The parameters in `social.json` `grade.outdoor` were fitted to the mean colour of each class of pixel (grass, gold canopy, roof, path) in the lofi.town reference
   frame (full strength); `strength` blends it back toward the raw frame (0.6 in the clip, so the dark outlines keep the art crisp). The cafe interior has its own, milder grade.
 * All timing, names, seats, species, captions, fades and the grade are in `social.json`. Vertical overrides (`outdoor.vertical`, `indoor.vertical`) re-frame the same story for 216 x 384 art px.
+
+## v3 of the social cut: `social3.mjs` + `social3.json` (use these; `social.*` is v2)
+
+```bash
+node tools/clip/social3.mjs --aspect both --out DIR                                                  # raw frames (about 4 minutes both shapes)
+python3 tools/clip/grade.py --config tools/clip/social3.json --frames DIR/landscape --out plumi-social-1080p.mp4
+python3 tools/clip/grade.py --config tools/clip/social3.json --frames DIR/vertical   --out plumi-social-vertical.mp4
+```
+
+What is new: shot structure (a medium outdoor shot, a warm-white flash at the door, a close shot of two animals sitting down, a wide cafe shot held, a soft fade); `k` per shot in the config
+(`R.forceKTown` / `R.forceKRoom` replace the engine's `resize` on the instance, so any whole zoom works at the real pixel density; the founder chose to stay near the product's k = 5, so the close
+shot is k 5 and the wide cafe shot k 4, a cut between whole k values, never a smooth zoom); only side-facing seats are used (`rl-*`, `rr-*`, `long-w/e`, `lounge-*`, `bA-*`); each frame is captured three times
+(the canvas alone, then the name tags and bubbles alone over black and over white, so `grade.py` recovers their colour and alpha), which lets the picture be anti-aliased (`smooth` in the config: a light gaussian
+then an unsharp mask) while the labels stay crisp; chunky captions (4 px outline, soft shadow, a dark gradient scrim); the grade at strength 0.75.
