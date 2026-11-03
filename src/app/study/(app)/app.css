@@ -281,5 +281,17 @@
 .pa .exam-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
 
 /* Waiting at the door (AuthGate): a calm page, not a flash of the app. */
-.pa .gate { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; }
-.pa .gate p { font: 800 16px var(--f-body); color: var(--soft); }
+/* The loading door: ruled paper with a red margin, the mascot floating above the wordmark, three ink dots (pixel stepped) */
+.pa .gate { position: relative; min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 17px; padding: 30px 30px 30px 42px; text-align: center; color: #222f4d; background: repeating-linear-gradient(to bottom, #eff4fb 0 31px, #d8e2ee 31px 32px); }
+.pa .gate::before { content: ""; position: absolute; inset: 0 auto 0 clamp(18px, 6vw, 88px); width: 2px; background: #e9b9b5; }
+.pa .gate-lockup { display: flex; align-items: center; gap: 14px; }
+.pa .gate-mascot { width: 80px; height: 80px; animation: gate-float 1.8s steps(6, end) infinite; }
+.pa .gate-wordmark { width: 120px; height: auto; }
+.pa .gate p { margin: 0; font: 500 15px system-ui, sans-serif; color: #4d5e7c; }
+.pa .gate-dots { display: flex; gap: 6px; }
+.pa .gate-dots i { width: 6px; height: 6px; background: #a4b8d0; animation: gate-ink 1.4s steps(1, end) infinite; }
+.pa .gate-dots i:nth-child(2) { animation-delay: .16s; }
+.pa .gate-dots i:nth-child(3) { animation-delay: .32s; }
+@keyframes gate-float { 50% { transform: translateY(-6px); } }
+@keyframes gate-ink { 0%, 28% { background: #222f4d; } }
+@media (prefers-reduced-motion: reduce) { .pa .gate-mascot, .pa .gate-dots i { animation: none; } }
