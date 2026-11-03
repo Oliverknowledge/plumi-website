@@ -47,6 +47,19 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
   makes browsers fetch the new crops. Every new paper adds up (91, 75; Paper 3's 103 is
   78 plus the second essay choice). Chemistry's AS June 2016–17 and A-Level June 2017,
   and some specimens, are clipped the same way and not yet re-cut.
+- Chemistry goes back to 2010 with AQA's old specification (2420): units CHEM1 and CHEM2
+  (AS) and CHEM4 and CHEM5 (A2), January 2010 to June 2016, as papers "CHEM1 (old spec)"
+  and so on. A student's teacher sets tests from them. AQA publishes none of these now
+  (every file store address answers "not found" and its past paper search starts at June
+  2016), so the founder chose PMT's copies (2 November 2026), again **for the question
+  bank only**, with no examiners' reports. 44 sets, 2,069 parts, every paper adding up to
+  its 70 or 100 marks; 2,045 are in the bank, tagged to 7405's topics, and 24 whose marks
+  rest on content 7405 dropped (extracting metals, a magnetic-sector mass spectrometer's
+  deflection) are left out. CHEM3 and CHEM6 were the practical ISA/EMPA units. Scripts in
+  `scripts/question-bank/aqa_chem_legacy/`: `fetch_pmt.py`, `cut_legacy.py` (the old
+  "2 (b) (ii)" labels and the schemes' four table layouts), `tag_legacy.py` (tag.md's
+  "legacy units" brief), then `build_legacy.py`, which adds the legacy rows to the bank
+  `build_bank.py` wrote without rebuilding it, and prints the per-paper table.
 - Rebuilding from the shared work folder: `build_bank.py` has changed since Chemistry
   and Physics were last built (it trims the search text and links some scheme crops to
   the whole scheme), so this run kept their files as they were and took only Biology's
