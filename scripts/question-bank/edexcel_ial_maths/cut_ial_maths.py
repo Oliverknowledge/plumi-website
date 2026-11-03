@@ -69,6 +69,10 @@ LABEL = re.compile(r"^\*?(\d{1,2})\s*\.?\s*(?=\(|[a-z]?\s*$|\s)")
 # point Q by the column headings beside it.
 HEADING = re.compile(r"Q(u(e(s(t(i(o(n)?)?)?)?)?)?)?( Number)?", re.I)
 BESIDE = re.compile(r"Scheme|Solution|Marks?|Mark Guidance|Answer|Notes", re.I)
+# A heading set as one line with the next column's (Mechanics 2, October 2023: "Question Scheme").
+MERGED = re.compile(r"Question(\s+Number)?\s+(Scheme|Solution)\b")
+# What may follow a question's number where the question opens: its first part, or nothing.
+OPENING = re.compile(r"\(?\s*(a(i{1,3}|iv)?|i)\s*\)?(?=[\s(.]|$)|[^\w(]")
 # A question's label as printed: "4.", "1.(a)", "2 .(a)", "10 (a)", "1a", "7ai", "8" alone; not "3 5", "6.33", "2x" or "10 2".
 PART = r"[a-h](?:i{1,3}|iv|vi{0,3})?(?=[\s().]|$)"  # (a space, a bracket or the end after it: "9e−0.75t" is working)
 QUESTION = re.compile(rf"^\*?(\d{{1,2}})(?=\s*\.(?!\d)|\s*\(|{PART}|\s*$|\s+cont)\s*\.?")
@@ -80,13 +84,13 @@ class SchemeLines:
     dot), sets few of them in bold, and places them anywhere across a wide Question column (48pt to 89pt in on one
     Statistics 1 scheme), with numbers of the working just right of it. So a label is told by its order and its
     shape, as the IGCSE maths cutter's SchemeLines tells 4MA1's:
-      - the paper's next question, first on its row (nothing to its left), and printed as a label: a number with
-        a dot, a part, a bracket or nothing after it, not a word: "1. The total number of marks…" and "2. Formula"
-        are the marking guidance, which numbers its paragraphs too;
+      - the paper's next question, first on its row (nothing to its left), and printed as a question opens: a
+        number with a dot, its first part ("(a)", "(i)") or nothing after it. Not a word: "1. The total number of
+        marks…" and "2. Formula" are the marking guidance, which numbers its paragraphs too. Not a later part:
+        "2(e)" and "8 cont." are a question carried over a page. A bare number opens a table row (opens_row);
       - left of the scheme's usual label column (the middle of where its dotted and lettered labels sit), however
         far (Decision 1, June 2025, sets "3. (i)(a)" 50pt left of the rest), or under 35pt right of it; or, a bare
-        number ("5"), within 16pt of it or of the label before, and only where no "5(a)" follows before the next
-        question: "2 (0.05)" and a "3" of the working are not labels.
+        number ("5"), within 16pt of it or of the label before: "2 (0.05)" and a "3" of the working are not labels.
     A label reads as its number alone, bold, at its page's header, where the reader looks (its parts' rows are the
     question's either way, and "2a Use of (" set as one line is no label to the reader); any other
     line of the Question column that opens on a number ("10 2" carried down from the row above, a question's number
@@ -109,7 +113,15 @@ class SchemeLines:
                     continue
                 if any(o is not l and abs(o["y0"] - l["y0"]) < 3 and o["x1"] <= l["x0"] + 1 for o in lines):
                     continue
+                # (a question opens on its first part, "2", "2.", "2(a)", "2(i)": "2(e)", "1(b)", "8 cont." print it again
+                # where its rows carry over a page, and taking them cut Further Pure 1, June 2025, Question 2 to (e) on)
+                if rest and not OPENING.match(rest):
+                    continue
                 cands.append((i, l, int(m.group(1)), bool(rest) or m.group(0).endswith(".")))
+        # (before the first table, only a number opening a ruled row: the marking guidance numbers its paragraphs, and
+        # Further Pure 2, June 2022, sets "3." apart from its "General Abbreviations")
+        first_table = next((i for i in range(len(doc)) if any(self.is_head(h, doc.lines(i)) for h in doc.lines(i))), 0)
+        cands = [x for x in cands if x[0] >= first_table or self.opens_row(x[0], x[1], rule_only=True)]
         xs = sorted(l["x0"] for _, l, _, strong in cands if strong)
         col = xs[len(xs) // 2] if xs else None
         want, q, last = [int(x) for x in questions], 0, None
@@ -117,12 +129,13 @@ class SchemeLines:
         for k, (i, l, n, strong) in enumerate(cands):
             if q >= len(want) or n != want[q] or col is None:
                 continue
-            if not strong:
-                # (a bare "4" gives way to a "4(a)" printed before the next question: Further Pure 3, January 2025,
-                # has a "4" in Question 3's notes)
-                later = next((x for x in cands[k + 1:] if x[3] and near(x[1], True) and x[2] in want[q:q + 2]), None)
-                if later and later[2] == n:
-                    continue
+            if not strong and not self.opens_row(i, l):
+                continue  # (a bare "4" in Question 3's notes, Further Pure 3, January 2025, opens no row)
+            if not strong and not self.headed(i, l) and any(x[3] and x[2] == n and near(x[1], True) for x in cands[k + 1:next(
+                    (j for j in range(k + 1, len(cands)) if cands[j][2] == (want[q + 1] if q + 1 < len(want) else -1)
+                     and (cands[j][3] or self.headed(cands[j][0], cands[j][1]))), len(cands))]):
+                continue  # (and, unless straight under a heading, gives way to a "7(a)" before the next question: the 7 of a
+                # column vector beside "6(a)", Further Pure 3, January 2025; Mechanics 1's "2" over "2a" is headed)
             if near(l, strong):
                 q, last = q + 1, l["x0"]
                 self.starts.add((i, id(l)))
@@ -130,10 +143,24 @@ class SchemeLines:
         heads = sorted(h["x0"] for i in range(len(doc)) for h in doc.lines(i) if self.is_head(h, doc.lines(i)))
         self.typical = heads[len(heads) // 2] if heads else col
 
+    def headed(self, i, l):
+        """Set straight under a table's heading (within 40pt), where a question's rows start."""
+        return any(0 < l["y0"] - h["y0"] < 40 for h in self.doc.lines(i) if self.is_head(h, self.doc.lines(i)))
+
+    def opens_row(self, i, l, rule_only=False):
+        """A bare number opens a table row: set in bold, or under the table's heading or a rule across it (within
+        80pt and 40pt above it; Mechanics rules each narrow cell on its own)."""
+        if not rule_only and (cut_pearson.bold(l["spans"][0]) or any(0 < l["y0"] - h["y0"] < 80 for h in self.doc.lines(i) if self.is_head(h, self.doc.lines(i)))):
+            return True
+        page = self.doc[i]
+        return any(r.width > 8 and r.x0 <= l["x0"] + 2 and r.x1 >= l["x1"] - 2 and any(l["y0"] - 40 <= y <= l["y0"] + 1 for y in (r.y0, r.y1))
+                   for r in (d["rect"] * page.rotation_matrix for d in cut_pearson.drawings(page)))
+
     @staticmethod
     def is_head(l, lines):
         return cut_pearson.is_head(l, lines) or bool(HEADING.fullmatch(l["text"])) and l["x0"] < 130 and l["y0"] < 160 \
-            and any(o["x0"] > l["x1"] and abs(o["y0"] - l["y0"]) < 20 and BESIDE.match(o["text"]) for o in lines)
+            and any(o["x0"] > l["x1"] and abs(o["y0"] - l["y0"]) < 20 and BESIDE.match(o["text"]) for o in lines) \
+            or bool(MERGED.match(l["text"])) and l["x0"] < 130 and l["y0"] < 160
 
     def row_top(self, i, l):
         """Where a label's table row starts: the nearest rule above it that crosses the Question column. Decision 1
@@ -143,10 +170,11 @@ class SchemeLines:
         ys = [y for d in cut_pearson.drawings(page) for r in [d["rect"] * page.rotation_matrix]
               if r.width > 40 and r.x0 <= l["x0"] + 2 and r.x1 >= l["x1"] - 2 for y in (r.y0, r.y1) if y <= l["y0"] + 1]
         top = max(ys) if ys else None
-        # (only up an empty cell: with the notes of the question before above it in the column, the rule over them is
-        # another table's, and Pure 3, June 2022, Question 9 took Question 8's notes)
+        # (only up an empty cell: with the notes of the question before above it in the column, or left of it, the rule
+        # over them is another table's: Pure 3, June 2022, Question 9 took Question 8's notes, Pure 4, January 2023,
+        # Question 2 Question 1's "A1: …")
         if top is not None and any(o is not l and top + 1 < o["y0"] and o["y1"] < l["y0"] - 1 and o["x0"] < l["x1"] + 5
-                                   and o["x1"] > l["x0"] - 5 for o in self.doc.lines(i)):
+                                   for o in self.doc.lines(i)):
             return None
         return top
 
@@ -294,6 +322,17 @@ def scheme(ms_path, questions):
         if pieces:
             q, a, b = f"{k[0]:02d}", (pieces[0][0], pieces[0][1].y0), (pieces[-1][0], pieces[-1][1].y1)
             first[q], last[q] = min(first.get(q, a), a), max(last.get(q, b), b)
+    # (a start the reader set on a rule above its label, over lines of the question before in the label's column, is
+    # moved down past them: Pure 4, January 2023, Question 2 opened on Question 1's last notes)
+    labels = {f"{int(QUESTION.match(l['text']).group(1)):02d}": (i, l) for i in range(len(doc)) for l in doc.lines(i) if (i, id(l)) in sl.starts}
+    for q, (pg, y) in list(first.items()):
+        if q in labels and labels[q][0] == pg:
+            lab = labels[q][1]
+            heads = [h["y1"] for h in doc.lines(pg) if sl.is_head(h, doc.lines(pg)) and y - 1 < h["y0"] < lab["y0"]]
+            over = [o["y1"] for o in doc.lines(pg) if o is not lab and max([y] + heads) + 1 < o["y0"] and o["y1"] < lab["y0"] - 1
+                    and o["x0"] < lab["x1"] + 5]
+            if over:
+                first[q] = (pg, max(over) + 1)
     order = sorted(first, key=first.get)
     whole = {}
     for n, q in enumerate(order):
@@ -313,7 +352,9 @@ def scheme(ms_path, questions):
         pieces = whole[q][0]
         for k, (pg, r) in enumerate(pieces):
             if k == 0:
-                top = blank_row(doc[pg], r, r.y0, -1, 14)
+                # (a table heading just above the top, one or two lines, is the question's: Statistics 3, January 2021, Q1)
+                heads = [h["y0"] for h in sl.lines(pg) if sl.is_head(h, sl.lines(pg)) and h["y0"] < r.y0 < h["y0"] + 35]
+                top = min(heads) - 4 if heads else blank_row(doc[pg], r, r.y0, -1, 14)
                 if top is not None and top < r.y0:
                     r.y0 = top
                     above = whole[order[n - 1]][0] if n else []

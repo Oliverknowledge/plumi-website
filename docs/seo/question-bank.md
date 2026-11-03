@@ -4392,6 +4392,16 @@ under the same crops). Every paper's questions add up to its 75 marks; every que
   were also looked at by eye: Decision networks, multi-page schemes, 2019 papers, matrices at a question's top.
 - **Topics:** tagged by Claude subagents per tag.md's IAL section, each question from its own unit's topics, one
   or two.
+- **Re-cut, 3 November 2026 (`cropVersion` 3):** testing found schemes that start a question with a bare "2" and
+  print "2(e)" where it carries over a page: the cutter took "2(e)" as the start, so Question 1's crop ran on
+  through 2(a) to (d) and Question 2's opened at (e) (Further Pure 1, June 2025). A question now starts only on its
+  first part ("2", "2.", "2(a)", "2(i)"); a bare number counts where it heads a table row, and gives way to a
+  printed "7(a)" unless it sits under its table's heading. A merged "Question Scheme" heading, notes in the
+  label column left of a label, and the guidance's numbered paragraphs before the first table no longer move a
+  start. The checker now looks for both faults (a crop opening past its question's first part, or holding the
+  next question's opening): 398 scheme crops changed (240 of Maths' 1,251, 312 of Further Maths' 1,041, the
+  shared units counted in both), no question crops. Six of its flags remain, each looked at by eye: a number in
+  the working read as a label, the crop itself right.
 - **Pipeline:** `scripts/question-bank/edexcel_ial_maths/`: `fetch_ial_maths.py`, `library_ial_maths.py`,
   `cut_ial_maths.py`, `check_ial_maths.py`, `tag_ial_maths.py`, `build_ial_maths.py`; topics in
   `ial_maths_topics.json`. Ids `wma13-jun22-09`, `wfm02-jun25a-03`; crops under `bank/` with those names.

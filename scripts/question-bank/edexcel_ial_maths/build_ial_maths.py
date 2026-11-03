@@ -126,6 +126,9 @@ def main():
         meta = {
             "slug": bank["slug"], "board": "Edexcel", "level": "IAL", "subject": bank["subject"], "fullName": bank["fullName"],
             "specs": [bank["spec"], *comps],
+            # 3: re-cut where a scheme's question opened at a later part ("2(e)") and the question before ran on through
+            # its first parts (3 November 2026); 3, not 1, as scheme crops are at ?v=2 everywhere (MS_VERSION)
+            "cropVersion": 3,
             "sections": sections, "topics": topics, "papers": papers,
             "series": [{"id": s, "label": label(s)} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},

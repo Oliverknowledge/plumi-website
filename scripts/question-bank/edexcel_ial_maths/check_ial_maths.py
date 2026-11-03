@@ -8,6 +8,7 @@ For every paper, each of the failures students have reported on other banks:
     in two (Decision 1's networks, drawn beside a label set halfway down its row, lost their tops);
   - Question 1 starts on the cover or takes in the front matter (it must open on its own "1.");
   - a scheme crop stops short: its rows must run on to the next question's label, or to the scheme's end;
+  - a crop runs on into the next question, or a scheme crop opens past its question's first part;
   - a question without a scheme crop, a paper whose marks don't make 75, a scheme whose question count isn't its
     paper's, or a scheme crop whose printed total ("(9 marks)") isn't its question's marks.
 Prints each failure and a count.
@@ -58,6 +59,23 @@ def cut_through(page, r, what):
     return out
 
 
+def labels_in(doc, pieces, col, most):
+    """The question labels printed in a scheme crop's Question column, in order: (number, what follows it)."""
+    out = []
+    for pg, r in pieces:
+        lines = doc.lines(pg)
+        for l in sorted(lines, key=lambda l: l["y0"]):
+            m = c.QUESTION.match(l["text"])
+            if not m or not (r.y0 - 1 <= l["y0"] and l["y1"] <= r.y1 + 1) or l["x0"] - col > 20:
+                continue
+            rest = l["text"][m.end():].strip()
+            if re.match(r"(?!cont)[A-Za-z]{3,}", rest) or not 1 <= int(m.group(1)) <= most \
+                    or any(o is not l and abs(o["y0"] - l["y0"]) < 3 and o["x1"] <= l["x0"] + 1 for o in lines):
+                continue
+            out.append((int(m.group(1)), rest, pg, l["y0"], l))
+    return out
+
+
 def check(job):
     set_id, mine, files = job
     problems = []
@@ -67,6 +85,13 @@ def check(job):
     legacy = any("Leave" in qp[i].get_text() and "blank" in qp[i].get_text() for i in range(1, min(4, len(qp))))
     regions = c.qp_regions(qp, legacy)
     for n, (q, pieces, _) in enumerate(regions):
+        # (no later question's bold "5." inside a question's crop)
+        for pg, r in pieces:
+            for s in cut_edexcel.spans(qp[pg]):
+                m = cut_edexcel.QP_LABEL.match(s["text"].strip())
+                if m and "Bold" in s["font"] and s["bbox"][0] < 75 and s["size"] >= 10.5 and int(m.group(1)) > int(q) \
+                        and r.y0 + 2 < s["bbox"][1] < r.y1:
+                    problems.append(f"{set_id}-{q}: question crop holds question {int(m.group(1))}'s label (page {pg + 1})")
         if n == 0 and (not pieces or pieces[0][0] == 0 or not re.match(r"1\b", qp[pieces[0][0]].get_text("text", clip=pieces[0][1]).strip())):
             problems.append(f"{set_id}-{q}: Question 1 doesn't open on its own label")
         for pg, r in pieces:
@@ -77,11 +102,30 @@ def check(job):
         problems.append(f"{set_id}: scheme labels {len(sl.starts)} for {len(regions)} questions")
     # (where the reader sees each label: lifted to its row's top)
     starts = sorted((i, l["y0"]) for i in range(len(ms_doc)) for l in sl.lines(i) if l["spans"][0].get("font") == "Label-Bold")
+    # (the column where its printed labels, "3.", "3(a)", sit; a bare "3" may be anything)
+    xs = sorted(l["x0"] for i in range(len(ms_doc)) for l in ms_doc.lines(i) if c.QUESTION.match(l["text"]) and l["x0"] < 140
+                and (c.OPENING.match(l["text"][c.QUESTION.match(l["text"]).end():].strip()) or c.QUESTION.match(l["text"]).group(0).endswith(".")))
+    col = xs[len(xs) // 2] if xs else 60
+    def headed(pg, l):
+        """A bare number set straight under a table's heading (within 40pt): a question's start, not a number of the working."""
+        raw = ms_doc.lines(pg)
+        return abs(l["x0"] - col) < 40 and any(0 < l["y0"] - h["y0"] < 40 for h in raw if c.SchemeLines.is_head(h, raw))
+
     for n, p in enumerate(mine):
         if not p.get("ms"):
             problems.append(f"{p['id']}: no scheme crop")
             continue
         pieces = [(pg, pymupdf.Rect(*r)) for pg, r in p["msPieces"]]
+        # (opens on its own question's first part, and holds no later question's opening label: Further Pure 1, June
+        # 2025, Question 1's crop ran on through Question 2 (a) to (d), whose own crop opened at 2(e))
+        found = labels_in(ms_doc, pieces, col, len(mine))
+        q = int(p["question"])
+        found = [f for f in found if f[1] or headed(f[2], f[4])]  # (a bare number heads a table, or is working)
+        if found and (found[0][0] != q or found[0][1] and not c.OPENING.match(found[0][1])):
+            problems.append(f"{p['id']}: scheme crop opens at '{found[0][0]}{found[0][1][:8]}', not question {q}'s start")
+        later = next((f for f in found if f[0] == q + 1 and (c.OPENING.match(f[1]) if f[1] else headed(f[2], f[4]))), None)
+        if later:
+            problems.append(f"{p['id']}: scheme crop holds question {q + 1}'s opening (page {later[2] + 1}, y {later[3]:.0f})")
         for pg, r in pieces:
             problems += [f"{p['id']}: {x}" for x in cut_through(ms_doc[pg], r, "scheme")]
         # (opens on its own label: nothing in its first piece above the label's table heading, or, with no heading
