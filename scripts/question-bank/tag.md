@@ -1718,6 +1718,7 @@ differences:
   detector (3.1.1). The first brief also named the detector and the greenhouse effect as off;
   the parts tagged off for those were put back by hand (`tag/overrides.json`). Mark a part off only when its marks depend on the missing content;
   a part that merely mentions an old context but tests on-spec chemistry gets its topic.
+
 ## AQA Physics A legacy (2450)
 
 `aqa_physics_legacy/tag_legacy.py split` writes the 2010–2016 Physics A units (PHYA1, PHYA2,
