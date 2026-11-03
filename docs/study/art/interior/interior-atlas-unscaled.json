@@ -1,0 +1,2606 @@
+{
+ "image": "interior-atlas-unscaled.png",
+ "size": [
+  512,
+  304
+ ],
+ "scale": 5.0,
+ "tile": 32,
+ "person": 25,
+ "colours": 240,
+ "units": "art px; rects from the sprite's top left; anchor = bottom centre of the base",
+ "sources": {
+  "library": "docs/study/art/source/interior-library.webp",
+  "cafe": "docs/study/art/source/interior-cafe.webp",
+  "kitchen": "docs/study/art/source/interior-kitchen.webp",
+  "decor": "docs/study/art/source/interior-decor.webp",
+  "seating": "docs/study/art/source/interior-seating.webp",
+  "tables": "docs/study/art/source/interior-tables.webp"
+ },
+ "tool": "tools/art/interior_props.py",
+ "scaled": false,
+ "objects": [
+  {
+   "name": "single-bookcase",
+   "alias": "bookcase_tall",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "bookcase",
+   "view": "front",
+   "w": 31,
+   "h": 71,
+   "sourceBox": [
+    128,
+    110,
+    280,
+    462
+   ],
+   "sourceSize": [
+    152,
+    352
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.5,
+   "scaleVsS2": 0.667,
+   "nativePx": 7.1,
+   "pixelRatio": 0.95,
+   "sizePersons": {
+    "w": 1.24,
+    "h": 2.84
+   },
+   "scaleReason": "whole height 1.87 persons",
+   "anchorX": 14,
+   "anchorY": 70,
+   "sortY": 70,
+   "footprint": {
+    "x": 0,
+    "y": 61,
+    "w": 31,
+    "h": 10
+   },
+   "x": 95,
+   "y": 0
+  },
+  {
+   "name": "double-bookcase",
+   "alias": "bookcase_wide",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "bookcase",
+   "view": "front",
+   "w": 58,
+   "h": 71,
+   "sourceBox": [
+    432,
+    110,
+    720,
+    462
+   ],
+   "sourceSize": [
+    288,
+    352
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.5,
+   "scaleVsS2": 0.667,
+   "nativePx": 6.42,
+   "pixelRatio": 0.86,
+   "sizePersons": {
+    "w": 2.32,
+    "h": 2.84
+   },
+   "scaleReason": "same c as the single (one drawn height): 1.87 persons",
+   "anchorX": 28,
+   "anchorY": 70,
+   "sortY": 70,
+   "footprint": {
+    "x": 0,
+    "y": 59,
+    "w": 58,
+    "h": 12
+   },
+   "x": 128,
+   "y": 0
+  },
+  {
+   "name": "low-bookcase",
+   "alias": "bookcase_low",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "bookcase",
+   "view": "front",
+   "w": 50,
+   "h": 36,
+   "sourceBox": [
+    835,
+    280,
+    1083,
+    461
+   ],
+   "sourceSize": [
+    248,
+    181
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.5,
+   "scaleVsS2": 0.667,
+   "nativePx": 6.35,
+   "pixelRatio": 0.85,
+   "sizePersons": {
+    "w": 2.0,
+    "h": 1.44
+   },
+   "scaleReason": "same c as the other cases",
+   "anchorX": 24,
+   "anchorY": 35,
+   "sortY": 35,
+   "footprint": {
+    "x": 0,
+    "y": 27,
+    "w": 50,
+    "h": 9
+   },
+   "topRect": {
+    "x": 0,
+    "y": 0,
+    "w": 50,
+    "h": 5
+   },
+   "topY": 33,
+   "topHeight": 30,
+   "x": 243,
+   "y": 262
+  },
+  {
+   "name": "book-display",
+   "alias": "book_rack",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "rack",
+   "view": "front",
+   "w": 52,
+   "h": 51,
+   "sourceBox": [
+    1206,
+    206,
+    1466,
+    461
+   ],
+   "sourceSize": [
+    260,
+    255
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.5,
+   "scaleVsS2": 0.588,
+   "nativePx": 7.07,
+   "pixelRatio": 0.83,
+   "sizePersons": {
+    "w": 2.08,
+    "h": 2.04
+   },
+   "scaleReason": "1.2 persons high (chest high)",
+   "anchorX": 25,
+   "anchorY": 50,
+   "sortY": 50,
+   "footprint": {
+    "x": 0,
+    "y": 41,
+    "w": 52,
+    "h": 10
+   },
+   "x": 0,
+   "y": 209
+  },
+  {
+   "name": "circulation-counter",
+   "alias": "desk_lamp",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 63,
+   "h": 47,
+   "sourceBox": [
+    45,
+    674,
+    360,
+    908
+   ],
+   "sourceSize": [
+    315,
+    234
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.2,
+   "scaleVsS2": 0.61,
+   "nativePx": 7.4,
+   "pixelRatio": 0.9,
+   "sizePersons": {
+    "w": 2.52,
+    "h": 1.88
+   },
+   "scaleReason": "counter top 0.65 persons",
+   "anchorX": 31,
+   "anchorY": 46,
+   "sortY": 46,
+   "footprint": {
+    "x": 0,
+    "y": 32,
+    "w": 63,
+    "h": 15
+   },
+   "topRect": {
+    "x": 2,
+    "y": 17,
+    "w": 59,
+    "h": 5
+   },
+   "topY": 27,
+   "topHeight": 24,
+   "refHeightPersons": 1.07,
+   "light": [
+    {
+     "colour": "#ffe2a0",
+     "note": "the desk lamp",
+     "type": "point",
+     "x": 11,
+     "y": 9,
+     "radius": 49,
+     "flicker": false
+    }
+   ],
+   "x": 275,
+   "y": 209
+  },
+  {
+   "name": "arched-window",
+   "alias": "window_arched",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 48,
+   "h": 62,
+   "sourceBox": [
+    457,
+    599,
+    695,
+    908
+   ],
+   "sourceSize": [
+    238,
+    309
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.5,
+   "scaleVsS2": 0.667,
+   "nativePx": 6.02,
+   "pixelRatio": 0.8,
+   "sizePersons": {
+    "w": 1.92,
+    "h": 2.48
+   },
+   "scaleReason": "1.64 persons high, sill at 0.9",
+   "anchorX": 23,
+   "anchorY": 61,
+   "sortY": 61,
+   "wall": true,
+   "mountHeight": 33,
+   "footprint": null,
+   "light": [
+    {
+     "colour": "#fff3d0",
+     "note": "daylight patch on the floor below",
+     "type": "window"
+    }
+   ],
+   "x": 102,
+   "y": 85
+  },
+  {
+   "name": "wall-clock",
+   "alias": "wall_clock",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 32,
+   "h": 54,
+   "sourceBox": [
+    879,
+    629,
+    1040,
+    898
+   ],
+   "sourceSize": [
+    161,
+    269
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.5,
+   "scaleVsS2": 0.588,
+   "nativePx": 6.25,
+   "pixelRatio": 0.74,
+   "sizePersons": {
+    "w": 1.28,
+    "h": 2.16
+   },
+   "scaleReason": "1.26 persons high",
+   "anchorX": 16,
+   "anchorY": 53,
+   "sortY": 53,
+   "wall": true,
+   "mountHeight": 54,
+   "footprint": null,
+   "animated": [
+    {
+     "what": "pendulum",
+     "frames": 2,
+     "rect": {
+      "x": 12,
+      "y": 33,
+      "w": 7,
+      "h": 12
+     },
+     "how": "swing the bob one pixel left and right every 0.5 s: code-drawn overlay in the sprite's gold"
+    }
+   ],
+   "x": 234,
+   "y": 151
+  },
+  {
+   "name": "book-stack",
+   "alias": "book_stack",
+   "sheet": "library",
+   "sheetFile": "interior-library.webp",
+   "kind": "small",
+   "view": "front",
+   "w": 30,
+   "h": 28,
+   "sourceBox": [
+    1260,
+    709,
+    1411,
+    849
+   ],
+   "sourceSize": [
+    151,
+    140
+   ],
+   "scale": 5.0,
+   "recommendedScale": 16.0,
+   "scaleVsS2": 0.312,
+   "nativePx": 6.45,
+   "pixelRatio": 0.4,
+   "sizePersons": {
+    "w": 1.2,
+    "h": 1.12
+   },
+   "scaleReason": "on a table: 0.35 persons high; as a floor stack use c 8.0 (0.7 persons)",
+   "altScale": 8.0,
+   "anchorX": 13,
+   "anchorY": 27,
+   "sortY": 27,
+   "footprint": {
+    "x": 0,
+    "y": 18,
+    "w": 30,
+    "h": 10
+   },
+   "x": 410,
+   "y": 262
+  },
+  {
+   "name": "espresso-machine",
+   "alias": "espresso_machine",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "tabletop",
+   "view": "front",
+   "w": 50,
+   "h": 56,
+   "sourceBox": [
+    74,
+    137,
+    325,
+    418
+   ],
+   "sourceSize": [
+    251,
+    281
+   ],
+   "scale": 5.0,
+   "recommendedScale": 13.0,
+   "scaleVsS2": 0.385,
+   "nativePx": 5.02,
+   "pixelRatio": 0.39,
+   "sizePersons": {
+    "w": 2.0,
+    "h": 2.24
+   },
+   "scaleReason": "stands on a counter: 0.8 persons high, 0.5 wide",
+   "anchorX": 24,
+   "anchorY": 55,
+   "sortY": 55,
+   "footprint": {
+    "x": 0,
+    "y": 46,
+    "w": 50,
+    "h": 10
+   },
+   "animated": [
+    {
+     "what": "steam",
+     "frames": 3,
+     "rect": {
+      "x": 44,
+      "y": 22,
+      "w": 5,
+      "h": 12
+     },
+     "how": "three frame wisp rising from the wand, drawn above the sprite in the cream of its cups"
+    }
+   ],
+   "x": 437,
+   "y": 85
+  },
+  {
+   "name": "coffee-grinder",
+   "alias": "grinder",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "tabletop",
+   "view": "front",
+   "w": 26,
+   "h": 58,
+   "sourceBox": [
+    512,
+    128,
+    640,
+    418
+   ],
+   "sourceSize": [
+    128,
+    290
+   ],
+   "scale": 5.0,
+   "recommendedScale": 15.0,
+   "scaleVsS2": 0.333,
+   "nativePx": 5.55,
+   "pixelRatio": 0.37,
+   "sizePersons": {
+    "w": 1.04,
+    "h": 2.32
+   },
+   "scaleReason": "0.75 persons high",
+   "anchorX": 12,
+   "anchorY": 57,
+   "sortY": 57,
+   "footprint": {
+    "x": 0,
+    "y": 49,
+    "w": 26,
+    "h": 9
+   },
+   "x": 361,
+   "y": 85
+  },
+  {
+   "name": "service-counter",
+   "alias": "counter_service",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 68,
+   "h": 48,
+   "sourceBox": [
+    785,
+    164,
+    1126,
+    401
+   ],
+   "sourceSize": [
+    341,
+    237
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.5,
+   "scaleVsS2": 0.588,
+   "nativePx": 4.12,
+   "pixelRatio": 0.49,
+   "sizePersons": {
+    "w": 2.72,
+    "h": 1.92
+   },
+   "scaleReason": "counter top 0.65 persons",
+   "anchorX": 33,
+   "anchorY": 47,
+   "sortY": 47,
+   "footprint": {
+    "x": 0,
+    "y": 33,
+    "w": 68,
+    "h": 15
+   },
+   "topRect": {
+    "x": 1,
+    "y": 16,
+    "w": 65,
+    "h": 6
+   },
+   "topY": 28,
+   "topHeight": 25,
+   "refHeightPersons": 1.13,
+   "x": 205,
+   "y": 209
+  },
+  {
+   "name": "corner-counter",
+   "alias": "counter_corner",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 59,
+   "h": 53,
+   "sourceBox": [
+    1198,
+    152,
+    1488,
+    416
+   ],
+   "sourceSize": [
+    290,
+    264
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.5,
+   "scaleVsS2": 0.588,
+   "nativePx": 4.87,
+   "pixelRatio": 0.57,
+   "sizePersons": {
+    "w": 2.36,
+    "h": 2.12
+   },
+   "scaleReason": "counter top 0.65 persons",
+   "anchorX": 29,
+   "anchorY": 52,
+   "sortY": 52,
+   "footprint": {
+    "x": 0,
+    "y": 33,
+    "w": 59,
+    "h": 20
+   },
+   "topRect": {
+    "x": 2,
+    "y": 15,
+    "w": 55,
+    "h": 16
+   },
+   "topY": 29,
+   "topHeight": 21,
+   "refHeightPersons": 1.19,
+   "x": 268,
+   "y": 151
+  },
+  {
+   "name": "pastry-case",
+   "alias": "display_case",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 65,
+   "h": 55,
+   "sourceBox": [
+    31,
+    652,
+    359,
+    924
+   ],
+   "sourceSize": [
+    328,
+    272
+   ],
+   "scale": 5.0,
+   "recommendedScale": 11.0,
+   "scaleVsS2": 0.455,
+   "nativePx": 4.05,
+   "pixelRatio": 0.37,
+   "sizePersons": {
+    "w": 2.6,
+    "h": 2.2
+   },
+   "scaleReason": "1.0 persons high, glass top at 0.9",
+   "anchorX": 32,
+   "anchorY": 54,
+   "sortY": 54,
+   "footprint": {
+    "x": 0,
+    "y": 35,
+    "w": 65,
+    "h": 20
+   },
+   "x": 117,
+   "y": 151
+  },
+  {
+   "name": "baguette-basket",
+   "alias": "baguette_basket",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "floorsmall",
+   "view": "front",
+   "w": 39,
+   "h": 56,
+   "sourceBox": [
+    478,
+    641,
+    672,
+    920
+   ],
+   "sourceSize": [
+    194,
+    279
+   ],
+   "scale": 5.0,
+   "recommendedScale": 13.0,
+   "scaleVsS2": 0.385,
+   "nativePx": 5.7,
+   "pixelRatio": 0.44,
+   "sizePersons": {
+    "w": 1.56,
+    "h": 2.24
+   },
+   "scaleReason": "0.9 persons high",
+   "anchorX": 19,
+   "anchorY": 55,
+   "sortY": 55,
+   "footprint": {
+    "x": 0,
+    "y": 43,
+    "w": 39,
+    "h": 13
+   },
+   "x": 0,
+   "y": 151
+  },
+  {
+   "name": "bread-rack",
+   "alias": "bread_rack",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "rack",
+   "view": "front",
+   "w": 48,
+   "h": 64,
+   "sourceBox": [
+    837,
+    610,
+    1077,
+    930
+   ],
+   "sourceSize": [
+    240,
+    320
+   ],
+   "scale": 5.0,
+   "recommendedScale": 10.5,
+   "scaleVsS2": 0.476,
+   "nativePx": 5.55,
+   "pixelRatio": 0.53,
+   "sizePersons": {
+    "w": 1.92,
+    "h": 2.56
+   },
+   "scaleReason": "1.2 persons high",
+   "anchorX": 23,
+   "anchorY": 63,
+   "sortY": 63,
+   "footprint": {
+    "x": 0,
+    "y": 51,
+    "w": 48,
+    "h": 13
+   },
+   "x": 0,
+   "y": 85
+  },
+  {
+   "name": "bakery-oven",
+   "alias": "brick_oven",
+   "sheet": "cafe",
+   "sheetFile": "interior-cafe.webp",
+   "kind": "large",
+   "view": "front",
+   "w": 55,
+   "h": 69,
+   "sourceBox": [
+    1209,
+    596,
+    1480,
+    939
+   ],
+   "sourceSize": [
+    271,
+    343
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.0,
+   "scaleVsS2": 0.556,
+   "nativePx": 5.75,
+   "pixelRatio": 0.64,
+   "sizePersons": {
+    "w": 2.2,
+    "h": 2.76
+   },
+   "scaleReason": "1.52 persons high",
+   "anchorX": 26,
+   "anchorY": 68,
+   "sortY": 68,
+   "footprint": {
+    "x": 0,
+    "y": 55,
+    "w": 55,
+    "h": 14
+   },
+   "animated": [
+    {
+     "what": "fire",
+     "frames": 3,
+     "rect": {
+      "x": 17,
+      "y": 30,
+      "w": 15,
+      "h": 12
+     },
+     "how": "three frame flame in the mouth: orange/yellow from the sprite's palette, code drawn"
+    }
+   ],
+   "light": [
+    {
+     "colour": "#ff9a3c",
+     "note": "the oven mouth",
+     "type": "point",
+     "x": 25,
+     "y": 36,
+     "radius": 94,
+     "flicker": true
+    }
+   ],
+   "x": 188,
+   "y": 0
+  },
+  {
+   "name": "sink-cabinet",
+   "alias": "kitchen_sink",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 53,
+   "h": 60,
+   "sourceBox": [
+    57,
+    154,
+    323,
+    455
+   ],
+   "sourceSize": [
+    266,
+    301
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 6.27,
+   "pixelRatio": 0.5,
+   "sizePersons": {
+    "w": 2.12,
+    "h": 2.4
+   },
+   "scaleReason": "worktop 0.65 persons (cabinet body 205 source px)",
+   "anchorX": 29,
+   "anchorY": 59,
+   "sortY": 59,
+   "footprint": {
+    "x": 0,
+    "y": 38,
+    "w": 53,
+    "h": 22
+   },
+   "topRect": {
+    "x": 3,
+    "y": 13,
+    "w": 47,
+    "h": 10
+   },
+   "topY": 41,
+   "topHeight": 36,
+   "refHeightPersons": 1.63,
+   "x": 276,
+   "y": 85
+  },
+  {
+   "name": "prep-cabinet",
+   "alias": "kitchen_worktop",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 52,
+   "h": 67,
+   "sourceBox": [
+    449,
+    121,
+    707,
+    455
+   ],
+   "sourceSize": [
+    258,
+    334
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 5.42,
+   "pixelRatio": 0.43,
+   "sizePersons": {
+    "w": 2.08,
+    "h": 2.68
+   },
+   "scaleReason": "worktop 0.65 persons",
+   "anchorX": 26,
+   "anchorY": 66,
+   "sortY": 66,
+   "footprint": {
+    "x": 0,
+    "y": 45,
+    "w": 52,
+    "h": 22
+   },
+   "topRect": {
+    "x": 3,
+    "y": 21,
+    "w": 47,
+    "h": 10
+   },
+   "topY": 40,
+   "topHeight": 35,
+   "refHeightPersons": 1.65,
+   "x": 245,
+   "y": 0
+  },
+  {
+   "name": "stove",
+   "alias": "stove",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "appliance",
+   "view": "front",
+   "w": 46,
+   "h": 58,
+   "sourceBox": [
+    845,
+    165,
+    1073,
+    455
+   ],
+   "sourceSize": [
+    228,
+    290
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 6.02,
+   "pixelRatio": 0.48,
+   "sizePersons": {
+    "w": 1.84,
+    "h": 2.32
+   },
+   "scaleReason": "hob 0.65 persons",
+   "anchorX": 23,
+   "anchorY": 57,
+   "sortY": 57,
+   "footprint": {
+    "x": 0,
+    "y": 36,
+    "w": 46,
+    "h": 22
+   },
+   "refHeightPersons": 1.65,
+   "x": 389,
+   "y": 85
+  },
+  {
+   "name": "refrigerator",
+   "alias": "fridge",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "appliance",
+   "view": "front",
+   "w": 40,
+   "h": 79,
+   "sourceBox": [
+    1240,
+    66,
+    1440,
+    461
+   ],
+   "sourceSize": [
+    200,
+    395
+   ],
+   "scale": 5.0,
+   "recommendedScale": 10.5,
+   "scaleVsS2": 0.476,
+   "nativePx": 5.82,
+   "pixelRatio": 0.55,
+   "sizePersons": {
+    "w": 1.6,
+    "h": 3.16
+   },
+   "scaleReason": "fridge 1.5 persons",
+   "anchorX": 18,
+   "anchorY": 78,
+   "sortY": 78,
+   "footprint": {
+    "x": 0,
+    "y": 60,
+    "w": 40,
+    "h": 19
+   },
+   "x": 53,
+   "y": 0
+  },
+  {
+   "name": "chimney-hood",
+   "alias": "hood_pans",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 50,
+   "h": 64,
+   "sourceBox": [
+    68,
+    617,
+    316,
+    937
+   ],
+   "sourceSize": [
+    248,
+    320
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 6.12,
+   "pixelRatio": 0.49,
+   "sizePersons": {
+    "w": 2.0,
+    "h": 2.56
+   },
+   "scaleReason": "same c as the stove below it (hood as wide as the stove)",
+   "anchorX": 13,
+   "anchorY": 63,
+   "sortY": 63,
+   "wall": true,
+   "mountHeight": 62,
+   "footprint": null,
+   "x": 50,
+   "y": 85
+  },
+  {
+   "name": "fireplace",
+   "alias": "fireplace",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "large",
+   "view": "front",
+   "w": 63,
+   "h": 62,
+   "sourceBox": [
+    417,
+    635,
+    730,
+    945
+   ],
+   "sourceSize": [
+    313,
+    310
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.7,
+   "scaleVsS2": 0.515,
+   "nativePx": 6.07,
+   "pixelRatio": 0.63,
+   "sizePersons": {
+    "w": 2.52,
+    "h": 2.48
+   },
+   "scaleReason": "1.28 persons high",
+   "anchorX": 31,
+   "anchorY": 61,
+   "sortY": 61,
+   "footprint": {
+    "x": 0,
+    "y": 50,
+    "w": 63,
+    "h": 12
+   },
+   "topRect": {
+    "x": 8,
+    "y": 13,
+    "w": 52,
+    "h": 9
+   },
+   "topY": 44,
+   "topHeight": 39,
+   "animated": [
+    {
+     "what": "fire",
+     "frames": 3,
+     "rect": {
+      "x": 24,
+      "y": 35,
+      "w": 14,
+      "h": 15
+     },
+     "how": "three frame flame (the sprite's oranges and yellows), code drawn; candle flames 2 frames on the mantel at (0.5..0.62, 0.0..0.1)"
+    }
+   ],
+   "light": [
+    {
+     "colour": "#ff9a3c",
+     "note": "the hearth",
+     "type": "point",
+     "x": 32,
+     "y": 43,
+     "radius": 124,
+     "flicker": true
+    }
+   ],
+   "x": 152,
+   "y": 85
+  },
+  {
+   "name": "sideboard",
+   "alias": "sideboard",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "counter",
+   "view": "front",
+   "w": 62,
+   "h": 65,
+   "sourceBox": [
+    803,
+    622,
+    1113,
+    944
+   ],
+   "sourceSize": [
+    310,
+    322
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 7.05,
+   "pixelRatio": 0.56,
+   "sizePersons": {
+    "w": 2.48,
+    "h": 2.6
+   },
+   "scaleReason": "top 0.65 persons",
+   "anchorX": 30,
+   "anchorY": 64,
+   "sortY": 64,
+   "footprint": {
+    "x": 0,
+    "y": 45,
+    "w": 62,
+    "h": 20
+   },
+   "topRect": {
+    "x": 2,
+    "y": 23,
+    "w": 58,
+    "h": 7
+   },
+   "topY": 38,
+   "topHeight": 34,
+   "refHeightPersons": 1.61,
+   "x": 401,
+   "y": 0
+  },
+  {
+   "name": "hanging-shelf",
+   "alias": "wall_shelf_mugs",
+   "sheet": "kitchen",
+   "sheetFile": "interior-kitchen.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 63,
+   "h": 42,
+   "sourceBox": [
+    1185,
+    673,
+    1499,
+    881
+   ],
+   "sourceSize": [
+    314,
+    208
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.5,
+   "scaleVsS2": 0.4,
+   "nativePx": 5.45,
+   "pixelRatio": 0.44,
+   "sizePersons": {
+    "w": 2.52,
+    "h": 1.68
+   },
+   "scaleReason": "same c as the kitchen run",
+   "anchorX": 32,
+   "anchorY": 41,
+   "sortY": 41,
+   "wall": true,
+   "mountHeight": 75,
+   "footprint": null,
+   "topRect": {
+    "x": 3,
+    "y": 15,
+    "w": 59,
+    "h": 5
+   },
+   "topY": 24,
+   "topHeight": 21,
+   "x": 388,
+   "y": 209
+  },
+  {
+   "name": "tall-plant",
+   "alias": "plant_large",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "plant",
+   "view": "front",
+   "w": 39,
+   "h": 66,
+   "sourceBox": [
+    103,
+    102,
+    295,
+    432
+   ],
+   "sourceSize": [
+    192,
+    330
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.5,
+   "scaleVsS2": 0.526,
+   "nativePx": 6.52,
+   "pixelRatio": 0.69,
+   "sizePersons": {
+    "w": 1.56,
+    "h": 2.64
+   },
+   "scaleReason": "1.4 persons high",
+   "anchorX": 19,
+   "anchorY": 65,
+   "sortY": 65,
+   "footprint": {
+    "x": 13,
+    "y": 56,
+    "w": 14,
+    "h": 10
+   },
+   "x": 360,
+   "y": 0
+  },
+  {
+   "name": "small-plant",
+   "alias": "plant_small",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "small",
+   "view": "front",
+   "w": 26,
+   "h": 27,
+   "sourceBox": [
+    513,
+    237,
+    641,
+    370
+   ],
+   "sourceSize": [
+    128,
+    133
+   ],
+   "scale": 5.0,
+   "recommendedScale": 14.0,
+   "scaleVsS2": 0.357,
+   "nativePx": 5.6,
+   "pixelRatio": 0.4,
+   "sizePersons": {
+    "w": 1.04,
+    "h": 1.08
+   },
+   "scaleReason": "on a table: 0.38 persons high (floor use c 9.0)",
+   "altScale": 9.0,
+   "anchorX": 13,
+   "anchorY": 26,
+   "sortY": 26,
+   "footprint": {
+    "x": 7,
+    "y": 19,
+    "w": 13,
+    "h": 8
+   },
+   "x": 442,
+   "y": 262
+  },
+  {
+   "name": "floor-lamp",
+   "alias": "floor_lamp",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "lamp",
+   "view": "front",
+   "w": 28,
+   "h": 60,
+   "sourceBox": [
+    890,
+    121,
+    1026,
+    421
+   ],
+   "sourceSize": [
+    136,
+    300
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.0,
+   "scaleVsS2": 0.714,
+   "nativePx": 6.32,
+   "pixelRatio": 0.9,
+   "sizePersons": {
+    "w": 1.12,
+    "h": 2.4
+   },
+   "scaleReason": "1.7 persons high",
+   "anchorX": 13,
+   "anchorY": 59,
+   "sortY": 59,
+   "footprint": {
+    "x": 5,
+    "y": 54,
+    "w": 18,
+    "h": 6
+   },
+   "light": [
+    {
+     "colour": "#ffd88a",
+     "note": "the shade",
+     "type": "point",
+     "x": 14,
+     "y": 10,
+     "radius": 78,
+     "flicker": false
+    }
+   ],
+   "x": 331,
+   "y": 85
+  },
+  {
+   "name": "wall-sconce",
+   "alias": "wall_sconce",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 28,
+   "h": 29,
+   "sourceBox": [
+    1272,
+    187,
+    1411,
+    334
+   ],
+   "sourceSize": [
+    139,
+    147
+   ],
+   "scale": 5.0,
+   "recommendedScale": 13.0,
+   "scaleVsS2": 0.385,
+   "nativePx": 5.92,
+   "pixelRatio": 0.46,
+   "sizePersons": {
+    "w": 1.12,
+    "h": 1.16
+   },
+   "scaleReason": "0.45 persons high",
+   "anchorX": 8,
+   "anchorY": 28,
+   "sortY": 28,
+   "wall": true,
+   "mountHeight": 104,
+   "footprint": null,
+   "light": [
+    {
+     "colour": "#ffd88a",
+     "note": "the shade",
+     "type": "point",
+     "x": 20,
+     "y": 9,
+     "radius": 94,
+     "flicker": false
+    }
+   ],
+   "x": 380,
+   "y": 262
+  },
+  {
+   "name": "framed-picture",
+   "alias": "picture_frame",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 41,
+   "h": 40,
+   "sourceBox": [
+    90,
+    649,
+    295,
+    850
+   ],
+   "sourceSize": [
+    205,
+    201
+   ],
+   "scale": 5.0,
+   "recommendedScale": 10.0,
+   "scaleVsS2": 0.5,
+   "nativePx": 5.7,
+   "pixelRatio": 0.57,
+   "sizePersons": {
+    "w": 1.64,
+    "h": 1.6
+   },
+   "scaleReason": "0.8 persons high",
+   "anchorX": 20,
+   "anchorY": 39,
+   "sortY": 39,
+   "wall": true,
+   "mountHeight": 68,
+   "footprint": null,
+   "x": 132,
+   "y": 262
+  },
+  {
+   "name": "cottage-window",
+   "alias": "window_curtains",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "wall",
+   "view": "front",
+   "w": 46,
+   "h": 44,
+   "sourceBox": [
+    462,
+    644,
+    691,
+    863
+   ],
+   "sourceSize": [
+    229,
+    219
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.3,
+   "scaleVsS2": 0.685,
+   "nativePx": 5.47,
+   "pixelRatio": 0.75,
+   "sizePersons": {
+    "w": 1.84,
+    "h": 1.76
+   },
+   "scaleReason": "1.2 persons high, sill at 0.85",
+   "anchorX": 22,
+   "anchorY": 43,
+   "sortY": 43,
+   "wall": true,
+   "mountHeight": 31,
+   "footprint": null,
+   "light": [
+    {
+     "colour": "#fff3d0",
+     "note": "daylight patch on the floor below",
+     "type": "window"
+    }
+   ],
+   "x": 340,
+   "y": 209
+  },
+  {
+   "name": "terracotta-rug",
+   "alias": "rug_red",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "flat",
+   "view": "top",
+   "w": 51,
+   "h": 32,
+   "sourceBox": [
+    831,
+    682,
+    1087,
+    841
+   ],
+   "sourceSize": [
+    256,
+    159
+   ],
+   "scale": 5.0,
+   "recommendedScale": 5.0,
+   "scaleVsS2": 1.0,
+   "nativePx": 5.82,
+   "pixelRatio": 1.16,
+   "sizePersons": {
+    "w": 2.04,
+    "h": 1.28
+   },
+   "scaleReason": "2.0 x 1.26 persons (the native cut)",
+   "anchorX": 25,
+   "anchorY": 31,
+   "sortY": 31,
+   "flat": true,
+   "footprint": null,
+   "x": 327,
+   "y": 262
+  },
+  {
+   "name": "sage-mat",
+   "alias": "doormat_green",
+   "sheet": "decor",
+   "sheetFile": "interior-decor.webp",
+   "kind": "flat",
+   "view": "top",
+   "w": 42,
+   "h": 27,
+   "sourceBox": [
+    1239,
+    695,
+    1448,
+    828
+   ],
+   "sourceSize": [
+    209,
+    133
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.0,
+   "scaleVsS2": 0.556,
+   "nativePx": 6.07,
+   "pixelRatio": 0.67,
+   "sizePersons": {
+    "w": 1.68,
+    "h": 1.08
+   },
+   "scaleReason": "0.9 persons wide",
+   "anchorX": 20,
+   "anchorY": 26,
+   "sortY": 26,
+   "flat": true,
+   "footprint": null,
+   "x": 470,
+   "y": 262
+  },
+  {
+   "name": "chair-down",
+   "alias": "chair_front",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 29,
+   "h": 52,
+   "sourceBox": [
+    125,
+    146,
+    271,
+    406
+   ],
+   "sourceSize": [
+    146,
+    260
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.0,
+   "scaleVsS2": 0.417,
+   "nativePx": 7.05,
+   "pixelRatio": 0.59,
+   "sizePersons": {
+    "w": 1.16,
+    "h": 2.08
+   },
+   "scaleReason": "seat top 0.5 persons",
+   "anchorX": 14,
+   "anchorY": 51,
+   "sortY": 51,
+   "footprint": {
+    "x": 1,
+    "y": 35,
+    "w": 27,
+    "h": 17
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 14,
+      "y": 22
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "behind",
+     "stand": {
+      "x": 14,
+      "y": 70
+     },
+     "seatHeight": 29
+    }
+   ],
+   "frontCut": null,
+   "backCut": null,
+   "refHeightPersons": 1.21,
+   "x": 403,
+   "y": 151
+  },
+  {
+   "name": "chair-up",
+   "alias": "chair_back",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 30,
+   "h": 51,
+   "sourceBox": [
+    499,
+    154,
+    649,
+    406
+   ],
+   "sourceSize": [
+    150,
+    252
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.0,
+   "scaleVsS2": 0.417,
+   "nativePx": 7.65,
+   "pixelRatio": 0.64,
+   "sizePersons": {
+    "w": 1.2,
+    "h": 2.04
+   },
+   "scaleReason": "seat top 0.5 persons",
+   "anchorX": 14,
+   "anchorY": 50,
+   "sortY": 50,
+   "footprint": {
+    "x": 2,
+    "y": 34,
+    "w": 26,
+    "h": 17
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 15,
+      "y": 23
+     },
+     "face": "back",
+     "pose": "stool",
+     "depth": "front",
+     "stand": {
+      "x": 15,
+      "y": 69
+     },
+     "seatHeight": 27
+    }
+   ],
+   "frontCut": null,
+   "backCut": 51,
+   "refHeightPersons": 1.1,
+   "x": 54,
+   "y": 209
+  },
+  {
+   "name": "chair-right",
+   "alias": "chair_left",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 31,
+   "h": 52,
+   "sourceBox": [
+    878,
+    147,
+    1033,
+    406
+   ],
+   "sourceSize": [
+    155,
+    259
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.0,
+   "scaleVsS2": 0.417,
+   "nativePx": 6.02,
+   "pixelRatio": 0.5,
+   "sizePersons": {
+    "w": 1.24,
+    "h": 2.08
+   },
+   "scaleReason": "seat top 0.5 persons; the sitter faces RIGHT (backrest at the left)",
+   "anchorX": 15,
+   "anchorY": 51,
+   "sortY": 51,
+   "footprint": {
+    "x": 3,
+    "y": 35,
+    "w": 26,
+    "h": 17
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 18,
+      "y": 22
+     },
+     "face": "right",
+     "pose": "sit",
+     "depth": "between",
+     "stand": {
+      "x": 18,
+      "y": 70
+     },
+     "seatHeight": 29
+    }
+   ],
+   "frontCut": 22,
+   "backCut": null,
+   "refHeightPersons": 1.21,
+   "x": 434,
+   "y": 151
+  },
+  {
+   "name": "chair-left",
+   "alias": "chair_right",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 31,
+   "h": 52,
+   "sourceBox": [
+    1248,
+    146,
+    1404,
+    406
+   ],
+   "sourceSize": [
+    156,
+    260
+   ],
+   "scale": 5.0,
+   "recommendedScale": 12.0,
+   "scaleVsS2": 0.417,
+   "nativePx": 6.42,
+   "pixelRatio": 0.54,
+   "sizePersons": {
+    "w": 1.24,
+    "h": 2.08
+   },
+   "scaleReason": "seat top 0.5 persons; the sitter faces LEFT (backrest at the right)",
+   "anchorX": 14,
+   "anchorY": 51,
+   "sortY": 51,
+   "footprint": {
+    "x": 2,
+    "y": 35,
+    "w": 26,
+    "h": 17
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 13,
+      "y": 22
+     },
+     "face": "left",
+     "pose": "sit",
+     "depth": "between",
+     "stand": {
+      "x": 13,
+      "y": 70
+     },
+     "seatHeight": 29
+    }
+   ],
+   "frontCut": 22,
+   "backCut": null,
+   "refHeightPersons": 1.21,
+   "x": 467,
+   "y": 151
+  },
+  {
+   "name": "cafe-stool",
+   "alias": "stool_round",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 30,
+   "h": 36,
+   "sourceBox": [
+    119,
+    679,
+    269,
+    859
+   ],
+   "sourceSize": [
+    150,
+    180
+   ],
+   "scale": 5.0,
+   "recommendedScale": 13.0,
+   "scaleVsS2": 0.385,
+   "nativePx": 7.52,
+   "pixelRatio": 0.58,
+   "sizePersons": {
+    "w": 1.2,
+    "h": 1.44
+   },
+   "scaleReason": "seat top 0.5 persons",
+   "anchorX": 15,
+   "anchorY": 35,
+   "sortY": 35,
+   "footprint": {
+    "x": 3,
+    "y": 18,
+    "w": 25,
+    "h": 18
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 15,
+      "y": 4
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "behind",
+     "stand": {
+      "x": 15,
+      "y": 56
+     },
+     "seatHeight": 31
+    }
+   ],
+   "frontCut": null,
+   "backCut": null,
+   "refHeightPersons": 1.34,
+   "x": 295,
+   "y": 262
+  },
+  {
+   "name": "terracotta-sofa",
+   "alias": "sofa_red",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 64,
+   "h": 42,
+   "sourceBox": [
+    414,
+    673,
+    736,
+    880
+   ],
+   "sourceSize": [
+    322,
+    207
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.2,
+   "scaleVsS2": 0.806,
+   "nativePx": 6.82,
+   "pixelRatio": 1.1,
+   "sizePersons": {
+    "w": 2.56,
+    "h": 1.68
+   },
+   "scaleReason": "2.1 persons wide, seat 0.54 (3 persons wide would put the seat at 0.78)",
+   "anchorX": 31,
+   "anchorY": 41,
+   "sortY": 41,
+   "footprint": {
+    "x": 0,
+    "y": 30,
+    "w": 64,
+    "h": 12
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 22,
+      "y": 25
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "between",
+     "stand": {
+      "x": 22,
+      "y": 51
+     },
+     "seatHeight": 16
+    },
+    {
+     "at": {
+      "x": 42,
+      "y": 25
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "between",
+     "stand": {
+      "x": 42,
+      "y": 51
+     },
+     "seatHeight": 16
+    }
+   ],
+   "frontCut": 26,
+   "backCut": null,
+   "refHeightPersons": 0.69,
+   "x": 0,
+   "y": 262
+  },
+  {
+   "name": "moss-sofa",
+   "alias": "sofa_green",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 64,
+   "h": 42,
+   "sourceBox": [
+    799,
+    672,
+    1120,
+    880
+   ],
+   "sourceSize": [
+    321,
+    208
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.2,
+   "scaleVsS2": 0.806,
+   "nativePx": 6.8,
+   "pixelRatio": 1.1,
+   "sizePersons": {
+    "w": 2.56,
+    "h": 1.68
+   },
+   "scaleReason": "same as the red sofa",
+   "anchorX": 31,
+   "anchorY": 41,
+   "sortY": 41,
+   "footprint": {
+    "x": 0,
+    "y": 30,
+    "w": 64,
+    "h": 12
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 22,
+      "y": 25
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "between",
+     "stand": {
+      "x": 22,
+      "y": 51
+     },
+     "seatHeight": 16
+    },
+    {
+     "at": {
+      "x": 42,
+      "y": 25
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "between",
+     "stand": {
+      "x": 42,
+      "y": 51
+     },
+     "seatHeight": 16
+    }
+   ],
+   "frontCut": 26,
+   "backCut": null,
+   "refHeightPersons": 0.69,
+   "x": 66,
+   "y": 262
+  },
+  {
+   "name": "reading-armchair",
+   "alias": "armchair_green",
+   "sheet": "seating",
+   "sheetFile": "interior-seating.webp",
+   "kind": "seat",
+   "view": "front",
+   "w": 44,
+   "h": 49,
+   "sourceBox": [
+    1229,
+    643,
+    1449,
+    887
+   ],
+   "sourceSize": [
+    220,
+    244
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.4,
+   "scaleVsS2": 0.781,
+   "nativePx": 7.35,
+   "pixelRatio": 1.15,
+   "sizePersons": {
+    "w": 1.76,
+    "h": 1.96
+   },
+   "scaleReason": "seat top 0.53 persons",
+   "anchorX": 21,
+   "anchorY": 48,
+   "sortY": 48,
+   "footprint": {
+    "x": 0,
+    "y": 37,
+    "w": 44,
+    "h": 12
+   },
+   "seats": [
+    {
+     "at": {
+      "x": 22,
+      "y": 32
+     },
+     "face": "front",
+     "pose": "read",
+     "depth": "between",
+     "stand": {
+      "x": 22,
+      "y": 58
+     },
+     "seatHeight": 16
+    }
+   ],
+   "frontCut": 33,
+   "backCut": null,
+   "refHeightPersons": 0.7,
+   "x": 159,
+   "y": 209
+  },
+  {
+   "name": "square-table",
+   "alias": "table_square",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 57,
+   "h": 62,
+   "sourceBox": [
+    49,
+    135,
+    334,
+    442
+   ],
+   "sourceSize": [
+    285,
+    307
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.5,
+   "scaleVsS2": 0.769,
+   "nativePx": 4.25,
+   "pixelRatio": 0.65,
+   "sizePersons": {
+    "w": 2.28,
+    "h": 2.48
+   },
+   "scaleReason": "top's front edge 0.65 persons above the floor",
+   "anchorX": 28,
+   "anchorY": 61,
+   "sortY": 61,
+   "footprint": {
+    "x": 2,
+    "y": 30,
+    "w": 54,
+    "h": 32
+   },
+   "topRect": {
+    "x": 2,
+    "y": 1,
+    "w": 52,
+    "h": 38
+   },
+   "topY": 41,
+   "topHeight": 22,
+   "seatSlots": [
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 1,
+     "dy": -40,
+     "sitter": "behind"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": 1,
+     "dy": 8,
+     "sitter": "front"
+    },
+    {
+     "side": "left",
+     "face": "right",
+     "chair": "chair-right",
+     "dx": -36,
+     "dy": -16,
+     "sitter": "beside"
+    },
+    {
+     "side": "right",
+     "face": "left",
+     "chair": "chair-left",
+     "dx": 38,
+     "dy": -16,
+     "sitter": "beside"
+    }
+   ],
+   "x": 217,
+   "y": 85
+  },
+  {
+   "name": "round-table",
+   "alias": "table_round",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 59,
+   "h": 67,
+   "sourceBox": [
+    423,
+    124,
+    718,
+    460
+   ],
+   "sourceSize": [
+    295,
+    336
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.0,
+   "scaleVsS2": 0.556,
+   "nativePx": 4.5,
+   "pixelRatio": 0.5,
+   "sizePersons": {
+    "w": 2.36,
+    "h": 2.68
+   },
+   "scaleReason": "diameter 1.3 persons, pedestal 0.76",
+   "anchorX": 28,
+   "anchorY": 66,
+   "sortY": 66,
+   "footprint": {
+    "x": 2,
+    "y": 41,
+    "w": 55,
+    "h": 26
+   },
+   "topRect": {
+    "x": 5,
+    "y": 1,
+    "w": 50,
+    "h": 31
+   },
+   "topY": 50,
+   "topHeight": 34,
+   "seatSlots": [
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 2,
+     "dy": -37,
+     "sitter": "behind"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": 2,
+     "dy": 11,
+     "sitter": "front"
+    },
+    {
+     "side": "left",
+     "face": "right",
+     "chair": "chair-right",
+     "dx": -40,
+     "dy": -13,
+     "sitter": "beside"
+    },
+    {
+     "side": "right",
+     "face": "left",
+     "chair": "chair-left",
+     "dx": 43,
+     "dy": -13,
+     "sitter": "beside"
+    }
+   ],
+   "x": 299,
+   "y": 0
+  },
+  {
+   "name": "communal-table-horizontal",
+   "alias": "table_wide",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 74,
+   "h": 56,
+   "sourceBox": [
+    777,
+    158,
+    1143,
+    435
+   ],
+   "sourceSize": [
+    366,
+    277
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.5,
+   "scaleVsS2": 0.769,
+   "nativePx": 4.22,
+   "pixelRatio": 0.65,
+   "sizePersons": {
+    "w": 2.96,
+    "h": 2.24
+   },
+   "scaleReason": "top's front edge 0.62 persons",
+   "anchorX": 36,
+   "anchorY": 55,
+   "sortY": 55,
+   "footprint": {
+    "x": 2,
+    "y": 28,
+    "w": 70,
+    "h": 28
+   },
+   "topRect": {
+    "x": 3,
+    "y": 1,
+    "w": 68,
+    "h": 32
+   },
+   "topY": 38,
+   "topHeight": 22,
+   "seatSlots": [
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": -22,
+     "dy": -36,
+     "sitter": "behind"
+    },
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 1,
+     "dy": -36,
+     "sitter": "behind"
+    },
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 24,
+     "dy": -36,
+     "sitter": "behind"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": -22,
+     "dy": 8,
+     "sitter": "front"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": 1,
+     "dy": 8,
+     "sitter": "front"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": 24,
+     "dy": 8,
+     "sitter": "front"
+    }
+   ],
+   "x": 41,
+   "y": 151
+  },
+  {
+   "name": "communal-table-vertical",
+   "alias": "table_long",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 51,
+   "h": 83,
+   "sourceBox": [
+    1217,
+    72,
+    1471,
+    485
+   ],
+   "sourceSize": [
+    254,
+    413
+   ],
+   "scale": 5.0,
+   "recommendedScale": 6.0,
+   "scaleVsS2": 0.833,
+   "nativePx": 4.3,
+   "pixelRatio": 0.72,
+   "sizePersons": {
+    "w": 2.04,
+    "h": 3.32
+   },
+   "scaleReason": "top's front edge 0.57 persons",
+   "anchorX": 24,
+   "anchorY": 82,
+   "sortY": 82,
+   "footprint": {
+    "x": 2,
+    "y": 29,
+    "w": 48,
+    "h": 54
+   },
+   "topRect": {
+    "x": 2,
+    "y": 1,
+    "w": 48,
+    "h": 63
+   },
+   "topY": 50,
+   "topHeight": 18,
+   "seatSlots": [
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 2,
+     "dy": -61,
+     "sitter": "behind"
+    },
+    {
+     "side": "front",
+     "face": "back",
+     "chair": "chair-up",
+     "dx": 2,
+     "dy": 7,
+     "sitter": "front"
+    },
+    {
+     "side": "left",
+     "face": "right",
+     "chair": "chair-right",
+     "dx": -32,
+     "dy": -45,
+     "sitter": "beside"
+    },
+    {
+     "side": "left",
+     "face": "right",
+     "chair": "chair-right",
+     "dx": -32,
+     "dy": -27,
+     "sitter": "beside"
+    },
+    {
+     "side": "left",
+     "face": "right",
+     "chair": "chair-right",
+     "dx": -32,
+     "dy": -9,
+     "sitter": "beside"
+    },
+    {
+     "side": "right",
+     "face": "left",
+     "chair": "chair-left",
+     "dx": 36,
+     "dy": -45,
+     "sitter": "beside"
+    },
+    {
+     "side": "right",
+     "face": "left",
+     "chair": "chair-left",
+     "dx": 36,
+     "dy": -27,
+     "sitter": "beside"
+    },
+    {
+     "side": "right",
+     "face": "left",
+     "chair": "chair-left",
+     "dx": 36,
+     "dy": -9,
+     "sitter": "beside"
+    }
+   ],
+   "x": 0,
+   "y": 0
+  },
+  {
+   "name": "coffee-table",
+   "alias": "table_low",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 66,
+   "h": 39,
+   "sourceBox": [
+    26,
+    688,
+    357,
+    883
+   ],
+   "sourceSize": [
+    331,
+    195
+   ],
+   "scale": 5.0,
+   "recommendedScale": 7.5,
+   "scaleVsS2": 0.667,
+   "nativePx": 3.8,
+   "pixelRatio": 0.51,
+   "sizePersons": {
+    "w": 2.64,
+    "h": 1.56
+   },
+   "scaleReason": "top's front edge 0.33 persons (low table)",
+   "anchorX": 32,
+   "anchorY": 38,
+   "sortY": 38,
+   "footprint": {
+    "x": 2,
+    "y": 18,
+    "w": 62,
+    "h": 21
+   },
+   "topRect": {
+    "x": 3,
+    "y": 1,
+    "w": 61,
+    "h": 24
+   },
+   "topY": 25,
+   "topHeight": 13,
+   "seatSlots": [],
+   "x": 175,
+   "y": 262
+  },
+  {
+   "name": "reading-desk",
+   "alias": "desk_kneehole",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 72,
+   "h": 53,
+   "sourceBox": [
+    396,
+    644,
+    755,
+    909
+   ],
+   "sourceSize": [
+    359,
+    265
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.2,
+   "scaleVsS2": 0.61,
+   "nativePx": 4.75,
+   "pixelRatio": 0.58,
+   "sizePersons": {
+    "w": 2.88,
+    "h": 2.12
+   },
+   "scaleReason": "top's front edge 0.7 persons",
+   "anchorX": 35,
+   "anchorY": 52,
+   "sortY": 52,
+   "footprint": {
+    "x": 2,
+    "y": 34,
+    "w": 68,
+    "h": 19
+   },
+   "topRect": {
+    "x": 2,
+    "y": 1,
+    "w": 68,
+    "h": 22
+   },
+   "topY": 40,
+   "topHeight": 29,
+   "seatSlots": [
+    {
+     "side": "back",
+     "face": "front",
+     "chair": "chair-down",
+     "dx": 1,
+     "dy": -29,
+     "sitter": "behind"
+    }
+   ],
+   "x": 329,
+   "y": 151
+  },
+  {
+   "name": "side-table",
+   "alias": "table_side",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 48,
+   "h": 55,
+   "sourceBox": [
+    842,
+    639,
+    1078,
+    914
+   ],
+   "sourceSize": [
+    236,
+    275
+   ],
+   "scale": 5.0,
+   "recommendedScale": 9.0,
+   "scaleVsS2": 0.556,
+   "nativePx": 4.55,
+   "pixelRatio": 0.51,
+   "sizePersons": {
+    "w": 1.92,
+    "h": 2.2
+   },
+   "scaleReason": "top's front edge 0.64 persons",
+   "anchorX": 23,
+   "anchorY": 54,
+   "sortY": 54,
+   "footprint": {
+    "x": 1,
+    "y": 35,
+    "w": 45,
+    "h": 20
+   },
+   "topRect": {
+    "x": 2,
+    "y": 1,
+    "w": 44,
+    "h": 24
+   },
+   "topY": 41,
+   "topHeight": 29,
+   "seatSlots": [],
+   "x": 184,
+   "y": 151
+  },
+  {
+   "name": "display-island",
+   "alias": "console_shelf",
+   "sheet": "tables",
+   "sheetFile": "interior-tables.webp",
+   "kind": "table",
+   "view": "3q",
+   "w": 71,
+   "h": 51,
+   "sourceBox": [
+    1169,
+    649,
+    1519,
+    903
+   ],
+   "sourceSize": [
+    350,
+    254
+   ],
+   "scale": 5.0,
+   "recommendedScale": 8.5,
+   "scaleVsS2": 0.588,
+   "nativePx": 4.77,
+   "pixelRatio": 0.56,
+   "sizePersons": {
+    "w": 2.84,
+    "h": 2.04
+   },
+   "scaleReason": "top's front edge 0.7 persons",
+   "anchorX": 35,
+   "anchorY": 50,
+   "sortY": 50,
+   "footprint": {
+    "x": 2,
+    "y": 35,
+    "w": 67,
+    "h": 16
+   },
+   "topRect": {
+    "x": 2,
+    "y": 1,
+    "w": 67,
+    "h": 19
+   },
+   "topY": 40,
+   "topHeight": 30,
+   "seatSlots": [],
+   "x": 86,
+   "y": 209
+  }
+ ]
+}
