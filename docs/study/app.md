@@ -1,6 +1,6 @@
 # study.tryplumi.app: Desk, Study, Flashcards
 
-First slice of the web app. Three links, in this order: **Desk | Study | Flashcards**.
+First slice of the web app. Four links, in this order: **Desk | Study | Questions | Flashcards**.
 Everything else (Subjects, Insights, Wardrobe, Search, Settings) is deliberately not here yet.
 The Subjects UI is going to change, so nothing was built for it.
 
@@ -10,6 +10,7 @@ The Subjects UI is going to change, so nothing was built for it.
 |---|---|---|
 | `/study` | Desk: greeting, today's scene, to-do, exam countdown, library card, flashcard card | `src/app/study/(app)/page.tsx`, `src/components/studyapp/desk/` |
 | `/study/library` | Study: the Grand Library room with real people | `src/components/studyapp/library/`, `docs/study/library.md` |
+| `/study/questions` | Questions: pick bank questions, write under each part (ink or type), check, mark yourself. See `questions.md` | `src/components/studyapp/questions/` |
 | `/study/flashcards` | The iPad's two-pane page: subject toggle, My sessions, decks to tick and mix, the wooden desk, Import. See below | `src/components/studyapp/flashcards/` |
 | `/study/design`, `/dashboards`, `/shells` | Design system and exploration pages (kept, in the `(system)` route group) | `src/app/study/(system)/` |
 
@@ -24,7 +25,7 @@ One deployment serves two sites, told apart by host in `src/proxy.ts` (decisions
 | Host | What it serves |
 |---|---|
 | `tryplumi.app` | The marketing site. Its old `/study`, `/study/library`, `/study/flashcards` redirect to the app's host. |
-| `study.tryplumi.app` | The app, at `/`, `/library`, `/flashcards` (rewritten from `/study/...`; the prefix is never shown). Also `/sign-in`, `/sign-up`, `/auth/callback`. Marketing pages redirect to tryplumi.app. `/robots.txt` disallows everything. |
+| `study.tryplumi.app` | The app, at `/`, `/library`, `/questions`, `/flashcards` (rewritten from `/study/...`; the prefix is never shown). Also `/sign-in`, `/sign-up`, `/auth/callback`. Marketing pages redirect to tryplumi.app. `/robots.txt` disallows everything. |
 | localhost, previews | Unchanged: the app is under `/study/...`. `study.localhost:<port>` imitates the app host on a laptop. |
 
 - Marketing header: one button, top right, **Get started**, to `study.tryplumi.app/sign-up` (founder, 1 November 2026:
