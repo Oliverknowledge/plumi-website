@@ -1,6 +1,8 @@
-"""Write the AQA A-Level French and Spanish banks' data files from the cut parts, their tags and recordings.
+"""Write the AQA A-Level French, Spanish and German banks' data files from the cut parts, their tags and recordings.
 
     python3 scripts/question-bank/aqa_languages/build_languages.py [work-dir]   # default scripts/question-bank/.work/aqa-languages
+
+Builds each language whose papers are in the work dir (German's is .work/aqa-german).
 
 build_rs.py's shapes (src/content/questionBank/<slug>.json and public/question-bank/<slug>/{parts,text,reports}.json),
 one bank per language, the AS papers in it marked AS. What differs:
@@ -27,6 +29,7 @@ WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE,
 BANKS = {
     "french": {"slug": "aqa-a-level-french", "subject": "French", "specs": ["7652", "7651"], "a": "76521", "a2": "76522", "as": "76511", "as2": "76512"},
     "spanish": {"slug": "aqa-a-level-spanish", "subject": "Spanish", "specs": ["7692", "7691"], "a": "76921", "a2": "76922", "as": "76911", "as2": "76912"},
+    "german": {"slug": "aqa-a-level-german", "subject": "German", "specs": ["7662", "7661"], "a": "76621", "a2": "76622", "as": "76611", "as2": "76612"},
 }
 PAPER_TITLES = {"a": ("Paper 1", "Listening, reading and writing", False), "a2": ("Paper 2", "Writing: set texts and films", False),
                 "as": ("AS Paper 1", "Listening, reading and writing", True), "as2": ("AS Paper 2", "Writing: translation, set texts and films", True)}
@@ -144,7 +147,8 @@ def main():
     manifest = json.load(open(os.path.join(WORK, "manifest.json")))
     audio = json.load(open(os.path.join(WORK, "audio.map.json")))
     for lang, bank in BANKS.items():
-        build(lang, bank, parts, tags, manifest, audio)
+        if any(p["component"] in (bank["a"], bank["as"]) for p in parts):
+            build(lang, bank, parts, tags, manifest, audio)
 
 
 if __name__ == "__main__":

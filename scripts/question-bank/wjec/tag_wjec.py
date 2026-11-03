@@ -14,7 +14,8 @@ only takes topics of its own unit (a Unit 1 part 1.x); the A2 papers draw on the
 units too, so take any. Unit 4's option questions are tagged without a reader: every
 part of "Option B – Medical Physics" is topic 4.B, the option's only one. Maths is
 tagged a whole question at a time against the Edexcel maths bank's topics
-(edexcel_topics.json), as the OCR and CAIE maths banks are.
+(edexcel_topics.json), as the OCR and CAIE maths banks are. Further Maths is tagged a
+whole question at a time too, against its specification's topics (spec_wjec_further.py).
 """
 import glob, json, os, re, sys
 
@@ -23,11 +24,13 @@ mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work", "wjec")
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 200
 TAG = os.path.join(WORK, "tag")
-SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths", "510": "business", "543": "criminology"}
+SUBJECTS = {"400": "biology", "410": "chemistry", "420": "physics", "300": "maths", "305": "further", "510": "business", "543": "criminology"}
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 from tag_pearson import clip, own  # noqa: E402
 sys.path.insert(0, os.path.join(HERE, "..", "ocr"))
 from maths_ocr import topic_lists  # noqa: E402
+sys.path.insert(0, HERE)
+import spec_wjec_further  # noqa: E402
 
 BOILER = re.compile(r"© WJEC CBAC Ltd\.?|\([12]\d{3}U\d0-\d\)|\(4543U[BD]0-1\)|Turn over\.?|Examiner only|\.{6,}|…{3,}|\x08", re.I)
 OPTION = re.compile(r"^\s*Option\s+([A-F])\s*[–:-]")
@@ -56,8 +59,10 @@ def parts():
 
 
 def trees():
-    spec = json.load(open(os.path.join(WORK, "spec.json")))  # Business's own work dir: spec_wjec_business.py's
+    path = os.path.join(WORK, "spec.json")  # Business's own work dir: spec_wjec_business.py's (Further Maths has none: its topics are spec_wjec_further.py's)
+    spec = json.load(open(path)) if os.path.exists(path) else {}
     spec["maths"] = topic_lists()["maths"]
+    spec["further"] = spec_wjec_further.tree()
     return spec
 
 
@@ -77,8 +82,8 @@ def split():
             with open(os.path.join(TAG, f"batch-{n:02d}-{subj}.jsonl"), "w") as f:
                 for p in mine[i:i + SIZE]:
                     words = BOILER.sub(" ", p["text"])
-                    paper = f"{'' if subj == 'criminology' else 'AS ' if unit(p) in '12' else 'A2 '}Unit {unit(p)}"
-                    if subj == "maths":
+                    paper = f"{'' if subj == 'criminology' else 'AS ' if unit(p) in ('123' if subj == 'further' else '12') else 'A2 '}Unit {unit(p)}"
+                    if subj in ("maths", "further"):
                         row = {"id": p["id"], "paper": f"{paper}: {p['paperTitle'].split(':')[-1].strip()}",
                                "question": clip(words, 700), "scheme": clip(p.get("msText", ""), 300)}
                     else:
@@ -108,8 +113,10 @@ def merge():
             # An AS paper tests its own unit; maths and the A2 papers any topic (an option's only on its own paper).
             # (a topic's unit is its code's first number: Business's Unit 2 is four sections, "2.1 Marketing"…)
             # (Criminology's papers test their own unit's assessment criteria: a Unit 4 part is tagged 4.x.x)
-            valid = {t["code"] for t in topics if subj == "maths" or (t["code"].split(".")[0] == u if u in "12" or subj == "criminology" else t.get("year") != 3)}
-            codes = [c for c in got.get(pid, []) if c in valid][:3 if subj == "maths" else 2]
+            # (Further Maths: its own unit's, and an A2 unit also the AS unit it builds on: Unit 4 on 1, 5 on 2, 6 on 3)
+            valid = {t["code"] for t in topics if subj == "maths" or (t["code"][0] in (u, {"4": "1", "5": "2", "6": "3"}.get(u)) if subj == "further"
+                     else t["code"].split(".")[0] == u if u in "12" or subj == "criminology" else t.get("year") != 3)}
+            codes = [c for c in got.get(pid, []) if c in valid][:3 if subj in ("maths", "further") else 2]
             if codes:
                 tags[pid] = codes
             else:

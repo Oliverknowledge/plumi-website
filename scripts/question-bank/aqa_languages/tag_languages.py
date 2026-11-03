@@ -1,4 +1,4 @@
-"""Tag every French and Spanish question with its topics.
+"""Tag every French, Spanish and German question with its topics.
 
     python3 scripts/question-bank/aqa_languages/tag_languages.py [work-dir]   # default scripts/question-bank/.work/aqa-languages
 
@@ -82,11 +82,44 @@ THEME = {
     "76921-nov21-01": "cyber", "76921-nov21-02": "racism", "76921-nov21-03": "youth", "76921-nov21-04": "idols", "76921-nov21-05": "monarchies",
     "76921-nov21-06": "movements", "76921-nov21-07": "idols", "76921-nov21-08": "immigration", "76921-nov21-09": LIT, "76921-nov21-10": "values",
     "76921-nov21-11": "heritage",
+    # German AS Paper 1 (Year 1 themes only)
+    "76611-jun22-01": "art", "76611-jun22-02": "youth-culture", "76611-jun22-03": "digital", "76611-jun22-04": "berlin", "76611-jun22-05": "family",
+    "76611-jun22-06": "festivals", "76611-jun22-07": "digital", "76611-jun22-08": LIT, "76611-jun22-09": "art", "76611-jun22-10": "family",
+    "76611-jun23-01": "festivals", "76611-jun23-02": "youth-culture", "76611-jun23-03": "art", "76611-jun23-04": "family", "76611-jun23-05": "berlin",
+    "76611-jun23-06": "digital", "76611-jun23-07": "art", "76611-jun23-08": LIT, "76611-jun23-09": "festivals", "76611-jun23-10": "digital",
+    "76611-jun24-01": "digital", "76611-jun24-02": "berlin", "76611-jun24-03": "family", "76611-jun24-04": "festivals", "76611-jun24-05": "digital",
+    "76611-jun24-06": "berlin", "76611-jun24-07": "family", "76611-jun24-08": LIT, "76611-jun24-09": "youth-culture", "76611-jun24-10": "art",
+    "76611-jun25-01": "family", "76611-jun25-02": "digital", "76611-jun25-03": "festivals", "76611-jun25-04": "art", "76611-jun25-05": "family",
+    "76611-jun25-06": LIT, "76611-jun25-07": "berlin", "76611-jun25-08": "art", "76611-jun25-09": "digital", "76611-jun25-10": "youth-culture",
+    "76611-nov20-01": "digital", "76611-nov20-02": "art", "76611-nov20-03": "digital", "76611-nov20-04": "youth-culture", "76611-nov20-05": "youth-culture",
+    "76611-nov20-06": "family", "76611-nov20-07": LIT, "76611-nov20-08": "family", "76611-nov20-09": "digital", "76611-nov20-10": "festivals",
+    # German AS Paper 2, Section A (translation into German)
+    "76612-jun22-01": "festivals", "76612-jun23-01": "berlin", "76612-jun24-01": "youth-culture", "76612-jun25-01": "art", "76612-nov20-01": "family",
+    # German A-Level Paper 1 ("Mehr Rente in Österreich" is about retiring abroad: emigration)
+    "76621-jun22-01": "youth-culture", "76621-jun22-02": "reunification", "76621-jun22-03": "integration", "76621-jun22-04": "racism", "76621-jun22-05": "digital",
+    "76621-jun22-06": "berlin", "76621-jun22-07": LIT, "76621-jun22-08": "immigration", "76621-jun22-09": "eu", "76621-jun22-10": "integration",
+    "76621-jun22-11": "politics-youth",
+    "76621-jun23-01": "eu", "76621-jun23-02": "digital", "76621-jun23-03": "integration", "76621-jun23-04": "berlin", "76621-jun23-05": "reunification",
+    "76621-jun23-06": "family", "76621-jun23-07": LIT, "76621-jun23-08": "immigration", "76621-jun23-09": "festivals", "76621-jun23-10": "politics-youth",
+    "76621-jun23-11": "art",
+    "76621-jun24-01": "art", "76621-jun24-02": "immigration", "76621-jun24-03": "politics-youth", "76621-jun24-04": "family", "76621-jun24-05": "digital",
+    "76621-jun24-06": "integration", "76621-jun24-07": "reunification", "76621-jun24-08": LIT, "76621-jun24-09": "youth-culture", "76621-jun24-10": "festivals",
+    "76621-jun24-11": "racism",
+    "76621-jun25-01": "festivals", "76621-jun25-02": "racism", "76621-jun25-03": "reunification", "76621-jun25-04": "digital", "76621-jun25-05": "integration",
+    "76621-jun25-06": "art", "76621-jun25-07": "eu", "76621-jun25-08": LIT, "76621-jun25-09": "immigration", "76621-jun25-10": "family",
+    "76621-jun25-11": "berlin",
+    "76621-nov20-01": "festivals", "76621-nov20-02": "immigration", "76621-nov20-03": "youth-culture", "76621-nov20-04": "eu", "76621-nov20-05": "racism",
+    "76621-nov20-06": "politics-youth", "76621-nov20-07": "art", "76621-nov20-08": LIT, "76621-nov20-09": "family", "76621-nov20-10": "integration",
+    "76621-nov20-11": "berlin",
+    "76621-nov21-01": "family", "76621-nov21-02": "berlin", "76621-nov21-03": "politics-youth", "76621-nov21-04": "immigration", "76621-nov21-05": "youth-culture",
+    "76621-nov21-06": "integration", "76621-nov21-07": "reunification", "76621-nov21-08": LIT, "76621-nov21-09": "art", "76621-nov21-10": "digital",
+    "76621-nov21-11": "racism",
 }
+LANG = {"765": "french", "769": "spanish", "766": "german"}
 
 INTO_ENGLISH = re.compile(r"Translate (the|this)", re.I)
-INTO_TARGET = re.compile(r"tradu(isez|ce|zca)\b", re.I)
-SUMMARY = re.compile(r"résumez|resumiendo|resumen", re.I)
+INTO_TARGET = re.compile(r"tradu(isez|ce|zca)\b|übersetzen Sie", re.I)
+SUMMARY = re.compile(r"résumez|resumiendo|resumen|Zusammenfassung", re.I)
 EXTRACT = re.compile(r"extrait (adapté )?d[ue] (roman|conte)|extrait du roman|\bextract[oa]? (del|de la) (libro|obra|cuento|novela)|texto (basado en|de) la (obra|novela)|fragmento basado|Lee este (texto|extracto|fragmento) (de|del|basado)", re.I)
 # What a scheme row demands, in its notes column: "must be pluperfect", "Must be in the future tense".
 GRAMMAR = ("subjunctive", "conditional", "pluperfect", "imperfect", "preterite", "future", "passive")
@@ -122,7 +155,7 @@ def main():
     tags, missing = {}, []
     for p in parts:
         comp, q = p["component"], p["question"]
-        lang = "french" if comp.startswith("765") else "spanish"
+        lang = LANG[comp[:3]]
         key = f"{p['set']}-{q}"
         essay = comp[4] == "2" and not (comp[3] == "1" and q == "01")
         if essay:

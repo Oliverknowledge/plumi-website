@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+
+import { bankSolutionUrl, type BankSubject } from "@/content/questionBank";
 import "./WorkedSolution.css";
 
 /**
  * A worked solution, written out line by line in the spirit of MadAsMaths and tied to
- * the board's own marks (public/question-bank/<slug>/solutions/<id>.json, checked by
+ * the board's own marks (solutions/<id>.json in the bank's data on R2, bankSolutionUrl; checked by
  * scripts/question-bank/solutions/check_solutions.py). Loaded only when a student opens
  * it (QuestionRow), with KaTeX, so the bank's pages carry none of this until then.
  *
@@ -22,10 +24,10 @@ interface Part { label: string; ask?: string; method: string; steps: Step[]; ans
 interface Solution { id: string; q: string; m: number; parts: Part[] }
 
 const solutions: Record<string, Promise<Solution | null>> = {};
-export const solutionPath = (slug: string, id: string) => `/question-bank/${slug}/solutions/${id}.json`;
-function solutionFor(slug: string, id: string) {
-  solutions[`${slug}/${id}`] ??= fetch(solutionPath(slug, id)).then(r => (r.ok ? r.json() : null)).catch(() => null);
-  return solutions[`${slug}/${id}`];
+function solutionFor(subject: Pick<BankSubject, "slug" | "data">, id: string) {
+  const url = bankSolutionUrl(subject, id);
+  solutions[`${subject.slug}/${id}`] ??= url ? fetch(url).then(r => (r.ok ? r.json() : null)).catch(() => null) : Promise.resolve(null);
+  return solutions[`${subject.slug}/${id}`];
 }
 
 /** KaTeX's HTML for one piece of maths. A line of working is set full size but may still wrap after = or +. */
@@ -124,7 +126,7 @@ function partItems(part: Part) {
   return items;
 }
 
-export function WorkedSolution({ slug, id, question }: { slug: string; id: string; question: string }) {
+export function WorkedSolution({ subject, id, question }: { subject: Pick<BankSubject, "slug" | "data">; id: string; question: string }) {
   const [solution, setSolution] = useState<Solution | null | undefined>(undefined);
   const [stepwise, setStepwise] = useState(true);
   // How many of each part's items are showing, one step at a time.
@@ -135,13 +137,13 @@ export function WorkedSolution({ slug, id, question }: { slug: string; id: strin
 
   useEffect(() => {
     let live = true;
-    solutionFor(slug, id).then(s => {
+    solutionFor(subject, id).then(s => {
       if (!live) return;
       setSolution(s);
       if (s) setShown(s.parts.map(() => 0));
     });
     return () => { live = false; };
-  }, [slug, id]);
+  }, [subject, id]);
 
   const headingId = `sol-${id}`;
   if (solution === undefined) return <div className="qb-sol" aria-busy="true"><p className="qb-sol-hint">Opening the worked solution…</p></div>;

@@ -39,6 +39,8 @@ import cut  # noqa: E402
 MARKS = re.compile(r"\[\d+ marks?\]")
 GUIDE = re.compile(r"^\s*(Level of response marking instructions|Summary questions\s*$|AO3 quality of language marks)", re.M)
 HEADING = re.compile(r"^(Question\s+\d|Acceptable quality of English in translations|Guidance on level of accuracy in translations)")
+# German prints each translation's general guidance on a page of its own, before its "Qu 10" table.
+TRANSLATION_GUIDE = re.compile(r"^\s*(Acceptable quality of English in translations|Guidance on level of accuracy in translations)", re.M)
 SUMMARY_GRID = re.compile(r"^AO3 quality of language marks")
 ESSAY_MARKS = re.compile(r"\[(\d+) marks\]")
 
@@ -52,6 +54,27 @@ def lines(page):
             if t:
                 out.append((line["bbox"][1], line["bbox"][0], t, line["spans"]))
     return sorted(out, key=lambda l: (l[0], l[1]))
+
+
+# What follows a question's last words before the next label: furniture, or the next question's heading.
+TRAILING = re.compile(r"^(Tracks?\s*:|Length of passage|Turn over|Do not write|outside the|box$|\*\d+\*|IB/|Question \d+ continues|END\s+OF|Notes space|DO\s+NOT\s+WRITE|ANSWER\s+IN|\d+$|Section [A-C]\b|Answer all questions|Listening and Writing|Reading and Writing|Extra space)", re.I)
+GERMAN = False  # set per set in cut_set
+
+
+def end_at_text(doc, pieces):
+    """German prints a gap-fill's or a translation's marks above its passage ("[8 marks]", then the
+    article): the pieces up to the foot of the question's last line of text, leaving out the
+    answer lines and the furniture after it. Only a whole question has a passage: a part (an
+    essay, "06.4 trotzdem") still ends at its marks."""
+    for n in range(len(pieces) - 1, -1, -1):
+        pg, rect = pieces[n]
+        words = [l for l in lines(doc[pg]) if rect.y0 <= l[0] < rect.y1 and rect.x0 <= l[1] < rect.x1 and not TRAILING.match(l[2])]
+        if words:
+            y = max(sp["bbox"][3] for l in words for sp in l[3])
+            # A boxed passage keeps its box's foot.
+            y = max([d["rect"].y1 for d in doc[pg].get_drawings() if y < d["rect"].y1 < y + 24 and d["rect"].width > 100] + [y])
+            return pieces[:n] + [(pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, min(rect.y1, y + 8)))]
+    return pieces
 
 
 def end_at_marks(doc, pieces):
@@ -99,7 +122,12 @@ def left_labels(page, max_x, bold_only, with_x=False):
                 if not (header or heading or boxed):
                     continue
             keep.append((y, q, p, x))
-        found = keep
+        # German's translations are headed "Qu 10" on one line, over their box tables.
+        for ly, lx, t, _ in ls:
+            m = re.fullmatch(r"Qu\.?\s+(\d{1,2})", t)
+            if m and lx < max_x + 40 and not any(abs(y - ly) < 4 for y, *_ in keep):
+                keep.append((ly, f"{int(m.group(1)):02d}", None, lx))
+        found = sorted(keep)
     return found if with_x else [f[:3] for f in found]
 
 
@@ -109,7 +137,8 @@ _skip_page = cut.skip_page
 def skip_page(page, max_x, bold_only):
     # In a scheme, a row never runs on into the marking guidance; a page that has the guidance
     # and then a row (Spanish: the AO3 grid, then the summary under it) still has its row.
-    return _skip_page(page, max_x, bold_only) or (not bold_only and bool(GUIDE.search(page.get_text())) and not left_labels(page, max_x, bold_only))
+    guide = GUIDE.search(page.get_text()) or (GERMAN and TRANSLATION_GUIDE.search(page.get_text()))
+    return _skip_page(page, max_x, bold_only) or (not bold_only and bool(guide) and not left_labels(page, max_x, bold_only))
 
 
 _row_start = cut.row_start
@@ -121,7 +150,13 @@ def row_start(page, y, floor=0):
     heads = [ly for ly, lx, t, _ in ls if floor + 2 < ly < y - 2 and HEADING.match(t) and lx < 120]
     if heads:
         return heads[0] - 6
-    header = [ly for ly, lx, t, _ in ls if t in ("Qu", "Qu.") and max(floor + 2, y - 75) < ly < y - 1]
+    # (German: a summary's label is centred far down its tall row, so its header is looked for back to the last label.)
+    header = [ly for ly, lx, t, _ in ls if t in ("Qu", "Qu.") and max(floor + 2, 0 if GERMAN else y - 75) < ly < y - 1]
+    # German's AS Paper 2 heads a table "Question", its label centred well down a merged cell.
+    if GERMAN and not header:
+        tall = [ly for ly, lx, t, _ in ls if t == "Question" and floor + 2 < ly < y - 1]
+        if tall:
+            return max(floor, tall[-1] - 18)  # the table's top, its header two lines tall
     if header:
         rules = sorted({round(d["rect"].y0) for d in page.get_drawings() if d["rect"].height < 3 and d["rect"].width > 20 and d["rect"].x0 < 70})
         above = [r for r in rules if r <= header[-1] + 2 and r > floor]
@@ -142,7 +177,10 @@ def grid_pieces(doc, match, before_page=None):
         for ly, lx, t, _ in ls:
             if match(t):
                 f = cut.ms_frame(doc[n])
-                foot = min([y for y, x, u, _ in ls if y > ly and u in ("Qu", "Qu.")], default=cut.frame(doc[n], False).y1 + 6) - 6
+                # To the page's last line (German's AO3 page runs below the question paper's frame).
+                last = max([l["bbox"][3] for b in doc[n].get_text("dict")["blocks"] for l in b.get("lines", [])
+                            if l["bbox"][1] < f.y1 and "".join(sp["text"] for sp in l["spans"]).strip()], default=f.y1)
+                foot = min([y for y, x, u, _ in ls if y > ly and u in ("Qu", "Qu.")], default=max(cut.frame(doc[n], False).y1, last) + 6.5) - 6
                 return n, pymupdf.Rect(f.x0, ly - 6, f.x1, foot)
     return None
 
@@ -156,7 +194,8 @@ def essay_grids(doc):
     out = [ao3]
     if ao4 and ao4[0] != ao3[0]:
         f = cut.frame(doc[ao4[0]], False)
-        out.append((ao4[0], pymupdf.Rect(ao4[1].x0, f.y0, ao4[1].x1, f.y1)))
+        # Below the page's running header, which the fixed margin runs through.
+        out.append((ao4[0], pymupdf.Rect(ao4[1].x0, max(f.y0, cut.ms_frame(doc[ao4[0]]).y0), ao4[1].x1, f.y1)))
     return out
 
 
@@ -168,8 +207,16 @@ def regions(doc, max_x, bold_only, portrait):
     if portrait:
         for r in out:
             if r[0][1] is not None or not any(o[0][0] == r[0][0] and o[0][1] for o in out):
-                r[1] = end_at_marks(doc, r[1])
+                # (A part with its word list under its marks: "07.1 Finden Sie...", "Magazin (3. Absatz)".)
+                r[1] = (end_at_text if GERMAN and (r[0][1] is None or re.search(r"\(\d\. Absatz\)", r[2])) else end_at_marks)(doc, r[1])
                 r[2] = "\n".join(doc[pg].get_text("text", clip=rect) for pg, rect in r[1])
+            if GERMAN and r[1]:
+                # "Tracks: 40–56" sits just above the label on some AS papers: the crop starts below it.
+                pg, rect = r[1][0]
+                over = [sp["bbox"][3] for l in lines(doc[pg]) if TRAILING.match(l[2]) and re.match(r"Tracks?|Length", l[2]) for sp in l[3] if sp["bbox"][1] < rect.y0 < sp["bbox"][3]]
+                if over:
+                    r[1][0] = (pg, pymupdf.Rect(rect.x0, max(over), rect.x1, rect.y1))
+                    r[2] = "\n".join(doc[g].get_text("text", clip=q) for g, q in r[1])
         return out
     for r in out:
         # A row run on to the next page stops at that page's "Section B" heading.
@@ -178,6 +225,14 @@ def regions(doc, max_x, bold_only, portrait):
             if head:
                 r[1] = r[1][:n] + ([(pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, head[0] - 4))] if head[0] - 4 > rect.y0 + 24 else [])
                 break
+        # German prints the guidance under a section's last row, on the row's own page.
+        if GERMAN and r[1]:
+            pg, rect = r[1][0]
+            head = [ly for ly, lx, t, _ in lines(doc[pg]) if rect.y0 + 24 < ly < rect.y1 and re.match(r"^(Section [A-C]\b|Level of response marking instructions)", t)]
+            if head:
+                r[1] = [(pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, head[0] - 4))]
+        if GERMAN:
+            r[2] = "\n".join(doc[pg].get_text("text", clip=rect) for pg, rect in r[1])
     essays = None
     for r in out:
         m = ESSAY_MARKS.findall(r[2])
@@ -205,10 +260,10 @@ def regions(doc, max_x, bold_only, portrait):
 REPORT_HEAD = re.compile(
     # "Question 01", "Question 1.1.", "Question 9.1 - 9.8", on a line of its own
     r"(?m)^[ \t]*Question\s+0?(?P<q>\d{1,2})(?:\s*\.\s*(?P<p>\d{1,2}))?\.?(?P<range>\s*[-–]\s*\d+(?:\.\d+)?)?\s*:?[ \t]*$"
-    # "1.1 Students dealt well...", "Question 2.1 seemed to present...": a part's comment, from its first words
-    r"|^[ \t]*(?:Question\s+)?0?(?P<q2>\d{1,2})\.(?P<p2>\d)\.?[ \t]+(?=[A-Za-z(])"
-    # "Question 1 La casa de Bernarda Alba": a work's heading
-    r"|^[ \t]*Question\s+0?(?P<q3>\d{1,2})[ \t]+(?=[A-ZÁÉÍÓÚ«‘'\"])[^\n]{1,70}$")
+    # "1.1 Students dealt well...", "Question 2.1 seemed to present...", "Q1.1 This proved...": a part's comment, from its first words
+    r"|^[ \t]*(?:Question\s+|Q\s?)?0?(?P<q2>\d{1,2})\.(?P<p2>\d)\.?[ \t]+(?=[A-Za-z(])"
+    # "Question 1 La casa de Bernarda Alba", "Question 1 – Familienleben mit Homeoffice": a work's or passage's heading
+    r"|^[ \t]*Question\s+0?(?P<q3>\d{1,2})[ \t]+(?:[–-][ \t]*)?(?=[A-ZÁÉÍÓÚÄÖÜ«„‘'\"])[^\n]{1,70}$")
 REPORT_NOISE = re.compile(r"(?m)^\s*(REPORT ON THE EXAMINATION.*|.*© ?\d{4} AQA.*|\d+ of \d+|Version:?\s*[\d.]+.*|Section [A-C]\b.*|General [Cc]omments:?)\s*$")
 REPORT_END = re.compile(r"\n\s*(?:Mark Ranges and Award of Grades|Use of statistics|Further support|Support and guidance|Enhanced Results Analysis)\b")
 
@@ -238,12 +293,45 @@ def examiner_report(path):
         out[q] = f"{out[q]}\n\n{chunk}" if q in out else chunk
     if len(out) < 3:
         out = {**by_work(path, text), **out}
+    if not GERMAN:
+        return out
+    if re.search(r"-7\d\d\d2-ER-", path):
+        out = {**by_work_named(path, text), **out}
+    return {**by_mention(text), **out}
+
+
+def by_work_named(path, text):
+    """German Paper 2's reports discuss the works in prose ("Very high numbers elected to answer
+    Question 10 about Der Vorleser"): a paragraph naming one or two works goes to their questions
+    (one naming more is about the paper as a whole: "The most popular texts were...")."""
+    works, number = work_numbers(path)
+    out = {}
+    for para in re.split(r"\n\s*\n", text):
+        para = re.sub(r"\s+", " ", para).strip()
+        named = list(dict.fromkeys(number[rx.pattern] for rx in works if rx.pattern in number and rx.search(para)))
+        if 1 <= len(named) <= 2:
+            for q in named:
+                out[q] = f"{out[q]}\n\n{para}" if q in out else para
     return out
 
 
-def by_work(path, text):
-    """A Paper 2 report headed only by each work's title ("Molière: Le Tartuffe", June 2022): each
-    comment goes to the question the paper sets on that work."""
+MENTION = re.compile(r"\b(?:Questions?|Q)\s?0?(\d{1,2})(?:\.(\d))?\b")
+
+
+def by_mention(text):
+    """German Paper 2's reports are prose under "Section A" and "Section B", naming the essays as
+    they go ("In Question 10.1 students showed...", "Q11.1 and Q11.2 elicited..."): a question no
+    heading gave a comment gets each paragraph that names it, in order."""
+    out = {}
+    for para in re.split(r"\n\s*\n", text):
+        para = re.sub(r"\s+", " ", para).strip()
+        for q in dict.fromkeys(f"{int(m.group(1)):02d}" for m in MENTION.finditer(para)):
+            out[q] = f"{out[q]}\n\n{para}" if q in out else para
+    return out
+
+
+def work_numbers(path):
+    """{work pattern: the question the paper sets on it}, read from the paper (or AS Paper 2's insert)."""
     from spec_languages import WORKS  # noqa: PLC0415
     # AS Paper 2 sets its essays in the insert.
     papers = [p for p in (path.replace("-ER-", "-QP-"), path.replace("-ER-", "-INS-")) if os.path.exists(p)]
@@ -254,6 +342,13 @@ def by_work(path, text):
         for rx in works:
             if rx.search(m.group(3)) and rx.pattern not in number:
                 number[rx.pattern] = f"{int(m.group(1) + (m.group(2) or '')):02d}"
+    return works, number
+
+
+def by_work(path, text):
+    """A Paper 2 report headed only by each work's title ("Molière: Le Tartuffe", June 2022): each
+    comment goes to the question the paper sets on that work."""
+    works, number = work_numbers(path)
     heads = []
     for m in re.finditer(r"(?m)^[ \t]*([^\n]{3,90}?)[ \t]*$", text):
         hit = next((rx for rx in works if rx.search(m.group(1)) and rx.pattern in number), None)
@@ -273,10 +368,12 @@ _cut_set = cut.cut_set
 
 
 def cut_set(qp_path, ms_path, er_path, set_id, meta):
+    global GERMAN
+    GERMAN = meta["component"].startswith("766")
     parts = _cut_set(qp_path, ms_path, er_path, set_id, meta)
     ins = qp_path.replace("-QP-", "-INS-")
     # AS Paper 2: Section A (the translation) is in the paper, the essays in the insert.
-    if meta["component"] in ("76512", "76912") and os.path.exists(ins):
+    if meta["component"] in ("76512", "76912", "76612") and os.path.exists(ins):
         have = {p["id"] for p in parts}
         parts += [p for p in _cut_set(ins, ms_path, er_path, set_id, meta) if p["id"] not in have]
     return parts

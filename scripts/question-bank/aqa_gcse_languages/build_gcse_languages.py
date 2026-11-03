@@ -1,4 +1,4 @@
-"""Write the AQA GCSE French, Spanish and Bengali banks' data files from the cut parts and their tags.
+"""Write the AQA GCSE French, Spanish, German and Bengali banks' data files from the cut parts and their tags.
 
     python3 scripts/question-bank/aqa_gcse_languages/build_gcse_languages.py [work-dir]   # default scripts/question-bank/.work/aqa-gcse-languages
 
@@ -7,13 +7,15 @@ and public/question-bank/aqa-gcse-<language>/{parts,text,reports}.json. What dif
   - Papers come in two tiers, named as the GCSE science banks' are ("Paper 3 Reading Higher"), for the
     tier links and tiers.py; their ids are the component codes ("8658RH"). Paper 1 is Listening, 3
     Reading, 4 Writing; Speaking (Paper 2) isn't in the bank.
-  - French and Spanish hold two specifications: the 2018 to 2025 papers (8658, 8698) and the 2026
-    specimens (8652, 8692), told apart by each paper's title, its series ("2026 specimen") and the
+  - French, Spanish and German hold two specifications: the 2018 to 2025 papers (8658, 8698, 8668) and the 2026
+    specimens (8652, 8692, 8662), told apart by each paper's title, its series ("2026 specimen") and the
     bank's "Specification" filter (options).
   - A question with no parts that shares the start of the one before (cut_gcse_languages.share_leads) has it
     under its own name, which its id doesn't give (the site strips a part off an id for its start): "sk".
   - A Listening part carries its recording ("au", "aqa/audio/<file>.mp3" on R2), "auw" when it is the
     whole paper's.
+  - A bank with no parts in the work directory is skipped, so German, cut in its own work directory
+    (.work/aqa-gcse-german), builds alone.
   - A choice of writing tasks marks its alternatives "or", and each paper's parts, a choice counted
     once, must add up to its marks less any question left out for copyright (cut_gcse_languages.py).
   - Bengali's own words in the text layer are unreadable (see the cutter), so a part that is only
@@ -29,7 +31,8 @@ from spec_gcse_languages import tree as spec_tree  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "..", ".work", "aqa-gcse-languages")
-BANKS = [("aqa-gcse-french", "French", "8658", "8652"), ("aqa-gcse-spanish", "Spanish", "8698", "8692"), ("aqa-gcse-bengali", "Bengali", "8638", None)]
+BANKS = [("aqa-gcse-french", "French", "8658", "8652"), ("aqa-gcse-spanish", "Spanish", "8698", "8692"), ("aqa-gcse-bengali", "Bengali", "8638", None),
+         ("aqa-gcse-german", "German", "8668", "8662")]
 SKILL = {"L": (1, "Listening"), "R": (3, "Reading"), "W": (4, "Writing")}
 TIER = {"H": "Higher", "F": "Foundation"}
 TOTAL = {"L": {"F": 40, "H": 50}, "R": {"F": 60, "H": 60}, "W": {"F": 50, "H": 60}}
@@ -43,6 +46,10 @@ NOTE = {
                 "a dictation in the Listening paper and shorter writing tasks. Most questions here are from the 2018 to 2025 papers (8698), still "
                 "good practice for reading, listening and writing; the 2026 format is in AQA's specimen papers, marked \"2026 specimen\" "
                 "(pick it with the Specification filter). "),
+    "German": ("AQA changed GCSE German for exams from summer 2026: the new specification (8662) has new themes, set vocabulary lists, "
+               "a dictation in the Listening paper and shorter writing tasks. Most questions here are from the 2018 to 2025 papers (8668), still "
+               "good practice for reading, listening and writing; the 2026 format is in AQA's specimen papers, marked \"2026 specimen\" "
+               "(pick it with the Specification filter). "),
     "Bengali": "",
 }
 COMMON = ("Listening questions play AQA's own recording. The Speaking paper is left out, as its role-plays and photo cards are "
@@ -81,6 +88,8 @@ def main():
     for bank, name, old, new in BANKS:
         specs = [old] + ([new] if new else [])
         mine = [p for p in parts if p["spec"] in specs and p.get("qp") and p["h"]]
+        if not mine:
+            continue
         series_cut = {(p["component"], p["series"]) for p in mine}
         wholes = {}
         for f in manifest:

@@ -1,8 +1,9 @@
-"""Fetch AQA's own A-Level and AS French (7652, 7651) and Spanish (7692, 7691) papers, and their listening audio.
+"""Fetch AQA's own A-Level and AS French (7652, 7651), Spanish (7692, 7691) and German (7662, 7661) papers, and their listening audio.
 
-    python3 scripts/question-bank/aqa_languages/fetch_languages.py [work-dir] [--audio]   # default scripts/question-bank/.work/aqa-languages
+    python3 scripts/question-bank/aqa_languages/fetch_languages.py [work-dir] [--audio] [--lang=german]   # default scripts/question-bank/.work/aqa-languages
 
---audio fetches only the recordings (the papers' file-store checks take minutes).
+--audio fetches only the recordings (the papers' file-store checks take minutes). --lang picks the
+languages (comma-separated; default french,spanish: German has a work dir of its own, .work/aqa-german).
 
 The A-Level fetcher (fetch_aqa.py) run over the four specifications: the same two sources (each
 specification's assessment-resources page, then AQA's file store for older series), the same
@@ -20,18 +21,17 @@ import io, json, os, re, sys, time, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 AUDIO_ONLY = "--audio" in sys.argv
-rest = [a for a in sys.argv[1:] if a != "--audio"]
+LANGS = next((a.split("=", 1)[1].split(",") for a in sys.argv[1:] if a.startswith("--lang=")), ["french", "spanish"])
+rest = [a for a in sys.argv[1:] if not a.startswith("--")]
 sys.argv[1:] = [os.path.abspath(rest[0]) if rest else os.path.join(HERE, "..", ".work", "aqa-languages")]
 sys.path.insert(0, os.path.dirname(HERE))
 import fetch_aqa  # noqa: E402
 
-fetch_aqa.PAGES = [
-    "https://www.aqa.org.uk/subjects/french/a-level/french-7652/assessment-resources",
-    "https://www.aqa.org.uk/subjects/french/as-level/french-7651/assessment-resources",
-    "https://www.aqa.org.uk/subjects/spanish/a-level/spanish-7692/assessment-resources",
-    "https://www.aqa.org.uk/subjects/spanish/as-level/spanish-7691/assessment-resources",
-]
-fetch_aqa.COMPONENTS = {"7651": ["76511", "76512"], "7652": ["76521", "76522"], "7691": ["76911", "76912"], "7692": ["76921", "76922"]}
+# language: (A-Level spec, AS spec)
+SPECS = {"french": ("7652", "7651"), "spanish": ("7692", "7691"), "german": ("7662", "7661")}
+fetch_aqa.PAGES = [f"https://www.aqa.org.uk/subjects/{lang}/{level}/{lang}-{spec}/assessment-resources"
+                   for lang in LANGS for level, spec in zip(("a-level", "as-level"), SPECS[lang])]
+fetch_aqa.COMPONENTS = {spec: [spec + "1", spec + "2"] for lang in LANGS for spec in SPECS[lang]}
 # First sat in June 2017 (AS in June 2016); June 2020 and 2021 were cancelled.
 fetch_aqa.SERIES = ["JUN16", "JUN17", "JUN18", "JUN19", "NOV20", "NOV21", "JUN22", "JUN23", "JUN24", "JUN25"]
 fetch_aqa.KINDS = {**fetch_aqa.KINDS, "TR": "tr"}

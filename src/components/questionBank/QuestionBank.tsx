@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
 import { inType, isChoice, markBands } from "@/lib/markBands";
-import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { baseSubject, fetchBankData, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
 import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
@@ -91,8 +91,8 @@ const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x 
 const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
 const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
-/** Accents folded away, so "benevolat" finds "bénévolat" and "nino" finds "niño" (French and Spanish). */
-const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/** Accents folded away, so "benevolat" finds "bénévolat", "nino" finds "niño" and "strasse" finds "Straße" (French, Spanish and German). */
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
 const words = (q: string) => fold(q.toLowerCase()).match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
 /** A seeded random number generator (mulberry32 over a string hash): the same seed gives the same mix. */
@@ -197,27 +197,27 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   }, [isPhone]); // the phone's filters and the desk's card are different elements
 
   useEffect(() => {
-    fetch(bankDataPath(subject.slug, "parts")).then(r => r.json()).then(setParts).catch(() => setParts(null));
+    fetchBankData<BankPart[]>(subject, "parts").then(setParts).catch(() => setParts(null));
     // The practical parts' ids, for the sciences: no file (or an empty one) and the filter stays hidden.
     if (bankHasPracticals(subject)) {
-      fetch(bankDataPath(subject.slug, "practicals")).then(r => (r.ok ? r.json() : [])).then((ids: string[]) => setPracticals(new Set(ids))).catch(() => setPracticals(new Set()));
+      fetchBankData<string[]>(subject, "practicals").then(ids => setPracticals(new Set(ids ?? []))).catch(() => setPracticals(new Set()));
     }
     // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
-      fetch(bankDataPath(subject.slug, "year13")).then(r => (r.ok ? r.json() : null)).then((ids: string[] | null) => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
+      fetchBankData<string[]>(subject, "year13").then(ids => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
     // A GCSE's Foundation parts that its Higher paper prints too (tiers.py): no file and the switch stays hidden.
     if (bankHasTiers(subject)) {
-      fetch(bankDataPath(subject.slug, "tiers")).then(r => (r.ok ? r.json() : null))
-        .then((m: Record<string, string> | null) => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
+      fetchBankData<Record<string, string>>(subject, "tiers")
+        .then(m => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
     }
   }, [subject]);
 
   const needText = useCallback(() => {
     if (text || loadingText.current) return;
     loadingText.current = true;
-    fetch(bankDataPath(subject.slug, "text")).then(r => r.json()).then((t: Record<string, string>) => setText(Object.fromEntries(Object.entries(t).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
-  }, [subject.slug, text]);
+    fetchBankData<Record<string, string>>(subject, "text").then(t => setText(Object.fromEntries(Object.entries(t ?? {}).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
+  }, [subject, text]);
   useEffect(() => { if (f.q) needText(); }, [f.q, needText]);
 
   function update(patch: Partial<Filters>) {
@@ -695,7 +695,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
             <label htmlFor="qb-q" className="qb-label">Search</label>
             <input id="qb-q" type="search" value={query} enterKeyHint="search"
-              placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : baseSubject(subject) === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Islamic Studies" ? "Hijrah, \"Night of Power\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.subject === "Engineering Manufacture" ? "casting, \"lean manufacturing\"" : subject.subject === "Physical Education" ? "plyometrics, \"cardiac output\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.level === "A-Level" && subject.subject === "French" ? "bénévolat, \"La Haine\"" : subject.level === "A-Level" && subject.subject === "Spanish" ? "inmigración, \"Bernarda Alba\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : subject.subject === "French" ? "vacances, \"free time\"" : subject.subject === "Spanish" ? "vacaciones, \"free time\"" : subject.subject === "Bengali" ? "festival, \"free time\"" : "capacitor, \"half-life\""}
+              placeholder={subject.subject === "Classical Civilisation" ? "Odysseus, \"Vestal Virgins\"" : baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : baseSubject(subject) === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Islamic Studies" ? "Hijrah, \"Night of Power\"" : subject.subject === "Citizenship Studies" ? "jury, \"pressure group\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.subject === "Engineering Manufacture" ? "casting, \"lean manufacturing\"" : subject.subject === "Physical Education" ? "plyometrics, \"cardiac output\"" : subject.subject === "Food Preparation and Nutrition" ? "gelatinisation, \"high risk foods\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.level === "A-Level" && subject.subject === "French" ? "bénévolat, \"La Haine\"" : subject.level === "A-Level" && subject.subject === "Spanish" ? "inmigración, \"Bernarda Alba\"" : subject.level === "A-Level" && subject.subject === "German" ? "Einwanderung, \"Der Vorleser\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : subject.subject === "French" ? "vacances, \"free time\"" : subject.subject === "Spanish" ? "vacaciones, \"free time\"" : subject.subject === "German" ? "Ferien, \"free time\"" : subject.subject === "Bengali" ? "festival, \"free time\"" : "capacitor, \"half-life\""}
               onChange={e => setTyped(e.target.value)} onFocus={needText} />
           </form>
           {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
