@@ -35,7 +35,7 @@ export const subjectColours: Record<string, string> = {
   French: "#8fb0dc",
   Spanish: "#e0a07a",
   "Physical Education": "#e06a5a",
-  "Citizenship Studies": "#a37fb8",
+  "Citizenship Studies": "#a37fb8",  "Food Preparation and Nutrition": "#8e6a9e", // an aubergine
 };
 
 export function Book({ subject, kicker, plate, children, as: Tag = "div", className = "", ...rest }: {
