@@ -60,6 +60,18 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
   "2 (b) (ii)" labels and the schemes' four table layouts), `tag_legacy.py` (tag.md's
   "legacy units" brief), then `build_legacy.py`, which adds the legacy rows to the bank
   `build_bank.py` wrote without rebuilding it, and prints the per-paper table.
+- Physics also goes back to 2010 with the legacy specification, Physics A (2450): PHYA1,
+  PHYA2, PHYA4 (Section A, the objective test, and Section B) and PHYA5 (Section A and the
+  four options), January and June 2010 to June 2016, 1,786 parts as extra papers named
+  "PHYA1 (old spec)" and so on, tagged to 7408's topics. A teacher builds tests from them.
+  AQA publishes none of it any more (its file store answers "not found" and its search
+  starts at June 2016), so the founder chose PMT's copies (2 November 2026), **for the
+  question bank only**, with no examiners' reports; PHYA3 (the practical ISA/EMPA) is left
+  out. Scripts in `scripts/question-bank/aqa_physics_legacy/`: `fetch_pmt.py`,
+  `cut_legacy.py` (the old "1 (a) (i)" labels and three scheme layouts, PHYA5 schemes to
+  2013 printing the core and the option in one file), `check_legacy.py`, `tag_legacy.py`
+  and `build_legacy.py`, which merges the rows into the built bank without touching the
+  7407/7408 rows or `files.json`.
 - Rebuilding from the shared work folder: `build_bank.py` has changed since Chemistry
   and Physics were last built (it trims the search text and links some scheme crops to
   the whole scheme), so this run kept their files as they were and took only Biology's
