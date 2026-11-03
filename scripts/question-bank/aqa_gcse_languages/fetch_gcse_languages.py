@@ -1,17 +1,17 @@
-"""Fetch AQA's own GCSE French, Spanish and Bengali papers, and the Listening papers' recordings.
+"""Fetch AQA's own GCSE French, Spanish, German and Bengali papers, and the Listening papers' recordings.
 
-    python3 scripts/question-bank/aqa_gcse_languages/fetch_gcse_languages.py [work-dir] [--no-audio]   # default scripts/question-bank/.work/aqa-gcse-languages
+    python3 scripts/question-bank/aqa_gcse_languages/fetch_gcse_languages.py [work-dir] [--no-audio] [--lang=german]   # default scripts/question-bank/.work/aqa-gcse-languages
 
-fetch_aqa.py run over five assessment-resources pages, with the same <work-dir>/manifest.json:
-  - French 8658 and Spanish 8698, examined 2018 to 2025, and their successors French 8652 and
-    Spanish 8692, first examined in June 2026, of which AQA has published only the specimens;
+fetch_aqa.py run over seven assessment-resources pages (--lang= keeps one language's), with the same <work-dir>/manifest.json:
+  - French 8658, Spanish 8698 and German 8668, examined 2018 to 2025, and their successors French 8652,
+    Spanish 8692 and German 8662, first examined in June 2026, of which AQA has published only the specimens;
   - Bengali 8638, which has no new specification.
 Only Paper 1 Listening, Paper 3 Reading and Paper 4 Writing are kept, at both tiers. AQA has
 named the papers three ways: "AQA-86583H-QP-NOV21" (paper number 3, November 2020 and 2021),
 "AQA-8658RH-QP-JUN24" (from June 2022) and "AQA-8652-RH-SQP" or "86383H-QP-Jun23" (one file
 each). All become one component code, "8658RH": the specification, L/R/W, then F/H. French's
 June 2023 Higher Reading paper is filed "8658RHR" and read as 8658RH. Specimens (series SPEC)
-are kept for 8652 and 8692 only: the old specifications' are superseded, and their Reading
+are kept for 8652, 8692 and 8662 only: the old specifications' are superseded, and their Reading
 specimens are AQA's copyright-removed copies. June 2018 and June 2019 have been withdrawn
 from AQA's site (the file store redirects to its home page); June 2020 and 2021 were cancelled.
 
@@ -25,15 +25,17 @@ import io, json, os, re, sys, time, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NO_AUDIO = "--no-audio" in sys.argv
+LANG = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--lang=")), None)
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 sys.argv[1:] = [os.path.abspath(args[0]) if args else os.path.join(HERE, "..", ".work", "aqa-gcse-languages")]
 sys.path.insert(0, os.path.dirname(HERE))
 import fetch_aqa  # noqa: E402
 
 fetch_aqa.PAGES = [f"https://www.aqa.org.uk/subjects/{s}/assessment-resources" for s in (
-    "french/gcse/french-8658", "french/gcse/french-8652", "spanish/gcse/spanish-8698", "spanish/gcse/spanish-8692", "bengali/gcse/bengali-8638")]
+    "french/gcse/french-8658", "french/gcse/french-8652", "spanish/gcse/spanish-8698", "spanish/gcse/spanish-8692", "bengali/gcse/bengali-8638",
+    "german/gcse/german-8668", "german/gcse/german-8662") if not LANG or s.startswith(LANG + "/")]
 fetch_aqa.COMPONENTS = {}  # every file is on the resource pages: no file store guesses
-NEW = ("8652", "8692")
+NEW = ("8652", "8692", "8662")
 SKILL = {"1": "L", "3": "R", "4": "W"}
 
 
