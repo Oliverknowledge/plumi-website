@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { droppedLine } from "@/lib/studyapp/questions/model";
 import { effectiveMine } from "@/lib/studyapp/questions/mine";
+import { takeHeldScroll } from "@/lib/studyapp/questions/feedStore";
 import { onSetsDropped, qa, useQuestions } from "@/lib/studyapp/questions/store";
 import type { CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { toast } from "../toast";
@@ -30,7 +31,7 @@ export function QuestionsPage({ catalogue }: { catalogue: CatalogueSubject[] }) 
   const mine = useMemo(() => effectiveMine(q, known), [q, known]);
   const screen = !ready ? "wait" : open ? `sheet:${open.id}` : view.kind === "pick" ? "pick" : view.kind === "setup" || mine.length === 0 ? "setup" : "home";
   // Each screen is its own page: it opens at the top (the sheet puts itself back where the student was), and the tab says where they are.
-  useEffect(() => { if (screen !== "wait") window.scrollTo(0, 0); }, [screen]);
+  useEffect(() => { if (screen !== "wait" && !takeHeldScroll()) window.scrollTo(0, 0); }, [screen]);
   useDocumentTitle(screen === "pick" ? "Pick questions \u00b7 Plumi" : screen === "setup" ? "What are you studying? \u00b7 Plumi" : screen === "home" ? "Questions \u00b7 Plumi" : null);
   if (!ready) {
     return (

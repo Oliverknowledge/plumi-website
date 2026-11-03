@@ -3,14 +3,19 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { choicesAt, draftKey, draftOf, draftSlugs, levelsOf, tickSubject, type SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { baseSubject, sortTiers, subjectTint, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
-import { BackIcon, CheckIcon } from "./icons";
+import { barLine, countAt, firstMissing, pileOf } from "@/lib/studyapp/questions/setupBooks";
+import { baseSubject, sortTiers, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { DESK_ART, SETUP_ART } from "./BookArt";
+import { BackIcon } from "./icons";
+import { SetupBar } from "./SetupBar";
+import { SetupBook } from "./SetupBook";
 import "../../../app/study/(app)/questions-fixa.css";
 
 /**
- * "What are you studying?": the level, the subjects they do, and for each the exam board (only the boards the bank has for it).
- * Kept on the device (`qa.mine`). The first thing a new student sees; reached again with Change and Add a subject, with their
- * choice already ticked, and nothing is kept until they say Show my papers.
+ * "What are you studying?": a stack of exercise books, one for each subject at the level they are looking at. Picking a book up ticks it; its exam
+ * board (only the boards the bank has for it) is written on the cover, and the books they have picked pile up in the bar with the button.
+ * Kept on the device (`qa.mine`). The first thing a new student sees; reached again with Change and Add a subject, with their choice
+ * already ticked, and nothing is kept until they say Show my papers. (The looks are BookArt.tsx and questions-setup.css.)
  */
 export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
   catalogue: CatalogueSubject[]; mine: string[]; tiers: Record<string, string[]>; first: boolean;
@@ -30,23 +35,32 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
     return c?.level ?? main[0] ?? other[0] ?? "GCSE";
   });
   const [more, setMore] = useState(() => !main.includes(level));
+  /** The book whose choices are out (its draft key): one at a time, so the rest are quiet. */
+  const [active, setActive] = useState<string | null>(null);
+  /** A book on another level to take focus once that level is drawn (the bar sends them to the book that needs a board). */
+  const goTo = useRef<string | null>(null);
   const choices = useMemo(() => choicesAt(catalogue, level), [catalogue, level]);
   const h1 = useRef<HTMLHeadingElement>(null);
   useEffect(() => { h1.current?.focus({ preventScroll: true }); }, []);
 
-  const slugOf = (c: SubjectChoice) => draft.get(draftKey(level, c.base));
-  const toggle = (c: SubjectChoice) => setDraft((d) => {
-    const k = draftKey(level, c.base);
-    if (d.has(k)) { const n = new Map(d); n.delete(k); return n; }
-    return tickSubject(d, level, c, catalogue);
-  });
-  const choose = (c: SubjectChoice, slug: string) => setDraft((d) => new Map(d).set(draftKey(level, c.base), slug));
-  const levelCount = (l: string) => [...draft.keys()].filter((k) => k.startsWith(`${l}|`)).length;
-  const ticked = draft.size;
-  const missing = [...draft].filter(([, s]) => !s).map(([k]) => k.split("|")[1]);
-  const ready = ticked > 0 && missing.length === 0;
-  const slugs = draftSlugs(draft);
   const tiersOfSlug = (slug: string | undefined) => (slug ? catalogue.find((x) => x.slug === slug)?.tiers ?? [] : []);
+  const toggle = (c: SubjectChoice) => {
+    const k = draftKey(level, c.base);
+    if (draft.has(k)) {
+      const n = new Map(draft); n.delete(k); setDraft(n);
+      setActive((a) => (a === k ? null : a));
+      return;
+    }
+    const n = tickSubject(draft, level, c, catalogue);
+    setDraft(n);
+    // The choices come out where a board is still open; a tier (optional) is one tap on the cover's label, so it never covers the books below.
+    setActive(n.get(k) ? null : k);
+  };
+  const choose = (c: SubjectChoice, slug: string) => {
+    const k = draftKey(level, c.base);
+    setDraft((d) => new Map(d).set(k, slug));
+    setActive(null);
+  };
   const pickTier = (c: SubjectChoice, tier: string) => setTierDraft((d) => {
     const k = draftKey(level, c.base);
     const now = d.get(k) ?? [];
@@ -54,6 +68,11 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
     next.set(k, now.includes(tier) ? now.filter((x) => x !== tier) : [...now, tier]);
     return next;
   });
+  const missing = firstMissing(draft, level);
+  const ready = draft.size > 0 && !missing;
+  const pile = useMemo(() => pileOf(draft, catalogue), [draft, catalogue]);
+  const line = barLine(draft, level);
+
   /** The choice for every ticked subject that has tiers, by slug. Both chosen is the same as none. */
   const done = () => {
     const out: Record<string, string[]> = {};
@@ -63,73 +82,91 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
       const sel = (tierDraft.get(k) ?? []).filter((t) => all.includes(t));
       out[slug] = sel.length === all.length ? [] : sortTiers(sel);
     }
-    onDone(slugs, out);
+    onDone(draftSlugs(draft), out);
   };
-  const lvlBtn = (l: string) => (
-    <button key={l} type="button" className={`qs-level${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => setLevel(l)}>
-      {l}{levelCount(l) > 0 && <span className="qs-badge" aria-label={`${levelCount(l)} chosen`}>{levelCount(l)}</span>}
+  /** Bring a book to the student: focus on it, and scroll it to the middle. False if it is not on screen. */
+  const reveal = (k: string) => {
+    const slot = [...document.querySelectorAll<HTMLElement>(".qk-slot")].find((el) => el.dataset.key === k);
+    if (!slot) return false;
+    slot.querySelector<HTMLElement>(".qk-cover")?.focus({ preventScroll: true });
+    slot.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    return true;
+  };
+  /** The button before every board is chosen: it takes them to the first book that has none, with its choices out. */
+  const fix = () => {
+    if (!missing) return;
+    const k = draftKey(missing.level, missing.base);
+    setActive(k);
+    if (missing.level === level) { reveal(k); return; }
+    goTo.current = k;
+    setLevel(missing.level);
+    if (!main.includes(missing.level)) setMore(true);
+  };
+  useEffect(() => {
+    if (goTo.current && reveal(goTo.current)) goTo.current = null;
+  }, [level]);
+
+  // A tap anywhere but on the open book folds its choices away.
+  useEffect(() => {
+    if (!active) return;
+    const away = (e: PointerEvent) => {
+      const slot = (e.target as Element | null)?.closest?.(".qk-slot") as HTMLElement | null;
+      if (slot?.dataset.key !== active) setActive(null);
+    };
+    document.addEventListener("pointerdown", away, true);
+    return () => document.removeEventListener("pointerdown", away, true);
+  }, [active]);
+
+  const changeLevel = (l: string) => { setLevel(l); setActive(null); };
+  const tab = (l: string) => (
+    <button key={l} type="button" className={`qk-tab${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => changeLevel(l)}>
+      <span>{l}</span>{countAt(draft, l) > 0 && <span className="qk-tab-n" aria-label={`${countAt(draft, l)} chosen`}>{countAt(draft, l)}</span>}
     </button>
   );
+  const otherN = other.reduce((n, l) => n + countAt(draft, l), 0);
+  const moreOpen = (more || !main.includes(level)) && other.length > 0;
   return (
-    <main className="qs-page qs-picker qh-setup" id="qs-main" data-testid="setup" aria-labelledby="qh-setup-h">
+    <main className="qs-page qk-setup" id="qs-main" data-testid="setup" aria-labelledby="qh-setup-h">
+      <div className="qk-desk" aria-hidden="true">
+        {DESK_ART.map(({ id, Art }) => <span key={id} className={`qk-d qk-d-${id}`}><Art /></span>)}
+      </div>
       <div className="wrap">
-        <div className="qs-col">
-          <header className="qs-head">
-            <div className="qs-head-text">
+        <div className="qk-col">
+          <header className="qk-head">
+            <div className="qk-head-text">
               {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />My papers</button>}
               <h1 id="qh-setup-h" ref={h1} tabIndex={-1}>What are you studying?</h1>
-              <p className="qs-sub">Tick your subjects, then your exam board.</p>
             </div>
-            <Image className="qh-setup-mascot" src="/study/mascot/plumi-welcoming.svg" alt="" width={84} height={84} unoptimized priority />
+            <div className="qk-mascot" aria-hidden="true">
+              <p className="qk-bubble">{SETUP_ART.bubble}</p>
+              <span className="qk-peek"><Image src={SETUP_ART.mascot} alt="" width={84} height={84} unoptimized priority /></span>
+            </div>
           </header>
 
-          <div className="qs-levels" role="group" aria-label="Level">
-            {main.map(lvlBtn)}
-            {other.length > 0 && <button type="button" className={`qs-level qs-more${more ? " open" : ""}`} aria-expanded={more || !main.includes(level)} onClick={() => setMore((m) => !m)}>More</button>}
+          <div className="qk-tabs" role="group" aria-label="Level">
+            {main.map(tab)}
+            {other.length > 0 && (
+              <button type="button" className={`qk-tab qk-tab-more${moreOpen ? " open" : ""}`} aria-expanded={moreOpen} onClick={() => setMore((m) => !m)}><span>More</span>{!moreOpen && otherN > 0 && <span className="qk-tab-n" aria-label={`${otherN} chosen`}>{otherN}</span>}</button>
+            )}
           </div>
-          {(more || !main.includes(level)) && other.length > 0 && <div className="qs-levels qh-more-levels" role="group" aria-label="Other levels">{other.map(lvlBtn)}</div>}
+          {moreOpen && <div className="qk-tabs qk-tabs-more" role="group" aria-label="Other levels">{other.map(tab)}</div>}
 
-          <ul className="qh-subjects" aria-label={`${level} subjects`}>
+          <ul className="qk-books" aria-label={`${level} subjects`}>
             {choices.map((c) => {
-              const slug = slugOf(c);
-              const on = slug !== undefined;
-              const open = !slug;
+              const k = draftKey(level, c.base);
+              const slug = draft.get(k);
               return (
-                <li key={c.base} className={`qh-subj${on ? " on" : ""}${on && open ? " need" : ""}`} style={{ "--tint": subjectTint(c.base) } as React.CSSProperties}>
-                  <button type="button" className="qh-subj-btn" aria-pressed={on} onClick={() => toggle(c)} data-testid={`tick-${c.base}`}>
-                    <span className="qh-tick" aria-hidden="true">{on && <CheckIcon />}</span>
-                    <b>{c.base}</b>
-                  </button>
-                  {on && (c.boards.length === 1 ? (
-                    <div className="qh-boards"><span className="qs-chip on" data-testid="board-fixed">{c.boards[0].label}</span></div>
-                  ) : (
-                    <div className="qh-boards" role="group" aria-label={`Exam board for ${c.base}`}>
-                      {c.boards.map((b) => <button key={b.slug} type="button" className={`qs-chip${slug === b.slug ? " on" : ""}`} aria-pressed={slug === b.slug} onClick={() => choose(c, b.slug)} data-testid={`board-${b.slug}`}>{b.label}</button>)}
-                    </div>
-                  ))}
-                  {on && tiersOfSlug(slug).length >= 2 && (
-                    <div className="qh-tiers" role="group" aria-label={`Which tier of ${c.base}. Choose neither to see both.`} data-testid={`tiers-${c.base}`}>
-                      {tiersOfSlug(slug).map((t) => {
-                        const sel = (tierDraft.get(draftKey(level, c.base)) ?? []).includes(t);
-                        return <button key={t} type="button" className={`qs-chip qh-tier${sel ? " on" : ""}`} aria-pressed={sel} onClick={() => pickTier(c, t)} data-testid={`tier-${c.base}-${t}`}>{t}</button>;
-                      })}
-                    </div>
-                  )}
-                </li>
+                <SetupBook
+                  key={c.base} choice={c} dataKey={k} slug={slug} tierOptions={tiersOfSlug(slug)} tierChosen={tierDraft.get(k) ?? []} open={active === k}
+                  onToggle={() => toggle(c)} onBoard={(s) => choose(c, s)} onTier={(t) => pickTier(c, t)} onOpen={() => setActive(k)} onClose={() => setActive(null)}
+                />
               );
             })}
           </ul>
         </div>
       </div>
 
-      {ticked > 0 && (
-        <div className="qs-selbar qh-donebar" role="region" aria-label="Your subjects">
-          <p className="qs-sel-count" role="status" aria-live="polite">
-            {missing.length > 0 ? <>Pick a board for <b>{missing[0]}</b></> : <><b data-testid="setup-count">{ticked}</b> {ticked === 1 ? "subject" : "subjects"}</>}
-          </p>
-          <button type="button" className="btn gold qs-start" disabled={!ready} onClick={done} data-testid="setup-done">Show my papers</button>
-        </div>
-      )}
+      {draft.size > 0 && <SetupBar pile={pile} line={line} ready={ready} onDone={done} onFix={fix} />}
     </main>
   );
 }

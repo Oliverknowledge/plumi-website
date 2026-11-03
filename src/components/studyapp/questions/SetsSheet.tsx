@@ -48,14 +48,14 @@ export function SetsSheet({ q, onClose }: { q: QuestionsData; onClose(): void })
             return (
               <li key={s.id} className={`qs-set${s.finishedAt ? " is-finished" : ""}`} style={{ "--tint": subjectTint(subjectOfTitle(s.title)) } as React.CSSProperties}>
                 {asking === s.id ? (
-                  <span className="qs-ask" role="group" aria-label={`Delete ${s.name}?`}><span>Delete it and its answers?</span>
+                  <span className="qs-ask" role="group" aria-label={`Delete ${s.name}?`}><span>{s.feed ? "Delete all your answers in the feed?" : "Delete it and its answers?"}</span>
                     <button ref={keep} type="button" className="qs-mini" onClick={() => setAsking(null)}>Keep</button>
                     <button type="button" className="qs-mini danger" onClick={() => { qa.remove(s.id); setAsking(null); }}>Delete</button>
                   </span>
                 ) : (
                   <>
-                    <button type="button" className="qs-set-open" onClick={() => { qa.open(s.id); close(); }} aria-label={`Open ${s.name}${p.of > 0 ? `, ${p.done} of ${p.of} marked` : ""}${s.finishedAt ? ", finished" : ""}`}>
-                      <span className="qs-set-name">{s.name}</span>
+                    <button type="button" className="qs-set-open" disabled={!!s.feed} onClick={() => { qa.open(s.id); close(); }} aria-label={s.feed ? `${s.name}, ${p.of > 0 ? `${p.done} of ${p.of} marked` : "answers kept"}` : `Open ${s.name}${p.of > 0 ? `, ${p.done} of ${p.of} marked` : ""}${s.finishedAt ? ", finished" : ""}`}>
+                      <span className="qs-set-name">{s.feed ? `${s.title}, your feed` : s.name}</span>
                       <span className="qs-set-meta">{when(s.updatedAt || s.createdAt)}{ink ? ` · ${ink}` : ""}{s.finishedAt ? " · finished" : ""}</span>
                       {p.of > 0 && (
                         <span className="qs-set-prog" aria-hidden="true"><span className="qs-set-bar"><i style={{ width: `${Math.round((p.done / p.of) * 100)}%` }} /></span><span className="qs-set-n">{p.done} of {p.of}</span></span>

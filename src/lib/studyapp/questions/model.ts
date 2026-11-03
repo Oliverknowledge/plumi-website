@@ -54,6 +54,11 @@ export interface QSet {
   paper?: string;
   /** A paper the student picks questions from (a choose-one paper): the questions they leave alone are not "unmarked", they were never chosen. */
   choose?: 1;
+  /**
+   * The subject's question feed (`feedId(subject)`): one standing set per subject that holds every question the student has touched in the feed, so an answer
+   * belongs to its question and not to a set made for it. It has no finish, is never "the set on the desk", and is not one of the 40 sets the cap counts.
+   */
+  feed?: 1;
 }
 
 export type Mode = "ink" | "type";
@@ -122,6 +127,8 @@ export const MAX_SETS = 40;
 export const MAX_SET_PARTS = 60;
 /** A whole past paper can have more parts than a hand-picked set (the longest in the bank has 73). */
 export const MAX_PAPER_PARTS = 120;
+/** A subject's feed set holds every question the student has touched (written on, opened the scheme of, marked), not every question in the bank. */
+export const MAX_FEED_PARTS = 1200;
 export const MAX_MINE = 40;
 export const MAX_RECENT = 500;
 export const TEXT_PART_CAP = 12_000;
@@ -132,6 +139,11 @@ export const ZONE_PER_MARK = 90;
 export const ZONE_MAX_H = 2400;
 
 export const keyOf = (setId: string, partId: string) => `${setId}/${partId}`;
+
+/** The id of a subject's feed set: the same every time, so two tabs cannot make two. */
+export const feedId = (slug: string) => `feed-${slug}`;
+/** The sets a student made (and sees): the standing feed sets are not among them. */
+export const visibleSets = (q: Pick<QuestionsData, "sets">): QSet[] => q.sets.filter((s) => !s.feed);
 
 let counter = 0;
 export function newId(now: number): string {
@@ -435,9 +447,10 @@ export function createSet(q: QuestionsData, input: SetInput, now: number): { q: 
   if (input.choose) set.choose = 1;
   let sets = [set, ...q.sets];
   const dropped: string[] = [];
-  while (sets.length > MAX_SETS) {
+  // (a subject's feed set is not one of the sets the cap counts, and is never the one that makes room)
+  while (sets.filter((s) => !s.feed).length > MAX_SETS) {
     // oldest finished set first; else the oldest of all (never the one just made)
-    const rest = sets.slice(1);
+    const rest = sets.slice(1).filter((s) => !s.feed);
     const victim = [...rest].reverse().find((s) => s.finishedAt) ?? rest[rest.length - 1];
     dropped.push(victim.id);
     sets = sets.filter((s) => s.id !== victim.id);
@@ -460,10 +473,61 @@ export function deleteSet(q: QuestionsData, id: string): QuestionsData {
   return next.open === id ? { ...next, open: null } : next;
 }
 
-export const openSet = (q: QuestionsData, id: string | null): QuestionsData => ({ ...q, open: id === null || q.sets.some((s) => s.id === id) ? id : q.open });
+export const openSet = (q: QuestionsData, id: string | null): QuestionsData => ({ ...q, open: id === null || q.sets.some((s) => s.id === id && !s.feed) ? id : q.open });
 
 export const setAt = (q: QuestionsData, id: string, at: number): QuestionsData =>
   q.sets.some((s) => s.id === id && s.at !== at) ? { ...q, sets: q.sets.map((s) => (s.id === id ? { ...s, at } : s)) } : q;
+
+/** What a subject's feed set is made of (the same fields a set made from a shelf takes, without the parts). */
+export type FeedInfo = Pick<SetInput, "subject" | "title" | "cv" | "rq">;
+
+/** The most parts a set may hold: a feed set holds what the student touched, a whole paper has up to 120, a hand-picked set 60. */
+export const partCap = (s: Pick<QSet, "feed" | "paper" | "redoOf">) => (s.feed ? MAX_FEED_PARTS : s.paper || s.redoOf ? MAX_PAPER_PARTS : MAX_SET_PARTS);
+
+/**
+ * Add parts to a set that is already there (a part the set has is skipped; past the set's cap, the rest are left out and `added` says how many went in).
+ * `names` and `topics` are the words the mark scheme's label and the summary need for the new parts. Existing answers are untouched.
+ */
+export function addParts(q: QuestionsData, setId: string, parts: readonly QPart[], extra: { names?: Record<string, string>; topics?: Record<string, string> }, now: number): { q: QuestionsData; added: number } {
+  const set = q.sets.find((s) => s.id === setId);
+  if (!set) return { q, added: 0 };
+  const have = new Set(set.parts.map((p) => p.id));
+  const fresh: QPart[] = [];
+  for (const p of parts) if (!have.has(p.id) && set.parts.length + fresh.length < partCap(set)) { have.add(p.id); fresh.push(p); }
+  if (!fresh.length) return { q, added: 0 };
+  const next: QSet = { ...set, parts: [...set.parts, ...fresh], names: { ...set.names, ...extra.names }, topics: { ...set.topics, ...extra.topics }, updatedAt: now };
+  return { q: { ...q, sets: q.sets.map((s) => (s.id === setId ? next : s)) }, added: fresh.length };
+}
+
+/**
+ * Put a question into its subject's feed set (made on the first one), so an answer written on it has a set to hang on. Idempotent: a question that is
+ * already there changes nothing. The feed set never goes on the desk (`open` is untouched). `ok` is false for a question past the cap (`MAX_FEED_PARTS`).
+ */
+export function feedTouch(q: QuestionsData, info: FeedInfo, part: QPart, names: Record<string, string>, topics: Record<string, string>, now: number): { q: QuestionsData; ok: boolean } {
+  const id = feedId(info.subject);
+  let base = q;
+  if (!q.sets.some((s) => s.id === id)) {
+    const set: QSet = { id, name: clampStr(`Feed: ${info.title}`, 80), subject: info.subject, title: info.title, cv: info.cv, rq: info.rq, names: {}, createdAt: now, updatedAt: now, parts: [], topics: {}, at: 0, feed: 1 };
+    base = { ...q, sets: [...q.sets, set] };
+  }
+  const r = addParts(base, id, [part], { names, topics }, now);
+  const has = r.q.sets.find((s) => s.id === id)?.parts.some((p) => p.id === part.id) ?? false;
+  return { q: has ? r.q : q, ok: has };
+}
+
+/** Questions the feed holds for a subject, and how many of them are written on and marked (what the quiet "x marked" line says). */
+export function feedCounts(q: Pick<QuestionsData, "sets" | "answers">, slug: string): { touched: number; written: number; marked: number; got: number; total: number } {
+  const set = q.sets.find((s) => s.id === feedId(slug));
+  const out = { touched: 0, written: 0, marked: 0, got: 0, total: 0 };
+  if (!set) return out;
+  for (const p of set.parts) {
+    const a = q.answers[keyOf(set.id, p.id)];
+    if (isMarked(a)) { out.marked++; if (p.m) { out.got += Math.min(a!.got ?? 0, p.m); out.total += p.m; } }
+    else if (isAnswered(a)) out.written++;
+    if (a) out.touched++;
+  }
+  return out;
+}
 
 export const renameSet = (q: QuestionsData, id: string, name: string): QuestionsData => {
   const n = name.trim().slice(0, 80);
@@ -610,7 +674,7 @@ function cleanSet(raw: unknown): QSet | null {
   for (const p of Array.isArray(r.parts) ? r.parts : []) {
     const c = cleanPart(p);
     if (c && !seen.has(c.id)) { seen.add(c.id); parts.push(c); }
-    if (parts.length >= (typeof r.paper === "string" || typeof r.redoOf === "string" ? MAX_PAPER_PARTS : MAX_SET_PARTS)) break;
+    if (parts.length >= (r.feed ? MAX_FEED_PARTS : typeof r.paper === "string" || typeof r.redoOf === "string" ? MAX_PAPER_PARTS : MAX_SET_PARTS)) break;
   }
   if (!parts.length) return null;
   const set: QSet = {
@@ -625,6 +689,7 @@ function cleanSet(raw: unknown): QSet | null {
   if (typeof r.redoOf === "string") set.redoOf = r.redoOf.slice(0, 60);
   if (typeof r.paper === "string" && r.paper) set.paper = r.paper.slice(0, 80);
   if (r.choose) set.choose = 1;
+  if (r.feed && set.id === feedId(set.subject)) set.feed = 1;
   return set;
 }
 
@@ -637,7 +702,7 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
   for (const s of Array.isArray(r.sets) ? r.sets : []) {
     const c = cleanSet(s);
     if (c && !seen.has(c.id)) { seen.add(c.id); sets.push(c); }
-    if (sets.length >= MAX_SETS) break;
+    if (sets.filter((x) => !x.feed).length >= MAX_SETS) break;
   }
   const answers: Record<string, QAnswer> = {};
   let chars = 0;
@@ -686,7 +751,7 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
   }
   return {
     sets, answers, recent, prefs, ...(mine ? { mine } : {}), ...(Object.keys(tiers).length ? { tiers } : {}),
-    open: typeof r.open === "string" && sets.some((s) => s.id === r.open) ? r.open : null,
+    open: typeof r.open === "string" && sets.some((s) => s.id === r.open && !s.feed) ? r.open : null,
     pick: { subject: typeof pk.subject === "string" ? pk.subject.slice(0, 80) : null, topics: Array.isArray(pk.topics) ? pk.topics.filter((t): t is string => typeof t === "string").slice(0, 80).map((t) => t.slice(0, 40)) : [] },
   };
 }

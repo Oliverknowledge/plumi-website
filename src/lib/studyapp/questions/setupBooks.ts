@@ -1,0 +1,65 @@
+import { baseSubject, boardLabel, subjectTint, type CatalogueSubject } from "./subject";
+
+/**
+ * The pure parts of the setup's exercise books: what a screen reader is told about a book, what sits in the pile on the bar,
+ * and what the bar says. (The drawing is in components/studyapp/questions/BookArt.tsx; nothing here is about looks.)
+ */
+
+/** "Combined Science" is `combined-science`: the key of a book's art (BOOK_ART) and of its fallback tilt. */
+export const artSlug = (base: string) => base.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/**
+ * What a screen reader hears on a book: "Maths, not chosen", "Maths, AQA, chosen", "Maths, AQA, Higher, chosen".
+ * A chosen book with no board yet says so ("Maths, chosen, pick a board"), so the missing step is never silent.
+ */
+export function bookLabel(base: string, chosen: boolean, board: string | null, tiers: readonly string[] = []): string {
+  if (!chosen) return `${base}, not chosen`;
+  if (!board) return `${base}, chosen, pick a board`;
+  return [base, board, ...tiers, "chosen"].join(", ");
+}
+
+/** A small crooked angle for a book with no entry of its own: the same every time for the same subject, never flat, never more than 2.6 degrees. */
+export function fallbackTilt(slug: string): number {
+  let h = 7;
+  for (const ch of slug) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
+  const mag = 0.8 + (h % 19) / 10; // 0.8 to 2.6
+  return (h >> 5) % 2 ? mag : -mag;
+}
+
+/** One book in the pile on the bar. */
+export interface PileBook { key: string; level: string; base: string; board: string | null; tint: string }
+
+/** The ticked books, in the order the student ticked them (a Map keeps insertion order), with the board each has so far. */
+export function pileOf(draft: ReadonlyMap<string, string>, catalogue: readonly CatalogueSubject[]): PileBook[] {
+  const out: PileBook[] = [];
+  for (const [key, slug] of draft) {
+    const [level, base] = [key.slice(0, key.indexOf("|")), key.slice(key.indexOf("|") + 1)];
+    const c = slug ? catalogue.find((x) => x.slug === slug) : undefined;
+    out.push({ key, level, base, board: c ? boardLabel(c) : null, tint: subjectTint(base) });
+  }
+  return out;
+}
+
+/** The first ticked book still without a board (the one the bar asks about), read from the level they are looking at first so the answer is in front of them. */
+export function firstMissing(draft: ReadonlyMap<string, string>, level: string): { level: string; base: string } | null {
+  const open = [...draft].filter(([, s]) => !s).map(([k]) => ({ level: k.slice(0, k.indexOf("|")), base: k.slice(k.indexOf("|") + 1) }));
+  return open.find((m) => m.level === level) ?? open[0] ?? null;
+}
+
+/**
+ * The line on the bar: what is missing ("Pick a board for Maths", with the level only when it is not the one on screen), or the books they have.
+ * `kind` says which, so the bar can be a button that takes them to the missing book.
+ */
+export function barLine(draft: ReadonlyMap<string, string>, level: string): { kind: "missing" | "ready" | "none"; text: string } {
+  if (draft.size === 0) return { kind: "none", text: "" };
+  const m = firstMissing(draft, level);
+  if (m) return { kind: "missing", text: `Pick a board for ${m.level === level ? "" : `${m.level} `}${m.base}` };
+  const names = [...draft.keys()].map((k) => baseSubject(k.slice(k.indexOf("|") + 1)));
+  return { kind: "ready", text: names.length <= 3 ? names.join(", ") : `${names.slice(0, 2).join(", ")} and ${names.length - 2} more` };
+}
+
+/** How many books are ticked at one level (the little stamp on that level's tab). */
+export const countAt = (draft: ReadonlyMap<string, string>, level: string) => [...draft.keys()].filter((k) => k.startsWith(`${level}|`)).length;
+
+/** Does a book at this level have anything to choose once ticked: more than one board, or (its board known) a tier? */
+export const hasChoices = (boards: number, tiers: number) => boards > 1 || tiers >= 2;

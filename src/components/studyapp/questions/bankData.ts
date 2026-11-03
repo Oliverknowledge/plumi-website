@@ -32,7 +32,22 @@ function timeoutSignal(ms: number): { signal: AbortSignal; done(): void } {
   const t = setTimeout(() => c.abort(), ms);
   return { signal: c.signal, done: () => clearTimeout(t) };
 }
-const json = (url: string): Promise<unknown> =>
+/**
+ * The page's own first moments start the fetch of the subject the student was last in (a few lines in questions/page.tsx, before any of this has loaded),
+ * and leave the promises in `window.__pw` for the first asker: the questions are then on their way while the app is still starting up, and are not asked for twice.
+ * A promise that fails is as if it had not been made (the file is asked for in the usual way, with its timeout and its retry).
+ */
+function early(url: string): Promise<unknown> | undefined {
+  const w = typeof window === "undefined" ? undefined : (window as { __pw?: Record<string, Promise<unknown> | undefined> }).__pw;
+  const p = w?.[url];
+  if (w && p) w[url] = undefined;
+  return p;
+}
+const json = (url: string): Promise<unknown> => {
+  const p = early(url);
+  return p ? p.catch(() => fetched(url)) : fetched(url);
+};
+const fetched = (url: string): Promise<unknown> =>
   slot().then(() => {
     const t = timeoutSignal(FETCH_TIMEOUT_MS);
     return fetch(url, { signal: t.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }).finally(() => { t.done(); release(); });

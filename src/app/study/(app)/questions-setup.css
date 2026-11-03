@@ -1,0 +1,277 @@
+/* Setup, "What are you studying?": a desk of exercise books under a warm lamp (Setup.tsx, SetupBook.tsx, SetupBar.tsx).
+   Loads after questions.css (its tokens: --ink, --navy, --f-hand, the two-tone focus ring, the blanket reduced-motion rule for .qs-page).
+   Two parts. The EXERCISE BOOK ART block is every decision about how a book looks (cover prints, tapes, bindings, the desk, the stamp): the
+   co-founder's final art replaces that block and BookArt.tsx, and nothing below it knows what any of it looks like. The rest is layout, the
+   tabs, the bar, focus, forced colours and reduced motion. Nothing here moves layout: a book is a fixed size, a tick only lifts and straightens it
+   (transform), and its choices hang from it in a flap on top of what is below. Motion is 150 to 220ms. 44px is the smallest thing you press. */
+
+/* ════════════════════════════════════════════════════════════════════════
+   EXERCISE BOOK ART: swap this block (and BookArt.tsx) for the final art
+   ════════════════════════════════════════════════════════════════════════ */
+.pa .qk-setup {
+  --qk-pop: #f6cf6b;           /* the accent on doodles and stickers */
+  --qk-paper: #fbf2de;         /* the ruled page */
+  --qk-rule: rgba(172, 134, 100, .26);
+  --qk-margin: rgba(214, 104, 98, .45);
+  --qk-brown: #6b4a3a;         /* shadows, the page edge */
+  --qk-kraft: #ebd3a9;         /* the luggage-tag flap */
+  --qk-stamp: #2d7a3c;         /* the tick stamp's ink */
+  background:
+    radial-gradient(ellipse 54% 44% at 88% -10%, rgba(255, 203, 108, .62), rgba(255, 203, 108, 0) 72%),
+    radial-gradient(ellipse 80% 38% at 8% 112%, rgba(122, 74, 42, .2), rgba(122, 74, 42, 0) 72%),
+    repeating-linear-gradient(transparent 0 35px, var(--qk-rule) 35px 37px),
+    var(--qk-paper);
+  box-shadow: inset 0 0 130px rgba(122, 74, 42, .12);
+}
+/* the red margin of the page */
+.pa .qk-setup::before { content: ""; position: absolute; z-index: 0; left: 30px; top: 0; bottom: 0; width: 2px; background: var(--qk-margin); pointer-events: none; }
+
+/* the doodles in the margin (positions per id; DESK_ART in BookArt.tsx) */
+.pa .qk-desk { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; color: var(--ink); }
+.pa .qk-d { position: absolute; display: block; opacity: .78; }
+.pa .qk-d svg { display: block; width: 100%; height: 100%; }
+.pa .qk-d-lamp { top: 0; right: 230px; width: 56px; height: 56px; opacity: .9; }
+.pa .qk-d-mug { top: 262px; right: 4px; width: 56px; height: 56px; transform: rotate(6deg); }
+.pa .qk-d-star1 { top: 168px; left: 6px; width: 24px; height: 24px; transform: rotate(-12deg); }
+.pa .qk-d-star2 { top: 78px; right: 150px; width: 20px; height: 20px; transform: rotate(14deg); }
+.pa .qk-d-star3 { top: 560px; left: 8px; width: 20px; height: 20px; transform: rotate(8deg); }
+.pa .qk-d-heart1 { top: 360px; left: 12px; width: 22px; height: 22px; transform: rotate(-8deg); }
+.pa .qk-d-heart2 { top: 470px; right: 12px; width: 22px; height: 22px; transform: rotate(10deg); }
+.pa .qk-d-spark { top: 250px; left: 6px; width: 26px; height: 26px; }
+.pa .qk-steam { transform-box: fill-box; transform-origin: 50% 100%; animation: qk-steam 3.6s ease-in-out infinite; }
+@keyframes qk-steam { 0%, 100% { transform: translateY(0); opacity: .9; } 50% { transform: translateY(-3px); opacity: .45; } }
+
+/* a book: its size on the shelf, its cover print, its binding, its tape, its name plate, its doodle */
+.pa .qk-size-s { --h: 158px; }
+.pa .qk-size-m { --h: 174px; }
+.pa .qk-size-l { --h: 190px; }
+.pa .qk-slot:nth-child(5n+1) { --dx: -4px; }
+.pa .qk-slot:nth-child(5n+2) { --dx: 5px; }
+.pa .qk-slot:nth-child(5n+3) { --dx: 0px; }
+.pa .qk-slot:nth-child(5n+4) { --dx: -6px; }
+.pa .qk-slot:nth-child(5n+5) { --dx: 3px; }
+.pa .qk-book {
+  --qk-spine: color-mix(in srgb, var(--tint) 58%, #5a3d30);
+  border: 2px solid var(--ink); border-radius: 5px 14px 14px 5px; background-color: var(--tint); color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 3px 4px 0 rgba(86, 56, 38, .2), 0 14px 16px -10px rgba(86, 56, 38, .5);
+}
+.pa .qk-slot.on .qk-book { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), 4px 6px 0 rgba(86, 56, 38, .22), 0 22px 22px -10px rgba(86, 56, 38, .55); }
+/* prints on the cover (BOOK_ART.cover) */
+.pa .qk-cover--plain { background-image: none; }
+.pa .qk-cover--lines { background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, .42) 0 2px, transparent 2px 11px); }
+.pa .qk-cover--dots { background-image: radial-gradient(rgba(255, 255, 255, .62) 1.7px, transparent 2.2px); background-size: 13px 13px; }
+.pa .qk-cover--grid { background-image: linear-gradient(rgba(255, 255, 255, .45) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(255, 255, 255, .45) 1.5px, transparent 1.5px); background-size: 16px 16px; }
+.pa .qk-cover--waves { background-image: repeating-radial-gradient(circle at 0 100%, transparent 0 9px, rgba(255, 255, 255, .38) 9px 11px); }
+.pa .qk-cover--checks { background-image: conic-gradient(rgba(255, 255, 255, .34) 25%, transparent 0 50%, rgba(255, 255, 255, .34) 0 75%, transparent 0); background-size: 22px 22px; }
+.pa .qk-cover--marble { background-image: radial-gradient(ellipse at 22% 28%, rgba(255, 255, 255, .55), transparent 42%), radial-gradient(ellipse at 82% 72%, rgba(70, 50, 100, .14), transparent 46%), radial-gradient(ellipse at 64% 18%, rgba(255, 255, 255, .34), transparent 36%), radial-gradient(ellipse at 30% 86%, rgba(70, 50, 100, .1), transparent 40%); }
+/* the edge (BOOK_ART.binding) */
+.pa .qk-spine { position: absolute; z-index: 1; left: 0; top: 0; bottom: 0; width: 28px; border-radius: 3px 0 0 3px; background: var(--qk-spine); border-right: 2px solid rgba(34, 48, 77, .55); }
+.pa .qk-bind--spiral .qk-spine { left: -9px; top: 12px; bottom: 12px; width: 36px; border: 0; border-radius: 0; background:
+  radial-gradient(circle at 21px 8px, #fff7e8 0 2.6px, rgba(34, 48, 77, .6) 3px 3.8px, transparent 4.2px) 0 0 / 36px 16px repeat-y,
+  linear-gradient(transparent 5px, #4d5470 5px 9px, transparent 9px) 0 0 / 28px 16px repeat-y; }
+.pa .qk-bind--stitch .qk-spine::after { content: ""; position: absolute; top: 8px; bottom: 8px; left: 10px; border-left: 3px dashed rgba(255, 250, 235, .85); }
+.pa .qk-bind--staple .qk-spine::before, .pa .qk-bind--staple .qk-spine::after { content: ""; position: absolute; left: 6px; width: 16px; height: 5px; border-radius: 2px; background: #c9ced8; border: 1px solid #5b6176; }
+.pa .qk-bind--staple .qk-spine::before { top: 24%; }
+.pa .qk-bind--staple .qk-spine::after { bottom: 24%; }
+/* the washi tape on the corner (BOOK_ART.tape) */
+.pa .qk-tape { position: absolute; z-index: 3; left: -20px; top: 12px; width: 74px; height: 22px; transform: rotate(-36deg); opacity: .94; box-shadow: 0 1px 2px rgba(60, 40, 30, .25);
+  clip-path: polygon(0 0, 100% 0, 97% 25%, 100% 50%, 97% 75%, 100% 100%, 0 100%, 3% 75%, 0 50%, 3% 25%); }
+.pa .qk-tape--stripe .qk-tape { background: repeating-linear-gradient(90deg, #f4a7a0 0 7px, #fff3ee 7px 14px); }
+.pa .qk-tape--dots .qk-tape { background: radial-gradient(#fff 2px, transparent 2.6px) 0 0 / 10px 10px, #8fd3c4; }
+.pa .qk-tape--gingham .qk-tape { background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .5) 0 5px, transparent 5px 10px), repeating-linear-gradient(90deg, rgba(255, 255, 255, .5) 0 5px, transparent 5px 10px), #f7d774; }
+.pa .qk-tape--zigzag .qk-tape { background: repeating-linear-gradient(135deg, #c7b4ec 0 6px, #efe8fb 6px 12px); }
+.pa .qk-tape--plain .qk-tape { background: #e8c997; }
+/* the name plate, hand-lettered */
+.pa .qk-plate { position: absolute; z-index: 1; left: 44px; top: 28px; max-width: calc(100% - 44px - 78px); padding: 5px 9px 3px; border: 1.5px solid rgba(34, 48, 77, .5); border-radius: 3px; background: #fffaf0; transform: rotate(-1.5deg); box-shadow: 1px 2px 0 rgba(86, 56, 38, .2); }
+.pa .qk-plate b { display: block; font: 700 27px/.95 var(--f-hand); color: var(--ink); text-wrap: balance; overflow-wrap: anywhere; }
+/* the doodle */
+.pa .qk-doodle { position: absolute; z-index: 1; right: 12px; top: 32px; width: 68px; height: 68px; color: var(--ink); transform: rotate(4deg); }
+.pa .qk-doodle svg { display: block; width: 100%; height: 100%; }
+/* the tick stamp, a sticker that lands on the corner when the book is picked up */
+.pa .qk-stamp { position: absolute; z-index: 4; right: -13px; top: -15px; display: block; width: 52px; height: 52px; padding: 5px; border: 2px solid var(--ink); border-radius: 50%; background: #fffaf0; color: var(--qk-stamp); box-shadow: 1px 3px 0 rgba(86, 56, 38, .3);
+  opacity: 0; transform: scale(1.7) rotate(-24deg); transition: opacity .12s ease-out, transform .2s cubic-bezier(.3, 1.5, .5, 1); pointer-events: none; }
+.pa .qk-slot.on .qk-stamp { opacity: 1; transform: scale(1) rotate(-9deg); }
+.pa .qk-stamp svg { display: block; width: 100%; height: 100%; }
+/* the label on the cover (where the board is written) and what is written on it */
+.pa .qk-label { position: absolute; z-index: 1; left: 44px; right: 14px; bottom: 12px; height: 46px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1.5px solid rgba(34, 48, 77, .5); border-radius: 3px; text-align: left;
+  background: linear-gradient(transparent 21px, rgba(70, 100, 170, .34) 21px 22px, transparent 22px 43px, rgba(70, 100, 170, .34) 43px 44px, transparent 44px), #fffdf6; overflow: hidden; pointer-events: none; }
+.pa .qk-sticker { flex: none; max-width: 100%; padding: 5px 9px 4px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--qk-pop); font: 800 13px/1 var(--f-body); color: var(--ink); white-space: nowrap; transform: rotate(-2deg); box-shadow: 1px 1px 0 rgba(34, 48, 77, .35); overflow: hidden; text-overflow: ellipsis; animation: qk-pop .18s ease-out both; }
+.pa .qk-sticker-tier { background: rgba(255, 255, 255, .85); border-style: dashed; transform: rotate(1.5deg); box-shadow: none; }
+.pa .qk-sticker-any { color: #4b5878; font-weight: 700; }
+.pa .qk-sticker-ask { background: #fff; border-style: dashed; color: #8a3b17; }
+@keyframes qk-pop { from { opacity: 0; transform: scale(.7) rotate(-8deg); } }
+/* the choices that hang from a picked-up book: a kraft flap with luggage tags (boards) and a quiet sticker (tier) */
+.pa .qk-flap { position: absolute; z-index: 8; left: 12px; right: 0; top: calc(100% - 8px); padding: 12px 10px 8px 12px; border: 2px solid var(--ink); border-radius: 4px 4px 14px 14px; box-shadow: 0 12px 20px -6px rgba(70, 45, 30, .5), 2px 3px 0 rgba(86, 56, 38, .2); transform-origin: 50% 0; animation: qk-flap .17s ease-out both; scroll-margin-bottom: 120px;
+  background: linear-gradient(rgba(255, 255, 255, .0), rgba(255, 255, 255, .0)), repeating-linear-gradient(100deg, rgba(150, 105, 60, .06) 0 3px, transparent 3px 7px), var(--qk-kraft); }
+.pa .qk-flap::before { content: ""; position: absolute; inset: 4px; border: 2px dashed rgba(107, 74, 58, .5); border-radius: 2px 2px 10px 10px; pointer-events: none; }
+@keyframes qk-flap { from { opacity: 0; transform: translateY(-8px) scaleY(.9); } }
+.pa .qk-tags { position: relative; display: flex; flex-wrap: wrap; gap: 0 6px; }
+.pa .qk-tags + .qk-tags { margin-top: 2px; }
+.pa .qk-tag { position: relative; isolation: isolate; flex: none; min-width: 60px; min-height: 44px; padding: 0 14px 0 26px; border: 0; background: transparent; font: 800 14px/1 var(--f-body); color: var(--ink); cursor: pointer; }
+.pa .qk-tag span { position: relative; }
+.pa .qk-tag::before { content: ""; position: absolute; z-index: -2; inset: 5px 0; background: var(--ink); clip-path: polygon(15px 0, 100% 0, 100% 100%, 15px 100%, 0 50%); }
+.pa .qk-tag::after { content: ""; position: absolute; z-index: -1; inset: 7px 2px 7px 2.5px; background: radial-gradient(circle at 12px 50%, var(--ink) 0 2.2px, transparent 2.7px), #fffaf0; clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%); transition: background-color .15s; }
+.pa .qk-tag:hover::after { background-color: #fff3d4; }
+.pa .qk-tag.on::after { background: radial-gradient(circle at 12px 50%, var(--ink) 0 2.2px, transparent 2.7px), var(--qk-pop); }
+.pa .qk-tag.on span { font-weight: 900; }
+/* the tier: a quiet round sticker */
+.pa .qk-tier { padding: 0 16px; }
+.pa .qk-tier::before { inset: 5px 0; background: rgba(255, 255, 255, .5); border: 2px dashed rgba(34, 48, 77, .55); border-radius: 17px; clip-path: none; }
+.pa .qk-tier::after { display: none; }
+.pa .qk-tier.on::before { background: var(--navy); border: 2px solid var(--navy); }
+.pa .qk-tier.on { color: #f5f9ff; }
+/* the pile on the bar: each picked-up book lands on the one before */
+.pa .qk-mini { position: absolute; left: 6px; bottom: calc(var(--i, 0) * 11px); width: 52px; height: 14px; border: 2px solid var(--ink); border-radius: 3px 6px 6px 3px; background: linear-gradient(90deg, rgba(34, 48, 77, .35) 0 5px, transparent 5px), linear-gradient(90deg, var(--tint) 0 80%, #fffaf0 80% 100%); animation: qk-drop .2s ease-out both; animation-delay: calc(var(--i, 0) * 25ms); }
+.pa .qk-mini:nth-child(2) { left: 12px; width: 46px; } .pa .qk-mini:nth-child(3) { left: 3px; width: 54px; } .pa .qk-mini:nth-child(4) { left: 10px; width: 48px; } .pa .qk-mini:nth-child(5) { left: 5px; width: 53px; }
+@keyframes qk-drop { from { opacity: 0; transform: translateY(-14px) rotate(-6deg); } }
+.pa .qk-count { position: absolute; top: -8px; right: -6px; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border: 2px solid var(--ink); border-radius: 13px; background: var(--qk-pop); font: 800 14px/1 var(--f-body); color: var(--ink); }
+.pa .qk-bar-tape { position: absolute; left: 22px; top: -11px; width: 56px; height: 18px; transform: rotate(-4deg); background: repeating-linear-gradient(90deg, #f4a7a0 0 7px, #fff3ee 7px 14px); opacity: .95; clip-path: polygon(0 0, 100% 0, 97% 30%, 100% 60%, 97% 100%, 0 100%, 3% 60%, 0 30%); }
+/* the tabs: index tabs on the page's edge */
+.pa .qk-tab { --tab: #f6d5c4; }
+.pa .qk-tab:nth-child(1) { --tab: #d9e8bb; }
+.pa .qk-tab:nth-child(3) { --tab: #e4daf3; }
+.pa .qk-tabs-more .qk-tab { --tab: #f7e5a8; }
+.pa .qk-tab-n { background: var(--qk-pop); border: 1.5px solid var(--ink); }
+/* the mascot peeking over the page's edge, with what it says */
+.pa .qk-bubble { background: #fffdf7; border: 2px solid var(--ink); color: var(--ink); box-shadow: 2px 3px 0 rgba(86, 56, 38, .2); }
+.pa .qk-bubble::after { content: ""; position: absolute; right: -8px; bottom: 9px; width: 12px; height: 12px; background: #fffdf7; border-right: 2px solid var(--ink); border-top: 2px solid var(--ink); transform: rotate(45deg); }
+/* ═════════════════════════ end of EXERCISE BOOK ART ═════════════════════════ */
+
+/* ── the page ────────────────────────────────────────────────────────── */
+.pa .qk-setup { position: relative; isolation: isolate; min-height: calc(100dvh - 66px); padding-bottom: 150px; overflow-x: clip; }
+.pa .qk-setup .wrap { position: relative; z-index: 1; }
+.pa .qk-col { max-width: 1100px; margin: 0 auto; }
+.pa .qk-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 26px 0 0; }
+.pa .qk-head-text { flex: 1; min-width: 0; padding-bottom: 12px; }
+.pa .qk-head h1 { width: fit-content; max-width: 100%; margin: 0; font: 700 clamp(30px, 3.4vw, 38px)/1.05 var(--f-px); }
+.pa .qk-mascot { flex: none; display: flex; align-items: flex-end; gap: 10px; margin-right: 6px; }
+.pa .qk-bubble { position: relative; margin: 0 8px 22px 0; padding: 7px 14px 4px; border-radius: 16px; font: 700 23px/1.05 var(--f-hand); white-space: nowrap; transform: rotate(-2deg); }
+.pa .qk-peek { display: block; width: 84px; height: 78px; overflow: hidden; }
+.pa .qk-peek img { display: block; width: 84px; height: 84px; }
+
+/* index tabs: the page's edge is the rule under them; the open tab is raised, cream, and joins the page */
+.pa .qk-tabs { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px; padding: 0 2px; border-bottom: 3px solid var(--qk-brown); }
+.pa .qk-tabs-more { margin-top: 8px; }
+.pa .qk-tab { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: -3px; padding: 0 20px; border: 2px solid var(--ink); border-bottom: 3px solid var(--qk-brown); border-radius: 14px 14px 0 0; background: var(--tab); font: 800 15px var(--f-body); color: var(--ink); cursor: pointer; transition: transform .15s ease-out, background-color .15s; }
+.pa .qk-tab:hover { transform: translateY(-2px); }
+.pa .qk-tab.on, .pa .qk-tab.open { min-height: 52px; background: #fffaf0; border-bottom-color: #fffaf0; font-weight: 900; }
+.pa .qk-tab.on:hover, .pa .qk-tab.open:hover { transform: none; }
+.pa .qk-tab-more { border-style: dashed; border-bottom-style: solid; }
+.pa .qk-tab-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; font: 800 12px var(--f-body); color: var(--ink); }
+
+/* the shelf: books stand on one line with their bottoms together, at different heights, a little off true */
+.pa .qk-books { list-style: none; margin: 0; padding: 38px 8px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(214px, 1fr)); gap: 34px 22px; align-items: end; }
+.pa .qk-slot { position: relative; min-width: 0; height: var(--h); }
+.pa .qk-slot.out { z-index: 8; }
+.pa .qk-book { position: absolute; inset: 0; transform: rotate(var(--tilt, 0deg)); translate: var(--dx, 0) 0; transform-origin: 50% 100%; transition: transform .18s ease-out, box-shadow .18s ease-out; }
+.pa .qk-slot.on .qk-book { transform: translateY(-9px) rotate(0deg) scale(1.025); }
+.pa .qk-cover { position: absolute; z-index: 2; inset: 0; width: 100%; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.pa .qk-label-btn { z-index: 3; pointer-events: auto; cursor: pointer; font: inherit; color: inherit; }
+.pa .qk-label-btn:hover { background-color: #fff8e4; }
+@media (hover: hover) {
+  .pa .qk-slot:not(.on) .qk-book:hover { transform: translateY(-3px) rotate(var(--tilt, 0deg)); animation: qk-wig .22s ease-out; }
+  .pa .qk-slot.on .qk-book:hover { transform: translateY(-11px) rotate(0deg) scale(1.025); }
+}
+@keyframes qk-wig {
+  0% { transform: rotate(var(--tilt, 0deg)); }
+  38% { transform: translateY(-3px) rotate(calc(var(--tilt, 0deg) - 1.8deg)); }
+  72% { transform: translateY(-3px) rotate(calc(var(--tilt, 0deg) + 1.4deg)); }
+  100% { transform: translateY(-3px) rotate(var(--tilt, 0deg)); }
+}
+/* the focus ring goes round the cover (the global two-tone ring: navy, then white) */
+.pa .qk-cover:focus-visible { outline-offset: 3px; }
+.pa .qk-label-btn:focus-visible { outline-offset: -4px; box-shadow: none; }
+
+/* ── the bar: the pile, what is left to do, and the button ───────────── */
+.pa .qk-bar { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; align-items: center; gap: 12px; width: min(640px, calc(100vw - 32px)); padding: 8px 8px 8px 16px; border: 2px solid var(--ink); border-radius: 20px; background: #fffaf0; box-shadow: 0 4px 0 var(--ink), 0 18px 30px rgba(70, 45, 30, .25); transform: translateX(-50%); animation: qk-rise .2s ease-out; }
+@keyframes qk-rise { from { opacity: 0; transform: translateX(-50%) translateY(16px); } }
+.pa .qk-pile { position: relative; flex: none; width: 66px; height: 58px; }
+.pa .qk-line { flex: 1; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 23px/1.1 var(--f-hand); color: var(--ink); }
+.pa .qk-line.ask { color: #8a3b17; }
+.pa .qk-go { flex: none; min-height: 48px; padding: 0 22px; font-size: 16px; }
+.pa .qk-go-short { display: none; }
+.pa .qk-go[aria-disabled="true"] { opacity: 1; background: #ebe5d6; border-color: #7d7466; color: #3f3a33; box-shadow: none; }
+.pa .qk-go[aria-disabled="true"]:hover { background: #f1ecdf; }
+
+/* ── screens ─────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) { .pa .qk-d-lamp, .pa .qk-d-mug { display: none; } }
+@media (max-width: 900px) { .pa .qk-books { padding-left: 16px; padding-right: 12px; } }
+@media (max-width: 760px) {
+  .pa .qk-setup::before { display: none; }
+  .pa .qk-d-star2, .pa .qk-d-heart2, .pa .qk-d-star3, .pa .qk-d-spark { display: none; }
+  .pa .qk-d-star1 { top: 30px; left: 22px; }
+  .pa .qk-d-heart1 { top: 44px; left: 62px; }
+}
+/* three books across (iPad portrait, small laptops): the plate is narrower than a long subject name, so shrink the lettering rather than break a word */
+@media (min-width: 561px) and (max-width: 1060px) {
+  .pa .qk-plate b { font-size: 21px; overflow-wrap: normal; hyphens: manual; }
+}
+@media (max-width: 560px) {
+  .pa .qk-head { display: grid; gap: 0; padding-top: 14px; }
+  .pa .qk-mascot { grid-row: 1; justify-self: end; margin: 0 2px 0 0; gap: 6px; }
+  .pa .qk-head-text { grid-row: 2; padding: 6px 0 10px; }
+  .pa .qk-bubble { margin: 0 4px 12px 0; padding: 5px 11px 3px; font-size: 20px; }
+  .pa .qk-peek { width: 58px; height: 54px; }
+  .pa .qk-peek img { width: 58px; height: 58px; }
+  .pa .qk-tab { padding: 0 16px; font-size: 14px; }
+  .pa .qk-books { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 14px; padding: 30px 6px 0; }
+  .pa .qk-size-s { --h: 166px; } .pa .qk-size-m { --h: 178px; } .pa .qk-size-l { --h: 190px; }
+  .pa .qk-plate { left: 34px; top: 20px; max-width: calc(100% - 34px - 8px); padding: 4px 7px 2px; }
+  .pa .qk-plate b { font-size: 22px; overflow-wrap: normal; }
+  .pa .qk-doodle { right: 12px; top: 74px; width: 42px; height: 42px; }
+  .pa .qk-spine { width: 24px; }
+  .pa .qk-label { left: 36px; right: 9px; bottom: 10px; height: 44px; background: linear-gradient(transparent 20px, rgba(70, 100, 170, .34) 20px 21px, transparent 21px 42px, rgba(70, 100, 170, .34) 42px 43px, transparent 43px), #fffdf6; }
+  .pa .qk-label { gap: 4px; padding: 0 5px; }
+  .pa .qk-sticker { font-size: 12px; padding: 4px 6px 3px; }
+  .pa .qk-stamp { right: -9px; top: -12px; width: 42px; height: 42px; padding: 4px; }
+  .pa .qk-tape { width: 60px; height: 18px; left: -18px; top: 10px; }
+  .pa .qk-flap { left: 6px; right: -2px; padding: 12px 6px 6px 8px; }
+  .pa .qk-tag { padding: 0 11px 0 24px; min-width: 52px; font-size: 13px; }
+  .pa .qk-tier { padding: 0 12px; }
+  .pa .qk-bar { left: 12px; right: 72px; width: auto; gap: 8px; padding: 6px 6px 6px 12px; transform: none; animation-name: qk-rise-s; }
+  .pa .qk-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: anywhere; font-size: 18px; line-height: 1; }
+  .pa .qk-go { padding: 0 14px; font-size: 15px; }
+  .pa .qk-go-long { display: none; } .pa .qk-go-short { display: inline; }
+  .pa .qk-pile { width: 56px; }
+}
+@keyframes qk-rise-s { from { opacity: 0; transform: translateY(16px); } }
+/* a short screen (a phone on its side, 400% zoom): nothing fixed eats the page */
+@media (max-height: 520px) {
+  .pa .qk-setup { padding-bottom: 24px; }
+  .pa .qk-bar { position: sticky; left: auto; right: auto; bottom: 8px; width: min(640px, calc(100% - 24px)); margin: 12px auto 0; transform: none; animation-name: qk-rise-s; }
+}
+@media (pointer: coarse) { .pa .qk-go { min-height: 48px; } }
+
+/* ── forced colours: the page is the system's own; every picture gets a border, "chosen" is an outline and the stamp ── */
+@media (forced-colors: active) {
+  .pa .qk-setup { background: Canvas; box-shadow: none; }
+  .pa .qk-setup::before, .pa .qk-desk, .pa .qk-tape, .pa .qk-spine, .pa .qk-bar-tape, .pa .qk-flap::before { display: none; }
+  .pa .qk-book { forced-color-adjust: auto; border: 2px solid CanvasText; background: Canvas; box-shadow: none; }
+  .pa .qk-slot.on .qk-book { outline: 4px solid Highlight; outline-offset: 2px; }
+  .pa .qk-plate, .pa .qk-label, .pa .qk-sticker, .pa .qk-bubble, .pa .qk-count { border: 2px solid CanvasText; background: Canvas; color: CanvasText; box-shadow: none; }
+  .pa .qk-sticker-ask, .pa .qk-sticker-tier, .pa .qk-slot.need .qk-book { border-style: dashed; }
+  .pa .qk-doodle { forced-color-adjust: none; color: #000; background: #fff; border-radius: 50%; padding: 6px; }
+  .pa .qk-stamp { background: Canvas; color: CanvasText; border: 2px solid CanvasText; box-shadow: none; }
+  .pa .qk-flap { border: 2px solid CanvasText; background: Canvas; box-shadow: none; }
+  .pa .qk-tag, .pa .qk-tier { border: 2px solid CanvasText; border-radius: 10px; background: Canvas; color: CanvasText; }
+  .pa .qk-tag::before, .pa .qk-tag::after, .pa .qk-tier::before { display: none; }
+  .pa .qk-tag.on, .pa .qk-tier.on { background: Highlight; color: HighlightText; outline: 3px solid Highlight; outline-offset: 1px; }
+  .pa .qk-tab { forced-color-adjust: none; border-color: CanvasText; background: Canvas; color: CanvasText; }
+  .pa .qk-tab.on, .pa .qk-tab.open { background: Highlight; color: HighlightText; }
+  .pa .qk-tab.on .qk-tab-n, .pa .qk-tab.open .qk-tab-n { background: Canvas; color: CanvasText; }
+  .pa .qk-tabs { border-bottom-color: CanvasText; }
+  .pa .qk-tab-n { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .pa .qk-mini { border-color: CanvasText; background: Canvas; }
+  .pa .qk-bar { border: 2px solid CanvasText; background: Canvas; box-shadow: none; }
+  .pa .qk-go[aria-disabled="true"] { border: 2px dashed GrayText; color: GrayText; background: Canvas; }
+  .pa .qk-line.ask { color: CanvasText; text-decoration: underline; }
+  .pa .qk-setup :focus-visible { outline-color: Highlight; box-shadow: none; }
+}
+
+/* ── reduced motion: books are still (the blanket rule in questions.css stills every animation and transition under .qs-page); a hover does not lift or wiggle ── */
+@media (prefers-reduced-motion: reduce) {
+  .pa .qk-slot:not(.on) .qk-book:hover { transform: rotate(var(--tilt, 0deg)); }
+  .pa .qk-slot.on .qk-book:hover { transform: translateY(-9px) rotate(0deg) scale(1.025); }
+  .pa .qk-tab:hover { transform: none; }
+  .pa .qk-stamp { transform: none; }
+}

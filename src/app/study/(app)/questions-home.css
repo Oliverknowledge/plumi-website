@@ -1,10 +1,10 @@
-/* Questions, the front door: the setup ("What are you studying?") and one shelf of past papers per subject.
+/* Questions, the front door: one shelf of past papers per subject (the setup, "What are you studying?", is questions-setup.css).
    Loads after questions.css (its tokens: --paper-cream, --ok, --mute, the focus ring) and before the ink and sheet files.
    Everything under .pa. A title, at most one short line, the rest drawn; 44px is the smallest thing you press; 150 to 200ms of motion, none under
    reduced motion (the blanket rule in questions.css stills every animation and transition under .qs-page). */
 
 .pa .qs-page { --ok-ink: #236b38; --shelf-card-w: 196px; --shelf-card-h: 290px; }
-.pa .qh-home .qs-col, .pa .qh-setup .qs-col { max-width: 1100px; }
+.pa .qh-home .qs-col { max-width: 1100px; }
 .pa .qs-homeback { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -10px 0 2px -12px; padding: 0 12px 0 8px; border: 0; border-radius: 12px; background: transparent; font: 800 13px var(--f-body); color: var(--soft); cursor: pointer; transition: background .15s, color .15s; }
 .pa .qs-homeback:hover { background: var(--card2); color: var(--ink); }
 
@@ -174,30 +174,6 @@
 .pa .qh-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: min(100%, 320px); min-height: 52px; margin: 22px 0 36px; border: 2px dashed #9fb3d3; border-radius: 16px; background: transparent; font: 800 15px var(--f-body); color: var(--soft); cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
 .pa .qh-add:hover { border-style: solid; border-color: var(--ink); color: var(--ink); background: rgba(255, 255, 255, .6); }
 
-/* ── the setup ───────────────────────────────────────────────────────── */
-.pa .qh-setup-mascot { flex: none; width: 84px; height: 84px; margin: -8px 4px 0 0; transform: rotate(4deg); }
-@media (max-width: 640px) { .pa .qh-setup-mascot { width: 56px; height: 56px; } }
-.pa .qh-more-levels { margin-top: 8px; }
-.pa .qs-level { display: inline-flex; align-items: center; gap: 8px; }
-.pa .qs-level .qs-badge { background: var(--gold); color: var(--ink); }
-.pa .qs-level.on .qs-badge { background: var(--gold); }
-.pa .qh-subjects { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; align-items: start; margin: 18px 0 0; padding: 0 0 140px; list-style: none; }
-.pa .qh-subj { border: 1.5px solid rgba(34, 48, 77, .16); border-radius: 18px; background: var(--tint); overflow: hidden; transition: border-color .16s, box-shadow .16s, transform .16s ease-out; }
-.pa .qh-subj:hover { border-color: var(--ink); }
-.pa .qh-subj.on { border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink); }
-.pa .qh-subj.need { border-style: dashed; }
-.pa .qh-subj-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 76px; padding: 12px 16px; border: 0; background: transparent; text-align: left; font: 600 22px/1.05 var(--f-px); color: var(--ink); cursor: pointer; }
-.pa .qh-subj-btn b { font-weight: inherit; min-width: 0; overflow-wrap: anywhere; }
-.pa .qh-subj .qh-subj-btn:focus-visible { outline-offset: -4px; }
-.pa .qh-tick { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--ink); border-radius: 9px; background: #fff; color: #fff; transition: background .15s; }
-.pa .qh-tick svg { width: 18px; height: 18px; stroke-width: 3; }
-.pa .qh-subj.on .qh-tick { background: #4f8a2c; }
-.pa .qh-boards { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 14px; animation: qh-in2 .18s ease-out both; }
-@keyframes qh-in2 { from { opacity: 0; transform: translateY(-4px); } }
-.pa .qh-donebar .qs-sel-count { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pa .qh-donebar .qs-sel-count b { font-size: 16px; }
-.pa .qh-donebar { padding-right: 8px; }
-
 /* ── small screens ───────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .pa .qs-page { --shelf-card-w: 150px; --shelf-card-h: 274px; }
@@ -214,7 +190,6 @@
   .pa .qh-stamp b { font-size: 14px; }
   .pa .qh-counts b { font-size: 21px; }
   .pa .qh-acts { width: 100%; margin-left: 0; }
-  .pa .qh-subjects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 @media (max-width: 480px) {
   /* the expanded list of a year: two papers across, filling the width */
@@ -223,13 +198,6 @@
   .pa .qh-row.wrap .qh-paper { width: 100%; }
   .pa .qh-row.wrap .qh-label { padding: 4px 6px 2px; column-gap: 4px; }
   .pa .qh-row.wrap .qh-label b { font-size: 30px; }
-  .pa .qh-subjects { grid-template-columns: minmax(0, 1fr); }
-  .pa .qh-subj-btn { min-height: 68px; padding: 10px 12px; gap: 10px; font-size: 18px; }
-  .pa .qh-boards { padding: 0 10px 12px; gap: 6px; }
-  .pa .qh-donebar { gap: 8px; padding: 6px 6px 6px 14px; }
-  .pa .qh-donebar .qs-start { padding: 0 12px; font-size: 15px; }
-  .pa .qh-donebar .qs-sel-count { font-size: 12px; margin-right: 2px; }
-  .pa .qh-donebar .qs-sel-count b { font-size: 14px; }
 }
 
 /* ── forced colours: borders say what colours did ── */
@@ -240,11 +208,7 @@
   .pa .qh-label, .pa .qh-pill-ico, .pa .qh-bar, .pa .qh-stamp, .pa .qh-sticker, .pa .qh-retry-go { border: 1.5px solid CanvasText; }
   .pa .qh-pill, .pa .qh-showmore { border: 2px solid CanvasText; }
   .pa .qh-bar i { background: Highlight; }
-  .pa .qh-subj, .pa .qh-add, .pa .qh-arrow { border: 2px solid CanvasText; }
-  .pa .qh-subj.on { outline: 3px solid Highlight; outline-offset: -3px; }
-  .pa .qh-subj.need { border-style: dashed; }
-  .pa .qh-tick { border: 2px solid CanvasText; background: Canvas; color: CanvasText; }
-  .pa .qh-subj.on .qh-tick { background: Highlight; color: HighlightText; }
+  .pa .qh-add, .pa .qh-arrow { border: 2px solid CanvasText; }
   .pa .qh-g-label, .pa .qh-g-line, .pa .qh-g-dot { background: GrayText; animation: none; opacity: .5; }
   .pa .qh-retry { border-style: dashed; }
   .pa .qh-scroller.has-more, .pa .qh-scroller.has-less { -webkit-mask-image: none; mask-image: none; }

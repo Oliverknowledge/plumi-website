@@ -9,6 +9,10 @@ export interface SubjectMeta {
   cv?: number;
   /** Examiner's reports are keyed by question (Edexcel). */
   rq?: 1;
+  /** The bank has no calculator choice to offer (maths: every question is a calculation; criminology: none is). */
+  noCalc?: 1;
+  /** GCSE Maths and its kind: a part's `calc` says its paper allows a calculator, not that the question asks for a calculation. */
+  calcPapers?: 1;
   topics: SubjectTopic[];
   sections: { code: string; title: string }[];
   papers: { id: string; name: string; title?: string }[];

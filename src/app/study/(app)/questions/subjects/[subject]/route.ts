@@ -17,6 +17,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     subject: s.subject,
     cv: s.cropVersion,
     ...(s.reportsBy === "question" ? { rq: 1 as const } : {}),
+    ...(s.noCalc ? { noCalc: 1 as const } : {}),
+    ...(s.calcPapers ? { calcPapers: 1 as const } : {}),
     topics: s.topics.map((t) => ({ code: t.code, ref: t.ref, title: t.title, short: t.short, section: t.section, count: t.count })),
     sections: s.sections.map((x) => ({ code: x.code, title: x.title })),
     papers: s.papers.map((p) => ({ id: p.id, name: p.name, ...(p.title ? { title: p.title } : {}) })),

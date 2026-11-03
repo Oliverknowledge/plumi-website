@@ -29,7 +29,7 @@ function reportsFor(slug: string): Promise<Record<string, string>> {
  * named for what it shows, so it never reads as "Plumi will check my answer". It is quiet until something is written, and
  * it is never gold (the sheet's one gold button is Finish set).
  */
-export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: QAnswer | undefined }) {
+export function Check({ set, part, answer, reportOutside }: { set: QSet; part: QPart; answer: QAnswer | undefined; /** The examiner's report has a place of its own beside the question (the feed): no button for it in the scheme card. */ reportOutside?: boolean }) {
   const [shut, setShut] = useState(false);
   const open = !!answer?.chk && !shut;
   const toggle = () => {
@@ -46,35 +46,63 @@ export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: Q
           Mark scheme<ChevronIcon />
         </button>
       </div>
-      {open && <Scheme id={id} set={set} part={part} answer={answer} />}
+      {open && <Scheme id={id} set={set} part={part} answer={answer} reportOutside={reportOutside} />}
     </div>
   );
 }
 
-function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart; answer: QAnswer | undefined }) {
-  const [er, setEr] = useState(false);
+/**
+ * The examiner's report for a part, fetched once it is wanted (`wanted`): `report` is null until it arrives, "" when there is none for this question,
+ * `failed` when it would not load (and `retry` tries again).
+ */
+export function useReport(set: Pick<QSet, "subject" | "rq">, part: QPart, wanted: boolean) {
   const [report, setReport] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const [tries, setTries] = useState(0);
-  const [pic, setPic] = useState<"wait" | "ok" | "fail">("wait");
-  const [onPaper, setOnPaper] = useState(false);
   useEffect(() => {
-    if (!er || report !== null) return;
+    if (!wanted || report !== null) return;
     let live = true;
     reportsFor(set.subject)
       .then((r) => { if (live) { setFailed(false); setReport(r[reportKey(!!set.rq, part.id)] ?? ""); } })
       .catch(() => { if (live) setFailed(true); });
     return () => { live = false; };
-  }, [er, report, tries, set.subject, set.rq, part.id]);
-  const label = `${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
+  }, [wanted, report, tries, set.subject, set.rq, part.id]);
+  return { report, failed, retry: () => { setFailed(false); setTries((t) => t + 1); } };
+}
+
+/** What the examiner's report says about a part: the paragraphs that name it first, then the rest of the question's under a fold. */
+export function ReportBody({ part, state }: { part: QPart; state: ReturnType<typeof useReport> }) {
+  const { report, failed, retry } = state;
   const split = report ? splitReport(report, part.l) : null;
+  if (failed) return <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={retry}>Try again</button></p>;
+  if (report === null) return <p className="qs-scheme-note">Opening...</p>;
+  if (!report) return <p className="qs-scheme-note">No report for this question.</p>;
+  return (
+    <div className="qs-er-text">
+      {split && split.mine.length > 0 && <><p className="qs-scheme-label">On {part.l}</p>{split.mine.map((p, i) => <p key={i}>{p}</p>)}</>}
+      {split && split.rest.length > 0 && (
+        <details open={split.mine.length === 0}>
+          <summary className="qs-scheme-label">{split.mine.length ? `The rest of question ${questionOf(part.l)}` : `On question ${questionOf(part.l)}`}</summary>
+          {split.rest.map((p, i) => <p key={i}>{p}</p>)}
+        </details>
+      )}
+    </div>
+  );
+}
+
+function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSet; part: QPart; answer: QAnswer | undefined; reportOutside?: boolean }) {
+  const [er, setEr] = useState(false);
+  const reportState = useReport(set, part, er);
+  const [pic, setPic] = useState<"wait" | "ok" | "fail">("wait");
+  const [onPaper, setOnPaper] = useState(false);
+  const label = `${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
   const pdf = part.msf ? `${papersBase}/${part.msf}` : undefined;
   // A mark scheme that would not load: marking waits until the student has it some other way, so nobody marks blind by accident.
   const blind = !!part.ms && pic === "fail" && !onPaper;
   return (
     <div className="qs-scheme" id={id} data-testid="scheme">
       <span className="qs-tape" aria-hidden="true" />
-      {part.er && (
+      {part.er && !reportOutside && (
         <button type="button" className={`qs-er-btn${er ? " on" : ""}`} aria-expanded={er} aria-controls={er ? `${id}-er` : undefined} aria-label="Examiner's report" title="Examiner's report" onClick={() => setEr((v) => !v)}><ReportIcon /></button>
       )}
       {blind ? (
@@ -101,21 +129,9 @@ function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart;
           <p className="qs-scheme-note">No mark scheme is published for this part.</p>
         )}
       </div>
-      {part.er && er && (
+      {part.er && er && !reportOutside && (
         <div className="qs-er" id={`${id}-er`}>
-          {failed ? (
-            <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={() => { setFailed(false); setTries((t) => t + 1); }}>Try again</button></p>
-          ) : report === null ? <p className="qs-scheme-note">Opening...</p> : !report ? <p className="qs-scheme-note">No report for this question.</p> : (
-            <div className="qs-er-text">
-              {split && split.mine.length > 0 && <><p className="qs-scheme-label">On {part.l}</p>{split.mine.map((p, i) => <p key={i}>{p}</p>)}</>}
-              {split && split.rest.length > 0 && (
-                <details open={split.mine.length === 0}>
-                  <summary className="qs-scheme-label">{split.mine.length ? `The rest of question ${questionOf(part.l)}` : `On question ${questionOf(part.l)}`}</summary>
-                  {split.rest.map((p, i) => <p key={i}>{p}</p>)}
-                </details>
-              )}
-            </div>
-          )}
+          <ReportBody part={part} state={reportState} />
         </div>
       )}
     </div>

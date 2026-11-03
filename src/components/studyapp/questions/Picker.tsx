@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { compareLabels, MAX_SET_PARTS, marksOf, progress, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { compareLabels, MAX_SET_PARTS, marksOf, progress, visibleSets, type QuestionsData } from "@/lib/studyapp/questions/model";
 import {
   areaState, BANDS, buildSetInput, filterCount, filterRows, hasScheme, minutesFor, mix, NO_FILTERS, partsByQuestion, seeded, sortRows, toggleArea,
   type BankRow, type Filters,
@@ -32,7 +32,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
   const [sets, setSets] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const recentSubjects = useMemo(() => [...new Set(q.sets.map((s) => s.subject))].slice(0, 4), [q.sets]);
-  const resume = q.sets.filter((s) => !s.finishedAt).sort((a, b) => b.updatedAt - a.updatedAt)[0];
+  const resume = visibleSets(q).filter((s) => !s.finishedAt).sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const browsing = !!saved && !choosing;
   const entry = catalogue.find((c) => c.slug === saved);
   const title = entry?.title ?? saved ?? "";
@@ -61,7 +61,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
               )}
             </div>
             {q.sets.length > 0 && (
-              <button type="button" className="btn ghost" onClick={() => setSets(true)} data-testid="your-sets">Your sets<span className="k">{q.sets.length}</span></button>
+              <button type="button" className="btn ghost" onClick={() => setSets(true)} data-testid="your-sets">Your sets{visibleSets(q).length > 0 && <span className="k">{visibleSets(q).length}</span>}</button>
             )}
           </header>
 

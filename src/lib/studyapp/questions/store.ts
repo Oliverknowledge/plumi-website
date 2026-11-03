@@ -3,8 +3,8 @@
 import { useSyncExternalStore } from "react";
 import { removeInk, removeSetInk } from "./inkDb";
 import {
-  againInput, checkPart, createSet, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
-  type Mode, type QPrefs, type QuestionsData, type SetInput,
+  againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
+  type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
 import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
 
@@ -195,6 +195,15 @@ export const qa = {
     for (const d of dropped) void removeSetInk(d);
     if (dropped.length) droppedListeners.forEach((f) => f(dropped.length));
     return id;
+  },
+  /**
+   * Put a question into its subject's feed set (made on the first), so the answer the student is about to write has a set to hang on.
+   * Idempotent and quiet when the question is already there. False if the feed set is full (`MAX_FEED_PARTS`).
+   */
+  feedTouch(info: FeedInfo, part: QPart, names: Record<string, string>, topics: Record<string, string>): boolean {
+    let ok = true;
+    changeQuestions((q) => { const r = feedTouch(q, info, part, names, topics, now()); ok = r.ok; return r.q; });
+    return ok;
   },
   open: (id: string | null) => changeQuestions((q) => openSet(q, id)),
   remove(id: string) { changeQuestions((q) => deleteSet(q, id)); void removeSetInk(id); },

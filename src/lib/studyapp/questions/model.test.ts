@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { EMPTY, sanitise } from "../model";
 import { describe, test } from "node:test";
 import {
+  addParts, feedCounts, feedId, feedTouch, MAX_FEED_PARTS, visibleSets,
   blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, droppedLine, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, answerHint, MAX_PAPER_PARTS, MAX_SET_PARTS, MAX_SETS, openSet, partDots, setTiers, summaryView, ZONE_MCQ_H,
   progress, redoInput, resetPart, sanitiseQuestions, scoreSet, setHeight, setInkMeta, setMode, setText, TEXT_PART_CAP, TEXT_TOTAL_CAP, zoneHeight,
   type QPart, type QuestionsData, type SetInput,
@@ -489,5 +490,96 @@ describe("what an empty answer space can say", () => {
     assert.equal(answerHint({ x: "Explain why the car slows down." }), null);
     assert.equal(answerHint({ x: "Which is the table? Draw", k: "B" }), null);
     assert.equal(answerHint({ x: "" }), null);
+  });
+});
+
+describe("the feed set", () => {
+  const INFO = { subject: "aqa-gcse-physics", title: "AQA GCSE Physics" };
+  const fid = feedId(INFO.subject);
+  const P = (id: string, l: string, m: number | null = 2): QPart => ({ id, p: "84631H", s: "JUN25", l, m, t: ["4.1.1"], w: 1086, h: 300 });
+  const touch = (q: QuestionsData, p: QPart) => feedTouch(q, INFO, p, { JUN25: "June 2025" }, { "4.1.1": "Energy" }, T0);
+
+  test("the first question touched makes the subject's feed set, off the desk", () => {
+    const r = touch(EMPTY_QUESTIONS, P("a", "01.1"));
+    assert.equal(r.ok, true);
+    assert.equal(r.q.sets.length, 1);
+    assert.equal(r.q.sets[0].id, fid);
+    assert.equal(r.q.sets[0].feed, 1);
+    assert.equal(r.q.open, null);
+    assert.deepEqual(r.q.sets[0].names, { JUN25: "June 2025" });
+    assert.equal(r.q.sets[0].topics["4.1.1"], "Energy");
+  });
+  test("touching again changes nothing, another question joins the same set", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    assert.equal(touch(q, P("a", "01.1")).q, q);
+    q = touch(q, P("b", "01.2")).q;
+    assert.equal(q.sets.length, 1);
+    assert.deepEqual(q.sets[0].parts.map((p) => p.id), ["a", "b"]);
+  });
+  test("an answer written on a touched question is kept under the feed's key, and marks count", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1", 3)).q;
+    q = setText(q, fid, "a", "my answer", T0).q;
+    q = markPart(q, fid, "a", 2, T0);
+    assert.equal(q.answers[keyOf(fid, "a")].text, "my answer");
+    assert.equal(q.answers[keyOf(fid, "a")].got, 2);
+    assert.deepEqual(q.recent.map((r) => r.id), ["a"]);
+  });
+  test("an answer for a question that was never touched is refused, as for any set", () => {
+    const q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    assert.equal(setText(q, fid, "zzz", "x", T0).q.answers[keyOf(fid, "zzz")], undefined);
+  });
+  test("the feed set can never be opened as a sheet", () => {
+    const q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    assert.equal(openSet(q, fid).open, null);
+  });
+  test("it holds up to MAX_FEED_PARTS and says so past that", () => {
+    let q = touch(EMPTY_QUESTIONS, P("p0", "01.1")).q;
+    const many = Array.from({ length: MAX_FEED_PARTS + 20 }, (_, i) => P(`p${i + 1}`, `01.${i + 2}`));
+    const added = addParts(q, fid, many, {}, T0);
+    assert.equal(added.q.sets[0].parts.length, MAX_FEED_PARTS);
+    assert.equal(added.added, MAX_FEED_PARTS - 1);
+    q = added.q;
+    const over = touch(q, P("late", "05.1"));
+    assert.equal(over.ok, false);
+    assert.equal(over.q, q);
+  });
+  test("addParts skips what a set has and leaves its answers alone", () => {
+    const { q, id } = make();
+    const q2 = setText(q, id, "q1a", "kept", T0).q;
+    const r = addParts(q2, id, [PARTS[0], part("zz", "09.1", 1, [])], { topics: { x: "X" } }, T0 + 1);
+    assert.equal(r.added, 1);
+    assert.equal(r.q.answers[keyOf(id, "q1a")].text, "kept");
+    assert.equal(r.q.sets[0].topics.x, "X");
+    assert.equal(addParts(q2, "nope", [PARTS[0]], {}, T0).added, 0);
+  });
+  test("the feed set is not one of the 40 sets: it is never the one pushed out, and does not count", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    for (let i = 0; i < MAX_SETS + 3; i++) q = createSet(q, { ...INPUT, name: `s${i}` }, T0 + i).q;
+    assert.ok(q.sets.some((s) => s.id === fid));
+    assert.equal(visibleSets(q).length, MAX_SETS);
+  });
+  test("what is kept on a device reads back: the feed flag, its answers, and never as the open set", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1")).q;
+    q = setText(q, fid, "a", "hello", T0).q;
+    const back = sanitiseQuestions(JSON.parse(JSON.stringify({ ...q, open: fid })));
+    assert.equal(back.sets[0].feed, 1);
+    assert.equal(back.answers[keyOf(fid, "a")].text, "hello");
+    assert.equal(back.open, null);
+  });
+  test("a stored feed flag on a set whose id is not a feed id is ignored", () => {
+    const { q } = make();
+    const raw = JSON.parse(JSON.stringify(q));
+    raw.sets[0].feed = 1;
+    assert.equal(sanitiseQuestions(raw).sets[0].feed, undefined);
+  });
+  test("the counts a quiet line needs", () => {
+    let q = touch(EMPTY_QUESTIONS, P("a", "01.1", 3)).q;
+    q = touch(q, P("b", "01.2", 2)).q;
+    q = touch(q, P("c", "01.3", 2)).q;
+    q = setText(q, fid, "a", "x", T0).q;
+    q = markPart(q, fid, "a", 2, T0);
+    q = setText(q, fid, "b", "y", T0).q;
+    assert.deepEqual(feedCounts(q, INFO.subject), { touched: 2, written: 1, marked: 1, got: 2, total: 3 });
+    assert.deepEqual(feedCounts(q, "other"), { touched: 0, written: 0, marked: 0, got: 0, total: 0 });
   });
 });
