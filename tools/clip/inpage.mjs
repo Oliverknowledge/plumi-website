@@ -15,6 +15,8 @@ export function installHelpers() {
   R.dress = (id) => T().setYou(R.art(id));
 
   /* ----- the town ----- */
+  /** For the sprite layer: everyone moved far out of the view and the frame drawn again (no time passes), then put back. */
+  R.peopleOff = (off) => { const t = T(); t.people.forEach((p) => { if (off) { p.__x = p.x; p.x = -9999; } else if (p.__x !== undefined) { p.x = p.__x; delete p.__x; } }); t.draw(); };
   R.hideSpots = () => { T().data.spots.length = 0; };         // no sit rings or "E Sit" over furniture that is hidden
   R.place = (x, y, dir) => { const t = T(), you = t.you; t.teleport(x, y); you.dir = dir ?? 3; you.still = 0; you.speed = 0; you.stride = 0; t.keys.clear(); };
   /** The route's points joined by the engine's own planner every ~90 px, so a corner of a plaza or a lamp never stops the walker. */
@@ -128,12 +130,29 @@ export function installRoomHelpers() {
   R.crowd = {}; R.rev = 1; R.labels = {};
   R.roomReady = () => { const h = H(); return !!(h && h.you && h.a && h.L && h.grid && h.byIpad && h.byIpad.size > 0); };
   R.ipadAt = (at) => { const h = H(); for (const [i, s] of h.byIpad) if (Math.abs(s.x - (at[0] - 8)) <= 2 && Math.abs(s.y - (at[1] - 20)) <= 2) return i; return null; };
+  /** The yellow rings of the free chairs are the player's cue: off, every frame (the engine rebuilds its list when the room changes). */
+  R.noRings = () => { H().ringSeats = []; };
+  /** For the sprite layer: everyone invisible and the frame drawn again (no time passes), then back. */
+  R.peopleOff = (off) => { const h = H(); h.people.forEach((p) => { if (off) { p.__a = p.alpha; p.alpha = 0; } else if (p.__a !== undefined) { p.alpha = p.__a; delete p.__a; } });
+    const place = h.place; h.place = () => {};          // the labels are DOM elements with a transition: with nobody in the picture their opacity must not change
+    h.draw(); h.place = place;
+  };
   R.roomTake = () => {
     const h = H();
     R._set = h.setRemotes.bind(h); h.setRemotes = () => {};
     h.dressYou = () => {};
     h.live.describe = (id) => R.labels[id] || null;
     const y = h.you; y.alpha = 0; y.x = -200; y.y = -200; y.path = []; y.doing = "idle";
+  };
+  /** Who gets a name tag: the engine ranks the people on screen by their distance from the player and drops a tag within 130 x 30 css px of one it already shows (so two students at a table lose one).
+   *  For a recording the player (invisible) is parked at `at` (art px) so the nearest, the leads, are ranked first, and a tag is dropped only when it would really touch another (62 x 46 css px). */
+  R.tagPolicy = (at) => {
+    const h = H(), y = h.you;
+    y.x = at[0]; y.y = at[1];
+    h.crowded = function (p, others) {
+      const s = this.k / this.dpr, [x, yy] = this.spriteAt(p);
+      return others.some((q) => { if (q === p) return false; const [qx, qy] = this.spriteAt(q); return Math.abs(qx - x) * s < 62 && Math.abs(qy - yy) * s < 46; });
+    };
   };
   const feet2art = (p) => [p[0] - 8, p[1] - 31];
   R.push = () => {
@@ -214,21 +233,21 @@ export function installTownUi() {
     };
     t.resize();
   };
-  R.tag = (bot, name) => { const el = document.createElement("div"); el.className = "lb-nm"; el.textContent = name; ov.appendChild(el); tags.push({ el, bot }); };
-  R.bub = (bot, text, ms, dx) => {
+  R.tag = (bot, name, dx = 0, dy = 0) => { const el = document.createElement("div"); el.className = "lb-nm"; el.textContent = name; ov.appendChild(el); tags.push({ el, bot, dx, dy }); };
+  R.bub = (bot, text, ms, dx, lift = 0) => {
     const el = document.createElement("div"); el.className = "lb-bub"; el.textContent = text; el.style.setProperty("--bub-ms", ms + "ms"); ov.appendChild(el);
-    bubs.push({ el, bot, born: performance.now(), ms, dx: dx || 0 });
+    bubs.push({ el, bot, born: performance.now(), ms, dx: dx || 0, lift });
   };
   /** Place every tag and bubble from this frame's camera (call after a step). */
   R.uiFrame = () => {
     const t = T(); if (!t) return;
     const k = t.k, dpr = t.dpr, cx = t.camPxX, cy = t.camPxY;
     const at = (p, up) => [Math.round(p.x * k - cx) / dpr, Math.round((p.y - up) * k - cy) / dpr];
-    for (const g of tags) { const p = t.people[1 + g.bot], [x, y] = at(p, 31); g.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; }
+    for (const g of tags) { const p = t.people[1 + g.bot], [x, y] = at(p, 31); g.el.style.transform = `translate(${x + g.dx}px, ${y + g.dy}px) translate(-50%, -100%)`; }
     for (let i = bubs.length - 1; i >= 0; i--) {
       const g = bubs[i];
       if (performance.now() - g.born > g.ms + 50) { g.el.remove(); bubs.splice(i, 1); continue; }
-      const p = t.people[1 + g.bot], [x, y] = at(p, 31 + 9);
+      const p = t.people[1 + g.bot], [x, y] = at(p, 31 + 9 + (g.lift || 0));
       g.el.style.transform = `translate(${x + (g.dx || 0)}px, ${y}px) translate(-50%, -100%)`;
     }
   };

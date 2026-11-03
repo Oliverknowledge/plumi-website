@@ -1,0 +1,713 @@
+{
+  "fps": 60,
+  "total": 6.0,
+  "cast": [
+    "fox",
+    "capybara",
+    "axolotl",
+    "redpanda",
+    "badger",
+    "hedgehog",
+    "raccoon",
+    "triceratops",
+    "dragon"
+  ],
+  "ui": {
+    "nm": 12,
+    "bub": 15
+  },
+  "outdoor": {
+    "seconds": 2.25,
+    "seed": 5,
+    "k": 5,
+    "query": "bots=9&furniture=0&map=0&hz=60&tod=day",
+    "walkers": [
+      {
+        "name": "Mochi",
+        "body": "axolotl",
+        "from": {
+          "door": "cafe",
+          "dx": -128,
+          "dy": 44
+        },
+        "to": {
+          "door": "cafe",
+          "dx": -14,
+          "dy": 18
+        },
+        "tag": true,
+        "hide": true,
+        "tagDx": -10
+      },
+      {
+        "name": "Juniper",
+        "body": "fox",
+        "from": {
+          "door": "cafe",
+          "dx": -104,
+          "dy": 60
+        },
+        "to": {
+          "door": "cafe",
+          "dx": 14,
+          "dy": 22
+        },
+        "tag": true,
+        "hide": true,
+        "tagDx": 12,
+        "tagDy": -16
+      },
+      {
+        "name": "Pip",
+        "body": "hedgehog",
+        "from": {
+          "door": "cafe",
+          "dx": -78,
+          "dy": 10
+        },
+        "to": {
+          "door": "cafe",
+          "dx": 4,
+          "dy": 10
+        },
+        "hide": true
+      },
+      {
+        "name": "Nori",
+        "body": "raccoon",
+        "from": {
+          "door": "cafe",
+          "dx": 84,
+          "dy": 76
+        },
+        "to": {
+          "door": "cafe",
+          "dx": -60,
+          "dy": 72
+        }
+      },
+      {
+        "name": "Olive",
+        "body": "badger",
+        "from": {
+          "door": "cafe",
+          "dx": 78,
+          "dy": 38
+        },
+        "to": {
+          "door": "cafe",
+          "dx": 6,
+          "dy": 56
+        }
+      },
+      {
+        "name": "Rex",
+        "body": "triceratops",
+        "from": {
+          "door": "cafe",
+          "dx": -150,
+          "dy": 16
+        },
+        "to": {
+          "door": "cafe",
+          "dx": -150,
+          "dy": 18
+        }
+      },
+      {
+        "name": "Ember",
+        "body": "dragon",
+        "from": {
+          "door": "cafe",
+          "dx": -166,
+          "dy": 36
+        },
+        "to": {
+          "door": "cafe",
+          "dx": -166,
+          "dy": 38
+        }
+      },
+      {
+        "name": "Tofu",
+        "body": "capybara",
+        "from": {
+          "door": "cafe",
+          "dx": 40,
+          "dy": 34
+        },
+        "to": {
+          "door": "cafe",
+          "dx": 112,
+          "dy": 46
+        }
+      },
+      {
+        "name": "Poppy",
+        "body": "redpanda",
+        "from": {
+          "door": "cafe",
+          "dx": -20,
+          "dy": 104
+        },
+        "to": {
+          "door": "cafe",
+          "dx": -86,
+          "dy": 92
+        }
+      }
+    ],
+    "bubbles": [
+      {
+        "who": "Juniper",
+        "t": 0.25,
+        "ms": 1500,
+        "text": "study session at 4?",
+        "dx": 70,
+        "lift": 10
+      },
+      {
+        "who": "Mochi",
+        "t": 0.95,
+        "ms": 1100,
+        "text": "I'm in!",
+        "dx": -60,
+        "lift": 4
+      }
+    ],
+    "camera": [
+      {
+        "t": 0.0,
+        "at": {
+          "door": "cafe",
+          "dx": -62,
+          "dy": 16
+        }
+      },
+      {
+        "t": 2.25,
+        "at": {
+          "door": "cafe",
+          "dx": -24,
+          "dy": 10
+        }
+      }
+    ],
+    "vertical": {
+      "k": 5,
+      "walkers": [
+        {
+          "name": "Mochi",
+          "body": "axolotl",
+          "from": {
+            "door": "cafe",
+            "dx": -66,
+            "dy": 100
+          },
+          "to": {
+            "door": "cafe",
+            "dx": -14,
+            "dy": 18
+          },
+          "tag": true,
+          "tagDx": -16
+        },
+        {
+          "name": "Juniper",
+          "body": "fox",
+          "from": {
+            "door": "cafe",
+            "dx": -30,
+            "dy": 118
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 14,
+            "dy": 22
+          },
+          "tag": true,
+          "tagDx": 16
+        },
+        {
+          "name": "Pip",
+          "body": "hedgehog",
+          "from": {
+            "door": "cafe",
+            "dx": -50,
+            "dy": 40
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 4,
+            "dy": 10
+          },
+          "hide": true
+        },
+        {
+          "name": "Nori",
+          "body": "raccoon",
+          "from": {
+            "door": "cafe",
+            "dx": 60,
+            "dy": 150
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 10,
+            "dy": 190
+          }
+        },
+        {
+          "name": "Olive",
+          "body": "badger",
+          "from": {
+            "door": "cafe",
+            "dx": 56,
+            "dy": 70
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 10,
+            "dy": 96
+          }
+        },
+        {
+          "name": "Rex",
+          "body": "triceratops",
+          "from": {
+            "door": "cafe",
+            "dx": -60,
+            "dy": 60
+          },
+          "to": {
+            "door": "cafe",
+            "dx": -60,
+            "dy": 62
+          }
+        },
+        {
+          "name": "Ember",
+          "body": "dragon",
+          "from": {
+            "door": "cafe",
+            "dx": -46,
+            "dy": 140
+          },
+          "to": {
+            "door": "cafe",
+            "dx": -46,
+            "dy": 142
+          }
+        },
+        {
+          "name": "Tofu",
+          "body": "capybara",
+          "from": {
+            "door": "cafe",
+            "dx": 40,
+            "dy": 120
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 70,
+            "dy": 160
+          }
+        },
+        {
+          "name": "Poppy",
+          "body": "redpanda",
+          "from": {
+            "door": "cafe",
+            "dx": 80,
+            "dy": 60
+          },
+          "to": {
+            "door": "cafe",
+            "dx": 44,
+            "dy": 86
+          }
+        }
+      ],
+      "camera": [
+        {
+          "t": 0.0,
+          "at": {
+            "door": "cafe",
+            "dx": -14,
+            "dy": 62
+          }
+        },
+        {
+          "t": 2.25,
+          "at": {
+            "door": "cafe",
+            "dx": -6,
+            "dy": 50
+          }
+        }
+      ],
+      "ui": {
+        "nm": 12,
+        "bub": 14
+      },
+      "bubbles": [
+        {
+          "who": "Juniper",
+          "t": 0.25,
+          "ms": 1500,
+          "text": "study session at 4?",
+          "dx": -10,
+          "lift": 8
+        },
+        {
+          "who": "Mochi",
+          "t": 0.95,
+          "ms": 1100,
+          "text": "I'm in!",
+          "dx": -70,
+          "lift": 4
+        }
+      ],
+      "bots": 9
+    },
+    "ui": {
+      "nm": 12,
+      "bub": 15
+    },
+    "bots": 9
+  },
+  "indoor": {
+    "seconds": 3.75,
+    "preroll": 3.2,
+    "shots": [
+      {
+        "t0": 0.0,
+        "t1": 1.95,
+        "k": 5,
+        "ui": {
+          "nm": 12,
+          "bub": 15
+        },
+        "camera": [
+          {
+            "t": 0.0,
+            "x": 280,
+            "y": 212
+          },
+          {
+            "t": 1.95,
+            "x": 284,
+            "y": 206
+          }
+        ]
+      },
+      {
+        "t0": 1.95,
+        "t1": 3.75,
+        "k": 4,
+        "ui": {
+          "nm": 11,
+          "bub": 13
+        },
+        "camera": [
+          {
+            "t": 0.0,
+            "x": 322,
+            "y": 194
+          },
+          {
+            "t": 1.8,
+            "x": 320,
+            "y": 190
+          }
+        ]
+      }
+    ],
+    "seated": [
+      {
+        "seat": "rr-w",
+        "body": "hedgehog",
+        "name": "Pip",
+        "label": false
+      },
+      {
+        "seat": "rr-e",
+        "body": "triceratops",
+        "name": "Rex",
+        "label": false
+      },
+      {
+        "seat": "rl-s",
+        "body": "badger",
+        "name": "Olive",
+        "label": false
+      },
+      {
+        "seat": "long-n1",
+        "body": "fox",
+        "name": "Maple",
+        "label": false
+      },
+      {
+        "seat": "long-n2",
+        "body": "axolotl",
+        "name": "Kiwi",
+        "label": false
+      },
+      {
+        "seat": "long-n3",
+        "body": "capybara",
+        "name": "Tofu",
+        "tag": "Maths · 12 min"
+      },
+      {
+        "seat": "long-s1",
+        "body": "badger",
+        "name": "Hazel",
+        "label": false
+      },
+      {
+        "seat": "long-s3",
+        "body": "axolotl",
+        "name": "Sorrel",
+        "label": false
+      },
+      {
+        "seat": "long-w",
+        "body": "dragon",
+        "name": "Ember",
+        "label": false
+      },
+      {
+        "seat": "long-e",
+        "body": "raccoon",
+        "name": "Nori",
+        "label": false
+      },
+      {
+        "seat": "lounge-l1",
+        "body": "redpanda",
+        "name": "Poppy",
+        "label": false
+      },
+      {
+        "seat": "bA-w",
+        "body": "fox",
+        "name": "Clover",
+        "tag": "English · 22 min"
+      }
+    ],
+    "walkers": [
+      {
+        "name": "Mochi",
+        "body": "axolotl",
+        "seat": "rl-w",
+        "arrive": 1.1
+      },
+      {
+        "name": "Juniper",
+        "body": "fox",
+        "seat": "rl-e",
+        "arrive": 1.25
+      },
+      {
+        "name": "Biscuit",
+        "body": "capybara",
+        "seat": "long-s2",
+        "t": 0.9,
+        "label": false
+      },
+      {
+        "name": "Fig",
+        "body": "badger",
+        "seat": "bA-e",
+        "t": 0.3,
+        "label": false
+      }
+    ],
+    "bubbles": [
+      {
+        "who": "Juniper",
+        "t": 0.3,
+        "ms": 1300,
+        "text": "this one?"
+      },
+      {
+        "who": "Rex",
+        "t": 0.7,
+        "ms": 1500,
+        "text": "page 45 anyone?"
+      },
+      {
+        "who": "Mochi",
+        "t": 1.2,
+        "ms": 1000,
+        "text": "perfect!"
+      },
+      {
+        "who": "Tofu",
+        "t": 2.2,
+        "ms": 1700,
+        "text": "quiz me on moles?"
+      },
+      {
+        "who": "Clover",
+        "t": 3.0,
+        "ms": 1200,
+        "text": "so close!"
+      }
+    ],
+    "vertical": {
+      "shots": [
+        {
+          "t0": 0.0,
+          "t1": 1.95,
+          "k": 5,
+          "ui": {
+            "nm": 12,
+            "bub": 14
+          },
+          "camera": [
+            {
+              "t": 0.0,
+              "x": 290,
+              "y": 200
+            },
+            {
+              "t": 1.95,
+              "x": 294,
+              "y": 196
+            }
+          ]
+        },
+        {
+          "t0": 1.95,
+          "t1": 3.75,
+          "k": 5,
+          "ui": {
+            "nm": 12,
+            "bub": 14
+          },
+          "camera": [
+            {
+              "t": 0.0,
+              "x": 330,
+              "y": 206
+            },
+            {
+              "t": 1.8,
+              "x": 326,
+              "y": 202
+            }
+          ]
+        }
+      ]
+    },
+    "tagFrom": [
+      250,
+      120
+    ]
+  },
+  "captions": [
+    {
+      "t0": 0.2,
+      "t1": 1.95,
+      "text": "a cozy world to study in",
+      "pos": "bottom",
+      "posVertical": "top"
+    },
+    {
+      "t0": 2.75,
+      "t1": 5.65,
+      "text": "study with friends, anywhere",
+      "pos": "top"
+    }
+  ],
+  "fade": {
+    "mode": "flash",
+    "up": [
+      2.0,
+      2.25
+    ],
+    "down": [
+      2.25,
+      2.5
+    ],
+    "color": [
+      255,
+      246,
+      224
+    ],
+    "end": 0.3,
+    "endColor": [
+      36,
+      24,
+      16
+    ]
+  },
+  "grade": {
+    "outdoor": {
+      "grass": {
+        "sat": 0.5215,
+        "val": 0.1286
+      },
+      "gold": {
+        "sat": 0.5743,
+        "val": -0.0236
+      },
+      "orange": {
+        "sat": 0.7407,
+        "val": -0.0303
+      },
+      "other_sat": 0.8331,
+      "lift": 0.1381,
+      "exposure": 1.0073,
+      "gain": [
+        1.018,
+        1.0374,
+        0.9551
+      ],
+      "vignette": 0.08,
+      "strength": 0.75
+    },
+    "indoor": {
+      "grass": {
+        "sat": 1,
+        "val": 0
+      },
+      "gold": {
+        "sat": 1,
+        "val": 0
+      },
+      "orange": {
+        "sat": 1,
+        "val": 0
+      },
+      "other_sat": 1.04,
+      "lift": 0.08,
+      "exposure": 1.07,
+      "gain": [
+        1.05,
+        1.02,
+        0.96
+      ],
+      "vignette": 0.08
+    }
+  },
+  "captionStyle": {
+    "font": "src/components/cosy/PixelifySans-SemiBold.ttf",
+    "px": 10,
+    "scale": 8,
+    "outline": 4,
+    "left": 0.045,
+    "top": 0.05,
+    "bottom": 0.94,
+    "scrim": 0.42
+  },
+  "wordmark": "Plumi",
+  "smooth": {
+    "sigma": 1.3,
+    "unsharp": 95,
+    "radius": 1.8
+  }
+}

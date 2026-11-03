@@ -91,3 +91,21 @@ What is new: shot structure (a medium outdoor shot, a warm-white flash at the do
 shot is k 5 and the wide cafe shot k 4, a cut between whole k values, never a smooth zoom); only side-facing seats are used (`rl-*`, `rr-*`, `long-w/e`, `lounge-*`, `bA-*`); each frame is captured three times
 (the canvas alone, then the name tags and bubbles alone over black and over white, so `grade.py` recovers their colour and alpha), which lets the picture be anti-aliased (`smooth` in the config: a light gaussian
 then an unsharp mask) while the labels stay crisp; chunky captions (4 px outline, soft shadow, a dark gradient scrim); the grade at strength 0.75.
+
+## v4 of the social cut: `social4.mjs` + `social4.json` (use these; `social3.*` is v3)
+
+```bash
+node tools/clip/social4.mjs --aspect both --out DIR                                                  # raw frames (about 6 minutes both shapes)
+python3 tools/clip/grade.py --config tools/clip/social4.json --frames DIR/landscape --out plumi-social-1080p.mp4
+python3 tools/clip/grade.py --config tools/clip/social4.json --frames DIR/vertical   --out plumi-social-vertical.mp4
+```
+
+The same 6.0 s story as v3, with the animals that have DRAWN seated art (fox, capybara, axolotl, badger: `docs/study/library.md` "Characters", `tools/art/animal_sit.py`):
+Mochi is the axolotl and Juniper the fox (the lead pair, at the left round table: two profiles), Olive the badger sits with his back to us at the same table, the capybara and
+the fox, axolotl and badger sit at the long table on its FRONT seats (`long-n1..3`, head tipped down) and BACK seats (`long-s1..3`); the other species (red panda, raccoon, hedgehog,
+triceratops, dragon) walk the plaza outdoors and sit only on side seats indoors (their seated poses are still the stand-in ones). What changed in the recorder:
+the yellow free-seat rings are switched off every frame (`R.noRings`, the engine rebuilds `ringSeats` when the room changes); name tags and bubbles can be staggered (`tagDx`, `tagDy` on a
+walker, `lift` on a bubble, `label: false` on a seated or walking student) so they never cover each other, and only the leads and three students carry a tag; `bots` sets how many town bots
+there are (9); the vertical wide shot's camera is raised so the dark strip below the doors is out of frame; every frame is captured four times (the picture, the same picture with nobody in it
+(`...c.png`: `R.peopleOff`), the labels over black and over white) and `grade.py` smooths only the WORLD (`layered`) and puts the sprites back from the unsmoothed picture, so the
+new fine sprites keep their pixels while the stair steps of the room still soften. A frame with no `c.png` (an old capture) is smoothed whole, as v3.

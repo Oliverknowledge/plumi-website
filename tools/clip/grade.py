@@ -124,6 +124,20 @@ def aa(img, S):
     if S.get("unsharp"): im = im.filter(ImageFilter.UnsharpMask(S.get("radius", 1.6), S["unsharp"], 0))
     return im
 
+def layered(img, base, P, S, nograde=False):
+    """The picture with its sprites crisp: `<frame>c.png` is the same frame with nobody in it. The world (c) is smoothed, and the sprites (every pixel that differs
+    between the two pictures, taken from the graded full frame) are put back unsmoothed, so a stair step in the room softens and a character keeps its pixels.
+    Without a `c.png` (an older capture) the whole picture is smoothed, as in v3."""
+    cp = base + "c.png"
+    if not S or not os.path.exists(cp): return aa(img, S)
+    raw = np.asarray(Image.open(base + ".png").convert("RGB")).astype(np.int16)
+    c_raw = Image.open(cp).convert("RGB")
+    mask = (np.abs(raw - np.asarray(c_raw).astype(np.int16)).sum(-1) > 0)
+    world = c_raw if nograde else grade(c_raw, P)
+    out = np.asarray(aa(world, S)).copy()
+    out[mask] = np.asarray(img)[mask]
+    return Image.fromarray(out)
+
 def add_labels(img, base):
     """The labels (name tags, bubbles) were captured over black and over white: colour and alpha come back from the pair, and go on top unsmoothed."""
     kp, wp = base + "k.png", base + "w.png"
@@ -191,7 +205,7 @@ def main():
             img = Image.open(base + ".png").convert("RGB")
             P = cfg["grade"]["outdoor" if k == "a" else "indoor"]
             if not a.nograde: img = grade(img, P)
-            img = aa(img, cfg.get("smooth"))
+            img = layered(img, base, P, cfg.get("smooth"), a.nograde)
             img = add_labels(img, base)
             out.append((k, img))
         if len(out) == 1: return out[0][1]
