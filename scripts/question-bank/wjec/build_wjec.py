@@ -9,11 +9,12 @@ and tags.json (tag_wjec.py merge). Writes, per bank:
   public/question-bank/<slug>/parts.json    the whole list, fetched by the browser
   public/question-bank/<slug>/text.json     search text, fetched when someone types
   public/question-bank/<slug>/reports.json  examiners' reports
+  public/question-bank/<slug>/year13.json   Further Maths: the A2 units' questions, for the Year filter
 The whole papers it links to are our copies of WJEC's (wjec/WJEC-2420U10-1-QP-JUN23.pdf).
 
 A paper is its unit ("2420u10": AS Unit 1); WJEC sits each unit every summer, so a
 series is "JUN23", shown as WJEC names it, "Summer 2023". The sciences are cut part by
-part, maths a whole question at a time (its reports are then by question).
+part, maths and further maths a whole question at a time (their reports are then by question).
 """
 import json, os, re, sys
 
@@ -33,6 +34,7 @@ BANKS = {  # slug: (spec.json's subject, the bank's subject)
     "wjec-a-level-chemistry": ("chemistry", "Chemistry"),
     "wjec-a-level-physics": ("physics", "Physics"),
     "wjec-a-level-maths": ("maths", "Maths"),
+    "wjec-a-level-further-maths": ("further", "Further Maths"),  # its own work dir, .work/wjec-fm
     "wjec-a-level-business": ("business", "Business"),  # its own work dir, .work/wjec-business
     "wjec-criminology": ("criminology", "Criminology"),  # the Level 3 Applied Diploma, its own work dir, .work/wjec-criminology
 }
@@ -58,7 +60,7 @@ def main():
         wholes.setdefault(f"{f['component'].lower()}-{f['series']}", {})[f["kind"]] = f["r2"]
     out_dir = os.path.join(ROOT, "src", "content", "questionBank")
     for bank, (key, name) in BANKS.items():
-        maths = key == "maths"
+        maths = key in ("maths", "further")
         if key not in spec or not any(subject(p) == key for p in parts):
             continue  # a bank cut in another work dir (Business is its own): leave its files alone
         tree = spec[key]
@@ -83,7 +85,7 @@ def main():
                     reports[p["id"]] = clean_report(p["er"])
                 else:
                     reports.setdefault(f"{p['set']}-{p['question']}", clean_report(p["er"]))
-            if key not in ("maths", "business", "criminology") and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
+            if key not in ("maths", "further", "business", "criminology") and (CALC.search(own) or CALC.search(p.get("msText", "")[:300])):
                 row["calc"] = 1
             rows.append(row)
             text[p["id"]] = (words + " " + re.sub(r"\s+", " ", p.get("msText", ""))).lower()
@@ -107,14 +109,17 @@ def main():
             u = {"b": "2", "d": "4"}.get(c[5], c[5])  # (Criminology's units are lettered: 4543UB0 is Unit 2)
             title = qps[c]["title"].split(":")[-1].strip()  # "Physics Unit 1: Written:Motion, Energy and Matter"
             title = {"The Lang of Chem, Structure of Matter and Simple Reactions": "The Language of Chemistry, Structure of Matter and Simple Reactions"}.get(title, title)
-            papers.append({"id": c, "name": f"{'AS ' if c.startswith('2') else ''}Unit {u}", "title": title, "as": c.startswith("2")})
+            option = {"1305u50": "S", "1305u60": "M"}.get(c)  # (Further Maths: A2 candidates sit Unit 5 or Unit 6)
+            papers.append({"id": c, "name": f"{'AS ' if c.startswith('2') else ''}Unit {u}", "title": title, "as": c.startswith("2"), **({"option": option} if option else {})})
         series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
         years = [int("20" + s[3:]) for s in series]
         meta = {
             "slug": bank, "board": "WJEC", "level": "Level 3" if key == "criminology" else "A-Level", "subject": name,
             **({"fullName": "Applied Diploma in Criminology"} if key == "criminology" else {}), "specs": sorted({c[:4].upper() for c in comps}),
             **({"cropVersion": 1} if name == "Maths" else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
-            "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics, "papers": papers,
+            **({"options": {"label": "A2 option", "list": [{"id": "S", "name": "Further Statistics B (Unit 5)"}, {"id": "M", "name": "Further Mechanics B (Unit 6)"}]},
+                "note": "The AS units are here too, marked AS. At A2 you sit Unit 4 and either Unit 5 or Unit 6: pick yours to see only its papers and topics."} if key == "further" else {}),
+            "sections": [{"code": s["code"], "title": s["title"], **({"option": s["option"]} if s.get("option") else {})} for s in tree["sections"]], "topics": topics, "papers": papers,
             "series": [{"id": s, "label": f"{SEASON[s[:3]]} 20{s[3:]}"} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},
             **({"noCalc": True, "reportsBy": "question"} if maths else {}),
@@ -126,6 +131,8 @@ def main():
         os.makedirs(pub, exist_ok=True)
         for fname, data in (("parts", rows), ("text", text), ("reports", reports)):
             json.dump(data, open(os.path.join(pub, f"{fname}.json"), "w"), ensure_ascii=False, separators=(",", ":"))
+        if key == "further":  # (WJEC's A2 units test only second-year content, as maths_years.py has it for Maths: the Year filter needs no reading)
+            json.dump([r["id"] for r in rows if r["p"].startswith("1")], open(os.path.join(pub, "year13.json"), "w"), separators=(",", ":"))
         print(f"{bank}: {len(rows)} {'questions' if maths else 'parts'}, {sum(1 for r in rows if r['t'])} tagged, "
               f"{len(reports)} reports, papers {[p['id'] for p in papers]}, series {series}", file=sys.stderr)
 
