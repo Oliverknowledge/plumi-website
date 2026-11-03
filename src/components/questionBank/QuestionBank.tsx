@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
-import { inBand, markBands } from "@/lib/markBands";
+import { inType, isChoice, markBands } from "@/lib/markBands";
 import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
 import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
+import { ChoiceQuiz } from "./ChoiceQuiz";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -163,6 +164,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [year13, setYear13] = useState<Set<string> | null>(null);
   const [twins, setTwins] = useState<Map<string, string> | null>(null);
+  const [quiz, setQuiz] = useState(false);
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
   const [withReports, setWithReports] = useState(false);
@@ -263,7 +265,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
     return (!f.part || p.id === f.part) &&
-      (skip === "marks" || !f.marks.length || bands.some(b => f.marks.includes(b.id) && inBand(p.m, b))) &&
+      (skip === "marks" || !f.marks.length || bands.some(b => f.marks.includes(b.id) && inType(p, b))) &&
       (skip === "done" || visible(p)) &&
       (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
       (skip === "papers" || !f.papers.length || f.papers.includes(p.p)) &&
@@ -369,7 +371,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       if (year13 && matches(p, "yr")) bump(c.yr, year13.has(p.id) ? "13" : "12", p);
       // (a paper everyone sits counts under "": it is in every option's list)
       if (subject.options && matches(p, "opt")) bump(c.opt, optionOf.get(p.p) ?? "", p);
-      if (matches(p, "marks")) for (const b of bands) if (inBand(p.m, b)) bump(c.marks, b.id, p);
+      if (matches(p, "marks")) for (const b of bands) if (inType(p, b)) bump(c.marks, b.id, p);
     }
     return c;
   }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf, bands]);
@@ -469,6 +471,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
   const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
+  // The multiple-choice questions in view, in the list's order, for the quiz: offered once the
+  // Multiple choice type is picked, or when everything in view is multiple choice.
+  const choicePool = useMemo(() => (results ? [...new Map(results.flat().filter(isChoice).map(p => [p.id, p])).values()] : []), [results]);
+  const offerQuiz = choicePool.length > 1 && (f.marks.includes("mc") || choicePool.length === results?.flat().length);
+
   function mixUp() {
     update({ sort: "mix", seed: newSeed() });
     track("bank_mixed", { subject: subject.slug, topics: f.topics.length, results: results?.length ?? 0, again: f.sort === "mix" ? 1 : 0 });
@@ -607,7 +614,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
         {bands.length > 0 && (
           <div className="qb-field qb-types" role="group" aria-labelledby="qb-types-label">
-            <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">by the marks it’s worth</span></span>
+            <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">{bands[0]?.choice ? "multiple choice, or by the marks it’s worth" : "by the marks it’s worth"}</span></span>
             <div className="qb-type-chips">
               {bands.map(b => {
                 const on = f.marks.includes(b.id);
@@ -817,6 +824,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
                 <span aria-hidden="true">⤨</span> {f.sort === "mix" ? "Reshuffle" : "Mix them up"}
               </button>
             )}
+            {offerQuiz && (
+              <button type="button" className="lp-btn qb-mix-btn qb-quiz-btn" onClick={() => setQuiz(true)} title="The multiple-choice questions in view, one at a time, marked as you go">
+                <span aria-hidden="true">✓</span> Quiz me
+              </button>
+            )}
           </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
@@ -881,6 +893,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
       <SetTray subject={subject} set={set} parts={parts} />
       <ZoomViewer />
+      {choicePool.length > 1 && <ChoiceQuiz subject={subject} pool={choicePool} open={quiz} onClose={() => setQuiz(false)} />}
     </div>
   );
 }
