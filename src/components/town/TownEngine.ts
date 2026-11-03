@@ -33,7 +33,8 @@ const PATH_CAP = 400;                // points in a walk (x, y pairs: 2 floats e
 const RING_VIEW = 6 * TILE;
 const QUIET_MS = 3000;               // lateness and slow frames are not judged for this long after the page, a tab or the window changed
 
-export interface PlayerArt { img: CanvasImageSource; sy: number; fw: number }
+/** `img2`: the same frames at 2x in each direction (an animal's @2x strip): drawn over the same box when k is an even number, so a pixel of it is k / 2 whole device pixels. */
+export interface PlayerArt { img: CanvasImageSource; sy: number; fw: number; img2?: CanvasImageSource }
 export interface TownEvent { kind: "enter" | "knock" | "sit" | "stand"; id: string; door?: DoorKind }
 export interface TownOptions {
   canvas: HTMLCanvasElement; overlay: HTMLCanvasElement;
@@ -728,8 +729,8 @@ export class TownEngine {
     switch (it.kind) {
       case 1: ctx.drawImage(it.img!, it.sx, it.sy, it.sw, it.sh, it.dx * k - cx, it.dy * k - cy, it.sw * k, it.sh * k); break;
       case 2: {
-        const p = it.p!, fw = p.art.fw;
-        ctx.drawImage(p.art.img, it.f * fw, p.art.sy, fw, 32, Math.round(it.dx * k) - cx, Math.round(it.dy * k) - cy, fw * k, 32 * k);
+        const p = it.p!, fw = p.art.fw, hi = p.art.img2 && k >= 2 && Number.isInteger(k / 2), ps = hi ? 2 : 1;
+        ctx.drawImage(hi ? p.art.img2! : p.art.img, it.f * fw * ps, p.art.sy * ps, fw * ps, 32 * ps, Math.round(it.dx * k) - cx, Math.round(it.dy * k) - cy, fw * k, 32 * k);
         break;
       }
       case 3: ctx.drawImage(this.shadowImg, Math.round(it.dx * k) - cx, Math.round(it.dy * k) - cy, MOVE.shadow.w * k, MOVE.shadow.h * k); break;

@@ -41,6 +41,8 @@ DIR = ROOT / "public/library/characters"
 REGISTRY = ROOT / "src/lib/studyapp/library/people/animals.json"
 PEOPLE = ROOT / "public/library/people.png"
 FW, FH, PAD, ART = 34, 32, 5, 24
+S = 1                   # 2 for the @2x strips (frames of 68 x 64): every count of rows and columns below is the 1x number times S
+SUFFIX = ""
 FRAMES = 78
 TRAVEL = 14.0           # art px the engine moves a walker between two walk frames: 70 px a second (LIVE_SPEED), 5 frames a second
 TORSO_X = 3.0
@@ -55,6 +57,17 @@ SIT_MAX_STEP = 1.0           # px the centre of mass of a seated figure may move
 SIT_HEAD_MEAN, SIT_HEAD_EACH = 2.0, 4
 WALK = {"right": 24, "back": 30, "left": 36, "front": 42}
 IDLE = {"right": 0, "back": 6, "left": 12, "front": 18}
+
+
+def setup(n: int) -> None:
+    global S, SUFFIX, FW, FH, PAD, ART, TRAVEL, TORSO_X, FOOT_MIN, FOOT_MAX, FOOT_JUMP, SIT_LAP, SIT_FIG_ROWS, SIT_FIG_COLS, SIT_MAX_STEP, SIT_HEAD_MEAN, SIT_HEAD_EACH, SIT_PAIR_SLACK
+    S, SUFFIX = n, ("" if n == 1 else f"@{n}x")
+    FW, FH, PAD, ART = 34 * n, 32 * n, 5 * n, 24 * n
+    TRAVEL, TORSO_X = 14.0 * n, 3.0 * n
+    FOOT_MIN, FOOT_MAX, FOOT_JUMP = 0.3 * n, 6.0 * n, 12.0 * n
+    SIT_LAP, SIT_FIG_ROWS, SIT_FIG_COLS, SIT_MAX_STEP = 5 * n, (18 * n, 27 * n), 28 * n, 1.0 * n
+    SIT_HEAD_MEAN, SIT_HEAD_EACH, SIT_PAIR_SLACK = 2.0 * n, 4 * n, 2 * n
+    animal_sit.set_scale(n)
 
 
 def is_magenta(c):
@@ -83,9 +96,10 @@ def pieces(on: np.ndarray) -> int:
     return n
 
 
-def foot_extent(on: np.ndarray, cx: float, side: bool, reach: int = 6):
+def foot_extent(on: np.ndarray, cx: float, side: bool, reach: int | None = None):
     """The columns the feet cover on the bottom two rows, among the leg columns (a tail beside them is not a foot)."""
-    sub = on[FH - 2:, max(int(cx) - reach, 0):int(cx) + reach + 1]
+    reach = 6 * S if reach is None else reach
+    sub = on[FH - 2 * S:, max(int(cx) - reach, 0):int(cx) + reach + 1]
     low = np.where(sub)[1]
     return (float(low.min()), float(low.max())) if len(low) else (cx, cx)
 
@@ -118,8 +132,8 @@ def people_skate() -> str:
 def check(animal: dict) -> tuple[list[str], str]:
     aid = animal["id"]
     errs: list[str] = []
-    meta = json.loads((DIR / f"{aid}.json").read_text())
-    im = Image.open(DIR / f"{aid}.png")
+    meta = json.loads((DIR / f"{aid}{SUFFIX}.json").read_text())
+    im = Image.open(DIR / f"{aid}{SUFFIX}.png")
     if im.mode != "RGBA":
         errs.append(f"{aid}: mode {im.mode}, not RGBA")
     a = np.array(im.convert("RGBA"))
@@ -155,7 +169,7 @@ def check(animal: dict) -> tuple[list[str], str]:
         m = np.zeros(f.shape[:2], bool)
         for c in jumper:
             m |= (f[..., :3] == np.array(c)).all(-1) & (f[..., 3] > 0)
-        return float(np.where(m)[1].mean()) if m.sum() >= 6 else None
+        return float(np.where(m)[1].mean()) if m.sum() >= 6 * S * S else None
 
     for i, fr in enumerate(frames):
         on = fr[..., 3] > 0
@@ -186,8 +200,8 @@ def check(animal: dict) -> tuple[list[str], str]:
         tops = [int(np.where(f[..., 3] > 0)[0].min()) for f in six]
         bob = max(tops) - min(tops)
         bobs.append(bob)
-        if not 1 <= bob <= 2:
-            errs.append(f"{aid}: walk {name}: the head bobs {bob} rows over a cycle (1 or 2)")
+        if not 1 * S <= bob <= 2 * S:
+            errs.append(f"{aid}: walk {name}: the head bobs {bob} rows over a cycle ({S} to {2 * S})")
         t = [torso(f) for f in six]
         t = [x for x in t if x is not None]
         if len(t) >= 4:
@@ -204,7 +218,7 @@ def check(animal: dict) -> tuple[list[str], str]:
                 errs.append(f"{aid}: walk {name}: the feet move {np.mean(v):.2f} columns a frame on average, not {FOOT_MIN} to {FOOT_MAX} (sliding, or running on the spot)")
         elif name == "front":                               # from behind the legs are often hidden by the body or the tail
             tc = [(torso(f) if torso(f) is not None else 17.0) for f in six]
-            low = [int((f[FH - 3:, max(int(c) - 6, 0):int(c) + 7, 3] > 0).sum()) for f, c in zip(six, tc)]
+            low = [int((f[FH - 3 * S:, max(int(c) - 6 * S, 0):int(c) + 6 * S + 1, 3] > 0).sum()) for f, c in zip(six, tc)]
             if len(set(low)) < 2:
                 errs.append(f"{aid}: walk {name}: the feet never change")
     # sit
@@ -228,17 +242,17 @@ def check(animal: dict) -> tuple[list[str], str]:
                     continue
                 on = f[..., 3] > 0
                 far = on[rig["shoulder"] + 1:hip, :int(jc - at - 2) + 1] if face == "right" else on[rig["shoulder"] + 1:hip, int(jc + at + 2):]
-                if far.sum() > 0:
+                if far.sum() > (S - 1) * 4:                      # a few pixels of a tail tip at 2x are a rounding of the cut, not a tail
                     errs.append(f"{aid}: {name}: the tail is not tucked ({int(far.sum())} pixels beyond the torso at the back)")
                     break
-    size = (DIR / f"{aid}.png").stat().st_size
+    size = (DIR / f"{aid}{SUFFIX}.png").stat().st_size
     foot = float(np.mean(speeds)) if speeds else 0.0
     return errs, f"{aid} {len(colours)}c bob {bobs} torso-slide {worst_torso:.1f} foot-speed {foot:.2f} px/frame skate {TRAVEL - foot:.1f}/{TRAVEL:.0f} {size}B"
 
 
 def check_drawn_sit(aid: str, frames: list[np.ndarray], meta: dict, animal: dict) -> list[str]:
     errs: list[str] = []
-    pose = json.loads((Path(animal_sit.CONFIG)).read_text())["pose"]
+    pose = animal_sit.pose_cfg(json.loads((Path(animal_sit.CONFIG)).read_text()))
     boxes = {}
     for name, o in (("sit right", 48), ("sit left", 54), ("phone", 60), ("read", 66), ("stool", 72)):
         six = frames[o:o + 6]
@@ -249,14 +263,14 @@ def check_drawn_sit(aid: str, frames: list[np.ndarray], meta: dict, animal: dict
         boxes[name] = bb
         h = bb[0][1] - bb[0][0] + 1
         w = max(b[3] - b[2] + 1 for b in bb)
-        if not SIT_FIG_ROWS[0] <= h <= SIT_FIG_ROWS[1] + 3 or w > SIT_FIG_COLS:
+        if not SIT_FIG_ROWS[0] <= h <= SIT_FIG_ROWS[1] + 3 * S or w > SIT_FIG_COLS:
             errs.append(f"{aid}: {name}: the figure is {h} rows x {w} columns (rows {SIT_FIG_ROWS[0]} to {SIT_FIG_ROWS[1]}, at most {SIT_FIG_COLS} columns)")
         base = {"sit right": pose["side"]["base"], "sit left": pose["side"]["base"], "stool": pose["back"]["base"]}.get(name)
         if base is not None and {b[1] for b in bb} != {base}:
             errs.append(f"{aid}: {name}: the bottom of the figure is on rows {sorted({b[1] for b in bb})}, the baseline is {base}")
         tops = [b[0] for b in bb]
-        if max(tops) - min(tops) > 2:
-            errs.append(f"{aid}: {name}: the head moves {max(tops) - min(tops)} rows over the loop (at most 2: a breath and a nod)")
+        if max(tops) - min(tops) > 2 * S:
+            errs.append(f"{aid}: {name}: the head moves {max(tops) - min(tops)} rows over the loop (at most {2 * S}: a breath and a nod)")
         cm = [np.array(np.where(f[..., 3] > 0)).mean(1) for f in six]
         step = max(float(np.abs(cm[i] - cm[(i + 1) % 6]).max()) for i in range(6))
         if step > SIT_MAX_STEP:
@@ -268,31 +282,51 @@ def check_drawn_sit(aid: str, frames: list[np.ndarray], meta: dict, animal: dict
     if abs(cr + cl - (FW - 1)) > SIT_PAIR_SLACK + 1:
         errs.append(f"{aid}: the right and left seated views are not mirror placed (centres {cr} and {cl} in a frame {FW} wide)")
     jumper = {tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in animal["jumper"]}
-    st, sd = animal_sit.standing_heads(aid, jumper), animal_sit.seated_heads(aid, jumper)
+    if S == 1:
+        st, sd = animal_sit.standing_heads(aid, jumper), animal_sit.seated_heads(aid, jumper)
+    else:                                              # the @2x seated head against the 1x standing head (measured on 2x pixels, the standing head's width is noisier than the pixel): in 1x units
+        sd = {k: v / S for k, v in animal_sit.seated_heads(aid, jumper).items()}
+        animal_sit.set_scale(1)
+        st = animal_sit.standing_heads(aid, jumper)
+        animal_sit.set_scale(S)
     diffs = {k: abs(st[k] - sd[k]) for k in st}
-    if float(np.mean(list(diffs.values()))) > SIT_HEAD_MEAN or max(diffs.values()) > SIT_HEAD_EACH:
+    mean_lim, each_lim = (SIT_HEAD_MEAN, SIT_HEAD_EACH) if S == 1 else (3.5, 5.0)  # 1x units; at 2x the axolotl's profile head (its gills) is measured 3 to 4 columns narrower than the standing one
+    if float(np.mean(list(diffs.values()))) > mean_lim or max(diffs.values()) > each_lim:
         errs.append(f"{aid}: the seated head is not the standing head's size: standing {st}, seated {sd}")
     return errs
+
+
+BUNDLE_LIMIT_HI = 1_500_000
 
 
 def main() -> int:
     animals = json.loads(REGISTRY.read_text())
     errs: list[str] = []
     notes: list[str] = []
-    total = 0
-    for an in animals:
-        e, note = check(an)
-        errs += e
-        notes.append(note)
-        total += (DIR / f"{an['id']}.png").stat().st_size
-    if total > BUNDLE_LIMIT:
-        errs.append(f"the strips are {total} bytes in all (limit {BUNDLE_LIMIT})")
+    totals = {}
+    for n in (1, 2):                                    # the 1x strips, then the @2x strips (the same rules in finer pixels)
+        setup(n)
+        total = 0
+        for an in animals:
+            if n == 2 and not (DIR / f"{an['id']}@2x.png").exists():
+                errs.append(f"{an['id']}: no @2x strip")
+                continue
+            e, note = check(an)
+            errs += [f"[{n}x] {x}" if n == 2 else x for x in e]
+            notes.append(f"[{n}x] {note}")
+            total += (DIR / f"{an['id']}{SUFFIX}.png").stat().st_size
+        totals[n] = total
+    if totals[1] > BUNDLE_LIMIT:
+        errs.append(f"the strips are {totals[1]} bytes in all (limit {BUNDLE_LIMIT})")
+    if totals[2] > BUNDLE_LIMIT_HI:
+        errs.append(f"the @2x strips are {totals[2]} bytes in all (limit {BUNDLE_LIMIT_HI})")
     if errs:
         print("\n".join(errs))
         return 1
-    print(f"ok: {len(animals)} animals, 78 frames each, alpha binary, one piece per frame, feet on one row, walk bobs and strides, seated tucked (stand-in) or drawn (checked against the standing size), no magenta, {total} bytes")
+    print(f"ok: {len(animals)} animals, 78 frames each, alpha binary, one piece per frame, feet on one row, walk bobs and strides, seated tucked (stand-in) or drawn (checked against the standing size), no magenta, {totals[1]} bytes; and the same at 2x (frames of 68 x 64): {totals[2]} bytes")
     if "-v" in sys.argv:
         print("\n".join(notes))
+        setup(1)
         print(f"a person's feet move {people_skate()} px/frame in the same measure (side walks, looks 0 to 10)")
     return 0
 

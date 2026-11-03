@@ -182,5 +182,7 @@
   "sourceScale": 8.73,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-triceratops.png",
-  "tool": "tools/art/animal_sheet.py"
+  "sitSource": null,
+  "tool": "tools/art/animal_sheet.py",
+  "hires": 1
 }

@@ -79,7 +79,7 @@ export function RoomCanvas({ session, handleRef, onPick, onReady, label, you, ro
         reduced,
         art: room.art,
         look: savedLook(),
-        youSheet: you ? { sheet: you.sheet, phones: you.phones, frameW: you.frame.w } : null,
+        youSheet: you ? { sheet: you.sheet, sheet2: you.sheet2, phones: you.phones, frameW: you.frame.w } : null,
         cls: { nm: "lb-nm", timer: "lb-nm", you: "lb-nm is-you", pop: "lb-pop", tick: "is-tick", ink: "is-ink", who: "lb-who", bub: "lb-bub" },
         live: {
           seats: room.seats,
@@ -100,10 +100,10 @@ export function RoomCanvas({ session, handleRef, onPick, onReady, label, you, ro
           return session.remotes().map((r) => {
             const near = me && r.pos ? (r.pos[0] - me.x) ** 2 + (r.pos[1] - me.y) ** 2 : Number.MAX_SAFE_INTEGER;
             const d = store.row(store.lookOf(r.avatar, r.colour, r.id), true, near);
-            return d ? { ...r, sheet: d.sheet, phones: d.phones, frameW: d.frame.w } : r;
+            return d ? { ...r, sheet: d.sheet, sheet2: d.sheet2, phones: d.phones, frameW: d.frame.w } : r;
           });
         };
-        const dressYou = () => { const d = store.row(lookOfYou(), true, PRIORITY.you); if (d) h.dressYou(d.sheet, d.phones, d.frame.w); };
+        const dressYou = () => { const d = store.row(lookOfYou(), true, PRIORITY.you); if (d) h.dressYou(d.sheet, d.phones, d.frame.w, d.sheet2); };
         redress.current = () => { dressYou(); h.setRemotes(remotes()); };
         offs.push(() => { redress.current = () => {}; });
         offs.push(store.subscribe(() => { dressYou(); h.setRemotes(remotes()); }));

@@ -187,6 +187,7 @@
   "source": "docs/study/art/source/fox-sheet-01.png",
   "sitSource": null,
   "tool": "tools/art/animal_sheet.py",
+  "hires": 1,
   "basePalette": 16,
   "sit": {
     "kind": "drawn",

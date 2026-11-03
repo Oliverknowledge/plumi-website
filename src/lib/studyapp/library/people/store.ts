@@ -1,6 +1,6 @@
 import { artUrl } from "../art";
-import { ANIMAL_H, ANIMAL_ROW_W, ANIMAL_W, composeAnimal, type Box } from "./animal";
-import { animalOf, animalUrl } from "./animals";
+import { ANIMAL_H, ANIMAL_HI_ROW_W, ANIMAL_ROW_W, ANIMAL_W, HI, composeAnimal, composeAnimalHi, type Box } from "./animal";
+import { animalHiUrl, animalOf, animalUrl } from "./animals";
 import { LayerPack } from "./layers";
 import { decodePng, type Bitmap } from "./png";
 import { lookKey, personOf, stableHash, known, type AvatarKeys, type PeopleCatalogue, type PersonLook } from "./look";
@@ -24,7 +24,7 @@ import { FRAME_H, ROW_W, composeRowSteps, layerKeys } from "./sheet";
  * crop `head` out of `sheet` at x = (18 * frame.w) + head.x. For a person the box is the face and hair (the layers'
  * heads are all in the same place); for an animal it is found from the art (ears down to the jumper).
  */
-export interface DrawnPerson { sheet: HTMLCanvasElement; phones: boolean; look: PersonLook; frame: { w: number; h: number }; head: Box }
+export interface DrawnPerson { sheet: HTMLCanvasElement; /** an animal's 78 frames at 2x (animal.ts `HI`), when its @2x strip loaded; the engine draws it at an even zoom */ sheet2?: HTMLCanvasElement; phones: boolean; look: PersonLook; frame: { w: number; h: number }; head: Box }
 
 /** Where a person's head is in a 16 x 32 front frame (every layer has the head at the same place). */
 export const PERSON_FRAME = { w: 16, h: 32 } as const;
@@ -156,22 +156,23 @@ export class PeopleStore {
   private stripFailedAt = new Map<string, number>();
   private building = new Set<string>();
   /** An animal's strip, fetched once (and again after a failure, once in a while). Only the animals that are asked for are ever fetched. */
-  private animalStrip(id: string): Promise<Bitmap | null> {
-    const have = this.strips.get(id);
+  private animalStrip(id: string, hi = false): Promise<Bitmap | null> {
+    const key = hi ? id + "@2x" : id;
+    const have = this.strips.get(key);
     if (have) return have;
-    if (this.now() - (this.stripFailedAt.get(id) ?? -Infinity) < RETRY_AFTER_MS) return Promise.resolve(null);
+    if (this.now() - (this.stripFailedAt.get(key) ?? -Infinity) < RETRY_AFTER_MS) return Promise.resolve(null);
     const p = (async () => {
       try {
-        const r = await this.get(animalUrl(id));
+        const r = await this.get(hi ? animalHiUrl(id) : animalUrl(id));
         if (!r.ok) throw new Error("animal: fetch");
         return await decodePng(new Uint8Array(await r.arrayBuffer()));
       } catch {
-        this.stripFailedAt.set(id, this.now());
-        this.strips.delete(id);
+        this.stripFailedAt.set(key, this.now());
+        this.strips.delete(key);
         return null;
       }
     })();
-    this.strips.set(id, p);
+    this.strips.set(key, p);
     return p;
   }
 
@@ -190,6 +191,17 @@ export class PeopleStore {
       if (!ctx) return null;
       ctx.putImageData(new ImageData(row.rgba as Uint8ClampedArray<ArrayBuffer>, ANIMAL_ROW_W, ANIMAL_H), 0, 0);
       const person: DrawnPerson = { sheet: canvas, phones: false, look, frame: { w: ANIMAL_W, h: ANIMAL_H }, head: row.head };
+      // the 2x strip, if there is one: a missing or broken one leaves the 1x row, which is always enough
+      try {
+        const hiStrip = await this.animalStrip(animal.id, true);
+        const hi = hiStrip ? composeAnimalHi(hiStrip, { graded }) : null;
+        if (hi) {
+          const c2 = document.createElement("canvas");
+          c2.width = ANIMAL_HI_ROW_W; c2.height = ANIMAL_H * HI;
+          const x2 = c2.getContext("2d");
+          if (x2) { x2.putImageData(new ImageData(hi as Uint8ClampedArray<ArrayBuffer>, ANIMAL_HI_ROW_W, ANIMAL_H * HI), 0, 0); person.sheet2 = c2; }
+        }
+      } catch { /* 1x only */ }
       if (this.rows.size >= KEEP_ROWS) this.rows.delete(this.rows.keys().next().value as string);
       this.rows.set(key, person);
       this.changed();

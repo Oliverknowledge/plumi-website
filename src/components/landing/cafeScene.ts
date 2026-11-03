@@ -111,6 +111,7 @@ interface DrawItem {
   img: CanvasImageSource | null;
   x: number; y: number;           // where (a person's or a ring's sprite top left)
   f: number; sy: number;          // a person's frame and the row of their sheet
+  ps: number;                     // library mode: the pixels per art pixel of `img` (1; 2 for an animal's @2x sheet, drawn at k / 2 device px a pixel)
   fx: number; fy: number;         // an animation's frame in its sheet
   outline: boolean;
   shadow: boolean;                // library mode: a soft ground shadow under a person who stands
@@ -144,6 +145,7 @@ interface Person {
   said?: boolean;                 // library mode: whether the server last said they are seated
   sheet?: CanvasImageSource | null; // library mode: this person drawn from their own avatar (1248 x 32, the 78 frames of one people.png row); else the premade `look`
   sheetPhones?: boolean;          // ... and whether they wear headphones (the music notes)
+  sheet2?: CanvasImageSource | null; // library mode: the same 78 frames at 2x (an animal's @2x strip), drawn instead of `sheet` when k is even
   fw?: number;                    // library mode: the width of one frame of `sheet`, when it is not the people's 16 (the fox's is 34); the feet stay under the middle
   moving?: boolean;               // library mode, you: walking under the keys (not along a path)
   stride: number;                 // library mode: seconds this walk has lasted (the walk's own pose clock; 0 while not walking)
@@ -183,7 +185,7 @@ export interface CafeOptions {
   /** Library mode only: the room to mount (its art), when it is not the Grand Library (see `RoomArt`). */
   art?: RoomArt;
   /** Library mode only: you, drawn from your own avatar (see `LiveRemote.sheet`), from the first frame. */
-  youSheet?: { sheet: CanvasImageSource; phones: boolean; frameW?: number } | null;
+  youSheet?: { sheet: CanvasImageSource; sheet2?: CanvasImageSource | null; phones: boolean; frameW?: number } | null;
 }
 export interface CafeHandle {
   destroy(): void;
@@ -203,6 +205,8 @@ export interface LiveRemote {
   id: string; look: number; pos: ArtPoint | null; seat: number | null; path: ArtPoint[]; seated: boolean;
   /** This person drawn from their avatar: one row of people.png's 78 frames (1248 x 32). While it is absent (the layers are loading, or failed) they wear the premade `look`. */
   sheet?: CanvasImageSource | null;
+  /** The same 78 frames at 2x in each direction (an animal's @2x strip): the engine draws it, over the same box, when k is even, and `sheet` otherwise. */
+  sheet2?: CanvasImageSource | null;
   /** Whether that drawn person wears headphones. */
   phones?: boolean;
   /** The width of one frame of `sheet` (default 16, a person's; the fox's is 34). The feet are under the middle of the frame, so the engine's places (all of them the 16 wide sprite's) are unchanged. */
@@ -247,7 +251,7 @@ export interface LibraryHandle extends CafeHandle {
   /** Centre the view on someone until you walk, sit or stand (or `lookAt(null)`); false when they are not in the room. */
   lookAt(id: string | null): boolean;
   /** Draw you as this person (your avatar changed, or the art came late); null goes back to the premade look. */
-  dressYou(sheet: CanvasImageSource | null, phones?: boolean, frameW?: number): void;
+  dressYou(sheet: CanvasImageSource | null, phones?: boolean, frameW?: number, sheet2?: CanvasImageSource | null): void;
   /** Whether you are in a seat. */
   readonly seated: boolean;
 }
@@ -550,7 +554,7 @@ class Cafe implements CafeHandle {
     // the visitor comes in at the entrance and walks up the runner into the reading hall's middle aisle
     const d = L.door, you = this.person(this.look, d.x, d.y, "back");
     you.you = true; you.speed = this.live ? LIVE_SPEED : 36; you.who = "You";
-    if (this.live && this.o.youSheet) { you.sheet = this.o.youSheet.sheet; you.sheetPhones = this.o.youSheet.phones; you.fw = wide(this.o.youSheet.frameW); }
+    if (this.live && this.o.youSheet) { you.sheet = this.o.youSheet.sheet; you.sheet2 = this.o.youSheet.sheet2 ?? null; you.sheetPhones = this.o.youSheet.phones; you.fw = wide(this.o.youSheet.frameW); }
     this.you = you;
     this.people.push(you);
     const inside = this.nearest(d.tile, d.x - 8, d.y - 150) ?? d.tile;
@@ -1092,6 +1096,9 @@ class Cafe implements CafeHandle {
 
   private z(p: Person) { return p.at && p.spot ? p.spot.sort : p.y; }
 
+  /** Whether a 2x sheet may be drawn: only at a whole number of device px per 2x pixel (an even k), so every pixel of it is the same size. */
+  private get hiOk() { return this.k >= 2 && Number.isInteger(this.k / 2); }
+
   private frame(p: Person, tick: number): number {
     const R = this.L.people.rows, d = DIRS.indexOf(p.dir);
     if (p.path.length || p.moving) return R.walk + d * 6 + (this.smooth ? poseSlot(p.stride) % 6 : (Math.floor(tick / 2) + p.phase) % 6);
@@ -1111,7 +1118,7 @@ class Cafe implements CafeHandle {
   private item(z: number, kind: DrawItem["kind"]): DrawItem {
     const pool = this.itemPool;
     let it = pool[this.itemN];
-    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false, shadow: false }; pool.push(it); }
+    if (!it) { it = { z: 0, kind, an: null, pc: null, p: null, img: null, x: 0, y: 0, f: 0, sy: 0, fx: 0, fy: 0, outline: false, shadow: false, ps: 1 }; pool.push(it); }
     this.itemN++;
     it.z = z; it.kind = kind;
     this.items.push(it);
@@ -1184,7 +1191,7 @@ class Cafe implements CafeHandle {
       const x = this.spriteX(p), y = this.spriteY(p), f = this.frame(p, tick);
       if (!this.near(x, y, p.fw ?? 16, 32)) continue;
       const it = this.item(this.z(p) + .01, 3);
-      it.p = p; it.x = x; it.y = y; it.f = f;
+      it.p = p; it.x = x; it.y = y; it.f = f; it.ps = 1;           // the art-grid path draws on a canvas of one pixel per art pixel: 1x only
       it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
       it.outline = p === lit && !p.you;
       it.shadow = this.smooth && this.grounded(p);
@@ -1252,7 +1259,8 @@ class Cafe implements CafeHandle {
       if (walking) motion = true;
       const it = this.item(this.z(p) + .01, 3);
       it.p = p; it.x = x; it.y = y; it.f = this.frame(p, tick);
-      it.img = p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
+      it.ps = p.sheet2 && this.hiOk ? 2 : 1;           // an animal's 2x frames at an even k: the same box, twice the pixels
+      it.img = it.ps === 2 ? p.sheet2! : p.sheet ?? a.people; it.sy = p.sheet ? 0 : p.look * 32;
       it.outline = p === lit && !p.you;
       it.shadow = this.grounded(p);
     }
@@ -1297,7 +1305,7 @@ class Cafe implements CafeHandle {
       case 1: { const an = it.an!; ctx.drawImage(a.anims, it.fx, it.fy, an.w, an.h, an.x, an.y, an.w, an.h); break; }
       case 2: { const pc = it.pc!; ctx.drawImage(a.pieces, pc.ax, pc.ay, pc.w, pc.h, pc.x, pc.y, pc.w, pc.h); break; }
       case 3: {
-        const p = it.p!, img = it.img!, fw = p.fw ?? 16;
+        const p = it.p!, img = it.img!, fw = p.fw ?? 16, ps = it.ps;
         const dx = Math.round(it.x * k) + tx, dy = Math.round(it.y * k) + ty;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         if (it.shadow) {
@@ -1309,11 +1317,11 @@ class Cafe implements CafeHandle {
         }
         if (it.outline) {
           ctx.globalAlpha = 1;
-          const g = this.silhouette(it.f, img, it.sy, fw);
-          for (const [ox, oy] of OUTLINE) ctx.drawImage(g, 0, 0, fw, 32, dx + ox * k, dy + oy * k, fw * k, 32 * k);
+          const g = this.silhouette(it.f, img, it.sy, fw, ps);
+          for (const [ox, oy] of OUTLINE) ctx.drawImage(g, 0, 0, fw * ps, 32 * ps, dx + ox * k, dy + oy * k, fw * k, 32 * k);
         }
         ctx.globalAlpha = p.alpha;
-        ctx.drawImage(img, it.f * fw, it.sy, fw, 32, dx, dy, fw * k, 32 * k);
+        ctx.drawImage(img, it.f * fw * ps, it.sy * ps, fw * ps, 32 * ps, dx, dy, fw * k, 32 * k);
         ctx.globalAlpha = 1;
         ctx.setTransform(k, 0, 0, k, tx, ty);
         break;
@@ -1329,15 +1337,15 @@ class Cafe implements CafeHandle {
   }
 
   /** A person's frame as a white silhouette (in `ghost`). */
-  private silhouette(f: number, img: CanvasImageSource, sy: number, fw: number): HTMLCanvasElement {
-    const g = this.ghost, gc = g.getContext("2d")!;
-    if (g.width !== fw) { g.width = fw; g.height = 32; }
+  private silhouette(f: number, img: CanvasImageSource, sy: number, fw: number, ps = 1): HTMLCanvasElement {
+    const g = this.ghost, gc = g.getContext("2d")!, w = fw * ps, h = 32 * ps;
+    if (g.width !== w) { g.width = w; g.height = h; }
     gc.globalCompositeOperation = "source-over";
-    gc.clearRect(0, 0, fw, 32);
-    gc.drawImage(img, f * fw, sy, fw, 32, 0, 0, fw, 32);
+    gc.clearRect(0, 0, w, h);
+    gc.drawImage(img, f * w, sy * ps, w, h, 0, 0, w, h);
     gc.globalCompositeOperation = "source-in";
     gc.fillStyle = "#fff";
-    gc.fillRect(0, 0, fw, 32);
+    gc.fillRect(0, 0, w, h);
     return g;
   }
 
@@ -1863,10 +1871,10 @@ class Cafe implements CafeHandle {
 
   private youChanged() { this.looking = null; this.live?.onYou?.(); }
 
-  dressYou(sheet: CanvasImageSource | null, phones = false, frameW?: number) {
+  dressYou(sheet: CanvasImageSource | null, phones = false, frameW?: number, sheet2: CanvasImageSource | null = null) {
     const you = this.you;
     if (!you || !this.live) return;
-    you.sheet = sheet; you.sheetPhones = phones; you.fw = sheet ? wide(frameW) : undefined;
+    you.sheet = sheet; you.sheet2 = sheet ? sheet2 : null; you.sheetPhones = phones; you.fw = sheet ? wide(frameW) : undefined;
     this.draw();
   }
 
@@ -1995,7 +2003,7 @@ class Cafe implements CafeHandle {
         this.people.push(p);
       }
       p.look = r.look;
-      p.sheet = r.sheet ?? null; p.sheetPhones = r.phones ?? false; p.fw = r.sheet ? wide(r.frameW) : undefined;
+      p.sheet = r.sheet ?? null; p.sheet2 = r.sheet ? r.sheet2 ?? null : null; p.sheetPhones = r.phones ?? false; p.fw = r.sheet ? wide(r.frameW) : undefined;
       this.place_(p, r);
     }
     for (const [id, p] of [...this.remotes]) {

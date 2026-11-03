@@ -178,5 +178,7 @@
   "sourceScale": 8.1,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-raccoon.png",
-  "tool": "tools/art/animal_sheet.py"
+  "sitSource": null,
+  "tool": "tools/art/animal_sheet.py",
+  "hires": 1
 }

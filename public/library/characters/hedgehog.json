@@ -177,5 +177,7 @@
   "sourceScale": 8.06,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-hedgehog.png",
-  "tool": "tools/art/animal_sheet.py"
+  "sitSource": null,
+  "tool": "tools/art/animal_sheet.py",
+  "hires": 1
 }

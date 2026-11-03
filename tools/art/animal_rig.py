@@ -27,6 +27,7 @@ from __future__ import annotations
 import numpy as np
 
 W, H = 24, 32
+S = 1                                                 # the resolution: 1 is the engine's art pixel, 2 a frame of 48 x 64 (set_scale); every length below is in art pixels x S
 DIR_DOWN, DIR_LEFT, DIR_UP, DIR_RIGHT = 0, 1, 2, 3
 # the walk's pattern per frame
 STRIDE = (2, 1, 0, 2, 1, 0)
@@ -43,6 +44,23 @@ FORWARD = 3                                           # how far the folded near 
 STOOL_CUT = (4, 24)                                   # the rows a person's stool frames keep (rows 4 to 23)
 
 Frame = np.ndarray
+_BASE = {k: globals()[k] for k in ("BOB", "LIFT_A", "LIFT_B", "SWISH", "BREATH", "SIT_BREATH", "SIT_NOD")}
+_BASE_INT = {"SIT_DROP": SIT_DROP, "SIT_BACK": SIT_BACK, "FORWARD": FORWARD, "PAD": 5}
+_BASE_CUT = STOOL_CUT
+
+
+def set_scale(n: int) -> None:
+    """Works at `n` times the engine's resolution (a 2x strip: frames of 68 x 64, the art 48 x 64): the frame, every row and column count of the motion and the poses scale by n,
+    the pattern of the frames does not (the same bob, stride and breath, in finer pixels)."""
+    global W, H, S, PAD, FRAME_W, SIT_DROP, SIT_BACK, FORWARD, STOOL_CUT
+    S = n
+    W, H = 24 * n, 32 * n
+    for k, v in _BASE.items():
+        globals()[k] = tuple(x * n for x in v)
+    SIT_DROP, SIT_BACK, FORWARD = (_BASE_INT[k] * n for k in ("SIT_DROP", "SIT_BACK", "FORWARD"))
+    PAD = _BASE_INT["PAD"] * n
+    FRAME_W = W + 2 * PAD
+    STOOL_CUT = (_BASE_CUT[0] * n, _BASE_CUT[1] * n)
 
 
 def on(f: Frame) -> np.ndarray:
@@ -108,6 +126,49 @@ def drop_specks(f: Frame) -> Frame:
     return f
 
 
+def join_pieces(f: Frame, min_px: int = 1) -> Frame:
+    """Finer pixels leave a leg of a sheared walk frame a pixel off the body: every piece of at least `min_px` pixels is joined to the biggest by the shortest straight run of
+    its own colour between them (a speck is still dropped)."""
+    a = on(f)
+    lab = np.zeros(a.shape, int)
+    n = 0
+    for y0, x0 in zip(*np.where(a)):
+        if lab[y0, x0]:
+            continue
+        n += 1
+        st = [(y0, x0)]
+        lab[y0, x0] = n
+        while st:
+            y, x = st.pop()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < H and 0 <= xx < W and a[yy, xx] and not lab[yy, xx]:
+                        lab[yy, xx] = n
+                        st.append((yy, xx))
+    if n <= 1:
+        return f
+    sizes = np.bincount(lab.ravel())[1:]
+    big = int(sizes.argmax()) + 1
+    mp = np.array(np.where(lab == big)).T
+    for k in range(1, n + 1):
+        if k == big:
+            continue
+        if sizes[k - 1] < min_px:
+            f[lab == k] = 0
+            continue
+        pp = np.array(np.where(lab == k)).T
+        d = ((pp[:, None, :] - mp[None]) ** 2).sum(-1)
+        i, j = np.unravel_index(d.argmin(), d.shape)
+        (y0, x0), (y1, x1) = pp[i], mp[j]
+        steps = max(abs(y1 - y0), abs(x1 - x0))
+        for t in range(1, steps):
+            yy, xx = int(round(y0 + (y1 - y0) * t / steps)), int(round(x0 + (x1 - x0) * t / steps))
+            if not on(f)[yy, xx]:
+                f[yy, xx] = f[y0, x0]
+    return f
+
+
 def breathe(f: Frame, seam: int, up: int) -> Frame:
     if not up:
         return f.copy()
@@ -145,7 +206,7 @@ def neck_row(f: Frame, jumper: set[tuple[int, int, int]]) -> int:
     key = [r * 65536 + g * 256 + b for r, g, b in jumper]
     m = on(f) & np.isin(f[..., 0].astype(int) * 65536 + f[..., 1].astype(int) * 256 + f[..., 2], key)
     ys = np.where(m.any(1))[0]
-    return int(ys.min()) if len(ys) else 16
+    return int(ys.min()) if len(ys) else 16 * S
 
 
 def swish(f: Frame, d: int, cx: int, tail: dict, k: int) -> Frame:
@@ -215,7 +276,10 @@ def walk_frame(canon: Frame, d: int, k: int, cx: int, an, ol) -> Frame:
             row = blank()
             row[hip + r] = half[hip + r]
             paste(out, row, off, up)
-    return reoutline(drop_specks(out), ol)
+    low = np.where(on(out).any(1))[0]
+    if len(low) and low.max() < H - 1 and H - 1 - low.max() <= S:       # a frame whose grounded leg came out a row short (finer pixels): the feet go down to the baseline
+        out = shift_rows_down(out, H - 1 - int(low.max()))
+    return reoutline(join_pieces(out) if S > 1 else drop_specks(out), ol)
 
 
 def idle_frame(canon: Frame, d: int, k: int, cx: int, an, ol, neck: int) -> Frame:
@@ -235,7 +299,7 @@ def blink(f: Frame, neck: int) -> Frame:
     inside = a & p[:-2, 1:-1] & p[2:, 1:-1] & p[1:-1, :-2] & p[1:-1, 2:]
     dark = inside & (lum < 150)
     dark[neck:] = False
-    dark[:5] = False
+    dark[:5 * S] = False
     for y in range(H - 1):
         for x in range(W):
             if dark[y, x] and dark[y + 1, x] and not (y > 0 and dark[y - 1, x]):
@@ -281,8 +345,8 @@ def shift_rows_down(f: Frame, n: int) -> Frame:
 def nod(f: Frame, neck: int) -> Frame:
     """The head (every row above the neck) one row lower, the neck row repeated."""
     out = f.copy()
-    out[1:neck] = f[: neck - 1]
-    out[0] = 0
+    out[S:neck] = f[: neck - S]
+    out[:S] = 0
     return out
 
 
@@ -316,7 +380,7 @@ def standing(frames6: list[Frame]) -> int:
     """The frame of a direction whose feet are together: the narrowest bottom eight rows. The first wins a tie."""
     best, bw = 0, 1 << 30
     for i, f in enumerate(frames6):
-        xs = np.where(on(f[H - 8:]).any(0))[0]
+        xs = np.where(on(f[H - 8 * S:]).any(0))[0]
         w = int(xs.max() - xs.min()) if len(xs) else 1 << 29
         if w < bw:
             best, bw = i, w

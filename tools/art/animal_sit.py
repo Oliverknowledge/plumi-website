@@ -50,6 +50,7 @@ FW, FH, PAD = 34, 32, 5
 POSE_AT = {"sit right": 48, "sit left": 54, "phone": 60, "read": 66, "stool": 72}
 MAX_COLOURS = 24
 JUMPER_DE = 20.0
+MERGE_DE_HI = 11.0           # finer pixels keep more of the shading
 MERGE_DE = 16.0              # palette entries this close (Lab) are one colour in a seated frame
 MAG_SCORE = 100              # min(r, b) - g above this, with r and b alike, is the background (#FF00FF through lossy compression)
 OUTLINE_BAND = 6             # source px from the edge that are the drawn outline (not sampled for colour: the ring is redrawn)
@@ -65,6 +66,24 @@ FEATURE_SHARE = 0.24         # ... when it holds this share of the cell (half of
 BREATH = (0, 0, 1, 1, 0, 0)
 NOD = (0, 0, 0, 0, 0, 1)
 STROKE = (0, 1, 0, 1, 0, 0)
+S = 1                        # the resolution (1: the engine's art pixel; 2: strips of 68 x 64 frames written as <id>@2x.png)
+SUFFIX = ""
+_LOOP = (BREATH, NOD, STROKE)
+
+
+def set_scale(n: int) -> None:
+    """Works at n times the resolution: the frame, the poses' rows and columns and the loop's steps scale by n; the source px per art pixel is divided by n."""
+    global S, SUFFIX, FW, FH, PAD, BREATH, NOD, STROKE
+    S, SUFFIX = n, ("" if n == 1 else f"@{n}x")
+    FW, FH, PAD = 34 * n, 32 * n, 5 * n
+    BREATH, NOD, STROKE = (tuple(x * n for x in t) for t in _LOOP)
+    sheet.FRAME_H, sheet.SUFFIX, sheet.HI = 32 * n, SUFFIX, n          # animal_sheet may be this process's other copy of the module (run as a script): its preview reads these
+    sheet.rig.set_scale(n)
+
+
+def pose_cfg(c: dict) -> dict:
+    """The config's pose numbers (written for 1x) at the current resolution."""
+    return {k: {kk: (vv * S if isinstance(vv, (int, float)) and kk in ("base", "torso", "neck", "cx", "cut") else vv) for kk, vv in v.items()} for k, v in c["pose"].items() if k != "_doc"}
 Frame = np.ndarray
 
 
@@ -363,8 +382,8 @@ def lift(f: Frame, seam: int, up: int) -> Frame:
 def nod(f: Frame, neck: int) -> Frame:
     """The head (every row above `neck`) one row lower; the neck row repeats."""
     out = f.copy()
-    out[1:neck] = f[: neck - 1]
-    out[0] = 0
+    out[S:neck] = f[: neck - S]
+    out[:S] = 0
     return out
 
 
@@ -430,7 +449,7 @@ def loop(fig: Frame, face: str, base: int, x0: int, ol, jumper, paw: bool) -> li
     neck = neck_row(f0, jumper)
     for k in range(6):
         f = stroke(f0, face, STROKE[k]) if paw else f0.copy()
-        f = lift(f, base - 3, BREATH[k])
+        f = lift(f, base - 3 * S, BREATH[k])
         if NOD[k]:
             f = nod(f, neck)
         frames.append(one_piece(reoutline(f, ol)))
@@ -455,7 +474,7 @@ def sprites_for(sh: dict) -> dict[str, dict[str, tuple[Sprite, np.ndarray]]]:
 def build_animal(an_id: str, sprites: dict[str, Sprite], c: dict) -> dict:
     """The 30 seated frames of an animal (sit right 6, sit left 6, phone 6, read 6, stool 6) and the palette they use."""
     global SAMPLES_RGB
-    meta = json.loads((OUT_DIR / f"{an_id}.json").read_text())
+    meta = json.loads((OUT_DIR / f"{an_id}{SUFFIX}.json").read_text())
     base_pal = np.array([hex_rgb(h) for h in meta["palette"][: meta.get("basePalette", len(meta["palette"]))]], np.uint8)
     reg = {a["id"]: a for a in json.loads(sheet.REGISTRY.read_text())}[an_id]
     jumper = {hex_rgb(h) for h in reg["jumper"]}
@@ -472,10 +491,10 @@ def build_animal(an_id: str, sprites: dict[str, Sprite], c: dict) -> dict:
     use = np.zeros(len(pal))
     for sp in sprites.values():
         use += np.bincount(((sp.lab[sp.mask & (sp.depth > 2)][:, None, :] - lpa) ** 2).sum(-1).argmin(-1), minlength=len(pal))
-    rep = reps_of(pal, use, ac.get("merge", MERGE_DE))
-    grids = {face: to_grid(sp, pal, ac["scale"], ac.get("dark", 1.8), jidx, fur, rep, ac.get("feature", FEATURE_SHARE)) for face, sp in sprites.items()}
+    rep = reps_of(pal, use, ac.get("merge", MERGE_DE if S == 1 else MERGE_DE_HI))
+    grids = {face: to_grid(sp, pal, ac["scale"] / S, ac.get("dark", 1.8), jidx, fur, rep, ac.get("feature", FEATURE_SHARE)) for face, sp in sprites.items()}
     ol = tuple(int(v) for v in pal[0])
-    P = c["pose"]
+    P = pose_cfg(c)
     fig = {face: rgba(g, pal) for face, g in grids.items()}
     sh, fr, bk = P["side"], P["front"], P["back"]
     # the side views: the torso on the same column for the pair, mirrored about the frame's middle (the left view is the right's reflection in placing, not in art)
@@ -491,22 +510,22 @@ def build_animal(an_id: str, sprites: dict[str, Sprite], c: dict) -> dict:
 
 
 def splice(an_id: str, built: dict, sh: dict) -> None:
-    png = OUT_DIR / f"{an_id}.png"
+    png = OUT_DIR / f"{an_id}{SUFFIX}.png"
     strip = np.array(Image.open(png).convert("RGBA"))
     old = strip.copy()
     for i, f in enumerate(built["frames"]):
         strip[:, (48 + i) * FW:(49 + i) * FW] = f
     assert (strip[:, : 48 * FW] == old[:, : 48 * FW]).all(), "idle and walk must not change"
     Image.fromarray(strip, "RGBA").save(png, optimize=True)
-    meta = json.loads((OUT_DIR / f"{an_id}.json").read_text())
+    meta = json.loads((OUT_DIR / f"{an_id}{SUFFIX}.json").read_text())
     base_n = meta.get("basePalette", len(meta["palette"]))
     meta["basePalette"] = base_n
     meta["palette"] = meta["palette"][:base_n] + [to_hex(c) for c in built["pal"][base_n:]]
-    meta["sit"] = {"kind": "drawn", "source": sh["source"], "scale": json.loads(CONFIG.read_text())["animals"][an_id]["scale"],
+    meta["sit"] = {"kind": "drawn", "source": sh["source"], "scale": json.loads(CONFIG.read_text())["animals"][an_id]["scale"] / S,
                    "poses": {"sit right": "right", "sit left": "left", "phone": "front", "read": "front", "stool": "back"},
                    "loop": "breath, nod and pen stroke synthesised from the one drawn pose (animal_sit.py)", "tool": "tools/art/animal_sit.py"}
-    (OUT_DIR / f"{an_id}.json").write_text(json.dumps(meta, indent=2) + "\n")
-    sheet.preview(strip, PREVIEW_DIR / f"{an_id}-8x.png")
+    (OUT_DIR / f"{an_id}{SUFFIX}.json").write_text(json.dumps(meta, indent=2) + "\n")
+    sheet.preview(strip, PREVIEW_DIR / (f"{an_id}-8x.png" if S == 1 else f"{an_id}{SUFFIX}-4x.png"), zoom=6 if S == 1 else 4)
 
 
 def head_width(f: Frame, jumper: set[tuple[int, int, int]]) -> int:
@@ -521,12 +540,12 @@ FACE_OF = {"sit right": ("right", 0), "sit left": ("left", 12), "front": ("front
 
 
 def standing_heads(an_id: str, jumper) -> dict[str, int]:
-    strip = np.array(Image.open(OUT_DIR / f"{an_id}.png").convert("RGBA"))
+    strip = np.array(Image.open(OUT_DIR / f"{an_id}{SUFFIX}.png").convert("RGBA"))
     return {k: head_width(strip[:, i * FW:(i + 1) * FW], jumper) for k, (_, i) in FACE_OF.items()}
 
 
 def seated_heads(an_id: str, jumper) -> dict[str, int]:
-    strip = np.array(Image.open(OUT_DIR / f"{an_id}.png").convert("RGBA"))
+    strip = np.array(Image.open(OUT_DIR / f"{an_id}{SUFFIX}.png").convert("RGBA"))
     first = {"sit right": 48, "sit left": 54, "front": 66, "back": 72}
     return {k: head_width(strip[:, i * FW:(i + 1) * FW], jumper) for k, i in first.items()}
 
@@ -585,7 +604,7 @@ def detail(out: Path, sheet_no: int = 1) -> None:
     print(f"wrote {out / 'seated-engine-vs-2x.png'} (per animal: the engine's scale above, 2x detail below)")
 
 
-def apply(ids: list[str] | None = None, sheet_no: int = 1, dry: str | None = None) -> list[str]:
+def apply(ids: list[str] | None = None, sheet_no: int = 1, dry: str | None = None, hires: int = 1) -> list[str]:
     """Splices the seated frames of every animal of the sheet (or of `ids`) into its strip; returns the ids done. animal_sheet.py calls this after it has
     rebuilt a strip, so a rebuilt animal keeps its drawn seated frames."""
     c = cfg()
@@ -593,6 +612,7 @@ def apply(ids: list[str] | None = None, sheet_no: int = 1, dry: str | None = Non
     todo = [i for i in sh["rows"] if not ids or i in ids]
     if not todo:
         return []
+    set_scale(hires)
     sp = sprites_for(sh)
     for an_id in todo:
         built = build_animal(an_id, sp[an_id], c)
@@ -619,6 +639,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--id", action="append")
     ap.add_argument("--sheet", type=int, default=1)
     ap.add_argument("--measure", action="store_true", help="print the head widths of the standing and the seated frames at several scales")
+    ap.add_argument("--hires", type=int, default=1, help="write the seated frames of the <id>@Nx.png strips (animal_sheet.py --hires N builds them first)")
     ap.add_argument("--detail", metavar="DIR", help="write a comparison of the seated poses at the engine scale and at 2x detail into DIR (not used by the engine)")
     ap.add_argument("--dry", metavar="DIR", help="write only previews of the 30 seated frames per animal into DIR (the strips are not changed)")
     a = ap.parse_args(argv)
@@ -633,7 +654,7 @@ def main(argv: list[str]) -> int:
         sh = c["sheets"][a.sheet - 1]
         measure(c, sh, sprites_for(sh))
         return 0
-    apply(a.id, a.sheet, a.dry)
+    apply(a.id, a.sheet, a.dry, a.hires)
     return 0
 
 

@@ -91,3 +91,25 @@ export function composeAnimal(strip: Bitmap, animal: Animal, opts: { graded?: bo
   }
   return { rgba: out, head: headBox(stripFrame(strip, 18), jumperOf(animal.jumper)) };
 }
+
+/**
+ * THE 2x STRIP (public/library/characters/<id>@2x.png, tools/art/animal_sheet.py --hires 2 and animal_sit.py --hires 2): the same 78 frames in the same order, each
+ * `HI` times the pixels in both directions (68 x 64), made from the same ChatGPT art at about 4 source px per pixel instead of 8. The engine draws a frame of it over exactly the
+ * box a 1x frame covers (so the anchors, feet, z order, occlusion, shadow and labels are the 1x strip's), at k / HI device px per pixel, and only when that is a whole number
+ * (an even k): at an odd k it keeps the 1x strip. Nothing else is different: the grade is the same.
+ */
+export const HI = 2;
+export const ANIMAL_HI_ROW_W = ANIMAL_ROW_W * HI;
+
+/** The 2x strip decoded from <id>@2x.png, read for what it is: 78 frames of (34 x 2) x (32 x 2). */
+export function validHiStrip(strip: Bitmap): boolean {
+  return strip.width === ANIMAL_HI_ROW_W && strip.height === ANIMAL_H * HI && strip.rgba.length === strip.width * strip.height * 4;
+}
+
+/** An animal's 78 frames at 2x, graded like the 1x row (the same grade, per pixel), or null if the strip is not the one expected. */
+export function composeAnimalHi(strip: Bitmap, opts: { graded?: boolean } = {}): Uint8ClampedArray | null {
+  if (!validHiStrip(strip)) return null;
+  const out = new Uint8ClampedArray(strip.rgba);
+  if (opts.graded !== false) grade(out);
+  return out;
+}

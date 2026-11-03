@@ -68,7 +68,7 @@ function Stage({ q }: { q: URLSearchParams }) {
       const look: PersonLook | null = ANIMAL_IDS.includes(body) ? { ...STARTER, species: body } : await store.ready().then(() => store.lookOf(null, 0, "town-you"));
       if (look && !dead) {
         const drawn = await store.make(look);
-        if (drawn && !dead) { art.current = { img: drawn.sheet, sy: 0, fw: drawn.frame.w }; live.current?.setYou(art.current); }
+        if (drawn && !dead) { art.current = { img: drawn.sheet, img2: drawn.sheet2, sy: 0, fw: drawn.frame.w }; live.current?.setYou(art.current); }
       }
       if ("requestIdleCallback" in window) (window as unknown as { requestIdleCallback: (f: () => void) => void }).requestIdleCallback(preloadInterior); else setTimeout(preloadInterior, 1500);
     })().catch(() => { /* the page shows an empty field; nothing to tell a student on a dev page */ });

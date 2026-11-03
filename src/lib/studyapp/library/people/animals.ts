@@ -31,3 +31,5 @@ export const ANIMAL_IDS: readonly string[] = ANIMALS.map((a) => a.id);
 export const animalOf = (id: string | null | undefined): Animal | null => (typeof id === "string" ? ANIMALS.find((a) => a.id === id) ?? null : null);
 /** Where an animal's strip is. */
 export const animalUrl = (id: string) => `/library/characters/${id}.png`;
+/** The same animal at 2x (see animal.ts `HI`). */
+export const animalHiUrl = (id: string) => `/library/characters/${id}@2x.png`;

@@ -185,7 +185,9 @@
   "sourceScale": 8.43,
   "method": "vote",
   "source": "docs/study/art/source/animal-sheet-badger.png",
+  "sitSource": null,
   "tool": "tools/art/animal_sheet.py",
+  "hires": 1,
   "basePalette": 20,
   "sit": {
     "kind": "drawn",

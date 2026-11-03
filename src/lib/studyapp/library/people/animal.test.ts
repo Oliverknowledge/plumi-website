@@ -9,8 +9,8 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { ANIMAL_H, ANIMAL_ROW_W, ANIMAL_W, ART_W, PAD, composeAnimal, headBox, jumperOf, stripFrame, torsoX, validStrip } from "./animal";
-import { ANIMALS, animalUrl, type Animal } from "./animals";
+import { ANIMAL_H, ANIMAL_HI_ROW_W, ANIMAL_ROW_W, ANIMAL_W, ART_W, HI, PAD, composeAnimal, composeAnimalHi, headBox, jumperOf, stripFrame, torsoX, validHiStrip, validStrip } from "./animal";
+import { ANIMALS, animalHiUrl, animalUrl, type Animal } from "./animals";
 import { decodePng, type Bitmap } from "./png";
 import { FRAMES, POSE } from "./sheet";
 
@@ -193,6 +193,29 @@ for (const animal of ANIMALS) {
       assert.deepEqual(h, headBox(stripFrame(s, 18), jumper));
       assert.ok(h.w >= 12 && h.w <= ART_W && h.h >= 8 && h.h <= 17, JSON.stringify(h));
       assert.ok(h.x >= PAD && h.x + h.w <= ANIMAL_W - PAD && h.y >= 0 && h.y + h.h < ANIMAL_H, JSON.stringify(h));
+    });
+    it("has a 2x strip (the same 78 frames, twice the pixels each way) that the engine draws over the same box at an even zoom: same size class, binary alpha, feet on the last row, the same seated baseline", async () => {
+      assert.equal(animalHiUrl(animal.id), `/library/characters/${animal.id}@2x.png`);
+      const hi = decodePng(new Uint8Array(readFileSync(file(`characters/${animal.id}@2x.png`))));
+      const s2 = await hi;
+      assert.equal(validHiStrip(s2), true);
+      assert.equal(s2.width, ANIMAL_HI_ROW_W);
+      assert.equal(s2.height, ANIMAL_H * HI);
+      assert.equal(validHiStrip({ ...s2, width: s2.width - 1 }), false);
+      for (let i = 3; i < s2.rgba.length; i += 4) assert.ok(s2.rgba[i] === 0 || s2.rgba[i] === 255);
+      const graded = composeAnimalHi(s2)!;
+      assert.equal(graded.length, s2.rgba.length);
+      assert.equal(composeAnimalHi({ ...s2, height: 1 }), null);
+      const W2 = ANIMAL_W * HI, H2 = ANIMAL_H * HI;
+      const frame2 = (n: number) => { const f = new Uint8Array(W2 * H2 * 4); for (let y = 0; y < H2; y++) f.set(s2.rgba.subarray((y * ANIMAL_HI_ROW_W + n * W2) * 4, (y * ANIMAL_HI_ROW_W + (n + 1) * W2) * 4), y * W2 * 4); return f; };
+      const lowest = (f: Uint8Array) => { for (let y = H2 - 1; y >= 0; y--) for (let x = 0; x < W2; x++) if (f[(y * W2 + x) * 4 + 3]) return y; return -1; };
+      const s1 = await strip();
+      for (let n = 0; n < POSE.sit; n++) assert.equal(lowest(frame2(n)), H2 - 1, `frame ${n}: feet on the last row`);
+      // a frame at 2x covers about the box of the 1x frame: its lowest row is the 1x one's (x2, within 2 rows) in every pose
+      for (const n of [0, 6, 24, 30, 36, 42, POSE.sit, POSE.sit + 6, POSE.read, POSE.stool]) {
+        const l1 = bottom(stripFrame(s1, n));
+        assert.ok(Math.abs(lowest(frame2(n)) - (2 * l1 + 1)) <= (animal.seated === "drawn" || n < POSE.sit ? 3 : 7), `frame ${n}: bottom ${lowest(frame2(n))} against 2 x ${l1}`);   // a stand-in seated pose is made by the rig, whose fold of the near leg rounds differently at 2x
+      }
     });
     it("refuses a strip that is not the animal's", async () => {
       const s = await strip();

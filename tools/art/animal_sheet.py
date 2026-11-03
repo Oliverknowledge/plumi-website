@@ -60,6 +60,8 @@ PREVIEW_DIR = ROOT / "docs/study/art/animals"
 REGISTRY = ROOT / "src/lib/studyapp/library/people/animals.json"
 
 FRAME_W, FRAME_H = 24, 32
+HI = 1                                      # the resolution of this run (--hires 2: frames of 48 x 64 art, 68 x 64 in the engine strip, written as <id>@2x.png)
+SUFFIX = ""
 DIRS = ("down", "left", "up", "right")     # the sheet's rows
 COLS = 6                                    # walk frames per direction
 FRAMES = len(DIRS) * COLS
@@ -320,9 +322,10 @@ def cells(x0: float, y0: float, scale: float, w: int, h: int) -> list[list[tuple
 
 
 def downsample(fg: np.ndarray, idx: np.ndarray, pure: np.ndarray, weights: np.ndarray, st: dict, method: str,
-               lab_img: np.ndarray, lab_pal: np.ndarray, outline_idx: int, scale: float, fur: tuple[int, ...], baseline: int = BASELINE) -> np.ndarray:
+               lab_img: np.ndarray, lab_pal: np.ndarray, outline_idx: int, scale: float, fur: tuple[int, ...], baseline: int | None = None) -> np.ndarray:
     """One frame: an (FRAME_H, FRAME_W) int array of palette indices, -1 transparent."""
     # the frame's left edge: the anchor on the centre column, but never so far that the sprite is cut by the frame
+    baseline = FRAME_H if baseline is None else baseline
     x0 = st["ax"] - FRAME_W / 2 * scale
     x0 = min(max(x0, st["right"] - FRAME_W * scale), st["left"])
     y0 = st["bottom"] - baseline * scale
@@ -560,9 +563,10 @@ def emit(result: dict) -> None:
     an: Animal = result["animal"]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     strip = strip_of(result)
-    Image.fromarray(strip, "RGBA").save(OUT_DIR / f"{an.id}.png", optimize=True)
+    Image.fromarray(strip, "RGBA").save(OUT_DIR / f"{an.id}{SUFFIX}.png", optimize=True)
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(sheet_strip(result), "RGBA").save(PREVIEW_DIR / f"{an.id}-sheet.png", optimize=True)
+    if HI == 1:
+        Image.fromarray(sheet_strip(result), "RGBA").save(PREVIEW_DIR / f"{an.id}-sheet.png", optimize=True)
     pal = result["palette"]
     # the anchor: the frame column the anchor sits on, and the row of the feet
     meta = {
@@ -588,9 +592,10 @@ def emit(result: dict) -> None:
         "sitSource": f"docs/study/art/source/animal-sit-{an.id}.png" if result.get("sit") else None,
         "tool": "tools/art/animal_sheet.py",
     }
-    (OUT_DIR / f"{an.id}.json").write_text(json.dumps(meta, indent=2) + "\n")
+    meta["hires"] = HI
+    (OUT_DIR / f"{an.id}{SUFFIX}.json").write_text(json.dumps(meta, indent=2) + "\n")
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    preview(strip, PREVIEW_DIR / f"{an.id}-8x.png")
+    preview(strip, PREVIEW_DIR / (f"{an.id}-8x.png" if HI == 1 else f"{an.id}{SUFFIX}-4x.png"), zoom=6 if HI == 1 else 4)
 
 
 def write_registry() -> None:
@@ -624,6 +629,7 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--ingest", nargs=2, metavar=("ID", "FILE"), help="convert a raw sheet to the source PNG and stop")
     ap.add_argument("--ingest-sit", nargs=2, metavar=("ID", "FILE"), help="convert a raw SEATED sheet (docs/study/art/chatgpt-animal-sit-prompts.md) to docs/study/art/source/animal-sit-<id>.png and stop")
     ap.add_argument("--set", metavar="JSON", help="override fields of the chosen animals for this run only (exploring): --set '{\"dark\": 20}'")
+    ap.add_argument("--hires", type=int, default=1, help="work at N times the resolution and write <id>@Nx.png (frames of 34N x 32N); the 1x strips stay the fallback")
     ap.add_argument("--out", metavar="DIR", help="write the strips and previews into DIR instead of the game's folders (for trying settings)")
     a = ap.parse_args(argv)
     if a.ingest:
@@ -639,6 +645,15 @@ def main(argv: list[str]) -> int:
     if a.out:
         OUT_DIR = PREVIEW_DIR = Path(a.out)
     todo = [BY_ID[i] for i in a.id] if a.id else list(ANIMALS)
+    global HI, SUFFIX, FRAME_W, FRAME_H
+    if a.hires > 1:
+        n = a.hires
+        HI, SUFFIX, FRAME_W, FRAME_H = n, f"@{n}x", 24 * n, 32 * n
+        rig.set_scale(n)
+        # the same animal in finer pixels: the 1x run's scale (source px per art px) divided by n, every length of its rig times n
+        base = {t.id: json.loads((OUT_DIR / f"{t.id}.json").read_text())["sourceScale"] for t in todo}
+        todo = [replace(t, scale=base[t.id] / n, hip=t.hip * n, stride=t.stride * n, legw=t.legw * n, shoulder=t.shoulder * n,
+                        tail={d: (v * n if v is not None else None) for d, v in t.tail.items()}) for t in todo]
     if a.set:
         over = {k: tuple(v) if isinstance(v, list) else v for k, v in json.loads(a.set).items()}
         todo = [replace(an, **over) for an in todo]
@@ -650,8 +665,9 @@ def main(argv: list[str]) -> int:
         print(f"{an.id}: {FRAMES} frames, {a.method}, scale {res['scale']}, widths {min(ws)}-{max(ws)}, heights {min(hs)}-{max(hs)}, palette {len(res['palette'])}")
     if not a.out:
         import animal_sit                                # a rebuilt strip has stand-in seated frames: the animals with a drawn seated sheet get theirs back
-        animal_sit.apply([an.id for an in todo])
-        write_registry()
+        animal_sit.apply([an.id for an in todo], hires=HI)
+        if HI == 1:
+            write_registry()
     return 0
 
 
