@@ -18,10 +18,13 @@
  * served from our storage (NEXT_PUBLIC_PAPERS_URL, Cloudflare R2 in production);
  * nothing links out.
  *
- * Each subject is two files: src/content/questionBank/<slug>.json carries the
- * topics, papers and series (read at build time), and public/question-bank/<slug>/
- * carries the parts list, the search text and the examiner's reports, which the
- * browser fetches only when it needs them.
+ * Each subject is two lots of files: src/content/questionBank/<slug>.json carries the
+ * topics, papers and series (read at build time), and the bank's data (the parts list,
+ * the search text, the examiner's reports) lives on R2 beside the crops, under its
+ * content hash (bankDataUrl). The builders still write the data to public/question-bank/<slug>/,
+ * which git ignores; scripts/question-bank/upload_data.py puts it on R2 and records the hashes
+ * in the meta's `data`. The browser fetches it only when it needs it; the build reads parts.json
+ * for the topic pages.
  */
 import biology from "./questionBank/aqa-a-level-biology.json";
 import chemistry from "./questionBank/aqa-a-level-chemistry.json";
@@ -186,7 +189,7 @@ export interface BankPart {
   msf?: string;
   /** Reads the texts in the paper's insert, though its words may not say so (Eduqas English Language: "How does the writer…"). */
   src?: 1;
-  /** Has a worked solution, public/question-bank/<slug>/solutions/<id>.json (scripts/question-bank/solutions). */
+  /** Has a worked solution, solutions/<id>.json in the bank's data (bankSolutionUrl; scripts/question-bank/solutions). */
   sol?: 1;
   /** A multiple-choice question's answer letter, where the scheme is a key rather than a table. */
   k?: string;
@@ -245,7 +248,11 @@ export interface BankSubject {
   lastYear: number;
   /** The newest parts, server-rendered so the page is useful before any script runs. */
   sample: BankPart[];
+  /** Each data file's content hash on R2 (bankDataUrl), written by upload_data.py; a file the bank doesn't have is left out. */
+  data: Partial<Record<BankDataFile | "solutions", string>>;
 }
+
+export type BankDataFile = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers";
 
 export const bankSubjects = [maths, furtherMaths, aqaMaths, aqaFurtherMaths, biology, chemistry, physics, psychology, aqaEconomics, aqaSociology, aqaPolitics, aqaLaw, aqaBusiness, aqaHistory, aqaGeography, aqaPhilosophy, aqaReligiousStudies, aqaComputerScience, aqaEnglishLiteratureA, aqaEnglishLiteratureB, aqaEnglishLanguage, aqaFrench, aqaSpanish, aqaPhysicalEducation, edexcelBiologyA, edexcelBiologyB, edexcelChemistry, edexcelPhysics, edexcelEconomics, edexcelEconomicsB, edexcelBusiness, edexcelGeography, edexcelPsychology, edexcelPolitics, edexcelEnglishLiterature, edexcelHistory, ocrBiology, ocrChemistry, ocrPhysics, ocrBiologyB, ocrChemistryB, ocrPhysicsB, ocrMaths, ocrFurtherMaths, ocrComputerScience, ocrEconomics, ocrLaw, ocrPsychology, ocrSociology, ocrEnglishLiterature, ocrReligiousStudies, ocrHistoryA, meiMaths, meiFurtherMaths, caieMaths, caieFurtherMaths, caieBiology, caieChemistry, caiePhysics, eduqasPhysics, eduqasChemistry, eduqasBiology, eduqasReligiousStudies, eduqasEnglishLiterature, caieIgcseMaths, caieIgcseAdditionalMaths, caieIgcseBiology, caieIgcseChemistry, caieIgcsePhysics, wjecMaths, wjecBiology, wjecChemistry, wjecPhysics, wjecBusiness, wjecCriminology, gcseBiology, gcseChemistry, gcsePhysics, gcseEnglishLiterature, gcseCombinedScience, edexcelGcseBiology, edexcelGcseChemistry, edexcelGcsePhysics, aqaGcseMaths, edexcelGcseMaths, ocrGcseMaths, aqaLevel2FurtherMaths, gcseEnglishLanguage, aqaGcseComputerScience, edexcelGcseComputerScience, ocrGcseComputerScience, eduqasGcseReligiousStudies, eduqasGcseHistory, eduqasGcseEnglishLanguage, eduqasGcseEnglishLiterature, gcseGeography, edexcelGcseGeographyB, gcseReligiousStudies, gcseBusiness, ocrGcseBiologyA, ocrGcseChemistryA, ocrGcsePhysicsA, ocrGcseCombinedScienceA, gcseHistory, edexcelGcseBusiness, edexcelGcseCombinedScience, edexcelGcseHistory, edexcelGcseEnglishLanguage, edexcelGcseEnglishLiterature, edexcelIgcseMaths, edexcelIgcseBiology, edexcelIgcseChemistry, edexcelIgcsePhysics, ocrGcseGeographyB, ocrGcseEconomics, aqaGcseFrench, aqaGcseSpanish, aqaGcseBengali, edexcelIgcseIslamicStudies, ocrCnEngineeringManufacture, gcsePsychology, edexcelIalBiology, edexcelIalChemistry, edexcelIalPhysics, edexcelIalMaths, edexcelIalFurtherMaths] as BankSubject[];
 
@@ -259,7 +266,21 @@ export function bankTopic(subject: BankSubject, slug: string): BankTopic | undef
 
 export const bankPath = (slug: string) => `/question-bank/${slug}`;
 export const bankTopicPath = (slug: string, topic: string) => `/question-bank/${slug}/${topic}`;
-export const bankDataPath = (slug: string, file: "parts" | "text" | "reports" | "practicals" | "year13" | "tiers" | `topic-${string}`) => `/question-bank/${slug}/${file}.json`;
+/**
+ * A data file on R2, named by its content hash: "<papers>/bank-data/aqa-a-level-biology/parts.3f9c0a1b2d.json".
+ * A new cut is a new name, so the files are cached for a year as immutable and an older deployment still
+ * finds its own. Null when the bank has no such file (no practicals.json: the filter stays hidden).
+ */
+export const bankDataUrl = (s: Pick<BankSubject, "slug" | "data">, file: BankDataFile) =>
+  s.data?.[file] ? `${papersBase}/bank-data/${s.slug}/${file}.${s.data[file]}.json` : null;
+/** A data file's contents, or null where the bank has no such file (or it isn't there). */
+export const fetchBankData = <T,>(s: Pick<BankSubject, "slug" | "data">, file: BankDataFile): Promise<T | null> => {
+  const url = bankDataUrl(s, file);
+  return url ? fetch(url).then(r => (r.ok ? r.json() : null)) : Promise.resolve(null);
+};
+/** A worked solution (`sol`): the bank's solutions folder is hashed as a whole. */
+export const bankSolutionUrl = (s: Pick<BankSubject, "slug" | "data">, id: string) =>
+  s.data?.solutions ? `${papersBase}/bank-data/${s.slug}/solutions.${s.data.solutions}/${id}.json` : null;
 /**
  * The sciences have a practicals.json beside their data: the ids of the parts about
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.

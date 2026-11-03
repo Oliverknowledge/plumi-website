@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { isChoice } from "@/lib/markBands";
-import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankOwner, fetchBankData, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -169,7 +169,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   markSchemes: boolean; reports?: boolean; lines?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
 }): Promise<number> {
   const parts = [...picked];
-  const reports: Record<string, string> = opts.reports ? await fetch(bankDataPath(subject.slug, "reports")).then(r => r.json()).catch(() => ({})) : {};
+  const reports: Record<string, string> = opts.reports ? await fetchBankData<Record<string, string>>(subject, "reports").then(r => r ?? {}).catch(() => ({})) : {};
   let skipped = 0;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);

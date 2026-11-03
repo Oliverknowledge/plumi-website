@@ -8,6 +8,18 @@ The tags were made on 23 October 2026 by Claude subagents, one per few batches,
 following exactly the instructions below. To re-tag after a new exam series,
 split, tag only the new batches the same way, merge, and rebuild.
 
+## Before the bank's PR: its data goes to R2
+
+A bank's data (`public/question-bank/<slug>/`: parts, text, reports, practicals, ...) is no
+longer committed; git ignores the folder. Once the bank is built and tagged (and after
+practicals.py merge, tiers.py or maths_years.py), upload it and commit the meta:
+
+    python3 scripts/question-bank/upload_data.py <slug>
+
+That writes `"data": {...}` (each file's hash) into `src/content/questionBank/<slug>.json`.
+Re-cutting an existing bank in a fresh worktree? `upload_data.py --pull <slug>` first. See
+"Bank data on R2" in docs/seo/question-bank.md.
+
 ## The brief
 
 You are tagging AQA A-Level exam question parts to the topic of the AQA

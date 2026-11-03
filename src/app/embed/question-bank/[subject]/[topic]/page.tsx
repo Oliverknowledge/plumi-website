@@ -1,10 +1,9 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { EmbedQuestionList } from "@/components/questionBank/EmbedQuestionList";
-import { bankSubject, bankTitle, bankTopic, bankTopicPath, type BankPart } from "@/content/questionBank";
+import { bankSubject, bankTitle, bankTopic, bankTopicPath, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankParts } from "@/lib/bankParts";
 import { sortNewest } from "@/lib/embed";
 
 type Params = Promise<{ subject: string; topic: string }>;
@@ -20,9 +19,8 @@ export function generateStaticParams() {
 export const dynamicParams = true;
 
 /** The topic's parts, read from the same list the topic page reads. */
-function topicParts(slug: string, code: string): BankPart[] {
-  const all: BankPart[] = JSON.parse(readFileSync(path.join(process.cwd(), "public", "question-bank", slug, "parts.json"), "utf8"));
-  return all.filter(p => p.t.includes(code));
+async function topicParts(s: BankSubject, code: string): Promise<BankPart[]> {
+  return (await bankParts(s)).filter(p => p.t.includes(code));
 }
 
 async function resolve(params: Params) {
@@ -56,7 +54,7 @@ export default async function Page({ params }: { params: Params }) {
   const found = await resolve(params);
   if (!found) notFound();
   const { s, t } = found;
-  const parts = sortNewest(s.papers, topicParts(s.slug, t.code));
+  const parts = sortNewest(s.papers, await topicParts(s, t.code));
   // The client gets what a row reads and no more: the bank's sample and whole-paper links stay on the server.
   const subject = { ...s, sample: [], wholes: {} };
   return <EmbedQuestionList subject={subject} topic={t} initial={parts.slice(0, 20)} total={parts.length} />;

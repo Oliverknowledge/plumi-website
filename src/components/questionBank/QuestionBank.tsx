@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
 import { inType, isChoice, markBands } from "@/lib/markBands";
-import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { baseSubject, fetchBankData, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
 import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
@@ -197,27 +197,27 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   }, [isPhone]); // the phone's filters and the desk's card are different elements
 
   useEffect(() => {
-    fetch(bankDataPath(subject.slug, "parts")).then(r => r.json()).then(setParts).catch(() => setParts(null));
+    fetchBankData<BankPart[]>(subject, "parts").then(setParts).catch(() => setParts(null));
     // The practical parts' ids, for the sciences: no file (or an empty one) and the filter stays hidden.
     if (bankHasPracticals(subject)) {
-      fetch(bankDataPath(subject.slug, "practicals")).then(r => (r.ok ? r.json() : [])).then((ids: string[]) => setPracticals(new Set(ids))).catch(() => setPracticals(new Set()));
+      fetchBankData<string[]>(subject, "practicals").then(ids => setPracticals(new Set(ids ?? []))).catch(() => setPracticals(new Set()));
     }
     // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
-      fetch(bankDataPath(subject.slug, "year13")).then(r => (r.ok ? r.json() : null)).then((ids: string[] | null) => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
+      fetchBankData<string[]>(subject, "year13").then(ids => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
     // A GCSE's Foundation parts that its Higher paper prints too (tiers.py): no file and the switch stays hidden.
     if (bankHasTiers(subject)) {
-      fetch(bankDataPath(subject.slug, "tiers")).then(r => (r.ok ? r.json() : null))
-        .then((m: Record<string, string> | null) => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
+      fetchBankData<Record<string, string>>(subject, "tiers")
+        .then(m => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
     }
   }, [subject]);
 
   const needText = useCallback(() => {
     if (text || loadingText.current) return;
     loadingText.current = true;
-    fetch(bankDataPath(subject.slug, "text")).then(r => r.json()).then((t: Record<string, string>) => setText(Object.fromEntries(Object.entries(t).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
-  }, [subject.slug, text]);
+    fetchBankData<Record<string, string>>(subject, "text").then(t => setText(Object.fromEntries(Object.entries(t ?? {}).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
+  }, [subject, text]);
   useEffect(() => { if (f.q) needText(); }, [f.q, needText]);
 
   function update(patch: Partial<Filters>) {
