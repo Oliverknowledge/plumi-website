@@ -69,7 +69,7 @@ export class Town {
   /** An anchor to a point (feet, art px). */
   point(a) {
     const d = this.d;
-    if (a.door) { const o = this.byId.get(a.door); if (!o?.door) throw new Error(`no door "${a.door}"`); return [o.door.entry.x, o.door.entry.y + (a.dy ?? 10)]; }
+    if (a.door) { const o = this.byId.get(a.door); if (!o?.door) throw new Error(`no door "${a.door}"`); return [o.door.entry.x + (a.dx ?? 0), o.door.entry.y + (a.dy ?? 10)]; }
     if (a.hub) { const h = d.hubs.find((q) => q.id === a.hub); if (!h) throw new Error(`no hub "${a.hub}"`); return [h.x + (a.dx ?? 0), h.y + (a.dy ?? 0)]; }
     if (a.plaza) { const p = d.plazas.find((q) => q.id === a.plaza); if (!p) throw new Error(`no plaza "${a.plaza}"`); return [p.rect.x + p.rect.w / 2 + (a.dx ?? 0), p.rect.y + p.rect.h / 2 + (a.dy ?? 0)]; }
     if (a.zone) { const z = d.zones.find((q) => q.id === a.zone); if (!z) throw new Error(`no zone "${a.zone}"`); return [z.rect.x + z.rect.w / 2 + (a.dx ?? 0), z.rect.y + z.rect.h / 2 + (a.dy ?? 0)]; }

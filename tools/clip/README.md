@@ -54,3 +54,26 @@ sit, hold; speech bubbles over the nearest seated students), `endcard` (the word
 | `storyboard.json` | the script: routes, takes, shots, bots, end card text |
 | `world.mjs` | the map data and routes |
 | `clock.mjs`, `inpage.mjs` | the virtual clock; the in-page helpers |
+
+## The social cut (6 seconds, animals only): `social.mjs` + `grade.py` + `social.json`
+
+The founder's second brief: 6.0 s, 60 fps, silent, no humans. Two animals walk side by side to the cafe door (a speech bubble each), a warm dissolve, the cafe full of
+animals studying (all nine species), the two walk in and sit at the ends of the long table, a held wide shot, a soft fade out. Captions in the app's pixel font
+(Pixelify Sans) and a small "Plumi" wordmark. A 1080p master and a 1080x1920 vertical.
+
+```bash
+node tools/clip/social.mjs --aspect both --out DIR                                   # raw 60 fps frames of both scenes (about 1.5 minutes a shape)
+python3 tools/clip/grade.py --frames DIR/landscape --out plumi-social-1080p.mp4      # grade, captions, dissolve, fade, encode (CRF 16; about 90 s)
+python3 tools/clip/grade.py --frames DIR/vertical --out plumi-social-vertical.mp4
+```
+
+* **Outdoors** is the real town engine (`?tod=day`, placeholder furniture stripped as above). The two foreground animals and the three in the background are the engine's bots
+  with the app's animal art (`R.bots`); their name tags and speech bubbles are DOM elements in the room's own `.lb-nm` / `.lb-bub` styles (`installTownUi`), because the town engine draws
+  monospace pills and has no bubbles. The camera is a scripted ease (`social.json` `camera` keyframes, smoothstep between them), the player's own body is parked far away.
+* **The cafe** is the real room (`/study/cafe/demo?alone=1`, nobody scripted) and everyone in it is put there through the room's own `setRemotes` (`installRoomHelpers`): which animal, which
+  chair (by the registry id in `tools/art/rooms/cafe.seats.json`), what name tag and subject, who is walking in and when they sit (the room snaps them into the chair), who speaks. The app's own
+  calls to `setRemotes` are switched off for the recording. The room's greeting pop-up, HUD and your own "You" label are hidden by CSS.
+* **The grade** (`grade.py`, numpy, per pixel and per hue; no filter touches the art): grass is lifted and softened toward a pale fresh yellow green, gold canopies and orange roofs desaturated a notch, shadows lifted
+  toward cream, highlights warmed, a soft vignette. The parameters in `social.json` `grade.outdoor` were fitted to the mean colour of each class of pixel (grass, gold canopy, roof, path) in the lofi.town reference
+  frame (full strength); `strength` blends it back toward the raw frame (0.6 in the clip, so the dark outlines keep the art crisp). The cafe interior has its own, milder grade.
+* All timing, names, seats, species, captions, fades and the grade are in `social.json`. Vertical overrides (`outdoor.vertical`, `indoor.vertical`) re-frame the same story for 216 x 384 art px.

@@ -37,7 +37,7 @@ export function installHelpers() {
     bots.forEach((p, i) => {
       const s = specs[i];
       p.pathN = 0; p.walking = false; p.stride = 0; p.still = 0; p.prev = -1;
-      if (s?.name) p.name = s.name;
+      if (s) p.name = s.pill === false ? "" : (s.name ?? p.name);
       if (s?.body) p.art = R.art(s.body); else if (s) p.art = { img: t.o.premade, sy: ((s.row ?? i) % Math.max(1, t.o.premadeRows - 1) + 1) * 32, fw: 16 };
       if (!s) {
         let b = 0, bd = -1; d.botNodes.forEach((n, k) => { const q = Math.hypot(n.x - you.x, n.y - you.y); if (q > bd) { bd = q; b = k; } });
@@ -112,5 +112,93 @@ export function installHelpers() {
     el.style.opacity = String(a * 0.78);
     el.firstChild.style.opacity = String(Math.max(0, Math.min(1, (a - 0.35) / 0.4)));
     document.getElementById("clip-end-sub").style.opacity = String(0.82 * Math.max(0, Math.min(1, (a - 0.6) / 0.4)));
+  };
+}
+
+/*
+ * The scripted cafe (social cut): the room opened ALONE (`/study/cafe/demo?alone=1`, nobody scripted), and everyone in it is put there by the recorder
+ * through the room's own `setRemotes` (the call the app makes with who is on the floor), so each animal, seat, name, tag and walk is chosen, not random.
+ * The app's own calls to `setRemotes` are switched off for the recording; the room draws, sorts, seats and animates them exactly as it does for people.
+ */
+export function installRoomHelpers() {
+  const R = (window.__rec = window.__rec || {});
+  const H = () => window.__plumiLibrary;
+  R.images = R.images || {};
+  R.addCast = R.addCast || (async (id, url) => { const im = new Image(); im.src = url; await im.decode(); R.images[id] = im; });
+  R.crowd = {}; R.rev = 1; R.labels = {};
+  R.roomReady = () => { const h = H(); return !!(h && h.you && h.a && h.L && h.grid && h.byIpad && h.byIpad.size > 0); };
+  R.ipadAt = (at) => { const h = H(); for (const [i, s] of h.byIpad) if (Math.abs(s.x - (at[0] - 8)) <= 2 && Math.abs(s.y - (at[1] - 20)) <= 2) return i; return null; };
+  R.roomTake = () => {
+    const h = H();
+    R._set = h.setRemotes.bind(h); h.setRemotes = () => {};
+    h.dressYou = () => {};
+    h.live.describe = (id) => R.labels[id] || null;
+    const y = h.you; y.alpha = 0; y.x = -200; y.y = -200; y.path = []; y.doing = "idle";
+  };
+  const feet2art = (p) => [p[0] - 8, p[1] - 31];
+  R.push = () => {
+    const list = Object.values(R.crowd).map((c) => {
+      const a = R.images[c.body];
+      return { id: c.id, look: 0, pos: c.feet ? feet2art(c.feet) : null, seat: c.seat ?? null, path: (c.path || []).map(feet2art), seated: !!c.seated, sheet: a, phones: false, frameW: Math.round(a.width / 78), rev: c.rev };
+    });
+    R._set(list);
+  };
+  /** Adds or changes someone: { id, body, name, tag, feet, path, seat, seated }; every change is a new piece of news about them (`rev`). */
+  R.put = (c) => {
+    const cur = R.crowd[c.id] || {};
+    R.crowd[c.id] = { ...cur, ...c, rev: R.rev++ };
+    if (c.name !== undefined || c.tag !== undefined) R.labels[c.id] = { name: R.crowd[c.id].name, tag: R.crowd[c.id].tag ?? null, friend: false, pro: false };
+    R.push();
+  };
+  /** The walk from a feet point to the standing tile of a chair (feet points). */
+  R.way = (ipad, from) => { const h = H(), s = h.byIpad.get(ipad); return h.W.plan(h.grid, from, s.tile); };
+  R.watch = {};
+  /** Call every frame: whoever has walked to their chair sits down (the room snaps them into it). */
+  R.tick = () => { for (const [id, ipad] of Object.entries(R.watch)) if (R.arrived(id)) { delete R.watch[id]; R.put({ id, seat: ipad, seated: true, feet: null, path: [] }); } };
+  R.person = (id) => { const h = H(); return h.remotes.get(id) || null; };
+  R.arrived = (id) => { const p = R.person(id); return !!p && p.path.length === 0 && p.doing !== "walk"; };
+  R.say = (id, text, ms) => H().bubble(id, text, ms);
+  let camT = [320, 224];
+  R.roomCamTo = (cx, cy) => { camT = [cx, cy]; };
+  R.roomCam = (cx, cy) => {
+    const h = H(); camT = [cx, cy];
+    h.follow = (snap = false) => {
+      const tx = Math.min(Math.max(camT[0] - h.viewW / 2, 0), h.L.w - h.viewW), ty = Math.min(Math.max(camT[1] - h.viewH / 2, 0), h.L.h - h.viewH);
+      h.followLive(tx, ty, snap, false);
+    };
+    h.follow(true);
+  };
+  R.roomView = () => { const h = H(); return { k: h.k, w: h.viewW, h: h.viewH, camX: h.camX, camY: h.camY, door: h.L.door }; };
+}
+
+/*
+ * Name tags and speech bubbles over the TOWN's walkers, in the same cream pill and white bubble the room uses (`.lb-nm`, `.lb-bub`), so outdoors and indoors
+ * match. The engine's own pills are monospace boxes and it has no bubbles; these are DOM elements placed from the engine's camera every frame.
+ */
+export function installTownUi() {
+  const R = (window.__rec = window.__rec || {});
+  const T = () => window.__town;
+  const host = document.querySelector(".pa") || document.body;
+  const ov = document.createElement("div");
+  ov.className = "lb-ov"; ov.id = "clip-ov"; ov.style.cssText = "position:fixed;inset:0;z-index:45;pointer-events:none;overflow:hidden";
+  host.appendChild(ov);
+  const tags = [], bubs = [];
+  R.tag = (bot, name) => { const el = document.createElement("div"); el.className = "lb-nm"; el.textContent = name; ov.appendChild(el); tags.push({ el, bot }); };
+  R.bub = (bot, text, ms, dx) => {
+    const el = document.createElement("div"); el.className = "lb-bub"; el.textContent = text; el.style.setProperty("--bub-ms", ms + "ms"); ov.appendChild(el);
+    bubs.push({ el, bot, born: performance.now(), ms, dx: dx || 0 });
+  };
+  /** Place every tag and bubble from this frame's camera (call after a step). */
+  R.uiFrame = () => {
+    const t = T(); if (!t) return;
+    const k = t.k, dpr = t.dpr, cx = t.camPxX, cy = t.camPxY;
+    const at = (p, up) => [Math.round(p.x * k - cx) / dpr, Math.round((p.y - up) * k - cy) / dpr];
+    for (const g of tags) { const p = t.people[1 + g.bot], [x, y] = at(p, 36); g.el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; }
+    for (let i = bubs.length - 1; i >= 0; i--) {
+      const g = bubs[i];
+      if (performance.now() - g.born > g.ms + 50) { g.el.remove(); bubs.splice(i, 1); continue; }
+      const p = t.people[1 + g.bot], [x, y] = at(p, 36 + 14);
+      g.el.style.transform = `translate(${x + (g.dx || 0)}px, ${y}px) translate(-50%, -100%)`;
+    }
   };
 }
