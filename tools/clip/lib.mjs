@@ -44,16 +44,23 @@ export async function makeCast(chromium, base, ids, dir) {
   const b = await chromium.launch({ executablePath: CHROME, args: ["--no-sandbox"] });
   const ctx = await b.newContext({ viewport: { width: 800, height: 450 } });
   const out = {};
-  const need = ids.filter((id) => !fs.existsSync(path.join(dir, id + ".png")));
+  const need = ids.filter((id) => !fs.existsSync(path.join(dir, id + ".png")) || !fs.existsSync(path.join(dir, id + "@2x.png")));
   await Promise.all(need.map(async (id) => {
     const pg = await ctx.newPage();
     await pg.goto(`${base}/study/town/dev?body=${id}&bots=0&map=0&furniture=0`, { waitUntil: "load", timeout: 240000 });
     await pg.waitForFunction(() => window.__town && window.__town.you.art.img instanceof HTMLCanvasElement, null, { timeout: 120000, polling: 200 });
     const u = await pg.evaluate(() => window.__town.you.art.img.toDataURL("image/png"));
     fs.writeFileSync(path.join(dir, id + ".png"), Buffer.from(u.split(",")[1], "base64"));
+    // the 2x sheet (animal.ts HI) of the same animal, when the page has it: the engines draw it at an even k
+    await pg.waitForFunction(() => window.__town.you.art.img2 instanceof HTMLCanvasElement, null, { timeout: 20000, polling: 200 }).catch(() => {});
+    const u2 = await pg.evaluate(() => (window.__town.you.art.img2 instanceof HTMLCanvasElement ? window.__town.you.art.img2.toDataURL("image/png") : null));
+    if (u2) fs.writeFileSync(path.join(dir, id + "@2x.png"), Buffer.from(u2.split(",")[1], "base64"));
     await pg.close();
   }));
   await b.close();
-  for (const id of ids) out[id] = "data:image/png;base64," + fs.readFileSync(path.join(dir, id + ".png")).toString("base64");
+  for (const id of ids) {
+    out[id] = "data:image/png;base64," + fs.readFileSync(path.join(dir, id + ".png")).toString("base64");
+    if (fs.existsSync(path.join(dir, id + "@2x.png"))) out[id + "@2x"] = "data:image/png;base64," + fs.readFileSync(path.join(dir, id + "@2x.png")).toString("base64");
+  }
   return out;
 }

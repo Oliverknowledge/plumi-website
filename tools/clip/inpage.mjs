@@ -11,7 +11,7 @@ export function installHelpers() {
 
   /* ----- the cast: walking bodies built by the app's own wardrobe on another page, handed over as PNGs ----- */
   R.addCast = async (id, url) => { const im = new Image(); im.src = url; await im.decode(); R.images[id] = im; };
-  R.art = (id) => { const im = R.images[id]; return { img: im, sy: 0, fw: Math.round(im.width / 78) }; };
+  R.art = (id) => { const im = R.images[id]; return { img: im, img2: R.images[id + "@2x"] || undefined, sy: 0, fw: Math.round(im.width / 78) }; };
   R.dress = (id) => T().setYou(R.art(id));
 
   /* ----- the town ----- */
@@ -158,7 +158,7 @@ export function installRoomHelpers() {
   R.push = () => {
     const list = Object.values(R.crowd).map((c) => {
       const a = R.images[c.body];
-      return { id: c.id, look: 0, pos: c.feet ? feet2art(c.feet) : null, seat: c.seat ?? null, path: (c.path || []).map(feet2art), seated: !!c.seated, sheet: a, phones: false, frameW: Math.round(a.width / 78), rev: c.rev };
+      return { id: c.id, look: 0, pos: c.feet ? feet2art(c.feet) : null, seat: c.seat ?? null, path: (c.path || []).map(feet2art), seated: !!c.seated, sheet: a, sheet2: R.images[c.body + "@2x"] || null, phones: false, frameW: Math.round(a.width / 78), rev: c.rev };
     });
     R._set(list);
   };

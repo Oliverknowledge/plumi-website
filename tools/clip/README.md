@@ -109,3 +109,18 @@ walker, `lift` on a bubble, `label: false` on a seated or walking student) so th
 there are (9); the vertical wide shot's camera is raised so the dark strip below the doors is out of frame; every frame is captured four times (the picture, the same picture with nobody in it
 (`...c.png`: `R.peopleOff`), the labels over black and over white) and `grade.py` smooths only the WORLD (`layered`) and puts the sprites back from the unsmoothed picture, so the
 new fine sprites keep their pixels while the stair steps of the room still soften. A frame with no `c.png` (an old capture) is smoothed whole, as v3.
+
+## v5 of the social cut: `social5.mjs` + `social5.json`, `judder.py`
+
+```bash
+node tools/clip/social5.mjs --aspect landscape --out DIR      # then --aspect vertical (about 5 minutes a shape)
+python3 tools/clip/grade.py --config tools/clip/social5.json --frames DIR/landscape --out plumi-social-1080p.mp4
+python3 tools/clip/judder.py DIR/landscape DIR/vertical       # the screen-position steps of the leads and the camera, per frame
+```
+
+What is new over v4: the animals are the **2x frames** (`@2x` strips) at an even zoom (k = 8 outdoors and in the close shot, 6 in the medium shot: a hi-res pixel is 4 or 3 device px), so the
+characters are 256 px tall at 1080p and keep the detail of the ChatGPT sheet; the story is zoomed in (the door and awning fill the frame, the roof is cropped; a close shot of the pair sitting down in
+profile at the round table; a medium shot at k 6 of the long table and the pair). The camera outdoors FOLLOWS the leads: it aims at their midpoint plus their smoothed velocity times `lead` seconds
+and closes on it with an exponential ease (`tau`), so it starts gently, leads a little, and settles when they stop (a lead that has walked in at the door is hidden, and the camera stays); indoors the
+camera keys use smootherstep (no velocity at either end). The camera is a float in art px and the engine puts it on the device pixel grid, a step of 1 / k of an art pixel. `judder.py` measures what
+was recorded. `grade.py` still smooths the WORLD only and keeps the sprites' own pixels.
