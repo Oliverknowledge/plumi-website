@@ -6,6 +6,7 @@
 import { newSchedule, schedule, queue, NEW_PER_DAY, type Grade, type Schedule } from "./srs";
 import { STARTER_DECKS } from "./starterDecks";
 import { addDays, dayOf, daysBetween } from "./time";
+import { EMPTY_QUESTIONS, sanitiseQuestions, type QuestionsData } from "./questions/model";
 
 export interface Task {
   id: string;
@@ -49,9 +50,11 @@ export interface AppData {
   perDay: number;
   /** Saved mixes of decks (Flashcards, "My sessions"). */
   sessions: Session[];
+  /** The Questions tab: practice sets, typed answers, marks (questions/model.ts). Ink is in IndexedDB, not here. Added like `sessions`: older saves have none. */
+  questions: QuestionsData;
 }
 
-export const EMPTY: AppData = { v: 1, tasks: [], exam: null, decks: [], cards: [], log: {}, last: null, perDay: NEW_PER_DAY, sessions: [] };
+export const EMPTY: AppData = { v: 1, tasks: [], exam: null, decks: [], cards: [], log: {}, last: null, perDay: NEW_PER_DAY, sessions: [], questions: EMPTY_QUESTIONS };
 
 let counter = 0;
 export function makeId(prefix: string, now: number): string {
@@ -391,5 +394,6 @@ export function sanitise(raw: unknown): AppData {
     last: r.last && typeof r.last.label === "string" && typeof r.last.href === "string" ? r.last : null,
     perDay: typeof r.perDay === "number" && r.perDay >= 0 && r.perDay <= 200 ? r.perDay : NEW_PER_DAY,
     sessions: cleanSessions(r.sessions, ids),
+    questions: sanitiseQuestions(r.questions),
   };
 }

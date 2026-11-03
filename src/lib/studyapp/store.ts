@@ -6,6 +6,7 @@ import {
   removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last,
 } from "./model";
 import type { Grade } from "./srs";
+import type { QuestionsData } from "./questions/model";
 
 /**
  * The Desk's and the flashcards' data, kept on this device (localStorage) and shared between tabs. Signed out
@@ -58,6 +59,11 @@ export function useDueCount(now: number): number { const s = useApp(); return s.
 
 const change = (fn: (d: AppData) => AppData) => commit(fn(state.ready ? state.data : load().data));
 const now = () => Date.now();
+
+/** The Questions tab's data, changed by a pure function from questions/model.ts. */
+export function changeQuestions(fn: (q: QuestionsData) => QuestionsData) { change((d) => { const q = fn(d.questions); return q === d.questions ? d : { ...d, questions: q }; }); }
+/** The latest Questions data right now (not a render's snapshot), for a handler that must read what it just wrote. */
+export function currentQuestions(): QuestionsData { return (state.ready ? state.data : load().data).questions; }
 
 export const actions = {
   addTask: (text: string, due: string, subject?: string | null) => change((d) => addTask(d, text, due, now(), subject)),
