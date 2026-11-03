@@ -883,6 +883,15 @@ these differences:
   one to three codes per question, the main one first. AS Unit 1 and A2 Unit 3 are
   pure maths; AS Unit 2 and A2 Unit 4 are statistics (Section A) and mechanics
   (Section B).
+- Further Maths (`further-topics.txt`, its own work dir `.work/wjec-fm`): a whole question at
+  a time, one to three codes, the main one first, from its specification's topics
+  (`spec_wjec_further.py`), coded unit and place in the unit: the specification's 2.4.3 is
+  `4.3`. AS Units 1 to 3 take only their own codes; an A2 unit also takes the AS unit it builds
+  on (Unit 4 `1.x`, Unit 5 `2.x`, Unit 6 `3.x`) where the marks really test it. Keep apart: `1.2`
+  basic complex numbers and loci, `4.1` de Moivre and nth roots; `1.3` 2x2 matrices and
+  transformations, `4.3` 3x3 and simultaneous equations; `3.1` direct collisions, `6.2` oblique
+  ones. Unit 2's specification heading 2.2.1 is three topics here (`2.1` to `2.3`), and 2.2.2 two
+  (`2.4`, `2.5`).
 
 ## Practical questions
 
