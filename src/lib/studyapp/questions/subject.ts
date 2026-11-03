@@ -16,7 +16,11 @@ export interface SubjectMeta {
 }
 
 /** One line of the subject chooser. */
-export interface CatalogueSubject { slug: string; title: string; board: string; level: string; subject: string; count: number }
+export interface CatalogueSubject {
+  slug: string; title: string; board: string; level: string; subject: string; count: number;
+  /** The tiers its papers are sat at ("Foundation", "Higher"), only where there are two or more: GCSE Maths and the sciences, some languages, IGCSE Core and Extended. */
+  tiers?: string[];
+}
 
 /** "3.1.2 Amount of substance", "Momentum": how a topic reads on a chip. */
 export const topicLabel = (t: SubjectTopic) => { const ref = t.ref ?? t.code; return ref && ref !== t.title ? `${ref} ${t.short ?? t.title}` : t.short ?? t.title; };
@@ -48,6 +52,9 @@ export const variantOf = (subject: string) => subject.match(/ ([AB])$/)?.[1] ?? 
 /** How the exam board reads on a chip: "AQA", "Edexcel B". */
 export const boardLabel = (c: Pick<CatalogueSubject, "board" | "subject">) => { const v = variantOf(c.subject); return v ? `${c.board} ${v}` : c.board; };
 
+/** The shelf header's tag: board, variant and level apart, so a variant letter never runs into the level ("OCR A \u00b7 A-Level", not "OCR A A-Level"). */
+export const shelfTag = (c: Pick<CatalogueSubject, "board" | "subject" | "level">) => `${boardLabel(c)} \u00b7 ${c.level}`;
+
 const TINT: Record<string, string> = {
   Chemistry: "var(--t-chem)", Physics: "var(--t-eng)", Biology: "var(--t-bio)", Maths: "var(--t-maths)", "Further Maths": "var(--t-fm)", "Combined Science": "var(--t-bio)",
   Geography: "var(--t-geo)", History: "var(--t-hist)", "Computer Science": "var(--t-cs)",
@@ -60,4 +67,43 @@ export function subjectTint(subject: string): string {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return SPARE[h % SPARE.length];
+}
+
+/* ── tiers ───────────────────────────────────────────────────────────── */
+
+/** The tier a paper is sat at, from its name as the bank writes it ("Paper 1 Higher", "Paper 3 Theory (Core)") or, for Cambridge, its title ("Core"); null if it has none. */
+export function tierOf(p: { name: string; title?: string }): string | null {
+  const n = p.name;
+  if (/\bFoundation\b/.test(n)) return "Foundation";
+  if (/\bHigher\b/.test(n)) return "Higher";
+  const c = n.match(/\((Core|Extended)\)\s*$/) ?? n.match(/\b(Core|Extended)\s*$/);
+  if (c) return c[1];
+  if (p.title === "Core" || p.title === "Extended") return p.title;
+  return null;
+}
+
+/** Order a tier list the way a student reads it: the harder one first. */
+const TIER_ORDER = ["Higher", "Foundation", "Extended", "Core"];
+export const sortTiers = (t: readonly string[]) => [...t].sort((a, b) => (TIER_ORDER.indexOf(a) + 1 || 9) - (TIER_ORDER.indexOf(b) + 1 || 9));
+
+/** The tiers a subject's papers come in, when there are at least two (one tier alone is just how the subject is, not a choice). */
+export function tiersOf(papers: readonly { id?: string; name: string; title?: string }[], level: string): string[] {
+  if (!/GCSE$/.test(level)) return [];
+  const t = new Set<string>();
+  for (const p of papers) { const x = tierOf(p); if (x) t.add(x); }
+  return t.size >= 2 ? sortTiers([...t]) : [];
+}
+
+/** What a student chose, for a line or a label: "Higher", or null for both. */
+export function tierLine(chosen: readonly string[] | undefined, all?: readonly string[]): string | null {
+  if (!chosen || !chosen.length) return null;
+  if (all && all.length && all.every((a) => chosen.includes(a))) return null;
+  return sortTiers(chosen).join(" and ");
+}
+
+/** The papers of a subject the chosen tier sits (papers with no tier are always kept: a Speaking paper is for both). */
+export function paperKeeps(p: { name: string; title?: string }, chosen: readonly string[] | undefined): boolean {
+  if (!chosen || !chosen.length) return true;
+  const t = tierOf(p);
+  return t === null || chosen.includes(t);
 }

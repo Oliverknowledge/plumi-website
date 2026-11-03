@@ -108,7 +108,8 @@ export function ResultList({ rows, meta, selected, done, groups, onToggle, onAdd
                 <span className="qs-marks">{r.m == null ? "no marks" : `${r.m} ${r.m === 1 ? "mark" : "marks"}`}</span>
                 {done.has(r.id) && <span className="qs-done">done lately</span>}
               </span>
-              <span className="qs-meta">{topic ? `${topic.short ?? topic.title} · ` : ""}{series} · {paper}</span>
+              <span className="qs-topic">{topic ? topic.short ?? topic.title : `Question ${r.l}`}</span>
+              <span className="qs-meta">{series} · {paper}</span>
               <span className="qs-x">{snippet(r.x)}</span>
             </span>
             {canAddAll && (

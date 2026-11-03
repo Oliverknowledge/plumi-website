@@ -40,8 +40,13 @@ export function PagePopover({ prefs }: { prefs: QPrefs }) {
               <button type="button" className="btn ghost icon qs-popd-x" aria-label="Close" onClick={close}>&times;</button>
             </div>
             <p className="lbl" id="qs-bg-lbl">Paper</p>
-            <div className="seg qs-seg" role="group" aria-labelledby="qs-bg-lbl">
-              {BGS.map((b) => <button key={b} type="button" className={prefs.bg === b ? "on" : ""} aria-pressed={prefs.bg === b} onClick={() => qa.prefs({ bg: b })}>{BG_NAMES[b]}</button>)}
+            <div className="qs-swatches" role="group" aria-labelledby="qs-bg-lbl">
+              {BGS.map((b) => (
+                <button key={b} type="button" className={`qs-swatch${prefs.bg === b ? " on" : ""}`} aria-pressed={prefs.bg === b} onClick={() => qa.prefs({ bg: b })} data-testid={`bg-${b}`}>
+                  <span className={`qs-sw-paper bg-${b}`} aria-hidden="true" />
+                  <span className="qs-sw-name">{BG_NAMES[b]}</span>
+                </button>
+              ))}
             </div>
             <label className="qs-switch">
               <input type="checkbox" checked={fingerScrolls} onChange={(e) => qa.prefs({ fingerScrolls: e.target.checked })} data-testid="finger-toggle" />

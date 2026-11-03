@@ -56,10 +56,15 @@
 .pa::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
 .pa a { color: inherit; text-decoration: none; }
 .pa button { font: inherit; color: inherit; }
-.pa :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* one focus ring for the whole study app: navy (11:1 on the paper) with a white halo, so it shows on the paper, the wood, the gold and the navy.
+   (A gold ring on the paper was 1.45:1.) A control with its own drop shadow keeps it through --rest. */
+.pa :focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; box-shadow: 0 0 0 5px #fff, var(--rest, 0 0 #0000); }
+.pa .btn:focus-visible { --rest: 0 3px 0 var(--ink); }
+.pa .btn.ghost:focus-visible, .pa .btn:disabled:focus-visible { --rest: 0 0 #0000; }
+.pa .tab.on:focus-visible { --rest: 0 3px 0 #18213a; }
 .pa .lbl { font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--soft); }
 .pa .grow { flex: 1; }
-.pa kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border: 1.5px solid currentColor; border-bottom-width: 2.5px; border-radius: 5px; font: 800 11px var(--f-body); opacity: .7; }
+.pa kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border: 1.5px solid currentColor; border-bottom-width: 2.5px; border-radius: 5px; font: 800 11px var(--f-body); color: var(--soft); }
 .pa .wrap { max-width: 1280px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 @media (min-width: 900px) {
 .pa .wrap { padding-left: max(56px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); }
@@ -74,7 +79,7 @@
 .pa .btn.ghost { border-color: transparent; box-shadow: none; background: transparent; font-family: var(--f-body); font-weight: 800; font-size: 14px; color: var(--soft); }
 .pa .btn.ghost:hover { background: var(--card2); color: var(--ink); }
 .pa .btn.icon { width: 42px; padding: 0; }
-.pa .btn .k { font: 800 11px var(--f-body); opacity: .55; }
+.pa .btn .k { font: 800 12px var(--f-body); color: var(--ink); opacity: .8; }
 .pa .btn:disabled { opacity: .4; cursor: default; transform: none; }
 .pa .chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border: 2px solid var(--ink); border-radius: 13px; background: #fff; font-size: 12.5px; font-weight: 800; white-space: nowrap; }
 .pa .chip i { width: 9px; height: 9px; border-radius: 3px; border: 1.5px solid var(--ink); }

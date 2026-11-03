@@ -83,27 +83,32 @@ function coast(velocity: number) {
   inertia = requestAnimationFrame(step);
 }
 
-/* ── saving: write a small answer through at once, a big one at most every 1.5 s ── */
+/* ── saving: every stroke is written the moment the pen lifts ──
+ * A long answer's last stroke must survive a tab closed a moment later, so there is no waiting: each pen-up writes the answer's ink to the
+ * device. Writes of one answer never overlap (one is in flight, and the newest ink waits behind it: what is written last is always the
+ * newest), so a fast writer does not pile up work on the main thread. Only the small label in the document (how many strokes an answer
+ * has) is written later (store.ts). */
 
-const pending = new Map<string, Ink>();
-let timer: ReturnType<typeof setTimeout> | null = null;
-let firstWaiting = 0;
-/** Under this many bytes an answer is saved the moment a stroke ends (a few milliseconds); over it, at most every 1.5 s. */
-const WRITE_THROUGH = 40_000;
+const pending = new Map<string, Ink>();   // kept for the page-hide flush: ink handed over but not yet sent (always empty now between events)
+const inflight = new Set<string>();
+const queued = new Map<string, Ink>();
+function writeNow(key: string, ink: Ink) {
+  if (inflight.has(key)) { queued.set(key, ink); return; }
+  inflight.add(key);
+  void saveInk(key, ink).finally(() => {
+    inflight.delete(key);
+    const next = queued.get(key);
+    if (next) { queued.delete(key); writeNow(key, next); }
+  });
+}
 export function flushInk() {
-  if (timer) { clearTimeout(timer); timer = null; }
-  firstWaiting = 0;
   for (const [k, ink] of pending) void saveInk(k, ink);
   pending.clear();
+  // the browser is about to hide or close the page: whatever waits behind a write in flight goes now, alongside it (the store keeps the newest)
+  for (const [k, ink] of queued) void saveInk(k, ink);
+  queued.clear();
 }
-function saveSoon(key: string, ink: Ink) {
-  if (inkBytes(ink) <= WRITE_THROUGH) { pending.delete(key); void saveInk(key, ink); return; }
-  pending.set(key, ink);
-  const now = nowMs();
-  if (!timer) firstWaiting = now;
-  else clearTimeout(timer);
-  timer = setTimeout(flushInk, Math.max(0, Math.min(300, firstWaiting + 1500 - now)));
-}
+function saveSoon(key: string, ink: Ink) { pending.delete(key); writeNow(key, ink); }
 let hooked = false;
 function hookPageHide() {
   if (hooked || typeof window === "undefined") return;

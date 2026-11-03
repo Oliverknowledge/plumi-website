@@ -3,16 +3,27 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { choicesAt, draftKey, draftOf, draftSlugs, levelsOf, tickSubject, type SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { subjectTint, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { baseSubject, sortTiers, subjectTint, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { BackIcon, CheckIcon } from "./icons";
+import "../../../app/study/(app)/questions-fixa.css";
 
 /**
  * "What are you studying?": the level, the subjects they do, and for each the exam board (only the boards the bank has for it).
  * Kept on the device (`qa.mine`). The first thing a new student sees; reached again with Change and Add a subject, with their
  * choice already ticked, and nothing is kept until they say Show my papers.
  */
-export function Setup({ catalogue, mine, first, onDone, onCancel }: { catalogue: CatalogueSubject[]; mine: string[]; first: boolean; onDone(slugs: string[]): void; onCancel(): void }) {
+export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
+  catalogue: CatalogueSubject[]; mine: string[]; tiers: Record<string, string[]>; first: boolean;
+  /** `tiers` is the tier chosen for each ticked subject that has tiers, by slug (an empty list means both). */
+  onDone(slugs: string[], tiers: Record<string, string[]>): void; onCancel(): void;
+}) {
   const [draft, setDraft] = useState(() => draftOf(mine, catalogue));
+  // The tier they sit, per ticked subject (by level and subject, so changing the board keeps it). Neither chip, or both, means both tiers.
+  const [tierDraft, setTierDraft] = useState<Map<string, string[]>>(() => {
+    const m = new Map<string, string[]>();
+    for (const slug of mine) { const c = catalogue.find((x) => x.slug === slug); if (c && tiers[slug]?.length) m.set(draftKey(c.level, baseSubject(c.subject)), tiers[slug]); }
+    return m;
+  });
   const { main, other } = useMemo(() => levelsOf(catalogue), [catalogue]);
   const [level, setLevel] = useState(() => {
     const c = mine.length ? catalogue.find((x) => x.slug === mine[0]) : undefined;
@@ -35,6 +46,25 @@ export function Setup({ catalogue, mine, first, onDone, onCancel }: { catalogue:
   const missing = [...draft].filter(([, s]) => !s).map(([k]) => k.split("|")[1]);
   const ready = ticked > 0 && missing.length === 0;
   const slugs = draftSlugs(draft);
+  const tiersOfSlug = (slug: string | undefined) => (slug ? catalogue.find((x) => x.slug === slug)?.tiers ?? [] : []);
+  const pickTier = (c: SubjectChoice, tier: string) => setTierDraft((d) => {
+    const k = draftKey(level, c.base);
+    const now = d.get(k) ?? [];
+    const next = new Map(d);
+    next.set(k, now.includes(tier) ? now.filter((x) => x !== tier) : [...now, tier]);
+    return next;
+  });
+  /** The choice for every ticked subject that has tiers, by slug. Both chosen is the same as none. */
+  const done = () => {
+    const out: Record<string, string[]> = {};
+    for (const [k, slug] of draft) {
+      const all = tiersOfSlug(slug);
+      if (all.length < 2) continue;
+      const sel = (tierDraft.get(k) ?? []).filter((t) => all.includes(t));
+      out[slug] = sel.length === all.length ? [] : sortTiers(sel);
+    }
+    onDone(slugs, out);
+  };
   const lvlBtn = (l: string) => (
     <button key={l} type="button" className={`qs-level${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => setLevel(l)}>
       {l}{levelCount(l) > 0 && <span className="qs-badge" aria-label={`${levelCount(l)} chosen`}>{levelCount(l)}</span>}
@@ -77,6 +107,14 @@ export function Setup({ catalogue, mine, first, onDone, onCancel }: { catalogue:
                       {c.boards.map((b) => <button key={b.slug} type="button" className={`qs-chip${slug === b.slug ? " on" : ""}`} aria-pressed={slug === b.slug} onClick={() => choose(c, b.slug)} data-testid={`board-${b.slug}`}>{b.label}</button>)}
                     </div>
                   ))}
+                  {on && tiersOfSlug(slug).length >= 2 && (
+                    <div className="qh-tiers" role="group" aria-label={`Which tier of ${c.base}. Choose neither to see both.`} data-testid={`tiers-${c.base}`}>
+                      {tiersOfSlug(slug).map((t) => {
+                        const sel = (tierDraft.get(draftKey(level, c.base)) ?? []).includes(t);
+                        return <button key={t} type="button" className={`qs-chip qh-tier${sel ? " on" : ""}`} aria-pressed={sel} onClick={() => pickTier(c, t)} data-testid={`tier-${c.base}-${t}`}>{t}</button>;
+                      })}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -89,7 +127,7 @@ export function Setup({ catalogue, mine, first, onDone, onCancel }: { catalogue:
           <p className="qs-sel-count" role="status" aria-live="polite">
             {missing.length > 0 ? <>Pick a board for <b>{missing[0]}</b></> : <><b data-testid="setup-count">{ticked}</b> {ticked === 1 ? "subject" : "subjects"}</>}
           </p>
-          <button type="button" className="btn gold qs-start" disabled={!ready} onClick={() => onDone(slugs)} data-testid="setup-done">Show my papers</button>
+          <button type="button" className="btn gold qs-start" disabled={!ready} onClick={done} data-testid="setup-done">Show my papers</button>
         </div>
       )}
     </main>

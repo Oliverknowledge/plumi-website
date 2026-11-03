@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { INK_TOTAL_CAP } from "@/lib/studyapp/questions/ink";
 import { inkOfSet, inkTotal, progress, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
-import { CloseIcon } from "./icons";
+import { subjectTint } from "@/lib/studyapp/questions/subject";
+import { CloseIcon, TrashIcon } from "./icons";
 
 const size = (b: number) => (b < 1000 ? "" : b < 1_000_000 ? `${Math.round(b / 1000)} KB` : `${(b / 1_000_000).toFixed(1)} MB`);
+/** "AQA GCSE Physics" is Physics: the colour of the set's folder (best effort; a name we do not know still gets a steady tint). */
+const subjectOfTitle = (title: string) => title.replace(/\b(AQA|Edexcel|OCR|WJEC|Eduqas|CCEA|Pearson|Cambridge|International|IGCSE|GCSE|A-Level|AS|Level \d(\/\d)?)\b/g, "").replace(/\s+/g, " ").trim() || title;
 const when = (t: number) => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 
 /**
@@ -43,21 +46,23 @@ export function SetsSheet({ q, onClose }: { q: QuestionsData; onClose(): void })
             const p = progress(s, q.answers);
             const ink = size(inkOfSet(q, s.id));
             return (
-              <li key={s.id}>
-                <div className="qs-sets-info">
-                  <b>{s.name}</b>
-                  <span>{when(s.updatedAt || s.createdAt)}{p.of > 0 ? ` · ${p.done}/${p.of} marked` : ""}{ink ? ` · ${ink}` : ""}{s.finishedAt ? " · finished" : ""}</span>
-                </div>
+              <li key={s.id} className={`qs-set${s.finishedAt ? " is-finished" : ""}`} style={{ "--tint": subjectTint(subjectOfTitle(s.title)) } as React.CSSProperties}>
                 {asking === s.id ? (
                   <span className="qs-ask" role="group" aria-label={`Delete ${s.name}?`}><span>Delete it and its answers?</span>
                     <button ref={keep} type="button" className="qs-mini" onClick={() => setAsking(null)}>Keep</button>
                     <button type="button" className="qs-mini danger" onClick={() => { qa.remove(s.id); setAsking(null); }}>Delete</button>
                   </span>
                 ) : (
-                  <span className="qs-sets-acts">
-                    <button type="button" className="qs-mini" onClick={() => { qa.open(s.id); close(); }}>Open</button>
-                    <button type="button" className="qs-mini" onClick={() => setAsking(s.id)} aria-label={`Delete ${s.name}`}>Delete</button>
-                  </span>
+                  <>
+                    <button type="button" className="qs-set-open" onClick={() => { qa.open(s.id); close(); }} aria-label={`Open ${s.name}${p.of > 0 ? `, ${p.done} of ${p.of} marked` : ""}${s.finishedAt ? ", finished" : ""}`}>
+                      <span className="qs-set-name">{s.name}</span>
+                      <span className="qs-set-meta">{when(s.updatedAt || s.createdAt)}{ink ? ` · ${ink}` : ""}{s.finishedAt ? " · finished" : ""}</span>
+                      {p.of > 0 && (
+                        <span className="qs-set-prog" aria-hidden="true"><span className="qs-set-bar"><i style={{ width: `${Math.round((p.done / p.of) * 100)}%` }} /></span><span className="qs-set-n">{p.done} of {p.of}</span></span>
+                      )}
+                    </button>
+                    <button type="button" className="qs-set-del" onClick={() => setAsking(s.id)} aria-label={`Delete ${s.name}`} title="Delete"><TrashIcon /></button>
+                  </>
                 )}
               </li>
             );

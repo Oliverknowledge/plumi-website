@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { insertAt, SYMBOLS, toSub, toSup } from "@/lib/studyapp/questions/symbols";
 import { REF_W } from "@/lib/studyapp/questions/ink";
 import { TEXT_PART_CAP, TYPE_REM } from "@/lib/studyapp/questions/model";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
+
+/** The strip of symbols: drawn once, not on every keystroke (it only depends on the function that inserts). */
+const SymbolBar = memo(function SymbolBar({ put }: { put(ch: string, wrap?: (s: string) => string): void }) {
+  const keep = (e: { preventDefault(): void }) => e.preventDefault();   // do not take the selection from the box
+  return (
+    <div className="qs-sym" role="toolbar" aria-label="Symbols">
+      {SYMBOLS.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
+      <span className="qs-sym-sep" aria-hidden="true" />
+      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSup)} aria-label="Raise the selected text (superscript)" title="Select some text, then tap">x<sup>n</sup></button>
+      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button>
+    </div>
+  );
+});
 
 /**
  * The typed answer: a textarea (in a handwriting-like face if the student likes), a row of symbols, and
@@ -47,9 +60,11 @@ export function TypePad({ text, onText, hand, label, full, units }: { text: stri
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(flush, 250);
   };
-  const put = (ch: string, wrap?: (s: string) => string) => {
+  // Reads the text as it is now (a ref), so the function can stay the same one and the strip of symbols is not drawn again with every key.
+  const put = useCallback((ch: string, wrap?: (s: string) => string) => {
     const el = area.current;
     if (!el) return;
+    const value = latest.current;
     const s = el.selectionStart, e = el.selectionEnd;
     const chosen = wrap && s !== null && e !== null && e > s ? wrap(value.slice(s, e)) : ch;
     if (wrap && chosen === "") return;
@@ -58,16 +73,11 @@ export function TypePad({ text, onText, hand, label, full, units }: { text: stri
     if (r.value.length > TEXT_PART_CAP && r.value.length > value.length) return;
     change(r.value);
     requestAnimationFrame(() => { el.focus({ preventScroll: true }); el.setSelectionRange(r.caret, r.caret); });
-  };
-  const keep = (e: { preventDefault(): void }) => e.preventDefault();   // do not take the selection from the box
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div className="qs-type">
-      <div className="qs-sym" role="toolbar" aria-label="Symbols">
-        {SYMBOLS.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
-        <span className="qs-sym-sep" aria-hidden="true" />
-        <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSup)} aria-label="Raise the selected text (superscript)" title="Select some text, then tap">x<sup>n</sup></button>
-        <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button>
-      </div>
+      <SymbolBar put={put} />
       <div className="qs-typebox" style={{ aspectRatio: `${REF_W} / ${units}` }}>
         <textarea
           ref={area} className={`qs-text${hand ? " is-hand" : ""}`} value={value} aria-label={label} placeholder="Type your answer here"

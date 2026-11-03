@@ -1,46 +1,78 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { againInput, catchUpInput, redoInput, scoreSet, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { useEffect, useRef, useState } from "react";
+import { againInput, catchUpInput, partDots, redoInput, scoreSet, summaryView, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { saveWork } from "@/lib/studyapp/questions/saveWorkFile";
 import { qa } from "@/lib/studyapp/questions/store";
 import { useDocumentTitle } from "./useDocumentTitle";
+import "../../../app/study/(app)/questions-fixa.css";
 
 /**
- * The end of a set: marks, percent, how each topic went, what was skipped, and what to do next. Marks are only what the
- * student gave themselves, and only on the parts they marked: a part nobody marked is not a zero, it is not scored at all.
+ * The end of a set. It leads with how much was done ("3 of 25 marked"), and shows the score, small, only once at least half of the
+ * parts are marked: a score over three parts is not a result, and the page does not celebrate one. Marks are only what the student
+ * gave themselves, on the parts they marked; a part nobody marked is not a zero. What was marked, written on and left blank is drawn
+ * as a grid of dots, one per part, each of which goes to its part.
  */
 export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onReview(partId?: string): void }) {
   const s = scoreSet(set, q.answers);
+  const v = summaryView(s);
   const redo = redoInput(set, q.answers);
   const catchUp = catchUpInput(set, q.answers);
+  const dots = partDots(set, q.answers).filter((d) => d.state !== "unchosen");
   const title = useRef<HTMLHeadingElement>(null);
-  useDocumentTitle(`Set done, ${set.name} \u00b7 Plumi`);
-  useEffect(() => { title.current?.focus({ preventScroll: true }); }, []);
+  const [armed, setArmed] = useState(false);
+  const [saved, setSaved] = useState<"" | "working" | "done" | "failed">("");
+  useDocumentTitle(`${v.title}, ${set.name} \u00b7 Plumi`);
+  useEffect(() => { title.current?.focus({ preventScroll: true }); window.scrollTo(0, 0); }, []);
+  // The actions wake a moment after the page opens: a second tap on the button that brought the student here must not land on one of them.
+  useEffect(() => { const t = setTimeout(() => setArmed(true), 500); return () => clearTimeout(t); }, []);
 
-  const pct = s.pct;
-  // Mostly unmarked: the score is of a few parts, so it is shown plainly and not as a verdict.
-  const mostly = s.markable > 0 && s.marked * 2 >= s.markable;
-  const tone = pct === null || !mostly ? "" : pct >= 80 ? "full" : "part";
-  const mascot = pct === null || !mostly ? "plumi-lofi-cozy" : pct >= 80 ? "plumi-celebrating" : pct >= 50 ? "plumi-proud" : "plumi-encouraging";
-  const waiting = s.unmarked.filter((p) => !s.skipped.includes(p));
+  const count = (state: "marked" | "written" | "blank") => dots.filter((d) => d.state === state).length;
+  const groups: (typeof dots)[] = [];
+  for (const d of dots) { const last = groups[groups.length - 1]; if (last && last[0].question === d.question) last.push(d); else groups.push([d]); }
+  const label = (d: (typeof dots)[number]) => {
+    const p = d.part;
+    const a = q.answers[`${set.id}/${p.id}`];
+    const what = d.state === "marked" ? `marked ${a?.got ?? 0} of ${p.m ?? 0}` : d.state === "written" ? "written on, not marked yet" : "blank";
+    return `Question ${p.l}, ${what}. Go to it.`;
+  };
   return (
     <main className="qs-page qs-summary" data-testid="summary" aria-labelledby="qs-sum-title">
       <div className="qs-desk">
         <section className="qs-sum card">
-          <Image src={`/study/mascot/${mascot}.svg`} alt="" width={96} height={96} unoptimized priority />
-          <h1 id="qs-sum-title" ref={title} tabIndex={-1}>Set done</h1>
+          <Image src={`/study/mascot/${v.mascot}.svg`} alt="" width={96} height={96} unoptimized priority />
+          <h1 id="qs-sum-title" ref={title} tabIndex={-1} data-testid="summary-title">{v.title}</h1>
           <p className="qs-sum-name">{set.name}</p>
           {s.markable === 0 && <p className="qs-sum-line">No marks were printed for these parts.</p>}
-          {s.total > 0 ? (
-            <div className="qs-sum-score" data-testid="summary-score">
-              <span className={`qs-margin big ${tone}`}>{s.got}/{s.total}</span>
-              <span className="qs-pct">{pct}%</span>
-            </div>
-          ) : s.markable > 0 ? <p className="qs-sum-line" data-testid="summary-score">Nothing is marked yet.</p> : null}
-          {s.markable > 0 && <p className="qs-sum-line" role="status">{s.marked} of {s.markable} {s.markable === 1 ? "part" : "parts"} marked</p>}
+          {v.showScore && (
+            <p className="qs-sum-small" data-testid="summary-score">
+              <span className={`qs-margin ${v.tone}`}>{s.got}/{s.total}</span>
+              <span className="qs-pct">{s.pct}%</span>
+              <span className="qs-sr"> on the parts you marked</span>
+            </p>
+          )}
 
-          {s.perTopic.length > 0 && (
+          {dots.length > 1 && (
+            <div className="qs-sum-cover" data-testid="summary-dots">
+              <div className="qs-pdots" role="group" aria-label="Your answers, part by part">
+                {groups.map((g) => (
+                  <span key={g[0].question} className="qs-pdotq">
+                    {g.map((d) => (
+                      <button key={d.part.id} type="button" className={`qs-pdot ${d.state}${d.tone ? ` ${d.tone}` : ""}`} onClick={() => onReview(d.part.id)} aria-label={label(d)} title={`Q${d.part.l}`}><i aria-hidden="true" /></button>
+                    ))}
+                  </span>
+                ))}
+              </div>
+              <ul className="qs-pdot-key" aria-hidden="true">
+                {count("marked") > 0 && <li><i className="qs-pdot-sw marked" />{count("marked")} marked</li>}
+                {count("written") > 0 && <li><i className="qs-pdot-sw written" />{count("written")} written, not marked</li>}
+                {count("blank") > 0 && <li><i className="qs-pdot-sw blank" />{count("blank")} blank</li>}
+              </ul>
+            </div>
+          )}
+
+          {v.showScore && s.perTopic.length > 0 && (
             <ul className="qs-topics" aria-label="How each topic went">
               {s.perTopic.map((t) => (
                 <li key={t.code}>
@@ -52,26 +84,18 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
             </ul>
           )}
 
-          {s.skipped.length > 0 && (
-            <div className="qs-sum-block">
-              <p className="lbl">Skipped</p>
-              <div className="qs-chips">{s.skipped.map((p) => <button key={p.id} type="button" className="qs-chip" onClick={() => onReview(p.id)} aria-label={`Skipped: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
-            </div>
-          )}
-          {waiting.length > 0 && (
-            <div className="qs-sum-block">
-              <p className="lbl">Not marked yet</p>
-              <div className="qs-chips">{waiting.map((p) => <button key={p.id} type="button" className="qs-chip" onClick={() => onReview(p.id)} aria-label={`Not marked yet: question ${p.l}. Go to it.`}>Q{p.l}</button>)}</div>
-            </div>
-          )}
-
-          <div className="qs-sum-acts">
+          <div className="qs-sum-acts" inert={!armed} data-testid="summary-acts">
             {redo && <button type="button" className="btn gold" onClick={() => { qa.redo(set.id); }} data-testid="redo-set">Redo the ones you dropped marks on <span className="k">{redo.parts.length}</span></button>}
             {catchUp && <button type="button" className={`btn${redo ? "" : " gold"}`} onClick={() => { qa.catchUp(set.id); }} data-testid="catchup-set">Do the skipped ones <span className="k">{catchUp.parts.length}</span></button>}
             <button type="button" className={`btn${redo || catchUp ? "" : " gold"}`} onClick={() => qa.open(null)} data-testid="keep-going">Keep going</button>
             {againInput(set) && <button type="button" className="btn" onClick={() => { qa.again(set.id); }} data-testid="again-paper">Do this paper again</button>}
             <button type="button" className="btn ghost" onClick={() => onReview()} data-testid="review-sheet">Review the sheet</button>
+            <button
+              type="button" className="btn ghost" data-testid="save-work" disabled={saved === "working"}
+              onClick={() => { setSaved("working"); void saveWork(set, q).then((ok) => setSaved(ok ? "done" : "failed")); }}
+            >Save my work</button>
           </div>
+          <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "failed" ? "Could not save. Try again." : ""}</p>
         </section>
       </div>
     </main>

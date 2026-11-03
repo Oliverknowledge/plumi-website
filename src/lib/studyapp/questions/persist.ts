@@ -16,6 +16,9 @@ import { EMPTY_QUESTIONS, sanitiseQuestions, type QuestionsData } from "./model"
 
 export const QUESTIONS_KEY = "plumi-study-questions";
 export const QUESTIONS_RECOVERY_KEY = "plumi-study-questions-recovery";
+/** Room for a few unreadable records: the first is `QUESTIONS_RECOVERY_KEY`, then `-2` to `-5`. A new one never replaces an older one. */
+export const RECOVERY_SLOTS = 5;
+export const recoveryKey = (i: number) => (i === 0 ? QUESTIONS_RECOVERY_KEY : `${QUESTIONS_RECOVERY_KEY}-${i + 1}`);
 export const APP_KEY = "plumi-study-app";
 export const STORED_VERSION = 1;
 
@@ -25,6 +28,17 @@ export interface Loaded {
   origin: "own" | "migrated" | "empty";
   /** Raw text that could not be read and must be kept before it is overwritten. */
   keep: string | null;
+}
+
+/** Where an unreadable record is kept: the first recovery key that is free, or none if this very text is kept already (a reload must not fill the slots) or all are taken. */
+export function chooseRecoveryKey(read: (key: string) => string | null, raw: string): string | null {
+  let free: string | null = null;
+  for (let i = 0; i < RECOVERY_SLOTS; i++) {
+    const held = read(recoveryKey(i));
+    if (held === raw) return null;
+    if (held === null && free === null) free = recoveryKey(i);
+  }
+  return free;
 }
 
 export const serialise = (q: QuestionsData): string => JSON.stringify({ v: STORED_VERSION, q });

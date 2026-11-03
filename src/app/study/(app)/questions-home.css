@@ -3,7 +3,7 @@
    Everything under .pa. A title, at most one short line, the rest drawn; 44px is the smallest thing you press; 150 to 200ms of motion, none under
    reduced motion (the blanket rule in questions.css stills every animation and transition under .qs-page). */
 
-.pa .qs-page { --ok-ink: #236b38; --shelf-card-w: 196px; --shelf-card-h: 258px; }
+.pa .qs-page { --ok-ink: #236b38; --shelf-card-w: 196px; --shelf-card-h: 290px; }
 .pa .qh-home .qs-col, .pa .qh-setup .qs-col { max-width: 1100px; }
 .pa .qs-homeback { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -10px 0 2px -12px; padding: 0 12px 0 8px; border: 0; border-radius: 12px; background: transparent; font: 800 13px var(--f-body); color: var(--soft); cursor: pointer; transition: background .15s, color .15s; }
 .pa .qs-homeback:hover { background: var(--card2); color: var(--ink); }
@@ -13,19 +13,20 @@
 .pa .qs-page h1:focus-visible, .pa .qs-page h1:focus { outline: none; box-shadow: none; }
 
 /* the line under the title: their subjects, and the way to change them */
-.pa .qh-mine { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 4px 0 0; }
-.pa .qh-mine-names { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .qh-mine { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin: 4px 0 0; }
+.pa .qh-mine-names { min-width: 0; overflow-wrap: anywhere; }
 .pa .qh-mine .qs-link { flex: none; }
 
 /* ── the shelves ─────────────────────────────────────────────────────── */
-.pa .qh-shelves { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; padding-top: 4px; }
+.pa .qh-shelves { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 4px; }
 .pa .qh-shelf { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
-.pa .qh-shelf-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.pa .qh-shelf-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; min-height: 44px; }
 .pa .qh-shelf-title { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; min-width: 0; }
 .pa .qh-shelf h2 { display: flex; align-items: center; gap: 10px; margin: 0; font: 600 22px/1.1 var(--f-px); }
 .pa .qh-dot { flex: none; width: 14px; height: 14px; border: 2px solid var(--ink); border-radius: 50%; background: var(--tint); }
-.pa .qh-tag { font: 800 13px var(--f-body); color: var(--soft); }
-.pa .qh-n { font: 700 13px var(--f-body); color: var(--mute); }
+.pa .qh-tag { font: 800 .875rem var(--f-body); color: var(--soft); }
+.pa .qh-n { font: 700 .8125rem var(--f-body); color: var(--mute); }
+.pa .qh-acts { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-left: auto; }
 .pa .qh-arrows { display: none; gap: 6px; }
 @media (hover: hover) and (pointer: fine) { .pa .qh-arrows { display: inline-flex; } }
 .pa .qh-arrow { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 2px solid var(--line); border-radius: 50%; background: #fff; color: var(--ink); cursor: pointer; transition: background .15s, border-color .15s, opacity .15s; }
@@ -36,26 +37,42 @@
 .pa .qh-years::-webkit-scrollbar { display: none; }
 .pa .qh-yn { margin-left: 2px; font-size: 12px; opacity: .75; }
 
+/* "Mix for me" and "Pick your own": two small pills in the shelf's header, in the shelf's own colour. Each is its own little object. */
+.pa .qh-pills { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.pa .qh-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border: 2px solid var(--ink); border-radius: 20px; background: color-mix(in srgb, var(--tint) 72%, #fff); box-shadow: 0 2px 0 var(--ink); font: 800 .8125rem var(--f-body); color: var(--ink); white-space: nowrap; cursor: pointer; transition: background .15s, transform .12s ease-out, box-shadow .12s ease-out; }
+.pa .qh-pill:hover { background: var(--tint); transform: translateY(-1px); box-shadow: 0 3px 0 var(--ink); }
+.pa .qh-pill:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--ink); }
+.pa .qh-pill-ico { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border: 1.5px solid rgba(34, 48, 77, .55); background: #fff; }
+.pa .qh-pill.mix .qh-pill-ico { border-radius: 50%; transform: rotate(8deg); }
+.pa .qh-pill.pick .qh-pill-ico { border-radius: 9px; transform: rotate(-6deg); }
+.pa .qh-pill-ico svg { width: 16px; height: 16px; }
+@media (pointer: coarse) { .pa .qh-pill { min-height: 44px; } }
+
 /* the row: scrolls sideways (a swipe, the arrows, the arrow keys); the tape and the tilt need room above and below */
 .pa .qh-scroller { position: relative; margin: 0 -16px 0 -14px; }
-.pa .qh-scroller.has-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); }
-.pa .qh-scroller.has-less { -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px); mask-image: linear-gradient(90deg, transparent, #000 20px); }
-.pa .qh-scroller.has-more.has-less { -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 44px), transparent); }
+.pa .qh-scroller.has-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 72px), rgba(0, 0, 0, .55) calc(100% - 34px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 72px), rgba(0, 0, 0, .55) calc(100% - 34px), transparent); }
+.pa .qh-scroller.has-less { -webkit-mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, .55) 12px, #000 36px); mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, .55) 12px, #000 36px); }
+.pa .qh-scroller.has-more.has-less { -webkit-mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, .55) 12px, #000 36px, #000 calc(100% - 72px), rgba(0, 0, 0, .55) calc(100% - 34px), transparent); mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, .55) 12px, #000 36px, #000 calc(100% - 72px), rgba(0, 0, 0, .55) calc(100% - 34px), transparent); }
 .pa .qh-scroller:focus-within { -webkit-mask-image: none; mask-image: none; }
-.pa .qh-row { display: flex; align-items: flex-start; gap: 20px; margin: 0; padding: 24px 16px 22px 14px; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding: 0 16px 0 14px; scrollbar-width: none; }
+.pa .qh-row { display: flex; align-items: stretch; gap: 20px; margin: 0; padding: 26px 16px 24px 14px; list-style: none; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding: 0 16px 0 14px; scrollbar-width: none; }
 .pa .qh-row::-webkit-scrollbar { display: none; }
-.pa .qh-row.wrap { flex-wrap: wrap; overflow: visible; row-gap: 26px; }
-.pa .qh-item { flex: none; scroll-snap-align: start; }
+.pa .qh-row.wrap { flex-wrap: wrap; overflow: visible; row-gap: 28px; }
+.pa .qh-row.qh-row-still { overflow: hidden; scroll-snap-type: none; }
+.pa .qh-item { flex: none; display: flex; scroll-snap-align: start; }
 @media (hover: hover) and (pointer: fine) {
-  .pa .qh-row:not(.wrap) { scrollbar-width: thin; scrollbar-color: #b4c6e2 transparent; padding-bottom: 14px; }
-  .pa .qh-row:not(.wrap)::-webkit-scrollbar { display: block; height: 8px; }
-  .pa .qh-row:not(.wrap)::-webkit-scrollbar-thumb { border-radius: 4px; background: #b4c6e2; }
+  .pa .qh-row:not(.wrap):not(.qh-row-still) { scrollbar-width: thin; scrollbar-color: #b4c6e2 transparent; padding-bottom: 14px; }
+  .pa .qh-row:not(.wrap):not(.qh-row-still)::-webkit-scrollbar { display: block; height: 8px; }
+  .pa .qh-row:not(.wrap):not(.qh-row-still)::-webkit-scrollbar-thumb { border-radius: 4px; background: #b4c6e2; }
 }
+.pa .qh-showmore { display: flex; align-items: center; justify-content: center; gap: 10px; width: fit-content; min-height: 48px; margin: 4px auto 0; padding: 0 22px; border: 2px solid var(--ink); border-radius: 24px; background: color-mix(in srgb, var(--tint) 60%, #fff); box-shadow: 0 3px 0 var(--ink); font: 800 .9375rem var(--f-body); color: var(--ink); cursor: pointer; transition: transform .12s, box-shadow .12s, background .15s; }
+.pa .qh-showmore span { font-size: .8125rem; font-weight: 700; color: var(--soft); }
+.pa .qh-showmore:hover { background: var(--tint); }
+.pa .qh-showmore:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
 
 /* ── PAPER CARD ART: the default look, CSS shapes only (paperArt.tsx says how the final art swaps in) ── */
 .pa .qh-paper {
   --rest: 0 7px 16px rgba(91, 71, 65, .16), 0 1px 2px rgba(34, 48, 77, .18);
-  position: relative; display: flex; flex-direction: column; width: var(--shelf-card-w); height: var(--shelf-card-h); padding: 40px 14px 12px 28px;
+  position: relative; display: flex; flex-direction: column; width: var(--shelf-card-w); min-height: var(--shelf-card-h); padding: 40px 14px 12px 28px;
   border: 0; border-radius: 4px 4px 10px 10px; background: var(--paper-cream); color: var(--ink); text-align: left; cursor: pointer;
   box-shadow: var(--rest); transform: rotate(var(--tilt, 0deg)); transform-origin: 50% 0;
   transition: transform .18s ease-out, box-shadow .18s ease-out;
@@ -64,56 +81,96 @@
 @keyframes qh-in { from { opacity: 0; transform: translateY(10px) rotate(var(--tilt, 0deg)); } }
 .pa .qh-paper:hover { --rest: 0 14px 24px rgba(91, 71, 65, .2), 0 1px 2px rgba(34, 48, 77, .2); transform: translateY(-5px) rotate(0deg); }
 .pa .qh-paper:active { transform: translateY(-1px) rotate(0deg) scale(.98); }
-/* the paper: ruled lines, three punched holes down the left */
-.pa .qh-grain { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background-color: transparent;
-  background-image:
-    radial-gradient(circle at 11px 64px, rgba(34, 48, 77, .2) 0 4px, transparent 4.5px), radial-gradient(circle at 11px 126px, rgba(34, 48, 77, .2) 0 4px, transparent 4.5px), radial-gradient(circle at 11px 188px, rgba(34, 48, 77, .2) 0 4px, transparent 4.5px),
-    linear-gradient(90deg, transparent 24px, rgba(224, 96, 90, .3) 24px 25px, transparent 25px),
-    repeating-linear-gradient(transparent 0 23px, rgba(120, 160, 210, .3) 23px 24px);
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 18px; background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%; }
+/* the paper: ruled lines, a margin line, and punched holes (three, two big ones, or a spiral's row), a little different card to card */
+.pa .qh-grain { --hole: rgba(34, 48, 77, .2); --mline: rgba(224, 96, 90, .3); --rule: rgba(120, 160, 210, .3);
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background-color: transparent; background-size: 100% 100%; background-repeat: no-repeat; }
+.pa .qh-grain.m-blue { --mline: rgba(80, 130, 210, .34); }
+.pa .qh-grain.h-three { background-image:
+    radial-gradient(circle at 11px 64px, var(--hole) 0 4px, transparent 4.5px), radial-gradient(circle at 11px 126px, var(--hole) 0 4px, transparent 4.5px), radial-gradient(circle at 11px 188px, var(--hole) 0 4px, transparent 4.5px),
+    linear-gradient(90deg, transparent 24px, var(--mline) 24px 25px, transparent 25px),
+    repeating-linear-gradient(transparent 0 17px, var(--rule) 17px 18px, transparent 18px 24px); }
+.pa .qh-grain.h-two { background-image:
+    radial-gradient(circle at 11px 92px, var(--hole) 0 5.5px, transparent 6px), radial-gradient(circle at 11px 176px, var(--hole) 0 5.5px, transparent 6px),
+    linear-gradient(90deg, transparent 24px, var(--mline) 24px 25px, transparent 25px),
+    repeating-linear-gradient(transparent 0 17px, var(--rule) 17px 18px, transparent 18px 24px); }
+.pa .qh-grain.h-spiral { background-image:
+    radial-gradient(circle at 9px 11px, var(--hole) 0 2.6px, transparent 3.2px),
+    linear-gradient(90deg, transparent 24px, var(--mline) 24px 25px, transparent 25px),
+    repeating-linear-gradient(transparent 0 17px, var(--rule) 17px 18px, transparent 18px 24px);
+  background-size: 26px 22px, 100% 100%, 100% 100%; background-repeat: repeat-y, no-repeat, repeat; background-position: 0 38px, 0 0, 0 0; }
 .pa .qh-tape { position: absolute; z-index: 2; top: -12px; left: 50%; width: 82px; height: 24px; margin-left: -41px; transform: rotate(-3deg); pointer-events: none;
-  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 5px, transparent 5px 10px), var(--tint); filter: saturate(1.5) brightness(.96);
-  border-left: 2px dashed rgba(34, 48, 77, .16); border-right: 2px dashed rgba(34, 48, 77, .16); box-shadow: 0 1px 2px rgba(34, 48, 77, .16); opacity: .94; background-size: auto, auto; background-position: center; }
+  background: var(--tint); filter: saturate(1.5) brightness(.96);
+  border-left: 2px dashed rgba(34, 48, 77, .16); border-right: 2px dashed rgba(34, 48, 77, .16); box-shadow: 0 1px 2px rgba(34, 48, 77, .16); opacity: .94; }
+.pa .qh-tape.t-stripe { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .5) 0 5px, transparent 5px 10px), var(--tint); }
+.pa .qh-tape.t-dots { background: radial-gradient(circle, rgba(255, 255, 255, .75) 0 2px, transparent 2.6px) 0 0 / 10px 10px, var(--tint); }
+.pa .qh-tape.t-double { width: 92px; margin-left: -46px; background: linear-gradient(90deg, var(--tint) 0 41%, transparent 41% 59%, var(--tint) 59%); border-left-style: solid; border-right-style: solid; box-shadow: none; }
 .pa .qh-tape.left { left: 34px; margin-left: 0; transform: rotate(-8deg); }
 .pa .qh-tape.right { left: auto; right: 22px; margin-left: 0; transform: rotate(6deg); }
-.pa .qh-sticker { position: absolute; z-index: 1; right: 12px; bottom: 46px; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(34, 48, 77, .22), inset 0 0 0 2px rgba(34, 48, 77, .06); transform: rotate(9deg); pointer-events: none; transition: transform .18s ease-out; }
-.pa .qh-sticker img { width: 44px; height: 44px; }
-.pa .qh-paper:hover .qh-sticker { transform: rotate(-4deg) scale(1.06); }
-.pa .qh-stamp { position: absolute; z-index: 3; right: 10px; bottom: 44px; width: 64px; height: 64px; display: grid; place-items: center; border: 3px double var(--ok-ink); border-radius: 50%; color: var(--ok-ink); background: rgba(255, 250, 240, .72); transform: rotate(-11deg); pointer-events: none; background-size: cover; }
-.pa .qh-stamp b { font: 600 16px var(--f-px); }
-.pa .qh-stamp-tick { width: 18px; height: 30px; margin-top: -8px; border: solid var(--ok-ink); border-width: 0 5px 5px 0; transform: rotate(45deg) scale(.7); }
-.pa .qh-paper.is-done .qh-sticker { display: none; }
-/* the label: the sitting, hand-lettered, on the subject's colour */
-.pa .qh-label { position: relative; z-index: 1; display: flex; align-items: baseline; gap: 6px; max-width: 100%; margin: -6px 0 8px; padding: 4px 10px 0; min-height: 50px; border: 1.5px solid rgba(34, 48, 77, .2); border-radius: 9px 9px 9px 3px; background: var(--tint); font-family: var(--f-hand); line-height: 1; overflow: hidden; white-space: nowrap; transform: rotate(-.8deg); }
+/* the label: the sitting, hand-lettered, on the subject's colour. It may grow (wider letters, bigger text) and never clips. */
+.pa .qh-label { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; max-width: 100%; margin: -6px 0 8px; padding: 4px 10px 2px; min-height: 50px; border: 1.5px solid rgba(34, 48, 77, .2); border-radius: 9px 9px 9px 3px; background: var(--tint); font-family: var(--f-hand); line-height: 1; transform: rotate(-.8deg); }
 .pa .qh-label small { font-size: 25px; font-weight: 400; }
 .pa .qh-label b { flex: none; font-size: 44px; font-weight: 700; letter-spacing: -.01em; }
-.pa .qh-label b.long { flex: 0 1 auto; min-width: 0; font-size: 30px; }
-.pa .qh-label i { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font: 800 12px var(--f-body); font-style: normal; color: #3f4d6e; }
+.pa .qh-label b.long { flex: 0 1 auto; min-width: 0; font-size: 30px; overflow-wrap: anywhere; }
+.pa .qh-label i { flex: 0 1 auto; min-width: 0; font: 800 12px var(--f-body); font-style: normal; color: #3f4d6e; overflow-wrap: anywhere; }
 .pa .qh-name { position: relative; z-index: 1; font: 600 16px/1.2 var(--f-px); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.pa .qh-sub { position: relative; z-index: 1; margin-top: 4px; font: 700 12px/1.3 var(--f-body); color: var(--soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pa .qh-sub { position: relative; z-index: 1; margin-top: 4px; font: 700 .8125rem/1.3 var(--f-body); color: var(--soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pa .qh-notes { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 6px; }
+.pa .qh-attempt { padding: 0 8px; border: 1.5px solid rgba(34, 48, 77, .35); border-radius: 6px; background: #fff7d6; font: 700 17px/1.3 var(--f-hand); transform: rotate(-2deg); }
+.pa .qh-attempt.part { background: transparent; border-style: dashed; font-size: 16px; color: var(--soft); transform: rotate(1deg); }
+/* the middle of the paper: a sticker, or the stamp once it is begun or done */
+.pa .qh-mid { position: relative; z-index: 1; flex: 1 0 60px; display: grid; place-items: center; margin: 2px 0; }
+.pa .qh-sticker { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(34, 48, 77, .22), inset 0 0 0 2px rgba(34, 48, 77, .06); transform: rotate(9deg); pointer-events: none; transition: transform .18s ease-out; }
+.pa .qh-sticker img { width: 48px; height: 48px; }
+.pa .qh-paper:hover .qh-sticker { transform: rotate(-4deg) scale(1.06); }
+.pa .qh-stamp { display: grid; place-items: center; width: 64px; height: 64px; border: 3px double var(--ok-ink); border-radius: 50%; color: var(--ok-ink); background: rgba(255, 250, 240, .72); transform: rotate(-11deg); pointer-events: none; background-size: cover; }
+.pa .qh-stamp b { font: 600 16px var(--f-px); }
+.pa .qh-stamp-tick { width: 18px; height: 30px; margin-top: -8px; border: solid var(--ok-ink); border-width: 0 5px 5px 0; transform: rotate(45deg) scale(.7); }
+.pa .qh-stamp.half { width: 88px; height: 60px; border: 2.5px dashed rgba(34, 48, 77, .5); border-radius: 50%; color: var(--soft); transform: rotate(-8deg); }
+.pa .qh-stamp.half b { font: 700 24px var(--f-hand); }
+.pa .qh-stamp.small { position: absolute; right: -2px; bottom: -4px; width: 46px; height: 46px; border-width: 2.5px; transform: rotate(8deg); }
+.pa .qh-stamp.small b { font-size: 12px; }
+.pa .qh-stamp.small .qh-stamp-tick { width: 12px; height: 20px; border-width: 0 4px 4px 0; }
 .pa .qh-foot { position: relative; z-index: 1; margin-top: auto; display: grid; gap: 6px; }
 .pa .qh-counts { display: grid; line-height: 1; }
 .pa .qh-counts b { font: 700 23px/1 var(--f-hand); color: var(--ink); }
-.pa .qh-counts span { font: 800 12px/1.3 var(--f-body); color: var(--soft); }
+.pa .qh-counts span { font: 800 .8125rem/1.3 var(--f-body); color: var(--soft); }
+.pa .qh-counts b.qh-choose { font-size: 19px; line-height: 1.1; }
 .pa .qh-bar { display: block; height: 6px; border-radius: 3px; background: rgba(34, 48, 77, .12); overflow: hidden; }
 .pa .qh-bar i { display: block; height: 100%; border-radius: 3px; background: var(--strong); transition: width .2s ease-out; }
 .pa .qh-paper.is-done .qh-bar i { background: var(--good); }
-.pa .qh-state { font: 800 12px/1.2 var(--f-body); color: var(--soft); }
-.pa .qh-paper.is-marking .qh-state { color: #2450a8; }
+.pa .qh-state { font: 800 .8125rem/1.2 var(--f-body); color: var(--soft); }
+.pa .qh-paper.is-started .qh-state, .pa .qh-paper.is-partial .qh-state { color: #2450a8; }
 .pa .qh-paper.is-done .qh-state { color: var(--ok-ink); }
-/* loading: the shape of a paper, nothing written on it */
-.pa .qh-ghost { background: linear-gradient(100deg, var(--card2) 30%, #f6faff 50%, var(--card2) 70%) 0 0 / 300% 100%; animation: qs-shimmer 1.4s linear infinite; box-shadow: none; pointer-events: none; cursor: default; padding: 0; }
-.pa .qh-fail { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 120px; padding: 12px 0; color: var(--soft); font: 700 15px var(--f-body); }
+.pa .qh-paper.is-new .qh-state { color: var(--mute); }
+/* loading: the shape of a paper (cream, ruled, taped), nothing written on it, a soft light passing over the blanks */
+.pa .qh-ghost { cursor: default; pointer-events: none; padding-bottom: 18px; animation-name: qh-in; }
+.pa .qh-ghost .qh-grain { opacity: .8; }
+.pa .qh-g-label, .pa .qh-g-line { position: relative; z-index: 1; display: block; border-radius: 9px 9px 9px 3px; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .65) 50%, transparent 70%) 0 0 / 300% 100%, rgba(34, 48, 77, .07); animation: qs-shimmer 1.6s linear infinite; }
+.pa .qh-g-label { height: 50px; margin: -6px 0 12px; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .55) 50%, transparent 70%) 0 0 / 300% 100%, var(--tint); opacity: .7; transform: rotate(-.8deg); }
+.pa .qh-g-line { height: 12px; margin: 0 0 10px; border-radius: 6px; }
+.pa .qh-g-line.short { width: 55%; }
+.pa .qh-g-dot { position: relative; z-index: 1; flex: none; width: 62px; height: 62px; margin: auto; border-radius: 50%; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .7) 50%, transparent 70%) 0 0 / 300% 100%, rgba(34, 48, 77, .06); animation: qs-shimmer 1.6s linear infinite; }
+.pa .qh-g-line.wide { width: 70%; height: 16px; margin-bottom: 8px; }
+.pa .qh-g-line.foot { width: 45%; margin-bottom: 0; }
+/* it did not load: one dashed paper, a gentle mascot and a way to try again; no sentence */
+.pa .qh-retry { align-items: center; justify-content: center; gap: 16px; padding: 18px 14px 18px 28px; border: 2px dashed rgba(34, 48, 77, .32); background: rgba(255, 250, 240, .75); --rest: 0 0 0 transparent; }
+.pa .qh-retry img { position: relative; z-index: 1; width: 64px; height: 64px; }
+.pa .qh-retry-go { position: relative; z-index: 1; display: grid; place-items: center; width: 52px; height: 52px; border: 2px solid var(--ink); border-radius: 50%; background: var(--tint); box-shadow: 0 3px 0 var(--ink); transition: transform .15s; }
+.pa .qh-retry:hover .qh-retry-go { transform: rotate(-35deg); }
+.pa .qh-fail { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 80px; padding: 12px 0; color: var(--soft); font: 700 15px var(--f-body); }
 
-/* the note cards at the end of a shelf: mix, pick your own, more papers */
-.pa .qh-act { width: 150px; align-items: center; justify-content: center; gap: 8px; padding: 14px 12px; border: 2px dashed rgba(34, 48, 77, .35); border-radius: 14px; background: color-mix(in srgb, var(--tint) 32%, var(--paper-cream)); text-align: center; --rest: 0 0 #0000; transform: none; animation-delay: calc(var(--i, 0) * 22ms); }
-.pa .qh-act:hover { border-style: solid; border-color: var(--ink); --rest: 0 10px 20px rgba(91, 71, 65, .16); transform: translateY(-4px); }
-.pa .qh-act:active { transform: scale(.98); }
-.pa .qh-act-ico { display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--ink); border-radius: 50%; background: var(--tint); }
-.pa .qh-act-ico svg { width: 22px; height: 22px; }
-.pa .qh-act-ico b { font: 600 16px var(--f-px); }
+/* the card at the end of a shelf: a small stack of the earlier papers */
+.pa .qh-more { width: 150px; align-items: center; justify-content: center; gap: 8px; padding: 14px 12px; border-radius: 14px; background: color-mix(in srgb, var(--tint) 34%, var(--paper-cream)); text-align: center; transform: none; animation-delay: calc(var(--i, 0) * 22ms); }
+.pa .qh-more:hover { transform: translateY(-4px); }
+.pa .qh-more:active { transform: scale(.98); }
+.pa .qh-stack { position: relative; width: 70px; height: 78px; margin-bottom: 4px; }
+.pa .qh-stack i, .pa .qh-stack b { position: absolute; inset: 6px 8px; border: 1.5px solid rgba(34, 48, 77, .35); border-radius: 4px; background: var(--paper-cream); box-shadow: 0 1px 2px rgba(34, 48, 77, .2); }
+.pa .qh-stack i:nth-child(1) { transform: rotate(-9deg) translate(-3px, 2px); background: color-mix(in srgb, var(--tint) 55%, #fff); }
+.pa .qh-stack i:nth-child(2) { transform: rotate(6deg) translate(3px, 0); }
+.pa .qh-stack i:nth-child(3) { transform: rotate(-2deg); }
+.pa .qh-stack b { display: grid; place-items: center; background: linear-gradient(transparent 0 16px, rgba(120, 160, 210, .3) 16px 17px, transparent 17px) 0 0 / 100% 17px, var(--paper-cream); font: 600 17px var(--f-px); transform: rotate(3deg); }
 .pa .qh-act-name { font: 600 16px/1.15 var(--f-px); }
-.pa .qh-act-sub { font: 700 12px var(--f-body); color: var(--soft); }
+.pa .qh-act-sub { font: 700 .8125rem var(--f-body); color: var(--soft); }
 .pa .qh-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: min(100%, 320px); min-height: 52px; margin: 22px 0 36px; border: 2px dashed #9fb3d3; border-radius: 16px; background: transparent; font: 800 15px var(--f-body); color: var(--soft); cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
 .pa .qh-add:hover { border-style: solid; border-color: var(--ink); color: var(--ink); background: rgba(255, 255, 255, .6); }
 
@@ -137,24 +194,26 @@
 .pa .qh-subj.on .qh-tick { background: #4f8a2c; }
 .pa .qh-boards { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 14px; animation: qh-in2 .18s ease-out both; }
 @keyframes qh-in2 { from { opacity: 0; transform: translateY(-4px); } }
-.pa .qh-donebar .qs-sel-count { white-space: normal; min-width: 0; }
+.pa .qh-donebar .qs-sel-count { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .qh-donebar .qs-sel-count b { font-size: 16px; }
 .pa .qh-donebar { padding-right: 8px; }
 
 /* ── small screens ───────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .pa .qs-page { --shelf-card-w: 166px; --shelf-card-h: 238px; }
-  .pa .qh-row { gap: 16px; }
-  .pa .qh-act { width: 136px; }
-  .pa .qh-paper { padding-left: 26px; }
-  .pa .qh-label { padding: 4px 8px 0; gap: 5px; }
-  .pa .qh-label small { font-size: 22px; }
-  .pa .qh-label b { font-size: 36px; }
-  .pa .qh-label b.long { font-size: 26px; }
-  .pa .qh-sticker { right: 8px; width: 46px; height: 46px; }
-  .pa .qh-sticker img { width: 36px; height: 36px; }
-  .pa .qh-stamp { right: 6px; width: 54px; height: 54px; }
+  .pa .qs-page { --shelf-card-w: 150px; --shelf-card-h: 274px; }
+  .pa .qh-row { gap: 14px; }
+  .pa .qh-more { width: 130px; }
+  .pa .qh-paper { padding-left: 26px; padding-right: 10px; }
+  .pa .qh-label { padding: 4px 8px 2px; column-gap: 4px; }
+  .pa .qh-label small { font-size: 18px; }
+  .pa .qh-label b { font-size: 30px; }
+  .pa .qh-label b.long { font-size: 22px; }
+  .pa .qh-sticker { width: 50px; height: 50px; }
+  .pa .qh-sticker img { width: 38px; height: 38px; }
+  .pa .qh-stamp { width: 58px; height: 58px; }
   .pa .qh-stamp b { font-size: 14px; }
-  .pa .qh-counts b { font-size: 20px; }
+  .pa .qh-counts b { font-size: 21px; }
+  .pa .qh-acts { width: 100%; margin-left: 0; }
   .pa .qh-subjects { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 @media (max-width: 480px) {
@@ -162,12 +221,15 @@
   .pa .qh-row.wrap { gap: 22px 14px; }
   .pa .qh-row.wrap .qh-item { width: calc(50% - 7px); }
   .pa .qh-row.wrap .qh-paper { width: 100%; }
-  .pa .qh-row.wrap .qh-label { padding: 4px 6px 0; gap: 4px; }
-  .pa .qh-row.wrap .qh-label b { font-size: 33px; }
+  .pa .qh-row.wrap .qh-label { padding: 4px 6px 2px; column-gap: 4px; }
+  .pa .qh-row.wrap .qh-label b { font-size: 30px; }
   .pa .qh-subjects { grid-template-columns: minmax(0, 1fr); }
   .pa .qh-subj-btn { min-height: 68px; padding: 10px 12px; gap: 10px; font-size: 18px; }
   .pa .qh-boards { padding: 0 10px 12px; gap: 6px; }
-  .pa .qh-donebar .qs-start { padding: 0 12px; }
+  .pa .qh-donebar { gap: 8px; padding: 6px 6px 6px 14px; }
+  .pa .qh-donebar .qs-start { padding: 0 12px; font-size: 15px; }
+  .pa .qh-donebar .qs-sel-count { font-size: 12px; margin-right: 2px; }
+  .pa .qh-donebar .qs-sel-count b { font-size: 14px; }
 }
 
 /* ── forced colours: borders say what colours did ── */
@@ -175,20 +237,23 @@
   .pa .qh-paper { border: 2px solid CanvasText; forced-color-adjust: auto; }
   .pa .qh-paper:hover, .pa .qh-paper:focus-visible { outline: 3px solid Highlight; }
   .pa .qh-tape, .pa .qh-grain { display: none; }
-  .pa .qh-label, .pa .qh-act-ico, .pa .qh-bar, .pa .qh-stamp, .pa .qh-sticker { border: 1.5px solid CanvasText; }
+  .pa .qh-label, .pa .qh-pill-ico, .pa .qh-bar, .pa .qh-stamp, .pa .qh-sticker, .pa .qh-retry-go { border: 1.5px solid CanvasText; }
+  .pa .qh-pill, .pa .qh-showmore { border: 2px solid CanvasText; }
   .pa .qh-bar i { background: Highlight; }
   .pa .qh-subj, .pa .qh-add, .pa .qh-arrow { border: 2px solid CanvasText; }
   .pa .qh-subj.on { outline: 3px solid Highlight; outline-offset: -3px; }
   .pa .qh-subj.need { border-style: dashed; }
   .pa .qh-tick { border: 2px solid CanvasText; background: Canvas; color: CanvasText; }
   .pa .qh-subj.on .qh-tick { background: Highlight; color: HighlightText; }
-  .pa .qh-ghost { background: GrayText; animation: none; }
+  .pa .qh-g-label, .pa .qh-g-line, .pa .qh-g-dot { background: GrayText; animation: none; opacity: .5; }
+  .pa .qh-retry { border-style: dashed; }
   .pa .qh-scroller.has-more, .pa .qh-scroller.has-less { -webkit-mask-image: none; mask-image: none; }
 }
 
 /* ── reduced motion (the blanket rule in questions.css stills animations and transitions; here the hover lift stays still too) ── */
 @media (prefers-reduced-motion: reduce) {
   .pa .qh-paper:hover, .pa .qh-paper:active { transform: rotate(var(--tilt, 0deg)); }
-  .pa .qh-act:hover, .pa .qh-act:active { transform: none; }
+  .pa .qh-more:hover, .pa .qh-more:active { transform: none; }
   .pa .qh-paper:hover .qh-sticker { transform: rotate(9deg); }
+  .pa .qh-pill:hover, .pa .qh-pill:active { transform: none; }
 }

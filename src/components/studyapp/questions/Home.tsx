@@ -27,6 +27,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
     <main className="qs-page qs-picker qh-home" data-testid="home" id="qs-main">
       <div className="wrap">
         <div className="qs-col">
+          <a className="qs-skip" href="#qh-shelves" onClick={(e) => { e.preventDefault(); const el = document.getElementById("qh-shelves"); el?.scrollIntoView({ block: "start" }); el?.focus({ preventScroll: true }); }}>Skip to your papers</a>
           <header className="qs-head">
             <div className="qs-head-text">
               <h1 ref={h1} tabIndex={-1}>Questions</h1>
@@ -46,7 +47,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
             );
           })()}
 
-          <div className="qh-shelves">
+          <div className="qh-shelves" id="qh-shelves" tabIndex={-1}>
             {entries.map((e) => <Shelf key={e.slug} entry={e} q={q} onPick={onPick} />)}
           </div>
           <button type="button" className="qh-add" onClick={onSetup} data-testid="add-subject"><PlusIcon />Add a subject</button>

@@ -3,10 +3,10 @@
 import { useSyncExternalStore } from "react";
 import { removeInk, removeSetInk } from "./inkDb";
 import {
-  againInput, checkPart, createSet, setMine, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
+  againInput, checkPart, createSet, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
   type Mode, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
-import { APP_KEY, QUESTIONS_KEY, QUESTIONS_RECOVERY_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
+import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
 
 /**
  * The Questions tab's data on this device: its own localStorage key (persist.ts says why and how it is read), shared between tabs,
@@ -24,6 +24,23 @@ let started = false;
 /** The text this tab last wrote or read, to tell whether another tab has written since. */
 let lastRaw: string | null = null;
 
+/**
+ * Which set is on the desk belongs to the TAB (sessionStorage), not to the device: two tabs on two papers must not keep pulling each
+ * other's view over. The stored `open` is still written (the last one is where a tab with no memory of its own, a fresh one, picks up).
+ */
+const TAB_OPEN_KEY = "plumi-study-questions-open";
+let tabOpen: string | null | undefined;
+function readTabOpen(): string | null | undefined {
+  try { const v = sessionStorage.getItem(TAB_OPEN_KEY); return v === null ? undefined : v === "" ? null : v; } catch { return undefined; }
+}
+function saveTabOpen(v: string | null) { try { sessionStorage.setItem(TAB_OPEN_KEY, v ?? ""); } catch { /* private window: the tab just follows the stored one */ } }
+/** The data with this tab's own open set. */
+function withOpen(q: QuestionsData): QuestionsData {
+  if (tabOpen === undefined) return q;
+  const want = tabOpen !== null && q.sets.some((s) => s.id === tabOpen) ? tabOpen : null;
+  return q.open === want ? q : { ...q, open: want };
+}
+
 const emit = () => listeners.forEach((l) => l());
 
 function write(q: QuestionsData): boolean {
@@ -40,14 +57,16 @@ function load(): State {
     const own = localStorage.getItem(QUESTIONS_KEY);
     const loaded = readQuestions(own, localStorage.getItem(APP_KEY));
     if (loaded.keep !== null) {
-      try { if (localStorage.getItem(QUESTIONS_RECOVERY_KEY) === null) localStorage.setItem(QUESTIONS_RECOVERY_KEY, loaded.keep); } catch { /* full: nothing more to do */ }
+      // An unreadable record is kept before anything is written over it, under a key no earlier one holds.
+      try { const k = chooseRecoveryKey((x) => localStorage.getItem(x), loaded.keep); if (k) localStorage.setItem(k, loaded.keep); } catch { /* full: nothing more to do */ }
     }
-    if (loaded.origin === "own") { lastRaw = own; setQuestionsDurable(true); return { ready: true, persisted: true, q: loaded.data }; }
+    if (tabOpen === undefined) { const t = readTabOpen(); tabOpen = t === undefined ? (loaded.data.open ?? null) : t; if (t === undefined) saveTabOpen(tabOpen); }
+    if (loaded.origin === "own") { lastRaw = own; setQuestionsDurable(true); return { ready: true, persisted: true, q: withOpen(loaded.data) }; }
     if (loaded.origin === "migrated") {
       // Copy, read back, and only then let the app's document let go of its copy.
       const ok = write(loaded.data) && localStorage.getItem(QUESTIONS_KEY) === lastRaw;
       setQuestionsDurable(ok);
-      return { ready: true, persisted: ok, q: loaded.data };
+      return { ready: true, persisted: ok, q: withOpen(loaded.data) };
     }
     // A new student (or an unreadable record kept above). Writing starts with their first change.
     return { ready: true, persisted: true, q: EMPTY_QUESTIONS };
@@ -65,7 +84,7 @@ function start() {
     const incoming = readIncoming(e.newValue);
     if (!incoming) return;   // cleared or unreadable elsewhere: keep what this tab has, it is written back by the next change
     lastRaw = e.newValue;
-    state = { ...state, q: incoming };
+    state = { ...state, q: withOpen(incoming) };
     emit();
   });
 }
@@ -76,17 +95,23 @@ function fresh(): QuestionsData {
     const raw = localStorage.getItem(QUESTIONS_KEY);
     if (raw !== null && raw !== lastRaw) {
       const q = readIncoming(raw);
-      if (q) { lastRaw = raw; state = { ...state, q }; }
+      if (q) { lastRaw = raw; state = { ...state, q: withOpen(q) }; }
     }
   } catch { /* storage unreadable: this tab's copy it is */ }
   return state.q;
 }
 
 export function changeQuestions(fn: (q: QuestionsData) => QuestionsData) {
+  flushInkMeta();
+  apply(fn);
+}
+
+function apply(fn: (q: QuestionsData) => QuestionsData) {
   start();
   const base = state.ready ? fresh() : load().q;
   const next = fn(base);
   if (next === base) { if (state.q !== base) emit(); return; }
+  if (next.open !== base.open) { tabOpen = next.open; saveTabOpen(next.open); }
   const ok = write(next);
   if (ok) setQuestionsDurable(true);
   state = { ready: true, persisted: ok, q: next };
@@ -121,6 +146,46 @@ export function onSetsDropped(fn: (n: number) => void): () => void {
   return () => { droppedListeners.delete(fn); };
 }
 
+/**
+ * The count of strokes an answer has (and its bytes) is only a label for the sheet ("this part has writing"); the ink itself is saved
+ * in IndexedDB the moment a stroke ends. So the label is written to the document a little later, one write for a burst of strokes, and
+ * at once when the page is hidden or closed, or before any other change.
+ */
+const inkQueue = new Map<string, { setId: string; partId: string; n: number; b: number }>();
+let inkTimer: ReturnType<typeof setTimeout> | null = null;
+let inkFirst = 0;
+function flushInkMeta() {
+  if (inkTimer) { clearTimeout(inkTimer); inkTimer = null; }
+  if (!inkQueue.size) return;
+  const items = [...inkQueue.values()];
+  inkQueue.clear();
+  inkFirst = 0;
+  apply((q) => items.reduce((acc, i) => setInkMeta(acc, i.setId, i.partId, i.n, i.b, now()), q));
+}
+function queueInkMeta(setId: string, partId: string, n: number, bytes: number) {
+  inkQueue.set(keyOf(setId, partId), { setId, partId, n, b: bytes });
+  const t = Date.now();
+  if (!inkTimer) inkFirst = t; else clearTimeout(inkTimer);
+  inkTimer = setTimeout(flushInkMeta, Math.max(0, Math.min(350, inkFirst + 1500 - t)));
+  hookHide();
+}
+let hooked = false;
+function hookHide() {
+  if (hooked || typeof window === "undefined") return;
+  hooked = true;
+  window.addEventListener("pagehide", flushInkMeta);
+  document.addEventListener("freeze", flushInkMeta);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushInkMeta(); });
+}
+
+/** Ask the browser not to clear this site's data under pressure (once, when there is first something worth keeping). The answer is not needed. */
+let persistAsked = false;
+function askToKeep() {
+  if (persistAsked || typeof navigator === "undefined") return;
+  persistAsked = true;
+  try { void navigator.storage?.persist?.().catch(() => undefined); } catch { /* not offered here */ }
+}
+
 export const qa = {
   /** Make a set from chosen parts and put it on the desk. Ink of any set pushed out by the cap is deleted. */
   start(input: SetInput): string {
@@ -139,11 +204,12 @@ export const qa = {
   text(setId: string, partId: string, text: string): boolean {
     let ok = true;
     changeQuestions((q) => { const r = setText(q, setId, partId, text, now()); ok = r.ok; return r.q; });
+    if (text) askToKeep();
     return ok;
   },
   mode: (setId: string, partId: string, mode: Mode) => changeQuestions((q) => setMode(q, setId, partId, mode, now())),
   height: (setId: string, partId: string, h: number) => changeQuestions((q) => setHeight(q, setId, partId, h, now())),
-  ink: (setId: string, partId: string, n: number, bytes: number) => changeQuestions((q) => setInkMeta(q, setId, partId, n, bytes, now())),
+  ink(setId: string, partId: string, n: number, bytes: number) { queueInkMeta(setId, partId, n, bytes); if (n > 0) askToKeep(); },
   check: (setId: string, partId: string) => changeQuestions((q) => (q.answers[keyOf(setId, partId)]?.chk ? q : checkPart(q, setId, partId, now()))),
   mark: (setId: string, partId: string, got: number | null) => changeQuestions((q) => markPart(q, setId, partId, got, now())),
   /** Clear a part's answer. (Its ink is cleared by its zone, which also keeps the undo.) */
@@ -153,6 +219,8 @@ export const qa = {
   pick: (subject: string | null, topics: readonly string[]) => changeQuestions((q) => setPick(q, subject, topics)),
   /** The subjects the student does (slugs, in the order chosen). */
   mine: (slugs: readonly string[]) => changeQuestions((q) => setMine(q, slugs)),
+  /** The tier the student sits in a subject (`[]` or every tier: both). `all` is the subject's tiers, so choosing them all is stored as nothing. */
+  tiers: (slug: string, tiers: readonly string[], all: readonly string[] = []) => changeQuestions((q) => setTiers(q, slug, tiers, all)),
   prefs: (p: Partial<QPrefs>) => changeQuestions((q) => setPrefs(q, p)),
   /** A redo set of the parts that lost marks, or null if none did. */
   redo(setId: string): string | null {

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { QuestionsData } from "@/lib/studyapp/questions/model";
 import { groupPapers, paperSetInput, paperState, SHELF_PAPERS, shelfOf, yearsOf, type Paper } from "@/lib/studyapp/questions/papers";
@@ -8,10 +7,12 @@ import { qa } from "@/lib/studyapp/questions/store";
 import { baseSubject, boardLabel, subjectTint, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { useSubject } from "./bankData";
 import { BackIcon } from "./icons";
-import { ActionCard, PaperCard, PaperGhost, type Roving } from "./PaperCard";
+import { MoreCard, PaperCard, PaperGhost, PaperRetry, ShelfPills } from "./PaperCard";
 
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const GHOSTS = [0, 1, 2, 3, 4, 5];
+/** A year opens this many papers at a time (a year of 57 is a lot to draw at once on a slow device). */
+const YEAR_PAGE = 24;
 
 /** True once the element is near the screen (one way: a shelf that has been near stays loaded). Without IntersectionObserver, at once. */
 function useNear(ref: React.RefObject<Element | null>): boolean {
@@ -44,17 +45,20 @@ export function Shelf({ entry, q, onPick }: { entry: CatalogueSubject; q: Questi
   const papers = useMemo(() => (rows && meta ? groupPapers(rows, meta) : []), [rows, meta]);
   const [all, setAll] = useState(false);
   const [year, setYear] = useState<string | null>(null);
+  const [cap, setCap] = useState(YEAR_PAGE);
   const years = useMemo(() => yearsOf(papers), [papers]);
   const { shown, more } = shelfOf(papers, SHELF_PAPERS);
-  const inYear = all ? papers.filter((p) => p.year === (year ?? years[0]?.year)) : shown;
+  const wholeYear = useMemo(() => (all ? papers.filter((p) => p.year === (year ?? years[0]?.year)) : shown), [all, papers, year, years, shown]);
+  const inYear = all ? wholeYear.slice(0, cap) : wholeYear;
+  const hidden = wholeYear.length - inYear.length;
   const states = useMemo(() => new Map(papers.map((p) => [p.key, paperState(entry.slug, p.key, q.sets, q.answers)])), [papers, entry.slug, q.sets, q.answers]);
 
-  const open = (p: Paper) => {
+  const open = useCallback((p: Paper) => {
     if (!meta) return;
     const st = states.get(p.key);
     if (st?.set) qa.open(st.set.id);
     else qa.start(paperSetInput(meta, p));
-  };
+  }, [meta, states]);
 
   // the row: arrows, and one tab stop (the cards move among themselves with the arrow keys)
   const row = useRef<HTMLUListElement>(null);
@@ -85,66 +89,71 @@ export function Shelf({ entry, q, onPick }: { entry: CatalogueSubject; q: Questi
     e.preventDefault();
     list[next].focus();
   };
-  const total = inYear.length + (all ? 0 : (more > 0 ? 1 : 0) + 2);
+  const total = inYear.length + (all ? 0 : more > 0 ? 1 : 0);
   const stop = Math.min(cur, total - 1);   // the one card in the tab order, kept inside the row when it gets shorter
   const attach = useCallback((i: number, el: HTMLButtonElement | null) => { cards.current[i] = el; }, []);
-  const nav = (i: number): Roving => ({ index: i, stop: stop === i, attach, focused: setCur });
 
-  const heading = `${name} ${boardLabel(entry)} ${entry.level}`;
+  const tier = data.state === "ready" ? data.tier : null;
+  const kind = `${boardLabel(entry)} \u00b7 ${entry.level}${tier ? ` \u00b7 ${tier}` : ""}`;
+  const heading = `${name} ${kind}`;
   const failed = data.state === "error";
   const ready = data.state === "ready";
-  let k = 0;
+  const mix = useCallback(() => onPick(entry.slug, true), [onPick, entry.slug]);
+  const pick = useCallback(() => onPick(entry.slug, false), [onPick, entry.slug]);
   return (
     <section ref={box} className="qh-shelf" aria-labelledby={`${id}-h`} style={{ "--tint": tint } as React.CSSProperties} data-testid="shelf" data-slug={entry.slug}>
       <header className="qh-shelf-head">
         <div className="qh-shelf-title">
-          <h2 id={`${id}-h`}><span className="qh-dot" aria-hidden="true" />{name}<span className="qs-sr"> {boardLabel(entry)} {entry.level}</span></h2>
-          <span className="qh-tag" aria-hidden="true">{boardLabel(entry)} {entry.level}</span>
+          <h2 id={`${id}-h`}><span className="qh-dot" aria-hidden="true" />{name}<span className="qs-sr"> {kind}</span></h2>
+          <span className="qh-tag" aria-hidden="true">{kind}</span>
           {ready && <span className="qh-n">{papers.length} {papers.length === 1 ? "paper" : "papers"}</span>}
         </div>
-        {all ? (
-          <button type="button" className="qs-link" onClick={() => { setAll(false); setCur(0); }} aria-label={`Back to the latest ${name} papers`}><BackIcon />Latest</button>
-        ) : (
-          edge.l || edge.r ? (
-            <span className="qh-arrows">
-              <button type="button" className="qh-arrow" onClick={() => slide(-1)} disabled={!edge.l} aria-label={`Scroll ${heading} papers back`} tabIndex={-1}><BackIcon /></button>
-              <button type="button" className="qh-arrow next" onClick={() => slide(1)} disabled={!edge.r} aria-label={`Scroll ${heading} papers forward`} tabIndex={-1}><BackIcon /></button>
-            </span>
-          ) : null
-        )}
+        <div className="qh-acts">
+          <ShelfPills onMix={mix} onPick={pick} name={name} />
+          {all ? (
+            <button type="button" className="qs-link" onClick={() => { setAll(false); setCur(0); }} aria-label={`Back to the latest ${name} papers`}><BackIcon />Latest</button>
+          ) : (
+            edge.l || edge.r ? (
+              <span className="qh-arrows">
+                <button type="button" className="qh-arrow" onClick={() => slide(-1)} disabled={!edge.l} aria-label={`Scroll ${heading} papers back`} tabIndex={-1}><BackIcon /></button>
+                <button type="button" className="qh-arrow next" onClick={() => slide(1)} disabled={!edge.r} aria-label={`Scroll ${heading} papers forward`} tabIndex={-1}><BackIcon /></button>
+              </span>
+            ) : null
+          )}
+        </div>
       </header>
 
       {all && (
         <div className="qh-years" role="group" aria-label={`${name} papers by year`}>
-          {years.map((y) => <button key={y.year} type="button" className={`qs-chip${(year ?? years[0]?.year) === y.year ? " on" : ""}`} aria-pressed={(year ?? years[0]?.year) === y.year} onClick={() => { setYear(y.year); setCur(0); }}>{y.year}<span className="qh-yn">{y.n}</span></button>)}
+          {years.map((y) => <button key={y.year} type="button" className={`qs-chip${(year ?? years[0]?.year) === y.year ? " on" : ""}`} aria-pressed={(year ?? years[0]?.year) === y.year} onClick={() => { setYear(y.year); setCap(YEAR_PAGE); setCur(0); }}>{y.year}<span className="qh-yn">{y.n}</span></button>)}
         </div>
       )}
 
       {failed ? (
-        <div className="qh-fail" role="status">
-          <Image src="/study/mascot/plumi-curious.svg" alt="" width={40} height={40} unoptimized />
-          <span>These papers did not load</span>
-          <button type="button" className="btn" onClick={() => setAttempt((a) => a + 1)}>Try again</button>
+        <div className="qh-scroller" role="group" aria-label={`${name} papers`}>
+          <ul className="qh-row qh-row-still"><li className="qh-item"><PaperRetry name={name} onRetry={() => setAttempt((a) => a + 1)} /></li></ul>
         </div>
       ) : !ready ? (
         <div className="qh-scroller" role="status" aria-label={`Loading ${name} papers`}>
-          <ul className="qh-row" aria-hidden="true">{GHOSTS.map((i) => <li key={i} className="qh-item"><PaperGhost n={i} /></li>)}</ul>
+          <ul className="qh-row qh-row-still" aria-hidden="true" inert>{GHOSTS.map((i) => <li key={i} className="qh-item"><PaperGhost n={i} /></li>)}</ul>
         </div>
       ) : (
         <div className={`qh-scroller${edge.r && !all ? " has-more" : ""}${edge.l && !all ? " has-less" : ""}`}>
           <ul ref={row} role="list" className={`qh-row${all ? " wrap" : ""}`} onKeyDown={onKey} aria-label={`${heading} past papers`}>
-            {inYear.map((p) => {
-              const i = k++;
-              return <li key={p.key} className="qh-item"><PaperCard paper={p} state={states.get(p.key)!} n={i} tint={tint} onOpen={() => open(p)} nav={nav(i)} /></li>;
-            })}
-            {!all && more > 0 && (() => { const i = k++; return <li key="more" className="qh-item"><ActionCard kind="more" label="More papers" sub={`${more} earlier`} extra={`+${more}`} tint={tint} onClick={() => { setAll(true); setYear(papers[SHELF_PAPERS]?.year ?? null); setCur(0); }} nav={nav(i)} /></li>; })()}
-            {!all && (() => { const i = k++; return <li key="mix" className="qh-item"><ActionCard kind="mix" label="Mix for me" sub="Ten at a time" tint={tint} onClick={() => onPick(entry.slug, true)} nav={nav(i)} /></li>; })()}
-            {!all && (() => { const i = k++; return <li key="pick" className="qh-item"><ActionCard kind="pick" label="Pick your own" sub="Search, filters" tint={tint} onClick={() => onPick(entry.slug, false)} nav={nav(i)} /></li>; })()}
+            {inYear.map((p, i) => (
+              <li key={p.key} className="qh-item"><PaperCard paper={p} state={states.get(p.key)!} n={i} tint={tint} stop={stop === i} attach={attach} focused={setCur} onOpen={open} /></li>
+            ))}
+            {!all && more > 0 && (
+              <li key="more" className="qh-item"><MoreCard more={more} tint={tint} n={inYear.length} stop={stop === inYear.length} attach={attach} focused={setCur} onClick={() => { setAll(true); setCap(YEAR_PAGE); setYear(papers[SHELF_PAPERS]?.year ?? null); setCur(0); }} /></li>
+            )}
           </ul>
         </div>
       )}
+      {all && ready && hidden > 0 && (
+        <button type="button" className="qh-showmore" onClick={() => setCap((c) => c + YEAR_PAGE)} data-testid="show-more">Show {Math.min(hidden, YEAR_PAGE)} more<span>{hidden} left in {year ?? years[0]?.year}</span></button>
+      )}
       {ready && papers.length === 0 && (
-        <div className="qh-fail"><span>No papers here yet</span><button type="button" className="btn" onClick={() => onPick(entry.slug, false)}>Pick your own</button></div>
+        <div className="qh-fail"><span>No papers here yet</span></div>
       )}
     </section>
   );

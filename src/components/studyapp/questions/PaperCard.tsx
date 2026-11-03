@@ -1,25 +1,33 @@
 "use client";
 
+import Image from "next/image";
+import { memo } from "react";
 import { paperAria, shortMonth, splitSeries, stateLine, type Paper, type PaperState } from "@/lib/studyapp/questions/papers";
-import { lookFor, PaperArt } from "./paperArt";
-import { PlusIcon, SearchIcon } from "./icons";
+import { lookFor, Mid, PaperArt } from "./paperArt";
+import { RetryIcon, SearchIcon } from "./icons";
 import { ShuffleIcon } from "./pickerIcons";
 
-/** What a shelf gives each of its cards so the arrow keys can move among them: its place, whether it is the one tab stop, and where to report. */
-export interface Roving { index: number; stop: boolean; attach(index: number, el: HTMLButtonElement | null): void; focused(index: number): void }
+/** What a shelf gives each of its cards so the arrow keys can move among them: whether it is the one tab stop, and where to report. */
+export interface Roving { stop: boolean; attach(index: number, el: HTMLButtonElement | null): void; focused(index: number): void }
 
-/** One past paper on a shelf: the sitting in the hand-lettered label, the paper's name, how big it is, how far you are. */
-export function PaperCard({ paper, state, n, tint, onOpen, nav }: { paper: Paper; state: PaperState; n: number; tint: string; onOpen(): void; nav: Roving }) {
+/**
+ * One past paper on a shelf: the sitting in the hand-lettered label, the paper's name, how big it is, how far you are.
+ * Memoised: it is drawn again only when its paper, its state or its place in the row changes (a year of 57 papers opens at once).
+ */
+export const PaperCard = memo(function PaperCard({ paper, state, n, tint, stop, attach, focused, onOpen }: {
+  paper: Paper; state: PaperState; n: number; tint: string; stop: boolean; attach: Roving["attach"]; focused: Roving["focused"]; onOpen(p: Paper): void;
+}) {
   const look = lookFor(n);
   const { month, year, tag } = splitSeries(paper.series);
-  const pct = state.kind === "done" ? 100 : state.of > 0 ? Math.round((state.done / state.of) * 100) : 0;
+  const pct = state.phase === "done" ? 100 : Math.round(state.fraction * 100);
+  const attempt = state.attempt > 1 ? state.attempt : 0;
   return (
     <button
-      type="button" ref={(el) => nav.attach(nav.index, el)} tabIndex={nav.stop ? 0 : -1} onFocus={() => nav.focused(nav.index)} onClick={onOpen}
-      className={`qh-paper is-${state.kind}`} style={{ "--tint": tint, "--tilt": `${look.tilt}deg`, "--i": Math.min(n, 9) } as React.CSSProperties}
+      type="button" ref={(el) => attach(n, el)} tabIndex={stop ? 0 : -1} onFocus={() => focused(n)} onClick={() => onOpen(paper)}
+      className={`qh-paper is-${state.phase}`} style={{ "--tint": tint, "--tilt": `${look.tilt}deg`, "--i": Math.min(n, 9) } as React.CSSProperties}
       aria-label={paperAria(paper, state)} data-testid="paper-card" data-paper={paper.key}
     >
-      <PaperArt look={look} state={state} />
+      <PaperArt look={look} />
       <span className="qh-label" aria-hidden="true">
         {month && <small>{shortMonth(month)}</small>}
         <b className={year.length > 5 ? "long" : undefined}>{year}</b>
@@ -27,28 +35,68 @@ export function PaperCard({ paper, state, n, tint, onOpen, nav }: { paper: Paper
       </span>
       <span className="qh-name" aria-hidden="true">{paper.name}</span>
       {paper.title && <span className="qh-sub" aria-hidden="true">{paper.title}</span>}
+      {(attempt > 0 || (paper.note && !paper.choose)) && (
+        <span className="qh-notes" aria-hidden="true">
+          {attempt > 0 && <span className="qh-attempt">Attempt {attempt}</span>}
+          {paper.note && !paper.choose && <span className="qh-attempt part">{paper.note}</span>}
+        </span>
+      )}
+      <Mid look={look} state={state} />
       <span className="qh-foot" aria-hidden="true">
-        <span className="qh-counts">{paper.marks != null && <b>{paper.marks.toLocaleString("en-GB")} {paper.marks === 1 ? "mark" : "marks"}</b>}<span>{paper.questions.toLocaleString("en-GB")} {paper.questions === 1 ? "question" : "questions"}</span></span>
-        <span className="qh-bar"><i style={{ width: `${pct}%` }} /></span>
+        {paper.choose && paper.note ? (
+          <span className="qh-counts"><b className="qh-choose">{paper.note}</b></span>
+        ) : (
+          <span className="qh-counts">
+            {paper.marks != null && <b>{paper.marks.toLocaleString("en-GB")} {paper.marks === 1 ? "mark" : "marks"}</b>}
+            <span>{paper.questions.toLocaleString("en-GB")} {paper.questions === 1 ? "question" : "questions"}</span>
+          </span>
+        )}
+        {pct > 0 && <span className="qh-bar"><i style={{ width: `${pct}%` }} /></span>}
         <span className="qh-state">{stateLine(state)}</span>
       </span>
     </button>
   );
-}
+});
 
-/** A paper that is still on its way: the shape of a card, no words. */
+/** A paper that is still on its way: the shape of a paper (cream, ruled, taped), nothing written on it. */
 export function PaperGhost({ n }: { n: number }) {
-  return <span className="qh-paper qh-ghost" aria-hidden="true" style={{ "--tilt": `${lookFor(n).tilt}deg` } as React.CSSProperties} />;
+  const look = lookFor(n);
+  return (
+    <span className="qh-paper qh-ghost" aria-hidden="true" style={{ "--tilt": `${look.tilt}deg`, "--i": Math.min(n, 5) } as React.CSSProperties}>
+      <PaperArt look={look} />
+      <span className="qh-g-label" /><span className="qh-g-line" /><span className="qh-g-line short" /><span className="qh-g-dot" /><span className="qh-g-line wide" /><span className="qh-g-line foot" />
+    </span>
+  );
 }
 
-type Kind = "mix" | "pick" | "more";
-/** The cards at the end of a shelf: mix, pick your own, and (when there are more) more papers. Same size as a paper, a note card not a paper. */
-export function ActionCard({ kind, label, sub, tint, onClick, nav, extra }: { kind: Kind; label: string; sub?: string; tint: string; onClick(): void; nav: Roving; extra?: string }) {
+/** The shelf could not be drawn: one paper-shaped card, a gentle mascot, and a way to try again. No sentence on it (the button says it to a screen reader). */
+export function PaperRetry({ onRetry, name }: { onRetry(): void; name: string }) {
   return (
-    <button type="button" ref={(el) => nav.attach(nav.index, el)} tabIndex={nav.stop ? 0 : -1} onFocus={() => nav.focused(nav.index)} onClick={onClick} className={`qh-paper qh-act is-${kind}`} style={{ "--tint": tint } as React.CSSProperties} data-testid={`card-${kind}`}>
-      <span className="qh-act-ico" aria-hidden="true">{kind === "mix" ? <ShuffleIcon /> : kind === "pick" ? <SearchIcon /> : extra ? <b>{extra}</b> : <PlusIcon />}</span>
-      <span className="qh-act-name">{label}</span>
-      {sub && <span className="qh-act-sub">{sub}</span>}
+    <button type="button" className="qh-paper qh-retry" onClick={onRetry} aria-label={`${name} papers did not load. Try again`} data-testid="shelf-retry">
+      <PaperArt look={lookFor(2)} />
+      <Image src="/study/mascot/plumi-curious.svg" alt="" width={64} height={64} unoptimized />
+      <span className="qh-retry-go" aria-hidden="true"><RetryIcon /></span>
     </button>
+  );
+}
+
+/** The card at the end of a shelf, when there are more papers: a little stack of them. */
+export function MoreCard({ more, onClick, tint, n, stop, attach, focused }: { more: number; onClick(): void; tint: string; n: number } & Roving) {
+  return (
+    <button type="button" ref={(el) => attach(n, el)} tabIndex={stop ? 0 : -1} onFocus={() => focused(n)} onClick={onClick} className="qh-paper qh-more" style={{ "--tint": tint, "--i": Math.min(n, 9) } as React.CSSProperties} data-testid="card-more">
+      <span className="qh-stack" aria-hidden="true"><i /><i /><i /><b>+{more}</b></span>
+      <span className="qh-act-name">More papers</span>
+      <span className="qh-act-sub">{more} earlier</span>
+    </button>
+  );
+}
+
+/** "Mix for me" and "Pick your own": two small pills in a shelf's header, always there (they need no list to be drawn). */
+export function ShelfPills({ onMix, onPick, name }: { onMix(): void; onPick(): void; name: string }) {
+  return (
+    <span className="qh-pills" role="group" aria-label={`${name} questions`}>
+      <button type="button" className="qh-pill mix" onClick={onMix} data-testid="card-mix"><span className="qh-pill-ico" aria-hidden="true"><ShuffleIcon /></span>Mix for me</button>
+      <button type="button" className="qh-pill pick" onClick={onPick} data-testid="card-pick"><span className="qh-pill-ico" aria-hidden="true"><SearchIcon /></span>Pick your own</button>
+    </span>
   );
 }

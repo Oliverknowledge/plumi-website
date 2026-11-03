@@ -20,3 +20,6 @@ export const PlusIcon = () => <I size={18}><path d="M12 5v14M5 12h14" /></I>;
 export const CloseIcon = () => <I size={18}><path d="M6 6l12 12M18 6L6 18" /></I>;
 export const SearchIcon = () => <I size={18}><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></I>;
 export const ExpandIcon = () => <I size={18}><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" /></I>;
+export const RetryIcon = () => <I size={20}><path d="M20 12a8 8 0 11-2.6-5.9" /><path d="M20 4v5h-5" /></I>;
+export const ReportIcon = () => <I size={18}><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /><path d="M9 12h6M9 16h6" /></I>;
+export const TextIcon = () => <I size={16}><path d="M4 19l5-14 5 14M6 14h6" /><path d="M16 12h4M16 16h4M16 8h4" /></I>;

@@ -52,6 +52,8 @@ export interface QSet {
   redoOf?: string;
   /** Set when this is a whole past paper opened from a shelf: `"JUN25|84631h"` (series, paper code) of the subject, so the shelf can show its progress. */
   paper?: string;
+  /** A paper the student picks questions from (a choose-one paper): the questions they leave alone are not "unmarked", they were never chosen. */
+  choose?: 1;
 }
 
 export type Mode = "ink" | "type";
@@ -108,6 +110,8 @@ export interface QuestionsData {
   pick: { subject: string | null; topics: string[] };
   /** The subjects the student does, as bank slugs (the slug names the level and the exam board too), in the order chosen. Unset until they have chosen (`mine.ts` derives it for older data). */
   mine?: string[];
+  /** The tier the student sits, per subject slug (`["Higher"]`); a subject with none here shows both. Only for subjects that have tiers. */
+  tiers?: Record<string, string[]>;
   prefs: QPrefs;
 }
 
@@ -199,10 +203,26 @@ export const hasText = (a: QAnswer | undefined) => !!a?.text && a.text.trim().le
 export const isAnswered = (a: QAnswer | undefined) => hasInk(a) || hasText(a);
 export const isMarked = (a: QAnswer | undefined) => a?.got !== undefined;
 
-/** Zone height in logical units for a part: about 90 per mark, at least 140, or what the student made it. */
-export function zoneHeight(p: Pick<QPart, "m">, a?: QAnswer): number {
-  const base = Math.max(ZONE_MIN_H, (p.m ?? 0) * ZONE_PER_MARK);
+/** A multiple-choice part (it has an answer letter) is answered with one letter: a short strip, not a page. */
+export const ZONE_MCQ_H = 72;
+
+/** Zone height in logical units for a part: about 90 per mark, at least 140 (a one-letter multiple-choice answer, 72), or what the student made it. */
+export function zoneHeight(p: Pick<QPart, "m"> & { k?: string }, a?: QAnswer): number {
+  const base = p.k ? ZONE_MCQ_H : Math.max(ZONE_MIN_H, (p.m ?? 0) * ZONE_PER_MARK);
   return Math.min(ZONE_MAX_H, Math.max(a?.h ?? 0, base));
+}
+
+/**
+ * What an empty answer space can say for a part that is not prose: a table to fill in, a graph or diagram to draw. The bank keeps only a
+ * part's opening words, so this reads those and says nothing when they do not make it clear.
+ */
+export function answerHint(p: Pick<QPart, "x" | "k">): string | null {
+  if (p.k) return null;
+  const x = (p.x ?? "").slice(0, 160);
+  if (/\b(complete|fill in|finish)\b[^.?]{0,30}\btable\b/i.test(x)) return "Write the numbers here";
+  if (/\b(draw|sketch|plot)\b/i.test(x)) return "Draw it here";
+  if (/\blabel\b/i.test(x)) return "Write the labels here";
+  return null;
 }
 
 /** Marks a student can give themselves: none if the paper prints none. */
@@ -235,7 +255,7 @@ export interface Score {
   parts: number;
 }
 
-export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics">, answers: Record<string, QAnswer>): Score {
+export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics"> & { choose?: 1 }, answers: Record<string, QAnswer>): Score {
   let got = 0, total = 0, printed = 0, marked = 0, markableN = 0;
   const topics = new Map<string, TopicScore>();
   const skipped: QPart[] = [], dropped: QPart[] = [], unmarked: QPart[] = [];
@@ -243,8 +263,10 @@ export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics">, answers: Re
     for (const p of b.parts) {
       const a = answers[keyOf(set.id, p.id)];
       const done = isMarked(a);
-      if (markable(p)) { markableN++; if (done) marked++; else unmarked.push(p); }
-      if (!isAnswered(a) && !done) skipped.push(p);
+      // In a paper the student chooses questions from, a part they never touched was not chosen: it is neither skipped nor "to mark".
+      const chosen = !set.choose || isAnswered(a) || done;
+      if (markable(p) && chosen) { markableN++; if (done) marked++; else unmarked.push(p); }
+      if (chosen && !isAnswered(a) && !done) skipped.push(p);
       if (!counts(p, b.parts)) continue;
       printed += p.m ?? 0;
       if (!done) continue;   // not marked: not scored, neither as a mark nor as a zero
@@ -263,6 +285,46 @@ export function scoreSet(set: Pick<QSet, "id" | "parts" | "topics">, answers: Re
   };
 }
 
+/** At least this share of the parts to mark must be marked before a score is shown as a result. */
+export const SCORE_SHARE = 0.5;
+/** ... and this share before the page may celebrate. */
+export const CELEBRATE_SHARE = 0.8;
+
+/**
+ * How the end of a set reads, from what the student actually did. It leads with coverage ("3 of 25 marked"), shows the score only
+ * when at least half of the parts to mark are marked (a score over three parts is not a result), and celebrates only when most
+ * parts are marked and went well. Never a verdict on parts nobody marked.
+ */
+export function summaryView(s: Pick<Score, "marked" | "markable" | "total" | "pct">): {
+  share: number; title: string; showScore: boolean; mascot: "plumi-encouraging" | "plumi-lofi-cozy" | "plumi-proud" | "plumi-celebrating"; tone: "" | "full" | "part";
+} {
+  const share = s.markable > 0 ? s.marked / s.markable : 0;
+  const showScore = s.total > 0 && s.pct !== null && share >= SCORE_SHARE;
+  const most = share >= CELEBRATE_SHARE;
+  const title = s.markable === 0 ? "Set done" : most ? "Set done" : s.marked === 0 ? "Nothing marked yet" : `${s.marked} of ${s.markable} marked`;
+  const mascot = s.markable === 0 || s.marked === 0 || share < 0.25 ? (s.markable === 0 ? "plumi-lofi-cozy" : "plumi-encouraging")
+    : !showScore ? "plumi-lofi-cozy"
+    : most && (s.pct ?? 0) >= 80 ? "plumi-celebrating" : (s.pct ?? 0) >= 50 ? "plumi-proud" : "plumi-encouraging";
+  const tone = !showScore ? "" : (s.pct ?? 0) >= 80 ? "full" : "part";
+  return { share, title, showScore, mascot, tone };
+}
+
+/** One dot per part of a set, in printed order, grouped by question: what was marked, written on, or left blank. */
+export interface PartDot { part: QPart; question: number; state: "marked" | "written" | "blank" | "unchosen"; tone: "full" | "part" | "zero" | "" }
+export function partDots(set: Pick<QSet, "id" | "parts" | "choose">, answers: Record<string, QAnswer>): PartDot[] {
+  const out: PartDot[] = [];
+  for (const b of blocks(set.parts)) {
+    for (const p of b.parts) {
+      const a = answers[keyOf(set.id, p.id)];
+      const marked = isMarked(a);
+      const state = marked ? "marked" : isAnswered(a) ? "written" : set.choose ? "unchosen" : "blank";
+      const tone = !marked || !p.m ? "" : (a!.got ?? 0) >= p.m ? "full" : (a!.got ?? 0) > 0 ? "part" : "zero";
+      out.push({ part: p, question: b.n, state, tone });
+    }
+  }
+  return out;
+}
+
 /** What a block scored: marks given and the marks printed on the parts marked. null if none are printed; `marked` counts parts marked. */
 export function blockScore(set: Pick<QSet, "id">, b: Block, answers: Record<string, QAnswer>): { got: number; total: number; marked: number } | null {
   if (b.marks == null) return null;
@@ -276,20 +338,31 @@ export function blockScore(set: Pick<QSet, "id">, b: Block, answers: Record<stri
   return { got, total, marked };
 }
 
-/** Parts that have marks to give, and how many the student has marked, for the progress line. */
-export function progress(set: Pick<QSet, "id" | "parts">, answers: Record<string, QAnswer>): { done: number; of: number } {
+/**
+ * Parts that have marks to give, and how many the student has marked, for the progress line. In a paper the student chooses
+ * questions from (`choose`), only the parts they have written on or marked count: the alternatives they left are not to mark.
+ */
+export function progress(set: Pick<QSet, "id" | "parts"> & { choose?: 1 }, answers: Record<string, QAnswer>): { done: number; of: number } {
   let done = 0, of = 0;
-  for (const p of set.parts) { if (!markable(p)) continue; of++; if (isMarked(answers[keyOf(set.id, p.id)])) done++; }
+  for (const p of set.parts) {
+    if (!markable(p)) continue;
+    const a = answers[keyOf(set.id, p.id)];
+    const m = isMarked(a);
+    if (set.choose && !m && !isAnswered(a)) continue;
+    of++;
+    if (m) done++;
+  }
   return { done, of };
 }
 
 /** Before finishing: how many parts with marks to give are not marked, and how many of those are blank. */
-export function finishCheck(set: Pick<QSet, "id" | "parts">, answers: Record<string, QAnswer>): { unmarked: number; blank: number } {
+export function finishCheck(set: Pick<QSet, "id" | "parts"> & { choose?: 1 }, answers: Record<string, QAnswer>): { unmarked: number; blank: number } {
   let unmarked = 0, blank = 0;
   for (const p of set.parts) {
     if (!markable(p)) continue;
     const a = answers[keyOf(set.id, p.id)];
     if (isMarked(a)) continue;
+    if (set.choose && !isAnswered(a)) continue;   // a question they did not choose is not left unmarked
     unmarked++;
     if (!isAnswered(a)) blank++;
   }
@@ -339,6 +412,8 @@ export interface SetInput {
   redoOf?: string;
   /** A whole paper from a shelf (see `QSet.paper`). */
   paper?: string;
+  /** A paper the student picks questions from (see `QSet.choose`). */
+  choose?: 1;
 }
 
 const clampStr = (s: unknown, n: number) => (typeof s === "string" ? s.slice(0, n) : "");
@@ -350,13 +425,14 @@ export function orderParts(parts: readonly QPart[]): QPart[] {
 
 export function createSet(q: QuestionsData, input: SetInput, now: number): { q: QuestionsData; id: string; dropped: string[] } {
   const seen = new Set<string>();
-  const unique = input.parts.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, input.paper ? MAX_PAPER_PARTS : MAX_SET_PARTS);
+  const unique = input.parts.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))).slice(0, input.paper || input.redoOf ? MAX_PAPER_PARTS : MAX_SET_PARTS);
   const parts = orderParts(unique);
   const id = newId(now);
   const qs = blocks(parts).length;
   const name = clampStr(input.name?.trim() || `${input.title}, ${qs} question${qs === 1 ? "" : "s"}`, 80);
   const set: QSet = { id, name, subject: input.subject, title: input.title, cv: input.cv, rq: input.rq, names: input.names, createdAt: now, updatedAt: now, parts, topics: input.topics, at: 0, redoOf: input.redoOf };
   if (input.paper) set.paper = input.paper;
+  if (input.choose) set.choose = 1;
   let sets = [set, ...q.sets];
   const dropped: string[] = [];
   while (sets.length > MAX_SETS) {
@@ -444,7 +520,7 @@ export function touchRecent(q: QuestionsData, ids: readonly string[], now: numbe
 
 export function finishSet(q: QuestionsData, id: string, now: number): QuestionsData {
   const set = q.sets.find((s) => s.id === id);
-  if (!set) return q;
+  if (!set || set.finishedAt) return q;   // finishing twice (a double tap) changes nothing
   const done = set.parts.filter((p) => isAnswered(q.answers[keyOf(id, p.id)]) || isMarked(q.answers[keyOf(id, p.id)])).map((p) => p.id);
   return touchRecent({ ...q, sets: q.sets.map((s) => (s.id === id ? { ...s, finishedAt: now, updatedAt: now } : s)) }, done, now);
 }
@@ -454,6 +530,16 @@ export const reopenSet = (q: QuestionsData, id: string): QuestionsData => ({ ...
 export const setPick = (q: QuestionsData, subject: string | null, topics: readonly string[]): QuestionsData => ({ ...q, pick: { subject, topics: topics.slice(0, 80) } });
 /** The subjects the student does. Unknown or repeated slugs are dropped; the order is the order given. */
 export const setMine = (q: QuestionsData, slugs: readonly string[]): QuestionsData => ({ ...q, mine: [...new Set(slugs)].slice(0, MAX_MINE) });
+/** The tier the student sits in a subject (`null` or every tier: both, which is the same as nothing chosen). */
+export function setTiers(q: QuestionsData, slug: string, tiers: readonly string[] | null, all: readonly string[] = []): QuestionsData {
+  const next = { ...(q.tiers ?? {}) };
+  const t = tiers ? [...new Set(tiers.filter((x) => x.length > 0).map((x) => x.slice(0, 20)))].slice(0, 4) : [];
+  if (!t.length || (all.length > 0 && all.every((a) => t.includes(a)))) delete next[slug]; else next[slug] = t;
+  const same = JSON.stringify(next) === JSON.stringify(q.tiers ?? {});
+  if (same) return q;
+  if (!Object.keys(next).length) { const { tiers: _gone, ...rest } = q; void _gone; return rest; }
+  return { ...q, tiers: next };
+}
 export const setPrefs = (q: QuestionsData, p: Partial<QPrefs>): QuestionsData => ({ ...q, prefs: { ...q.prefs, ...p } });
 
 /** A fresh set of the parts a student dropped marks on, with no answers carried over. */
@@ -473,7 +559,7 @@ export function catchUpInput(set: QSet, answers: Record<string, QAnswer>): SetIn
 /** A whole paper again from the start (same parts, no answers carried over), or null if the set was not a whole paper. */
 export function againInput(set: QSet): SetInput | null {
   if (!set.paper) return null;
-  return { name: set.name, subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: set.parts, paper: set.paper };
+  return { name: set.name, subject: set.subject, title: set.title, cv: set.cv, rq: set.rq, names: set.names, topics: set.topics, parts: set.parts, paper: set.paper, ...(set.choose ? { choose: 1 as const } : {}) };
 }
 
 /** Bytes of ink the answers say they hold, in total. */
@@ -524,7 +610,7 @@ function cleanSet(raw: unknown): QSet | null {
   for (const p of Array.isArray(r.parts) ? r.parts : []) {
     const c = cleanPart(p);
     if (c && !seen.has(c.id)) { seen.add(c.id); parts.push(c); }
-    if (parts.length >= (typeof r.paper === "string" ? MAX_PAPER_PARTS : MAX_SET_PARTS)) break;
+    if (parts.length >= (typeof r.paper === "string" || typeof r.redoOf === "string" ? MAX_PAPER_PARTS : MAX_SET_PARTS)) break;
   }
   if (!parts.length) return null;
   const set: QSet = {
@@ -538,6 +624,7 @@ function cleanSet(raw: unknown): QSet | null {
   if (typeof r.finishedAt === "number" && Number.isFinite(r.finishedAt)) set.finishedAt = Math.round(r.finishedAt);
   if (typeof r.redoOf === "string") set.redoOf = r.redoOf.slice(0, 60);
   if (typeof r.paper === "string" && r.paper) set.paper = r.paper.slice(0, 80);
+  if (r.choose) set.choose = 1;
   return set;
 }
 
@@ -589,8 +676,16 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
     .slice(0, MAX_RECENT).map((x) => ({ id: x.id.slice(0, 80), at: x.at }));
   const pk = (r.pick ?? {}) as Partial<QuestionsData["pick"]>;
   const mine = Array.isArray(r.mine) ? [...new Set(r.mine.filter((x): x is string => typeof x === "string" && x.length > 0).map((x) => x.slice(0, 80)))].slice(0, MAX_MINE) : undefined;
+  const tiers: Record<string, string[]> = {};
+  if (r.tiers && typeof r.tiers === "object" && !Array.isArray(r.tiers)) {
+    for (const [k, v] of Object.entries(r.tiers as Record<string, unknown>).slice(0, MAX_MINE)) {
+      if (!Array.isArray(v)) continue;
+      const t = [...new Set(v.filter((x): x is string => typeof x === "string" && x.length > 0).map((x) => x.slice(0, 20)))].slice(0, 4);
+      if (t.length) tiers[k.slice(0, 80)] = t;
+    }
+  }
   return {
-    sets, answers, recent, prefs, ...(mine ? { mine } : {}),
+    sets, answers, recent, prefs, ...(mine ? { mine } : {}), ...(Object.keys(tiers).length ? { tiers } : {}),
     open: typeof r.open === "string" && sets.some((s) => s.id === r.open) ? r.open : null,
     pick: { subject: typeof pk.subject === "string" ? pk.subject.slice(0, 80) : null, topics: Array.isArray(pk.topics) ? pk.topics.filter((t): t is string => typeof t === "string").slice(0, 80).map((t) => t.slice(0, 40)) : [] },
   };

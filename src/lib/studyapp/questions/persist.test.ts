@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { EMPTY, sanitise } from "../model";
 import { createSet, EMPTY_QUESTIONS, keyOf, markPart, sanitiseQuestions, setInkMeta, setPrefs, setText, type QPart, type QuestionsData } from "./model";
-import { QUESTIONS_KEY, questionsOfAppDocument, readIncoming, readQuestions, serialise, withoutQuestions } from "./persist";
+import { chooseRecoveryKey, QUESTIONS_KEY, QUESTIONS_RECOVERY_KEY, RECOVERY_SLOTS, recoveryKey, questionsOfAppDocument, readIncoming, readQuestions, serialise, withoutQuestions } from "./persist";
 
 const part = (id: string, l: string, m: number | null): QPart => ({ id, p: "84631H", s: "JUN25", l, m, t: ["4.1.1"], w: 1086, h: 300 });
 const T0 = 1_700_000_000_000;
@@ -106,5 +106,26 @@ describe("the app's document once the Questions data has left it", () => {
   });
   test("the key is its own", () => {
     assert.notEqual(QUESTIONS_KEY, "plumi-study-app");
+  });
+});
+
+describe("keeping an unreadable record", () => {
+  const held = (m: Record<string, string>) => (k: string) => (k in m ? m[k] : null);
+  test("the first goes under the recovery key", () => {
+    assert.equal(chooseRecoveryKey(held({}), "{bad"), QUESTIONS_RECOVERY_KEY);
+  });
+  test("a second, different one never overwrites the first", () => {
+    const k = chooseRecoveryKey(held({ [QUESTIONS_RECOVERY_KEY]: "{first" }), "{second");
+    assert.equal(k, recoveryKey(1));
+    assert.notEqual(k, QUESTIONS_RECOVERY_KEY);
+  });
+  test("the same text is not kept again (a reload must not fill the slots)", () => {
+    assert.equal(chooseRecoveryKey(held({ [QUESTIONS_RECOVERY_KEY]: "{first" }), "{first"), null);
+    assert.equal(chooseRecoveryKey(held({ [QUESTIONS_RECOVERY_KEY]: "{a", [recoveryKey(1)]: "{b" }), "{b"), null);
+  });
+  test("when every slot is taken nothing older is lost", () => {
+    const all: Record<string, string> = {};
+    for (let i = 0; i < RECOVERY_SLOTS; i++) all[recoveryKey(i)] = `{${i}`;
+    assert.equal(chooseRecoveryKey(held(all), "{new"), null);
   });
 });

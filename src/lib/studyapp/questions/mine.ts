@@ -9,10 +9,18 @@ export const MAX_DERIVED = 6;
 
 /** Their subjects, in the order they chose them, only those the bank still has. If they never chose, the subject last used and the subjects of their sets, newest first. */
 export function effectiveMine(q: Pick<QuestionsData, "mine" | "pick" | "sets">, known: ReadonlySet<string>): string[] {
-  const own = q.mine ? q.mine : [q.pick.subject, ...q.sets.slice().sort((a, b) => b.updatedAt - a.updatedAt).map((s) => s.subject)].slice(0, 30);
+  const derived = () => {
+    const own = [q.pick.subject, ...q.sets.slice().sort((a, b) => b.updatedAt - a.updatedAt).map((s) => s.subject)].slice(0, 30);
+    const out: string[] = [];
+    for (const s of own) if (s && known.has(s) && !out.includes(s)) out.push(s);
+    return out.slice(0, MAX_DERIVED);
+  };
+  if (!q.mine) return derived();
   const out: string[] = [];
-  for (const s of own) if (s && known.has(s) && !out.includes(s)) out.push(s);
-  return q.mine ? out : out.slice(0, MAX_DERIVED);
+  for (const s of q.mine) if (s && known.has(s) && !out.includes(s)) out.push(s);
+  // Every subject they chose has gone from the bank (a renamed slug): read them as having chosen nothing, so their sets are still found
+  // and the setup does not hide them. (They chose none on purpose only if `mine` is empty.)
+  return out.length === 0 && q.mine.length > 0 ? derived() : out;
 }
 
 /** What a student can tick at one level: a subject, and the exam boards the bank has for it (each board is one catalogue entry). */

@@ -1,0 +1,59 @@
+/* Questions: styles for the pieces added in fix round 3 by the logic pass (windowed parts, the picture zoom's scroll box, the summary's
+   coverage and dots, the tier row in the setup, the sheet bar's priorities). Imported by Setup, Summary and Sheet after the other sheets;
+   every selector is one class longer than the rule it adjusts, so the order of the sheets does not matter. */
+
+/* ── a part that is not near the screen: an empty box of the height it will have ── */
+.pa .qs-part.qs-part-far { content-visibility: visible; }
+.pa .qs-part-hold { position: relative; display: block; width: 100%; border-radius: 12px; background: rgba(91, 71, 65, .035); }
+.pa .qs-part-hold > div { display: block; width: 100%; }
+
+/* ── the picture, large: a scroll box inside the dialog (the dialog itself is drawn with the other dialogs) ── */
+.pa dialog.qs-zoomd .qs-zoomd-body { overflow: auto; max-height: calc(100dvh - 72px); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+.pa dialog.qs-zoomd .qs-zoomd-img { display: block; width: max(100%, min(1180px, 200vw)); max-width: none; height: auto; background: #fff; }
+
+/* ── the sheet bar: the paper's name keeps its room, the question strip gives way, and "n of m marked" stays on a phone ── */
+.pa .qs-sheet-page .qs-bar .qs-bar-mid .qs-bar-title { flex: 0 1 auto; max-width: 56%; min-width: min(14ch, 40%); }
+.pa .qs-sheet-page .qs-bar .qs-bar-mid .qs-pn { flex: 1 1 0; }
+@media (max-width: 640px) {
+  .pa .qs-sheet-page .qs-bar .qs-count { display: inline-block; color: var(--ink); }
+  .pa .qs-sheet-page .qs-bar .qs-bar-title { white-space: nowrap; }
+}
+
+/* ── the end of a set: how much was done first, the score small and only when it means something ── */
+.pa .qs-sum .qs-sum-small { display: flex; align-items: baseline; gap: 10px; justify-content: center; margin: 0; font: 800 14px var(--f-body); color: var(--soft); }
+.pa .qs-sum .qs-sum-small .qs-margin.big { position: static; font-size: 28px; transform: none; text-shadow: none; }
+.pa .qs-sum .qs-sum-cover { display: grid; gap: 10px; width: 100%; justify-items: center; margin-top: 4px; }
+.pa .qs-sum .qs-pdots { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; max-width: 100%; }
+.pa .qs-sum .qs-pdotq { display: inline-flex; flex-wrap: wrap; gap: 0; }
+.pa .qs-sum .qs-pdot { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.pa .qs-sum .qs-pdot i { display: block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(34, 48, 77, .35); background: transparent; transition: transform .12s; }
+.pa .qs-sum .qs-pdot:hover i { transform: scale(1.25); border-color: var(--ink); }
+.pa .qs-sum .qs-pdot.written i { border-color: var(--navy); background: repeating-linear-gradient(135deg, var(--navy) 0 2px, transparent 2px 4px); }
+.pa .qs-sum .qs-pdot.marked i { border-color: #6f9a45; background: #8fb35a; }
+.pa .qs-sum .qs-pdot.marked.part i { border-color: #b06a07; background: #e0a53a; }
+.pa .qs-sum .qs-pdot.marked.zero i { border-color: #b3423b; background: #e07a73; }
+@media (pointer: coarse) { .pa .qs-sum .qs-pdot { width: 36px; height: 36px; } }
+.pa .qs-sum .qs-pdot-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; margin: 0; padding: 0; list-style: none; font: 700 13px var(--f-body); color: var(--soft); }
+.pa .qs-sum .qs-pdot-key li { display: inline-flex; align-items: center; gap: 6px; }
+.pa .qs-sum .qs-pdot-sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(34, 48, 77, .35); }
+.pa .qs-sum .qs-pdot-sw.written { border-color: var(--navy); background: repeating-linear-gradient(135deg, var(--navy) 0 2px, transparent 2px 4px); }
+.pa .qs-sum .qs-pdot-sw.marked { border-color: #6f9a45; background: #8fb35a; }
+.pa .qs-sum .qs-sum-acts[inert] { opacity: .55; }
+
+/* ── setup: the tier, asked once per tiered subject, as two quiet chips under the board ── */
+.pa .qh-subj .qh-tiers { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 14px; animation: qh-in2 .18s ease-out both; }
+@media (max-width: 520px) { .pa .qh-subj .qh-tiers { padding: 0 10px 12px; gap: 6px; } }
+.pa .qh-subj .qh-tier { background: rgba(255, 255, 255, .55); box-shadow: inset 0 0 0 1.5px rgba(34, 48, 77, .28); }
+.pa .qh-subj .qh-tier.on { background: var(--navy); color: #f5f9ff; box-shadow: none; }
+/* the "Show my papers" button when it cannot be pressed yet: still readable (4.5 to 1 and better) */
+.pa .qh-donebar .qs-start:disabled { opacity: 1; background: #e4e9f3; color: #3f4b68; border-color: #8a96b0; box-shadow: none; cursor: not-allowed; }
+@media (forced-colors: active) {
+  .pa .qs-sum .qs-pdot i { border-color: CanvasText; }
+  .pa .qs-sum .qs-pdot.marked i { background: Highlight; border-color: Highlight; }
+  .pa .qs-part-hold { border: 1px dashed CanvasText; background: transparent; }
+}
+.pa .qh-shelves:focus { outline: none; }
+
+/* ── setup grid: a ticked subject is two tiles wide (its board and tier chips fit on a line or two), tiles fill the gaps, and a row's tiles are one height: no ragged holes ── */
+.pa .qh-setup .qh-subjects { grid-auto-flow: row dense; align-items: stretch; }
+@media (min-width: 700px) { .pa .qh-setup .qh-subjects .qh-subj.on { grid-column: span 2; } }

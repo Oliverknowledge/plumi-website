@@ -189,7 +189,7 @@ export function toQPart(r: BankRow): QPart {
 }
 
 /** A new set from the rows chosen in a subject: the parts, and the names the sheet and summary will need without fetching the subject again. */
-export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[], extra: Pick<SetInput, "name" | "paper"> = {}): SetInput {
+export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[], extra: Pick<SetInput, "name" | "paper" | "choose"> = {}): SetInput {
   const names: Record<string, string> = {};
   const topics: Record<string, string> = {};
   for (const r of rows) {

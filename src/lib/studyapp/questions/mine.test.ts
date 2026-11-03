@@ -110,3 +110,19 @@ describe("choosing subjects and boards", () => {
     assert.match(subjectTint("Physics"), /^var\(--t-/);
   });
 });
+
+describe("subjects that have gone from the bank", () => {
+  test("a stale slug among good ones is skipped (and kept in `mine` for when it returns)", () => {
+    const q = setMine(EMPTY_QUESTIONS, ["gone", "aqa-gcse-physics"]);
+    assert.deepEqual(effectiveMine(q, KNOWN), ["aqa-gcse-physics"]);
+    assert.deepEqual(q.mine, ["gone", "aqa-gcse-physics"]);
+  });
+  test("every chosen subject gone: their sets are still found and the setup does not hide them", () => {
+    let q = withSet(EMPTY_QUESTIONS, "aqa-gcse-maths", 1000);
+    q = setMine(withSet(q, "aqa-gcse-chemistry", 2000), ["renamed-a", "renamed-b"]);
+    assert.deepEqual(effectiveMine(q, KNOWN), ["aqa-gcse-chemistry", "aqa-gcse-maths"]);
+  });
+  test("an empty choice is still an empty choice", () => {
+    assert.deepEqual(effectiveMine(setMine(withSet(EMPTY_QUESTIONS, "aqa-gcse-maths", 1000), []), KNOWN), []);
+  });
+});

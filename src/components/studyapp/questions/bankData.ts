@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { bankFile, subjectFile } from "@/lib/studyapp/questions/cropUrls";
 import { cleanRows, cleanText, fold, type BankRow } from "@/lib/studyapp/questions/picker";
-import { cleanMeta, type SubjectMeta } from "@/lib/studyapp/questions/subject";
+import { useQuestionsValue } from "@/lib/studyapp/questions/store";
+import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 
 /**
  * A subject's data, fetched when it is chosen and kept for the visit: its names and topics (a few KB), its parts
@@ -24,15 +25,29 @@ function slot(): Promise<void> {
   return new Promise((go) => waiting.push(() => { flying++; go(); }));
 }
 const release = () => { flying--; waiting.shift()?.(); };
+/** A file that has not arrived in this long is treated as failed (the shelf then says so and offers Try again), so a stalled request can never leave a shelf on its placeholders for good. */
+export const FETCH_TIMEOUT_MS = 15_000;
+function timeoutSignal(ms: number): { signal: AbortSignal; done(): void } {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return { signal: c.signal, done: () => clearTimeout(t) };
+}
 const json = (url: string): Promise<unknown> =>
-  slot().then(() => fetch(url).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }).finally(release));
+  slot().then(() => {
+    const t = timeoutSignal(FETCH_TIMEOUT_MS);
+    return fetch(url, { signal: t.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); }).finally(() => { t.done(); release(); });
+  });
 const once = <T,>(m: Map<string, Promise<T>>, key: string, make: () => Promise<T>) => {
   let p = m.get(key);
   if (!p) { p = make(); m.set(key, p); p.catch(() => m.delete(key)); }
   return p;
 };
 
-export type Loaded = { state: "loading" } | { state: "error" } | { state: "ready"; meta: SubjectMeta; rows: BankRow[] };
+export type Loaded =
+  | { state: "loading" }
+  | { state: "error" }
+  /** `meta.papers` and `rows` are already narrowed to the tier the student sits in this subject (`tier`, "Higher", or null for both): nothing downstream filters again. */
+  | { state: "ready"; meta: SubjectMeta; rows: BankRow[]; tier: string | null };
 
 /** The subject's data if it has already arrived this visit (a shelf that was scrolled past, a picker opened from it): no waiting. */
 export const loadedSubject = new Map<string, { meta: SubjectMeta; rows: BankRow[] }>();
@@ -43,6 +58,7 @@ export const loadedSubject = new Map<string, { meta: SubjectMeta; rows: BankRow[
  */
 export function useSubject(slug: string | null, attempt = 0, enabled = true): Loaded {
   const [got, setGot] = useState<{ slug: string; attempt: number; res: { meta: SubjectMeta; rows: BankRow[] } | null } | null>(null);
+  const chosen = useQuestionsValue((q) => (slug ? q.tiers?.[slug]?.join("|") ?? "" : ""));
   useEffect(() => {
     if (!slug || !enabled) return;
     let live = true;
@@ -51,9 +67,23 @@ export function useSubject(slug: string | null, attempt = 0, enabled = true): Lo
       .catch(() => { if (live) setGot({ slug, attempt, res: null }); });
     return () => { live = false; };
   }, [slug, attempt, enabled]);
-  if (slug && (!got || got.slug !== slug)) { const hit = loadedSubject.get(slug); if (hit) return { state: "ready", ...hit }; }
+  const raw = slug && (!got || got.slug !== slug) ? loadedSubject.get(slug) : got && got.slug === slug && got.attempt === attempt ? got.res : null;
+  const narrowed = useMemo(() => (raw ? narrowToTier(raw.meta, raw.rows, chosen ? chosen.split("|") : []) : null), [raw, chosen]);
+  if (narrowed) return { state: "ready", ...narrowed };
   if (!slug || !got || got.slug !== slug || got.attempt !== attempt) return { state: "loading" };
-  return got.res ? { state: "ready", ...got.res } : { state: "error" };
+  return { state: "error" };
+}
+
+/** A subject's papers and rows for the tier the student sits (all of them if they sit both, or if the choice matches nothing). */
+export function narrowToTier(meta: SubjectMeta, rows: BankRow[], chosen: readonly string[]): { meta: SubjectMeta; rows: BankRow[]; tier: string | null } {
+  const all = tiersOf(meta.papers, meta.level);
+  const tier = tierLine(chosen, all);
+  if (!tier || !all.length) return { meta, rows, tier: null };
+  const keep = new Set(meta.papers.filter((p) => paperKeeps(p, chosen)).map((p) => p.id.toLowerCase()));
+  const known = new Set(meta.papers.map((p) => p.id.toLowerCase()));
+  const kept = rows.filter((r) => keep.has(r.p.toLowerCase()) || !known.has(r.p.toLowerCase()));
+  if (!kept.length) return { meta, rows, tier: null };
+  return { meta: { ...meta, papers: meta.papers.filter((p) => paperKeeps(p, chosen)) }, rows: kept, tier };
 }
 
 export interface BankText {

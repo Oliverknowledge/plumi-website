@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { questionText } from "./partText";
+import { questionText, schemeText } from "./partText";
 
 const AQA = "0 1 figure 1 shows water being heated. eventually the water changed into steam. 0 1 . 3 a mass of 0.063 kg of water was turned into steam. calculate the thermal energy transferred to the water to turn it into steam. [2 marks] energy = j question answers extra information mark ao / spec. ref. 1.3 e = 0.063 × 2 260 000 e = 140 000 (j) a correct answer scores 2 marks";
 
@@ -40,5 +40,41 @@ describe("read as text", () => {
     const r = questionText(raw, { m: 2, x: "x" });
     assert.ok(r.whole);
     assert.match(r.text, /find x\. \[2 marks\]$/);
+  });
+});
+
+describe("read as text: short questions are whole", () => {
+  test("opening words that already reach the marks are the whole question, with nothing to apologise for", () => {
+    const r = questionText(undefined, { m: 1, x: "which shop impressed her? [1 mark]" });
+    assert.deepEqual(r, { text: "Which shop impressed her? [1 mark]", whole: true });
+    // and when the file did load but found nothing to cut at
+    assert.equal(questionText("0 1 . 1 which shop impressed her? [1 mark] a b c d", { m: null, x: "which shop impressed her? [1 mark]" }).whole, true);
+  });
+  test("opening words that stop short are still only the start", () => {
+    assert.equal(questionText(undefined, { m: 4, x: "describe the method you would use to" }).whole, false);
+  });
+});
+
+describe("the mark scheme as text", () => {
+  test("AQA: what follows the question, without the table's heading row", () => {
+    const r = schemeText(AQA, { m: 2 });
+    assert.match(r.text, /^1\.3 e = 0\.063/);
+    assert.ok(!/extra information|spec\. ref/i.test(r.text), r.text);
+    assert.ok(/a correct answer scores 2 marks/.test(r.text));
+    assert.ok(!/figure 1 shows water/i.test(r.text));
+  });
+  test("Edexcel: after the question's mark, the scheme", () => {
+    const raw = "(ii) which would improve the measurement? (1) a use a firework banger. 6(a)(ii) c increase the distance (1) ao3 a, b and d are incorrect";
+    assert.match(schemeText(raw, { m: 1 }).text, /6\(a\)\(ii\) c increase the distance \(1\) ao3/);
+  });
+  test("nothing says where the question ends: no scheme text is invented", () => {
+    assert.equal(schemeText("18 carbon nanotubes are new. suggest a reason. covalent bonds are stronger", { m: null }).text, "");
+    assert.equal(schemeText(undefined, { m: 2 }).text, "");
+    assert.equal(schemeText("what is x? [1 mark]", { m: 1 }).text, "");
+  });
+  test("a long scheme is cut at a word", () => {
+    const raw = `what? [2 marks] question answers mark ${"word ".repeat(600)}`;
+    const t = schemeText(raw, { m: 2 }).text;
+    assert.ok(t.length < 1900 && t.endsWith("\u2026"));
   });
 });

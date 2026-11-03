@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CloseIcon, SearchIcon } from "./icons";
 
 /**
  * One picture from the paper (a question, its setup, its mark scheme). Three jobs the bare <img> did not do:
@@ -55,14 +56,17 @@ export interface CropProps {
   /** A shape for the placeholder when the size is not known yet (width over height). */
   guess?: number;
   eager?: boolean;
+  /** A tap opens the picture large, scrollable and pinchable (a phone shows a question's printed words at 6 to 7 px). */
+  zoom?: boolean;
   /** Told when the picture loads or gives up, for a mark scheme that must be seen before marking. */
   onState?(s: "ok" | "fail"): void;
 }
 
 export function Crop(props: CropProps) { return <CropInner key={props.src} {...props} />; }
 
-function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, onState }: CropProps) {
+function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, zoom, onState }: CropProps) {
   readDims();
+  const [big, setBig] = useState(false);
   const [st, setSt] = useState<"loading" | "ok" | "fail">("loading");
   const [n, setN] = useState(0);
   const [near, setNear] = useState(!!eager);
@@ -106,8 +110,13 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
   }, [st]);
 
   const retry = () => { setN((v) => v + 1); setSt("loading"); };
+  const zoomable = !!zoom && st === "ok";
   return (
-    <div ref={box} className={`qs-cropbox${st === "ok" ? " is-ok" : ""}${st === "fail" ? " is-fail" : ""}`} style={st === "loading" && !known ? { aspectRatio: String(guess) } : undefined}>
+    <>
+    <div
+      ref={box} className={`qs-cropbox${st === "ok" ? " is-ok" : ""}${st === "fail" ? " is-fail" : ""}${zoomable ? " is-zoomable" : ""}`}
+      style={st === "loading" && !known ? { aspectRatio: String(guess) } : undefined} onClick={zoomable ? () => setBig(true) : undefined}
+    >
       {st !== "fail" && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -123,10 +132,31 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
           {words ? <p className="qs-cropfail-words">{words}</p> : null}
           <div className="qs-cropfail-acts">
             <button type="button" className="qs-mini" onClick={retry} data-testid="crop-retry">Try again</button>
-            {pdf ? <a className="qs-link" href={pdf} target="_blank" rel="noopener">Open the PDF</a> : null}
+            {pdf ? <a className="qs-link" href={pdf} target="_blank" rel="noopener noreferrer">Open the PDF</a> : null}
           </div>
         </div>
       )}
+      {zoomable && (
+        <button type="button" className="qs-zoom" aria-label={`Enlarge ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /></button>
+      )}
     </div>
+    {big && <ZoomDialog src={withTry(src, n)} alt={alt} onClose={() => setBig(false)} />}
+    </>
+  );
+}
+
+/** The picture large: a native modal dialog, scrollable both ways (and pinchable), closed by its button, Escape or a tap outside. */
+function ZoomDialog({ src, alt, onClose }: { src: string; alt: string; onClose(): void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
+  const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
+  return (
+    <dialog ref={ref} className="qs-zoomd" aria-label="The picture, larger" onClose={onClose} onClick={(e) => { if (e.target === ref.current) close(); }} data-testid="crop-zoom-dialog">
+      <button type="button" className="btn ghost icon qs-zoomd-close" aria-label="Close" onClick={close} autoFocus><CloseIcon /></button>
+      <div className="qs-zoomd-body" tabIndex={0} role="region" aria-label="Scrolls sideways and down">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="qs-zoomd-img" src={src} alt={alt} />
+      </div>
+    </dialog>
   );
 }

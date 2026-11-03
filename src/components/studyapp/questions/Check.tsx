@@ -6,7 +6,9 @@ import { hasInk, hasText, markable, nameOf, questionOf, type QAnswer, type QPart
 import { splitReport } from "@/lib/studyapp/questions/report";
 import { qa } from "@/lib/studyapp/questions/store";
 import { Crop } from "./Crop";
-import { CheckIcon } from "./icons";
+import { CheckIcon, ReportIcon } from "./icons";
+import { MarkKey } from "./MarkKey";
+import { SchemeText } from "./ReadAsText";
 import { ChevronIcon } from "./pickerIcons";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
@@ -40,8 +42,8 @@ export function Check({ set, part, answer }: { set: QSet; part: QPart; answer: Q
   return (
     <div className="qs-check">
       <div className="qs-check-bar">
-        <button type="button" className={`qs-schemebtn${ready || open ? " is-ready" : ""}${open ? " is-open" : ""}`} aria-expanded={open} aria-controls={id} onClick={toggle} data-testid="check">
-          {open ? "Hide mark scheme" : "Mark scheme"}<ChevronIcon />
+        <button type="button" className={`qs-schemebtn${ready || open ? " is-ready" : ""}${open ? " is-open" : ""}`} aria-expanded={open} aria-controls={open ? id : undefined} onClick={toggle} data-testid="check">
+          Mark scheme<ChevronIcon />
         </button>
       </div>
       {open && <Scheme id={id} set={set} part={part} answer={answer} />}
@@ -72,27 +74,36 @@ function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart;
   return (
     <div className="qs-scheme" id={id} data-testid="scheme">
       <span className="qs-tape" aria-hidden="true" />
-      {part.ms ? (
-        <>
-          {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
-          <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} onState={(s) => setPic(s)} />
-        </>
-      ) : part.k ? (
-        <p className="qs-key">Answer <b>{part.k}</b></p>
-      ) : pdf ? (
-        <p className="qs-scheme-note"><a href={pdf} target="_blank" rel="noopener">Open the mark scheme (PDF)</a></p>
-      ) : (
-        <p className="qs-scheme-note">No mark scheme is published for this part.</p>
+      {part.er && (
+        <button type="button" className={`qs-er-btn${er ? " on" : ""}`} aria-expanded={er} aria-controls={er ? `${id}-er` : undefined} aria-label="Examiner's report" title="Examiner's report" onClick={() => setEr((v) => !v)}><ReportIcon /></button>
       )}
       {blind ? (
         <button type="button" className="qs-mini" onClick={() => setOnPaper(true)}>I have the mark scheme</button>
       ) : (
-        <MarkYourself set={set} part={part} got={answer?.got} />
+        <div className="qs-selfblock">
+          <MarkYourself set={set} part={part} got={answer?.got} />
+          <MarkKey set={set} part={part} />
+        </div>
       )}
-      {part.er && (
-        <div className="qs-er">
-          <button type="button" className="qs-link qs-er-btn" aria-expanded={er} onClick={() => setEr((v) => !v)}>Examiner&apos;s report<ChevronIcon /></button>
-          {er && (failed ? (
+      <div className="qs-schemetable">
+        {part.ms ? (
+          <>
+            <p className="qs-scheme-label">What the examiner wants</p>
+            {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
+            <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} onState={(s) => setPic(s)} />
+            <SchemeText set={set} part={part} />
+          </>
+        ) : part.k ? (
+          <p className="qs-key">Answer <b>{part.k}</b></p>
+        ) : pdf ? (
+          <p className="qs-scheme-note"><a href={pdf} target="_blank" rel="noopener noreferrer">Open the mark scheme (PDF)</a></p>
+        ) : (
+          <p className="qs-scheme-note">No mark scheme is published for this part.</p>
+        )}
+      </div>
+      {part.er && er && (
+        <div className="qs-er" id={`${id}-er`}>
+          {failed ? (
             <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={() => { setFailed(false); setTries((t) => t + 1); }}>Try again</button></p>
           ) : report === null ? <p className="qs-scheme-note">Opening...</p> : !report ? <p className="qs-scheme-note">No report for this question.</p> : (
             <div className="qs-er-text">
@@ -104,7 +115,7 @@ function Scheme({ id, set, part, answer }: { id: string; set: QSet; part: QPart;
                 </details>
               )}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

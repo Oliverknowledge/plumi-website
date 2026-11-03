@@ -7,7 +7,7 @@ import {
   areaState, BANDS, buildSetInput, filterCount, filterRows, hasScheme, minutesFor, mix, NO_FILTERS, partsByQuestion, seeded, sortRows, toggleArea,
   type BankRow, type Filters,
 } from "@/lib/studyapp/questions/picker";
-import { type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
+import { subjectTint, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 import { qa } from "@/lib/studyapp/questions/store";
 import { toast } from "../toast";
 import { useBankText, useSubject } from "./bankData";
@@ -34,7 +34,9 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
   const recentSubjects = useMemo(() => [...new Set(q.sets.map((s) => s.subject))].slice(0, 4), [q.sets]);
   const resume = q.sets.filter((s) => !s.finishedAt).sort((a, b) => b.updatedAt - a.updatedAt)[0];
   const browsing = !!saved && !choosing;
-  const title = catalogue.find((c) => c.slug === saved)?.title ?? saved ?? "";
+  const entry = catalogue.find((c) => c.slug === saved);
+  const title = entry?.title ?? saved ?? "";
+  const tint = entry && browsing ? subjectTint(entry.subject) : undefined;
   // Back from a sheet (or a first visit) puts focus on the page's heading, so a keyboard or a screen reader starts at the top, not on nothing.
   const h1 = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -43,7 +45,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
   }, []);
 
   return (
-    <main className={`qs-page qs-picker${leaving ? " is-leaving" : ""}`} data-testid="picker" id="qs-main">
+    <main className={`qs-page qs-picker${leaving ? " is-leaving" : ""}${tint ? " is-tinted" : ""}`} style={tint ? ({ "--tint": tint } as React.CSSProperties) : undefined} data-testid="picker" id="qs-main">
       <div className="wrap">
         <div className="qs-col">
           <header className="qs-head">

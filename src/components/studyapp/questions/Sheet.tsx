@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { INK_TOTAL_CAP } from "@/lib/studyapp/questions/ink";
+import { INK_TOTAL_CAP, REF_W } from "@/lib/studyapp/questions/ink";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import {
   blockScore, blocks, cutWords, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
-  type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
+  zoneHeight, type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
 } from "@/lib/studyapp/questions/model";
 import { qa, useQuestions } from "@/lib/studyapp/questions/store";
 import { useDocumentTitle } from "./useDocumentTitle";
+import { useWindowed } from "./useWindowed";
 import { useMatch } from "./useMatch";
 import { AnswerZone } from "./AnswerZone";
 import { Check } from "./Check";
@@ -22,6 +23,7 @@ import { ReadAsText } from "./ReadAsText";
 import { SetsSheet } from "./SetsSheet";
 import { Summary } from "./Summary";
 import "../../../app/study/(app)/questions-sheet.css";
+import "../../../app/study/(app)/questions-fixa.css";
 
 /**
  * The practice sheet: a cream paper on a wooden desk that scrolls through the set. Each question shows its pictures
@@ -52,6 +54,10 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   const setRef = useCallback((i: number, el: HTMLElement | null) => { refs.current[i] = el; }, []);
   const title = useRef<HTMLHeadingElement>(null);
   const finished = !!set.finishedAt;
+  // Parts are only drawn near the screen (see PartBlock); on opening, the ones round the question the student was on.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const mountAt = useMemo(() => set.at, [set.id, reviewing]);
+  const pn = useRef<(HTMLButtonElement | null)[]>([]);
 
   // A pen seen before on this device: the page starts as a pen page. A pen seen now: remember it.
   useEffect(() => { if (prefs.penSeen) setPenSeen(true); }, [prefs.penSeen]);
@@ -92,7 +98,8 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
       if (touched || set.at <= 0 || !el) return;
       const top = el.getBoundingClientRect().top;
       if (aligned !== null && Math.abs(top - aligned) < 6) return;
-      el.scrollIntoView({ block: "start" });
+      // At once, not smoothly (the page may animate its scrolling): the position read right after is then the real one to compare the next check with.
+      el.scrollIntoView({ block: "start", behavior: "instant" as ScrollBehavior });
       aligned = el.getBoundingClientRect().top;
     };
     const ts = [60, 250, 500, 800, 1100, 1400, 1800, 2300].map((ms) => setTimeout(go, ms));
@@ -141,13 +148,15 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
 
   const review = (partId?: string) => {
     setReviewing(true);
-    if (partId) setTimeout(() => document.getElementById(`part-${partId}`)?.scrollIntoView({ block: "center" }), 120);
+    // The part is found now and again once the parts round it have been drawn (which can change the heights above it).
+    if (partId) for (const ms of [120, 600]) setTimeout(() => document.getElementById(`part-${partId}`)?.scrollIntoView({ block: "center" }), ms);
   };
   if (finished && !reviewing) return <Summary set={set} q={q} onReview={review} />;
 
   const check = finishCheck(set, q.answers);
   const nearlyFull = total > INK_TOTAL_CAP * 0.9;
-  const finish = () => { setConfirm(false); qa.finish(set.id); setReviewing(false); };
+  // Finishing twice (a double tap on Finish) is finishing once: the second does nothing, and no tap lands on the summary that follows.
+  const finish = () => { setConfirm(false); if (set.finishedAt) { setReviewing(false); return; } qa.finish(set.id); setReviewing(false); };
   const askFinish = () => { if (check.unmarked > 0) setConfirm(true); else finish(); };
   const firstOpen = set.parts.find((p) => { const a = q.answers[keyOf(set.id, p.id)]; return !isAnswered(a) && !isMarked(a); });
   const focusAt = (id: string, sel?: string) => {
@@ -157,19 +166,30 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
     el.focus({ preventScroll: true });
   };
 
+  // The question strip is one stop in the Tab order (the question the student is on); the arrow keys move among its buttons.
+  const onPnKey = (e: React.KeyboardEvent) => {
+    const list = pn.current.filter((b): b is HTMLButtonElement => !!b);
+    const at = list.findIndex((b) => b === document.activeElement);
+    if (at < 0) return;
+    const to = e.key === "ArrowRight" || e.key === "ArrowDown" ? at + 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? at - 1 : e.key === "Home" ? 0 : e.key === "End" ? list.length - 1 : -1;
+    if (to < 0 || to >= list.length) return;
+    e.preventDefault();
+    list[to].focus();
+  };
+
   return (
     <main className="qs-page qs-sheet-page" data-testid="sheet-page">
-      <div className="qs-skips">
-        <a className="qs-skip" href="#qs-sheet" onClick={(e) => { e.preventDefault(); focusAt("qs-sheet"); }}>Skip to the questions</a>
-        {firstOpen && <a className="qs-skip" href={`#part-${firstOpen.id}`} onClick={(e) => { e.preventDefault(); focusAt(`part-${firstOpen.id}`, "part"); }} data-testid="skip-open">Skip to the first part to answer</a>}
-      </div>
       <div className="qs-bar" role="region" aria-label="Your set">
         <button type="button" className="qs-back" onClick={() => qa.open(null)} data-testid="back-to-picker"><BackIcon /> Questions</button>
         <div className="qs-bar-mid">
           <h1 className="qs-bar-title" ref={title} tabIndex={-1}>{set.name}</h1>
+          <div className="qs-skips">
+            <a className="qs-skip" href="#qs-sheet" onClick={(e) => { e.preventDefault(); focusAt("qs-sheet"); }}>Skip to the questions</a>
+            {firstOpen && <a className="qs-skip" href={`#part-${firstOpen.id}`} onClick={(e) => { e.preventDefault(); focusAt(`part-${firstOpen.id}`, "part"); }} data-testid="skip-open">Skip to the first part to answer</a>}
+          </div>
           <nav className="qs-pn" aria-label="Questions" data-testid="progress">
-            <ol>
-              {bs.map((b) => {
+            <ol onKeyDown={onPnKey}>
+              {bs.map((b, i) => {
                 const sc = blockScore(set, b, q.answers);
                 const any = b.parts.some(markable);
                 const done = any && b.parts.every((p) => !markable(p) || isMarked(q.answers[keyOf(set.id, p.id)]));
@@ -177,7 +197,8 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
                 return (
                   <li key={b.key}>
                     <button
-                      type="button" className={`qs-pn-b${done ? " done" : ""}${here ? " here" : ""}`} aria-current={here ? "step" : undefined} onClick={() => jump(b.n - 1)}
+                      type="button" ref={(el) => { pn.current[i] = el; }} tabIndex={here ? 0 : -1}
+                      className={`qs-pn-b${done ? " done" : ""}${here ? " here" : ""}`} aria-current={here ? "step" : undefined} onClick={() => jump(b.n - 1)}
                       aria-label={`Question ${b.n}${!any ? "" : done && sc ? `, marked ${sc.got} of ${sc.total}` : ", not marked yet"}`}
                     ><i aria-hidden="true" /></button>
                   </li>
@@ -202,13 +223,13 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
         )}
         <article className="qs-paper" id="qs-sheet" tabIndex={-1} aria-label={set.name}>
           {bs.map((b, i) => (
-            <QuestionBlock key={b.key} set={set} block={b} answers={q.answers} prefs={prefs} first={i === 0} setRef={setRef} index={i} />
+            <QuestionBlock key={b.key} set={set} block={b} answers={q.answers} prefs={prefs} first={i === 0} setRef={setRef} index={i} eager={i >= mountAt - 1 && i <= mountAt + 2} />
           ))}
           <section className="qs-end" aria-label="End of the set">
             <Image src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={64} height={64} unoptimized />
             <div>
               <b>That is the set</b>
-              {check.unmarked > 0 && <p>{check.unmarked} {check.unmarked === 1 ? "part" : "parts"} not marked yet.</p>}
+              {check.unmarked > 0 && <p>{check.unmarked} not marked yet.</p>}
             </div>
             <button type="button" className="btn gold" onClick={askFinish} data-testid="finish">Finish set</button>
           </section>
@@ -221,22 +242,28 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   );
 }
 
-/** "3 parts are not marked yet. Finish anyway?" One line, two buttons; "Keep going" has focus, and Escape is "Keep going". */
+/** "3 not marked yet. Finish anyway?" Two buttons; "Keep going" has focus, and Escape is "Keep going". The counts are drawn as chips. */
 function FinishConfirm({ unmarked, blank, onKeep, onFinish }: { unmarked: number; blank: number; onKeep(): void; onFinish(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
   const done = (fn: () => void) => { const d = ref.current; if (d?.open) d.close(); fn(); };
-  const line = `${unmarked} ${unmarked === 1 ? "part is" : "parts are"} not marked yet${blank > 0 ? ` (${blank} blank)` : ""}. Finish anyway?`;
+  const notMarked = unmarked - blank;
   return (
     <dialog
       ref={ref} className="qs-confirm card" aria-labelledby="qs-confirm-line" data-testid="finish-confirm"
       onCancel={(e) => { e.preventDefault(); done(onKeep); }}
       onClick={(e) => { if (e.target === ref.current) done(onKeep); }}
     >
-      <p id="qs-confirm-line" className="qs-confirm-line">{line}</p>
+      <p id="qs-confirm-line" className="qs-confirm-line">{unmarked} not marked yet. Finish anyway?</p>
+      {unmarked > 0 && (
+        <p className="qs-confirm-chips" aria-hidden="true">
+          {blank > 0 && <span className="qs-confirm-chip blank"><b>{blank}</b> blank</span>}
+          {notMarked > 0 && <span className="qs-confirm-chip"><b>{notMarked}</b> not marked</span>}
+        </p>
+      )}
       <div className="qs-confirm-acts">
-        <button type="button" className="btn gold" autoFocus onClick={() => done(onKeep)} data-testid="finish-keep">Keep going</button>
-        <button type="button" className="btn ghost" onClick={() => done(onFinish)} data-testid="finish-anyway">Finish</button>
+        <button type="button" className="btn qs-keep" autoFocus onClick={() => done(onKeep)} data-testid="finish-keep">Keep going</button>
+        <button type="button" className="btn ghost qs-fin" onClick={() => done(onFinish)} data-testid="finish-anyway">Finish</button>
       </div>
     </dialog>
   );
@@ -249,10 +276,12 @@ const sameSet = (a: QSet, b: QSet) =>
 interface QProps {
   set: QSet; block: Block; answers: Record<string, QAnswer>; prefs: QPrefs; first: boolean;
   setRef(i: number, el: HTMLElement | null): void; index: number;
+  /** The question is round the one the student opened the set at: its parts are drawn at once, the others when they come near the screen. */
+  eager: boolean;
 }
 
 /** Redrawn only when this question's own parts, the preferences, or the set itself change: a stroke or a keystroke in one part redraws that part alone. */
-const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, first, setRef, index }: QProps) {
+const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, first, setRef, index, eager }: QProps) {
   const sc = blockScore(set, block, answers);
   const p0 = block.parts[0];
   const small = [nameOf(set.names, p0.s) ?? p0.s, nameOf(set.names, p0.p) ?? p0.p].filter(Boolean).join(" · ");
@@ -263,9 +292,9 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, 
         {first && <Image className="qs-qmascot" src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={56} height={56} unoptimized />}
       </header>
       {block.stem && (
-        <Crop className="qs-stem" src={stemImage(block.stem, set.cv)} alt={`The start of question ${block.n}`} eager={block.n <= 2} guess={3.2} />
+        <Crop className="qs-stem" src={stemImage(block.stem, set.cv)} alt={`The start of question ${block.n}`} eager={block.n <= 2} guess={3.2} zoom />
       )}
-      {block.parts.map((p) => <PartBlock key={p.id} set={set} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} prefs={prefs} />)}
+      {block.parts.map((p) => <PartBlock key={p.id} set={set} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} prefs={prefs} startNear={eager || block.n <= 2} />)}
       <footer className="qs-qfoot">
         {sc && sc.marked > 0 && (
           <span className="qs-qscore" role="img" aria-label={`You gave yourself ${sc.got} out of ${sc.total} for question ${block.n}`} data-testid="block-score">{sc.got}/{sc.total}</span>
@@ -274,31 +303,49 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, 
       </footer>
     </section>
   );
-}, (a, b) => a.index === b.index && a.first === b.first && a.block === b.block && a.prefs === b.prefs && sameSet(a.set, b.set) && a.block.parts.every((p) => {
+}, (a, b) => a.index === b.index && a.first === b.first && a.eager === b.eager && a.block === b.block && a.prefs === b.prefs && sameSet(a.set, b.set) && a.block.parts.every((p) => {
   const k = keyOf(a.set.id, p.id);
   return a.answers[k] === b.answers[k];
 }));
 
-interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; prefs: QPrefs }
+interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
 
-const PartBlock = memo(function PartBlock({ set, part, block, answer, prefs }: PProps) {
+const PartBlock = memo(function PartBlock({ set, part, block, answer, prefs, startNear }: PProps) {
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
+  // Drawn only while near the screen (useWindowed.ts): the rest is an empty box of the height the part has.
+  const { ref: wrap, near, pin, ratio, overhead } = useWindowed(part.id, startNear, (w) => w * (part.h / Math.max(1, part.w)) + w * (zoneHeight(part, answer) / REF_W));
   return (
-    <div className="qs-part" id={`part-${part.id}`} role="group" aria-label={`Part ${part.l}`} tabIndex={-1} data-testid="part" data-part={part.id}>
-      {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
-      <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" />
-      <ReadAsText set={set} part={part} />
-      <div className="qs-answer">
-        <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
-        {answer?.got !== undefined && part.m != null && (
-          <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>
-        )}
-      </div>
-      <Check set={set} part={part} answer={answer} />
-      <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
+    <div ref={wrap} className={`qs-part${near ? "" : " qs-part-far"}`} id={`part-${part.id}`} role="group" aria-label={`Part ${part.l}`} tabIndex={-1} data-testid="part" data-part={part.id}>
+      {!near ? (
+        <div className="qs-part-hold" data-testid="part-hold" style={ratio ? { aspectRatio: `1 / ${ratio}` } : undefined}>
+          {!ratio && (
+            <>
+              <div style={{ aspectRatio: `${part.w > 0 ? part.w : 1086} / ${part.h > 0 ? part.h : 300}` }} />
+              <div style={{ aspectRatio: `${REF_W} / ${zoneHeight(part, answer)}` }} />
+              <div style={{ height: overhead }} />
+            </>
+          )}
+          <span className="qs-sr">{partAlt(part)}</span>
+          <button type="button" className="qs-skip" onClick={pin}>Show question {part.l}</button>
+        </div>
+      ) : (
+        <>
+          {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
+          <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom />
+          <ReadAsText set={set} part={part} />
+          <div className="qs-answer">
+            <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
+            {answer?.got !== undefined && part.m != null && (
+              <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>
+            )}
+          </div>
+          <Check set={set} part={part} answer={answer} />
+          <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
+        </>
+      )}
     </div>
   );
 }, (a, b) => a.part === b.part && a.block === b.block && a.answer === b.answer && a.prefs === b.prefs && sameSet(a.set, b.set));

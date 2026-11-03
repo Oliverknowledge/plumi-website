@@ -124,7 +124,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
     <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}${has ? " is-has" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
       <div className="qs-zone-body">
         <div className="qs-zone-head">
-          <div className="qs-mode">
+          <div className="qs-mode" role="group" aria-label="How to answer">
             <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Write by hand${written ? ", has writing" : ""}`}>
               <PenSmallIcon /> Write{written && <i aria-hidden="true" />}
             </button>
@@ -133,7 +133,6 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
             </button>
           </div>
           <span className="grow" />
-          {showFinger && !asking && <button type="button" className="qs-mini qs-fingerbtn" onClick={() => { qa.prefs({ fingerScrolls: false }); setHint(false); }} title="Fingers scroll the page. Tap to write with a finger instead.">Draw with my finger</button>}
           {asking ? (
             <span
               className="qs-ask" role="group" aria-label="Clear this answer?"

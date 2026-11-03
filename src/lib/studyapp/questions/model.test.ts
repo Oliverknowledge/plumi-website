@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { EMPTY, sanitise } from "../model";
 import { describe, test } from "node:test";
 import {
-  blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, droppedLine, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, MAX_SET_PARTS, MAX_SETS, openSet,
+  blockScore, blocks, catchUpInput, checkPart, createSet, cutWords, droppedLine, finishCheck, nameOf, partAlt, deleteSet, EMPTY_QUESTIONS, finishSet, inkOfSet, inkTotal, isAnswered, keyOf, markPart, marksOf, answerHint, MAX_PAPER_PARTS, MAX_SET_PARTS, MAX_SETS, openSet, partDots, setTiers, summaryView, ZONE_MCQ_H,
   progress, redoInput, resetPart, sanitiseQuestions, scoreSet, setHeight, setInkMeta, setMode, setText, TEXT_PART_CAP, TEXT_TOTAL_CAP, zoneHeight,
   type QPart, type QuestionsData, type SetInput,
 } from "./model";
@@ -359,5 +359,135 @@ describe("words for the picture", () => {
     assert.equal(nameOf({ JUN25: "June 2025" }, "JUN25"), "June 2025");
     assert.equal(nameOf({}, "constructor"), undefined);
     assert.equal(nameOf({}, "__proto__"), undefined);
+  });
+});
+
+describe("round 3: long papers, tiers, multiple choice", () => {
+  const many = (n: number): QPart[] => Array.from({ length: n }, (_, i) => part(`p${i}`, String(i + 1), 1, ["4.1.1"], { ms: 1 }));
+  test("Redo and Do the skipped ones keep every part of a long paper (not the picked-set cap)", () => {
+    const all = many(73);
+    const base = createSet(EMPTY_QUESTIONS, { ...INPUT, parts: all, paper: "JUN25|84631h", name: "Paper" }, T0);
+    assert.equal(base.q.sets[0].parts.length, 73);
+    // nothing written: every part is skipped
+    const skip = catchUpInput(base.q.sets[0], base.q.answers)!;
+    assert.equal(skip.parts.length, 73);
+    const made = createSet(base.q, skip, T0 + 1);
+    assert.equal(made.q.sets[0].parts.length, 73);   // before: cut to 60
+    const back = sanitiseQuestions(JSON.parse(JSON.stringify(made.q)));
+    assert.equal(back.sets[0].parts.length, 73);     // and kept on reload
+    // and every part dropped marks on
+    let d = base.q;
+    for (const p of all) d = markPart(d, base.id, p.id, 0, T0 + 2);
+    const redo = redoInput(d.sets[0], d.answers)!;
+    assert.equal(redo.parts.length, 73);
+    assert.equal(createSet(d, redo, T0 + 3).q.sets[0].parts.length, 73);
+    assert.ok(MAX_PAPER_PARTS >= 73);
+  });
+  test("a picked set stays capped", () => {
+    assert.equal(createSet(EMPTY_QUESTIONS, { ...INPUT, parts: many(90) }, T0).q.sets[0].parts.length, MAX_SET_PARTS);
+  });
+  test("a multiple-choice part is a short strip; a bigger one the student made is respected", () => {
+    assert.equal(zoneHeight({ m: 1, k: "B" }), ZONE_MCQ_H);
+    assert.ok(ZONE_MCQ_H < 140);
+    assert.equal(zoneHeight({ m: 1 }), 140);
+    assert.equal(zoneHeight({ m: 1, k: "B" }, { at: 0, h: 300 }), 300);
+    assert.equal(zoneHeight({ m: 4 }), 360);
+  });
+  test("the tier chosen in a subject is kept, and choosing every tier is the same as nothing", () => {
+    let q = setTiers(EMPTY_QUESTIONS, "aqa-gcse-maths", ["Higher"], ["Higher", "Foundation"]);
+    assert.deepEqual(q.tiers, { "aqa-gcse-maths": ["Higher"] });
+    assert.equal(setTiers(q, "aqa-gcse-maths", ["Higher"], ["Higher", "Foundation"]), q);   // unchanged: the same object
+    q = setTiers(q, "aqa-gcse-physics", ["Foundation"], ["Higher", "Foundation"]);
+    assert.deepEqual(Object.keys(q.tiers ?? {}), ["aqa-gcse-maths", "aqa-gcse-physics"]);
+    q = setTiers(q, "aqa-gcse-maths", ["Higher", "Foundation"], ["Higher", "Foundation"]);
+    assert.deepEqual(q.tiers, { "aqa-gcse-physics": ["Foundation"] });
+    q = setTiers(q, "aqa-gcse-physics", [], ["Higher", "Foundation"]);
+    assert.equal("tiers" in q, false);
+  });
+  test("tiers survive storage, and junk in them does not", () => {
+    const q = setTiers(EMPTY_QUESTIONS, "aqa-gcse-maths", ["Higher"]);
+    assert.deepEqual(sanitiseQuestions(JSON.parse(JSON.stringify(q))).tiers, { "aqa-gcse-maths": ["Higher"] });
+    const junk = sanitiseQuestions({ ...q, tiers: { a: "Higher", b: [1, null, "Foundation"], c: [], d: ["x".repeat(99)] } });
+    assert.deepEqual(junk.tiers, { b: ["Foundation"], d: ["x".repeat(20)] });
+    assert.equal(sanitiseQuestions({ tiers: [1] }).tiers, undefined);
+  });
+  test("a paper chosen from: untouched alternatives are neither unmarked nor skipped, and Finish does not ask about them", () => {
+    const parts = [part("a", "1", 10, []), part("b", "2", 10, []), part("c", "3", 10, [])];
+    const r = createSet(EMPTY_QUESTIONS, { ...INPUT, parts, paper: "k", choose: 1 }, T0);
+    const set = r.q.sets[0];
+    assert.deepEqual(progress(set, r.q.answers), { done: 0, of: 0 });
+    let d = setText(r.q, r.id, "b", "essay", T0 + 1).q;
+    assert.deepEqual(progress(d.sets[0], d.answers), { done: 0, of: 1 });
+    assert.deepEqual(finishCheck(d.sets[0], d.answers), { unmarked: 1, blank: 0 });
+    d = markPart(d, r.id, "b", 7, T0 + 2);
+    assert.deepEqual(finishCheck(d.sets[0], d.answers), { unmarked: 0, blank: 0 });
+    const sc = scoreSet(d.sets[0], d.answers);
+    assert.deepEqual([sc.got, sc.total, sc.marked, sc.markable, sc.skipped.length, sc.unmarked.length], [7, 10, 1, 1, 0, 0]);
+    // an ordinary set still counts every part
+    const plain = createSet(EMPTY_QUESTIONS, { ...INPUT, parts, paper: "k" }, T0);
+    assert.deepEqual(progress(plain.q.sets[0], plain.q.answers), { done: 0, of: 3 });
+    assert.equal(finishCheck(plain.q.sets[0], plain.q.answers).unmarked, 3);
+  });
+});
+
+describe("the end of a set is honest about how much was done", () => {
+  const sc = (marked: number, markable: number, got: number, total: number) => ({ marked, markable, total, pct: total > 0 ? Math.round((got / total) * 100) : null });
+  test("3 of 25 marked: leads with coverage, no score, encouraging, no celebration", () => {
+    const v = summaryView(sc(3, 25, 3, 3));
+    assert.equal(v.title, "3 of 25 marked");
+    assert.equal(v.showScore, false);
+    assert.equal(v.mascot, "plumi-encouraging");
+    assert.equal(v.tone, "");
+  });
+  test("a perfect score on a few parts is still not celebrated", () => {
+    const v = summaryView(sc(5, 25, 20, 20));
+    assert.equal(v.showScore, false);
+    assert.notEqual(v.mascot, "plumi-celebrating");
+  });
+  test("under half marked has a calm mascot and no score; half marked shows the score small", () => {
+    assert.equal(summaryView(sc(8, 25, 8, 8)).mascot, "plumi-lofi-cozy");
+    const half = summaryView(sc(13, 25, 10, 13));
+    assert.equal(half.showScore, true);
+    assert.equal(half.title, "13 of 25 marked");
+    assert.equal(half.mascot, "plumi-proud");
+    assert.notEqual(half.mascot, "plumi-celebrating");
+  });
+  test("celebrating needs most parts marked and a good score; most marked reads as Set done", () => {
+    const v = summaryView(sc(22, 25, 40, 44));
+    assert.deepEqual([v.title, v.showScore, v.mascot, v.tone], ["Set done", true, "plumi-celebrating", "full"]);
+    assert.equal(summaryView(sc(22, 25, 10, 44)).mascot, "plumi-encouraging");
+  });
+  test("nothing marked says so once, and a set with no printed marks is just done", () => {
+    assert.equal(summaryView(sc(0, 12, 0, 0)).title, "Nothing marked yet");
+    assert.equal(summaryView(sc(0, 12, 0, 0)).showScore, false);
+    assert.equal(summaryView(sc(0, 0, 0, 0)).title, "Set done");
+  });
+  test("one dot per part, grouped by question, with its state", () => {
+    const parts = [part("a", "1", 2, []), part("b", "2", 2, []), part("c", "3", 2, [])];
+    const r = createSet(EMPTY_QUESTIONS, { ...INPUT, parts }, T0);
+    let d = setText(r.q, r.id, "b", "x", T0 + 1).q;
+    d = markPart(d, r.id, "a", 2, T0 + 2);
+    const dots = partDots(d.sets[0], d.answers);
+    assert.deepEqual(dots.map((x) => [x.part.id, x.question, x.state, x.tone]), [["a", 1, "marked", "full"], ["b", 2, "written", ""], ["c", 3, "blank", ""]]);
+    const ch = partDots({ ...d.sets[0], choose: 1 }, d.answers);
+    assert.equal(ch[2].state, "unchosen");
+  });
+  test("finishing twice (a double tap) changes nothing", () => {
+    const r = createSet(EMPTY_QUESTIONS, INPUT, T0);
+    const once = finishSet(r.q, r.id, T0 + 1);
+    assert.equal(finishSet(once, r.id, T0 + 2), once);
+    assert.equal(once.sets[0].finishedAt, T0 + 1);
+  });
+});
+
+describe("what an empty answer space can say", () => {
+  test("a table to fill in, something to draw, something to label; prose and multiple choice say nothing", () => {
+    assert.equal(answerHint({ x: "Complete the table below. Particle Mass Charge" }), "Write the numbers here");
+    assert.equal(answerHint({ x: "(a) Fill in the table to show the number of protons" }), "Write the numbers here");
+    assert.equal(answerHint({ x: "Draw a line of best fit on the graph." }), "Draw it here");
+    assert.equal(answerHint({ x: "Label the diagram using words from the box." }), "Write the labels here");
+    assert.equal(answerHint({ x: "Explain why the car slows down." }), null);
+    assert.equal(answerHint({ x: "Which is the table? Draw", k: "B" }), null);
+    assert.equal(answerHint({ x: "" }), null);
   });
 });
