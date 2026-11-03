@@ -234,7 +234,7 @@ iPad table has: right and left at the long tables, the arm chairs, the pod stool
   (`docs/study/art/source/animal-sit-sheet-01.png`, 1536 x 1024, magenta: 4 rows = the four animals, 4 columns = leaning over a table writing, facing left,
   right, the camera (head tipped down, seen from above) and away; one static pose each; legs and lap not drawn, the table hides them; about 3.5 source
   px per art pixel, finer than the standing 8 to 9). `animal_sit.py` (config `tools/art/animal_sit.json`, so a second sheet is one more entry) turns it into
-  frames 48 to 77 of each strip: **sit right** and **sit left** (the two profiles, placed mirror image on one baseline, row 30, the torso on column 13 and
+  frames 48 to 77 of each strip: **sit right** and **sit left** (the two profiles, placed mirror image on one baseline, row 27 (the chair seat), the torso on column 13 and
   20), **phone** and **read** (the front pose, twice) and **stool** (the back pose, its bottom on row 22). Idle and walk (frames 0 to 47) are byte for byte what
   they were (the tool asserts it) and the other five animals are untouched.
   **Drawn:** the figure, its colours, the ears, the sweater, the face, the tail, the pen, the paws. **Synthesised, deterministically:** the 6 frame working
@@ -256,10 +256,18 @@ iPad table has: right and left at the long tables, the arm chairs, the pod stool
   Run: `python3 tools/art/animal_sit.py` (idempotent); `animal_sheet.py` calls it after it rebuilds a strip, so a rebuilt animal keeps its drawn seats.
   `animals.json` has `"seated": "drawn"` for the four; each strip's json has `sit` (the sheet, the scale) and `basePalette` (the walk's colours; the strip's
   palette is those plus the extras).
-  **2x detail (not integrated):** the new art is 2.6x finer than the engine's pixel; a 4.5 source px variant would be 40 to 48 columns by 40 rows per
-  figure, which needs a 2x frame in the engine (its own frame width through `Person.fw`, a 2x seat table, 2x walks, or the seated animals the only fine thing in a room
-  of coarse ones). Not done: it would mix two pixel sizes in one room. It looks clearly better (the ear's fluff, the tail, the paws and the pen, the face): `docs/study/art/animals/seated-engine-vs-2x.png`
-  (`python3 tools/art/animal_sit.py --detail DIR` writes it: the engine's scale above, 2x below, per animal).
+  **2x strips (all nine animals).** The ChatGPT art is about 4 source px per pixel, twice as fine as the engine's 8 to 9 (a standing sprite is cut from 200 px of source, so a
+  frame of 2x is the sheet's own pixel; 2.5x or 3x would only repeat it). `public/library/characters/<id>@2x.png` is the same 78 frames in the same order, each **68 x 64**
+  (the art 48 x 64, the feet on row 63, 5 x 2 empty columns each side), made by `animal_sheet.py --hires 2` (the same palette, the same rig: `animal_rig.set_scale(2)` multiplies every
+  length of the motion by 2 and keeps its pattern, so a stride, a bob and a breath are the same in art pixels; the outline is 1 pixel of the finer grid) and, for the four with drawn seats,
+  `animal_sit.py --hires 2` (the seated figure at its natural detail, the SAME size as the 1x one so that a switch between the two never changes it; the loop's steps are 2 rows).
+  The other five seated poses are the rig's stand-ins at 2x. 280 KB for the nine (the 1x ones 73 KB); `check_animals.py` runs every rule on both.
+  **In the engine** (`cafeScene.ts` library mode, `TownEngine`): a person's logical frame is still 34 x 32 art px, and a 2x frame is drawn over exactly that box (source rect
+  `f * 68, 0, 68, 64`, destination `34 k x 32 k`), so the anchors, the feet, the seat table, the z order and occlusion, the shadow (which is in art pixels: still 0.44 of the figure's height),
+  the labels, the hit box and the hover outline are the 1x ones. It is used only when **k is even** (a pixel of it is k / 2 whole device px: at 1280 x 800 on a plain display k is 3 and
+  it keeps the 1x strip; on a retina display k is 4 to 8 and the 2x one is drawn); the art-grid draw path (a canvas of one pixel per art pixel, used when the engine drops to 30 Hz) is 1x only.
+  `people/store.ts` fetches `@2x` after the 1x strip and a failure leaves 1x; `DrawnPerson.sheet2`, `LiveRemote.sheet2`, `youSheet.sheet2`, `dressYou(.., sheet2)`, `PlayerArt.img2`. The room and the
+  furniture stay at k, so the animals are finer than the room: intended. Homepage canvases are byte identical (`hero-det2.js`, 4 modes, base against this branch).
 - **Numbers** (`check_animals.py -v`): the head bobs 1 to 2 rows in every direction; the torso slides at most 2.3 columns between frames
   (usually under 1); foot motion (the change of the feet's extent on the bottom two rows, a frame to the next) is 3.6 to 6.0 columns a frame
   against a person's 5.5. FOOT SKATE: the room moves a walker 14 art px a frame and no foot of a 24 px sprite can step back that fast, so every

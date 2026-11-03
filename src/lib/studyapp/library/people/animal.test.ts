@@ -175,10 +175,10 @@ for (const animal of ANIMALS) {
       assert.equal(m.sit?.kind, "drawn");
       const row = composeAnimal(await strip(), animal, { graded: false })!;
       const box = (n: number) => { const f = frameAt(row.rgba, n); const c = cols(f, ANIMAL_W), r = rows(f, ANIMAL_W); return { x0: c[0], x1: c[c.length - 1], y0: r[0], y1: r[r.length - 1] }; };
-      // the two profiles are placed as mirror images of each other, on one baseline (the lap line, row 30), the loop's head moves 2 rows at most
+      // the two profiles are placed as mirror images of each other, on one baseline (the lap line, row 27, the chair seat), the loop's head moves 2 rows at most
       const R = box(POSE.sit), L = box(POSE.sit + 6);
       assert.ok(Math.abs((R.x0 + R.x1) + (L.x0 + L.x1) - 2 * (ANIMAL_W - 1)) <= 6, `right and left sit mirror placed (${JSON.stringify(R)} ${JSON.stringify(L)})`);
-      assert.equal(R.y1, 30); assert.equal(L.y1, 30);
+      assert.equal(R.y1, 27); assert.equal(L.y1, 27);
       for (const first of [POSE.sit, POSE.sit + 6, POSE.phone, POSE.read, POSE.stool]) {
         const tops = Array.from({ length: 6 }, (_, i) => top(frameAt(row.rgba, first + i)));
         assert.ok(Math.max(...tops) - Math.min(...tops) <= 2, `pose at ${first}: the head moves ${tops}`);

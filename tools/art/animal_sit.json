@@ -20,7 +20,7 @@
   "pose": {
     "_doc": "base: the frame row the bottom of the figure is on (the lap line); neck (front view): the frame row the neck is on (the table covers what is below it); torso (side views): the frame column the torso (the jumper's mean column) is on for the right-facing pose, the left-facing one is on the mirrored column; cx: the frame column the middle of the figure is on; cut: rows of the figure's bottom dropped (the back view is cut like a person's stool frames)",
     "side": {
-      "base": 30,
+      "base": 27,
       "torso": 13
     },
     "front": {

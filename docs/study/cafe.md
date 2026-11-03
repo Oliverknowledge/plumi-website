@@ -104,7 +104,7 @@ Ids are an append-only registry (`cafe.seats.json`; `cafe.test.ts` holds the pub
 
 **Front and back seats (17).** The fox, capybara, axolotl and badger have SEATED art drawn for it (`docs/study/library.md` "Characters",
 `tools/art/animal_sit.py`): at a front seat (`long-n*`, `nb*-n`, `sun-sofa*`, `bA-n`, `bB-n`) the head is tipped down over the table and the
-neck is on the row where the table's edge cuts, so the face shows and the paws and the pen are under the table; at a back seat (`long-s*`, `rl-s`, `rr-s`, `st*-s`) the whole figure
+neck is on row 16 (the table's edge cuts at about row 22), so the face and the shoulders show and the paws and the pen are under the table; at a back seat (`long-s*`, `rl-s`, `rr-s`, `st*-s`) the whole figure
 sits on the chair with its back to us; at the side seats (`-w`, `-e`, the ends of the long table) the profile leans toward the table (the face is at the table's edge, the tail hangs out
 over the chair back by 3 to 6 px: accepted). The red panda, raccoon, hedgehog, triceratops and dragon still use the stand-in seated poses (the `read` frames are the standing front view
 cut at the hip, the stool strip the back view), which are the weak point of the art, `library.md` "Limits". Every seat was sat in by a script in the browser (47 of 47, `shots/cafe/seat-NN.png`).
