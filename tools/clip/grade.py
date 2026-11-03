@@ -124,7 +124,7 @@ def aa(img, S):
     if S.get("unsharp"): im = im.filter(ImageFilter.UnsharpMask(S.get("radius", 1.6), S["unsharp"], 0))
     return im
 
-def layered(img, base, P, S, nograde=False):
+def layered(img, base, P, S, nograde=False, D=None, X=None):
     """The picture with its sprites crisp: `<frame>c.png` is the same frame with nobody in it. The world (c) is smoothed, and the sprites (every pixel that differs
     between the two pictures, taken from the graded full frame) are put back unsmoothed, so a stair step in the room softens and a character keeps its pixels.
     Without a `c.png` (an older capture) the whole picture is smoothed, as in v3."""
@@ -134,9 +134,55 @@ def layered(img, base, P, S, nograde=False):
     c_raw = Image.open(cp).convert("RGB")
     mask = (np.abs(raw - np.asarray(c_raw).astype(np.int16)).sum(-1) > 0)
     world = c_raw if nograde else grade(c_raw, P)
-    out = np.asarray(aa(world, S)).copy()
+    if D is not None:
+        w = dof_world(np.asarray(world).astype(np.float32) / 255, mask, D, X or {}, D["k"])
+        out = (np.clip(w, 0, 1) * 255 + 0.5).astype(np.uint8)
+    else:
+        out = np.asarray(aa(world, S)).copy()
     out[mask] = np.asarray(img)[mask]
     return Image.fromarray(out)
+
+_FIELD = {}
+
+def focus_field(W, H, D):
+    """0 inside the focus ellipse, rising smoothly to 1 well outside it (the depth of field's mask)."""
+    key = (W, H, tuple(D["focus"]), D["rx"], D["ry"])
+    if key not in _FIELD:
+        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        dist = np.sqrt(((xx / W - D["focus"][0]) / D["rx"]) ** 2 + ((yy / H - D["focus"][1]) / D["ry"]) ** 2)
+        _FIELD[key] = smooth(dist, 0.75, 1.9).astype(np.float32)
+    return _FIELD[key]
+
+def blur(a, sigma):
+    return np.asarray(Image.fromarray(np.clip(a * 255 + 0.5, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(sigma))).astype(np.float32) / 255
+
+def dof_world(world, mask, D, X, k):
+    """The room as a camera sees it: smooth everywhere (a pixel of the picture is k device pixels, so it is blurred by ~0.42 k, which is what a smooth upscale does), and increasingly out of
+    focus away from the leads (4 blur levels up to `max` px, blended by a focus field), with warm bloom on the lamps and a soft contact shadow under every sprite. `world` and the result are
+    float RGB 0..1; `mask` is where a sprite is (it is put back crisp by the caller)."""
+    H, W = world.shape[:2]
+    bs, mx = D["base"] * k, D["max"]
+    sig = [bs, bs + (mx - bs) / 3, bs + 2 * (mx - bs) / 3, max(mx, bs)]
+    lv = [blur(world, g) for g in sig]
+    f = focus_field(W, H, D) * 3.0                                     # 0..3: which pair of blur levels, and how far between them
+    out = lv[0].copy()
+    for i in range(3):
+        w = np.clip(f - i, 0, 1)[..., None]
+        out = np.where((f > i)[..., None], lv[i] * (1 - w) + lv[i + 1] * w, out)
+    # warm bloom on the brightest parts (lamps, the fire, windows), at a quarter of the size
+    if X.get("bloom"):
+        sm = np.asarray(Image.fromarray((out * 255).astype(np.uint8)).resize((W // 4, H // 4), Image.BILINEAR)).astype(np.float32) / 255
+        lum = sm @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+        hot = np.clip((lum - 0.80) / 0.2, 0, 1) ** 1.5
+        bl = blur(sm * hot[..., None], 7)
+        bl = np.asarray(Image.fromarray((np.clip(bl, 0, 1) * 255).astype(np.uint8)).resize((W, H), Image.BILINEAR)).astype(np.float32) / 255
+        out = 1 - (1 - out) * (1 - bl * X["bloom"] * np.array([1.0, 0.85, 0.6], np.float32))
+    # a soft contact shadow under each sprite: its silhouette moved down, blurred, laid on the floor (the sprites go over it)
+    if X.get("shadow") and mask is not None:
+        sh = np.roll(mask.astype(np.float32), int(0.35 * k), axis=0)
+        sh = blur(sh, 0.9 * k) * X["shadow"]
+        out = out * (1 - sh[..., None]) + np.array([0.16, 0.09, 0.06], np.float32) * sh[..., None]
+    return out
 
 def add_labels(img, base):
     """The labels (name tags, bubbles) were captured over black and over white: colour and alpha come back from the pair, and go on top unsmoothed."""
@@ -205,7 +251,13 @@ def main():
             img = Image.open(base + ".png").convert("RGB")
             P = cfg["grade"]["outdoor" if k == "a" else "indoor"]
             if not a.nograde: img = grade(img, P)
-            img = layered(img, base, P, cfg.get("smooth"), a.nograde)
+            D = None
+            if k == "b" and cfg.get("dof"):                                  # the cafe: depth of field (the shot's own focus and k), as the room's picture is a soft downscale blown up
+                sh = (cfg["indoor"].get("vertical", {}).get("shots") if H > W else None) or cfg["indoor"]["shots"]
+                tb = j / fps
+                s_ = next((x for x in sh if x["t0"] <= tb < x["t1"]), sh[-1])
+                D = dict(s_["dof"], k=s_["k"]) if s_.get("dof") else None
+            img = layered(img, base, P, cfg.get("smooth"), a.nograde, D, cfg.get("dof"))
             img = add_labels(img, base)
             out.append((k, img))
         if len(out) == 1: return out[0][1]

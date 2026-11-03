@@ -124,3 +124,16 @@ profile at the round table; a medium shot at k 6 of the long table and the pair)
 and closes on it with an exponential ease (`tau`), so it starts gently, leads a little, and settles when they stop (a lead that has walked in at the door is hidden, and the camera stays); indoors the
 camera keys use smootherstep (no velocity at either end). The camera is a float in art px and the engine puts it on the device pixel grid, a step of 1 / k of an art pixel. `judder.py` measures what
 was recorded. `grade.py` still smooths the WORLD only and keeps the sprites' own pixels.
+
+## v6 of the social cut: `social6.mjs` + `social6.json` (use these; v5 is `social5.*`)
+
+```bash
+node tools/clip/social6.mjs --aspect landscape --out DIR       # then --aspect vertical; the outdoor frames of v5 are the same (copy DIR/<shape>/a-* and judder-outdoor.json between runs)
+python3 tools/clip/grade.py --config tools/clip/social6.json --frames DIR/landscape --out plumi-social-1080p.mp4
+```
+
+What changed after the founder's look at v5: the cafe's picture is a soft 640 x 432 downscale blown up 8 to 10 times, so in the cafe the WORLD layer is now a camera's: `grade.py` `dof_world` (config `dof`
+per shot: `focus` centre, `rx`/`ry` of the sharp ellipse as fractions of the frame, `base` x k px of smoothing everywhere (what a smooth upscale does), `max` px of blur at the edges in 4 levels), warm bloom on the lamps
+(`bloom`), and a soft contact shadow under every sprite (`shadow`, from the sprite mask). The sprite layer and the labels stay crisp. The outdoor town is untouched (its art is sharp at k 8). The close shot is only the two leads
+walking in and sitting down in profile at the round table (k 10, a neighbour at the edge, nobody facing the camera or turned away); the medium shot (k 6) adds the long table's two end seats and has the same depth of field, and
+the newcomers of the second shot (`late`) are put in at the cut with full opacity. Captions are smaller (scale 6, 4 px outline) and in the top left over a soft scrim, where there is floor or building and no animal.
