@@ -1,0 +1,420 @@
+{
+"1fr0-1f-jun18": {
+"starts": {
+"01": 374.75,
+"02": 453.44,
+"03": 579.09,
+"04": 689.86,
+"05": 769.11,
+"06": 893.57,
+"07": 979.66,
+"08": 1085.54,
+"09": 1165.02,
+"10": 1339.87,
+"11": 1484.36,
+"12": 1637.51,
+"13": 1726.5,
+"14": 1902.75
+},
+"heard": {
+"01": "improvements in my school.",
+"02": "Going to the cinema.",
+"03": "Social networking sites.",
+"04": "problems in my town.",
+"05": "future ambitions",
+"06": "a music event in L'Oreal.",
+"07": "school subjects.",
+"08": "Holidays in Larunio.",
+"09": "Cleaning up the environment.",
+"10": "My job in a zoo.",
+"11": "working for a good cause.",
+"12": "young French people and sport.",
+"14": "Le ristre hau fast food."
+},
+"titles": {
+"01": "Improvements in my school",
+"02": "Going to the cinema",
+"03": "Social networking sites",
+"04": "Problems in my town",
+"05": "Future ambitions",
+"06": "A music event in Lorient",
+"07": "School subjects",
+"08": "Holidays in La Réunion",
+"09": "Cleaning up the environment",
+"10": "My job in a zoo",
+"11": "Working for a good cause",
+"12": "Young French people and sport",
+"13": "Les voyages scolaires",
+"14": "Les restaurants fast-food"
+}
+},
+"1fr0-1f-jun19": {
+"starts": {
+"01": 371.7,
+"02": 456.6,
+"03": 568.86,
+"04": 665.88,
+"05": 754.7,
+"06": 876.74,
+"07": 967.87,
+"08": 1058.25,
+"09": 1148.57,
+"10": 1324.74,
+"11": 1443.15,
+"12": 1609.15,
+"13": 1705.34,
+"14": 1871.23
+},
+"heard": {
+"03": "school.",
+"04": "free time",
+"06": "School trips.",
+"07": "transport.",
+"08": "Studying languages",
+"09": "The Olympic Games",
+"10": "helping the environment.",
+"11": "Work.",
+"12": "School in Burkina Faso.",
+"13": "Section B",
+"14": "\"Navil\""
+},
+"titles": {
+"01": "Future ambitions",
+"02": "Holidays",
+"03": "School",
+"04": "Free time",
+"05": "Family",
+"06": "School trips",
+"07": "Transport",
+"08": "Studying languages",
+"09": "The Olympic Games",
+"10": "Helping the environment",
+"11": "Work",
+"12": "School in Burkina Faso",
+"13": "Le shopping",
+"14": "Ma ville"
+}
+},
+"1fr0-1f-nov20": {
+"starts": {
+"01": 373.2,
+"02": 438.12,
+"03": 538.43,
+"04": 637.46,
+"05": 722.55,
+"06": 844.88,
+"07": 942.22,
+"08": 1038.87,
+"09": 1131.91,
+"10": 1294.39,
+"11": 1424.27,
+"12": 1591.16,
+"13": 1697.66,
+"14": 1852.78
+},
+"heard": {
+"02": "Protecting the environment.",
+"03": "school clubs and activities.",
+"04": "Work.",
+"05": "school.",
+"06": "Be a Ritz.",
+"07": "working in a hotel.",
+"08": "Limatello restaurant",
+"09": "Holiday preferences.",
+"10": "Interview with the French singer, Oshi.",
+"11": "Roland Garros.",
+"12": "the viewing habits of young French people.",
+"13": "Section B",
+"14": "Make camera red do class."
+},
+"titles": {
+"01": "Leisure activities",
+"02": "Protecting the environment",
+"03": "School clubs and activities",
+"04": "Work",
+"05": "School",
+"06": "Biarritz",
+"07": "Working in a hotel",
+"08": "Le Matelot restaurant",
+"09": "Holiday preferences",
+"10": "Interview with the French singer, Hoshi",
+"11": "Roland Garros",
+"12": "The viewing habits of young French people",
+"13": "Le travail",
+"14": "Mes camarades de classe"
+}
+},
+"1fr0-1f-nov21": {
+"starts": {
+"01": 365.3,
+"02": 443.79,
+"03": 547.41,
+"04": 618.17,
+"05": 712.54,
+"06": 890.67,
+"07": 1002.51,
+"08": 1103.47,
+"09": 1197.41,
+"10": 1363.72,
+"11": 1517.76,
+"12": 1677.77,
+"13": 1792.58,
+"14": 1922.64
+},
+"heard": {
+"02": "My school.",
+"03": "raising money for charity.",
+"04": "ambitions.",
+"05": "My football team.",
+"06": "recycling",
+"07": "My mobile phone.",
+"08": "My Town",
+"09": "A school trip.",
+"10": "Training to be a chef.",
+"11": "The markets in Lille. Labradrich.",
+"12": "Homework in France.",
+"13": "Section B. Problem Al-Othel.",
+"14": "Lutra vai."
+},
+"titles": {
+"01": "Holidays",
+"02": "My school",
+"03": "Raising money for charity",
+"04": "Ambitions",
+"05": "My football team",
+"06": "Recycling",
+"07": "My mobile phone",
+"08": "My town",
+"09": "A school trip",
+"10": "Training to be a chef",
+"11": "The market in Lille: La Braderie",
+"12": "Homework in France",
+"13": "Problèmes à l’hôtel",
+"14": "Le travail"
+}
+},
+"1fr0-1h-jun18": {
+"starts": {
+"01": 372.0,
+"02": 548.62,
+"03": 725.9,
+"04": 920.91,
+"05": 1092.24,
+"06": 1253.6,
+"07": 1449.65,
+"08": 1660.63,
+"09": 1981.04,
+"10": 2273.22
+},
+"heard": {
+"02": "Le ristre hau fast food.",
+"03": "Section B",
+"04": "working for a good cause.",
+"05": "My area.",
+"07": "A mini-enterprise. Cookie-making kits.",
+"08": "My Ambitions",
+"09": "repeating the school year.",
+"10": "Holiday preferences."
+},
+"titles": {
+"01": "Les voyages scolaires",
+"02": "Les restaurants fast-food",
+"03": "Cleaning up the environment",
+"04": "Working for a good cause",
+"05": "My area",
+"06": "Interview with Waly Dia",
+"07": "A mini-enterprise: cookie-making kits",
+"08": "My ambitions",
+"09": "Repeating the school year",
+"10": "Holiday preferences"
+}
+},
+"1fr0-1h-jun19": {
+"starts": {
+"01": 372.0,
+"02": 536.01,
+"03": 714.75,
+"04": 892.63,
+"05": 1058.57,
+"06": 1220.14,
+"07": 1406.95,
+"08": 1604.44,
+"09": 1898.06,
+"10": 2165.76
+},
+"heard": {
+"02": "\"Navil\"",
+"03": "Section B",
+"04": "Work.",
+"05": "Holidays in Morocco.",
+"06": "School in New Caledonia.",
+"07": "Working in the hotel business.",
+"08": "Reality TV",
+"09": "Food waste.",
+"10": "School rules and student rights."
+},
+"titles": {
+"01": "Le shopping",
+"02": "Ma ville",
+"03": "The Olympic Games",
+"04": "Work",
+"05": "Holidays in Morocco",
+"06": "School in New Caledonia",
+"07": "Working in the hotel business",
+"08": "Reality TV",
+"09": "Food waste",
+"10": "School rules and student rights"
+}
+},
+"1fr0-1h-nov20": {
+"starts": {
+"01": 372.0,
+"02": 525.37,
+"03": 702.62,
+"04": 867.29,
+"05": 1034.5,
+"06": 1216.27,
+"07": 1407.7,
+"08": 1609.3,
+"09": 1910.17,
+"10": 2216.1
+},
+"heard": {
+"02": "Make camera red do class.",
+"03": "Section B",
+"04": "Roland Garros.",
+"05": "using languages at work.",
+"06": "My school days.",
+"08": "mobile phones",
+"09": "helping refugees.",
+"10": "My local area."
+},
+"titles": {
+"01": "Le travail",
+"02": "Mes camarades de classe",
+"03": "Holiday preferences",
+"04": "Roland Garros",
+"05": "Using languages at work",
+"06": "My schooldays",
+"07": "Music",
+"08": "Mobile phones",
+"09": "Helping refugees",
+"10": "My local area"
+}
+},
+"1fr0-1h-nov21": {
+"starts": {
+"01": 365.63,
+"02": 495.33,
+"03": 646.31,
+"04": 814.7,
+"05": 974.38,
+"06": 1144.21,
+"07": 1427.15,
+"08": 1694.93,
+"09": 1973.72,
+"10": 2313.52
+},
+"heard": {
+"01": "Section A. Problem Al-Othel.",
+"02": "LUTRAVAI",
+"03": "Section B",
+"04": "The markets in Lille. Labradrich.",
+"05": "My best friend.",
+"06": "My job as a dancer.",
+"07": "Protecting the environment.",
+"08": "My Town",
+"09": "The French National Football School.",
+"10": "the new A levels in France."
+},
+"titles": {
+"01": "Problèmes à l’hôtel",
+"02": "Le travail",
+"03": "A school trip",
+"04": "The market in Lille: La Braderie",
+"05": "My best friend",
+"06": "My job as a dancer",
+"07": "Protecting the environment",
+"08": "My town",
+"09": "The French National Football School",
+"10": "The new A levels in France"
+}
+},
+"1fr1-2f-spec": {
+"starts": {
+"01": 375.54,
+"02": 486.99,
+"03": 577.5,
+"04": 723.71,
+"05": 821.48,
+"06": 947.65,
+"07": 1087.58,
+"08": 1222.75,
+"09": 1427.3,
+"10": 1594.23,
+"11": 1808.45,
+"12": 2101.37
+},
+"heard": {
+"01": "Question 1. Shopping",
+"02": "Question 2. Food and Drink",
+"04": "Question 4. School",
+"05": "Question 5 - Family and Relationships",
+"06": "Question 6",
+"07": "Question 7",
+"08": "Question 8.",
+"09": "Question 9",
+"10": "Question 10. My friend.",
+"11": "Question 11 Holiday accommodation",
+"12": "Section B"
+},
+"titles": {
+"01": "Shopping",
+"02": "Food and drink",
+"03": "Social media",
+"04": "School",
+"05": "Family and relationships",
+"06": "Tourist sites",
+"07": "Healthy living",
+"08": "Protecting the environment",
+"09": "A holiday destination",
+"10": "My friend",
+"11": "Holiday accommodation",
+"12": ""
+}
+},
+"1fr1-2h-spec": {
+"starts": {
+"01": 374.5,
+"02": 540.4,
+"03": 773.73,
+"04": 935.9,
+"05": 1156.7,
+"06": 1428.56,
+"07": 1614.38,
+"08": 1953.24,
+"09": 2401.0,
+"10": 2856.48
+},
+"heard": {
+"03": "Question 3",
+"04": "Question 4. My friend.",
+"06": "Question 6.",
+"07": "Question 7",
+"08": "Question 8. The World of Work",
+"10": "Section B"
+},
+"titles": {
+"01": "Healthy living",
+"02": "Protecting the environment",
+"03": "A holiday destination",
+"04": "My friend",
+"05": "Using technology",
+"06": "School",
+"07": "Living in the countryside",
+"08": "The world of work",
+"09": "Treating people fairly",
+"10": ""
+}
+}
+}
