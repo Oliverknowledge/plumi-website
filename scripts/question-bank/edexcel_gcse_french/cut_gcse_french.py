@@ -35,9 +35,11 @@ flags = [a for a in sys.argv[1:] if a.startswith("--")]
 sys.argv[1:] = [os.path.abspath(args[0]) if args else os.path.join(HERE, "..", ".work", "edexcel-gcse-french")] + flags
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
 import cut_pearson as cp  # noqa: E402
+import numpy as np  # noqa: E402
 import pymupdf  # noqa: E402
 
 WORK, IMG, ONLY = cp.WORK, cp.IMG, cp.ONLY
+cut_pearson_trim = cp.trim
 cp.HEAD = re.compile(r"Question( [Nn]umber| Key)?|Q|No\.( AO)?")  # some schemes print "Question number" as one line
 AUDIO = os.path.join(WORK, "audio-out")
 SPLITS = os.path.join(HERE, "audio_splits.json")
@@ -53,6 +55,31 @@ STOP = re.compile(r"^(TOTAL FOR (SECTION|PAPER)|SECTION [A-C]\b|BLANK PAGE|END\s
 GREETING = re.compile(r"^(Monsieur|Madame|Cher|Chère|Salut|Bonjour|Cordialement|Merci|À bientôt)\b", re.I)
 ROMANS, LETTERS = cp.ROMANS, cp.LETTERS
 WANTED_TITLE = re.compile(r"[A-Za-zÀ-ÿ]{3,}")
+
+
+def trim(img, keep=30, sides=False):
+    """cut_pearson's trim, to the last real ink. A corner of the sample papers' frame leaves a stray pixel at a crop's foot, at its very edge, which it takes for ink
+    to the foot: a question's ink is read inside its edges. On a scheme, a thin rule stranded under blank space (the next table's, or the page's) isn't the row's either."""
+    if img is None:
+        return None
+    a = np.asarray(img.convert("L"))
+    h, w = a.shape
+    inner = a[:, 6:w - 6] if w > 40 else a
+    ink = np.where((inner < 231).any(axis=1))[0]
+    if not len(ink):
+        return None
+    bottom = ink[-1]
+    if sides:
+        while True:
+            band = bottom
+            while band > 0 and (inner[band - 1] < 231).any():
+                band -= 1
+            above = ink[ink < band]
+            if bottom - band > 3 or not len(above) or band - above[-1] < 24:
+                break
+            bottom = above[-1]
+    img = img.crop((0, 0, w, min(h, bottom + 1 + keep)))
+    return cut_pearson_trim(img, keep, sides) if sides else img
 
 
 INSTRUCTION = re.compile(r"^(Answer the following|Answer the question|Put a cross|Complete the|Read |Enter either|Réponds|Mets une croix|Complète)")
@@ -254,37 +281,43 @@ def tidy_scheme(doc, listening):
                 l["text"] = "\u200b" + t
 
 
-END_ROW = re.compile(r"^(SECTION [A-C]\b.*|Section [A-C]\b.*|Assessment criteria.*|Exemplification.*|\d?FR\w*_\w+_QUESTION.*|Question \d+$|Pearson Education Limited.*|CORRECT TENSE IMPORTANT.*)")
+END_ROW = re.compile(r"^(SECTION [A-C]\b.*|Section [A-C]\b.*|Assessment criteria.*|Exemplification.*|\d?FR\w*_\w+_QUESTION.*|Question \d+$|Pearson Education Limited.*|CORRECT( TENSE)?\b.*)")
 HEADER_WORD = re.compile(r"^(Question number|Question|number|Answers?|Accept|Reject|Mark|QUESTION|ANSWER|ACCEPT|REJECT|MARK)$")
 
 
 def end_rows(doc, pieces):
-    """A scheme row's pieces, up to the next section's heading or the guidance that follows the last row."""
-    out = []
+    """A scheme row's pieces, up to the next section's heading or the guidance that follows the last row, and without the next row's header. And what it
+    cut off that belongs to the next part: June 2018's 1H prints "CORRECT TENSE IMPORTANT THROUGHOUT QUESTION 9B" in a table of its own before 9(b)(i)."""
+    out, carried = [], []
     for k, (pg, r) in enumerate(pieces):
-        # (a section's heading can sit above the table that starts a page, or start left of a row's table)
-        if k and any(l["y0"] < r.y0 + 6 and END_ROW.match(l["text"]) for l in doc.lines(pg)):
-            return out
-        stop = [l["y0"] for l in doc.lines(pg) if r.y0 + (6 if not k else -2) < l["y0"] < r.y1 and END_ROW.match(l["text"])]
-        if stop:
-            if min(stop) - 1 > r.y0 + 8:
-                out.append((pg, pymupdf.Rect(r.x0, r.y0, r.x1, min(stop) - 1)))
-            return out
-        # The next row's header, its row over the page or lower down, stays with that row.
-        inside = sorted((l for l in doc.lines(pg) if r.y0 <= l["y0"] < r.y1 and r.x0 <= l["x0"] <= r.x1), key=lambda l: l["y0"])
+        # (a section's heading above the table that starts a new page: the row went no further)
+        if k and pg != pieces[k - 1][0] and any(l["y0"] < r.y0 + 6 and END_ROW.match(l["text"]) for l in doc.lines(pg)):
+            return out, carried
+        stops = [l for l in doc.lines(pg) if r.y0 + (6 if not k else -2) < l["y0"] < r.y1 and END_ROW.match(l["text"])]
+        end = min((l["y0"] for l in stops), default=r.y1)
+        inside = sorted((l for l in doc.lines(pg) if r.y0 <= l["y0"] < end and r.x0 <= l["x0"] <= r.x1), key=lambda l: l["y0"])
         tail = len(inside)
         while tail and HEADER_WORD.match(inside[tail - 1]["text"]):
             tail -= 1
-        if not tail:
-            continue
+        if stops and stops[0]["text"].startswith("CORRECT"):
+            carried.append((pg, pymupdf.Rect(r.x0, (inside[tail]["y0"] - 3) if tail < len(inside) else end - 3, r.x1, r.y1)))
         if tail < len(inside):
-            r = pymupdf.Rect(r.x0, r.y0, r.x1, inside[tail]["y0"] - 3)
+            end = inside[tail]["y0"] - 3
+        elif stops:
+            end -= 1
         # (a cell's last line can run past the rule that closes it)
-        over = [l["y1"] for l in inside[:tail] if l["y0"] + 2 < r.y1 < l["y1"]]
+        over = [l["y1"] for l in inside[:tail] if l["y0"] + 2 < end < l["y1"]]
         if over:
-            r = pymupdf.Rect(r.x0, r.y0, r.x1, max(over) + 1.5)
-        out.append((pg, r))
-    return out
+            end = max(over) + 1.5
+        if tail and end > r.y0 + 8:
+            out.append((pg, pymupdf.Rect(r.x0, r.y0, r.x1, end)))
+        if stops:
+            return out, carried
+    return out, carried
+
+
+# Where a scheme file's own sections are over: another scheme's front matter bound in after them (June 2025's Foundation file), or an acknowledgement.
+BOUND_IN = re.compile(r"^(Mark Scheme \(Results\)|Edexcel and BTEC Qualifications|General [Mm]arking [Gg]uidance|GCSE French\s+(Higher|Foundation)|French GCSE\s+(Higher|Foundation)|General guidance on using|This document was informed)")
 
 
 def writing_schemes(doc, tier):
@@ -294,7 +327,7 @@ def writing_schemes(doc, tier):
     for i in range(len(doc)):
         for l in doc.lines(i):
             m = re.match(r"^Question (\d{1,2})\s*[–—-]\s*(Foundation|Higher) tier(?:\s*\((\d+) marks?\))?", l["text"])
-            if m and m.group(2)[0].lower() != tier:
+            if BOUND_IN.match(l["text"]) or (m and m.group(2)[0].lower() != tier):
                 heads.append((i, l["y0"], 0, None))
             elif m and not any(h[2] == int(m.group(1)) for h in heads):
                 heads.append((i, l["y0"], int(m.group(1)), int(m.group(3)) if m.group(3) else None))
@@ -313,19 +346,25 @@ def writing_schemes(doc, tier):
         p = pg
         while p < len(doc):
             lines = doc.lines(p)
-            if not lines or cp.BACK_PAGE.search(doc.text(p)) or re.match(r"\s*Pearson Education Limited", doc.text(p)):
+            if not lines:  # a blank page in the middle of a section (June 2025's Higher scheme, before Question 1's guidance on errors)
+                p += 1
+                continue
+            if cp.BACK_PAGE.search(doc.text(p)) or re.match(r"\s*Pearson Education Limited", doc.text(p)):
                 break
             w, h = doc[p].rect.width, doc[p].rect.height
             top = y - 4 if p == pg else 30
+            if p == pg:  # under a line the top would clip: the section before's last, set close above its heading
+                top = max([top] + [l["y1"] + 0.5 for l in lines if l["y0"] < top < l["y1"] and l["y0"] < y - 6])
             if p != pg:  # under a page number at the top of the page, above a heading there
                 crossing = [l for l in lines if l["y0"] < 32 and l["y1"] > 28]
                 top = max([top] + [l["y1"] + 1 for l in crossing if re.fullmatch(r"\W*\d{1,3}", l["text"])])
                 top = min([top] + [l["y0"] - 2 for l in crossing if not re.fullmatch(r"\W*\d{1,3}", l["text"])])
-            bottom = nxt[1] - 4 if nxt and nxt[0] == p else h - 30
-            foot = [l["y0"] for l in lines if top < l["y0"] < bottom and re.match(r"(Pearson Edexcel Level 1/Level 2 GCSE|Pearson Education Limited)", l["text"])]
-            bottom = min([bottom] + [l["y0"] - 2 for l in lines if l["y0"] > h - 70 and re.fullmatch(r"\W*\d{1,3}", l["text"])])
-            if foot:
-                bottom = min(foot) - 4
+            # to the head of the next section, or the page's last line of content, descenders and a closing rule included: not a fixed margin, which clipped June 2019's last line
+            foot = [l["y0"] for l in lines if top < l["y0"] and re.match(r"(Pearson Edexcel Level 1/Level 2 GCSE|Pearson Education Limited)", l["text"])]
+            limit = nxt[1] - 4 if nxt and nxt[0] == p else (min(foot) - 4 if foot else h)
+            content = [l["y1"] for l in lines if top < l["y0"] < limit and not (l["y0"] > h - 70 and re.fullmatch(r"\W*\d{1,3}", l["text"]))]
+            bottom = limit if nxt and nxt[0] == p else min(limit, max(content, default=top) + 6)
+            bottom = max([bottom] + [l["y1"] + 0.5 for l in lines if l["y0"] + 1.5 < bottom < l["y1"]])
             if bottom > top + 10 and doc.text(p, pymupdf.Rect(20, top, w - 20, bottom)).strip():
                 pieces.append((p, pymupdf.Rect(20, top, w - 20, bottom)))
             if (nxt and nxt[0] <= p) or foot and not nxt:
@@ -442,7 +481,7 @@ def translation_scheme(doc):
     out = []
     for p in range(first[0], len(doc)) if first else ():
         w, h = doc[p].rect.width, doc[p].rect.height
-        foot = [l["y0"] for l in doc.lines(p) if re.match(r"Pearson Edexcel Level 1/Level 2 GCSE", l["text"])]
+        foot = [l["y0"] for l in doc.lines(p) if re.match(r"Pearson Edexcel Level 1/Level 2 GCSE|This document was informed", l["text"])]
         if doc.lines(p):
             out.append((p, pymupdf.Rect(20, first[1] - 4 if p == first[0] else 30, w - 20, min(foot) - 4 if foot else h - 40)))
     return out
@@ -624,6 +663,7 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta, meta_tr=None):
         elif total and known != total:
             problems.append(f"{set_id} {q}: parts {known} marks, total {total}")
 
+    carry = []
     for key in leaves:
         q, letter, roman = key
         single = not letter and not roman
@@ -650,7 +690,8 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta, meta_tr=None):
         own = " ".join(qp.text(pg, r) for pg, r in lead + keep)
         mpieces, ms_text, answer, whole = scheme(key)
         if not writing and not (translation and q == last_q):
-            mpieces = end_rows(ms_doc, mpieces)
+            mpieces, carry_next = end_rows(ms_doc, mpieces)
+            mpieces, carry = carry + mpieces, carry_next
             ms_text = " ".join(ms_doc.text(p, r) for p, r in mpieces)
         for pg, r in mpieces:
             problems += [f"{pid} scheme p{pg + 1}: edge cuts {l['text'][:40]!r}" for l in ms_doc.lines(pg) if r.x0 <= l["x0"] <= r.x1 and (l["y0"] + 2.5 < r.y1 < l["y1"] - 2.5 or l["y0"] + 2.5 < r.y0 < l["y1"] - 2.5)]
@@ -670,6 +711,24 @@ def cut_set(qp_path, ms_path, er_path, set_id, meta, meta_tr=None):
              **({"or": True} if q in choices and key != by_q[q][0] else {})}
         parts.append(p)
     problems += check_crops(qp, found, end_page, set_id, list(shown_pieces.items()))
+    # A section holds nothing of the other tier's scheme.
+    other = {"f": "Higher", "h": "Foundation"}[comp[6]]
+    for q, (_, text, _) in written.items():
+        if re.search(rf"[–—-]\s*{other}\s+tier|GCSE {other} tier|for the {other.lower()} tier", text):  # (its headings: "specific to Higher tier GCSE" in Foundation's guidance is right)
+            problems.append(f"{set_id} {q}: its scheme's section has a {other} tier heading")
+    # A Writing scheme's every line is in its question's section, whole.
+    for q, (pieces, _, _) in written.items():
+        for pg, r in pieces:
+            problems += [f"{set_id} {q} scheme p{pg + 1}: edge clips {l['text'][:50]!r}" for l in ms_doc.lines(pg) if l["y0"] + 1.5 < r.y1 < l["y1"] - 0.5 or l["y0"] + 1.5 < r.y0 < l["y1"] - 0.5]
+    if written:
+        last = max(written[q][0][-1][0] for q in written if written[q][0])
+        first = min(written[q][0][0][0] for q in written if written[q][0])
+        for pg in range(first, last + 1):
+            for l in ms_doc.lines(pg):
+                ends = max(r.y1 for q in written for p, r in written[q][0] if p == last)
+                if not any(p == pg and r.y0 - 1 <= l["y0"] and l["y1"] <= r.y1 + 1 for q in written for p, r in written[q][0]) and not re.fullmatch(r"\W*\d{1,3}", l["text"]) \
+                        and not re.match(r"Pearson E|Issue \d|with its registered|Registered", l["text"]) and pg > first and (pg < last or l["y0"] < ends):
+                    problems.append(f"{set_id} scheme p{pg + 1}: in no section: {l['text'][:60]!r}")
     # A scheme row no part took means a part the paper's labels didn't show.
     for k in tables:
         if k not in used_rows and tables[k][0] and k[0] in by_q:
@@ -776,6 +835,8 @@ def main():
     for p in problems:
         print("  ", p, file=sys.stderr)
 
+
+cp.trim = trim
 
 if __name__ == "__main__":
     main()
