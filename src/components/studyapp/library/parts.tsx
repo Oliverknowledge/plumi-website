@@ -85,7 +85,8 @@ export function SeatCard({ session, snap, handleRef, dock = false }: { session: 
     const on = running ? running.subject : startSubject(subject);
     if (view === "setup") timer.start({ subject: on });
     setFocusIntent(on);
-    markFromSeat();
+    const id = running ? running.id : timer.snapshot().doc.session?.id ?? null;
+    if (id) markFromSeat(id);
     router.push(to("/study/questions"));
   };
   const sit = () => { if (!handleRef.current?.sit()) toast("No free seat close by. Tap one in the room"); };

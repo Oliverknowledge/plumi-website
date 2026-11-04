@@ -5,44 +5,17 @@ import { accountsOn, useAccount } from "@/lib/account";
 import { social } from "@/lib/social/browser";
 import { useNow } from "./clock";
 import { useQuestions } from "./questions/store";
+import { dayKeep } from "./dayKeep";
 import { mergeDays, questionDays, questionsToday, streakNow } from "./streak";
 import { dayOf } from "./time";
 
 /**
  * The day streak and the questions done today, for the Desk and the Questions page (the rules are streak.ts's). The London days on which the student did real
- * work are kept on this device (`plumi-study-days`, newest 400), so a streak does not shrink when an old answer is changed; the server's own figure (the iPad's) is
- * read once a few minutes, best-effort, and only ever raises the number.
+ * work are kept on this device (`plumi-study-days`, newest 400; dayKeep.ts), written by the questions store whenever an answer is written, marked or inked, on any page, so a streak
+ * does not shrink when an old answer is changed; the server's own figure (the iPad's) is read once a few minutes, best-effort, and only ever raises the number.
  */
-const KEY = "plumi-study-days";
-let kept: string[] = [];
-let started = false;
-const listeners = new Set<() => void>();
 const NONE: string[] = [];
-
-function start() {
-  if (started || typeof window === "undefined") return;
-  started = true;
-  try {
-    const raw = JSON.parse(window.localStorage.getItem(KEY) ?? "null") as { days?: unknown } | null;
-    kept = raw && Array.isArray(raw.days) ? raw.days.filter((d): d is string => typeof d === "string") : [];
-  } catch { /* nothing kept */ }
-  window.addEventListener("storage", (e) => {
-    if (e.key !== KEY) return;
-    try { const j = JSON.parse(e.newValue ?? "null") as { days?: unknown } | null; kept = j && Array.isArray(j.days) ? j.days.filter((d): d is string => typeof d === "string") : kept; } catch { return; }
-    listeners.forEach((l) => l());
-  });
-}
-const subscribe = (cb: () => void) => { start(); listeners.add(cb); return () => { listeners.delete(cb); }; };
-
-/** Add the days now found to those kept (a private window or a full disk just means they last for the visit). */
-function record(found: string[], today: string) {
-  start();
-  const next = mergeDays(kept, found, today);
-  if (next.length === kept.length && next.every((d, i) => d === kept[i])) return;
-  kept = next;
-  try { window.localStorage.setItem(KEY, JSON.stringify({ v: 1, days: kept })); } catch { /* kept for the visit */ }
-  listeners.forEach((l) => l());
-}
+const subscribe = (cb: () => void) => dayKeep().subscribe(cb);
 
 interface ServerRow { streak: number; streakDay: string | null }
 const SERVER_MS = 5 * 60_000;
@@ -80,9 +53,8 @@ export function useDayFigures(): DayFigures {
   const { ready, q } = useQuestions();
   const now = useNow(30_000);
   const today = ready && now ? dayOf(now) : null;
-  const keptDays = useSyncExternalStore(subscribe, () => { start(); return kept; }, () => NONE);
+  const keptDays = useSyncExternalStore(subscribe, () => dayKeep().snapshot(), () => NONE);
   const found = useMemo(() => (ready ? questionDays(q) : NONE), [ready, q]);
-  useEffect(() => { if (today && found.length > 0) record(found, today); }, [found, today]);
   const server = useServerRow();
   return useMemo(() => {
     if (!today) return { streak: null, questions: 0 };

@@ -28,7 +28,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   tierOnly: boolean;
   /** Say once, under the book, that it is at any tier. */
   hint: boolean;
-  /** The student came for this subject (the seat card's "Do Plumi questions"): its name plate is marked, until it is ticked. */
+  /** The student came for this subject (the seat card's "Do Plumi questions"): its name plate is marked and says so, until it is ticked. The line travels with the book (it is above it), so it is never scrolled away from it. */
   wanted?: boolean;
   onToggle(): void; onBoard(slug: string): void; onTier(sel: string[]): void; onOpen(): void; onClose(): void;
 }) {
@@ -43,6 +43,8 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   const askTier = on && !!board && tiered && !tierSet;
   const choices = choice.boards.length > 1 || tierOptions.length >= 2;
   const flapId = useId();
+  const wantId = useId();
+  const wantNote = wanted && !on;
   const flap = useRef<HTMLDivElement>(null);
   const cover = useRef<HTMLButtonElement>(null);
   const showFlap = on && open;
@@ -60,15 +62,16 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   const { Doodle } = art;
   const style = { "--tint": coverColour(choice.base), "--tilt": `${art.tilt}deg` } as CSSProperties;
   return (
-    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}${wanted && !on ? " wanted" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
+    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}${wantNote ? " wanted" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
       onBlur={(e) => { if (showFlap && !e.currentTarget.contains(e.relatedTarget as Node | null)) onClose(); }}>
+      {wantNote && <p className="qk-want qk-want-book" id={wantId} data-testid="setup-want">No {choice.base} book yet. Tick it to begin.</p>}
       <div className={`qk-book qk-cover--${art.cover} qk-tape--${art.tape} qk-bind--${art.binding}`}>
         <span className="qk-spine" aria-hidden="true" />
         <span className="qk-tape" aria-hidden="true" />
         <span className="qk-plate" aria-hidden="true"><b>{choice.base}</b></span>
         <span className="qk-doodle" aria-hidden="true"><Doodle /></span>
         <span className="qk-stamp" aria-hidden="true"><SETUP_ART.TickStamp /></span>
-        <button ref={cover} type="button" className="qk-cover" aria-label={bookLabel(choice.base, on, board, tiersShown, askTier)} onClick={onToggle} data-testid={`tick-${choice.base}`} />
+        <button ref={cover} type="button" className="qk-cover" aria-label={bookLabel(choice.base, on, board, tiersShown, askTier)} aria-describedby={wantNote ? wantId : undefined} onClick={onToggle} data-testid={`tick-${choice.base}`} />
         {!on && <span className="qk-label qk-label-empty" aria-hidden="true" />}
         {on && (choices ? (
           <button type="button" className="qk-label qk-label-btn" aria-expanded={showFlap} aria-controls={showFlap ? flapId : undefined} onClick={showFlap && !tierOnly ? onClose : onOpen}

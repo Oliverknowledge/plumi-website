@@ -106,6 +106,7 @@
 .pa .brand span { font: 700 28px var(--f-px); }
 .pa .tabs { display: flex; gap: 4px; flex: 1; min-width: 0; }
 .pa .tab { position: relative; display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 10px; font: 600 18px var(--f-px); transition: background .15s; }
+.pa .tab-short { display: none; }
 .pa .tab:hover { background: var(--card2); }
 .pa .tab.on { background: var(--navy); color: #f5f9ff; box-shadow: 0 3px 0 #18213a; }
 .pa .tab .badge { position: absolute; top: 3px; right: 1px; min-width: 17px; height: 17px; padding: 0 4px; border: 2px solid var(--ink); border-radius: 9px; background: var(--gold); color: var(--ink); font: 800 10.5px/13px var(--f-body); text-align: center; }
@@ -129,6 +130,29 @@
 .pa .top .tm-chipbtn.is-idle .tm-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pa .top .wrap { gap: 2px; }
 .pa .avatar { display: none; }
+/* the badge sits on the tab's corner, clear of its word (the bar scrolls, so the bar is given room above and to the side for it to hang in) */
+.pa .tabs { padding: 8px 4px 0; margin: -8px -4px 0; }
+.pa .tab .badge { top: -1px; right: -2px; min-width: 15px; height: 15px; padding: 0 3px; border-width: 1.5px; font-size: 9.5px; line-height: 12px; }
+}
+/* a phone with the timer running: the four places, the clock and the mark all fit, nothing scrolls under the chip */
+@media (max-width: 420px) {
+.pa .brand { margin-right: 2px; }
+.pa .brand img { width: 30px; height: 30px; }
+.pa .tab { padding: 0 4px; }
+}
+@media (max-width: 380px) {
+.pa .tab { font-size: 12.5px; }
+}
+@media (max-width: 370px) {
+.pa .tab { padding: 0 3px; }
+}
+@media (max-width: 340px) {
+.pa .brand img { width: 26px; height: 26px; }
+.pa .tab { font-size: 12px; padding: 0 3px; }
+}
+@media (max-width: 359px) {
+.pa .tab-long { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.pa .tab-short { display: inline; }
 }
 /* ---------- DESK ---------- */
 .pa .desk { padding-block: 26px 130px; display: grid; gap: 22px; }
@@ -314,5 +338,6 @@ html[data-theme="dark"]:has(.pa) body { background-color: transparent; color: #2
 .pa .sk-chip svg { width: 10px; height: 12px; color: #b04a14; }
 .pa .sk-chip b { font: 700 17px/1 var(--f-px); font-variant-numeric: tabular-nums; }
 .pa .sk-w { font: 700 18px/1 var(--f-hand); color: var(--ink); }
+.pa .acts-day { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .pa .acts .sk-chip { height: 38px; border-radius: 19px; padding: 0 14px 0 11px; }
 @media (max-width: 400px) { .pa .sk-chip .sk-w { display: none; } }

@@ -328,4 +328,9 @@
 
 /* The one written line when the seat card sent them for a subject they have no book of yet. */
 .pa .qk-want { margin: 6px 0 0; font: 700 24px/1.1 var(--f-hand); color: var(--ink); transform: rotate(-1deg); transform-origin: left center; }
+/* The same line, on the marked book itself: it sits just above the book, so it is always where the book is (the page scrolls the book to the middle). */
+.pa .qk-slot.wanted { margin-top: 48px; }
+.pa .qk-want-book { position: absolute; z-index: 2; left: 0; right: -2px; bottom: calc(100% + 6px); margin: 0; font-size: 21px; line-height: 1; transform-origin: left bottom; text-wrap: balance; }
+@media (max-width: 420px) { .pa .qk-slot.wanted { margin-top: 56px; } .pa .qk-want-book { font-size: 19px; } }
+@media (max-width: 340px) { .pa .qk-want-book { font-size: 17px; } }
 .pa .qk-slot.wanted .qk-plate { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 4px; }

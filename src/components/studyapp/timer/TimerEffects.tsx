@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "@/components/studyapp/toast";
 import { useNow } from "@/lib/studyapp/clock";
+import { tidySeatNote } from "@/lib/studyapp/focusIntent";
 import { compactFace, settled } from "@/lib/studyapp/timer";
 import { timer, useTimer, type Notice } from "@/lib/studyapp/timerStore";
 import { armChime, chime } from "./sound";
@@ -24,12 +25,17 @@ export function noticeLine(n: Notice): { toast: string; say: string } {
  *     sentence for screen readers. The clock itself is never announced every second.
  */
 export function TimerEffects() {
-  const { doc } = useTimer();
+  const { doc, ready } = useTimer();
   const now = useNow(1000);
   const [said, setSaid] = useState("");
   const clear = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => armChime(), []);
+
+  // "Back to the library" on the Questions page belongs to the session the student left the library with: stopped, finished or replaced, it is forgotten.
+  const sessionId = doc.session?.id ?? null;
+  const sessionOver = doc.session?.isOver ?? false;
+  useEffect(() => { if (ready) tidySeatNote(sessionId ? { id: sessionId, isOver: sessionOver } : null); }, [ready, sessionId, sessionOver]);
 
   useEffect(() => timer.onNotice((n) => {
     const line = noticeLine(n);

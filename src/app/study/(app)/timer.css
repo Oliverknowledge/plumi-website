@@ -101,6 +101,16 @@
 .pa .tm-ask-word .tm-short { display: inline; }
 .pa .tm-face { min-width: 0; }
 }
+/* the clock alone, a little tighter, with no gap to the right of it: with the four places beside it a running session fits at 390, 360 and 320 */
+@media (max-width: 420px) {
+.pa .top .tm { margin-right: 0; }
+.pa .top .tm-chipbtn { padding: 0 8px; }
+.pa .top .tm-face { font-size: 21px; }
+}
+@media (max-width: 340px) {
+.pa .top .tm-chipbtn { padding: 0 6px; }
+.pa .top .tm-face { font-size: 19px; }
+}
 @media (prefers-reduced-motion: reduce) {
 .pa .tm-ask-word { animation: none; }
 }

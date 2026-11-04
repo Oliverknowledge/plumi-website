@@ -24,6 +24,25 @@ export function questionDays(q: Pick<QuestionsData, "answers" | "recent">): stri
   return [...days].sort();
 }
 
+/**
+ * The days a change to the data touches: for every answer that is not the same object as before, the day it showed real work BEFORE (an edit moves an answer's own time to
+ * the day of the edit, so the day it was first earned is lost unless it is taken now) and the day it shows now; and the days of the marks noted as done lately when those were
+ * written. Only what changed is looked at, so a keystroke costs a few comparisons, not a pass over every answer.
+ */
+export function dayChanges(base: Pick<QuestionsData, "answers" | "recent">, next: Pick<QuestionsData, "answers" | "recent">): string[] {
+  const days = new Set<string>();
+  const note = (a: QAnswer | undefined) => { if (earnsDay(a) && a!.at > 0) days.add(dayOf(a!.at)); };
+  if (next.answers !== base.answers) {
+    for (const k of Object.keys(next.answers)) {
+      const was = base.answers[k];
+      if (next.answers[k] === was) continue;
+      note(was); note(next.answers[k]);
+    }
+  }
+  if (next.recent !== base.recent) for (const r of next.recent) if (r.at > 0) days.add(dayOf(r.at));
+  return [...days].sort();
+}
+
 export const MAX_DAYS = 400;
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 

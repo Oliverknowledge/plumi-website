@@ -6,6 +6,7 @@ import {
   againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setAnnMeta, setMode, setPick, setPrefs, setText,
   feedId, hasInk, hasText, type QAnswer, type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
+import { dayKeep } from "../dayKeep";
 import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
 
 /**
@@ -61,6 +62,8 @@ function load(): State {
       try { const k = chooseRecoveryKey((x) => localStorage.getItem(x), loaded.keep); if (k) localStorage.setItem(k, loaded.keep); } catch { /* full: nothing more to do */ }
     }
     if (tabOpen === undefined) { const t = readTabOpen(); tabOpen = t === undefined ? (loaded.data.open ?? null) : t; if (t === undefined) saveTabOpen(tabOpen); }
+    // The days this work shows are kept before anything else happens, so the streak never depends on which page is open (dayKeep.ts).
+    if (loaded.origin !== "empty") dayKeep().onLoad(loaded.data, Date.now());
     if (loaded.origin === "own") { lastRaw = own; setQuestionsDurable(true); return { ready: true, persisted: true, q: withOpen(loaded.data) }; }
     if (loaded.origin === "migrated") {
       // Copy, read back, and only then let the app's document let go of its copy.
@@ -111,6 +114,7 @@ function apply(fn: (q: QuestionsData) => QuestionsData) {
   const base = state.ready ? fresh() : load().q;
   const next = fn(base);
   if (next === base) { if (state.q !== base) emit(); return; }
+  dayKeep().onChange(base, next, now());   // the day of every answer this touched, as it was and as it is, kept (never removed) whatever page is open
   if (next.open !== base.open) { tabOpen = next.open; saveTabOpen(next.open); }
   const ok = write(next);
   if (ok) setQuestionsDurable(true);

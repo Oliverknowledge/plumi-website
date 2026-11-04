@@ -7,8 +7,8 @@ import { useSyncExternalStore } from "react";
  *
  * 1. The INTENT: which subject the student is focusing on (a seat card id, or null for a plain "Focus"). It lives in memory only, for a minute, and is looked at
  *    once by the Questions page as it opens: a Questions page opened any other way, or a minute later, is not told anything.
- * 2. The SEAT NOTE: the student left a seat in the library to do questions. It is what lets the Questions page offer "Back to my seat", and only while the focus session is
- *    still running. It is remembered for this tab (a reload keeps it) and forgotten once they sit again, press the link, or stop.
+ * 2. The SEAT NOTE: the student left a seat in the library to do questions. It is what lets the Questions page offer "Back to the library" (the library lets go of the seat when it is left, so the way back is to the library, where the student sits again), and only while the focus session is
+ *    still running. It is remembered for this tab (a reload keeps it) and forgotten once they sit again, press the link, or the session stops or is replaced.
  */
 export interface FocusIntent { subject: string | null; at: number }
 export const INTENT_MS = 60_000;
@@ -24,12 +24,24 @@ export const clearFocusIntent = () => { intent = null; };
 
 /* ── The seat note ───────────────────────────────────────────────────── */
 
+/**
+ * The note holds the id of the focus session the student left the library with. It is good only for that session: once the session is stopped or finished, or another one
+ * is running (started from the Desk chip, say), the note is not true any more and is forgotten (`tidySeatNote`, run by TimerEffects on every page).
+ */
 export const SEAT_KEY = "plumi-focus-from-seat";
 const listeners = new Set<() => void>();
 const tell = () => listeners.forEach((l) => l());
-const read = (): boolean => { try { return window.sessionStorage.getItem(SEAT_KEY) === "1"; } catch { return false; } };
-export function markFromSeat() { try { window.sessionStorage.setItem(SEAT_KEY, "1"); } catch { /* the link is a convenience */ } tell(); }
+const read = (): string | null => { try { return window.sessionStorage.getItem(SEAT_KEY) || null; } catch { return null; } };
+export function markFromSeat(sessionId: string) { try { window.sessionStorage.setItem(SEAT_KEY, sessionId); } catch { /* the link is a convenience */ } tell(); }
 export function clearFromSeat() { try { window.sessionStorage.removeItem(SEAT_KEY); } catch { /* nothing to forget */ } tell(); }
+
+/** Whether a note still stands: there is a session, it is not over, and it is the one the note was made for. Pure. */
+export const seatNoteStands = (note: string | null, session: { id: string; isOver: boolean } | null): boolean => note !== null && !!session && !session.isOver && session.id === note;
+/** Forget the note if it no longer stands for this session (none, stopped, finished, or another one). */
+export function tidySeatNote(session: { id: string; isOver: boolean } | null) {
+  const note = read();
+  if (note !== null && !seatNoteStands(note, session)) clearFromSeat();
+}
 
 const subscribe = (cb: () => void) => {
   listeners.add(cb);
@@ -37,5 +49,5 @@ const subscribe = (cb: () => void) => {
   window.addEventListener("storage", onStorage);
   return () => { listeners.delete(cb); window.removeEventListener("storage", onStorage); };
 };
-/** Whether the student left a seat to do questions (false on the server and until the browser has been asked). */
-export const useFromSeat = (): boolean => useSyncExternalStore(subscribe, read, () => false);
+/** Whether the student left a seat to do questions in THIS session (false on the server and until the browser has been asked). */
+export const useFromSeat = (sessionId: string | null): boolean => useSyncExternalStore(subscribe, () => sessionId !== null && read() === sessionId, () => false);

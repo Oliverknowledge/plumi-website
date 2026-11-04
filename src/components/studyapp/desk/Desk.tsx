@@ -66,7 +66,7 @@ function StudiedToday() {
   );
 }
 
-/** The day streak beside "Studied today": a tag when there is one, nothing while there is not (or while it is not known yet). */
+/** The day streak beside "Studied today" (the two travel as one pair, so the streak is never left alone on a row): a tag when there is one, nothing while there is not (or while it is not known yet). */
 function DeskStreak() {
   const { streak } = useDayFigures();
   return <StreakChip n={streak} />;
@@ -89,8 +89,7 @@ export function Desk() {
           <div className="acts">
             <AppLink className="cont" href={next.href} data-testid="continue">{next.label}<i><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#3f322e" /></svg></i></AppLink>
             <ExamChip />
-            <StudiedToday />
-            <DeskStreak />
+            <span className="acts-day"><StudiedToday /><DeskStreak /></span>
           </div>
         </div>
       </section>

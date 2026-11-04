@@ -15,13 +15,14 @@ import { TimerChip } from "./timer/TimerChip";
 /**
  * The top bar: Plumi, then the four places (Desk, Study, Questions, Flashcards), then the student. Study is the Grand
  * Library, and carries a badge when friends are in it; Flashcards carries how many are due. Nothing is badged
- * that is not true: no number is shown until the app actually knows it.
+ * that is not true: no number is shown until the app actually knows it. On the narrowest phones Flashcards is written "Cards" (the full word is still what a screen
+ * reader hears), so the four places and a running timer fit without anything scrolling or hiding.
  */
 const TABS = [
   { href: "/study", label: "Desk", on: (p: string) => p === "/study" },
   { href: "/study/library", label: "Study", on: (p: string) => p.startsWith("/study/library") },
   { href: "/study/questions", label: "Questions", on: (p: string) => p.startsWith("/study/questions") },
-  { href: "/study/flashcards", label: "Flashcards", on: (p: string) => p.startsWith("/study/flashcards") },
+  { href: "/study/flashcards", label: "Flashcards", short: "Cards", on: (p: string) => p.startsWith("/study/flashcards") },
 ] as const;
 
 export function AppTop() {
@@ -48,7 +49,7 @@ export function AppTop() {
             const title = t.label === "Study" ? `${friends} friend${friends === 1 ? "" : "s"} in the library now` : `${due} card${due === 1 ? "" : "s"} due`;
             return (
               <Link key={t.href} className={`tab${on ? " on" : ""}`} href={to(t.href)} aria-current={on ? "page" : undefined} data-testid={`tab-${t.label.toLowerCase()}`}>
-                {t.label}
+                {"short" in t ? <><span className="tab-long">{t.label}</span><span className="tab-short" aria-hidden="true">{t.short}</span></> : t.label}
                 {badge > 0 && <span className="badge" title={title}>{badge > 99 ? "99+" : badge}</span>}
               </Link>
             );

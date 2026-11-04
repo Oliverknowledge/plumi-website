@@ -14,12 +14,12 @@ import { viewOf } from "../timer/TimerPanel";
 
 /**
  * The quiet line under the Questions header: the day streak, what the focus session is doing (the clock is the chip's own, in plain text and not a live region, so a screen reader is never
- * read the seconds), what today has added up to, and a way back to the library seat if that is where they came from. It is nothing at all while there is nothing true to say.
+ * read the seconds), what today has added up to, and a way back to the library if that is where they came from (leaving the library lets go of the seat, so it is the library it goes back to, not a seat). It is nothing at all while there is nothing true to say.
  */
 export function QuestionsDay({ figures }: { figures: DayFigures }) {
   const { doc, ready } = useTimer();
   const now = useNow(1000);
-  const fromSeat = useFromSeat();
+  const fromSeat = useFromSeat(doc.session && !doc.session.isOver ? doc.session.id : null);
   if (!ready || !now) return null;
   const view = viewOf(doc.session, now);
   const running = doc.session && view !== "setup" ? settled(doc.session, now) : null;
@@ -35,7 +35,7 @@ export function QuestionsDay({ figures }: { figures: DayFigures }) {
       {focus && <span className="qd-focus" data-testid="focus-line">{focus}</span>}
       {today && <span className="qd-today" data-testid="today-line">{today}</span>}
       {nudge && !today && <span className="qd-today" data-testid="streak-nudge">Start a streak today</span>}
-      {back && <AppLink href="/study/library" className="qs-link qd-back" onClick={clearFromSeat} data-testid="back-to-seat">Back to my seat</AppLink>}
+      {back && <AppLink href="/study/library" className="qs-link qd-back" onClick={clearFromSeat} data-testid="back-to-library">Back to the library</AppLink>}
     </div>
   );
 }
