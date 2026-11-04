@@ -309,7 +309,7 @@ start and nothing to finish:
   there is no choice), has a mark scheme, hide the ones I have marked (a snapshot, so a question does not vanish the moment it is marked), topics (areas with their topics in a long specification). They are open on a desk and folded on a phone
   until the student says otherwise. Saved ids the subject no longer has are dropped (`cleanFeedFilters`).
 - **A question** (`FeedCard.tsx`): left margin (its number, "Q01.4", "June 2025 · Paper 1 Foundation", Not started / Written / Marked 2 of 3, marks, topic stickers that filter, **The whole paper**), the picture on a taped sheet
-  (`Crop` with zoom, Read as text, "How question 3 starts" / "Question 3 so far" for a part that rests on a setup or on earlier parts), the **answer zone** (Write | Type, the pen tray), the **Mark scheme** pull-up with **Mark yourself**
+  (`Crop` with zoom, Read as text, "How question 3 starts" / "Question 3 so far" for a part that rests on a setup or on earlier parts; the setup is already open on a first part and on a part too short to have words of its own, `startOpens`), the **answer zone** (Write | Type, the pen tray), the **Mark scheme** pull-up with **Mark yourself**
   (`Check`, unchanged), and **Examiner's report** as a note on the right. On a narrow screen the margins fold above and below.
 - **The whole paper** opens that paper in the existing sheet at this question (a paper already begun is picked up, `paperState`); Back returns to the feed at the question the student left.
 

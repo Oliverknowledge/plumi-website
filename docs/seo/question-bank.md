@@ -186,6 +186,35 @@ older than what is live. AQA's maths banks use `cut.py`'s boxed labels and weren
 The sciences banks cut by `cut_pearson.py` part by part would change only where a part's line
 holds a fraction or a vector, and weren't re-cut.
 
+## Answer boxes, options and "[n marks]" (AQA), fixed 4 November 2026
+
+A student-facing report: AQA A-Level Spanish June 2025 "01.1 Clara" read as cut off. It was two faults. Its two answer boxes
+stand taller than the label, so `cut.py`'s crop (from 6pt above the label) took their tops off and left them on the end of the
+setup above; and the options the boxes refer to sit in that setup, which was folded. Every live crop was then measured
+(293,889 images: question, setup and scheme; none missing, none blank), which found the same fault and others:
+
+- `cut.label_top`: a part starts at the top of its line: the highest text or drawing that starts above the label and runs past
+  its top. Not a "[2 marks]" (the part before's can sit beside the label), a rule over 70pt tall (the frame) or a box over 300pt
+  wide (a section heading); each of those did real damage on a first attempt.
+- `cut.frame`: a "[35 marks]" ending just past 537pt lost its bracket, and on a specimen, whose page sits further right, "[1 mark"
+  lost more. The frame now reaches the marks, but stops short of the frame's border (538.6pt), or trailing space can't be trimmed.
+- A re-cut also corrected crops older than the current `cut.py`: tick-box options that had moved to the top of the next part
+  (Biology 74023 June 2025 04.2's, now under its own question), and the next question's title on the end of a GCSE languages crop.
+- OCR Biology A Paper 2, November 2020: 12 crops on R2 were from an older cut than their rows (the rows said 395 tall, the picture
+  was 1104), so they drew squashed, with question 4's image on the end of question 3. Its current crops, already in the work
+  folder, went up (`cropVersion` 5, `CROP_VERSION_OF` in `ocr/build_ocr.py`).
+
+`recut_compare.py` decides what goes live: it sets each new crop against the live one and takes only the real changes, holding back
+one that came out narrower (`cut_aqa_bio_pmt.py`'s AS June 2016 sets need their width), newly sliced, or whose marks differ from its row.
+Every re-cut's largest changes were read by eye. Banks re-cut: AQA A-Level French, Spanish and German, GCSE French, Spanish, Bengali
+and German, and A-Level Biology, Chemistry and Physics (their 2017-on papers).
+
+**Not re-cut:** other cutters still start a crop at `y - 6`, and their pages can have the same fault. `aqa_maths/cut_maths.py` (A-Level and
+GCSE Maths: a tall power on a question's line; the note above that AQA's maths weren't affected is wrong), `computer_science/cut_aqa_cs.py`
+("[12 marks]" at the right edge), the legacy Chemistry and Physics units, OCR's sciences and the WJEC banks are the next to read. The
+measure flags 1,154 tops and 1,505 bottoms outside the crops re-cut here, but counts a page's own border as a cut edge (the Edexcel IAL
+Maths and AQA Law samples read were only that), so read a sample before re-cutting any of them. Scheme crops were measured, not read: their table rules set the measure off.
+
 ## Mark scheme crops (every board), fixed 25 October 2026
 
 A student testing OCR found a multiple-choice question whose mark scheme was a

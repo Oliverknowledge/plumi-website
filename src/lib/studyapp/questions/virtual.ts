@@ -63,12 +63,13 @@ const START = 48;                    // the button that opens how the question s
  * the measured height replaces it, so a wrong guess costs a small correction as the card first appears, never a wrong list. (The constants were fitted to
  * the heights measured on 93, 70 and 86 cards of AQA GCSE Physics at 1184, 762 and 336 px: within about 60 px of the measured height for nine cards in ten.)
  */
-export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false): number {
+export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, startOpen = false): number {
   const wide = listWidth >= FEED_WIDE;
   const sheet = Math.max(240, (wide ? listWidth - SIDE : listWidth) - PAD_X);
   const picture = sheet * (part.h > 0 && part.w > 0 ? part.h / part.w : 0.28);
   const zone = sheet * (zoneHeight(part) / REF_W);
-  const h = picture + zone + CHROME + (hasStart ? START : 0) + (part.au ? LISTEN : 0);
+  // (0.38: the median setup picture's height over its width, across every bank.)
+  const h = picture + zone + CHROME + (hasStart ? START : 0) + (startOpen ? sheet * 0.38 : 0) + (part.au ? LISTEN : 0);
   if (wide) return Math.round(Math.max(MIN_WIDE, h));
   return Math.round(h + (listWidth < PHONE_W ? META_PHONE : META_NARROW) + (part.er ? 52 : 0));
 }

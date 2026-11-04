@@ -28,6 +28,7 @@ SCALE = 2.2  # ~160 dpi: sharp on a retina phone, small as WebP
 QLABEL = re.compile(r"^(\d{2})(?:\.(\d{1,2}))?$")
 NOT_QUESTIONS = re.compile(r"no questions printed on this page|do not write on this page", re.I)
 EXTRA_SPACE = re.compile(r"^\s*extra space\s*$", re.I | re.M)
+MARKS_END = re.compile(r"\bmarks?\]$")
 
 
 def norm(text):
@@ -87,7 +88,7 @@ def table_page(page):
 def frame(page, portrait=True):
     """The content area of a page: below the page number, above 'Turn over', inside the box margin."""
     w, h = page.rect.width, page.rect.height
-    top, bottom, right = 46, h - 76, w - 54
+    top, bottom, right, marks = 46, h - 76, w - 54, 0
     for block in page.get_text("dict")["blocks"]:
         for line in block.get("lines", []):
             for s in line["spans"]:
@@ -96,9 +97,13 @@ def frame(page, portrait=True):
                     bottom = min(bottom, s["bbox"][1] - 4)
                 if t.startswith("Do not write") and portrait:
                     right = min(right, s["bbox"][0] - 5)
+                if MARKS_END.search(t):
+                    marks = max(marks, s["bbox"][2] + 0.8)
     if portrait:
-        # Inside the answer frame's border lines, so trailing white space can be trimmed.
-        return pymupdf.Rect(44, top, min(right, 537), bottom - 5)
+        # Inside the answer frame's border lines, so trailing white space can be trimmed; a "[35 marks]" can end just past 537 and lost its bracket (a specimen's page sits further right, and lost more).
+        if marks > 537:
+            marks = min([marks] + [d["rect"].x0 - 0.2 for d in page.get_drawings() if d["rect"].height > 100 and 537 < d["rect"].x0 < marks])
+        return pymupdf.Rect(44, top, max(min(right, 537), marks), bottom - 5)
     return pymupdf.Rect(38, top, right, bottom)
 
 
@@ -118,6 +123,20 @@ def ms_frame(page):
         return pymupdf.Rect(max(20, min(r.x0 for r in cells) - 2), max(top, y0 - 2), min(w - 20, max(r.x1 for r in cells) + 2), min(h - 20, y1 + 2))
     foot = [y0 for x0, y0, x1, y1 in lines if y0 > h - 60]
     return pymupdf.Rect(38, top, w - 38, min(foot) - 2 if foot else h - 76)
+
+
+def label_top(page, y, f):
+    """Where the line a label sits on really begins. An answer box or a fraction beside the label stands taller than it: cropping
+    from the label alone left the top of those boxes on the part (or the setup) above and took them off this one (a student
+    reported AQA Spanish's "01.1 Clara" and its two boxes as a question cut off, 4 November 2026). The top is the highest text
+    or drawing inside the frame that starts above the label and runs down past its top; a tall rule or a wide box is the frame or a section's heading, not this line."""
+    top = y - 6
+    spans = [s["bbox"] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) for s in l["spans"]
+             if s["text"].strip() and not re.search(r"\bmarks?\]", s["text"])]  # (the part before's "[2 marks]" can sit beside this label)
+    for x0, y0, x1, y1 in spans + [tuple(d["rect"]) for d in page.get_drawings()]:
+        if f.y0 - 4 <= y0 < top and y1 > y + 2 and y - y0 < 40 and y1 - y0 < 70 and x1 - x0 < 300 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2:
+            top = min(top, y0 - 3)
+    return max(top, f.y0 - 4)
 
 
 def render(page, rect):
@@ -253,7 +272,7 @@ def regions(doc, max_x, bold_only, portrait):
         for y, q, p, x in labels:
             if not portrait and p is None and col is not None and x > col + 20:
                 continue
-            marks.append((i, y if portrait else max(prev + 8, row_start(page, y, prev)) + 6, q, p))
+            marks.append((i, label_top(page, y, frame(page, portrait)) + 6 if portrait else max(prev + 8, row_start(page, y, prev)) + 6, q, p))
             prev = y
     out = []
     for n, (i, y, q, p) in enumerate(marks):
