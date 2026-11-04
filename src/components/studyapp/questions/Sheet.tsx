@@ -20,7 +20,9 @@ import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
 import { ListenPlayer } from "./ListenPlayer";
 import { PartFiles } from "./PartFiles";
+import { AnnotCrop } from "./AnnotCrop";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
+import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { paperSpecials, specialsFor, transcriptOf, type PaperFiles } from "@/lib/studyapp/questions/specials";
 import { useSubjectMeta } from "./bankData";
 import { OtherCopy } from "./OtherCopy";
@@ -365,8 +367,9 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
       ) : (
         <>
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
-          <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom />
-          <ReadAsText set={set} part={part} />
+          <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom>
+            <ReadAsText set={set} part={part} />
+          </AnnotCrop>
           {files && <PartFiles files={specialsFor(files, part).filter((f) => f.kind !== "tr")} />}
           {part.au && <ListenPlayer part={part} transcript={files ? transcriptOf(files.trs, part.p, part.s) : null} checked />}
           <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (marksOnCopy(e, fingerDraws(prefs.fingerScrolls, coarse))) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}
@@ -374,7 +377,7 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
             <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
             {feedCopy && (
               <OtherCopy
-                partId={part.id} setId={feedId(set.subject)} answer={feed!} label={isMarked(feed) && part.m != null ? `Marked ${Math.min(feed!.got ?? 0, part.m)} of ${part.m} in your feed` : "Written in your feed"}
+                code={symbolsFor(set.subject).code} partId={part.id} setId={feedId(set.subject)} answer={feed!} label={isMarked(feed) && part.m != null ? `Marked ${Math.min(feed!.got ?? 0, part.m)} of ${part.m} in your feed` : "Written in your feed"}
                 onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!, true); }}
               />
             )}

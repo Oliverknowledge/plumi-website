@@ -42,8 +42,8 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
           <i className="qs-nib" style={{ width: size(prefs.width), height: size(prefs.width), background: INK_COLOURS[prefs.colour] }} aria-hidden="true" />
         </button>
         <span className="qs-pen-sep" aria-hidden="true" />
-        <button type="button" className="qs-pb" onClick={inkAct.undo} disabled={!caps.canUndo} aria-label="Undo" title="Undo (Z)" data-testid="undo"><UndoIcon /></button>
-        <button type="button" className="qs-pb" onClick={inkAct.redo} disabled={!caps.canRedo} aria-label="Redo" title="Redo (Shift Z)" data-testid="redo"><RedoIcon /></button>
+        <button type="button" className="qs-pb" onClick={inkAct.undo} disabled={!caps.canUndo} aria-label="Undo in the answer" title="Undo in the answer (Z)" data-testid="undo"><UndoIcon /></button>
+        <button type="button" className="qs-pb" onClick={inkAct.redo} disabled={!caps.canRedo} aria-label="Redo in the answer" title="Redo in the answer (Shift Z)" data-testid="redo"><RedoIcon /></button>
         {/* always in the page, shown on demand */}
         {(
           <div className="qs-pen-fly" role="group" aria-label="Pen style" hidden={!open}>

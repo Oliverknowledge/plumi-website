@@ -76,6 +76,8 @@ export interface QAnswer {
   text?: string;
   /** How much ink there is: strokes and bytes (the ink itself is in IndexedDB). */
   ink?: { n: number; b: number };
+  /** Marks the student drew ON the printed question (their own ink key, `<set>/<part>:q`): how many strokes and bytes. Annotating changes nothing else about the answer. */
+  ann?: { n: number; b: number };
   /** Zone height in logical units, if the student made it bigger. */
   h?: number;
   /** The mark scheme has been opened. */
@@ -528,7 +530,7 @@ export function feedTouch(q: QuestionsData, info: FeedInfo, part: QPart, names: 
 }
 
 /** An answer worth keeping a place for: something written, marked, or its scheme opened. */
-export const feedHolds = (a: QAnswer | undefined): boolean => !!a && (isAnswered(a) || isMarked(a) || !!a.chk);
+export const feedHolds = (a: QAnswer | undefined): boolean => !!a && (isAnswered(a) || isMarked(a) || !!a.chk || hasAnn(a));
 
 /**
  * Whether the feed can take this question now (it is in the set, there is room, or an empty touched question can make way): asked BEFORE the student writes, so a
@@ -584,6 +586,10 @@ export const setHeight = (q: QuestionsData, setId: string, partId: string, h: nu
   edit(q, setId, partId, now, (a) => ({ ...a, h: Math.min(ZONE_MAX_H, Math.max(ZONE_MIN_H, Math.round(h))) }));
 export const setInkMeta = (q: QuestionsData, setId: string, partId: string, n: number, b: number, now: number) =>
   edit(q, setId, partId, now, (a) => ({ ...a, ink: n > 0 ? { n, b } : undefined }));
+/** How many strokes of marks on the question picture (the strokes themselves are in IndexedDB under `<set>/<part>:q`). */
+export const setAnnMeta = (q: QuestionsData, setId: string, partId: string, n: number, b: number, now: number) =>
+  edit(q, setId, partId, now, (a) => ({ ...a, ann: n > 0 ? { n, b } : undefined }));
+export const hasAnn = (a: QAnswer | undefined) => !!a?.ann && a.ann.n > 0;
 export const checkPart = (q: QuestionsData, setId: string, partId: string, now: number) => edit(q, setId, partId, now, (a) => ({ ...a, chk: 1 }));
 
 /** Give the marks, and note the part as done lately. `got` is the student's own; null takes the mark back. */
@@ -598,7 +604,7 @@ export function markPart(q: QuestionsData, setId: string, partId: string, got: n
 
 /** Clear a part's answer: its ink, its typing, and the mark that went with them. The zone keeps its size and mode. */
 export function resetPart(q: QuestionsData, setId: string, partId: string, now: number): QuestionsData {
-  return edit(q, setId, partId, now, (a) => ({ at: a.at, mode: a.mode, h: a.h }));
+  return edit(q, setId, partId, now, (a) => ({ at: a.at, mode: a.mode, h: a.h, ann: a.ann }));
 }
 
 export function touchRecent(q: QuestionsData, ids: readonly string[], now: number): QuestionsData {
@@ -652,8 +658,10 @@ export function againInput(set: QSet): SetInput | null {
 }
 
 /** Bytes of ink the answers say they hold, in total. */
-export const inkTotal = (q: QuestionsData) => Object.values(q.answers).reduce((n, a) => n + (a.ink?.b ?? 0), 0);
-export const inkOfSet = (q: QuestionsData, setId: string) => Object.entries(q.answers).reduce((n, [k, a]) => (k.startsWith(`${setId}/`) ? n + (a.ink?.b ?? 0) : n), 0);
+/** Bytes of handwriting an answer holds: its answer ink and the marks drawn on its question (both are in IndexedDB and count towards the device's room). */
+export const inkBytesOf = (a: QAnswer) => (a.ink?.b ?? 0) + (a.ann?.b ?? 0);
+export const inkTotal = (q: QuestionsData) => Object.values(q.answers).reduce((n, a) => n + inkBytesOf(a), 0);
+export const inkOfSet = (q: QuestionsData, setId: string) => Object.entries(q.answers).reduce((n, [k, a]) => (k.startsWith(`${setId}/`) ? n + inkBytesOf(a) : n), 0);
 
 /* ── reading storage ─────────────────────────────────────────────────── */
 
@@ -748,6 +756,7 @@ export function sanitiseQuestions(raw: unknown): QuestionsData {
       if (chars + t.length <= TEXT_TOTAL_CAP) { out.text = t; chars += t.length; }
     }
     if (a.ink && typeof a.ink === "object" && typeof a.ink.n === "number" && a.ink.n > 0) out.ink = { n: int(a.ink.n, 1, 100_000, 1), b: int(a.ink.b, 0, 4_000_000, 0) };
+    if (a.ann && typeof a.ann === "object" && typeof a.ann.n === "number" && a.ann.n > 0) out.ann = { n: int(a.ann.n, 1, 100_000, 1), b: int(a.ann.b, 0, 4_000_000, 0) };
     if (typeof a.h === "number") out.h = int(a.h, ZONE_MIN_H, ZONE_MAX_H, ZONE_MIN_H);
     if (a.chk) out.chk = 1;
     if (typeof a.got === "number" && markable(part)) out.got = int(a.got, 0, part.m ?? 0, 0);

@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type PointerEvent as RPointerEvent, type Ref } from "react";
+import { toUnits } from "@/lib/studyapp/questions/annotGeom";
 import { drawInk, drawLive } from "@/lib/studyapp/questions/draw";
 import {
   encodeStroke, ERASER_RADIUS, inkBottom, inkBytes, INK_WIDTHS, NO_HISTORY, pushHistory, redo as redoH, REF_W, rectUnion, strokeBounds, strokesAt, strokesToAdd, undo as undoH,
   type History, type Ink, type Pt, type Rect, type Stroke,
 } from "@/lib/studyapp/questions/ink";
-import { loadInk, onInkRemote, peekInk, saveInk, watchOtherTabs } from "@/lib/studyapp/questions/inkDb";
+import { loadInk, onInkRemote, onInkReset, peekInk, saveInk, watchOtherTabs } from "@/lib/studyapp/questions/inkDb";
 import type { Bg, Tool } from "@/lib/studyapp/questions/model";
 import { activateInk, registerInk, reportInk, setPenSeen } from "./inkBus";
 
@@ -29,7 +30,7 @@ import { activateInk, registerInk, reportInk, setPenSeen } from "./inkBus";
  * has now (and the page zoom, so a pinch stays sharp), capped so no zone is more than a few million pixels.
  */
 
-export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void }
+export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void; /** Take away the newest stroke (marks on a question: "Undo mark", which also works on strokes from an earlier visit). */ dropLast(): void; /** Take up a stroke whose pen-down arrived before this canvas was mounted (the first stroke after a quick jump is never lost). */ begin(ev: PointerEvent): void }
 
 interface Props {
   inkKey: string;
@@ -54,6 +55,10 @@ interface Props {
   onFingerTap(): void;
   /** The lowest edge of the ink, in logical units (0 if none), so the zone cannot be dragged shorter than it. */
   onBottom(units: number): void;
+  /** This surface is the layer of marks drawn ON a printed question picture: it fills the picture it sits over (no height of its own, no bg, no placeholder), is not a control for a keyboard, and stops a pen's tap from opening the picture's zoom. */
+  annot?: boolean;
+  /** (annot) the mouse draws too: only when the student has switched "Write on the question" on; otherwise it passes through to the picture as before. */
+  mouseDraws?: boolean;
   ref?: Ref<InkCanvasHandle>;
 }
 
@@ -79,7 +84,7 @@ function coast(velocity: number) {
   stopInertia();
   if (reducedMotion()) return;
   let v = velocity * 16;
-  const step = () => { window.scrollBy(0, v); v *= 0.93; inertia = Math.abs(v) > 0.4 ? requestAnimationFrame(step) : 0; };
+  const step = () => { window.scrollBy({ top: v, behavior: "instant" as ScrollBehavior }); v *= 0.93; inertia = Math.abs(v) > 0.4 ? requestAnimationFrame(step) : 0; };
   inertia = requestAnimationFrame(step);
 }
 
@@ -140,17 +145,17 @@ function hub() {
 
 interface Live { kind: "pen" | "erase"; id: number; pts: Pt[]; flat: boolean; erased: Set<number>; at: { x: number; y: number } | null; type: string }
 
-export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, ref }: Props) {
+export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, annot = false, mouseDraws = true, ref }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [empty, setEmpty] = useState(() => !(peekInk(inkKey)?.length));
   const [failed, setFailed] = useState(false);
-  const props = useRef({ tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, label });
-  useEffect(() => { props.current = { tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, label }; });
+  const props = useRef({ tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, label, annot, mouseDraws });
+  useEffect(() => { props.current = { tool, colour, width, fingerScrolls, penSeen, metaN, getCap, onInk, onFull, onFingerTap, onBottom, label, annot, mouseDraws }; });
 
   const st = useRef({
     ink: (peekInk(inkKey) ?? []) as Ink, hist: NO_HISTORY as History, ctx: null as CanvasRenderingContext2D | null,
-    live: null as Live | null, erasing: new Set<number>(), scale: 1, w: 0, h: 0, density: 1, fit: null as null | (() => void), raf: 0, lastPen: 0,
+    live: null as Live | null, adopt: null as number | null, erasing: new Set<number>(), scale: 1, w: 0, h: 0, density: 1, fit: null as null | (() => void), raf: 0, lastPen: 0,
     /** Where to repaint at the next frame (null: nowhere yet); `full` repaints the lot. */
     dirty: null as Rect | null, full: true, liveRect: null as Rect | null,
     scroll: null as null | { id: number; y: number; t: number; v: number; moved: number; t0: number },
@@ -203,6 +208,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
 
   const report = useCallback(() => {
     const s = st.current;
+    if (props.current.annot) return;   // (marks on a question have their own Undo under the picture; the tray's undo, redo and clear are for the answer)
     reportInk({ key: inkKey, canUndo: s.hist.past.length > 0, canRedo: s.hist.future.length > 0, hasInk: s.ink.length > 0, label: props.current.label });
   }, [inkKey]);
 
@@ -239,6 +245,26 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     redo() { const s = st.current; const r = redoH(s.hist, s.ink); if (r) { s.hist = r.h; jump(r.ink); } },
     clear() { const s = st.current; if (s.ink.length) commit([], "all"); },
     focus() { canvas.current?.focus({ preventScroll: true }); },
+    dropLast() { const s = st.current; if (s.ink.length) commit(s.ink.slice(0, -1), "all"); },
+    begin(ev) {
+      // A pen or mouse put down on the picture before this canvas existed: the stroke is taken up here, from that point on, without relying on pointer capture (a capture asked for
+      // by a stand-in event is dropped at once for a mouse, which would end the stroke as a dot): moves and the lift that do not reach the canvas are read from the window.
+      const c = canvas.current, h = handlers.current;
+      if (!c || !h) return;
+      const s = st.current;
+      const id = ev.pointerId;
+      const shim = (e: PointerEvent, type: string) => ({ pointerType: e.pointerType, pointerId: e.pointerId, button: e.button, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY, width: e.width, height: e.height, pressure: e.pressure, type, currentTarget: c, target: c, nativeEvent: e, preventDefault() {}, stopPropagation() {} }) as unknown as RPointerEvent<HTMLCanvasElement>;
+      s.adopt = id;
+      h.down(shim(ev, "pointerdown"));
+      const move = (e: PointerEvent) => { if (e.pointerId === id && e.target !== c) handlers.current?.move(shim(e, "pointermove")); };
+      const done = (e: PointerEvent) => {
+        if (e.pointerId !== id) return;
+        if (e.target !== c) { const fn = e.type === "pointercancel" ? handlers.current?.cancel : handlers.current?.up; fn?.(shim(e, e.type)); }
+        window.removeEventListener("pointermove", move, true); window.removeEventListener("pointerup", done, true); window.removeEventListener("pointercancel", done, true);
+        s.adopt = null;
+      };
+      window.addEventListener("pointermove", move, true); window.addEventListener("pointerup", done, true); window.addEventListener("pointercancel", done, true);
+    },
   }), [commit, jump]);
 
   // Register with the pen tray, load what is on the device, and take in what another tab writes.
@@ -265,6 +291,12 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       // snapshot is what the queue holds and what the device ends with (an older one would drop them, as strokes this tab has already seen are not added again).
       saveSoon(inkKey, s.ink);
     });
+    // Cleared in another tab: what this canvas shows is from before the clear; it takes what is stored now, and its undo history goes (it would bring the strokes back).
+    const unreset = onInkReset(inkKey, (ink: Ink) => {
+      if (!live) return;
+      s.ink = ink; s.hist = NO_HISTORY; s.erasing.clear();
+      everything(); changed(ink);
+    });
     void loadInk(inkKey).then((ink) => {
       if (!live) return;
       if (s.ink !== ink && s.ink.length === 0) { s.ink = ink; setEmpty(ink.length === 0); everything(); }
@@ -273,7 +305,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       props.current.onBottom(inkBottom(s.ink));
     });
     return () => {
-      live = false; unreg(); unremote();
+      live = false; unreg(); unremote(); unreset();
       if (pending.has(inkKey)) { const ink = pending.get(inkKey)!; pending.delete(inkKey); void saveInk(inkKey, ink); }
       cancelAnimationFrame(s.raf); s.raf = 0;
     };
@@ -335,13 +367,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
 
   /** A point in logical units, kept inside the zone (a stroke that leaves it runs along its edge, so no ink is stored out of sight). */
   const point = useCallback((e: PointerEvent | RPointerEvent, rect: DOMRect, flat: boolean): Pt => {
-    const k = REF_W / rect.width;
     const p = e.pointerType === "pen" ? Math.max(0.04, e.pressure || 0.5) : 0.5;
-    return {
-      x: Math.min(REF_W, Math.max(0, (e.clientX - rect.left) * k)),
-      y: Math.min(rect.height * k, Math.max(0, (e.clientY - rect.top) * k)),
-      p: flat ? 0.5 : p,
-    };
+    return { ...toUnits(e.clientX, e.clientY, rect), p: flat ? 0.5 : p };
   }, []);
 
   const touchDraws = () => !props.current.fingerScrolls;
@@ -397,11 +424,13 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
 
   const onDown = (e: RPointerEvent<HTMLCanvasElement>) => {
     const s = st.current;
+    // A mouse over a picture that is not being written on: the picture's own (a click opens its zoom).
+    if (props.current.annot && e.pointerType === "mouse" && !props.current.mouseDraws) return;
     stopInertia();
     // The screen's density or the page's zoom changed without telling us (a window moved to another display): sharpen before drawing.
     if (!s.live && Math.abs(densityFor(s.w, s.h) - s.density) > 0.05 * s.density) s.fit?.();
     if (e.pointerType === "pen") { s.lastPen = nowMs(); setPenSeen(true); }
-    activateInk({ key: inkKey, canUndo: s.hist.past.length > 0, canRedo: s.hist.future.length > 0, hasInk: s.ink.length > 0, label: props.current.label });
+    if (!props.current.annot) activateInk({ key: inkKey, canUndo: s.hist.past.length > 0, canRedo: s.hist.future.length > 0, hasInk: s.ink.length > 0, label: props.current.label });
     if (e.pointerType === "touch") {
       if (!touchDraws()) {
         // Fingers scroll. Natively while `touch-action` lets the browser; by hand once a pen has made it `pinch-zoom`.
@@ -418,7 +447,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     if (s.live) { if (e.pointerType === "pen" && s.live.type === "touch") finish(true); else return; }   // the pen wins over a finger already down
     e.preventDefault();
     const el = e.currentTarget;
-    capture(el, e.pointerId);
+    if (s.adopt !== e.pointerId) capture(el, e.pointerId);
     const eraserEnd = e.pointerType === "pen" && ((e.buttons & 32) !== 0 || e.button === 5);
     const kind = eraserEnd || props.current.tool === "eraser" ? "erase" : "pen";
     const rect = el.getBoundingClientRect();
@@ -438,7 +467,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       const now = nowMs(), dy = s.scroll.y - e.clientY;
       s.scroll.moved += Math.abs(dy);
       if (props.current.penSeen) {
-        window.scrollBy(0, dy);
+        window.scrollBy({ top: dy, behavior: "instant" as ScrollBehavior });   // (the page may ask for smooth scrolling, which would trail the finger)
         const dt = Math.max(1, now - s.scroll.t);
         s.scroll.v = 0.8 * s.scroll.v + 0.2 * (dy / dt);
       }
@@ -494,15 +523,18 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     if (s.live && e.pointerId === s.live.id) finish(s.live.type === "touch");
   };
 
+  const handlers = useRef<{ down(e: RPointerEvent<HTMLCanvasElement>): void; move(e: RPointerEvent<HTMLCanvasElement>): void; up(e: RPointerEvent<HTMLCanvasElement>): void; cancel(e: RPointerEvent<HTMLCanvasElement>): void } | null>(null);
+  useLayoutEffect(() => { handlers.current = { down: onDown, move: onMove, up: onUp, cancel: onCancel }; });
   // Pinch-zoom is the browser's, always; a pen or a hand-scrolling finger is ours.
   const touchAction = fingerScrolls && !penSeen ? "pan-y pinch-zoom" : "pinch-zoom";
   return (
-    <div ref={wrap} className={`qs-ink bg-${bg}${tool === "eraser" ? " is-eraser" : ""}`} style={{ aspectRatio: `${REF_W} / ${units}`, touchAction }} data-testid="ink">
+    <div ref={wrap} className={annot ? `qs-ink qs-annot${mouseDraws ? " is-mouse" : ""}${tool === "eraser" ? " is-eraser" : ""}` : `qs-ink bg-${bg}${tool === "eraser" ? " is-eraser" : ""}`} style={annot ? { touchAction } : { aspectRatio: `${REF_W} / ${units}`, touchAction }} data-testid={annot ? "annot-ink" : "ink"}>
       <canvas
-        ref={canvas} className="qs-canvas" role="img" tabIndex={0} aria-label={`${label}. Write with a pen, mouse or finger. To use the keyboard instead, choose Type.`}
+        ref={canvas} className="qs-canvas" {...(annot ? { "aria-hidden": true, tabIndex: -1 } : { role: "img", tabIndex: 0, "aria-label": `${label}. Write with a pen, mouse or finger. To use the keyboard instead, choose Type.` })}
         style={{ touchAction }}
+        onClick={annot ? (e) => { const t = (e.nativeEvent as PointerEvent).pointerType; if (t === "pen" || (t === "touch" && !fingerScrolls) || (t === "mouse" && mouseDraws)) e.stopPropagation(); } : undefined}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onCancel}
-        onLostPointerCapture={(e) => { if (st.current.live?.id === e.pointerId) finish(false); }}
+        onLostPointerCapture={(e) => { const l = st.current.live; if (st.current.adopt !== e.pointerId && l?.id === e.pointerId && !(l.type === "mouse" && (e.buttons & 1))) finish(false); /* (a mouse still held down goes on: its moves reach the canvas under it, and the lift ends the stroke) */ }}
         onContextMenu={(e) => e.preventDefault()}
         onFocus={() => { const s = st.current; activateInk({ key: inkKey, canUndo: s.hist.past.length > 0, canRedo: s.hist.future.length > 0, hasInk: s.ink.length > 0, label }); }}
         onKeyDown={(e) => {
@@ -514,8 +546,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
           }
         }}
       />
-      {empty && !failed && <span className="qs-ph" aria-hidden="true">Write your answer here</span>}
-      {failed && <p className="qs-ink-fail" role="status">Handwriting is not available on this screen. Use Type.</p>}
+      {empty && !failed && !annot && <span className="qs-ph" aria-hidden="true">Write your answer here</span>}
+      {failed && !annot && <p className="qs-ink-fail" role="status">Handwriting is not available on this screen. Use Type.</p>}
     </div>
   );
 }

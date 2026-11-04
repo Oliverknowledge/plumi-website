@@ -32,6 +32,8 @@ export interface SymbolKit {
   keys: readonly Sym[];
   /** The superscript and subscript buttons (maths and science). */
   script: boolean;
+  /** The Fraction key (a box for a top and a bottom): wherever there are maths symbols or numerals, never for code, languages or essays. */
+  fraction: boolean;
   /** The language the answer is written in, where it is not English ("fr", "es", "bn"). */
   lang?: string;
   /** The browser underlines misspelt words: only for answers written in English prose (not a language, not code). */
@@ -39,7 +41,7 @@ export interface SymbolKit {
   /** The answer is code: no auto-capital, no auto-correct. */
   code: boolean;
 }
-const PLAIN = { spell: true, code: false } as const;
+const PLAIN = { spell: true, code: false, fraction: false } as const;
 const NONE: SymbolKit = { keys: [], script: false, ...PLAIN };
 const CODE: readonly Sym[] = [
   { ch: "(", name: "open bracket" }, { ch: ")", name: "close bracket" }, { ch: "[", name: "open square bracket" }, { ch: "]", name: "close square bracket" },
@@ -57,12 +59,12 @@ const CODE: readonly Sym[] = [
 export function symbolsFor(slug: string): SymbolKit {
   const s = `-${slug.toLowerCase()}-`;
   const has = (...words: string[]) => words.some((w) => s.includes(`-${w}-`));
-  if (has("french")) return { keys: FRENCH, script: false, lang: "fr", spell: false, code: false };
-  if (has("spanish")) return { keys: SPANISH, script: false, lang: "es", spell: false, code: false };
-  if (has("bengali")) return { keys: BENGALI, script: false, lang: "bn", spell: false, code: false };
-  if (has("computer-science", "computing")) return { keys: CODE, script: false, spell: false, code: true };
-  if (has("maths", "physics", "chemistry", "biology", "science")) return { keys: SYMBOLS, script: true, ...PLAIN };
-  if (has("geography", "economics", "business", "psychology", "engineering-manufacture")) return { keys: NUMERIC, script: false, ...PLAIN };
+  if (has("french")) return { keys: FRENCH, script: false, lang: "fr", spell: false, code: false, fraction: false };
+  if (has("spanish")) return { keys: SPANISH, script: false, lang: "es", spell: false, code: false, fraction: false };
+  if (has("bengali")) return { keys: BENGALI, script: false, lang: "bn", spell: false, code: false, fraction: false };
+  if (has("computer-science", "computing")) return { keys: CODE, script: false, spell: false, code: true, fraction: false };
+  if (has("maths", "physics", "chemistry", "biology", "science")) return { keys: SYMBOLS, script: true, ...PLAIN, fraction: true };
+  if (has("geography", "economics", "business", "psychology", "engineering-manufacture")) return { keys: NUMERIC, script: false, ...PLAIN, fraction: true };
   return NONE;
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnnotView } from "./AnnotView";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, SearchIcon } from "./icons";
 
@@ -58,13 +59,17 @@ export interface CropProps {
   eager?: boolean;
   /** A tap opens the picture large, scrollable and pinchable (a phone shows a question's printed words at 6 to 7 px). */
   zoom?: boolean;
+  /** Drawn over the picture, filling it (the student's marks on a question). */
+  overlay?: React.ReactNode;
+  /** The ink key of marks to show, read-only, on the enlarged picture. */
+  marksKey?: string;
   /** Told when the picture loads or gives up, for a mark scheme that must be seen before marking. */
   onState?(s: "ok" | "fail"): void;
 }
 
 export function Crop(props: CropProps) { return <CropInner key={props.src} {...props} />; }
 
-function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, zoom, onState }: CropProps) {
+function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, zoom, onState, overlay, marksKey }: CropProps) {
   readDims();
   const [big, setBig] = useState(false);
   const [st, setSt] = useState<"loading" | "ok" | "fail">("loading");
@@ -125,6 +130,7 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
           onLoad={(e) => loaded(e.currentTarget)} onError={failed}
         />
       )}
+      {st !== "fail" && overlay}
       {st === "loading" && <span className="qs-cropwait" aria-hidden="true" />}
       {st === "fail" && (
         <div className="qs-cropfail" role="status">
@@ -140,14 +146,14 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
         <button type="button" className="qs-zoom" aria-label={`Zoom in on ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /><span className="qs-zoom-t" aria-hidden="true">Zoom</span></button>
       )}
     </div>
-    {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} onClose={() => setBig(false)} />}
+    {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} marksKey={marksKey} onClose={() => setBig(false)} />}
     </>
   );
 }
 
 /** The picture large: a native modal dialog, scrollable both ways (and pinchable), closed by its button, Escape or a tap outside. */
 /** `fit`: a mark scheme's table opens fitted to the width (its columns are read across), a question opens large and pans. */
-function ZoomDialog({ src, alt, fit, onClose }: { src: string; alt: string; fit?: boolean; onClose(): void }) {
+function ZoomDialog({ src, alt, fit, marksKey, onClose }: { src: string; alt: string; fit?: boolean; marksKey?: string; onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
   const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
@@ -166,8 +172,11 @@ function ZoomDialog({ src, alt, fit, onClose }: { src: string; alt: string; fit?
       <button type="button" className="btn ghost icon qs-zoomd-close" aria-label="Close" onClick={close} autoFocus><CloseIcon /></button>
       {hint && <p className="qs-zoomd-hint" role="status">Drag to look around</p>}
       <div className="qs-zoomd-body" tabIndex={0} role="region" aria-label="Scrolls sideways and down">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="qs-zoomd-img" src={src} alt={alt} />
+        <div className="qs-zoomd-pic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="qs-zoomd-img" src={src} alt={alt} />
+          {marksKey && <AnnotView inkKey={marksKey} />}
+        </div>
       </div>
     </dialog>
   );

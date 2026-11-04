@@ -9,7 +9,7 @@ import { hasInk, type QAnswer } from "@/lib/studyapp/questions/model";
  * place at this question) and "Continue here" (copies it into this box, on the student's tap only). Typing is shown as text, handwriting as a picture of the ink.
  * It is gone as soon as there is anything in this box. The box beneath stays writable: it is only in the way of the eye, never of a pen.
  */
-export function OtherCopy({ partId, setId, answer, label, onSee, onContinue }: { partId: string; setId: string; answer: QAnswer; label: string; onSee(): void; onContinue(): void }) {
+export function OtherCopy({ partId, setId, answer, label, onSee, onContinue, code = false }: { code?: boolean; partId: string; setId: string; answer: QAnswer; label: string; onSee(): void; onContinue(): void }) {
   const [img, setImg] = useState<string | null>(null);
   const ink = hasInk(answer);
   useEffect(() => {
@@ -21,7 +21,7 @@ export function OtherCopy({ partId, setId, answer, label, onSee, onContinue }: {
   return (
     <div className="qf-other" data-testid="other-copy">
       <div className="qf-other-body" role="img" aria-label={`Your earlier answer: ${answer.text?.trim() || (ink ? "handwriting" : "")}`}>
-        {answer.text?.trim() ? <p>{answer.text}</p> : null}
+        {answer.text?.trim() ? <p className={code ? "is-code" : "is-hand"}>{answer.text}</p> : null}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {img && <img src={img} alt="" />}
       </div>

@@ -22,7 +22,7 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
   const dots = partDots(set, q.answers).filter((d) => d.state !== "unchosen");
   const title = useRef<HTMLHeadingElement>(null);
   const [armed, setArmed] = useState(false);
-  const [saved, setSaved] = useState<"" | "working" | "done" | "failed">("");
+  const [saved, setSaved] = useState<"" | "working" | "done" | "partial" | "failed">("");
   useDocumentTitle(`${v.title}, ${set.name} \u00b7 Plumi`);
   useEffect(() => { title.current?.focus({ preventScroll: true }); window.scrollTo(0, 0); }, []);
   // The actions wake a moment after the page opens: a second tap on the button that brought the student here must not land on one of them.
@@ -92,12 +92,13 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
             <button type="button" className="btn ghost" onClick={() => onReview()} data-testid="review-sheet">Review the sheet</button>
             <button
               type="button" className="btn ghost" data-testid="save-work" disabled={saved === "working"}
-              onClick={() => { setSaved("working"); void saveWork(set, q).then((ok) => setSaved(ok ? "done" : "failed")); }}
-            >{saved === "working" ? "Saving..." : saved === "done" ? "Saved \u2713" : "Save my work"}</button>
+              onClick={() => { setSaved("working"); void saveWork(set, q).then((r) => setSaved(r === "failed" ? "failed" : r === "no-marks" ? "partial" : "done")); }}
+            >{saved === "working" ? "Saving..." : saved === "done" || saved === "partial" ? "Saved \u2713" : "Save my work"}</button>
             {saved === "done" && <span className="qs-saved" data-testid="saved-note">Saved to your downloads</span>}
+            {saved === "partial" && <span className="qs-saved" data-testid="saved-note">Saved without your marks on the question</span>}
             {saved === "failed" && <span className="qs-saved qs-saved-no" data-testid="saved-note">Could not save. Try again.</span>}
           </div>
-          <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "failed" ? "Could not save. Try again." : ""}</p>
+          <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "partial" ? "Saved without your marks on the question." : saved === "failed" ? "Could not save. Try again." : ""}</p>
         </section>
       </div>
     </main>

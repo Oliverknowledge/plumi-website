@@ -40,7 +40,7 @@ test("maths, the sciences and computing get the maths symbols and the superscrip
 });
 test("English, History, Religious Studies and the other essay subjects get no strip at all", () => {
   for (const slug of ["aqa-gcse-english-language", "aqa-a-level-english-literature-a", "edexcel-a-level-history", "aqa-gcse-history", "aqa-gcse-religious-studies", "edexcel-gcse-religious-studies", "aqa-a-level-sociology", "aqa-a-level-politics", "aqa-a-level-philosophy", "aqa-a-level-law", "wjec-criminology", "aqa-gcse-islamic-studies"]) {
-    assert.deepEqual(symbolsFor(slug), { keys: [], script: false, spell: true, code: false }, slug);
+    assert.deepEqual(symbolsFor(slug), { keys: [], script: false, spell: true, code: false, fraction: false }, slug);
   }
 });
 test("the subjects that count get a few numerals only", () => {

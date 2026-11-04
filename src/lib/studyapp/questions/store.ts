@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { copyInk, removeInk, removeSetInk } from "./inkDb";
 import {
-  againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
+  againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setAnnMeta, setMode, setPick, setPrefs, setText,
   feedId, hasInk, hasText, type QAnswer, type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
 import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
@@ -172,7 +172,7 @@ export function onSetsDropped(fn: (n: number) => void): () => void {
  * in IndexedDB the moment a stroke ends. So the label is written to the document a little later, one write for a burst of strokes, and
  * at once when the page is hidden or closed, or before any other change.
  */
-const inkQueue = new Map<string, { setId: string; partId: string; n: number; b: number }>();
+const inkQueue = new Map<string, { setId: string; partId: string; n: number; b: number; ann?: true }>();
 let inkTimer: ReturnType<typeof setTimeout> | null = null;
 let inkFirst = 0;
 function flushInkMeta() {
@@ -181,10 +181,10 @@ function flushInkMeta() {
   const items = [...inkQueue.values()];
   inkQueue.clear();
   inkFirst = 0;
-  apply((q) => items.reduce((acc, i) => setInkMeta(joined(acc, i.setId, i.partId), i.setId, i.partId, i.n, i.b, now()), q));
+  apply((q) => items.reduce((acc, i) => (i.ann ? setAnnMeta : setInkMeta)(joined(acc, i.setId, i.partId), i.setId, i.partId, i.n, i.b, now()), q));
 }
-function queueInkMeta(setId: string, partId: string, n: number, bytes: number) {
-  inkQueue.set(keyOf(setId, partId), { setId, partId, n, b: bytes });
+function queueInkMeta(setId: string, partId: string, n: number, bytes: number, ann?: true) {
+  inkQueue.set(keyOf(setId, partId) + (ann ? ":q" : ""), { setId, partId, n, b: bytes, ann });
   const t = Date.now();
   if (!inkTimer) inkFirst = t; else clearTimeout(inkTimer);
   inkTimer = setTimeout(flushInkMeta, Math.max(0, Math.min(350, inkFirst + 1500 - t)));
@@ -256,6 +256,8 @@ export const qa = {
   mode: (setId: string, partId: string, mode: Mode) => changeQuestions((q) => setMode(joined(q, setId, partId), setId, partId, mode, now())),
   height: (setId: string, partId: string, h: number) => changeQuestions((q) => setHeight(joined(q, setId, partId), setId, partId, h, now())),
   ink(setId: string, partId: string, n: number, bytes: number) { queueInkMeta(setId, partId, n, bytes); if (n > 0) askToKeep(); },
+  /** Marks on the printed question: their own count in the document, the strokes under `<set>/<part>:q`. */
+  ann(setId: string, partId: string, n: number, bytes: number) { queueInkMeta(setId, partId, n, bytes, true); if (n > 0) askToKeep(); },
   check: (setId: string, partId: string) => changeQuestions((q) => (q.answers[keyOf(setId, partId)]?.chk ? q : checkPart(joined(q, setId, partId), setId, partId, now()))),
   mark: (setId: string, partId: string, got: number | null) => changeQuestions((q) => markPart(joined(q, setId, partId), setId, partId, got, now())),
   /** Clear a part's answer. (Its ink is cleared by its zone, which also keeps the undo.) */

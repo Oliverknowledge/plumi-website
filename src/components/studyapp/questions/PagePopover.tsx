@@ -64,7 +64,7 @@ export function PagePopover({ prefs }: { prefs: QPrefs }) {
               <button type="button" className={large ? "on" : ""} aria-pressed={large} onClick={() => qa.prefs({ typeSize: "large" })} data-testid="type-large">Large</button>
             </div>
             <label className="qs-switch">
-              <input type="checkbox" checked={!!prefs.hand} onChange={(e) => qa.prefs({ hand: e.target.checked })} />
+              <input type="checkbox" checked={prefs.hand !== false} onChange={(e) => qa.prefs({ hand: e.target.checked })} />
               <span className="track" aria-hidden="true" />
               <span>Typing in a handwriting font</span>
             </label>

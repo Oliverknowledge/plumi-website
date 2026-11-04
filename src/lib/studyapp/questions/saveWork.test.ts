@@ -26,3 +26,10 @@ describe("save my work", () => {
     assert.equal(workFileName({ name: "???" }), "my-work.html");
   });
 });
+
+test("a question the student marked up is in the page with its marks on it, and nothing else about it changes", () => {
+  const d = (() => { const set = { id: "s", name: "Mine", subject: "x", title: "X", names: {}, createdAt: 1, updatedAt: 1, at: 0, topics: {}, parts: [{ id: "p", p: "a", s: "b", l: "01.1", m: 2, t: [], w: 800, h: 300 }] }; return { sets: [set], answers: {}, recent: [] } as never as { sets: never[]; answers: Record<string, never> }; })();
+  const html = workHtml(d.sets[0], d.answers, {}, new Date("2026-11-03T10:00:00Z"), { p: "data:image/png;base64,BBBB" });
+  assert.match(html, /<img class="q" alt="The question 01\.1 with your marks on it" src="data:image\/png;base64,BBBB">/);
+  assert.doesNotMatch(html, /Nothing was written/);
+});

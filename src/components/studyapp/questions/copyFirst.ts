@@ -5,6 +5,8 @@ import type React from "react";
  * A finger counts as a mark only when it draws (it scrolls the page otherwise: a drag that is only a scroll must not copy anything).
  */
 export function marksOnCopy(e: Pick<React.PointerEvent, "pointerType" | "target">, fingerDraws: boolean): boolean {
+  // a key of the symbol strip (Fraction included) is a deliberate tap, never a scroll: it copies first, with a finger too
+  if ((e.target as Element).closest?.(".qs-sym button")) return true;
   if (e.pointerType === "touch" && !fingerDraws) return false;
   return !!(e.target as Element).closest?.(".qs-canvas, textarea");
 }
@@ -19,6 +21,8 @@ export const fingerDraws = (prefsFingerScrolls: boolean | undefined, coarse: boo
  */
 export function copyFirstOnKey(e: React.KeyboardEvent, oldText: string | undefined, copy: () => Promise<void>) {
   const box = e.target as HTMLTextAreaElement;
+  // Ctrl+/ opens the Fraction box over a faded copy: the old answer is copied first, so the fraction goes into it
+  if (box.matches?.("textarea") && e.key === "/" && (e.ctrlKey || e.metaKey)) { void copy(); return; }
   if (!box.matches?.("textarea") || e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
   const had = oldText?.trim() ? oldText : "";
   void copy().then(() => {

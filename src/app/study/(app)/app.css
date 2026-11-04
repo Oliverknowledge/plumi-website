@@ -11,8 +11,8 @@
    (flashcards.css, library.css) on the same tokens.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Caveat has no superscript minus or subscripts, so borrow those few characters from a bold system face */
-@font-face { font-family: "HandSup"; src: local("Arial Bold"), local("Arial-BoldMT"), local("HelveticaNeue-Bold"), local("Segoe UI Bold"), local("Roboto Bold"), local("Arial"); font-weight: 400 900; size-adjust: 170%; unicode-range: U+207A-207B, U+2080-2089, U+2212; }
+/* Caveat has no superscript minus, nor most superscript digits, nor any subscripts (so no stacked fractions), so borrow those characters from a bold system face (the fraction slash U+2044 is Caveat's own) */
+@font-face { font-family: "HandSup"; src: local("Arial Bold"), local("Arial-BoldMT"), local("HelveticaNeue-Bold"), local("Segoe UI Bold"), local("Roboto Bold"), local("Arial"); font-weight: 400 900; size-adjust: 170%; unicode-range: U+2070-209C, U+2212; }
 
 .pa {
   --paper: #f2f7fd;   /* page: notebook paper */

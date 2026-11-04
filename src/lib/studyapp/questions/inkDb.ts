@@ -48,6 +48,25 @@ export function onInkRemote(key: string, cb: (added: Stroke[]) => void) {
   return () => { set.delete(cb); if (!set.size) remote.delete(key); };
 }
 
+/**
+ * A clear in one tab must stick in the others. A record that has been emptied keeps a version (`clr`, counting the clears); a tab that has not seen that version holds strokes from
+ * before the clear, so on its next look (a message from the other tab, or its own next write) it drops them and takes what is stored: it never writes them back.
+ */
+const clrs = new Map<string, number>();
+const resets = new Map<string, Set<(ink: Ink) => void>>();
+export function onInkReset(key: string, cb: (ink: Ink) => void) {
+  let set = resets.get(key);
+  if (!set) resets.set(key, (set = new Set()));
+  set.add(cb);
+  return () => { set.delete(cb); if (!set.size) resets.delete(key); };
+}
+function takeReset(key: string, clr: number, ink: Ink) {
+  clrs.set(key, clr);
+  mem.set(key, ink);
+  seen.set(key, new Set(inkIds(ink)));
+  resets.get(key)?.forEach((cb) => cb(ink));
+}
+
 function remember(key: string, ink: Ink) {
   let s = seen.get(key);
   if (!s) seen.set(key, (s = new Set()));
@@ -117,7 +136,8 @@ async function attempt<T>(mode: IDBTransactionMode, work: (s: IDBObjectStore, gi
   return r;
 }
 
-interface Rec { v?: unknown; ink?: unknown }
+interface Rec { v?: unknown; ink?: unknown; clr?: unknown }
+const clrOf = (rec: Rec | undefined) => (typeof rec?.clr === "number" && rec.clr > 0 ? Math.floor(rec.clr) : 0);
 const newer = (rec: Rec | undefined) => !!rec && typeof rec.v === "number" && rec.v > FORMAT;
 
 /** An answer's ink: from memory if it has been seen this visit, else from the device. Always resolves (empty if there is none). */
@@ -130,6 +150,7 @@ export function loadInk(key: string): Promise<Ink> {
       const rec = r.value;
       if (newer(rec)) locked.add(key);
       const stored = cleanInk(rec?.ink);
+      if (!clrs.has(key)) clrs.set(key, clrOf(rec));
       // A stroke drawn while this was loading wins; what was stored is added when it is written (strokesToAdd).
       const now = mem.get(key);
       const ink = now ?? stored;
@@ -152,6 +173,8 @@ async function refresh(key: string) {
   const r = await attempt<Rec | undefined>("readonly", (s, give) => { const g = s.get(key); g.onsuccess = () => give(g.result as Rec | undefined); });
   if (!r.ok) return;
   const now = mem.get(key) ?? mine;
+  const theirClr = clrOf(r.value);
+  if (theirClr > (clrs.get(key) ?? 0)) { takeReset(key, theirClr, cleanInk(r.value?.ink)); return; }
   const add = strokesToAdd(now, cleanInk(r.value?.ink), seen.get(key));
   if (!add.length) return;
   remember(key, add);
@@ -165,20 +188,28 @@ export function saveInk(key: string, ink: Ink): Promise<number> {
   remember(key, ink);
   const bytes = inkBytes(ink);
   if (locked.has(key)) return Promise.resolve(bytes);
-  type Wrote = { add: Stroke[]; lock: boolean };
+  type Wrote = { add: Stroke[]; lock: boolean; clr?: number; reset?: { clr: number; ink: Ink } };
   return attempt<Wrote>("readwrite", (s, give) => {
     const g = s.get(key);
     g.onsuccess = () => {
       const rec = g.result as Rec | undefined;
       if (newer(rec)) { give({ add: [], lock: true }); return; }          // a newer app wrote this: leave it alone
+      const stored = clrOf(rec), known = clrs.get(key) ?? stored;   // (a tab that has not read this record yet has nothing from before to drop)
+      // The answer was cleared in another tab since this one last looked: what this tab holds is from before, so it is not written back; what is stored is taken instead.
+      if (stored > known) { give({ add: [], lock: false, reset: { clr: stored, ink: cleanInk(rec?.ink) } }); return; }
       const add = strokesToAdd(ink, cleanInk(rec?.ink), seen.get(key));    // strokes another tab wrote since we last looked
       const all = add.length ? [...ink, ...add] : ink;
-      if (all.length === 0) s.delete(key); else s.put({ v: FORMAT, ink: all, at: Date.now() }, key);
-      give({ add, lock: false });
+      const had = cleanInk(rec?.ink).length > 0 || (mem.get(key)?.length ?? 0) > 0;
+      // Emptied (cleared, or every stroke undone or erased): the record stays, with a new version, so a tab that missed it can tell.
+      const clr = all.length === 0 && had ? Math.max(stored, known) + 1 : stored;
+      if (all.length === 0 && !clr) s.delete(key); else s.put({ v: FORMAT, ink: all, at: Date.now(), ...(clr ? { clr } : {}) }, key);
+      give({ add, lock: false, clr });
     };
   }).then((r) => {
     if (!r.ok || !r.value) return bytes;
     if (r.value.lock) { locked.add(key); return bytes; }
+    if (r.value.reset) { takeReset(key, r.value.reset.clr, r.value.reset.ink); try { chan()?.postMessage({ k: key }); } catch { /* closed */ } return bytes; }
+    if (r.value.clr) clrs.set(key, r.value.clr);
     const add = r.value.add;
     if (add.length) {
       remember(key, add);
@@ -207,7 +238,7 @@ export async function copyInk(from: string, to: string): Promise<{ n: number; by
       if (newer(rec)) { give(rec); return; }
       const stored = cleanInk(rec?.ink);
       all = [...stored, ...strokesToAdd(stored, ink)];
-      s.put({ v: FORMAT, ink: all, at: Date.now() }, to);
+      s.put({ v: FORMAT, ink: all, at: Date.now(), ...(clrOf(rec) ? { clr: clrOf(rec) } : {}) }, to);
       give(rec);
     };
   });
@@ -218,7 +249,7 @@ export async function copyInk(from: string, to: string): Promise<{ n: number; by
   return { n: now.length, bytes: inkBytes(now) };
 }
 
-function forget(key: string) { mem.delete(key); loading.delete(key); seen.delete(key); locked.delete(key); }
+function forget(key: string) { clrs.delete(key); mem.delete(key); loading.delete(key); seen.delete(key); locked.delete(key); }
 
 export function removeInk(keys: readonly string[]): Promise<void> {
   for (const k of keys) forget(k);

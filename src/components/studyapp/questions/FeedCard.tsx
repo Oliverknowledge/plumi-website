@@ -15,7 +15,9 @@ import { PartFiles } from "./PartFiles";
 import { specialsFor } from "@/lib/studyapp/questions/specials";
 import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
+import { AnnotCrop } from "./AnnotCrop";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
+import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { useMatch } from "./useMatch";
 
 /** The names a card needs of a subject, made once: the sitting, the paper (by lower-case code) and the topic. */
@@ -131,8 +133,9 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           </div>
         )}
         <div className="qf-pic">
-          <Crop src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom />
-          <ReadAsText set={view} part={part} />
+          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom>
+            <ReadAsText set={view} part={part} />
+          </AnnotCrop>
         </div>
         <PartFiles files={files} />
         {part.au && <ListenPlayer part={part} transcript={lookup.trs[`${part.p}-${part.s}`] ?? null} checked={!!answer?.chk || answer?.got !== undefined} onWhole={() => onWhole(part)} />}
@@ -145,7 +148,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
               <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
               {copy && (
                 <OtherCopy
-                  partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
+                  code={symbolsFor(view.subject).code} partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
                   onSee={() => onSee(copy.setId!, part.id)} onContinue={() => { void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!, true); }}
                 />
               )}

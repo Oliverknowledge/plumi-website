@@ -607,3 +607,35 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 /* the toast on the Questions pages: one line each (a joined message is two lines), and on a phone it sits at the foot, above the pen and the record, not over the question's heading */
 .pa .toast { white-space: pre-line; text-align: center; }
 @media (max-width: 640px) { .pa:has(.qs-page) .toast { top: auto; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+
+/* ── typed answers shown back (the faded copy from a paper or the feed) are in the handwriting face too; code stays in a monospace ── */
+.pa .qf-other-body p.is-hand { font: 600 25px/2rem var(--f-hand); color: #23345e; }
+.pa .qf-other-body p.is-code { font: 500 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #1d2433; }
+
+/* ── marks drawn ON the printed question: a layer over the picture, a row of tools under it ── */
+.pa .qs-cropbox { position: relative; }
+.pa .qs-annot-host { position: absolute; inset: 0; z-index: 1; }
+.pa .qs-ink.qs-annot { position: absolute; inset: 0; min-height: 0; width: auto; background: none; }
+.pa .qs-annot .qs-canvas { cursor: default; }
+.pa .qs-annot.is-mouse .qs-canvas { cursor: crosshair; }
+.pa .qs-cropbox .qs-zoom { z-index: 3; }
+.pa .qs-annot-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; margin: 0 0 4px; }
+.pa .qs-annot-tools.is-bare { position: absolute; width: 1px; height: 1px; min-height: 0; margin: 0; overflow: hidden; clip: rect(0 0 0 0); }
+.pa .qs-annot-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 10px; border: 2px solid rgba(34, 48, 77, .55); border-radius: 12px; background: #fffaf0; color: var(--ink); font: 800 13px var(--f-body); cursor: pointer; }
+.pa .qs-annot-btn:hover { background: #fff; border-color: var(--ink); }
+.pa .qs-annot-btn.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.pa .qs-annot-t { white-space: nowrap; }
+@media (max-width: 640px) { .pa .qs-annot-btn:not(.qs-annot-btn-t) .qs-annot-t, .pa .qs-annot-t-d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+.pa .qs-annot-dot { width: 10px; height: 10px; border-radius: 50%; background: #2b57c9; box-shadow: 0 0 0 2px #fff; }
+.pa .qs-annot-ask { display: inline-flex; align-items: center; gap: 8px; font: 800 13px var(--f-body); }
+.pa .qs-annot-ask .qs-mini { min-height: 44px; min-width: 56px; }
+/* the enlarged picture: the same marks, read-only */
+.pa dialog.qs-zoomd .qs-zoomd-pic { position: relative; display: block; width: max(100%, min(1180px, 200vw)); max-width: none; }
+.pa dialog.qs-zoomd.is-fit .qs-zoomd-pic { width: 100%; }
+.pa dialog.qs-zoomd .qs-zoomd-pic .qs-zoomd-img { width: 100%; }
+.pa .qs-annot-view { position: absolute; inset: 0; pointer-events: none; }
+.pa .qs-annot-view canvas { display: block; width: 100%; height: 100%; }
+.pa .qs-annot-dot-t { font: 800 12.5px var(--f-body); color: #3b4768; }
+@media (max-width: 640px) { .pa .qs-annot-dot-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+.pa .qs-annot-cue { margin: 0; font: 700 21px/1.2 var(--f-hand); color: #3b4768; }
+.pa .qs-annot-host.is-hidden { pointer-events: auto; }

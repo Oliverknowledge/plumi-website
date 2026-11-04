@@ -1,7 +1,7 @@
 "use client";
 
 import type { QPrefs } from "@/lib/studyapp/questions/model";
-import { useInkCaps } from "./inkBus";
+import { useInkCaps, useInkZoneVisible } from "./inkBus";
 import { PenTray } from "./PenTray";
 
 /**
@@ -10,6 +10,8 @@ import { PenTray } from "./PenTray";
  */
 export function FeedPen({ prefs }: { prefs: QPrefs }) {
   const caps = useInkCaps();
-  if (!caps.key?.startsWith("feed-")) return null;
+  const here = useInkZoneVisible();
+  // (the tray is there once the student has touched an answer here, or while a picture they can mark up, or an answer, is on the screen)
+  if (!caps.key?.startsWith("feed-") && !here) return null;
   return <div className="qf-pen"><PenTray prefs={prefs} /></div>;
 }
