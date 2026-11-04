@@ -13,6 +13,8 @@ export interface SubjectMeta {
   noCalc?: 1;
   /** GCSE Maths and its kind: a part's `calc` says its paper allows a calculator, not that the question asks for a calculation. */
   calcPapers?: 1;
+  /** A listening paper's transcript (a PDF, relative to the papers base) by `<paper>-<series>`: `"8658LH-JUN25"`. */
+  trs?: Record<string, string>;
   topics: SubjectTopic[];
   sections: { code: string; title: string }[];
   papers: { id: string; name: string; title?: string }[];

@@ -185,6 +185,8 @@ export function toQPart(r: BankRow): QPart {
   if (r.msf) p.msf = r.msf;
   if (r.k) p.k = r.k;
   if (r.sk) p.sk = r.sk;
+  if (r.au) p.au = r.au;
+  if (r.auw) p.auw = 1;
   return p;
 }
 

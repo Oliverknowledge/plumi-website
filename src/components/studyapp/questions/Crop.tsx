@@ -151,9 +151,20 @@ function ZoomDialog({ src, alt, fit, onClose }: { src: string; alt: string; fit?
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
   const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
+  // On a touch screen, once: one line that the picture can be dragged (a "[3 marks]" at the edge is otherwise cut off with no hint that there is more).
+  const [hint, setHint] = useState(() => {
+    try { return window.matchMedia("(pointer: coarse)").matches && localStorage.getItem("plumi-zoom-hint") === null; } catch { return false; }
+  });
+  useEffect(() => {
+    if (!hint) return;
+    try { localStorage.setItem("plumi-zoom-hint", "1"); } catch { /* shown again next time */ }
+    const t = setTimeout(() => setHint(false), 5000);
+    return () => clearTimeout(t);
+  }, [hint]);
   return (
     <dialog ref={ref} className={`qs-zoomd${fit ? " is-fit" : ""}`} aria-label="The picture, larger" onClose={onClose} onClick={(e) => { if (e.target === ref.current) close(); }} data-testid="crop-zoom-dialog">
       <button type="button" className="btn ghost icon qs-zoomd-close" aria-label="Close" onClick={close} autoFocus><CloseIcon /></button>
+      {hint && <p className="qs-zoomd-hint" role="status">Drag to look around</p>}
       <div className="qs-zoomd-body" tabIndex={0} role="region" aria-label="Scrolls sideways and down">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="qs-zoomd-img" src={src} alt={alt} />

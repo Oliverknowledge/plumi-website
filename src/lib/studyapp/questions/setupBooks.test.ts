@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { draftKey } from "./mine";
-import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, isMoreOpen, keptTier, levelHint, pileOf, TIER_HINT } from "./setupBooks";
+import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, coverColour, isMoreOpen, keptTier, levelHint, pileOf, TIER_HINT } from "./setupBooks";
 import type { CatalogueSubject } from "./subject";
 
 const c = (slug: string, board: string, level: string, subject: string): CatalogueSubject => ({ slug, title: slug, board, level, subject, count: 10 });
@@ -35,7 +35,7 @@ describe("setup books", () => {
   test("the pile is the ticked books in the order ticked, with their boards", () => {
     const p = pileOf(d(["GCSE", "Physics", "ocr-gcse-physics-a"], ["GCSE", "Maths", ""], ["A-Level", "Maths", "aqa-a-level-maths"]), CAT);
     assert.deepEqual(p.map((b) => [b.level, b.base, b.board]), [["GCSE", "Physics", "OCR A"], ["GCSE", "Maths", null], ["A-Level", "Maths", "AQA"]]);
-    assert.ok(p.every((b) => b.tint.startsWith("var(--t-")));
+    assert.ok(p.every((b) => /^#[0-9a-f]{6}$/.test(b.tint)));
   });
   test("the bar asks about the missing board on screen first, and names the level only when it is elsewhere", () => {
     const draft = d(["GCSE", "Maths", ""], ["A-Level", "Maths", ""], ["GCSE", "Physics", "ocr-gcse-physics-a"]);
@@ -49,7 +49,7 @@ describe("setup books", () => {
     assert.equal(barLine(new Map(), "GCSE").kind, "none");
     assert.deepEqual(barLine(d(["GCSE", "Maths", "aqa-gcse-maths"]), "GCSE"), { kind: "ready", text: "Maths" });
     const five = d(["GCSE", "Maths", "x"], ["GCSE", "Physics", "x"], ["GCSE", "Biology", "x"], ["GCSE", "History", "x"], ["GCSE", "French", "x"]);
-    assert.deepEqual(barLine(five, "GCSE"), { kind: "ready", text: "Maths, Physics and 3 more" });
+    assert.deepEqual(barLine(five, "GCSE"), { kind: "ready", text: "Maths and 4 more" });
   });
   test("a level's tab counts its own books, and a book has choices when there is more than one board or tier", () => {
     const draft = d(["GCSE", "Maths", ""], ["GCSE", "Physics", "x"], ["A-Level", "Maths", "x"]);
@@ -78,5 +78,13 @@ describe("setup books", () => {
     assert.notEqual(levelHint("IGCSE"), levelHint("International GCSE"));
     assert.equal(levelHint("GCSE"), null);
     assert.ok(!TIER_HINT.includes("\u2014"));
+  });
+  test("every subject has its own cover colour, a real one, the same every time", () => {
+    const subjects = ["Maths", "Further Maths", "Biology", "Chemistry", "Physics", "Combined Science", "Geography", "History", "English Language", "English Literature", "French", "Spanish", "Bengali", "Psychology", "Computer Science", "Business", "Economics", "Law", "Philosophy", "Politics", "Sociology", "Religious Studies"];
+    const cols = subjects.map(coverColour);
+    assert.equal(new Set(cols).size, subjects.length);
+    assert.ok(cols.every((c) => /^#[0-9a-f]{6}$/.test(c)));
+    assert.equal(coverColour("Islamic Studies"), coverColour("Islamic Studies"));
+    assert.match(coverColour("Islamic Studies"), /^#[0-9a-f]{6}$/);
   });
 });

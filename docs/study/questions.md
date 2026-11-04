@@ -222,7 +222,7 @@ Page also has **Always type** (every part starts in Type; a part switched to Wri
 **My subjects (`mine.ts`, `Setup.tsx`).** A subject a student does is a bank slug (it names the level and the board). `QuestionsData.mine?: string[]` holds them in the order chosen
 (cleaned on load: strings only, no repeats, 40 at most). **Migration:** older data has no `mine`; `effectiveMine` reads the last subject used and the subjects of their sets (newest first, six at most) as theirs,
 so a student who used the tab before sees shelves, not the setup, and no set is touched; their first Done writes `mine` (tested through storage round trips and, in the browser, from both the new key and the old app document).
-An empty list written on purpose stays empty (the setup shows again). The draft is kept in the component until Show my papers, so Cancel loses nothing. Subject variants ("Biology A", "Biology B") are one tile whose
+An empty list written on purpose stays empty (the setup shows again). The draft is kept in the component until Let's go, so Cancel loses nothing. Subject variants ("Biology A", "Biology B") are one tile whose
 chips read "Edexcel A", "Edexcel B". Choosing a subject inside the picker adds it to My subjects.
 
 **Papers (`papers.ts`).** `groupPapers(rows, meta)`: one paper per (series, paper code), rows in printed order (`compareLabels`), newest sitting first (the bank's series order), then the bank's paper order.

@@ -34,7 +34,7 @@ export const FeedHead = forwardRef<HTMLDivElement, {
         <FilterIcon /><span>Filters</span>{active > 0 && <span className="qs-badge" aria-label={`${active} on`}>{active}</span>}
       </button>
       <div className="qf-count">
-        <p className="qf-nres" role="status" aria-live="polite"><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}{tier ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
+        <p className="qf-nres" role="status" aria-live="polite"><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}{tier && !phone ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
         {(progress || here) && (
           <p className="qf-prog">
             {progress && <span className="qf-prog-n" data-testid="feed-progress">{progress}</span>}

@@ -227,7 +227,7 @@ function Loaded({ meta, rows, q, autoMix, onChange, onLeave }: { meta: SubjectMe
           <button type="button" className={`qs-tbtn${nFilters > 0 ? " on" : ""}`} aria-haspopup="dialog" onClick={() => setFopen(true)} data-testid="filters-toggle">
             <FilterIcon /><span>Filters</span>{nFilters > 0 && <span className="qs-badge" aria-label={`${nFilters} on`}>{nFilters}</span>}
           </button>
-          <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(mixed?.n ?? 10)} data-testid="mix"><ShuffleIcon /><span>Mix them up</span></button>
+          <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(mixed?.n ?? 10)} data-testid="mix"><ShuffleIcon /><span>Shuffle</span></button>
         </div>
         {hasRail && !inMix && (
           <div className="qs-rail" role="group" aria-label="Topics and filters">

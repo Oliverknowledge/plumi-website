@@ -18,6 +18,7 @@ import { Check } from "./Check";
 import { Crop } from "./Crop";
 import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
+import { ListenPlayer } from "./ListenPlayer";
 import { OtherCopy } from "./OtherCopy";
 import { PagePopover } from "./PagePopover";
 import { PenTray } from "./PenTray";
@@ -186,7 +187,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   };
 
   return (
-    <main className="qs-page qs-sheet-page" data-testid="sheet-page">
+    <main className="qs-page qs-sheet-page qf-ground" data-testid="sheet-page">
       <div className="qs-bar" role="region" aria-label="Your set">
         <button type="button" className="qs-back" onClick={() => qa.open(null)} data-testid="back-to-picker"><BackIcon /> Questions</button>
         <div className="qs-bar-mid">
@@ -215,11 +216,11 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
             </ol>
           </nav>
         </div>
-        {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} parts marked</span>}
+        {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} marked here</span>}
         <PagePopover prefs={prefs} />
         <button type="button" className="btn qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
       </div>
-      <p className="qs-sr" role="status" data-testid="progress-status">{prog.of > 0 ? `${prog.done} of ${prog.of} parts marked` : ""}</p>
+      <p className="qs-sr" role="status" data-testid="progress-status">{prog.of > 0 ? `${prog.done} of ${prog.of} marked here` : ""}</p>
       <p className="qs-sr" role="status" aria-live="polite" data-testid="sheet-say">{said}</p>
 
       <div className="qs-desk">
@@ -320,7 +321,6 @@ interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undef
 
 const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, prefs, startNear }: PProps) {
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
-  const [gen, setGen] = useState(0);   // writing was copied in: the space is drawn afresh so it shows it
   const feedCopy = !!feed && !(hasInk(answer) || hasText(answer)) && (hasInk(feed) || hasText(feed));
   const seeFeed = () => {
     // back to the feed, at this question
@@ -352,12 +352,13 @@ const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, pref
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
           <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom />
           <ReadAsText set={set} part={part} />
-          <div className="qs-answer">
-            <AnswerZone key={gen} set={set} part={part} answer={shown} prefs={prefs} showMark />
+          {part.au && <ListenPlayer part={part} transcript={null} checked={false} />}
+          <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (e.pointerType !== "touch" && (e.target as Element).closest?.(".qs-canvas, textarea")) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}>
+            <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
             {feedCopy && (
               <OtherCopy
-                partId={part.id} setId={feedId(set.subject)} answer={feed!} label="Also in your feed"
-                onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!).then(() => setGen((g) => g + 1)); }}
+                partId={part.id} setId={feedId(set.subject)} answer={feed!} label={isMarked(feed) && part.m != null ? `Marked ${Math.min(feed!.got ?? 0, part.m)} of ${part.m} in your feed` : "Written in your feed"}
+                onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); }}
               />
             )}
             {answer?.got !== undefined && part.m != null && (

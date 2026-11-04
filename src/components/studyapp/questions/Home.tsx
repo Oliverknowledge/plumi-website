@@ -25,6 +25,14 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
   const [sets, setSets] = useState(false);
   const [picking, setPicking] = useState(false);
   const phone = useMatch("(max-width: 640px)");
+  const subjBtn = useRef<HTMLButtonElement>(null);
+  // The sheet (or Your sets, opened from it) has closed: focus goes back to the subject button, never to the page.
+  const wasOpen = useRef(false);
+  const open = picking || sets;
+  useEffect(() => {
+    if (wasOpen.current && !open && phone) subjBtn.current?.focus();
+    wasOpen.current = open;
+  }, [open, phone]);
   const prefs = useFeedPrefs();
   const entries = useMemo(() => mine.map((s) => catalogue.find((c) => c.slug === s)).filter((c): c is CatalogueSubject => !!c), [mine, catalogue]);
   const slug = subjectFor(prefs, entries.map((e) => e.slug));
@@ -59,7 +67,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
             </div>
             <div className="qf-head-acts">
               {phone && (
-                <button type="button" className="qf-subj" onClick={() => setPicking(true)} aria-haspopup="dialog" data-testid="subject-picker" style={{ "--tint": subjectTint(entry.subject) } as React.CSSProperties}>
+                <button type="button" id="qf-subjbtn" ref={subjBtn} className="qf-subj" onClick={() => setPicking(true)} aria-haspopup="dialog" data-testid="subject-picker" style={{ "--tint": subjectTint(entry.subject) } as React.CSSProperties}>
                   <span className="qf-subj-name">{baseSubject(entry.subject)}</span>
                   <span className="qf-subj-sub">{`${boardLabel(entry)} \u00b7 ${entry.level}${tierLine(q.tiers?.[entry.slug], entry.tiers) ? ` \u00b7 ${tierLine(q.tiers?.[entry.slug], entry.tiers)}` : ""}`}</span>
                   <ChevronIcon />
@@ -103,7 +111,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
             <button type="button" className="qs-link qf-change" onClick={onSetup} data-testid="change-subjects">Change</button>
           </div>}
 
-          <div id="qf-panel" role="tabpanel" aria-labelledby={`qf-tab-${entry.slug}`} className="qf-panel">
+          <div id="qf-panel" role="tabpanel" aria-labelledby={phone ? "qf-subjbtn" : `qf-tab-${entry.slug}`} className="qf-panel">
             {view === "questions" ? <Feed key={entry.slug} entry={entry} q={q} /> : (
               <div className="qh-shelves" id="qh-shelves"><Shelf key={entry.slug} entry={entry} q={q} onPick={onPick} /></div>
             )}
@@ -138,7 +146,7 @@ function SubjectSheet({ entries, current, q, onClose, onChoose, onSetup, onSets,
             return (
               <li key={e.slug}>
                 <button type="button" className={`qf-subjrow${e.slug === current ? " on" : ""}`} aria-current={e.slug === current ? "true" : undefined} onClick={() => onChoose(e.slug)} style={{ "--tint": subjectTint(e.subject) } as React.CSSProperties} data-testid="subject-row" data-slug={e.slug}>
-                  <span className="qf-subjrow-dot" aria-hidden="true" /><span className="qf-subjrow-name">{baseSubject(e.subject)}</span>
+                  <span className="qf-subjrow-dot" aria-hidden="true">{e.slug === current ? "\u2713" : ""}</span><span className="qf-subjrow-name">{baseSubject(e.subject)}</span>
                   <span className="qf-subjrow-sub">{`${boardLabel(e)} \u00b7 ${e.level}${tier ? ` \u00b7 ${tier}` : ""}`}</span>
                 </button>
               </li>

@@ -134,7 +134,7 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
           <>
             <p className="qs-scheme-label">What the examiner wants</p>
             {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
-            <Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} />
+            <CappedScheme><Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} /></CappedScheme>
             <SchemeText set={set} part={part} />
           </>
         ) : part.k ? (
@@ -156,6 +156,32 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
           <ReportBody part={part} state={reportState} />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * A mark scheme's picture is cut from the paper with a margin the data does not trim (a one-row table can arrive with 300 px of blank under it, ending with a rule and the next
+ * question's heading). It is shown to a fixed height with a soft fade and "Show the rest" (nothing is hidden for good); a short scheme shows whole, with no button.
+ */
+function CappedScheme({ children }: { children: React.ReactNode }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  const [all, setAll] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    // (the same height the stylesheet gives a cut picture: min(46vh, 360px))
+    const look = () => setMore(el.scrollHeight > Math.min(window.innerHeight * 0.46, 360) + 24);
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(look) : null;
+    ro?.observe(el.firstElementChild ?? el);
+    look();
+    return () => ro?.disconnect();
+  }, []);
+  return (
+    <div className="qs-capped">
+      <div ref={box} className={`qs-capped-box${all ? " is-all" : more ? " is-cut" : ""}`}>{children}</div>
+      {more && <button type="button" className="qs-link qs-capped-btn" aria-expanded={all} onClick={() => setAll((v) => !v)}>{all ? "Show less" : "Show the rest of the picture"}</button>}
     </div>
   );
 }

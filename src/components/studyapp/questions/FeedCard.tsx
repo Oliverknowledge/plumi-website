@@ -10,11 +10,12 @@ import { AnswerZone } from "./AnswerZone";
 import { Check, ReportBody, useReport } from "./Check";
 import { Crop } from "./Crop";
 import { ChevronIcon } from "./pickerIcons";
+import { ListenPlayer } from "./ListenPlayer";
 import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
 
 /** The names a card needs of a subject, made once: the sitting, the paper (by lower-case code) and the topic. */
-export interface FeedLookup { series: Map<string, string>; papers: Map<string, string>; topics: Map<string, string> }
+export interface FeedLookup { series: Map<string, string>; papers: Map<string, string>; topics: Map<string, string>; trs: Record<string, string> }
 
 export interface FeedCardProps {
   /** Its place in the list, from 1. */
@@ -58,7 +59,6 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const hasStart = !!stemPart || earlier.length > 0;
   const st = bestState(stateOf(answer, part.m), other);
   const copy = otherCopy(answer, other);
-  const [gen, setGen] = useState(0);   // a copy was made: the writing space is drawn afresh so it shows the ink that arrived
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
@@ -73,6 +73,19 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
     delete kept.x;
     registerFeedPart(info, kept, names, topics);
   }, [part, series, paper, lookup, info]);
+
+  /** A pen or mouse put down on the faded copy, or a key typed into it, is "Continue here" first, so the old answer never seems to vanish under the new writing. */
+  const takeCopy = (e: React.PointerEvent) => {
+    if (!copy || e.pointerType === "touch" || !(e.target as Element).closest?.(".qs-canvas, textarea")) return;
+    void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!);
+  };
+  const takeCopyKey = (e: React.KeyboardEvent) => {
+    if (!copy || !(e.target as Element).matches?.("textarea") || e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+    const a = copy.answer!;
+    if (!a.text?.trim()) { void qa.continueHere(copy.setId!, view.id, part.id, a); return; }
+    e.preventDefault();   // the old words first, then this key
+    void qa.continueHere(copy.setId!, view.id, part.id, a).then(() => qa.text(view.id, part.id, `${a.text}${e.key}`));
+  };
 
   const label = `${series} ${paper}, question ${part.l}`;
   return (
@@ -115,17 +128,18 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           <Crop src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom />
           <ReadAsText set={view} part={part} />
         </div>
+        {part.au && <ListenPlayer part={part} transcript={lookup.trs[`${part.p}-${part.s}`] ?? null} checked={!!answer?.chk || answer?.got !== undefined} onWhole={() => onWhole(part)} />}
         {full && answer === undefined ? (
           <p className="qf-full" role="status">Your feed already holds 1,200 questions with answers. Your sets can clear the whole feed to make room, or practise these questions in a set instead.</p>
         ) : (
           <>
             {cue && <p className="qf-cue" aria-hidden="true">write in the box below<svg viewBox="0 0 40 28" width="34" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4c4 12 12 16 24 17" /><path d="M24 14l7 7-9 4" /></svg></p>}
-            <div className="qs-answer qf-answer">
-              <AnswerZone key={gen} set={view} part={part} answer={shown} prefs={prefs} showMark />
+            <div className="qs-answer qf-answer" onPointerDownCapture={copy ? takeCopy : undefined} onKeyDownCapture={copy ? takeCopyKey : undefined}>
+              <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
               {copy && (
                 <OtherCopy
                   partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
-                  onSee={() => onSee(copy.setId!, part.id)} onContinue={() => { void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!).then(() => setGen((g) => g + 1)); }}
+                  onSee={() => onSee(copy.setId!, part.id)} onContinue={() => { void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!); }}
                 />
               )}
               {answer?.got !== undefined && part.m != null && <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>}

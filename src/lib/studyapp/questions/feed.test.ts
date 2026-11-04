@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { hasFeedAnswer, otherCopy, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
+import { deadListening, wholeRecordingNote, hasFeedAnswer, otherCopy, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
 import { compareLabels, EMPTY_QUESTIONS, feedId, feedTouch, markPart, MAX_SET_PARTS, setText, type QPart, type QuestionsData } from "./model";
 import { sortRows, type BankRow } from "./picker";
 
@@ -246,6 +246,23 @@ describe("the write-here cue", () => {
     assert.equal(hasFeedAnswer({ "feed-x/b": { text: "x", at: 1 } }), true);
     assert.equal(hasFeedAnswer({ "feed-x/b": { got: 1, at: 1 } }), true);
   });
+});
+
+describe("listening questions", () => {
+  const L = (id: string, l: string, au?: string): BankRow => ({ ...row(id, { l, p: "8658LH", s: "JUN25", t: ["2.1"] }), ...(au ? { au } : {}) });
+  test("a part without a recording whose question has one is a hole; whole questions without any recording are not", () => {
+    const rows = [L("a1", "01.1", "aqa/audio/a.mp3"), L("a2", "01.2"), L("b1", "02.1"), row("c", { l: "03" })];
+    assert.deepEqual([...deadListening(rows)], ["a2"]);
+    assert.equal(deadListening([row("x", { l: "01" })]).size, 0);
+  });
+  test("holes come after everything that works, in the newest and the oldest order; nothing is lost", () => {
+    const rows = [L("a1", "01.1", "aqa/audio/a.mp3"), L("a2", "01.2"), L("a3", "01.3", "aqa/audio/a.mp3")];
+    for (const sort of ["new", "old"] as const) {
+      const l = feedList(feedOrders(rows, SERIES), f({ sort }), ctx);
+      assert.deepEqual(l.map((r) => r.id), ["a1", "a3", "a2"]);
+    }
+  });
+  test("the whole-paper note names the question", () => assert.match(wholeRecordingNote("04.2"), /question 04 starts/));
 });
 
 describe("practise these", () => {

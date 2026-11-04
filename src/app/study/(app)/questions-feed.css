@@ -442,3 +442,63 @@ html[data-qf-engaged] .rp-tip { display: none; }
 .pa .qs-answer:has([data-mode="type"]) .qf-other { top: 112px; }
 .pa .qs-answer:has([data-mode="type"]) .qs-ph { display: none; }
 @media (max-width: 640px) { .pa:has(.qs-sheet-page) .toast { top: calc(178px + env(safe-area-inset-top, 0px)); } }
+
+/* ═══ Round 6 ═══════════════════════════════════════════════════════════════════════════════════════════════════════ */
+/* ── a listening question's recording ── */
+.pa .qf-listen { display: grid; gap: 4px; margin: 6px 0 10px; padding: 10px 12px; border: 1.5px dashed rgba(34, 48, 77, .35); border-radius: 12px; background: rgba(255, 255, 255, .6); }
+.pa .qf-listen-label { margin: 0; font: 700 22px/1 var(--f-hand); color: var(--ink); }
+.pa .qf-listen audio { width: 100%; max-width: 520px; height: 44px; }
+.pa .qf-listen-note { margin: 0; font: 700 13px/1.4 var(--f-body); color: var(--soft); }
+.pa .qf-listen-note a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── chips: the "some of this year" and "some of this area" state reads (dark ink on a pale chip with a navy ring), every state at least 4.5 to 1 ── */
+.pa .qf-home .qs-chip.part, .pa .qf-home .qs-chip.on.part { background: #dfe7f6; color: var(--ink); box-shadow: inset 0 0 0 2px var(--navy); }
+.pa .qf-home .qs-chip.part:hover, .pa .qf-home .qs-chip.on.part:hover { background: #d3def2; }
+
+/* ── a phone's search box never shrinks to a fragment of a word ── */
+@media (max-width: 640px) { .pa .qf-search { min-width: 118px; } .pa .qf-search input { min-width: 70px; } }
+
+/* ── the list's number is the paper's own question label (the circle with the list position is gone); the label is the sticker ── */
+.pa .qf-num { display: none; }
+.pa .qf-q { display: inline-block; padding: 3px 12px 2px; border: 2px solid var(--ink); border-radius: 12px; background: var(--tint); box-shadow: 0 2px 0 var(--ink); transform: rotate(-2deg); }
+.pa .qf-card.is-marked .qf-q { background: #8fb35a; }
+@media (max-width: 980px) { .pa .qf-q, .pa .qf-meta { grid-column: 1; } .pa .qf-left { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+
+/* ── a mark scheme's picture is shown to a height, fading out, with a way to see the rest ── */
+.pa .qs-capped { display: grid; gap: 4px; min-width: 0; }
+.pa .qs-capped-box.is-cut { max-height: min(46vh, 360px); overflow: hidden; -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent); mask-image: linear-gradient(#000 calc(100% - 56px), transparent); }
+.pa .qs-capped-btn { justify-self: start; }
+
+/* ── the paper sheet on the same warm ground: a taped sheet, no wooden desk ── */
+.pa .qf-ground .qs-desk { background: none; box-shadow: none; animation: none; }
+.pa .qf-ground .qs-bar { background: rgba(251, 242, 222, .96); border-bottom-color: rgba(172, 134, 100, .4); }
+.pa .qf-ground .qs-paper { overflow: visible; }
+.pa .qf-ground .qs-paper::before { content: ""; position: absolute; z-index: 3; top: -12px; left: 50%; width: 112px; height: 24px; margin-left: -56px; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .45) 0 5px, transparent 5px 10px), rgba(242, 201, 107, .72); border-left: 2px dashed rgba(0, 0, 0, .1); border-right: 2px dashed rgba(0, 0, 0, .1); transform: rotate(-2deg); pointer-events: none; }
+
+/* ── the subject sheet: the list scrolls, Add a subject and Change stay in view; the tick marks the current one ── */
+.qf-subjlist { max-height: 46dvh; overflow-y: auto; padding: 2px; }
+.qf-subjrow-dot { display: grid; place-items: center; font: 800 11px/1 var(--f-body, inherit); color: var(--ink, #22304d); }
+.qf-subjrow.on .qf-subjrow-dot { background: #fff; }
+.qf-subjrow.on .qf-subjrow-name::after { content: ""; }
+
+/* ── Build a set on a phone: the count on its own line, the sizes and Shuffle on one row ── */
+@media (max-width: 640px) {
+  .pa .qs-mixhead { flex-wrap: wrap; row-gap: 4px; }
+  .pa .qs-mixhead .qs-nres { flex: 1 0 100%; }
+  .pa .qs-mixacts { flex-wrap: nowrap; justify-content: space-between; width: 100%; }
+}
+
+/* ── the way back to the top; Write | Type are there without hovering; the zoom hint ── */
+.pa .qf-top { position: fixed; z-index: 14; left: 72px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 21px/1 var(--f-hand); color: var(--ink); cursor: pointer; transform: rotate(-1.5deg); }
+.pa .qf-top:hover { background: #fff3cf; }
+@media (max-width: 640px) { .pa .qf-top { left: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+@media (hover: hover) and (pointer: fine) { .pa .qf-answer .qs-zone[data-mode="ink"] .qs-zone-head { opacity: .8; } .pa .qf-answer .qs-zone[data-mode="ink"]:hover .qs-zone-head { opacity: 1; } }
+.pa dialog.qs-zoomd .qs-zoomd-hint { position: absolute; z-index: 4; left: 12px; top: 14px; margin: 0; padding: 6px 12px; border-radius: 14px; background: rgba(34, 48, 77, .88); color: #f5f9ff; font: 800 13px var(--f-body); }
+
+/* ── the record and the pen tray keep clear of what is written ── */
+@media (min-width: 641px) and (max-width: 980px) { .pa .qf-list { padding-right: 64px; } }
+@media (min-width: 981px) { .pa .qf-list { padding-left: 10px; } .pa .qf-pen .qs-pen { left: 2px; } }
+.pa .qf-home .qs-resume { margin: 4px 0 8px; padding: 6px 12px; gap: 10px; }
+.pa .qf-home .qs-resume img { width: 30px; height: 30px; }
+.pa .qf-home .qs-resume-text b { font-size: 16px; }
+.pa .qs-mixacts .qs-link { white-space: nowrap; }

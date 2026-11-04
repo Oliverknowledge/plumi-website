@@ -239,15 +239,20 @@
   .pa .qk-tag { padding: 0 11px 0 24px; min-width: 52px; font-size: 13px; }
   .pa .qk-tier { padding: 0 12px; }
   .pa .qk-bar { left: 12px; right: 72px; width: auto; gap: 8px; padding: 6px 6px 6px 12px; transform: none; animation-name: qk-rise-s; }
-  .pa .qk-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: anywhere; font-size: 18px; line-height: 1; }
+  .pa .qk-line { font-size: 18px; line-height: 1; }
   .pa .qk-go { padding: 0 14px; font-size: 15px; }
   .pa .qk-pile { width: 56px; }
+}
+/* narrow: the bar ends before the record player's column (64px from the edge), and its line wraps by whole words on two lines */
+@media (max-width: 900px) {
+  .pa .qk-bar { left: 16px; right: 76px; width: auto; transform: none; animation-name: qk-rise-s; }
+  .pa .qk-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: normal; word-break: normal; }
 }
 @keyframes qk-rise-s { from { opacity: 0; transform: translateY(16px); } }
 /* a short screen (a phone on its side, 400% zoom): nothing fixed eats the page */
 @media (max-height: 520px) {
   .pa .qk-setup { padding-bottom: 24px; }
-  .pa .qk-bar { position: sticky; left: auto; right: auto; bottom: 8px; width: min(640px, calc(100% - 24px)); margin: 12px auto 0; transform: none; animation-name: qk-rise-s; }
+  .pa .qk-bar { position: static; width: min(640px, calc(100% - 24px - 64px)); margin: 12px auto 0 12px; transform: none; animation-name: qk-rise-s; }
 }
 @media (pointer: coarse) { .pa .qk-go { min-height: 48px; } }
 

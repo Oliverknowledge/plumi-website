@@ -191,15 +191,31 @@ export function saveInk(key: string, ink: Ink): Promise<number> {
 }
 
 /**
- * Copy one answer's handwriting to another key (a question's answer in a paper, to the same question's answer in the feed, or back): only ever on the student's own tap
- * ("Continue here"), never automatically. The strokes are the same strokes (their ids are hashes of their content), so a copy is never mistaken for new writing elsewhere.
- * Returns how many strokes and bytes arrived (0 if there was nothing to copy).
+ * Copy one answer's handwriting to another key (a question's answer in a paper, to the same question's answer in the feed, or back): only ever on the student's own act
+ * ("Continue here", or the first stroke or key on the faded copy), never automatically. The strokes are written to the device under the new key and then brought into a
+ * canvas that is already showing it the way a stroke from another tab is (`refresh`), so a stroke being drawn at that moment is never lost. Returns how many strokes and
+ * bytes arrived (0 if there was nothing to copy).
  */
 export async function copyInk(from: string, to: string): Promise<{ n: number; bytes: number }> {
   const ink = await loadInk(from);
   if (!ink.length) return { n: 0, bytes: 0 };
-  const bytes = await saveInk(to, ink);
-  return { n: ink.length, bytes };
+  let all: Ink = ink;
+  await attempt<Rec | undefined>("readwrite", (s, give) => {
+    const g = s.get(to);
+    g.onsuccess = () => {
+      const rec = g.result as Rec | undefined;
+      if (newer(rec)) { give(rec); return; }
+      const stored = cleanInk(rec?.ink);
+      all = [...stored, ...strokesToAdd(stored, ink)];
+      s.put({ v: FORMAT, ink: all, at: Date.now() }, to);
+      give(rec);
+    };
+  });
+  await refresh(to);
+  try { chan()?.postMessage({ k: to }); } catch { /* the channel closed with the page */ }
+  // what the answer holds now (a canvas showing it may already have more strokes of its own)
+  const now = mem.get(to) ?? all;
+  return { n: now.length, bytes: inkBytes(now) };
 }
 
 function forget(key: string) { mem.delete(key); loading.delete(key); seen.delete(key); locked.delete(key); }

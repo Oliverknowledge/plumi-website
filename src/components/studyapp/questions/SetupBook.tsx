@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import type { SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { bookLabel, TIER_HINT } from "@/lib/studyapp/questions/setupBooks";
-import { sortTiers, subjectTint } from "@/lib/studyapp/questions/subject";
+import { bookLabel, coverColour, TIER_HINT } from "@/lib/studyapp/questions/setupBooks";
+import { sortTiers } from "@/lib/studyapp/questions/subject";
 import { bookArt, SETUP_ART } from "./BookArt";
 
 /**
@@ -54,7 +54,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
 
   const keys = (e: KeyboardEvent) => { if (e.key === "Escape" && showFlap) { e.stopPropagation(); onClose(); cover.current?.focus(); } };
   const { Doodle } = art;
-  const style = { "--tint": subjectTint(choice.base), "--tilt": `${art.tilt}deg` } as CSSProperties;
+  const style = { "--tint": coverColour(choice.base), "--tilt": `${art.tilt}deg` } as CSSProperties;
   return (
     <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}>
       <div className={`qk-book qk-cover--${art.cover} qk-tape--${art.tape} qk-bind--${art.binding}`}>

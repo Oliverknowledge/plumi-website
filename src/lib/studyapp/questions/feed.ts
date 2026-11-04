@@ -1,5 +1,5 @@
 import { inBand, markBands, type MarkBand } from "@/lib/markBands";
-import { feedId, isAnswered, isMarked, keyOf, MAX_SET_PARTS, type QAnswer, type QuestionsData } from "./model";
+import { feedId, isAnswered, isMarked, keyOf, MAX_SET_PARTS, questionKeyOf, type QAnswer, type QuestionsData } from "./model";
 import { matches, seeded, type BankRow } from "./picker";
 import { splitSeries } from "./papers";
 import type { SubjectMeta } from "./subject";
@@ -93,6 +93,22 @@ export function labelKey(l: string): string {
   return t.map((x) => (/^\d+$/.test(x) ? x.padStart(8, "0") : x)).join("\u0001");
 }
 
+/**
+ * Listening questions whose recording is missing from the data: a part with no `au` whose own question (its other parts) has one. They cannot be done, so in the
+ * ordinary orders they come after everything that can (a student must not meet a dead task first). Empty for every subject today; it is the rule for a hole.
+ */
+export function deadListening(rows: readonly BankRow[]): Set<string> {
+  const heard = new Set<string>();
+  for (const r of rows) if (r.au) heard.add(questionKeyOf(r));
+  const dead = new Set<string>();
+  if (!heard.size) return dead;
+  for (const r of rows) if (!r.au && heard.has(questionKeyOf(r))) dead.add(r.id);
+  return dead;
+}
+
+/** The note for a recording that is the whole paper's (AQA publishes no separate tracks for some sittings). */
+export const wholeRecordingNote = (label: string): string => `This is the whole paper's recording: question ${label.match(/^\d+/)?.[0] ?? label} starts after its number is read out.`;
+
 /** The subject's two orders, newest and oldest, the sitting first (the order the bank lists them in), then paper, then the question as it is printed. Each is made when first asked for. */
 export interface FeedOrders { readonly new: readonly BankRow[]; readonly old: readonly BankRow[] }
 export function feedOrders(rows: readonly BankRow[], series: readonly { id: string }[]): FeedOrders {
@@ -103,8 +119,10 @@ export function feedOrders(rows: readonly BankRow[], series: readonly { id: stri
     const sa = flip && a.s < 1e6 ? n - 1 - a.s : a.s, sb = flip && b.s < 1e6 ? n - 1 - b.s : b.s;
     return sa - sb || (a.r.p < b.r.p ? -1 : a.r.p > b.r.p ? 1 : 0) || (a.k < b.k ? -1 : a.k > b.k ? 1 : 0);
   }).map((x) => x.r);
+  const dead = deadListening(rows);
+  const last = (list: BankRow[]) => (dead.size ? [...list.filter((r) => !dead.has(r.id)), ...list.filter((r) => dead.has(r.id))] : list);
   let fresh: BankRow[] | undefined, old: BankRow[] | undefined;
-  return { get new() { return (fresh ??= by(false)); }, get old() { return (old ??= by(true)); } };
+  return { get new() { return (fresh ??= last(by(false))); }, get old() { return (old ??= last(by(true))); } };
 }
 
 /** A string as a number, so a seed typed or remembered as text makes the same mix every time. */

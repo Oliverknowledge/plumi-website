@@ -1,4 +1,4 @@
-import { baseSubject, boardLabel, subjectTint, type CatalogueSubject } from "./subject";
+import { baseSubject, boardLabel, type CatalogueSubject } from "./subject";
 
 /**
  * The pure parts of the setup's exercise books: what a screen reader is told about a book, what sits in the pile on the bar,
@@ -35,7 +35,7 @@ export function pileOf(draft: ReadonlyMap<string, string>, catalogue: readonly C
   for (const [key, slug] of draft) {
     const [level, base] = [key.slice(0, key.indexOf("|")), key.slice(key.indexOf("|") + 1)];
     const c = slug ? catalogue.find((x) => x.slug === slug) : undefined;
-    out.push({ key, level, base, board: c ? boardLabel(c) : null, tint: subjectTint(base) });
+    out.push({ key, level, base, board: c ? boardLabel(c) : null, tint: coverColour(base) });
   }
   return out;
 }
@@ -55,7 +55,7 @@ export function barLine(draft: ReadonlyMap<string, string>, level: string): { ki
   const m = firstMissing(draft, level);
   if (m) return { kind: "missing", text: `Pick a board for ${m.level === level ? "" : `${m.level} `}${m.base}` };
   const names = [...draft.keys()].map((k) => baseSubject(k.slice(k.indexOf("|") + 1)));
-  return { kind: "ready", text: names.length <= 3 ? names.join(", ") : `${names.slice(0, 2).join(", ")} and ${names.length - 2} more` };
+  return { kind: "ready", text: names.length <= 3 ? names.join(", ") : `${names[0]} and ${names.length - 1} more` };
 }
 
 /** How many books are ticked at one level (the little stamp on that level's tab). */
@@ -77,3 +77,22 @@ export const levelHint = (level: string): string | null => LEVEL_HINTS[level] ??
 
 /** The quiet line under a book left at any tier. */
 export const TIER_HINT = "Pick a tier to start on the right questions";
+
+/**
+ * A book's own cover colour: a real colour (not a CSS variable, so it draws in the pile on the feed too, where the tab's tint variables do not
+ * exist), a different one for each subject the bank has, and for any other subject one picked from its name, the same every time.
+ */
+const COVER: Record<string, string> = {
+  maths: "#c9ddf5", "further-maths": "#d8cdf2", biology: "#bfe8e1", chemistry: "#cde8b0", physics: "#f5cfc6", "combined-science": "#b5e6cf",
+  geography: "#dbe5b4", history: "#ecd6b4", "english-language": "#f8e29c", "english-literature": "#efc4d4", french: "#c4cdf3", spanish: "#f9c99a",
+  bengali: "#dccaa8", psychology: "#f4d3ea", "computer-science": "#aedcf0", business: "#d3cfe3", economics: "#f0d98f", law: "#cfc7bd",
+  philosophy: "#e3c8f0", politics: "#e9b9b0", sociology: "#f6dcc0", "religious-studies": "#c2dccb",
+};
+const SPARE = ["#d9e6ff", "#ffe0e6", "#e6f0c8", "#e0d5c5", "#d2ecf7", "#f3e0f9", "#fbe7c6", "#cfe9dd"];
+export function coverColour(base: string): string {
+  const slug = artSlug(base);
+  if (COVER[slug]) return COVER[slug];
+  let h = 11;
+  for (const ch of slug) h = (h * 37 + ch.charCodeAt(0)) >>> 0;
+  return SPARE[h % SPARE.length];
+}

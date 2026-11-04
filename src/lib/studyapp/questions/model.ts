@@ -24,6 +24,9 @@ export interface QPart {
   msf?: string;
   k?: string;
   sk?: string;
+  /** A listening question's recording (relative to the papers base), and whether it is the whole paper's (the question starts after its number is read out). */
+  au?: string;
+  auw?: 1;
   /** The opening words, for the picture's alt text. */
   x?: string;
 }
@@ -670,6 +673,8 @@ function cleanPart(raw: unknown): QPart | null {
   if (typeof r.msf === "string") part.msf = r.msf.slice(0, 200);
   if (typeof r.k === "string") part.k = r.k.slice(0, 20);
   if (typeof r.sk === "string") part.sk = r.sk.slice(0, 80);
+  if (typeof r.au === "string" && /^[\w./-]{3,160}$/.test(r.au) && !r.au.includes("..")) part.au = r.au;
+  if (r.auw) part.auw = 1;
   if (typeof r.x === "string") part.x = r.x.slice(0, 140);
   return part;
 }

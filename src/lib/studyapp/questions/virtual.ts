@@ -55,6 +55,7 @@ const MIN_WIDE = 330;                // the meta column is taller than a one-lin
 const META_NARROW = 206;             // the meta folded above the picture on a narrow screen (an iPad upright)
 const META_PHONE = 330;              // ... and on a phone, where its lines wrap (a list narrower than PHONE_W)
 const PHONE_W = 520;
+const LISTEN = 108;                  // the recording's player, its label and note
 const START = 48;                    // the button that opens how the question starts (or the question so far)
 
 /**
@@ -62,12 +63,12 @@ const START = 48;                    // the button that opens how the question s
  * the measured height replaces it, so a wrong guess costs a small correction as the card first appears, never a wrong list. (The constants were fitted to
  * the heights measured on 93, 70 and 86 cards of AQA GCSE Physics at 1184, 762 and 336 px: within about 60 px of the measured height for nine cards in ten.)
  */
-export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er">, listWidth: number, hasStart = false): number {
+export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false): number {
   const wide = listWidth >= FEED_WIDE;
   const sheet = Math.max(240, (wide ? listWidth - SIDE : listWidth) - PAD_X);
   const picture = sheet * (part.h > 0 && part.w > 0 ? part.h / part.w : 0.28);
   const zone = sheet * (zoneHeight(part) / REF_W);
-  const h = picture + zone + CHROME + (hasStart ? START : 0);
+  const h = picture + zone + CHROME + (hasStart ? START : 0) + (part.au ? LISTEN : 0);
   if (wide) return Math.round(Math.max(MIN_WIDE, h));
   return Math.round(h + (listWidth < PHONE_W ? META_PHONE : META_NARROW) + (part.er ? 52 : 0));
 }

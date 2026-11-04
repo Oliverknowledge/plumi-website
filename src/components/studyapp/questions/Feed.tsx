@@ -104,6 +104,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     series: new Map(meta.series.map((s) => [s.id, s.label])),
     papers: new Map(meta.papers.map((p) => [p.id.toLowerCase(), p.name])),
     topics: new Map(meta.topics.map((t) => [t.code, t.short ?? t.title])),
+    trs: meta.trs ?? {},
   }), [meta]);
   const info = useMemo<FeedInfo>(() => ({ subject: slug, title: meta.title, cv: meta.cv, rq: meta.rq }), [slug, meta]);
   /** The set the answer parts read (its identity fields only; the stored feed set holds the questions touched). */
@@ -204,6 +205,14 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     on();
     return () => { window.removeEventListener("scroll", on); window.removeEventListener("pointerdown", press); delete el.dataset.qfEngaged; };
   }, []);
+  // After about three screens a small way back to the top
+  const [deep, setDeep] = useState(false);
+  useEffect(() => {
+    const on = () => setDeep(window.scrollY > window.innerHeight * 3);
+    window.addEventListener("scroll", on, { passive: true });
+    on();
+    return () => window.removeEventListener("scroll", on);
+  }, []);
   const first = list.length > MAX_SET_PARTS;
   const acts = (
     <FeedActs mixed={filters.sort === "mix"} onMix={mixUp} onPractise={practise} count={list.length} practiseLabel={first ? `Practise the first ${MAX_SET_PARTS}` : "Practise these"}
@@ -240,6 +249,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       ) : (
         <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
       )}
+      {deep && <button type="button" className="qf-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} data-testid="feed-top">Back to the top</button>}
       <FeedPen prefs={q.prefs} />
     </div>
   );
