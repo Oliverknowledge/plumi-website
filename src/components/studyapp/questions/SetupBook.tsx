@@ -12,7 +12,7 @@ import { bookArt, SETUP_ART } from "./BookArt";
  * The cover is fixed in size, so nothing around it moves when it is ticked. What it looks like is all in BookArt.tsx and the EXERCISE BOOK ART
  * block of questions-setup.css.
  */
-export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, tierOnly, hint, onToggle, onBoard, onTier, onOpen, onClose }: {
+export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, tierOnly, hint, wanted = false, onToggle, onBoard, onTier, onOpen, onClose }: {
   choice: SubjectChoice;
   /** The draft key (level and subject): how the page finds this book again. */
   dataKey: string;
@@ -28,6 +28,8 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   tierOnly: boolean;
   /** Say once, under the book, that it is at any tier. */
   hint: boolean;
+  /** The student came for this subject (the seat card's "Do Plumi questions"): its name plate is marked, until it is ticked. */
+  wanted?: boolean;
   onToggle(): void; onBoard(slug: string): void; onTier(sel: string[]): void; onOpen(): void; onClose(): void;
 }) {
   const art = bookArt(choice.base);
@@ -58,7 +60,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   const { Doodle } = art;
   const style = { "--tint": coverColour(choice.base), "--tilt": `${art.tilt}deg` } as CSSProperties;
   return (
-    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
+    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}${wanted && !on ? " wanted" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
       onBlur={(e) => { if (showFlap && !e.currentTarget.contains(e.relatedTarget as Node | null)) onClose(); }}>
       <div className={`qk-book qk-cover--${art.cover} qk-tape--${art.tape} qk-bind--${art.binding}`}>
         <span className="qk-spine" aria-hidden="true" />

@@ -283,6 +283,17 @@ describe("the service", () => {
     assert.deepEqual(first.filters, [["or", "(user_id.eq.me,friend_id.eq.me)"]]);
   });
 
+  it("reads the student's own summary row (the iPad's streak), and says so plainly when there is none or it cannot be read", async () => {
+    const f = fake({ rows: { social_summary: [{ user_id: "me", day: "2026-11-01", today_seconds: 60, week_seconds: 600, week_xp: 3, level: 1, streak: 4, streak_day: "2026-11-01" }] } });
+    const r = await f.social.mySummary();
+    assert.ok(r.ok && r.value && r.value.streak === 4 && r.value.streakDay === "2026-11-01");
+    const first = f.calls[0];
+    assert.ok(first.kind === "select" && first.table === "social_summary");
+    assert.deepEqual(first.filters, [["eq", "user_id", "me"], ["limit", 1]]);
+    assert.deepEqual(await fake({ rows: { social_summary: [] } }).social.mySummary(), { ok: true, value: null });
+    assert.deepEqual(await fake({ user: null }).social.mySummary(), { ok: false, failure: { kind: "signedOut" } });
+  });
+
   it("loads groups with member counts and the hall's columns", async () => {
     const f = fake({ rows: {
       study_group: [

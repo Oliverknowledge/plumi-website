@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import type { LibraryHandle } from "@/components/landing/cafeScene";
 import { toast } from "@/components/studyapp/toast";
@@ -11,6 +12,8 @@ import {
 } from "@/lib/social/lobby";
 import type { MessageReportReason, UserReportReason } from "@/lib/social/types";
 import { useNow } from "@/lib/studyapp/clock";
+import { clearFromSeat, markFromSeat, setFocusIntent } from "@/lib/studyapp/focusIntent";
+import { useAppHref } from "@/lib/studyapp/host";
 import { face, settled } from "@/lib/studyapp/timer";
 import { timer, useTimer } from "@/lib/studyapp/timerStore";
 import { describe, viewOf, type View } from "@/components/studyapp/timer/TimerPanel";
@@ -44,6 +47,10 @@ const Hand = ({ kind }: { kind: string }) => (
     {kind === "wave" ? <path d="M17.500 3.200a4 4 0 0 1 1.300 2.600M1.800 3.200" /> : <path d="M3 2.500l.8 1.500M7 1.500l.2 1.600M1 6l1.400.4" />}
   </svg>
 );
+/** A pencil, drawn like the others (the seat card's second way to spend the focus: questions). */
+const PencilIcon = () => (
+  <svg className="lb-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.900" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3.500 16.500l.9-3.700L13 4.200a1.700 1.700 0 0 1 2.400 0l.4.4a1.700 1.700 0 0 1 0 2.400L7.200 15.600l-3.700.9zM11.500 5.800l2.700 2.700" /></svg>
+);
 const StandIcon = () => (
   <svg className="lb-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M10 16.500V4M5 9l5-5 5 5" /></svg>
 );
@@ -66,6 +73,21 @@ export function SeatCard({ session, snap, handleRef, dock = false }: { session: 
   const running = view !== "setup" && doc.session ? settled(doc.session, now) : null;
   // What you are on: the timer's, which is what you last chose (anywhere in the app), else the old per-browser choice.
   const subject = running ? running.subject : doc.subject !== undefined ? doc.subject : savedSubject();
+  const router = useRouter();
+  const to = useAppHref();
+  // A seated student who has stood or sat again is no longer "away from a seat for questions".
+  useEffect(() => { if (snap.seated) clearFromSeat(); }, [snap.seated]);
+  /**
+   * "Do Plumi questions": the focus session carries on (set up, it is started here with the chosen subject), and the Questions page opens on that subject's book.
+   * It is a page change inside the app, so the timer is never interrupted and the library lets go of the seat as it does for any other page.
+   */
+  const doQuestions = () => {
+    const on = running ? running.subject : startSubject(subject);
+    if (view === "setup") timer.start({ subject: on });
+    setFocusIntent(on);
+    markFromSeat();
+    router.push(to("/study/questions"));
+  };
   const sit = () => { if (!handleRef.current?.sit()) toast("No free seat close by. Tap one in the room"); };
   const title = !snap.seated ? "You’re standing" : view === "work" ? "Focusing" : view === "paused" ? "Paused" : view === "break" ? "On a break" : view === "over" ? "Back to it?" : "You’re sitting";
   const clock = running && view !== "over" && now ? <b className="lb-clock" aria-live="off" data-testid="seat-clock">{face(running, now)}</b> : null;
@@ -102,6 +124,9 @@ export function SeatCard({ session, snap, handleRef, dock = false }: { session: 
             {view === "break" && <button type="button" className="btn gold" onClick={() => timer.endBreak()}>End break</button>}
             {view === "over" && <button type="button" className="btn gold" onClick={() => timer.endBreak()} data-testid="seat-continue">Continue studying</button>}
             {view !== "setup" && <button type="button" className="btn" onClick={() => timer.stop()} data-testid="seat-stop">Stop</button>}
+            <button type="button" className="btn lb-q" aria-label="Do Plumi questions" onClick={doQuestions} data-testid="seat-questions">
+              <PencilIcon /><span className="lb-ql lb-ql-long" aria-hidden="true">Do Plumi questions</span><span className="lb-ql lb-ql-short" aria-hidden="true">Questions</span>
+            </button>
             <button type="button" className="btn ghost lb-stand" aria-label="Stand up" title="Stand up" data-testid="seat-stand" onClick={() => handleRef.current?.stand()}><StandIcon /><span className="lb-lab">Stand up</span></button>
           </div>
           <div className={`lb-chips${subjOpen ? " is-open" : ""}`} id={chipsId} role="group" aria-label="What are you on?">

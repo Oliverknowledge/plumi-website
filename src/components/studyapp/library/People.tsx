@@ -5,6 +5,7 @@ import { toast } from "@/components/studyapp/toast";
 import { focusTag, subjectName } from "@/lib/social/lobby";
 import type { SocialAvatar } from "@/lib/social/types";
 import { useNow } from "@/lib/studyapp/clock";
+import { Flame } from "@/components/studyapp/StreakChip";
 import { friendStatus, friendsCount, inHeldOrder, streakWords, type FriendEntry, type RequestEntry } from "@/lib/studyapp/library/friends";
 import type { LibrarySession, Snapshot } from "@/lib/studyapp/library/session";
 import { Head } from "./Head";
@@ -24,9 +25,6 @@ import { PersonCard } from "./parts";
 interface Held { friends: string[]; people: string[]; requests: string[] }
 const SETTLE_MS = 350;
 
-const Flame = () => (
-  <svg viewBox="0 0 9 11" aria-hidden="true" focusable="false"><path d="M4.5 0C5 2 3 3 3 5.200 3 6 3.300 6.500 3.800 6.800 3.600 5.600 4.900 5 5.300 3.600 6.800 4.600 8 6 8 7.600A3.500 3.500 0 0 1 4.500 11 3.500 3.500 0 0 1 1 7.600C1 6.400 1.500 5.500 2.100 4.800 2.200 5.500 2.500 5.900 2.800 6 2.400 4 4 2 4.500 0Z" fill="currentColor" /></svg>
-);
 const Streak = ({ n }: { n: number }) => (
   <span className="lb-streak" role="img" aria-label={`${streakWords(n)} streak`}><Flame />{n}</span>
 );

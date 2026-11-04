@@ -155,6 +155,11 @@
 .pa .greet p { font-size: 18px; }
 .pa .examchip { display: none; }
 }
+/* the narrowest phones: the card is as tall as what is in it, so "Studied today" and the streak are never cut off at the foot of the scene */
+@media (max-width: 380px) {
+.pa .scene { height: auto; min-height: calc(76px * var(--s)); padding: 14px; }
+.pa .greet { position: relative; left: auto; top: auto; max-width: none; }
+}
 .pa .desk-grid { display: grid; gap: 22px; align-items: start; grid-template-columns: minmax(0, 1fr) 340px; }
 .pa .side { display: flex; flex-direction: column; gap: 18px; }
 @media (max-width: 899px) {
@@ -303,3 +308,11 @@
    it painted the page behind the question feed near-black. */
 html[data-theme="dark"]:has(.pa) { color-scheme: light; }
 html[data-theme="dark"]:has(.pa) body { background-color: transparent; color: #222f4d; }
+
+/* The day streak: a small gold tag, the library's (.lb-streak) in the app's own pages. Tilted a little, like a sticker; the words are written, the number is drawn. */
+.pa .sk-chip { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 11px 0 9px; border: 1.5px solid #e6c775; border-radius: 15px; background: #fff0c2; color: var(--ink); transform: rotate(-1.2deg); white-space: nowrap; }
+.pa .sk-chip svg { width: 10px; height: 12px; color: #b04a14; }
+.pa .sk-chip b { font: 700 17px/1 var(--f-px); font-variant-numeric: tabular-nums; }
+.pa .sk-w { font: 700 18px/1 var(--f-hand); color: var(--ink); }
+.pa .acts .sk-chip { height: 38px; border-radius: 19px; padding: 0 14px 0 11px; }
+@media (max-width: 400px) { .pa .sk-chip .sk-w { display: none; } }

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { choicesAt, draftKey, draftOf, draftSlugs, levelsOf, tickSubject, type SubjectChoice } from "@/lib/studyapp/questions/mine";
+import { levelFor } from "@/lib/studyapp/focusSubject";
 import { barLine, countAt, firstMissing, isMoreOpen, keptTier, levelHint, pileOf } from "@/lib/studyapp/questions/setupBooks";
 import { baseSubject, sortTiers, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { DESK_ART, SETUP_ART } from "./BookArt";
@@ -17,8 +18,10 @@ import "../../../app/study/(app)/questions-fixa.css";
  * Kept on the device (`qa.mine`). The first thing a new student sees; reached again with Change and Add a subject, with their choice
  * already ticked, and nothing is kept until they say Show my papers. (The looks are BookArt.tsx and questions-setup.css.)
  */
-export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
+export function Setup({ catalogue, mine, tiers, first, want, onDone, onCancel }: {
   catalogue: CatalogueSubject[]; mine: string[]; tiers: Record<string, string[]>; first: boolean;
+  /** A subject the student came for (the seat card's "Do Plumi questions" on a subject they have no book of): its book is brought into view, never ticked for them. */
+  want?: string;
   /** `tiers` is the tier chosen for each ticked subject that has tiers, by slug (an empty list means both). */
   onDone(slugs: string[], tiers: Record<string, string[]>): void; onCancel(): void;
 }) {
@@ -37,7 +40,8 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
   const { main, other } = useMemo(() => levelsOf(catalogue), [catalogue]);
   const [level, setLevel] = useState(() => {
     const c = mine.length ? catalogue.find((x) => x.slug === mine[0]) : undefined;
-    return c?.level ?? main[0] ?? other[0] ?? "GCSE";
+    const start = c?.level ?? main[0] ?? other[0] ?? "GCSE";
+    return want ? levelFor(want, catalogue, start) : start;
   });
   /** The book whose choices are out (its draft key): one at a time, so the rest are quiet. */
   const [active, setActive] = useState<string | null>(null);
@@ -128,6 +132,13 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
   useEffect(() => {
     if (goTo.current && reveal(goTo.current)) goTo.current = null;
   }, [level]);
+  // The book they came for is brought to them once, as the page opens (after the heading has been read out).
+  useEffect(() => {
+    if (!want) return;
+    const t = window.setTimeout(() => reveal(draftKey(level, want)), 60);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, for the level the page opened on
+  }, []);
 
   // A tap anywhere but on the open book folds its choices away.
   useEffect(() => {
@@ -163,6 +174,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
             <div className="qk-head-text">
               {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />Back</button>}
               <h1 id="qh-setup-h" ref={h1} tabIndex={-1}>What are you studying?</h1>
+              {want && ![...draft.keys()].some((k) => k.endsWith(`|${want}`)) && <p className="qk-want" data-testid="setup-want">No {want} book yet. Tick it to begin.</p>}
             </div>
             <div className="qk-mascot" aria-hidden="true">
               <p className="qk-bubble">{SETUP_ART.bubble}</p>
@@ -185,7 +197,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
               return (
                 <SetupBook
                   key={c.base} choice={c} dataKey={k} slug={slug} tierOptions={tiersOfSlug(slug)} tierChosen={tierDraft.get(k)} open={active === k} tierOnly={tierOnly}
-                  onToggle={() => toggle(c)} onBoard={(s) => choose(c, s)} onTier={(sel) => pickTier(c, sel)} onOpen={() => openFlap(k)} onClose={fold} hint={hint === k}
+                  onToggle={() => toggle(c)} onBoard={(s) => choose(c, s)} onTier={(sel) => pickTier(c, sel)} onOpen={() => openFlap(k)} onClose={fold} hint={hint === k} wanted={want === c.base}
                 />
               );
             })}

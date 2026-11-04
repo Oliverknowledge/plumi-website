@@ -8,7 +8,9 @@ import { subjectFor, viewFor, type FeedViewKind } from "@/lib/studyapp/questions
 import { updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { qa } from "@/lib/studyapp/questions/store";
 import { baseSubject, boardLabel, tierLine, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { useDayFigures } from "@/lib/studyapp/dayStreak";
 import { Feed } from "./Feed";
+import { QuestionsDay } from "./QuestionsDay";
 import { Radios } from "./FeedBar";
 import { useMatch } from "./useMatch";
 import { ChevronIcon } from "./pickerIcons";
@@ -35,6 +37,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
     wasOpen.current = open;
   }, [open, phone]);
   const prefs = useFeedPrefs();
+  const figures = useDayFigures();
   const entries = useMemo(() => mine.map((s) => catalogue.find((c) => c.slug === s)).filter((c): c is CatalogueSubject => !!c), [mine, catalogue]);
   const slug = subjectFor(prefs, entries.map((e) => e.slug));
   const entry = entries.find((e) => e.slug === slug) ?? entries[0];
@@ -79,6 +82,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
               {!phone && q.sets.length > 0 && <button type="button" className="btn ghost" onClick={() => setSets(true)} data-testid="your-sets">Your sets{mine1.length > 0 && <span className="k">{mine1.length}</span>}</button>}
             </div>
           </header>
+          <QuestionsDay figures={figures} />
 
           {resume && (() => {
             const p = progress(resume, q.answers);

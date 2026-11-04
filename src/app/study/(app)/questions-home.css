@@ -221,3 +221,10 @@
   .pa .qh-paper:hover .qh-sticker { transform: rotate(9deg); }
   .pa .qh-pill:hover, .pa .qh-pill:active { transform: none; }
 }
+
+/* The day under the header: streak tag, what the focus session is doing, what today has added up to, and the way back to the library seat. Written, not boxed. */
+.pa .qd-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 0 0 6px; min-height: 32px; }
+.pa .qd-focus { font: 700 23px/1.1 var(--f-hand); color: var(--ink); }
+.pa .qd-today { font: 700 21px/1.1 var(--f-hand); color: var(--soft); }
+.pa .qd-back { margin-left: auto; }
+@media (max-width: 640px) { .pa .qd-row { gap: 2px 12px; } .pa .qd-back { margin-left: 0; } }

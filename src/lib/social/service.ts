@@ -213,6 +213,12 @@ export function createSocial(api: Api) {
       return p ? ok(p) : fail({ kind: "unavailable" });
     }),
     optOut: () => write("optOut"),
+    /** The student's own `social_summary` row (the iPad publishes their streak into it), or null while the iPad has published nothing. A server that will not show it is a failure, never a zero. */
+    mySummary: () => run<SocialSummary | null>(async (me) => {
+      const r = await readLadder(READS.summary, [["eq", "user_id", me], ["limit", 1]]);
+      if (r.failure) return fail(r.failure);
+      return ok(r.rows[0] ? decode.summary(r.rows[0]) : null);
+    }),
 
     /* Friends */
     loadFriends: () => run<FriendsSnapshot>(async (me) => {

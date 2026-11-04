@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { AppLink } from "@/components/studyapp/AppLink";
+import { StreakChip } from "@/components/studyapp/StreakChip";
+import { useDayFigures } from "@/lib/studyapp/dayStreak";
 import { useNow } from "@/lib/studyapp/clock";
 import { continueTarget, examDays } from "@/lib/studyapp/model";
 import { quoteFor } from "@/lib/studyapp/quotes";
@@ -64,6 +66,12 @@ function StudiedToday() {
   );
 }
 
+/** The day streak beside "Studied today": a tag when there is one, nothing while there is not (or while it is not known yet). */
+function DeskStreak() {
+  const { streak } = useDayFigures();
+  return <StreakChip n={streak} />;
+}
+
 export function Desk() {
   const { data } = useApp();
   const now = useNow();
@@ -82,6 +90,7 @@ export function Desk() {
             <AppLink className="cont" href={next.href} data-testid="continue">{next.label}<i><svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#3f322e" /></svg></i></AppLink>
             <ExamChip />
             <StudiedToday />
+            <DeskStreak />
           </div>
         </div>
       </section>

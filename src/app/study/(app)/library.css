@@ -472,3 +472,12 @@
 .pa .lb-hd.is-wait, .pa .lb-bar { animation: none; }
 .pa .lb-pscroll { scroll-behavior: auto; }
 }
+
+/* Do Plumi questions: the seat card's second way to spend the focus. A paper-coloured, dashed button (the exam chip's look), so Start focus and Pause stay the main thing. */
+.pa .lb-seat .lb-q { min-height: 44px; padding: 0 14px; border-style: dashed; box-shadow: none; background: #fbf7ee; font-size: 15px; }
+.pa .lb-seat .lb-q:hover { background: #fff3cf; }
+.pa .lb-seat .lb-q:active { transform: translateY(1px); }
+.pa .lb-seat .lb-q .lb-ico { width: 18px; height: 18px; }
+.pa .lb-seat .lb-ql-short { display: none; }
+.pa .lb-seat.is-dock .lb-main > .lb-q { flex: 0 0 auto; padding: 0 12px; }
+@media (max-width: 480px) { .pa .lb-seat .lb-ql-long { display: none; } .pa .lb-seat .lb-ql-short { display: inline; } }

@@ -325,3 +325,7 @@
 .pa .qk-guess { position: relative; display: block; min-height: 44px; margin: 0; padding: 0 6px; border: 0; background: transparent; font: 700 18px/1 var(--f-hand); color: #5a3a2a; text-decoration: underline; text-underline-offset: 3px; text-decoration-style: dotted; cursor: pointer; }
 .pa .qk-guess:hover { color: var(--ink); }
 @media (forced-colors: active) { .pa .qk-guess { color: LinkText; } }
+
+/* The one written line when the seat card sent them for a subject they have no book of yet. */
+.pa .qk-want { margin: 6px 0 0; font: 700 24px/1.1 var(--f-hand); color: var(--ink); transform: rotate(-1deg); transform-origin: left center; }
+.pa .qk-slot.wanted .qk-plate { outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
