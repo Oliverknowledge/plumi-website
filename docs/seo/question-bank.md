@@ -2097,7 +2097,9 @@ nutrition) that AQA publishes: November 2020, November 2021 and June 2022 to Jun
   from it, no shared script changed: the scheme's split "Qu | Part" labels, the scheme frame inside
   the page-wide header and footer rules, a part ended above the "Section B" heading, multiple-choice
   options and a table's "An example has been completed for you." kept with their own part, and a
-  table's bottom rule just under the frame kept), `tag_food.py` and `build_food.py`. Papers are on
+  table's bottom rule just under the frame kept, but not the page's own border, which would keep
+  the white space above it, and not "Question 2 continues on the next page"; 105 crops re-cut for
+  those on 4 November 2026, `cropVersion` 1), `tag_food.py` and `build_food.py`. Papers are on
   R2 under `aqa/AQA-8585W*`, crops under `bank/8585w*`.
 - **Gaps:** AQA no longer publishes the first sitting, June 2018, nor June 2019's question paper
   (its file store redirects; only June 2019's mark scheme is still listed, so that series is left
@@ -2410,6 +2412,69 @@ python3 scripts/question-bank/ocr_law/tag_ocr_law.py merge
 python3 scripts/question-bank/ocr_law/build_ocr_law.py
 ln -sfn ../img scripts/question-bank/.work/ocr-law/r2/img
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-law/r2 --pdf-prefix=ocr/
+```
+
+## OCR A-Level Business
+
+Added 3 November 2026: `/question-bank/ocr-a-level-business`, every question from OCR's A-Level
+(H431) and AS (H031) Business papers that OCR publishes: A-Level November 2021 and June 2022 to
+June 2025, AS June 2022 to June 2025. That is 385 parts from 23 papers, every one with its marks,
+a topic and a mark scheme crop. Marks add up to the printed total on all 23 (80 at A-Level, 60 at AS).
+
+- **Papers:** H431/01 "Operating in a local business environment" and H031/01 "The local business
+  environment" are fifteen multiple-choice questions, then Section B on the Resource Booklet.
+  H431/02 "The UK business environment" and H031/02 "The wider business environment" are Section A
+  short answers, then Section B on the booklet. H431/03 "The global business environment" is all
+  on the booklet. Parts: H431/01 107, /02 74, /03 59; H031/01 91, /02 54.
+- **Multiple choice:** 135 questions (nine papers × 15) with their letter (`k`), read from the
+  scheme's Answer column and checked against each row. OCR prints the options "(a)" to "(d)" and
+  keys them "A" to "D"; the site's buttons say A to D. The scheme's rationale for each is also cut
+  (`ms`), though the site shows only the letter for a `k` part today.
+- **Topics:** the specification's 105 Content headings under 8 areas. It prints no numbers, so
+  the codes are the bank's own ("5.5", ref ""). AS uses the same headings. 97 have questions; the
+  8 empty ones have no topic page's worth (the four "strategy" and "external influences" catch-alls
+  among them). 10 parts were corrected against the full specification text (`tag/overrides.json`):
+  price, income and cross elasticity sit under "Price", normal distribution and standard deviation
+  under "Identifying customer needs", outsourcing under "Location and logistics".
+- **Case studies:** 181 parts are set on the Resource Booklet, printed apart. They carry `src`, and
+  the booklet is `ins` in `wholes`, so each links to the PDF. A question with no parts also has
+  the whole case study as its stem, shown on request (`h43101-jun24-stem.webp`). The site opens
+  a question-with-parts' stem by itself, with no way to shut it, so those stems stay the question's
+  own opening words and the case study is behind the link.
+- **Reports:** 155 parts on 133 questions. The A-Level's report sets start June 2022; the AS has
+  one for June 2024 only. Sentences pointing at a candidate's script ("see Exemplar 1") are removed,
+  as the scripts aren't shown. June 2025's H431/01 report heads several multiple-choice questions
+  over a chart with no words: those have no report.
+
+**Cutting (`ocr_business/cut_ocr_business.py`):** `ocr_gcse_economics/cut_ocr_gcse_economics.py` for the
+question papers, patched for this run: options aren't parts on questions 1 to 15 of the /01 papers, and
+prompts printed between answer lines ("Advantage", "Disadvantage") stay. The schemes have their own
+reader, as the label sits in its own column in five or six ways ("18", "18 a", "18 (a)", "13(a)", "19*
+(b)", "8 (b)" with its "(i)" in the next cell). A label is taken only where the question paper has that
+part and only in the first column, so "2 marks for a clear definition" in a narrow Answer column isn't
+question 2. Traps found on the eye check: a row carried to a page opening with "SECTION A" again lost its
+last lines; a case study's end can share a page with OCR's copyright notice; H431/03 November 2021 sets
+lines across its rules.
+
+**Gaps:**
+- OCR's public page lists nothing before November 2021. Earlier sittings are on Teach Cambridge, its
+  login site, and aren't fetched. No mirror (PMT or other).
+- No reports: A-Level November 2021; AS June 2022, June 2023 and June 2025.
+- OCR's own booklets have items removed for third-party copyright, shown as OCR's notice: H031/01 June 2025
+  (Extracts A to D and Fig. 1), H031/02 June 2022 to June 2025, H431/02 June 2025 (Extracts B to D and a
+  table), H431/03 June 2024 (Extract E) and June 2025 (Extract D). OCR's modified papers (zips) are left out.
+- There's no past paper library page for Business yet, so the credit links to `/past-papers`.
+
+```bash
+python3 scripts/question-bank/ocr_business/fetch_ocr_business.py
+python3 scripts/question-bank/ocr_business/spec_ocr_business.py
+python3 scripts/question-bank/ocr_business/cut_ocr_business.py
+python3 scripts/question-bank/ocr_business/tag_ocr_business.py split   # tag the batches, then:
+python3 scripts/question-bank/ocr_business/tag_ocr_business.py merge
+python3 scripts/question-bank/ocr_business/build_ocr_business.py
+ln -sfn ../img scripts/question-bank/.work/ocr-business/r2/img
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-business/r2 --pdf-prefix=ocr/
+npm run bank:data -- ocr-a-level-business --verify
 ```
 
 ## AQA A-Level Politics and Law
@@ -5016,4 +5081,89 @@ python3 scripts/question-bank/aqa_gcse_pe/check_gcse_pe.py
 python3 scripts/question-bank/aqa_gcse_pe/tag_gcse_pe.py split   # tag the batches, then:
 python3 scripts/question-bank/aqa_gcse_pe/tag_gcse_pe.py merge && python3 scripts/question-bank/aqa_gcse_pe/build_gcse_pe.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-pe --checksum
+```
+
+## AQA GCSE Design and Technology
+
+Added 3 November 2026: `/question-bank/aqa-gcse-design-and-technology`, every question from AQA's
+GCSE Design and Technology (8552) written paper (8552/W) that AQA publishes: November 2020, November
+2021 and June 2022 to June 2025. That is 220 questions and parts from 6 papers, every paper adding
+up to its 100 marks, every one tagged.
+
+- **Questions.** Section A (core technical principles, 20 marks) opens with questions 01–10, ten
+  whole 1-mark multiple-choice questions (60 in all), each carrying its letter (`k`) instead of a
+  scheme crop. The rest of Section A, Section B (specialist technical principles, 30 marks) and
+  Section C (designing and making principles, 50 marks) are short answers, calculations and drawings,
+  some in parts ("2 0 . 1"). A figure, table or scenario printed above a question's parts is their
+  stem (64 parts). Eight parts work from something printed only on an earlier part (the box in
+  November 2021's 22.2, the two methods in June 2025's 24.3): each gets it repeated at the top of
+  its crop (`SHARED` in `cut_dt.py`).
+- **Answer spaces.** A big empty box or gap for sketching is cut down to about 60pt, so it doesn't
+  bloat a crop; an isometric grid, a part-drawn figure and a plan-view box under 170pt tall stay
+  whole. Ruled answer lines stay: `lib/questionSetPdf.ts` looks for them in a printed set. A crop
+  ends above the page's own border: `cut_food.py`'s frame takes that border for a table's bottom
+  rule, which would keep all the white space above it (81 crops here).
+- **Mark schemes:** each part's row of AQA's "Qu | Part | Marking Guidance" table, cut from its label
+  to the next and across pages (160 crops). Each multiple-choice key is read from Section A's "B Brass
+  1 mark" rows and checked against the question paper's option B before it is kept. November 2020's
+  20.1–20.3 share one row, so each shows it.
+- **Examiner's reports:** November 2020 and June 2022 to June 2025 (135 questions; none for November
+  2021). AQA's one comment on "Questions A1 to A10" goes on each of the ten; a part's comments sit
+  under a "Question 15.1" heading, so the report panel shows a part's own first.
+- **Topics:** the specification's three sections as tiles and their 27 numbered topics under them
+  (`3.1.1` New and emerging technologies … `3.3.11` Specialist techniques and processes). Materials
+  and their working properties is split in two (`3.1.6.1`, `3.1.6.2`). Sections B and C each have a
+  "Selection of materials" and a "Specialist techniques and processes": short names keep them apart
+  and give them different addresses.
+- **Pipeline:** `scripts/question-bank/aqa_gcse_dt/`: `fetch_dt.py` (fetch_aqa.py over 8552, reading
+  the paper's two filings, "8552W" to June 2023 and "85521" from June 2024), `spec_dt.py`, `cut_dt.py`
+  (`aqa_gcse_food/cut_food.py` with patches made from it, no shared script changed), `check_dt.py`
+  (a part naming a figure or table it doesn't print), `tag_dt.py` and `build_dt.py`. Papers are on
+  R2 at `aqa/AQA-8552W-*`, crops at `bank/8552w-*`.
+- **Not in the bank.** June 2019, the first sitting, isn't on AQA's site and redirects on its file
+  store, so the bank starts at November 2020. Only AQA's own site is used. The specimen papers, the
+  modified papers and the NEA are left out. No D&T past-paper library page exists, so the bank has no
+  library link. AQA's November 2020 and 2021 papers and schemes are printed "June 2020" and "June
+  2021" inside; they are the papers sat in those Novembers, and AQA's page lists them so.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_dt/fetch_dt.py
+python3 scripts/question-bank/aqa_gcse_dt/spec_dt.py
+python3 scripts/question-bank/aqa_gcse_dt/cut_dt.py
+python3 scripts/question-bank/aqa_gcse_dt/check_dt.py
+python3 scripts/question-bank/aqa_gcse_dt/tag_dt.py split   # tag the batch, then:
+python3 scripts/question-bank/aqa_gcse_dt/tag_dt.py merge && python3 scripts/question-bank/aqa_gcse_dt/build_dt.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-dt --checksum
+npm run bank:data -- aqa-gcse-design-and-technology --verify
+```
+## Edexcel GCSE French (1FR0, 1FR1)
+
+Added 4 November 2026: `/question-bank/edexcel-gcse-french`, the first Pearson languages bank, beside AQA's GCSE French on the GCSE shelf. Every file is Pearson's own, from
+qualifications.pearson.com. Whole papers are on R2 under `edexcel/1fr0-*` and `edexcel/1fr1-*`, crops under `bank/1fr*`, recordings under `edexcel/audio/`. There is no French past-paper library page to link to.
+
+- **1,611 parts in 54 papers:** 1,456 from 1FR0 (48 papers) and 155 from 1FR1's samples (6). Every part has marks, a topic and a scheme crop; 69 multiple choices also carry their letter. All 728 Listening parts play their own question's recording. 310 questions have the examiner's comments. 299 Foundation parts pair with their Higher twin for "Show once". 20 of the 21 topics have questions; `1.3.2` Reading has none.
+- **Finding the files.** Pearson's search doesn't file 1FR0's exam materials under a specification code ("gcse16-french" lists ten training files, so `fetch_pearson.listed` finds none): a free-text search does, and each file's name says what it is.
+- **Series:** June 2018, June 2019, November 2020, November 2021, June 2022 to June 2025 (June 2020 and 2021 weren't sat), at both tiers, plus 1FR1's Sample Assessment Materials as "2026 specimen", with the Specification filter as the AQA banks' 2026 specimens have. Paper 2 (Speaking) is left out, and so are the modified papers and extra-time recordings.
+- **The new specification.** 1FR1 was first sat in June 2026. Pearson keeps those papers, and two secure mock sets, for teachers (they redirect to its login), so only its sample papers are here. 1FR1's Listening is Paper 2, as Pearson numbers it; its sample papers are tagged to 1FR0's topics.
+- **Recordings: every Listening part plays its own question.** June 2022 on, Pearson's tracked zips number tracks by question (track 0 is the introduction). June 2018, June 2019, November 2020, November 2021 and the samples are one long recording, split by `split_audio_french.py`: each reads out the printed title in English before its pause, so short bursts of speech are transcribed (`whisper-cli`, base.en) and matched in order to the paper's titles. Run on the eight tracked sittings' whole recordings, every question from 2 on landed within 5 seconds of the tracks' own starts, the difference being drift between the files. Question 1 is its weak spot (13 to 75 seconds late, as it can take "Question 1", or a line of the introduction, for the title), so each untracked recording's question 1 was checked. Sixteen starts it couldn't place are pinned by hand (`PINS`), each checked by transcribing the seconds around it. `audio_splits.json` records the starts and what was heard, so a re-cut needs no whisper.
+- **Transcripts.** Pearson publishes no separate transcripts: each is bound in at the back of its Listening mark scheme. `fetch_gcse_french.py` splits them out as `edexcel/1fr0-1f-tr-jun24.pdf`, linked from each Listening question ("tr"), and from the samples' collated PDFs.
+- **Cutter:** `cut_gcse_french.py`, on `cut_pearson.py`'s page reading and scheme tables, imported unchanged. Its docstring lists what languages papers do differently: titles over question numbers, "Part (a)" headings, bare "(i)" parts, passages in the stem, a choice of writing tasks.
+- **Checks in the cutter**, each run over every paper: every printed line is in a crop, and only one; no crop edge cuts a line, on the paper or the scheme; every Writing scheme line is in a section, and no section has the other tier's headings; every scheme row belongs to a part; a scheme's levels grid is whole; a paper's parts add up to its printed total. Crops were then read by eye on contact sheets, over several rounds, every question-paper sheet and a spread of scheme sheets. The eye found what the checks couldn't at first: "Part (b)" read as part of (a) (now caught by the scheme row check), a word box's "end" read as the end of the paper, translation grids whose "7" read as Question 7.
+- **Reports** are kept per question from each report's headings ("QUESTION 1", "Question 1 (a)", "Question 2a", "Q3 was…"); `1fr0-4h-er-jun24` has an unreadable text layer and is read by OCR. A question a report doesn't mention has none: June 2018's Listening reports discuss only some.
+- **Tiers:** Pearson prints Foundation's last questions as Higher's first, and `tiers.py` pairs them.
+- **A scheme with two tiers in it.** Pearson's June 2025 Foundation Writing scheme has the Higher scheme bound in after it, under the same "Question 1", "Question 2" headings. `writing_schemes` keeps to the paper's tier and stops at the other's front matter (`BOUND_IN`), and each section's marks are checked against the paper's total. June 2025's Higher scheme has a blank page inside Question 1's section, which is stepped over.
+- **Trim.** The sample papers' frame leaves a stray pixel at a crop's foot, at its very edge, and a thin rule can sit under blank space on a scheme: `trim` reads a question's ink inside its edges and drops the stranded rule. Writing sections end at the page's last line of content, not a fixed margin, which clipped a line in June 2019.
+- **Gaps:** Pearson published no report ("insufficient entries") for November 2021, or for November 2020's Foundation papers. A few scheme cells are clipped in Pearson's own PDFs, so their crops show the same (3H November 2020 2(a), 3(e) and 10; 3F June 2022 6(d)). June 2026 (1FR1) and the secure mocks are teachers only. Topic `1.3.2` Reading has no questions.
+
+```bash
+python3 scripts/question-bank/edexcel_gcse_french/fetch_gcse_french.py
+python3 scripts/question-bank/edexcel_gcse_french/cut_gcse_french.py          # first run for the titles, without recordings for the untracked sittings
+python3 scripts/question-bank/edexcel_gcse_french/split_audio_french.py       # only for a new untracked sitting: keep audio_splits.json otherwise
+python3 scripts/question-bank/edexcel_gcse_french/cut_gcse_french.py
+python3 scripts/question-bank/edexcel_gcse_french/tag_gcse_french.py split    # add the new questions to tags_french.json, then:
+python3 scripts/question-bank/edexcel_gcse_french/tag_gcse_french.py merge
+python3 scripts/question-bank/edexcel_gcse_french/build_gcse_french.py
+python3 scripts/question-bank/tiers.py edexcel-gcse-french
+python3 scripts/question-bank/edexcel_gcse_french/upload_gcse_french.py
+python3 scripts/question-bank/upload_data.py edexcel-gcse-french --verify
 ```

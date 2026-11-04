@@ -1297,6 +1297,24 @@ brief is the one at the top, with these differences:
   comparative advantage, terms of trade and the Marshall-Lerner condition `2.4.3`,
   protectionism and trade blocs `2.4.4`.
 
+## OCR Business
+
+`ocr_business/tag_ocr_business.py split` writes batches of OCR A-Level (H431) and AS (H031) Business
+parts to `.work/ocr-business/tag/`, and `merge` collects them. They were tagged on 3 November 2026 by
+Claude subagents with the brief above, with these differences:
+
+- `business-topics.txt` lists the specification's 105 topics: `code | section | title — what learners
+  should be able to do`. The specification prints no numbers, so the codes are the bank's own (`5.5`
+  Break-even analysis, `7.10` Place); choose from these, never a section like `5`. AS teaches the same
+  topics, so one tree serves both.
+- Each line has `id`, `marks`, `question` and `scheme`; there is no `setup`, as the case study is in a
+  Resource Booklet that most questions don't quote. Tag by the business concept asked, not the
+  company's industry.
+- Questions 1 to 15 of H431/01 and H031/01 are multiple choice: `scheme` starts with the key ("Key: B.")
+  and its rationale; tag the concept tested.
+- The long "Evaluate" and "Discuss" questions often span topics: main one first, a second only when the
+  scheme's indicative content truly needs it.
+
 ## OCR Law
 
 `ocr_law/tag_ocr_law.py split` writes the OCR A-Level (H418) and AS (H018) Law questions to
@@ -2020,3 +2038,43 @@ the top, with these differences:
   sedentary lifestyles, obesity and somatotypes `3.2.3.2`; energy, diet, nutrients and hydration `3.2.3.3`.
 - A 9-mark question that says what it wants (plyometrics for a triple jumper) goes under what it
   asks about; a second code only when the marks really split between two topics.
+
+## AQA GCSE Design and Technology
+
+`aqa_gcse_dt/tag_dt.py split` writes AQA GCSE Design and Technology (8552/W) questions to
+`.work/aqa-gcse-dt/tag/`, and `merge` collects them into `tags.json`. The brief is the one at the
+top, with these differences:
+
+- `gcse-dt-topics.txt` lists one topic per line: `code | section | title — what the specification
+  says under it`. Codes have three numbers (`3.2.7`), except `3.1.6.1` Material categories and
+  `3.1.6.2` Material properties; never a section like `3.2`.
+- Multiple-choice questions (01–10) carry their answer as `scheme` ("Answer: C – Kevlar").
+- A question usually belongs to the section it's printed in, but a skill goes where the
+  specification puts it: a volume or a nesting layout in Section A or B is still `3.3.9`.
+- Where things live: technology push and market pull, planned obsolescence, crowd funding, virtual
+  marketing, lean working, fashion, faith and inclusive design `3.1.1`; smart materials, composites,
+  technical textiles `3.1.3`; naming or classing a material `3.1.6.1`; what a property means, or a
+  material's properties `3.1.6.2`; choosing by aesthetics, cost, availability or ethics `3.2.1`;
+  deforestation, carbon footprint, pollution, the six Rs `3.2.3`; a chosen material in a chosen
+  product, or modifying it `3.2.5`; stock forms, standard components and calculating a quantity
+  `3.2.6`; batch, mass, continuous and production rates `3.2.7`; templates, jigs, commercial
+  processes and quality control `3.2.8`; analysing a product for the user, ergonomics,
+  anthropometrics, focus groups, primary and secondary research, presenting data `3.3.1`; fair trade
+  and global warming as challenges to design `3.3.2`; collaboration, user-centred and iterative
+  design, design fixation `3.3.4`; every kind of drawing and recording `3.3.5`; prototypes, and
+  the innovation or aesthetics of a product `3.3.6`; lengths, areas, volumes, ratios, datums and
+  nesting `3.3.9`; using tools safely `3.3.10`; deforming, reforming and preparing for a finish
+  in the workshop `3.3.11`.
+
+## Edexcel GCSE French
+
+`edexcel_gcse_french/tag_gcse_french.py split` lists Pearson Edexcel's GCSE French (1FR0, and the 1FR1 sample papers) questions in
+`.work/edexcel-gcse-french/tag/french-questions.tsv`, and `merge` gives every part its question's topics. The 489 answers, kept in
+`edexcel_gcse_french/tags_french.json`, were made by hand, as a printed title settles most questions and a question on both tiers takes one answer. To add a series, add its lines there by these rules:
+
+- `french-topics.txt` lists the specification's five themes' 21 topics, `code | title: what it covers`. Choose from these (`1.3.4` Sport, `2.2` Travel and tourist transactions), never a theme.
+- A line is a whole question (`1fr03h-jun24-05`): one text, recording or writing task. A writing task's options are lines of their own (`1fr04h-jun24-01.a`), each with its own title.
+- Tag what the text or task is about, not the grammar it tests. One code nearly always, two where a question plainly needs both (a fast-food restaurant is `1.2.2` and `2.2`; an international music festival `5.1` and `1.3.3`).
+- Where they overlap: a restaurant visit, hotel booking or journey is `2.2`, what people eat `1.2.2`; a festival or celebration `1.3.1`, unless its charity or international reach is the point (`5.1`); a charity, volunteering or helping others `5.1`, volunteering as a career plan `4.2`; a place to live or visit `2.3`, a holiday in it `2.1`; lessons, rules and school life `3.1`, trips, clubs and exchanges `3.2`; plans for later `4.2`, what a job is like or a part-time job `4.3`.
+- A literary extract goes by what happens in it: a story of a friendship `1.1.1`, a first day at school `3.1`. A translation goes by its sentences' main topic, as does a Foundation photo.
+- 1FR1's sample papers have new themes: tag them to these topics all the same, as the AQA banks do with their 2026 specimens.
