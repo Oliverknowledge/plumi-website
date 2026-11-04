@@ -32,7 +32,12 @@ export function OtherCopy({ partId, setId, answer, label, onSee, onContinue, cod
             let tries = 0;
             const t = setInterval(() => {
               const to = zone?.querySelector<HTMLElement>("textarea, canvas");
-              if (to) { to.focus({ preventScroll: true }); clearInterval(t); } else if (++tries > 20) clearInterval(t);
+              if (to) {
+                to.focus({ preventScroll: true });
+                // Continue after what was already written, not in front of it.
+                if (to instanceof HTMLTextAreaElement) to.setSelectionRange(to.value.length, to.value.length);
+                clearInterval(t);
+              } else if (++tries > 20) clearInterval(t);
             }, 60);
           }}
         >Continue here</button>
