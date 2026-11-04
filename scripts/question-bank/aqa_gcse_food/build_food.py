@@ -18,6 +18,9 @@ from build_bank import BOILERPLATE, CALC, own_text, series_label, series_rank, s
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "..", ".work", "aqa-gcse-food")
 SLUG = "aqa-gcse-food-preparation-and-nutrition"
+# A bank re-cut under the same crop names gets a new version, so browsers fetch the new crops: 1 for the crops
+# that ran down onto the page's border, with the white space above it (4 November 2026).
+CROP_VERSION = 1
 PAPERS = {"8585W": "Food preparation and nutrition"}
 TOTAL = 100
 
@@ -74,7 +77,7 @@ def main():
     series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
     years = [int("20" + s[3:]) for s in series]
     meta = {
-        "slug": SLUG, "board": "AQA", "level": "GCSE", "subject": "Food Preparation and Nutrition", "specs": ["8585"],
+        "slug": SLUG, "board": "AQA", "level": "GCSE", "subject": "Food Preparation and Nutrition", "specs": ["8585"], "cropVersion": CROP_VERSION,
         "sections": tree["sections"], "topics": topics,
         "papers": [{"id": c, "name": "Written paper", "title": PAPERS[c], "as": False} for c in comps],
         "series": [{"id": s, "label": series_label(s)} for s in series],

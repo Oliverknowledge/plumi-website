@@ -9,7 +9,8 @@ and now and then a whole question (June 2025's 12-mark "0 4"). What differs from
     which cut.py's reader takes for a question's label alone (left_labels), and each question
     reprints the columns' "Qu" heading over its first row (row_start).
   - The scheme frame stays inside the page-wide header and footer rules (ms_frame); a question's
-    frame takes in a table's bottom rule just under it (frame).
+    frame takes in a table's bottom rule just under it, but not the page's border, and ends above
+    "Question 2 continues on the next page" (frame).
   - A question paper's part ends above the "Section B" heading (regions), and keeps a multiple-choice
     option or a table's "An example has been completed for you." rather than moving it down to the
     next part as its setup (move_setups).
@@ -89,10 +90,22 @@ _frame = cut.frame
 
 def frame(page, portrait=True):
     """cut.py's page frame, taken down onto a table's bottom rule just under it (November 2021's 06.2 table ends at
-    761-765pt, on a page whose frame ends at 761pt above "Turn over")."""
+    761-765pt, on a page whose frame ends at 761pt above "Turn over"), but never onto the page's own border (a rule 480pt
+    or wider in its last 90pt), where trim_bottom would keep all the white space above it. It ends above "Question 2
+    continues on the next page"."""
     r = _frame(page, portrait)
-    rules = [d["rect"].y1 for d in page.get_drawings() if d["rect"].width > 100 and r.y1 - 2 < d["rect"].y0 < r.y1 + 6 and d["rect"].y1 < r.y1 + 8]
-    return pymupdf.Rect(r.x0, r.y0, r.x1, max(rules) + 1) if portrait and rules else r
+    if not portrait:
+        return r
+    h = page.rect.height
+    rules = [d["rect"].y1 for d in page.get_drawings() if d["rect"].width > 100 and r.y1 - 2 < d["rect"].y0 < r.y1 + 6 and d["rect"].y1 < r.y1 + 8
+             and not (d["rect"].width >= 480 and d["rect"].y0 > h - 90)]
+    if rules:
+        r = pymupdf.Rect(r.x0, r.y0, r.x1, max(rules) + 1)
+    for block in page.get_text("dict")["blocks"]:
+        for line in block.get("lines", []):
+            if re.match(r"Question \d+ continues", "".join(s["text"] for s in line["spans"]).strip()):
+                r.y1 = min(r.y1, line["bbox"][1] - 4)
+    return r
 
 
 cut.frame = frame
