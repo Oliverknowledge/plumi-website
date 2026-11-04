@@ -15,6 +15,8 @@ import { PartFiles } from "./PartFiles";
 import { specialsFor } from "@/lib/studyapp/questions/specials";
 import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
+import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
+import { useMatch } from "./useMatch";
 
 /** The names a card needs of a subject, made once: the sitting, the paper (by lower-case code) and the topic. */
 export interface FeedLookup { series: Map<string, string>; papers: Map<string, string>; topics: Map<string, string>; trs: Record<string, string>; ins?: Record<string, string>; code?: Record<string, string>; subject: string }
@@ -80,17 +82,15 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
     registerFeedPart(info, kept, names, topics);
   }, [part, series, paper, lookup, info]);
 
-  /** A pen or mouse put down on the faded copy, or a key typed into it, is "Continue here" first, so the old answer never seems to vanish under the new writing. */
+  /** A pen, mouse or drawing finger put down on the faded copy, or a key typed into it, is "Continue here" first, so the old answer never seems to vanish under the new writing. */
+  const coarse = useMatch("(pointer: coarse)");
   const takeCopy = (e: React.PointerEvent) => {
-    if (!copy || e.pointerType === "touch" || !(e.target as Element).closest?.(".qs-canvas, textarea")) return;
+    if (!copy || !marksOnCopy(e, fingerDraws(prefs.fingerScrolls, coarse))) return;
     void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!);
   };
   const takeCopyKey = (e: React.KeyboardEvent) => {
-    if (!copy || !(e.target as Element).matches?.("textarea") || e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
-    const a = copy.answer!;
-    if (!a.text?.trim()) { void qa.continueHere(copy.setId!, view.id, part.id, a); return; }
-    e.preventDefault();   // the old words first, then this key
-    void qa.continueHere(copy.setId!, view.id, part.id, a).then(() => qa.text(view.id, part.id, `${a.text}${e.key}`));
+    if (!copy) return;
+    copyFirstOnKey(e, copy.answer!.text, () => qa.continueHere(copy.setId!, view.id, part.id, copy.answer!));
   };
 
   const label = `${series} ${paper}, question ${part.l}`;

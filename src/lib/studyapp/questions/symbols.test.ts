@@ -33,14 +33,14 @@ test("French and Spanish get their accents and punctuation, and no maths", () =>
   assert.ok(chars("aqa-gcse-bengali").includes("।"));
 });
 test("maths, the sciences and computing get the maths symbols and the superscript buttons", () => {
-  for (const slug of ["aqa-gcse-maths", "edexcel-igcse-further-maths", "ocr-mei-a-level-maths", "aqa-gcse-combined-science", "ocr-gcse-combined-science-a", "aqa-a-level-physics", "ocr-a-level-chemistry-b", "ocr-a-level-biology-a", "edexcel-gcse-computer-science", "edexcel-gcse-additional-maths"]) {
+  for (const slug of ["aqa-gcse-maths", "edexcel-igcse-further-maths", "ocr-mei-a-level-maths", "aqa-gcse-combined-science", "ocr-gcse-combined-science-a", "aqa-a-level-physics", "ocr-a-level-chemistry-b", "ocr-a-level-biology-a", "edexcel-gcse-additional-maths"]) {
     assert.ok(chars(slug).includes("√"), slug);
     assert.equal(symbolsFor(slug).script, true);
   }
 });
 test("English, History, Religious Studies and the other essay subjects get no strip at all", () => {
   for (const slug of ["aqa-gcse-english-language", "aqa-a-level-english-literature-a", "edexcel-a-level-history", "aqa-gcse-history", "aqa-gcse-religious-studies", "edexcel-gcse-religious-studies", "aqa-a-level-sociology", "aqa-a-level-politics", "aqa-a-level-philosophy", "aqa-a-level-law", "wjec-criminology", "aqa-gcse-islamic-studies"]) {
-    assert.deepEqual(symbolsFor(slug), { keys: [], script: false }, slug);
+    assert.deepEqual(symbolsFor(slug), { keys: [], script: false, spell: true, code: false }, slug);
   }
 });
 test("the subjects that count get a few numerals only", () => {
@@ -50,4 +50,17 @@ test("the subjects that count get a few numerals only", () => {
 });
 test("a strip has no repeated key", () => {
   for (const slug of ["aqa-gcse-french", "aqa-gcse-spanish", "aqa-gcse-bengali", "aqa-gcse-maths", "aqa-gcse-geography"]) assert.equal(new Set(chars(slug)).size, chars(slug).length, slug);
+});
+
+test("Computer Science types code: brackets and operators, no maths keys, no spelling or auto-correct", () => {
+  const k = symbolsFor("edexcel-gcse-computer-science");
+  for (const c of ["(", ")", "[", "]", "{", "}", "\"", "'", "<", ">", "=", "!", "&", "|", "_", ";"]) assert.ok(k.keys.some((x) => x.ch === c), c);
+  assert.ok(!k.keys.some((x) => x.ch === "√"));
+  assert.equal(k.code, true); assert.equal(k.spell, false); assert.equal(k.script, false);
+});
+test("a language answer says what language it is in, and only English prose is spell-checked", () => {
+  assert.deepEqual([symbolsFor("aqa-gcse-french").lang, symbolsFor("aqa-gcse-spanish").lang, symbolsFor("aqa-gcse-bengali").lang], ["fr", "es", "bn"]);
+  assert.equal(symbolsFor("aqa-gcse-french").spell, false);
+  assert.equal(symbolsFor("aqa-gcse-history").spell, true);
+  assert.equal(symbolsFor("aqa-gcse-physics").spell, true);
 });

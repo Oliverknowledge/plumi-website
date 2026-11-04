@@ -104,7 +104,7 @@
 .pa .qf-list { position: relative; overflow-anchor: none; }
 .pa .qf-spacer { width: 100%; }
 .pa .qf-item { padding-bottom: 30px; }
-.pa .qf-card { display: grid; grid-template-columns: 188px minmax(0, 1fr) 232px; gap: 0 24px; align-items: start; }
+.pa .qf-card { display: grid; grid-template-columns: 156px minmax(0, 1fr) 200px; gap: 0 20px; align-items: start; }
 .pa .qf-card > * { min-width: 0; }
 .pa .qf-left { position: sticky; top: calc(66px + env(safe-area-inset-top, 0px) + 76px); display: grid; align-content: start; justify-items: start; gap: 8px; padding: 14px 0 6px; }
 .pa .qf-num { display: inline-grid; place-items: center; min-width: 42px; height: 42px; padding: 2px 8px 0; border: 2px solid var(--ink); border-radius: 21px; background: var(--tint); font: 700 24px/1 var(--f-hand); color: var(--ink); transform: rotate(-4deg); box-shadow: 0 2px 0 var(--ink); }
@@ -410,7 +410,7 @@ dialog.qf-subjsheet::backdrop { background: rgba(60, 40, 30, .32); }
 }
 
 /* ── the lofi record and its bubble: the notes stay clear of them; the bubble goes once the student has scrolled or pressed anything ── */
-@media (min-width: 981px) { .pa .qf-list { padding-right: 96px; } }
+@media (min-width: 981px) { .pa .qf-list { padding-right: 80px; } }
 html[data-qf-engaged] .rp-tip { display: none; }
 
 /* ── the toast: under the app bar, and below the paper's name bar on a sheet (never over the answer box or the title) ── */
@@ -491,7 +491,9 @@ html[data-qf-engaged] .rp-tip { display: none; }
 /* ── the way back to the top; Write | Type are there without hovering; the zoom hint ── */
 .pa .qf-top { position: fixed; z-index: 14; right: calc(10px + env(safe-area-inset-right, 0px)); display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 14px 0 10px; border: 2px solid var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 20px/1 var(--f-hand); color: var(--ink); cursor: pointer; }
 .pa .qf-top:hover { background: #fff3cf; }
-.pa .qf-notsaved { margin: 8px 0; }
+.pa .qf-notsaved, .pa .qs-bar-warn { flex: 1 0 100%; grid-column: 1 / -1; margin: 0; padding: 3px 10px; border-radius: 8px; background: #fde9c9; color: #6b3d00; font: 800 13px/1.3 var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pa .qs-bar:has(.qs-bar-warn) { flex-wrap: wrap; }
+.pa .qs-sheet-page .qs-bar .qs-bar-warn { grid-row: 3; }
 @media (hover: hover) and (pointer: fine) { .pa .qf-answer .qs-zone[data-mode="ink"] .qs-zone-head { opacity: .8; } .pa .qf-answer .qs-zone[data-mode="ink"]:hover .qs-zone-head { opacity: 1; } }
 .pa dialog.qs-zoomd .qs-zoomd-hint { position: absolute; z-index: 4; left: 12px; top: 14px; margin: 0; padding: 6px 12px; border-radius: 14px; background: rgba(34, 48, 77, .88); color: #f5f9ff; font: 800 13px var(--f-body); }
 
@@ -541,3 +543,31 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qf-cue.is-gone { opacity: 0; visibility: hidden; pointer-events: none; }
 .pa .qf-card:focus { outline: none; }
 .pa .qf-card:focus-visible { outline: 3px solid var(--navy, #22304d); outline-offset: 4px; }
+
+/* ── marking a long question: -5 / - / the number (a field when tapped) / + / +5, each at least 44px, holding + or - repeats ── */
+.pa .qs-step { flex-wrap: wrap; gap: 8px; }
+.pa .qs-step .qs-mini { min-width: 44px; min-height: 44px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.pa .qs-step .qs-step5 { font-weight: 800; }
+.pa .qs-step-n { min-width: 96px; min-height: 44px; padding: 0 10px; border: 2px dashed rgba(34, 48, 77, .4); border-radius: 12px; background: #fffaf0; color: var(--ink); font: 700 20px var(--f-body); cursor: text; }
+.pa .qs-step-n b { font: 700 30px var(--f-hand); }
+.pa .qs-step-in { width: 96px; min-height: 44px; padding: 0 10px; border: 2px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); font: 700 24px var(--f-body); text-align: center; }
+
+/* ── 320px: Build a set's row wraps instead of running off the screen, the subject name wraps, the idle timer chip (shared header) gives way to the tabs ── */
+@media (max-width: 379px) {
+  .pa .qs-mixacts { flex-wrap: wrap; }
+  .pa .qs-mixhead { row-gap: 6px; }
+}
+@media (max-width: 339px) {
+  .pa .qf-subj-name, .pa .qf-subj-sub { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+  .pa .top .tm-chipbtn.is-idle { display: none; }
+}
+
+/* ── a tablet or laptop: the subject is on its tab, so the heading above it is read by a screen reader but not drawn a second time ── */
+@media (min-width: 641px) {
+  .pa .qf-home .qs-head { justify-content: flex-end; min-height: 0; padding-bottom: 0; }
+  .pa .qf-home .qs-head h1 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* the phone's Filters card: Mix them up says its name */
+.pa .qf-actsrow .qf-mixbtn { width: auto; padding: 0 14px; }
+.pa .qf-actsrow .qf-mixbtn span { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: nowrap; }

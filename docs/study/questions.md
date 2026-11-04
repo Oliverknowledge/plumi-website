@@ -316,7 +316,7 @@ start and nothing to finish:
 **Data.** An answer belongs to its question: it is kept under the subject's **feed set**, one standing set per subject (`QSet.feed`, id `feed-<slug>`, `feedId`), that a question joins the first time the student writes on it, pulls up its
 scheme or marks it (`feedTouch`, `addParts`; `qa.feedTouch`). Ink, typing, modes, marks, zone sizes, caps, recovery and "done lately" are all the sets' (nothing new to migrate; existing sets and papers are untouched). The feed set is never "the
 set on the desk", is not one of the 40 sets the cap counts (and is never the one pushed out), is capped at `MAX_FEED_PARTS` (1,200 questions touched), and shows in **Your sets** as "<subject>, your feed" (Delete clears its answers and ink).
-**Limit, stated:** a paper or set keeps its own answers. Work done in a paper shows in the feed as a quiet line on the question ("Marked 3 of 3 in June 2025 Paper 1") and counts in the subject's progress (`elsewhere`, `feedProgress`), but it is not
+**Limit, stated (superseded by "Rounds 5 to 8" below: an answer in another place is now shown and copied on the student's act):** a paper or set keeps its own answers. Work done in a paper shows in the feed as a quiet line on the question ("Marked 3 of 3 in June 2025 Paper 1") and counts in the subject's progress (`elsewhere`, `feedProgress`), but it is not
 copied into the feed's writing space, and an answer written in the feed is not shown inside a paper (copying ink between sets was not cheap and would have made two places to edit one answer).
 
 **The list** (`FeedList.tsx`, `virtual.ts`) is a measured virtual list on the page's own scroll: a few cards are in the DOM whatever the depth (about 470 to 700 nodes at 2,666 questions, against 7,000 for a 73-part paper); the rest are two
@@ -338,7 +338,39 @@ about 0.15 s after the page's own shell (which is 1.8 to 2.4 s whatever the view
 ## Round 7 (feed)
 
 - **A paper's own files** (`lib/studyapp/questions/specials.ts`, `PartFiles.tsx`): the subject route now sends `ins` (source, interpretations, extracts, reading texts, resource booklet, insert) and `code` (zip) by `<paper>-<series>` beside `trs`. A card and a sheet part link the booklet when `needsInsert(subject, part)` (every question of English Language, English Literature and Geography papers with one; History when the words name a source, extract or interpretation; languages when the bank flags `src`; OCR sciences and MEI Maths when the words name the insert, article or advance notice; every question of OCR Chemistry B and Physics B Paper 2). A paper sheet has the files in its header. The transcript shows in the sheet beside the player. The audit is in `scratchpad/qfix/r7-fix/SPECIAL-FIELDS.md`.
-- **Typing strip per subject** (`symbolsFor(slug)`): French and Spanish accents, Bengali punctuation, maths and science symbols (with superscripts) for maths, sciences and computing, a few numerals for Geography, Economics, Business, Psychology, nothing for English, History, Religious Studies and the other essay subjects.
+- **Typing strip per subject** (`symbolsFor(slug)`, round 8 refines it): French and Spanish accents, Bengali punctuation, maths and science symbols (with superscripts) for maths and the sciences, code symbols for Computer Science, a few numerals for Geography, Economics, Business, Psychology, nothing for English, History, Religious Studies and the other essay subjects.
 - **Copy then draw**: the canvas writes the whole ink again when strokes arrive from a copy or another tab (an older queued snapshot dropped them); the first mark or key on a faded copy no longer changes the input (`continueHere(..., flip)`: only the explicit "Continue here" button turns to the kind it copied).
 - **Reports and "Read as text"** of maths and science subjects say when a fraction or a power may have lost its layout (the data has flat runs only; about 500 reports in 35 subjects are affected, most in the maths subjects).
 - **Back to the top** shows only while scrolling up past three screens, under the sticky bar at the right, instantly, and not while a control in the list has focus; the top of the page is saved as the top.
+
+## Rounds 5 to 8 (feed): what the list above does not say
+
+**An answer in another place is seen, and copied only by the student's act** (`otherCopy`, `OtherCopy.tsx`, `qa.continueHere`, `copyFirst.ts`). A paper's or set's answer to a question shows in the feed card, and the feed's answer in a paper's or set's sheet, as a faded read-only copy
+in the empty writing space ("From a paper", "Written in your feed"; typing as text, ink as a picture) with **See it** (opens that place at that question) and **Continue here**. The first pen, mouse or drawing finger (a finger only when the student has chosen "Draw with my finger", or the device is not touch)
+on the copy, or the first key in its box, copies first and never changes the input (Write or Type stays what it was; the tabs' dots say what each holds); the key is not held back (the old words are put in front of what was typed through the box's own change event, so no character is lost);
+only the **Continue here** button turns to the kind it copied, and moves focus to the writing space. The ink is copied under the new key in IndexedDB (`copyInk`) and brought into a canvas that is already showing it the way a stroke from another tab is (`refresh`); a canvas that gets strokes this way writes
+its whole ink again, so an older queued write can never drop them. Reads: `scratchpad/qfix/r8-fix/copy-modes.js` (r7), `sheet-finger.js`.
+
+**Listening** (`ListenPlayer.tsx`): a labelled player under a listening question's picture (nothing fetched until played; the accessible name starts "Listen"; one recording at a time), the note when the recording is the whole paper's, the transcript after marking (and in the sheet always), a calm line if the recording would not play.
+
+**Marking a long question** (more than 12 marks, `Check.tsx` `Stepper`): -5, -, the number (a field when tapped: Enter or leaving sets it, clamped, Escape puts it back), +, +5; + and - repeat while held (pointer capture, 420 ms then every 90 ms) and step once for a key; the value is announced.
+
+**Not saving.** When the device keeps nothing (`persisted` false) one calm line sits in the sticky strip of the feed and in the sheet's sticky bar, so it is on screen while a write fails.
+
+**Toasts** (`toastQueue.ts`): lines said in the same moment are joined into one message (at the 40-set cap, Practise says "An old set was removed to make room. First 60 questions"), so the single slot never drops one.
+
+**The sheet from the feed.** "The whole paper" lands on the part (centred), or at its start when the part is taller than 80 percent of the screen (an essay: the question, never the middle of a blank box). Back returns to the feed with focus on the card left (`setLeftCard`). A set made from the feed or the picker shows
+each question's own number ("Q5"), not 1, 2, 3.
+
+**Layout.** The feed card's columns are 156 | centre | 200 with the list's right clearance 80 px for the lofi record (centre about 600 px at 1180, 700 at 1280); the page's heading is read but not drawn a second time at 641px and up; at 380px and under the strip puts the search on its own row, Build a set's row wraps, at 340px and under the idle Timer chip
+(shared header) is hidden and the subject name wraps. The phone's Filters card shows "Mix them up" in words, closes after it, and closes with Escape. The magnifier is a labelled "Zoom" pill on a phone.
+
+**Typing.** `symbolsFor(slug)` also says the language (lang fr, es, bn), whether to spell-check (only English prose) and whether it is code (autocorrect and autocapitalize off); a symbol is inserted with `insertText`, so Ctrl+Z takes it back like typing.
+
+**Mark schemes.** A scheme crop is capped at about 46 percent of the screen with "Show the rest of the picture" (the bank has no crop heights to trim by); English Language and Literature schemes open whole. "What do the levels mean?" is not shown under a one-mark or multiple-choice question.
+
+**Back to the top.** Shown only after the student has scrolled (a restored position is not that), scrolling up, past three screens; hidden only while a text box, select or canvas in the list has focus; instant; focus goes to the first question.
+
+**Paper files** (round 7): a booklet link is not shown on an English Language writing task (`WRITING_TASK` in `specials.ts`); the code files say "(zip download)" and download in place.
+
+**Known, not fixable in the browser:** GCSE French and Spanish have no transcripts in the data; mark scheme crops can contain blank space; about 500 maths reports have flattened fractions (marked approximate); the lofi record overlaps the page on phones; `sol` worked solutions (57 Edexcel A-Level Maths parts) are not shown.

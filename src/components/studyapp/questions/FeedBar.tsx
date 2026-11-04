@@ -23,7 +23,9 @@ export const FeedHead = forwardRef<HTMLDivElement, {
   here: string | null;
   /** "Mix them up" and "Practise these": in the strip on a desk, inside the Filters card on a phone (the strip there is one slim row). */
   acts: React.ReactNode;
-}>(function FeedHead({ search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts }, ref) {
+  /** This device is not keeping answers: one calm line in the strip, which stays on screen while the student scrolls. */
+  notSaved?: boolean;
+}>(function FeedHead({ search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts, notSaved }, ref) {
   return (
     <div className="qf-head" ref={ref} role="search" aria-label="Find questions">
       <label className="qs-search qf-search">
@@ -43,6 +45,7 @@ export const FeedHead = forwardRef<HTMLDivElement, {
         )}
       </div>
       {!phone && <div className="qf-acts">{acts}</div>}
+      {notSaved && <p className="qf-notsaved" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open.</p>}
     </div>
   );
 });

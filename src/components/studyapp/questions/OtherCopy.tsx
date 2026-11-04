@@ -28,7 +28,19 @@ export function OtherCopy({ partId, setId, answer, label, onSee, onContinue }: {
       <p className="qf-other-line">
         <span>{label}</span>
         <button type="button" className="qs-link" onClick={onSee}>See it</button>
-        <button type="button" className="qs-mini qf-continue" onClick={onContinue} data-testid="continue-here">Continue here</button>
+        <button
+          type="button" className="qs-mini qf-continue" data-testid="continue-here"
+          onClick={(e) => {
+            // This button goes away with the copy: focus moves on to the writing space (the box or the pen's canvas), not to the page.
+            const zone = e.currentTarget.closest(".qs-answer");
+            onContinue();
+            let tries = 0;
+            const t = setInterval(() => {
+              const to = zone?.querySelector<HTMLElement>("textarea, canvas");
+              if (to) { to.focus({ preventScroll: true }); clearInterval(t); } else if (++tries > 20) clearInterval(t);
+            }, 60);
+          }}
+        >Continue here</button>
       </p>
     </div>
   );

@@ -9,10 +9,10 @@ export function PartFiles({ files, className = "" }: { files: readonly Special[]
   return (
     <p className={`qf-files ${className}`} data-testid="part-files">
       {files.map((f) => (
-        <a key={f.kind} className="qf-file" href={f.href} target="_blank" rel="noopener noreferrer" {...(f.download ? { download: "" } : {})} data-kind={f.kind}>
+        <a key={f.kind} className="qf-file" href={f.href} {...(f.download ? { download: "" } : { target: "_blank", rel: "noopener noreferrer" })} data-kind={f.kind}>
           <svg viewBox="0 0 20 24" width="16" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 2h8l5 5v15H4z" /><path d="M12 2v5h5" /><path d="M7 13h7M7 17h7" /></svg>
           <span>{f.label}</span>
-          <span className="qs-sr"> (opens in a new tab)</span>
+          <span className="qs-sr">{f.download ? " (zip download)" : " (opens in a new tab)"}</span>
         </a>
       ))}
     </p>

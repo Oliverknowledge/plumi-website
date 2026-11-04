@@ -29,6 +29,8 @@ export function insertKind(subject: string): { noun: string; what: string } {
 
 /** Every question of these subjects' papers with a booklet is read against it (the paper is built on it). */
 const ALWAYS = new Set(["English Language", "English Literature", "Geography"]);
+/** An English Language writing task ("Write a description...", "Write an article...") is self-contained: it needs no source. */
+const WRITING_TASK = /\bwrite (?:a|an|the|about|what|your|opinion|out)\b|\bwrite\b.{0,40}\b(?:article|speech|talk|letter|story|description|guide|review)\b|^\s*a\) write|you are asked to give a talk|(?:magazine|newspaper|website) (?:has|have) asked/i;
 /** ... and every question of these papers: OCR's Scientific literacy papers are built on the advance notice. */
 const ALWAYS_SUBJECTS = new Set(["Chemistry B", "Physics B"]);
 
@@ -36,8 +38,9 @@ const ALWAYS_SUBJECTS = new Set(["Chemistry B", "Physics B"]);
 export function needsInsert(subject: string, part: { x?: string; src?: 1 }): boolean {
   const s = subject.replace(/ [AB]$/, "");
   if (part.src) return true;
-  if (ALWAYS.has(s) || ALWAYS_SUBJECTS.has(subject)) return true;
   const x = part.x ?? "";
+  if (s === "English Language" && WRITING_TASK.test(x) && !READS_SOURCES.test(x)) return false;
+  if (ALWAYS.has(s) || ALWAYS_SUBJECTS.has(subject)) return true;
   if (READS_SOURCES.test(x)) return true;
   if (s === "History") return READS_INTERPRETATION.test(x);
   // Languages: a reading text is named by the bank's flag or the words above.

@@ -1,7 +1,7 @@
 "use client";
 
 import { lostLayout } from "@/lib/studyapp/questions/approx";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { bankFile, papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
 import { hasInk, hasText, markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { splitReport } from "@/lib/studyapp/questions/report";
@@ -136,7 +136,7 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
           <>
             <p className="qs-scheme-label">What the examiner wants</p>
             {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
-            <CappedScheme><Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} /></CappedScheme>
+            <CappedScheme open={wholeScheme(set.subject)}><Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} /></CappedScheme>
             <SchemeText set={set} part={part} />
           </>
         ) : part.k ? (
@@ -166,10 +166,13 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
  * A mark scheme's picture is cut from the paper with a margin the data does not trim (a one-row table can arrive with 300 px of blank under it, ending with a rule and the next
  * question's heading). It is shown to a fixed height with a soft fade and "Show the rest" (nothing is hidden for good); a short scheme shows whole, with no button.
  */
-function CappedScheme({ children }: { children: React.ReactNode }) {
+/** English Language and Literature schemes are cut from the paper starting at the question and run long (levels, indicative content): they open whole, not behind a fold. (The bank has no crop heights to trim them by.) */
+const wholeScheme = (slug: string) => /(^|-)english-(language|literature)(-|$)/.test(slug);
+
+function CappedScheme({ children, open = false }: { children: React.ReactNode; open?: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState(false);
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(open);
   useEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -194,6 +197,65 @@ export function MarkYourself({ set, part, got }: { set: QSet; part: QPart; got: 
   return <Marking set={set} part={part} got={got} />;
 }
 
+/**
+ * Marks for a long question (more than 12): a tap per mark is a chore, so + and - repeat while they are held, +5 and -5 step in fives, and the number is a field a student can
+ * type into (Enter or leaving it sets it, clamped to 0 to the total, Escape puts it back). Every control has a name, and the value is read out as it changes.
+ */
+/** A button that acts at once, repeats while it is held (after a short wait), and acts once for a key. */
+function RepeatButton({ onStep, label, children }: { onStep(): void; label: string; children: React.ReactNode }) {
+  const wait = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rep = useRef<ReturnType<typeof setInterval> | null>(null);
+  const act = useRef(onStep);
+  useEffect(() => { act.current = onStep; });
+  const stop = useCallback(() => { if (wait.current) clearTimeout(wait.current); if (rep.current) clearInterval(rep.current); wait.current = null; rep.current = null; }, []);
+  useEffect(() => stop, [stop]);
+  return (
+    <button
+      type="button" className="qs-mini" aria-label={label}
+      onPointerDown={(e) => {
+        if (e.button > 0) return;
+        stop();
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* not an active pointer */ }
+        act.current();
+        wait.current = setTimeout(() => { rep.current = setInterval(() => act.current(), 90); }, 420);
+      }}
+      onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
+      onClick={(e) => { if (e.detail === 0) act.current(); }}
+    >{children}</button>
+  );
+}
+
+function Stepper({ id, m, got, choose }: { id: string; m: number; got: number | undefined; choose(n: number): void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const cur = useRef(got ?? 0);
+  useEffect(() => { cur.current = got ?? 0; }, [got]);
+  const step = useCallback((d: number) => { const n = Math.max(0, Math.min(m, cur.current + d)); if (n !== cur.current) { cur.current = n; choose(n); } }, [m, choose]);
+  const commit = () => {
+    setEditing(false);
+    const n = parseInt(draft.replace(/\D/g, ""), 10);
+    if (Number.isFinite(n)) { const c = Math.max(0, Math.min(m, n)); cur.current = c; choose(c); }
+  };
+  return (
+    <div className="qs-step" role="group" aria-labelledby={`self-${id}`}>
+      <button type="button" className="qs-mini qs-step5" onClick={() => step(-5)} aria-label="Five marks fewer">-5</button>
+      <RepeatButton onStep={() => step(-1)} label="One mark fewer">-</RepeatButton>
+      {editing ? (
+        <input
+          className="qs-step-in" inputMode="numeric" autoFocus value={draft} aria-label={`Marks out of ${m}`} onChange={(e) => setDraft(e.target.value)}
+          onFocus={(e) => e.currentTarget.select()} onBlur={commit}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEditing(false); } }}
+        />
+      ) : (
+        <button type="button" className="qs-step-n" onClick={() => { setDraft(String(got ?? 0)); setEditing(true); }} aria-label={`${got ?? 0} out of ${m} marks. Type a number`} data-testid="step-n"><b>{got ?? 0}</b> / {m}</button>
+      )}
+      <RepeatButton onStep={() => step(1)} label="One mark more">+</RepeatButton>
+      <button type="button" className="qs-mini qs-step5" onClick={() => step(5)} aria-label="Five marks more">+5</button>
+      <span className="qs-sr" role="status" aria-live="polite">{got ?? 0} out of {m}</span>
+    </div>
+  );
+}
+
 function Marking({ set, part, got }: { set: QSet; part: QPart; got: number | undefined }) {
   const m = part.m ?? 0;
   const many = m > 12;
@@ -212,11 +274,7 @@ function Marking({ set, part, got }: { set: QSet; part: QPart; got: number | und
     <div className="qs-self">
       <p className="qs-self-label" id={`self-${part.id}`}>Mark yourself</p>
       {many ? (
-        <div className="qs-step" role="group" aria-labelledby={`self-${part.id}`}>
-          <button type="button" className="qs-mini" onClick={() => choose(Math.max(0, (got ?? 0) - 1))} aria-label="One mark fewer">-</button>
-          <b aria-live="polite">{got ?? 0} / {m}</b>
-          <button type="button" className="qs-mini" onClick={() => choose(Math.min(m, (got ?? 0) + 1))} aria-label="One mark more">+</button>
-        </div>
+        <Stepper id={part.id} m={m} got={got} choose={choose} />
       ) : (
         <div className="qs-ticks" role="radiogroup" aria-labelledby={`self-${part.id}`}>
           <button ref={(el) => { radios.current[0] = el; }} type="button" role="radio" aria-checked={got === 0} tabIndex={stop === 0 ? 0 : -1} className={`qs-zero${got === 0 ? " on" : ""}`} onClick={() => choose(0)} onKeyDown={(e) => onKey(e, 0)} aria-label="0 marks">0</button>

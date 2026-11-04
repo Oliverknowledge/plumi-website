@@ -64,3 +64,17 @@ test("a path that is not a plain file path is never linked", () => {
   assert.deepEqual(paperSpecials({ subject: "History", ins: { "a-JUN22": "../../etc/passwd" } }, "a", "JUN22"), []);
   assert.deepEqual(paperSpecials({ subject: "History", ins: { "a-JUN22": "javascript:alert(1)" } }, "a", "JUN22"), []);
 });
+
+test("an English Language writing task needs no booklet, a reading question does", () => {
+  const w = (x: string) => needsInsert("English Language", { x });
+  assert.ok(!w("A magazine has asked for contributions for their creative writing section. Either Write a description of a village or Write a story about a journey"));
+  assert.ok(!w("Write an article for a magazine with the title ‘My ambitions’."));
+  assert.ok(!w("a) Write a story which begins: It was my first day at this school… Or, b) My Finest Hour."));
+  assert.ok(w("Look in detail at this extract, from lines 5 to 9 of the source. How does the writer use language to describe the sea?"));
+  assert.ok(w("Compare how the two writers convey their different perspectives."));
+  assert.ok(w("Analyse how Text B uses language to create meanings and representations."));
+});
+test("the code files say they are a download, not a new tab", () => {
+  const f = specialsFor({ subject: "Computer Science", code: { "1cp22-JUN22": "edexcel/x.zip" } }, { p: "1cp22", s: "JUN22" });
+  assert.ok(f[0].download && /zip/.test(f[0].label));
+});

@@ -20,6 +20,7 @@ import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
 import { ListenPlayer } from "./ListenPlayer";
 import { PartFiles } from "./PartFiles";
+import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { paperSpecials, specialsFor, transcriptOf, type PaperFiles } from "@/lib/studyapp/questions/specials";
 import { useSubjectMeta } from "./bankData";
 import { OtherCopy } from "./OtherCopy";
@@ -113,7 +114,9 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
       const top = el.getBoundingClientRect().top;
       if (aligned !== null && Math.abs(top - aligned) < 6) return;
       // At once, not smoothly (the page may animate its scrolling): the position read right after is then the real one to compare the next check with.
-      el.scrollIntoView({ block: part ? "center" : "start", behavior: "instant" as ScrollBehavior });
+      // A part taller than most of the screen (an essay: the question and a big writing space) is opened at its START, at the question, never in the middle of a blank writing space.
+      const tall = !!part && part.getBoundingClientRect().height > window.innerHeight * 0.8;
+      el.scrollIntoView({ block: part && !tall ? "center" : "start", behavior: "instant" as ScrollBehavior });
       aligned = el.getBoundingClientRect().top;
     };
     const ts = [60, 250, 500, 800, 1100, 1400, 1800, 2300].map((ms) => setTimeout(go, ms));
@@ -224,6 +227,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
         {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} marked here</span>}
         <PagePopover prefs={prefs} />
         <button type="button" className="btn qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
+        {!persisted && <p className="qs-bar-warn" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open.</p>}
       </div>
       <p className="qs-sr" role="status" data-testid="progress-status">{prog.of > 0 ? `${prog.done} of ${prog.of} marked here` : ""}</p>
       <p className="qs-sr" role="status" aria-live="polite" data-testid="sheet-say">{said}</p>
@@ -231,9 +235,6 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
       <div className="qs-desk">
         {nearlyFull && (
           <p className="qs-warn" role="status">Your device is nearly full of handwriting. <button type="button" className="qs-link" onClick={() => setSets(true)}>Clear old sets</button></p>
-        )}
-        {!persisted && (
-          <p className="qs-warn" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open until you finish.</p>
         )}
         {files && set.paper && (() => {
           const [ser, pap] = set.paper.split("|");
@@ -333,6 +334,7 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, files, answers, 
 interface PProps { files: (PaperFiles & { subject: string }) | null; set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; /** The same question's answer in the subject's feed, if the student has one there. */ feed: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
 
 const PartBlock = memo(function PartBlock({ set, files, part, block, answer, feed, prefs, startNear }: PProps) {
+  const coarse = useMatch("(pointer: coarse)");
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
   const feedCopy = !!feed && !(hasInk(answer) || hasText(answer)) && (hasInk(feed) || hasText(feed));
   const seeFeed = () => {
@@ -367,7 +369,8 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
           <ReadAsText set={set} part={part} />
           {files && <PartFiles files={specialsFor(files, part).filter((f) => f.kind !== "tr")} />}
           {part.au && <ListenPlayer part={part} transcript={files ? transcriptOf(files.trs, part.p, part.s) : null} checked />}
-          <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (e.pointerType !== "touch" && (e.target as Element).closest?.(".qs-canvas, textarea")) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}>
+          <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (marksOnCopy(e, fingerDraws(prefs.fingerScrolls, coarse))) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}
+            onKeyDownCapture={feedCopy ? (e) => copyFirstOnKey(e, feed!.text, () => qa.continueHere(feedId(set.subject), set.id, part.id, feed!)) : undefined}>
             <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
             {feedCopy && (
               <OtherCopy

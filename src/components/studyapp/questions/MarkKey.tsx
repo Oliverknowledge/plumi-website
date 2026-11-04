@@ -8,6 +8,8 @@ import type { QPart, QSet } from "@/lib/studyapp/questions/model";
 export function MarkKey({ set, part }: { set: QSet; part: QPart }) {
   if (part.k && !part.ms) return null;
   const key = markKeyFor(set.subject);
+  // Levels are for an extended answer: a one-mark question, or a multiple-choice one, has none to explain.
+  if (key.summary.includes("levels") && (part.k || (part.m ?? 0) <= 1)) return null;
   return (
     <details className="qs-mkey" data-testid="mark-key">
       <summary>{key.summary}</summary>

@@ -161,13 +161,30 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     if (r.left > 0) toast(`First ${MAX_SET_PARTS} questions`);
   };
   const setSort = (s: FeedSort) => change(s === "mix" ? { sort: "mix", seed: newSeed() } : { sort: s });
-  const mixUp = () => change({ sort: "mix", seed: newSeed() });
   const clearAll = () => { setSearch(""); change({ topics: [], papers: [], series: [], types: [], calc: "", scheme: false, q: "", hideDone: false }); };
   const active = feedActive(filters);
   const setFolded = useCallback((f: boolean) => updateFeedPrefs((p) => ({ ...p, folded: { ...p.folded, [slug]: f } })), [slug]);
   /** Where the page was when the filters were opened from far down the list on a phone (where they sit above the list): put back when they are closed. */
   const backTo = useRef<{ y: number; key: string } | null>(null);
   const toTop = (y: number) => window.scrollTo({ top: y, left: 0, behavior: "instant" as ScrollBehavior });
+  /** Mix them up: on a phone the button is inside the Filters card, so the card closes and the page goes to the mixed list (the change is seen, not made out of sight). */
+  const mixUp = () => {
+    change({ sort: "mix", seed: newSeed() });
+    if (phone && bodyOpen) { backTo.current = null; setFolded(true); toTop(0); }
+  };
+  // Escape closes the Filters card (a dropdown inside it that is open takes the key first).
+  useEffect(() => {
+    if (!bodyOpen) return;
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(".qf-multi[open]")) return;
+      const a = document.activeElement;
+      if (a && a !== document.body && a.matches?.("textarea, input:not([type=search])") && !a.closest?.(".qf-body")) return;
+      setFolded(true);
+      document.querySelector<HTMLElement>('[data-testid="feed-filters-toggle"]')?.focus({ preventScroll: true });
+    };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [bodyOpen, setFolded]);
   const toggleBody = () => {
     if (!bodyOpen && phone && window.scrollY > 200) { backTo.current = { y: window.scrollY, key: listKey }; toTop(0); }
     else if (bodyOpen && backTo.current) { const b = backTo.current; backTo.current = null; if (b.key === listKey) toTop(b.y); }
@@ -228,18 +245,20 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     }, 100);
     return () => clearInterval(t);
   }, []);
-  // A small way back to the top: only past three screens, only while the student is scrolling back UP (going down they are reading on), at the right edge, and never
-  // while a control in the list has focus (it would sit on a symbol key or the writing space they are using).
+  // A small way back to the top: only past three screens, only while the student is scrolling back UP (going down they are reading on; the page being put back where it was on
+  // opening is not the student scrolling), at the right edge under the sticky bar, and never while they are typing or drawing (a text box or the pen's canvas has focus).
   const [deep, setDeep] = useState(false);
   const [pillTop, setPillTop] = useState(132);
   useEffect(() => {
-    let last = window.scrollY, up = false, idle: ReturnType<typeof setTimeout> | undefined;
-    const focusInList = () => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest?.(".qf-list"); };
+    let last = window.scrollY, up = false, moved = false, idle: ReturnType<typeof setTimeout> | undefined;
+    const writing = () => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest?.(".qf-list") && !!a.matches?.("textarea, input, select, canvas, [contenteditable='true']"); };
     const sync = () => {
       // under the sticky bar at the top (the writing, its symbol keys and the pen are all lower down)
       const h = head.current; if (h) setPillTop(Math.round(h.getBoundingClientRect().bottom) + 10);
-      setDeep(up && window.scrollY > window.innerHeight * 3 && !focusInList());
+      setDeep(moved && up && window.scrollY > window.innerHeight * 3 && !writing());
     };
+    // The student's own scrolling (wheel, finger, keys, dragging the bar) is what counts.
+    const mine = () => { moved = true; };
     const on = () => {
       const y = window.scrollY, dy = y - last;
       if (Math.abs(dy) >= 8) { up = dy < 0; last = y; }
@@ -247,10 +266,12 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       clearTimeout(idle);
       idle = setTimeout(() => { up = false; sync(); }, 4000);
     };
+    const evs = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
+    evs.forEach((e) => window.addEventListener(e, mine, { passive: true }));
     window.addEventListener("scroll", on, { passive: true });
     document.addEventListener("focusin", sync);
     document.addEventListener("focusout", sync);
-    return () => { window.removeEventListener("scroll", on); document.removeEventListener("focusin", sync); document.removeEventListener("focusout", sync); clearTimeout(idle); };
+    return () => { evs.forEach((e) => window.removeEventListener(e, mine)); window.removeEventListener("scroll", on); document.removeEventListener("focusin", sync); document.removeEventListener("focusout", sync); clearTimeout(idle); };
   }, []);
   const first = list.length > MAX_SET_PARTS;
   const acts = (
@@ -268,9 +289,8 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
-        tier={tier} phone={phone} here={hereLine} acts={acts}
+        tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted}
       />
-      {!persisted && <p className="qs-warn qf-notsaved" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open until you finish.</p>}
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
       <FeedFilterBody
         meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen}
@@ -293,7 +313,16 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
         <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
       )}
       {deep && (
-        <button type="button" className="qf-top" style={{ top: pillTop }} aria-label="Back to the top" onClick={() => { window.scrollTo({ top: 0, behavior: "instant" }); setDeep(false); }} data-testid="feed-top">
+        <button type="button" className="qf-top" style={{ top: pillTop }} aria-label="Back to the top" onClick={() => {
+          window.scrollTo({ top: 0, behavior: "instant" }); setDeep(false);
+          // focus goes to the first question drawn (not lost to the page, where a keyboard would start again from the top)
+          // (the list draws the top of itself a moment after the jump)
+          let tries = 0;
+          const t = setInterval(() => {
+            const first = document.querySelector<HTMLElement>('[data-i="0"] [data-testid="feed-card"]');
+            if (first) { first.focus({ preventScroll: true }); clearInterval(t); } else if (++tries > 25) clearInterval(t);
+          }, 40);
+        }} data-testid="feed-top">
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4M4 9l6-6 6 6" /></svg>Top
         </button>
       )}

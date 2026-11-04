@@ -28,8 +28,26 @@ const BENGALI: readonly Sym[] = [
   { ch: "“", name: "opening double quotation mark" }, { ch: "”", name: "closing double quotation mark" }, { ch: "…", name: "ellipsis" }, { ch: "৳", name: "taka" },
 ];
 
-export interface SymbolKit { keys: readonly Sym[]; /** The superscript and subscript buttons (maths and science). */ script: boolean }
-const NONE: SymbolKit = { keys: [], script: false };
+export interface SymbolKit {
+  keys: readonly Sym[];
+  /** The superscript and subscript buttons (maths and science). */
+  script: boolean;
+  /** The language the answer is written in, where it is not English ("fr", "es", "bn"). */
+  lang?: string;
+  /** The browser underlines misspelt words: only for answers written in English prose (not a language, not code). */
+  spell: boolean;
+  /** The answer is code: no auto-capital, no auto-correct. */
+  code: boolean;
+}
+const PLAIN = { spell: true, code: false } as const;
+const NONE: SymbolKit = { keys: [], script: false, ...PLAIN };
+const CODE: readonly Sym[] = [
+  { ch: "(", name: "open bracket" }, { ch: ")", name: "close bracket" }, { ch: "[", name: "open square bracket" }, { ch: "]", name: "close square bracket" },
+  { ch: "{", name: "open brace" }, { ch: "}", name: "close brace" }, { ch: "\"", name: "double quote" }, { ch: "'", name: "single quote" },
+  { ch: "<", name: "less than" }, { ch: ">", name: "greater than" }, { ch: "=", name: "equals" }, { ch: "!", name: "exclamation mark" },
+  { ch: "&", name: "ampersand" }, { ch: "|", name: "vertical bar" }, { ch: "_", name: "underscore" }, { ch: ";", name: "semicolon" },
+  { ch: ":", name: "colon" }, { ch: "#", name: "hash" }, { ch: "%", name: "percent" }, { ch: "\\", name: "backslash" },
+];
 
 /**
  * What the typing strip offers for a subject (its bank slug, "aqa-gcse-french"): the accents of French and Spanish, the punctuation of Bengali, the maths and science
@@ -39,11 +57,12 @@ const NONE: SymbolKit = { keys: [], script: false };
 export function symbolsFor(slug: string): SymbolKit {
   const s = `-${slug.toLowerCase()}-`;
   const has = (...words: string[]) => words.some((w) => s.includes(`-${w}-`));
-  if (has("french")) return { keys: FRENCH, script: false };
-  if (has("spanish")) return { keys: SPANISH, script: false };
-  if (has("bengali")) return { keys: BENGALI, script: false };
-  if (has("maths", "physics", "chemistry", "biology", "science", "computer-science", "computing")) return { keys: SYMBOLS, script: true };
-  if (has("geography", "economics", "business", "psychology", "engineering-manufacture")) return { keys: NUMERIC, script: false };
+  if (has("french")) return { keys: FRENCH, script: false, lang: "fr", spell: false, code: false };
+  if (has("spanish")) return { keys: SPANISH, script: false, lang: "es", spell: false, code: false };
+  if (has("bengali")) return { keys: BENGALI, script: false, lang: "bn", spell: false, code: false };
+  if (has("computer-science", "computing")) return { keys: CODE, script: false, spell: false, code: true };
+  if (has("maths", "physics", "chemistry", "biology", "science")) return { keys: SYMBOLS, script: true, ...PLAIN };
+  if (has("geography", "economics", "business", "psychology", "engineering-manufacture")) return { keys: NUMERIC, script: false, ...PLAIN };
   return NONE;
 }
 

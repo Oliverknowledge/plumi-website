@@ -58,7 +58,8 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   const { Doodle } = art;
   const style = { "--tint": coverColour(choice.base), "--tilt": `${art.tilt}deg` } as CSSProperties;
   return (
-    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}>
+    <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
+      onBlur={(e) => { if (showFlap && !e.currentTarget.contains(e.relatedTarget as Node | null)) onClose(); }}>
       <div className={`qk-book qk-cover--${art.cover} qk-tape--${art.tape} qk-bind--${art.binding}`}>
         <span className="qk-spine" aria-hidden="true" />
         <span className="qk-tape" aria-hidden="true" />
