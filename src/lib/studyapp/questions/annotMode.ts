@@ -21,8 +21,8 @@ export function useAnnotMouse(): boolean {
   return useSyncExternalStore((cb) => { subs.add(cb); return () => { subs.delete(cb); }; }, () => on, () => false);
 }
 
-/** A kill switch for support: `localStorage["plumi-annot-off"] = "1"` puts the pictures back as they were, no layer, no tools (the marks stay kept). */
-export const annotOff = (): boolean => { try { return typeof localStorage !== "undefined" && localStorage.getItem("plumi-annot-off") === "1"; } catch { return false; } };
+/** Writing on the question is OFF until it has passed its last review (two first-pen-stroke bugs on iPad-width screens): the layer, its tools and its cue are not shown. `localStorage["plumi-annot-on"] = "1"` turns it on for testing; `plumi-annot-off = "1"` still forces it off. Marks already kept stay kept. */
+export const annotOff = (): boolean => { try { if (typeof localStorage === "undefined") return true; return localStorage.getItem("plumi-annot-off") === "1" || localStorage.getItem("plumi-annot-on") !== "1"; } catch { return true; } };
 
 /** The one-line cue for pen users ("write on the question with your pencil") is shown until the first mark is made on any question; remembered on this device. */
 const CUE = "plumi-annot-cue";
