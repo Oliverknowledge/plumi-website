@@ -3,11 +3,9 @@
  * (cropUrls.test.ts holds them equal), written out here because that file imports every subject's data and the study
  * app's pages should not carry it.
  */
-/**
- * Where the pictures are served from: NEXT_PUBLIC_PAPERS_URL if set, otherwise (in any built site, a Vercel preview included)
- * the public R2 bucket, so a preview deployment without the variable still shows the pictures; `next dev` keeps /papers-local.
- */
-export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? (process.env.NODE_ENV === "production" ? "https://pub-e8a9dbab8e2a4d089f52b2a45e0d0b50.r2.dev" : "/papers-local")).replace(/\/$/, "");
+import { papersBase } from "@/config/papers";
+
+export { papersBase };
 const MS_VERSION = 2;
 
 export function partImage(id: string, kind: "qp" | "ms" | "stem", version?: number): string {

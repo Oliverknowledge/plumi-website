@@ -10,7 +10,7 @@ import { bankDataUrl, type BankPart, type BankSubject } from "@/content/question
  */
 const lists = new Map<string, Promise<BankPart[]>>();
 
-/** r2.dev rate-limits bursts, and a build's workers all ask at once, so a refusal or a dropped connection is tried again before it can stop the build. */
+/** The file host can rate-limit bursts (r2.dev does), and a build's workers all ask at once, so a refusal or a dropped connection is tried again before it can stop the build. */
 async function fetchParts(url: string, slug: string, tries = 4): Promise<BankPart[]> {
   for (let i = 1; ; i++) {
     try {
@@ -27,7 +27,7 @@ async function fetchParts(url: string, slug: string, tries = 4): Promise<BankPar
 export function bankParts(s: BankSubject): Promise<BankPart[]> {
   const url = bankDataUrl(s, "parts");
   if (!url?.startsWith("http")) {
-    throw new Error(`No parts list for ${s.slug}: ${url ? "NEXT_PUBLIC_PAPERS_URL must be R2's address" : "run scripts/question-bank/upload_data.py " + s.slug}`);
+    throw new Error(`No parts list for ${s.slug}: ${url ? "NEXT_PUBLIC_PAPERS_URL must be the bucket's address" : "run scripts/question-bank/upload_data.py " + s.slug}`);
   }
   let list = lists.get(url);
   if (!list) {
