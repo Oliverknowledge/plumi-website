@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { tabColour } from "@/lib/studyapp/questions/setupBooks";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { progress, visibleSets, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { subjectFor, viewFor, type FeedViewKind } from "@/lib/studyapp/questions/feedView";
 import { updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { qa } from "@/lib/studyapp/questions/store";
-import { baseSubject, boardLabel, subjectTint, tierLine, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
+import { baseSubject, boardLabel, tierLine, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { Feed } from "./Feed";
 import { Radios } from "./FeedBar";
 import { useMatch } from "./useMatch";
@@ -57,8 +58,9 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
     tabs.current[at]?.focus();
   };
   if (!entry) return null;
+  const subLine = `${boardLabel(entry)} \u00b7 ${entry.level}${tierLine(q.tiers?.[entry.slug], entry.tiers) ? ` \u00b7 ${tierLine(q.tiers?.[entry.slug], entry.tiers)}` : ""}`;
   return (
-    <main className="qs-page qs-picker qh-home qf-home qf-ground" data-testid="home" id="qs-main" style={{ "--tint": subjectTint(entry.subject) } as React.CSSProperties}>
+    <main className="qs-page qs-picker qh-home qf-home qf-ground" data-testid="home" id="qs-main" style={{ "--tint": tabColour(baseSubject(entry.subject)) } as React.CSSProperties}>
       <div className="wrap">
         <div className="qs-col">
           <header className={`qs-head${phone ? " qf-head-phone" : ""}`}>
@@ -67,9 +69,9 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
             </div>
             <div className="qf-head-acts">
               {phone && (
-                <button type="button" id="qf-subjbtn" ref={subjBtn} className="qf-subj" onClick={() => setPicking(true)} aria-haspopup="dialog" data-testid="subject-picker" style={{ "--tint": subjectTint(entry.subject) } as React.CSSProperties}>
+                <button type="button" id="qf-subjbtn" ref={subjBtn} className="qf-subj" onClick={() => setPicking(true)} aria-haspopup="dialog" aria-expanded={picking} aria-label={`Subject: ${baseSubject(entry.subject)}, ${subLine}. Change subject`} data-testid="subject-picker" style={{ "--tint": tabColour(baseSubject(entry.subject)) } as React.CSSProperties}>
                   <span className="qf-subj-name">{baseSubject(entry.subject)}</span>
-                  <span className="qf-subj-sub">{`${boardLabel(entry)} \u00b7 ${entry.level}${tierLine(q.tiers?.[entry.slug], entry.tiers) ? ` \u00b7 ${tierLine(q.tiers?.[entry.slug], entry.tiers)}` : ""}`}</span>
+                  <span className="qf-subj-sub">{subLine}</span>
                   <ChevronIcon />
                 </button>
               )}
@@ -98,7 +100,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
                   return (
                     <button
                       key={e.slug} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" id={`qf-tab-${e.slug}`} aria-selected={on} aria-controls="qf-panel" tabIndex={on ? 0 : -1}
-                      className={`qf-tab${on ? " on" : ""}`} style={{ "--tint": subjectTint(e.subject) } as React.CSSProperties} onClick={() => choose(e.slug)} onKeyDown={(ev) => onTabKey(ev, i)} data-testid="subject-tab" data-slug={e.slug}
+                      className={`qf-tab${on ? " on" : ""}`} style={{ "--tint": tabColour(baseSubject(e.subject)) } as React.CSSProperties} onClick={() => choose(e.slug)} onKeyDown={(ev) => onTabKey(ev, i)} data-testid="subject-tab" data-slug={e.slug}
                     >
                       <span className="qf-tab-name">{baseSubject(e.subject)}</span>
                       <span className="qf-tab-sub">{`${boardLabel(e)} \u00b7 ${e.level}${tier ? ` \u00b7 ${tier}` : ""}`}</span>
@@ -108,7 +110,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
               </div>
               <button type="button" className="qf-tab qf-tab-add" onClick={onSetup} data-testid="add-subject" aria-label="Add a subject"><PlusIcon /></button>
             </div>
-            <button type="button" className="qs-link qf-change" onClick={onSetup} data-testid="change-subjects">Change</button>
+            <button type="button" className="qs-link qf-change" onClick={onSetup} data-testid="change-subjects">Change subjects</button>
           </div>}
 
           <div id="qf-panel" role="tabpanel" aria-labelledby={phone ? "qf-subjbtn" : `qf-tab-${entry.slug}`} className="qf-panel">
@@ -135,6 +137,8 @@ function SubjectSheet({ entries, current, q, onClose, onChoose, onSetup, onSets,
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
+  // The page behind the sheet does not scroll under a finger that is moving the list of subjects.
+  useEffect(() => { const el = document.documentElement; el.classList.add("qf-locked"); return () => el.classList.remove("qf-locked"); }, []);
   const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
   return (
     <dialog ref={ref} className="qf-subjsheet" aria-label="Your subjects" onClose={onClose} onClick={(e) => { if (e.target === ref.current) close(); }} data-testid="subject-sheet">
@@ -145,7 +149,7 @@ function SubjectSheet({ entries, current, q, onClose, onChoose, onSetup, onSets,
             const tier = tierLine(q.tiers?.[e.slug], e.tiers);
             return (
               <li key={e.slug}>
-                <button type="button" className={`qf-subjrow${e.slug === current ? " on" : ""}`} aria-current={e.slug === current ? "true" : undefined} onClick={() => onChoose(e.slug)} style={{ "--tint": subjectTint(e.subject) } as React.CSSProperties} data-testid="subject-row" data-slug={e.slug}>
+                <button type="button" className={`qf-subjrow${e.slug === current ? " on" : ""}`} aria-current={e.slug === current ? "true" : undefined} onClick={() => onChoose(e.slug)} style={{ "--tint": tabColour(baseSubject(e.subject)) } as React.CSSProperties} data-testid="subject-row" data-slug={e.slug}>
                   <span className="qf-subjrow-dot" aria-hidden="true">{e.slug === current ? "\u2713" : ""}</span><span className="qf-subjrow-name">{baseSubject(e.subject)}</span>
                   <span className="qf-subjrow-sub">{`${boardLabel(e)} \u00b7 ${e.level}${tier ? ` \u00b7 ${tier}` : ""}`}</span>
                 </button>
@@ -155,7 +159,7 @@ function SubjectSheet({ entries, current, q, onClose, onChoose, onSetup, onSets,
         </ul>
         <div className="qf-subjacts">
           <button type="button" className="btn" onClick={onSetup} data-testid="add-subject">Add a subject</button>
-          <button type="button" className="qs-link qf-change" onClick={onSetup} data-testid="change-subjects">Change</button>
+          <button type="button" className="qs-link qf-change" onClick={onSetup} data-testid="change-subjects">Change subjects</button>
           {onSets && <button type="button" className="btn ghost" onClick={onSets} data-testid="your-sets">Your sets{setsCount > 0 && <span className="k">{setsCount}</span>}</button>}
         </div>
       </div>

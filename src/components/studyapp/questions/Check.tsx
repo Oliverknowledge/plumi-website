@@ -1,5 +1,6 @@
 "use client";
 
+import { lostLayout } from "@/lib/studyapp/questions/approx";
 import { useEffect, useRef, useState } from "react";
 import { bankFile, papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
 import { hasInk, hasText, markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
@@ -89,7 +90,7 @@ function Opening({ retry }: { retry(): void }) {
 }
 
 /** What the examiner's report says about a part: the paragraphs that name it first, then the rest of the question's under a fold. */
-export function ReportBody({ part, state }: { part: QPart; state: ReturnType<typeof useReport> }) {
+export function ReportBody({ part, state, subject }: { part: QPart; state: ReturnType<typeof useReport>; subject: string }) {
   const { report, failed, retry } = state;
   const split = report ? splitReport(report, part.l) : null;
   if (failed) return <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={retry}>Try again</button></p>;
@@ -97,6 +98,7 @@ export function ReportBody({ part, state }: { part: QPart; state: ReturnType<typ
   if (!report) return <p className="qs-scheme-note">No report for this question.</p>;
   return (
     <div className="qs-er-text">
+      {lostLayout(subject, report) && <p className="qs-scheme-note qs-approx" data-testid="report-approx">Fractions and powers in this report can lose their layout here, so a pair of numbers may be a fraction. The paper itself has it exactly.</p>}
       {split && split.mine.length > 0 && <><p className="qs-scheme-label">On {part.l}</p>{split.mine.map((p, i) => <p key={i}>{p}</p>)}</>}
       {split && split.rest.length > 0 && (
         <details open={split.mine.length === 0}>
@@ -153,7 +155,7 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
       )}
       {part.er && er && !reportOutside && (
         <div className="qs-er" id={`${id}-er`}>
-          <ReportBody part={part} state={reportState} />
+          <ReportBody part={part} state={reportState} subject={set.subject} />
         </div>
       )}
     </div>

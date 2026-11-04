@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { mathsLike } from "@/lib/studyapp/questions/approx";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
 import type { QPart, QSet } from "@/lib/studyapp/questions/model";
 import { partSchemeText, partText, type PartText, type SchemeText as SchemeTextData } from "@/lib/studyapp/questions/partText";
@@ -25,6 +26,7 @@ export function ReadAsText({ set, part }: { set: Pick<QSet, "subject">; part: QP
       {open && (got === null ? <p className="qs-scheme-note" role="status">Opening...</p> : got.text ? (
         <div className="qs-astext-body">
           <p lang="en-GB">{got.text}</p>
+          {mathsLike(set.subject) && <p className="qs-scheme-note" data-testid="astext-approx">Approximate: a fraction or a power can lose its layout here. The picture is exact.</p>}
           {!got.whole && <p className="qs-scheme-note">This is the start of the question. The picture has the rest.</p>}
         </div>
       ) : <p className="qs-scheme-note">There is no text for this question. The picture has it.</p>)}

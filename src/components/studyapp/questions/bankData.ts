@@ -108,6 +108,18 @@ export function useSubject(slug: string | null, attempt = 0, enabled = true): Lo
   return { state: "error" };
 }
 
+/** A subject's names and its papers' files (booklets, code, transcripts), for a place that has only the set: null until they arrive, and for good if they never do (the page then simply has no such links). */
+export function useSubjectMeta(slug: string): SubjectMeta | null {
+  const [got, setGot] = useState<{ slug: string; meta: SubjectMeta } | null>(null);
+  useEffect(() => {
+    if (loadedSubject.has(slug)) return;
+    let live = true;
+    once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta)).then((meta) => { if (live) setGot({ slug, meta }); }).catch(() => undefined);
+    return () => { live = false; };
+  }, [slug]);
+  return loadedSubject.get(slug)?.meta ?? (got?.slug === slug ? got.meta : null);
+}
+
 /** A subject's papers and rows for the tier the student sits (all of them if they sit both, or if the choice matches nothing). */
 export function narrowToTier(meta: SubjectMeta, rows: BankRow[], chosen: readonly string[]): { meta: SubjectMeta; rows: BankRow[]; tier: string | null } {
   const all = tiersOf(meta.papers, meta.level);

@@ -93,7 +93,9 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
             <button
               type="button" className="btn ghost" data-testid="save-work" disabled={saved === "working"}
               onClick={() => { setSaved("working"); void saveWork(set, q).then((ok) => setSaved(ok ? "done" : "failed")); }}
-            >Save my work</button>
+            >{saved === "working" ? "Saving..." : saved === "done" ? "Saved \u2713" : "Save my work"}</button>
+            {saved === "done" && <span className="qs-saved" data-testid="saved-note">Saved to your downloads</span>}
+            {saved === "failed" && <span className="qs-saved qs-saved-no" data-testid="saved-note">Could not save. Try again.</span>}
           </div>
           <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "failed" ? "Could not save. Try again." : ""}</p>
         </section>

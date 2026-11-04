@@ -261,6 +261,9 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       for (const a of add) touch(strokeBounds(a));
       schedule();
       changed(s.ink);
+      // What waits to be written may have been taken before these strokes arrived (a copy of the answer's ink, or another tab's): write the whole now, so the newer
+      // snapshot is what the queue holds and what the device ends with (an older one would drop them, as strokes this tab has already seen are not added again).
+      saveSoon(inkKey, s.ink);
     });
     void loadInk(inkKey).then((ink) => {
       if (!live) return;

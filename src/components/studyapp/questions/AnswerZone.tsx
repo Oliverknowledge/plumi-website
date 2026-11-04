@@ -164,7 +164,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
           ) : <div className={`qs-ink bg-${prefs.bg}`} style={{ aspectRatio: `${REF_W} / ${units}` }} aria-hidden="true" onPointerDown={() => setNear(true)} />
         ) : (
           <TypePad
-            text={answer?.text ?? ""} units={units} hand={!!prefs.hand} label={label} full={full}
+            subject={set.subject} text={answer?.text ?? ""} units={units} hand={!!prefs.hand} label={label} full={full}
             onText={(t) => { const ok = qa.text(set.id, part.id, t); setFull(!ok); return ok; }}
           />
         )}

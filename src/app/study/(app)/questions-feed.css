@@ -489,9 +489,9 @@ html[data-qf-engaged] .rp-tip { display: none; }
 }
 
 /* ── the way back to the top; Write | Type are there without hovering; the zoom hint ── */
-.pa .qf-top { position: fixed; z-index: 14; left: 72px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); min-height: 44px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 21px/1 var(--f-hand); color: var(--ink); cursor: pointer; transform: rotate(-1.5deg); }
+.pa .qf-top { position: fixed; z-index: 14; right: calc(10px + env(safe-area-inset-right, 0px)); display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 14px 0 10px; border: 2px solid var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 20px/1 var(--f-hand); color: var(--ink); cursor: pointer; }
 .pa .qf-top:hover { background: #fff3cf; }
-@media (max-width: 640px) { .pa .qf-top { left: 12px; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+.pa .qf-notsaved { margin: 8px 0; }
 @media (hover: hover) and (pointer: fine) { .pa .qf-answer .qs-zone[data-mode="ink"] .qs-zone-head { opacity: .8; } .pa .qf-answer .qs-zone[data-mode="ink"]:hover .qs-zone-head { opacity: 1; } }
 .pa dialog.qs-zoomd .qs-zoomd-hint { position: absolute; z-index: 4; left: 12px; top: 14px; margin: 0; padding: 6px 12px; border-radius: 14px; background: rgba(34, 48, 77, .88); color: #f5f9ff; font: 800 13px var(--f-body); }
 
@@ -502,3 +502,42 @@ html[data-qf-engaged] .rp-tip { display: none; }
 .pa .qf-home .qs-resume img { width: 30px; height: 30px; }
 .pa .qf-home .qs-resume-text b { font-size: 16px; }
 .pa .qs-mixacts .qs-link { white-space: nowrap; }
+
+/* ── a paper's own files beside a question: its booklet, code files, transcript ── */
+.pa .qf-files { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.pa .qf-file { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px; border: 2px solid var(--ink); border-radius: 12px; background: #fffaf0; box-shadow: 0 2px 0 var(--ink); color: var(--ink); font: 800 14px/1.25 var(--f-body); text-decoration: none; }
+.pa .qf-file:hover { background: color-mix(in srgb, var(--tint, #f2c96b) 55%, #fffaf0); }
+.pa .qf-file span:not(.qs-sr) { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── a narrow phone (under 380px, 320px included): the search has a row of its own, Filters and the count share the one below ── */
+@media (max-width: 379px) {
+  .pa .qf-head { grid-template-columns: auto minmax(0, 1fr); }
+  .pa .qf-search { grid-column: 1 / -1; grid-row: 1; }
+  .pa .qf-fbtn { grid-column: 1; grid-row: 2; }
+  .pa .qf-count { grid-column: 2; grid-row: 2; }
+  .pa .qf-nres, .pa .qf-here, .pa .qf-prog { max-width: none; }
+}
+
+/* ── the magnifier: a labelled "Zoom" pill on a phone (an unlabelled icon was missed), the icon alone elsewhere ── */
+.pa .qs-zoom-t { display: none; }
+@media (max-width: 640px) {
+  .pa .qs-cropbox .qs-zoom, .pa .qf-sheet .qs-cropbox .qs-zoom, .pa .qs-paper .qs-part > .qs-cropbox .qs-zoom {
+    width: auto; min-height: 44px; padding: 0 14px 0 10px; gap: 6px; grid-auto-flow: column; border: 2px solid var(--ink); border-radius: 22px; background: #fffaf0; color: var(--ink); box-shadow: 0 2px 0 var(--ink);
+  }
+  .pa .qs-cropbox .qs-zoom::before { display: none; }
+  .pa .qs-zoom-t { display: inline; font: 800 14px/1 var(--f-body); }
+}
+
+/* ── low items: the strip of the Build page is as warm as the notebook, "tap for lofi" stays off the list that has "Add the rest", the text read aloud is left-aligned, Save my work says it saved ── */
+.pa .qf-ground .qs-tools, .pa .qf-ground .qs-tools-row { background: rgba(251, 242, 222, .95); }
+.pa:has(.qs-results) .rp-tip { display: none; }
+.pa .qf-pic .qs-astext-body, .pa .qs-astext-body { text-align: left; }
+.pa .qs-saved { align-self: center; font: 800 14px/1.3 var(--f-body); color: #2d6a3e; }
+.pa .qs-saved-no { color: #8a2f2f; }
+/* the Write | Type toggle that is not the one in use: dark ink on the white, at least 4.5 to 1 */
+.pa .qs-mode button[aria-pressed="false"] { color: var(--ink); }
+html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: none; }
+.pa .qf-cue { transition: opacity .45s ease, visibility 0s .45s; }
+.pa .qf-cue.is-gone { opacity: 0; visibility: hidden; pointer-events: none; }
+.pa .qf-card:focus { outline: none; }
+.pa .qf-card:focus-visible { outline: 3px solid var(--navy, #22304d); outline-offset: 4px; }

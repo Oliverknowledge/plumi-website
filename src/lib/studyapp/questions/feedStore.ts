@@ -93,3 +93,12 @@ export const takeHeldScroll = (): boolean => { const held = performance.now() - 
 let openPart: string | null = null;
 export const setOpenPart = (id: string | null) => { openPart = id; };
 export const takeOpenPart = (): string | null => { const p = openPart; openPart = null; return p; };
+
+/**
+ * The question the student left the feed from (The whole paper, See it): when they come back, focus goes to that card, not to the top of the page. Read without being
+ * taken (a feed that is built twice still finds it) and cleared once focus has been put there, or after a moment.
+ */
+let leftCard: { id: string; at: number } | null = null;
+export const setLeftCard = (id: string) => { leftCard = { id, at: performance.now() }; };
+export const getLeftCard = (): string | null => (leftCard && performance.now() - leftCard.at < 600_000 ? leftCard.id : null);
+export const clearLeftCard = () => { leftCard = null; };

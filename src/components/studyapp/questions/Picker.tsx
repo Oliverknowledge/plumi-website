@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { tabColour } from "@/lib/studyapp/questions/setupBooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { compareLabels, MAX_SET_PARTS, marksOf, progress, visibleSets, type QuestionsData } from "@/lib/studyapp/questions/model";
 import {
   areaState, BANDS, buildSetInput, filterCount, filterRows, hasScheme, minutesFor, mix, NO_FILTERS, partsByQuestion, seeded, sortRows, toggleArea,
   type BankRow, type Filters,
 } from "@/lib/studyapp/questions/picker";
-import { subjectTint, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
+import { baseSubject, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 import { qa } from "@/lib/studyapp/questions/store";
 import { toast } from "../toast";
 import { useBankText, useSubject } from "./bankData";
@@ -36,7 +37,7 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
   const browsing = !!saved && !choosing;
   const entry = catalogue.find((c) => c.slug === saved);
   const title = entry?.title ?? saved ?? "";
-  const tint = entry && browsing ? subjectTint(entry.subject) : undefined;
+  const tint = entry && browsing ? tabColour(baseSubject(entry.subject)) : undefined;
   // Back from a sheet (or a first visit) puts focus on the page's heading, so a keyboard or a screen reader starts at the top, not on nothing.
   const h1 = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -227,7 +228,7 @@ function Loaded({ meta, rows, q, autoMix, onChange, onLeave }: { meta: SubjectMe
           <button type="button" className={`qs-tbtn${nFilters > 0 ? " on" : ""}`} aria-haspopup="dialog" onClick={() => setFopen(true)} data-testid="filters-toggle">
             <FilterIcon /><span>Filters</span>{nFilters > 0 && <span className="qs-badge" aria-label={`${nFilters} on`}>{nFilters}</span>}
           </button>
-          <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(mixed?.n ?? 10)} data-testid="mix"><ShuffleIcon /><span>Shuffle</span></button>
+          {!inMix && <button type="button" className="qs-tbtn qs-mixbtn" onClick={() => doMix(10)} data-testid="mix"><ShuffleIcon /><span>Shuffle</span></button>}
         </div>
         {hasRail && !inMix && (
           <div className="qs-rail" role="group" aria-label="Topics and filters">

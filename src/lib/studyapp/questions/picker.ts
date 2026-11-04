@@ -1,4 +1,5 @@
 import { questionKeyOf, type QPart, type SetInput } from "./model";
+import { needsInsert } from "./specials";
 import type { SubjectMeta } from "./subject";
 
 /**
@@ -175,7 +176,7 @@ export const filterCount = (f: Pick<Filters, "paper" | "series" | "band" | "sche
   topics.length + (f.paper ? 1 : 0) + (f.series ? 1 : 0) + (f.band !== "any" ? 1 : 0) + (f.scheme ? 1 : 0);
 
 /** What a set remembers of a bank row. */
-export function toQPart(r: BankRow): QPart {
+export function toQPart(r: BankRow, subject?: string): QPart {
   const p: QPart = { id: r.id, p: r.p, s: r.s, l: r.l, m: r.m, t: r.t, w: r.w, h: r.h, x: r.x.slice(0, 140) };
   if (r.or) p.or = 1;
   if (r.st) p.st = 1;
@@ -187,6 +188,9 @@ export function toQPart(r: BankRow): QPart {
   if (r.sk) p.sk = r.sk;
   if (r.au) p.au = r.au;
   if (r.auw) p.auw = 1;
+  if (r.sol) p.sol = 1;
+  // Whether the question is read against the paper's booklet is worked out from its whole text now (a set keeps only its first 140 characters).
+  if (r.src || (subject && needsInsert(subject, r))) p.src = 1;
   return p;
 }
 
@@ -199,7 +203,7 @@ export function buildSetInput(meta: SubjectMeta, rows: readonly BankRow[], extra
     names[r.s] = meta.series.find((x) => x.id === r.s)?.label ?? r.s;
     for (const code of r.t) { const t = meta.topics.find((x) => x.code === code); if (t) topics[code] = t.short ?? t.title; }
   }
-  return { ...extra, subject: meta.slug, title: meta.title, cv: meta.cv, rq: meta.rq, names, topics, parts: rows.map(toQPart) };
+  return { ...extra, subject: meta.slug, title: meta.title, cv: meta.cv, rq: meta.rq, names, topics, parts: rows.map((r) => toQPart(r, meta.subject)) };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);

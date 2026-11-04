@@ -1,20 +1,21 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { insertAt, SYMBOLS, toSub, toSup } from "@/lib/studyapp/questions/symbols";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { insertAt, symbolsFor, toSub, toSup, type SymbolKit } from "@/lib/studyapp/questions/symbols";
 import { REF_W } from "@/lib/studyapp/questions/ink";
 import { TEXT_PART_CAP, TYPE_REM } from "@/lib/studyapp/questions/model";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
 
 /** The strip of symbols: drawn once, not on every keystroke (it only depends on the function that inserts). */
-const SymbolBar = memo(function SymbolBar({ put }: { put(ch: string, wrap?: (s: string) => string): void }) {
+const SymbolBar = memo(function SymbolBar({ put, kit }: { put(ch: string, wrap?: (s: string) => string): void; kit: SymbolKit }) {
   const keep = (e: { preventDefault(): void }) => e.preventDefault();   // do not take the selection from the box
+  if (!kit.keys.length) return null;
   return (
-    <div className="qs-sym" role="toolbar" aria-label="Symbols">
-      {SYMBOLS.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
-      <span className="qs-sym-sep" aria-hidden="true" />
+    <div className="qs-sym" role="toolbar" aria-label={kit.script ? "Symbols" : "Letters and punctuation"}>
+      {kit.keys.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
+      {kit.script && <><span className="qs-sym-sep" aria-hidden="true" />
       <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSup)} aria-label="Raise the selected text (superscript)" title="Select some text, then tap">x<sup>n</sup></button>
-      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button>
+      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button></>}
     </div>
   );
 });
@@ -25,7 +26,7 @@ const SymbolBar = memo(function SymbolBar({ put }: { put(ch: string, wrap?: (s: 
  * moving to another tab or app, and on closing the page. The size is the student's (Normal or Large, in rem, so a browser's
  * larger-text setting counts too). Text that arrives from another tab is not allowed to replace words not yet sent from here.
  */
-export function TypePad({ text, onText, hand, label, full, units }: { text: string; onText(t: string): boolean; hand: boolean; label: string; full: boolean; units: number }) {
+export function TypePad({ text, onText, hand, label, full, units, subject }: { subject: string; text: string; onText(t: string): boolean; hand: boolean; label: string; full: boolean; units: number }) {
   const area = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState(text);
   const sent = useRef(text);
@@ -34,6 +35,7 @@ export function TypePad({ text, onText, hand, label, full, units }: { text: stri
   const send = useRef(onText);
   useEffect(() => { send.current = onText; });
 
+  const kit = useMemo(() => symbolsFor(subject), [subject]);
   const size = useQuestionsValue((q) => q.prefs.typeSize ?? "normal");
 
   // The text was changed from outside (a reset, or another tab): take it, unless there are words here not sent yet.
@@ -77,7 +79,7 @@ export function TypePad({ text, onText, hand, label, full, units }: { text: stri
   }, []);
   return (
     <div className="qs-type">
-      <SymbolBar put={put} />
+      <SymbolBar put={put} kit={kit} />
       <div className="qs-typebox" style={{ aspectRatio: `${REF_W} / ${units}` }}>
         <textarea
           ref={area} className={`qs-text${hand ? " is-hand" : ""}`} value={value} aria-label={label} placeholder="Type your answer here"

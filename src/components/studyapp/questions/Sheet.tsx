@@ -5,7 +5,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { INK_TOTAL_CAP, REF_W } from "@/lib/studyapp/questions/ink";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import {
-  blockScore, blocks, cutWords, feedId, hasInk, hasText, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
+  blockScore, blocks, cutWords, feedId, hasInk, hasText, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress, questionOf,
   zoneHeight, type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
 } from "@/lib/studyapp/questions/model";
 import { qa, useQuestions } from "@/lib/studyapp/questions/store";
@@ -19,6 +19,9 @@ import { Crop } from "./Crop";
 import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
 import { ListenPlayer } from "./ListenPlayer";
+import { PartFiles } from "./PartFiles";
+import { paperSpecials, specialsFor, transcriptOf, type PaperFiles } from "@/lib/studyapp/questions/specials";
+import { useSubjectMeta } from "./bankData";
 import { OtherCopy } from "./OtherCopy";
 import { PagePopover } from "./PagePopover";
 import { PenTray } from "./PenTray";
@@ -45,6 +48,8 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   const [confirm, setConfirm] = useState(false);
   const [said, setSaid] = useState("");
   const penSeen = usePenSeen();
+  const meta = useSubjectMeta(set.subject);
+  const files = useMemo<(PaperFiles & { subject: string }) | null>(() => (meta ? { subject: meta.subject, ins: meta.ins, code: meta.code, trs: meta.trs } : null), [meta]);
   const { persisted } = useQuestions();
   const phone = useMatch("(max-width: 640px)");
   const prefs = q.prefs;
@@ -230,9 +235,14 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
         {!persisted && (
           <p className="qs-warn" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open until you finish.</p>
         )}
+        {files && set.paper && (() => {
+          const [ser, pap] = set.paper.split("|");
+          const f = paperSpecials(files, pap ?? "", ser ?? "");
+          return f.length ? <PartFiles files={f} className="qf-paperfiles" /> : null;
+        })()}
         <article className="qs-paper" id="qs-sheet" tabIndex={-1} aria-label={set.name}>
           {bs.map((b, i) => (
-            <QuestionBlock key={b.key} set={set} block={b} answers={q.answers} prefs={prefs} first={i === 0} setRef={setRef} index={i} eager={i >= mountAt - 1 && i <= mountAt + 2} />
+            <QuestionBlock key={b.key} set={set} block={b} files={files} answers={q.answers} prefs={prefs} first={i === 0} setRef={setRef} index={i} eager={i >= mountAt - 1 && i <= mountAt + 2} />
           ))}
           <section className="qs-end" aria-label="End of the set">
             <Image src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={64} height={64} unoptimized />
@@ -283,6 +293,7 @@ const sameSet = (a: QSet, b: QSet) =>
   a.id === b.id && a.parts === b.parts && a.names === b.names && a.topics === b.topics && a.cv === b.cv && a.rq === b.rq && a.subject === b.subject;
 
 interface QProps {
+  files: (PaperFiles & { subject: string }) | null;
   set: QSet; block: Block; answers: Record<string, QAnswer>; prefs: QPrefs; first: boolean;
   setRef(i: number, el: HTMLElement | null): void; index: number;
   /** The question is round the one the student opened the set at: its parts are drawn at once, the others when they come near the screen. */
@@ -290,20 +301,22 @@ interface QProps {
 }
 
 /** Redrawn only when this question's own parts, the preferences, or the set itself change: a stroke or a keystroke in one part redraws that part alone. */
-const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, first, setRef, index, eager }: QProps) {
+const QuestionBlock = memo(function QuestionBlock({ set, block, files, answers, prefs, first, setRef, index, eager }: QProps) {
   const sc = blockScore(set, block, answers);
   const p0 = block.parts[0];
+  // A set made from the feed or the picker keeps each question's own number from its paper ("Q5", "Q12"), not 1, 2, 3 in the order they were chosen; a whole paper is numbered as printed anyway.
+  const qn = set.paper ? String(block.n) : questionOf(p0.l);
   const small = [nameOf(set.names, p0.s) ?? p0.s, nameOf(set.names, p0.p) ?? p0.p].filter(Boolean).join(" · ");
   return (
     <section className="qs-q" ref={(el) => setRef(index, el)} data-n={block.n} id={`q-${block.n}`} data-testid="question-block">
       <header className="qs-qhead">
-        <h2 className="qs-qmeta"><span className="qs-sr">Question {block.n}. </span><span aria-hidden="true">Q{block.n}{small ? " \u00b7 " : ""}</span>{small}</h2>
+        <h2 className="qs-qmeta"><span className="qs-sr">Question {qn}. </span><span aria-hidden="true">Q{qn}{small ? " \u00b7 " : ""}</span>{small}</h2>
         {first && <Image className="qs-qmascot" src="/study/mascot/plumi-lofi-cozy.svg" alt="" width={56} height={56} unoptimized />}
       </header>
       {block.stem && (
         <Crop className="qs-stem" src={stemImage(block.stem, set.cv)} alt={`The start of question ${block.n}`} eager={block.n <= 2} guess={3.2} zoom />
       )}
-      {block.parts.map((p) => <PartBlock key={p.id} set={set} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} feed={set.feed ? undefined : answers[keyOf(feedId(set.subject), p.id)]} prefs={prefs} startNear={eager || block.n <= 2} />)}
+      {block.parts.map((p) => <PartBlock key={p.id} set={set} files={files} part={p} block={block} answer={answers[keyOf(set.id, p.id)]} feed={set.feed ? undefined : answers[keyOf(feedId(set.subject), p.id)]} prefs={prefs} startNear={eager || block.n <= 2} />)}
       <footer className="qs-qfoot">
         {sc && sc.marked > 0 && (
           <span className="qs-qscore" role="img" aria-label={`You gave yourself ${sc.got} out of ${sc.total} for question ${block.n}`} data-testid="block-score">{sc.got}/{sc.total}</span>
@@ -312,14 +325,14 @@ const QuestionBlock = memo(function QuestionBlock({ set, block, answers, prefs, 
       </footer>
     </section>
   );
-}, (a, b) => a.index === b.index && a.first === b.first && a.eager === b.eager && a.block === b.block && a.prefs === b.prefs && sameSet(a.set, b.set) && a.block.parts.every((p) => {
+}, (a, b) => a.index === b.index && a.files === b.files && a.first === b.first && a.eager === b.eager && a.block === b.block && a.prefs === b.prefs && sameSet(a.set, b.set) && a.block.parts.every((p) => {
   const k = keyOf(a.set.id, p.id), f = keyOf(feedId(a.set.subject), p.id);
   return a.answers[k] === b.answers[k] && a.answers[f] === b.answers[f];
 }));
 
-interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; /** The same question's answer in the subject's feed, if the student has one there. */ feed: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
+interface PProps { files: (PaperFiles & { subject: string }) | null; set: QSet; part: QPart; block: Block; answer: QAnswer | undefined; /** The same question's answer in the subject's feed, if the student has one there. */ feed: QAnswer | undefined; prefs: QPrefs; startNear: boolean }
 
-const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, prefs, startNear }: PProps) {
+const PartBlock = memo(function PartBlock({ set, files, part, block, answer, feed, prefs, startNear }: PProps) {
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
   const feedCopy = !!feed && !(hasInk(answer) || hasText(answer)) && (hasInk(feed) || hasText(feed));
   const seeFeed = () => {
@@ -352,13 +365,14 @@ const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, pref
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
           <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom />
           <ReadAsText set={set} part={part} />
-          {part.au && <ListenPlayer part={part} transcript={null} checked={false} />}
+          {files && <PartFiles files={specialsFor(files, part).filter((f) => f.kind !== "tr")} />}
+          {part.au && <ListenPlayer part={part} transcript={files ? transcriptOf(files.trs, part.p, part.s) : null} checked />}
           <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (e.pointerType !== "touch" && (e.target as Element).closest?.(".qs-canvas, textarea")) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}>
             <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
             {feedCopy && (
               <OtherCopy
                 partId={part.id} setId={feedId(set.subject)} answer={feed!} label={isMarked(feed) && part.m != null ? `Marked ${Math.min(feed!.got ?? 0, part.m)} of ${part.m} in your feed` : "Written in your feed"}
-                onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); }}
+                onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!, true); }}
               />
             )}
             {answer?.got !== undefined && part.m != null && (
@@ -371,4 +385,4 @@ const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, pref
       )}
     </div>
   );
-}, (a, b) => a.part === b.part && a.block === b.block && a.answer === b.answer && a.feed === b.feed && a.prefs === b.prefs && sameSet(a.set, b.set));
+}, (a, b) => a.part === b.part && a.files === b.files && a.block === b.block && a.answer === b.answer && a.feed === b.feed && a.prefs === b.prefs && sameSet(a.set, b.set));

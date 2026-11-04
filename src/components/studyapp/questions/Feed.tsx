@@ -1,17 +1,18 @@
 "use client";
 
 import Image from "next/image";
+import { tabColour } from "@/lib/studyapp/questions/setupBooks";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   bandsFor, cleanFeedFilters, elsewhere, feedActive, hasFeedAnswer, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine,
   type FeedFilters, type FeedSort,
 } from "@/lib/studyapp/questions/feed";
-import { holdScroll, rememberPos, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
+import { clearLeftCard, getLeftCard, holdScroll, rememberPos, setLeftCard, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { blocks, feedHasRoom, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { groupPapers, paperKey, paperSetInput, paperState } from "@/lib/studyapp/questions/papers";
 import { buildSetInput, hasScheme, partsByQuestion, type BankRow } from "@/lib/studyapp/questions/picker";
-import { currentQuestions, qa } from "@/lib/studyapp/questions/store";
-import { subjectTint, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
+import { currentQuestions, qa, useQuestions } from "@/lib/studyapp/questions/store";
+import { baseSubject, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 import { cardEstimate } from "@/lib/studyapp/questions/virtual";
 import { toast } from "../toast";
 import { useBankText, useSubject } from "./bankData";
@@ -62,6 +63,7 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
 }
 
 function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData }) {
+  const { persisted } = useQuestions();
   const slug = entry.slug;
   const phone = useMatch("(max-width: 640px)");
   const prefs = useFeedPrefs();
@@ -91,7 +93,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const ctx = useMemo(() => ({ text: bank.text, bands, done }), [bank.text, bands, done]);
   const list = useMemo(() => feedList(orders, filters, ctx), [orders, filters, ctx]);
   const byQuestion = useMemo(() => partsByQuestion(orders.new), [orders]);
-  const listKey = useMemo(() => JSON.stringify(filters), [filters]);
+  const listKey = useMemo(() => JSON.stringify([filters, tier]), [filters, tier]);
   /** The questions that show a "How question 3 starts" / "so far" button (a setup picture, or a part after the first), so their height is guessed right. */
   const withStart = useMemo(() => {
     const ids = new Set<string>();
@@ -105,6 +107,9 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     papers: new Map(meta.papers.map((p) => [p.id.toLowerCase(), p.name])),
     topics: new Map(meta.topics.map((t) => [t.code, t.short ?? t.title])),
     trs: meta.trs ?? {},
+    ins: meta.ins,
+    code: meta.code,
+    subject: meta.subject,
   }), [meta]);
   const info = useMemo<FeedInfo>(() => ({ subject: slug, title: meta.title, cv: meta.cv, rq: meta.rq }), [slug, meta]);
   /** The set the answer parts read (its identity fields only; the stored feed set holds the questions touched). */
@@ -131,6 +136,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     const paper = groupPapers(rows.filter((r) => paperKey(r.s, r.p) === key), meta)[0];
     if (!paper) return;
     setOpenPart(part.id);
+    setLeftCard(part.id);
     const cur = currentQuestions();
     const st = paperState(slug, key, cur.sets, cur.answers);
     const id = st.set ? st.set.id : qa.start(paperSetInput(meta, paper));
@@ -143,6 +149,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     const set = currentQuestions().sets.find((x) => x.id === setId);
     if (!set) return;
     setOpenPart(partId);
+    setLeftCard(partId);
     const at = blocks(set.parts).findIndex((b) => b.parts.some((p) => p.id === partId));
     if (at > 0) qa.at(setId, at);
     qa.open(setId);
@@ -180,7 +187,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const render = useCallback((p: BankRow, i: number) => {
     const sib = byQuestion.get(questionKeyOf(p)) ?? [p];
     return (
-      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} full={full} cue={!wrote && i < 3} onTopic={onTopic} onWhole={onWhole} onSee={onSee} />
+      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} full={full} cue={i < 3} wrote={wrote} onTopic={onTopic} onWhole={onWhole} onSee={onSee} />
     );
   }, [byQuestion, view, info, lookup, q.answers, q.prefs, other, full, wrote, onTopic, onWhole, onSee]);
 
@@ -190,7 +197,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     if (!el) return 66;
     return (parseFloat(getComputedStyle(el).top) || 66) + el.offsetHeight;
   }, []);
-  const tint = subjectTint(entry.subject);
+  const tint = tabColour(baseSubject(entry.subject));
   const searching = search.trim().length > 0;
   const searchNote = searching && !bank.text && !bank.failed ? <span className="qf-note-l"> {"·"} looking through the papers</span>
     : searching && bank.failed ? <span className="qf-note-l"> {"·"} searching titles only <button type="button" className="qs-link" onClick={bank.retry}>Try again</button></span> : null;
@@ -205,13 +212,45 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     on();
     return () => { window.removeEventListener("scroll", on); window.removeEventListener("pointerdown", press); delete el.dataset.qfEngaged; };
   }, []);
-  // After about three screens a small way back to the top
-  const [deep, setDeep] = useState(false);
+  // Back from "The whole paper" or "See it": focus is on the card the student left (once it is drawn), not lost at the top of the page.
   useEffect(() => {
-    const on = () => setDeep(window.scrollY > window.innerHeight * 3);
+    const id = getLeftCard();
+    if (!id) return;
+    let tries = 0;
+    const t = setInterval(() => {
+      tries++;
+      const el = document.querySelector<HTMLElement>(`[data-testid="feed-card"][data-part="${CSS.escape(id)}"]`);
+      const a = document.activeElement;
+      // (nothing is focused, or only the page's own heading that the app puts focus on when a page opens)
+      const idle = !a || a === document.body || /^H[1-6]$/.test(a.tagName);
+      if (el && idle) { el.focus({ preventScroll: true }); clearLeftCard(); clearInterval(t); }
+      else if (tries > 30 || !idle) { clearLeftCard(); clearInterval(t); }
+    }, 100);
+    return () => clearInterval(t);
+  }, []);
+  // A small way back to the top: only past three screens, only while the student is scrolling back UP (going down they are reading on), at the right edge, and never
+  // while a control in the list has focus (it would sit on a symbol key or the writing space they are using).
+  const [deep, setDeep] = useState(false);
+  const [pillTop, setPillTop] = useState(132);
+  useEffect(() => {
+    let last = window.scrollY, up = false, idle: ReturnType<typeof setTimeout> | undefined;
+    const focusInList = () => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest?.(".qf-list"); };
+    const sync = () => {
+      // under the sticky bar at the top (the writing, its symbol keys and the pen are all lower down)
+      const h = head.current; if (h) setPillTop(Math.round(h.getBoundingClientRect().bottom) + 10);
+      setDeep(up && window.scrollY > window.innerHeight * 3 && !focusInList());
+    };
+    const on = () => {
+      const y = window.scrollY, dy = y - last;
+      if (Math.abs(dy) >= 8) { up = dy < 0; last = y; }
+      sync();
+      clearTimeout(idle);
+      idle = setTimeout(() => { up = false; sync(); }, 4000);
+    };
     window.addEventListener("scroll", on, { passive: true });
-    on();
-    return () => window.removeEventListener("scroll", on);
+    document.addEventListener("focusin", sync);
+    document.addEventListener("focusout", sync);
+    return () => { window.removeEventListener("scroll", on); document.removeEventListener("focusin", sync); document.removeEventListener("focusout", sync); clearTimeout(idle); };
   }, []);
   const first = list.length > MAX_SET_PARTS;
   const acts = (
@@ -231,6 +270,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
         tier={tier} phone={phone} here={hereLine} acts={acts}
       />
+      {!persisted && <p className="qs-warn qf-notsaved" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open until you finish.</p>}
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
       <FeedFilterBody
         meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen}
@@ -245,11 +285,18 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       {rows.length === 0 ? (
         <div className="qs-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>No questions here yet</b></div>
       ) : list.length === 0 ? (
-        <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>Nothing matches</b><button type="button" className="btn" onClick={clearAll}>Clear filters</button></div>
+        <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>{searching ? "Nothing matches your search" : "Nothing matches"}</b>
+          {searching && <button type="button" className="btn" onClick={() => setSearch("")} data-testid="feed-clear-search">Clear search</button>}
+          {active > 0 && <button type="button" className="btn" onClick={clearAll}>Clear filters</button>}
+        </div>
       ) : (
         <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
       )}
-      {deep && <button type="button" className="qf-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} data-testid="feed-top">Back to the top</button>}
+      {deep && (
+        <button type="button" className="qf-top" style={{ top: pillTop }} aria-label="Back to the top" onClick={() => { window.scrollTo({ top: 0, behavior: "instant" }); setDeep(false); }} data-testid="feed-top">
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4M4 9l6-6 6 6" /></svg>Top
+        </button>
+      )}
       <FeedPen prefs={q.prefs} />
     </div>
   );

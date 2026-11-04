@@ -174,6 +174,9 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   const report = useCallback(() => {
     const h = here();
     const it = h ? latest.current.items[h.i] : undefined;
+    // At the very top of the page the first question is still below the reading line; that is "the top", not a place 190px down the first question.
+    const first = latest.current.items[0];
+    if (window.scrollY < 2 && first) { latest.current.onPos({ id: first.id, off: 0 }); return; }
     if (h && it) latest.current.onPos({ id: it.id, off: h.off });
   }, [here]);
   const lastHere = useRef<string | undefined>(undefined);
@@ -215,7 +218,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   useLayoutEffect(() => {
     if (!start) return;
     const i = indexRef.current.get(start.id);
-    if (i !== undefined) { jump(boxTop() + offsRef.current[i] + start.off - latest.current.gap()); capture(); }
+    if (i !== undefined) { jump(i === 0 && start.off === 0 ? 0 : boxTop() + offsRef.current[i] + start.off - latest.current.gap()); capture(); }
     // only on opening
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -233,7 +236,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
     const go = () => {
       if (touched) return;
-      const want = boxTop() + offsRef.current[i] + start.off - latest.current.gap();
+      const want = i === 0 && start.off === 0 ? 0 : boxTop() + offsRef.current[i] + start.off - latest.current.gap();
       if (Math.abs(window.scrollY - want) > 3) { jump(want); capture(); }
     };
     go();

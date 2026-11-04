@@ -137,7 +137,7 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
         </div>
       )}
       {zoomable && (
-        <button type="button" className="qs-zoom" aria-label={`Enlarge ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /></button>
+        <button type="button" className="qs-zoom" aria-label={`Zoom in on ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /><span className="qs-zoom-t" aria-hidden="true">Zoom</span></button>
       )}
     </div>
     {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} onClose={() => setBig(false)} />}

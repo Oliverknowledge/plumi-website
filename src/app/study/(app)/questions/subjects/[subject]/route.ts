@@ -9,6 +9,11 @@ export function generateStaticParams() {
 export async function GET(_request: Request, { params }: { params: Promise<{ subject: string }> }) {
   const s = bankSubject((await params).subject);
   if (!s) return Response.json({ error: "No such subject" }, { status: 404 });
+  const files = (k: "tr" | "ins" | "code") => {
+    const e = Object.entries(s.wholes).filter(([, w]) => w[k]).map(([key, w]) => [key, w[k] as string]);
+    return e.length ? Object.fromEntries(e) : undefined;
+  };
+  const trs = files("tr"), ins = files("ins"), code = files("code");
   const meta: SubjectMeta = {
     slug: s.slug,
     title: bankTitle(s),
@@ -22,7 +27,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     topics: s.topics.map((t) => ({ code: t.code, ref: t.ref, title: t.title, short: t.short, section: t.section, count: t.count })),
     sections: s.sections.map((x) => ({ code: x.code, title: x.title })),
     papers: s.papers.map((p) => ({ id: p.id, name: p.name, ...(p.title ? { title: p.title } : {}) })),
-    ...(Object.values(s.wholes).some((w) => w.tr) ? { trs: Object.fromEntries(Object.entries(s.wholes).filter(([, w]) => w.tr).map(([k, w]) => [k, w.tr as string])) } : {}),
+    ...(trs ? { trs } : {}),
+    ...(ins ? { ins } : {}),
+    ...(code ? { code } : {}),
     series: s.series.map((x) => ({ id: x.id, label: x.label })),
   };
   return Response.json(meta);

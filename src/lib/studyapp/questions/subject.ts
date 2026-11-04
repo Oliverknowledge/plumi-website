@@ -15,6 +15,9 @@ export interface SubjectMeta {
   calcPapers?: 1;
   /** A listening paper's transcript (a PDF, relative to the papers base) by `<paper>-<series>`: `"8658LH-JUN25"`. */
   trs?: Record<string, string>;
+  /** A paper's booklet (sources, interpretations, extracts, reading texts, resources, insert; a PDF) and its code files (a zip), by `<paper>-<series>`. */
+  ins?: Record<string, string>;
+  code?: Record<string, string>;
   topics: SubjectTopic[];
   sections: { code: string; title: string }[];
   papers: { id: string; name: string; title?: string }[];

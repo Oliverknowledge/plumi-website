@@ -95,7 +95,7 @@
 /* the label on the cover (where the board is written) and what is written on it */
 .pa .qk-label { position: absolute; z-index: 1; left: 44px; right: 14px; bottom: 12px; height: 46px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1.5px solid rgba(34, 48, 77, .5); border-radius: 3px; text-align: left;
   background: linear-gradient(transparent 21px, rgba(70, 100, 170, .34) 21px 22px, transparent 22px 43px, rgba(70, 100, 170, .34) 43px 44px, transparent 44px), #fffdf6; overflow: hidden; pointer-events: none; }
-.pa .qk-short { display: none; }
+.pa .qk-short, .pa .qk-show380 { display: none; }
 .pa .qk-label-empty::before { content: "board?"; font: 700 19px/1 var(--f-hand); color: rgba(34, 48, 77, .4); transform: rotate(-2deg); }
 .pa .qk-sticker { flex: none; max-width: 100%; padding: 5px 9px 4px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--qk-pop); font: 800 13px/1 var(--f-body); color: var(--ink); white-space: nowrap; transform: rotate(-2deg); box-shadow: 1px 1px 0 rgba(34, 48, 77, .35); overflow: hidden; text-overflow: ellipsis; animation: qk-pop .18s ease-out both; }
 .pa .qk-sticker-tier { background: rgba(255, 255, 255, .85); border-style: dashed; transform: rotate(1.5deg); box-shadow: none; }
@@ -126,7 +126,7 @@
 .pa .qk-mini { position: absolute; left: 6px; bottom: calc(var(--i, 0) * 11px); width: 52px; height: 14px; border: 2px solid var(--ink); border-radius: 3px 6px 6px 3px; background: linear-gradient(90deg, rgba(34, 48, 77, .35) 0 5px, transparent 5px), linear-gradient(90deg, var(--tint) 0 80%, #fffaf0 80% 100%); animation: qk-drop .2s ease-out both; animation-delay: calc(var(--i, 0) * 25ms); }
 .pa .qk-mini:nth-child(2) { left: 12px; width: 46px; } .pa .qk-mini:nth-child(3) { left: 3px; width: 54px; } .pa .qk-mini:nth-child(4) { left: 10px; width: 48px; } .pa .qk-mini:nth-child(5) { left: 5px; width: 53px; }
 @keyframes qk-drop { from { opacity: 0; transform: translateY(-14px) rotate(-6deg); } }
-.pa .qk-count { position: absolute; top: -8px; right: -6px; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border: 2px solid var(--ink); border-radius: 13px; background: var(--qk-pop); font: 800 14px/1 var(--f-body); color: var(--ink); }
+.pa .qk-count { position: absolute; top: -10px; right: -8px; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 7px; border: 2px solid var(--ink); border-radius: 15px; background: var(--qk-pop); font: 800 16px/1 var(--f-body); color: var(--ink); }
 .pa .qk-bar-tape { position: absolute; left: 22px; top: -11px; width: 56px; height: 18px; transform: rotate(-4deg); background: repeating-linear-gradient(90deg, #f4a7a0 0 7px, #fff3ee 7px 14px); opacity: .95; clip-path: polygon(0 0, 100% 0, 97% 30%, 100% 60%, 97% 100%, 0 100%, 3% 60%, 0 30%); }
 /* the tabs: index tabs on the page's edge */
 .pa .qk-tab { --tab: #f6d5c4; }
@@ -193,6 +193,7 @@
 @keyframes qk-rise { from { opacity: 0; transform: translateX(-50%) translateY(16px); } }
 .pa .qk-pile { position: relative; flex: none; width: 66px; height: 58px; }
 .pa .qk-line { flex: 1; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 23px/1.1 var(--f-hand); color: var(--ink); }
+.pa .qk-line-n { display: none; white-space: nowrap; }
 .pa .qk-line.ask { color: #8a3b17; }
 .pa .qk-go { flex: none; min-height: 48px; padding: 0 22px; font-size: 16px; }
 /* waiting on a board: an active prompt (cream, inked, rust), not a dead grey button */
@@ -248,11 +249,28 @@
   .pa .qk-bar { left: 16px; right: 76px; width: auto; transform: none; animation-name: qk-rise-s; }
   .pa .qk-line { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow-wrap: normal; word-break: normal; }
 }
+/* 320px: the line is the count, readable, and the button gives way a little */
+@media (max-width: 380px) {
+  .pa .qk-hide380 { display: none; } .pa .qk-show380 { display: inline; }
+  .pa .qk-sticker { font-size: 11px; padding: 3px 4px 2px; }
+  .pa .qk-line-text { display: none; }
+  .pa .qk-line-n { display: inline; }
+  .pa .qk-go { min-width: 0; padding: 0 8px; font-size: 14px; }
+  .pa .qk-pile { width: 46px; }
+  .pa .qk-bar { right: 64px; gap: 5px; padding-left: 8px; }
+  .pa .qk-line { font-size: 16px; }
+}
 @keyframes qk-rise-s { from { opacity: 0; transform: translateY(16px); } }
-/* a short screen (a phone on its side, 400% zoom): nothing fixed eats the page */
+/* a short screen (a phone on its side, 400% zoom): the bar stays on screen but small, one row of the pile, a count and the button (the line of names is for a screen reader only), clear of the record player's column; an open flap scrolls above it */
 @media (max-height: 520px) {
   .pa .qk-setup { padding-bottom: 24px; }
-  .pa .qk-bar { position: static; width: min(640px, calc(100% - 24px - 64px)); margin: 12px auto 0 12px; transform: none; animation-name: qk-rise-s; }
+  .pa .qk-bar { position: sticky; left: auto; right: auto; bottom: 6px; width: min(640px, calc(100% - 24px - 64px)); margin: 8px auto 0 12px; padding: 3px 4px 3px 10px; gap: 8px; transform: none; animation-name: qk-rise-s; }
+  .pa .qk-line-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pa .qk-line-n { display: inline; }
+  .pa .qk-line { font-size: 18px; }
+  .pa .qk-pile { height: 50px; }
+  .pa .qk-go { min-height: 44px; }
+  .pa .qk-flap { scroll-margin-bottom: 72px; }
 }
 @media (pointer: coarse) { .pa .qk-go { min-height: 48px; } }
 
@@ -294,3 +312,8 @@
 /* a count on a two-line tab sits on its corner */
 .pa .qk-tabs-more .qk-tab-n { position: absolute; top: -9px; right: -4px; }
 @media (forced-colors: active) { .pa .qk-tab-hint { color: inherit; } .pa .qk-hint { color: CanvasText; } }
+
+/* "Not sure?": one line under the board tags */
+.pa .qk-guess { position: relative; display: block; min-height: 44px; margin: 0; padding: 0 6px; border: 0; background: transparent; font: 700 18px/1 var(--f-hand); color: #5a3a2a; text-decoration: underline; text-underline-offset: 3px; text-decoration-style: dotted; cursor: pointer; }
+.pa .qk-guess:hover { color: var(--ink); }
+@media (forced-colors: active) { .pa .qk-guess { color: LinkText; } }

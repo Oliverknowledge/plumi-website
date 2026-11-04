@@ -156,6 +156,9 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
       </div>
       <div className="wrap">
         <div className="qk-col">
+          {draft.size > 0 && (
+            <a className="qs-skip" href="#qk-bar-go" onClick={(e) => { e.preventDefault(); document.getElementById("qk-bar-go")?.focus(); }}>Skip to Let&apos;s go</a>
+          )}
           <header className="qk-head">
             <div className="qk-head-text">
               {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />Back</button>}

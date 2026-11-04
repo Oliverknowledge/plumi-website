@@ -1,0 +1,66 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { insertKind, needsInsert, paperSpecials, specialsFor, transcriptOf } from "./specials";
+
+const ins = { "81451AA-JUN22": "aqa/AQA-81451AA-INS-JUN22.pdf" };
+const hist = { subject: "History", ins };
+
+test("a History question on the interpretations links the source booklet", () => {
+  const f = specialsFor(hist, { p: "81451AA", s: "JUN22", x: "How does Interpretation B differ from Interpretation A about conflict on the Plains?" });
+  assert.equal(f.length, 1);
+  assert.equal(f[0].kind, "ins");
+  assert.match(f[0].label, /^Open the source booklet \(PDF\)$/);
+  assert.match(f[0].href, /aqa\/AQA-81451AA-INS-JUN22\.pdf$/);
+});
+
+test("a History essay with no sources has no booklet link, and a paper with no booklet never has one", () => {
+  assert.deepEqual(specialsFor(hist, { p: "81451AA", s: "JUN22", x: "Write an account of the ways in which the settlers changed the Plains." }), []);
+  assert.deepEqual(specialsFor(hist, { p: "81451AA", s: "JUN25", x: "Study Source A." }), []);
+});
+
+test("English Language, English Literature and Geography papers with a booklet link it from every question", () => {
+  for (const subject of ["English Language", "English Literature A", "Geography"]) assert.ok(needsInsert(subject, { x: "Give one reason." }), subject);
+});
+
+test("the booklet's name follows the subject", () => {
+  assert.equal(insertKind("Geography").noun, "resource booklet");
+  assert.equal(insertKind("French").noun, "reading texts");
+  assert.equal(insertKind("Physics B").noun, "insert");
+  assert.equal(insertKind("English Language").noun, "source booklet");
+});
+
+test("a language question links the reading texts only when the bank says it reads them", () => {
+  assert.ok(needsInsert("French", { x: "Lisez le texte", src: 1 }));
+  assert.ok(!needsInsert("French", { x: "Quel est votre sport favori ?" }));
+});
+
+test("OCR's scientific literacy papers link the insert on every question; other sciences when the words name it", () => {
+  assert.ok(needsInsert("Chemistry B", { x: "Explain why." }));
+  assert.ok(needsInsert("Biology A", { x: "Use Fig. 17.2 in the insert to answer." }));
+  assert.ok(!needsInsert("Biology A", { x: "State two functions of the liver." }));
+});
+
+test("code files link on the paper that has them, as a download", () => {
+  const f = specialsFor({ subject: "Computer Science", code: { "1cp22-JUN22": "edexcel/EDX-1CP2-02-DATA-JUN22.zip" } }, { p: "1cp22", s: "JUN22", x: "Open the file." });
+  assert.equal(f.length, 1);
+  assert.equal(f[0].kind, "code");
+  assert.ok(f[0].download);
+});
+
+test("a transcript is for a question with a recording", () => {
+  const m = { subject: "French", trs: { "76521-JUN25": "aqa/AQA-76521-TR-JUN25.pdf" } };
+  assert.deepEqual(specialsFor(m, { p: "76521", s: "JUN25", x: "Ecoutez" }).map((f) => f.kind), []);
+  assert.deepEqual(specialsFor(m, { p: "76521", s: "JUN25", x: "Ecoutez", au: "aqa/a.mp3" }).map((f) => f.kind), ["tr"]);
+  assert.equal(transcriptOf(m.trs, "76521", "JUN25"), "aqa/AQA-76521-TR-JUN25.pdf");
+  assert.equal(transcriptOf(m.trs, "76521", "JUN24"), null);
+});
+
+test("a paper's header offers every file it has", () => {
+  const f = paperSpecials({ subject: "History", ins, trs: { "81451AA-JUN22": "aqa/t.pdf" } }, "81451aa", "JUN22");
+  assert.deepEqual(f.map((x) => x.kind), ["ins", "tr"]);
+});
+
+test("a path that is not a plain file path is never linked", () => {
+  assert.deepEqual(paperSpecials({ subject: "History", ins: { "a-JUN22": "../../etc/passwd" } }, "a", "JUN22"), []);
+  assert.deepEqual(paperSpecials({ subject: "History", ins: { "a-JUN22": "javascript:alert(1)" } }, "a", "JUN22"), []);
+});

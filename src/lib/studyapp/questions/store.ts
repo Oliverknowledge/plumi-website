@@ -211,12 +211,15 @@ function askToKeep() {
  * "Continue here": the same question's writing and typing from another place (a paper, a set, the feed) copied into this answer, on the student's own tap.
  * The handwriting is copied under this answer's key first, then the document is told, so nothing is ever in one without the other.
  */
-async function continueHere(fromSetId: string, toSetId: string, partId: string, a: QAnswer): Promise<void> {
+async function continueHere(fromSetId: string, toSetId: string, partId: string, a: QAnswer, flip = false): Promise<void> {
+  // The copy is neutral about how the student answers: on the first mark or key on the faded copy the input stays what it is (a change would remount the canvas or the box
+  // under the pen or the finger and drop the first marks), and both kinds are kept (the Write and Type tabs each show a dot for what they hold). Only the explicit "Continue
+  // here" button, which is no gesture in progress, turns to the kind of answer it copied.
   if (hasInk(a)) {
     const r = await copyInk(keyOf(fromSetId, partId), keyOf(toSetId, partId));
-    if (r.n > 0) { qa.mode(toSetId, partId, "ink"); qa.ink(toSetId, partId, r.n, r.bytes); }
+    if (r.n > 0) { if (flip) qa.mode(toSetId, partId, "ink"); qa.ink(toSetId, partId, r.n, r.bytes); }
   }
-  if (hasText(a) && a.text) { qa.text(toSetId, partId, a.text); if (!hasInk(a)) qa.mode(toSetId, partId, "type"); }
+  if (hasText(a) && a.text) { qa.text(toSetId, partId, a.text); if (flip && !hasInk(a)) qa.mode(toSetId, partId, "type"); }
 }
 
 export const qa = {

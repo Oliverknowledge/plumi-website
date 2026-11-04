@@ -79,14 +79,14 @@ export const levelHint = (level: string): string | null => LEVEL_HINTS[level] ??
 export const TIER_HINT = "Pick a tier to start on the right questions";
 
 /**
- * A book's own cover colour: a real colour (not a CSS variable, so it draws in the pile on the feed too, where the tab's tint variables do not
- * exist), a different one for each subject the bank has, and for any other subject one picked from its name, the same every time.
+ * A book's own cover colour (the feed's subject tabs use the same one, `tabColour`): a real colour (not a CSS variable, so it draws in the pile on the feed too, where the tab's tint variables do not
+ * exist), a different one for each subject the bank has (no two closer than 10 in CIELAB, tested), and for any other subject one picked from its name, the same every time.
  */
 const COVER: Record<string, string> = {
-  maths: "#c9ddf5", "further-maths": "#d8cdf2", biology: "#bfe8e1", chemistry: "#cde8b0", physics: "#f5cfc6", "combined-science": "#b5e6cf",
-  geography: "#dbe5b4", history: "#ecd6b4", "english-language": "#f8e29c", "english-literature": "#efc4d4", french: "#c4cdf3", spanish: "#f9c99a",
-  bengali: "#dccaa8", psychology: "#f4d3ea", "computer-science": "#aedcf0", business: "#d3cfe3", economics: "#f0d98f", law: "#cfc7bd",
-  philosophy: "#e3c8f0", politics: "#e9b9b0", sociology: "#f6dcc0", "religious-studies": "#c2dccb",
+  maths: "#a1cef7", "further-maths": "#998eeb", biology: "#8eebd2", chemistry: "#c4f0a8", physics: "#facabd", "combined-science": "#98e1a5",
+  geography: "#e0eb8e", history: "#f5f1db", "english-language": "#f7a1a7", "english-literature": "#f0a8d2", french: "#bdc6fa", spanish: "#f5bd84",
+  bengali: "#d8e8b0", psychology: "#ed84f5", "computer-science": "#a1f7f4", business: "#e3d5fc", economics: "#84f5bb", law: "#8ed4eb",
+  philosophy: "#c38eeb", politics: "#f4c2d3", sociology: "#e198d7", "religious-studies": "#a5f7a1",
 };
 const SPARE = ["#d9e6ff", "#ffe0e6", "#e6f0c8", "#e0d5c5", "#d2ecf7", "#f3e0f9", "#fbe7c6", "#cfe9dd"];
 export function coverColour(base: string): string {
@@ -95,4 +95,13 @@ export function coverColour(base: string): string {
   let h = 11;
   for (const ch of slug) h = (h * 37 + ch.charCodeAt(0)) >>> 0;
   return SPARE[h % SPARE.length];
+}
+/** The colour of a subject's tab on the feed: the same as its book's cover in the setup, so a student reads one colour for one subject. */
+export const tabColour = coverColour;
+
+/** The board a student most likely sits when they do not know theirs: the one with the most papers in the bank (the first by name on a tie). */
+export function commonBoard<T extends { count: number }>(boards: readonly T[]): T | undefined {
+  let best: T | undefined;
+  for (const b of boards) if (!best || b.count > best.count) best = b;
+  return best;
 }

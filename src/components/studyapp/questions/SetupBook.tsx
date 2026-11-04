@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import type { SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { bookLabel, coverColour, TIER_HINT } from "@/lib/studyapp/questions/setupBooks";
+import { bookLabel, commonBoard, coverColour, TIER_HINT } from "@/lib/studyapp/questions/setupBooks";
 import { sortTiers } from "@/lib/studyapp/questions/subject";
 import { bookArt, SETUP_ART } from "./BookArt";
 
@@ -44,6 +44,8 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   const flap = useRef<HTMLDivElement>(null);
   const cover = useRef<HTMLButtonElement>(null);
   const showFlap = on && open;
+  /** The board to offer to a student who does not know theirs, while none is chosen. */
+  const guess = on && !slug && choice.boards.length > 1 ? commonBoard(choice.boards) : undefined;
 
   // A flap that opens near the foot of the screen scrolls into view (a step, not a glide, when they prefer less motion).
   useEffect(() => {
@@ -68,7 +70,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
         {on && (choices ? (
           <button type="button" className="qk-label qk-label-btn" aria-expanded={showFlap} aria-controls={showFlap ? flapId : undefined} onClick={showFlap && !tierOnly ? onClose : onOpen}
             aria-label={board ? `${choice.base} exam board ${board}${tiered ? `, ${askTier ? "pick a tier" : anyTier ? "any tier" : tiersShown.join(" and ")}` : ""}. Change` : `Pick the exam board for ${choice.base}`} data-testid={`label-${choice.base}`}>
-            {board ? <span className="qk-sticker">{board}</span> : <span className="qk-sticker qk-sticker-ask">Pick a board</span>}
+            {board ? <span className="qk-sticker">{board}</span> : <span className="qk-sticker qk-sticker-ask"><span className="qk-hide380">Pick a board</span><span className="qk-show380">Board?</span></span>}
             {board && tiered && (askTier ? <span className="qk-sticker qk-sticker-ask"><span className="qk-long">Pick a tier</span><span className="qk-short">Tier?</span></span> : anyTier ? <span className="qk-sticker qk-sticker-tier qk-sticker-any">Any tier</span> : tiersShown.map((t) => <span key={t} className="qk-sticker qk-sticker-tier">{t}</span>))}
           </button>
         ) : (
@@ -86,6 +88,11 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
                 </button>
               ))}
             </div>
+          )}
+          {!tierOnly && guess && (
+            <button type="button" className="qk-guess" onClick={() => { onBoard(guess.slug); cover.current?.focus({ preventScroll: true }); }} data-testid={`board-guess-${choice.base}`}>
+              Not sure? Use {guess.label}
+            </button>
           )}
           {tiered && board && (
             <div className="qk-tags qk-tags-tier" role="group" aria-label={`Which tier of ${choice.base}`} data-testid={`tiers-${choice.base}`}>
