@@ -21,17 +21,17 @@ export function useAnnotMouse(): boolean {
   return useSyncExternalStore((cb) => { subs.add(cb); return () => { subs.delete(cb); }; }, () => on, () => false);
 }
 
-// Opening the page with ?annot=1 turns it on for this device (for a real-pencil test), ?annot=0 turns it off again.
+// Opening the page with ?annot=0 turns it off for this device, ?annot=1 turns it back on.
 try {
   if (typeof window !== "undefined") {
     const q = new URLSearchParams(window.location.search).get("annot");
-    if (q === "1") localStorage.setItem("plumi-annot-on", "1");
-    else if (q === "0") localStorage.removeItem("plumi-annot-on");
+    if (q === "0") localStorage.setItem("plumi-annot-off", "1");
+    else if (q === "1") localStorage.removeItem("plumi-annot-off");
   }
-} catch { /* storage blocked: stays off */ }
+} catch { /* storage blocked: stays as it is */ }
 
-/** Writing on the question is OFF until it has passed its last review (two first-pen-stroke bugs on iPad-width screens): the layer, its tools and its cue are not shown. `localStorage["plumi-annot-on"] = "1"` turns it on for testing; `plumi-annot-off = "1"` still forces it off. Marks already kept stay kept. */
-export const annotOff = (): boolean => { try { if (typeof localStorage === "undefined") return true; return localStorage.getItem("plumi-annot-off") === "1" || localStorage.getItem("plumi-annot-on") !== "1"; } catch { return true; } };
+/** Writing on the question is ON for everyone. `localStorage["plumi-annot-off"] = "1"` (or opening the page with ?annot=0) turns it off for one device. Marks already kept stay kept. */
+export const annotOff = (): boolean => { try { return typeof localStorage !== "undefined" && localStorage.getItem("plumi-annot-off") === "1"; } catch { return false; } };
 
 /** The one-line cue for pen users ("write on the question with your pencil") is shown until the first mark is made on any question; remembered on this device. */
 const CUE = "plumi-annot-cue";
