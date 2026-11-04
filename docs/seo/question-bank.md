@@ -358,10 +358,23 @@ specification's 61 numbered topics, by science: Biology 4.x, Chemistry 5.x, Phys
 - **Pipeline:** `scripts/question-bank/aqa_trilogy/`, the AQA GCSE scripts again.
   `fetch_trilogy.py` is fetch_aqa.py with Trilogy's file names (`8464B1F` for Biology
   Paper 1 Foundation, specimen papers as `84641B1F`). `spec_trilogy.py` reads the 4/5/6
-  numbering. `cut_trilogy.py` is cut.py with two fixes kept to this bank, so no other
+  numbering. `cut_trilogy.py` is cut.py with three fixes kept to this bank, so no other
   bank's crops move: a question running over onto a page with an "Extra space" box (and
-  its "[6 marks]") is no longer cut short, and a label whose point isn't bold ("0 3 . 1",
-  Chemistry 2H November 2021) is read. `tag_trilogy.py` and `build_trilogy.py` follow.
+  its "[6 marks]") is no longer cut short, a label whose point isn't bold ("0 3 . 1",
+  Chemistry 2H November 2021) is read, and a setup printed above a part's label goes
+  with that part. `tag_trilogy.py` and `build_trilogy.py` follow.
+- **Setups (re-cut 4 November 2026, `cropVersion` 1):** a student reported Chemistry 1H June
+  2025's "Particle X consists of:" sitting on 03.1, so a PDF of 03.2 went without it. A part ends at the next
+  label, and cut.py only moves a sentence of six or more words on a part with no tick boxes.
+  `cut_trilogy.py`'s `move_setups` also moves shorter sentences ("Figure 2 shows the results."),
+  lead-ins ending in a colon, and setups below tick boxes; it drops AQA's "Question 3 continues on
+  the next page" and any crossed-out "DO NOT WRITE ON THIS PAGE" page that came along with it. It
+  leaves a tick box's or table's row, a part's own instructions ("Use the equation:") and, on a
+  "complete the sentences" part, a sentence with a gap still to come. 710 crops changed
+  of 3,069: 148 parts gave a setup to the next part, the rest lost only the "continues" line.
+  Ids, marks and every paper's 70 stayed the same. Only those crops and their rows
+  were updated, not a whole rebuild. A later part can still lean on an earlier part's own
+  words (03.3 names particle X): the page's "Show question 3 so far" has them, the PDF doesn't.
 - **Tags:** 2,744 parts (89%) are tagged from the scheme's own specification references.
   The other 325 were tagged by Claude following `tag.md`.
 - **Practicals:** 526 parts. `practicals.py` and `bankHasPracticals` now count Combined
