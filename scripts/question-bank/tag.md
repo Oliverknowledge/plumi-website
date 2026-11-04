@@ -2064,7 +2064,9 @@ top, with these differences:
   design, design fixation `3.3.4`; every kind of drawing and recording `3.3.5`; prototypes, and
   the innovation or aesthetics of a product `3.3.6`; lengths, areas, volumes, ratios, datums and
   nesting `3.3.9`; using tools safely `3.3.10`; deforming, reforming and preparing for a finish
-  in the workshop `3.3.11`.## Edexcel GCSE French
+  in the workshop `3.3.11`.
+
+## Edexcel GCSE French
 
 `edexcel_gcse_french/tag_gcse_french.py split` lists Pearson Edexcel's GCSE French (1FR0, and the 1FR1 sample papers) questions in
 `.work/edexcel-gcse-french/tag/french-questions.tsv`, and `merge` gives every part its question's topics. The 489 answers, kept in
