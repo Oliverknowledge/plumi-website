@@ -22,8 +22,8 @@ Behind the same sign-in gate as the rest. **There is no AI marking in this versi
 ## Data flow
 
 ```
-public/question-bank/<slug>/parts.json  --fetch-->  picker rows (BankRow)       src/lib/studyapp/questions/picker.ts
-public/question-bank/<slug>/text.json   --fetch (only once someone types)-->     search text, folded in slices
+R2 bank-data/<slug>/parts.<hash>.json   --fetch-->  picker rows (BankRow)       src/lib/studyapp/questions/picker.ts
+R2 bank-data/<slug>/text.<hash>.json    --fetch (only once someone types)-->     search text, folded in slices
 /study/questions/subjects/<slug>         --fetch-->  topic tree, paper and series names (route.ts, static, built per subject)
 R2 (NEXT_PUBLIC_PAPERS_URL)/bank/<id>-qp|ms|stem.webp   <img>                    cropUrls.ts
 reports.json                             --fetch (only on opening a report)-->    Check.tsx
@@ -374,3 +374,11 @@ each question's own number ("Q5"), not 1, 2, 3.
 **Paper files** (round 7): a booklet link is not shown on an English Language writing task (`WRITING_TASK` in `specials.ts`); the code files say "(zip download)" and download in place.
 
 **Known, not fixable in the browser:** GCSE French and Spanish have no transcripts in the data; mark scheme crops can contain blank space; about 500 maths reports have flattened fractions (marked approximate); the lofi record overlaps the page on phones; `sol` worked solutions (57 Edexcel A-Level Maths parts) are not shown.
+
+## The bank's data is on R2 by hash (after the merge with main)
+
+`parts`, `text` and `reports` are no longer in git or on the deployment: they live on R2 as `<papers>/bank-data/<slug>/<file>.<hash>.json` (`bankDataUrl` in `content/questionBank.ts`, the hashes in each subject's meta `data`). The subject route (`.../subjects/[subject]`) sends the hashes in `data`
+(`parts`, `text`, `reports` only); `bankFile(slug, data, file)` in `cropUrls.ts` builds the same address as `bankDataUrl` (`cropUrls.test.ts` holds them equal) and is null where the subject has no hash for that file. `bankData.ts` fetches the meta first and the parts list the moment it arrives (`getMeta`, `getData`; the early
+prefetch before the app starts chains the two); search text, reports (`Check.tsx`) and Read as text (`ReadAsText.tsx`) get the hash from the meta the same way. A subject with no `text` or `reports` hash degrades without an error (search reads titles, "No report for this question.", Read as text falls back to the question's opening words).
+**R2 must send CORS for the study app's origin** (the images need none, the JSON does): the bucket answered `Access-Control-Allow-Origin` for `https://tryplumi.app` only. In development set `NEXT_PUBLIC_PAPERS_URL` to R2's address and allow `http://localhost:3210` too, or the browser blocks the data.
+**Question types** (main's `markBands`): "Multiple choice" now leads the types where a subject has some and other kinds; the feed's filter uses `inType`.

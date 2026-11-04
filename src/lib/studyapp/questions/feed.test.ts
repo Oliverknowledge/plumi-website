@@ -16,14 +16,20 @@ const FIX: BankRow[] = [
   row("c-02-1", { s: "NOV21", l: "02.1", m: 12, t: ["4.1.1"] }),
 ];
 const SERIES = [{ id: "JUN25", label: "June 2025" }, { id: "JUN24", label: "June 2024" }, { id: "NOV21", label: "November 2021" }];
-const BANDS = bandsFor("Physics", FIX);
-const ctx = { bands: BANDS };
+const ALL_BANDS = bandsFor("Physics", FIX);
+/** The question types by marks (the bank also offers "Multiple choice" first where a subject has some and other kinds too). */
+const BANDS = ALL_BANDS.filter((b) => !b.choice);
+const ctx = { bands: ALL_BANDS };
 const f = (o: Partial<FeedFilters>): FeedFilters => ({ ...NO_FEED, ...o });
 const ids = (rs: readonly BankRow[]) => rs.map((r) => r.id);
 
 describe("question types", () => {
   test("a science's marks make four bands, and a band names the marks it holds", () => {
     assert.deepEqual(BANDS.map((b) => b.label), ["1\u20132 marks", "4 marks", "6\u20139 marks", "12 marks"]);
+  });
+  test("Multiple choice leads the types where a subject has some and other kinds, and keeps the parts with a letter key", () => {
+    assert.equal(ALL_BANDS[0].label, "Multiple choice");
+    assert.deepEqual(ids(feedFilter(FIX, f({ types: [ALL_BANDS[0].id] }), ctx)), ["b-01-1"]);
   });
   test("a chosen type keeps its marks, both ends, and leaves out a part that prints none", () => {
     const [small, , six] = BANDS.map((b) => b.id);

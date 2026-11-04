@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { partImage as bankPartImage, stemImage as bankStemImage, reportKey as bankReportKey, bankDataPath } from "@/content/questionBank";
+import { partImage as bankPartImage, stemImage as bankStemImage, reportKey as bankReportKey, bankDataUrl } from "@/content/questionBank";
 import { bankFile, partImage, reportKey, stemImage } from "./cropUrls";
 
 test("the study app's picture addresses are the bank's own", () => {
@@ -13,5 +13,18 @@ test("the study app's picture addresses are the bank's own", () => {
   }
   assert.equal(reportKey(false, "74051-jun23-01-4"), bankReportKey({ reportsBy: undefined }, "74051-jun23-01-4"));
   assert.equal(reportKey(true, "wma11-jun23-01"), bankReportKey({ reportsBy: "question" }, "wma11-jun23-01"));
-  for (const f of ["parts", "text", "reports"] as const) assert.equal(bankFile("aqa-gcse-physics", f), bankDataPath("aqa-gcse-physics", f));
+});
+
+test("the bank's data files are named by their hash, as the public bank names them", () => {
+  const data = { parts: "ec5b24991a", text: "64e44ff5d4", reports: "5fa70ece03", practicals: "4a3f82074d" };
+  for (const f of ["parts", "text", "reports"] as const) {
+    assert.equal(bankFile("aqa-gcse-physics", data, f), bankDataUrl({ slug: "aqa-gcse-physics", data }, f));
+    assert.match(bankFile("aqa-gcse-physics", data, f)!, new RegExp(`/bank-data/aqa-gcse-physics/${f}\\.${data[f]}\\.json$`));
+  }
+});
+test("a file the subject has no hash for is null, never a made-up address", () => {
+  assert.equal(bankFile("x", { parts: "abc123" }, "reports"), null);
+  assert.equal(bankFile("x", undefined, "parts"), null);
+  assert.equal(bankFile("x", { parts: "../evil" }, "parts"), null);
+  assert.equal(bankDataUrl({ slug: "x", data: { parts: "abc123" } }, "reports"), null);
 });

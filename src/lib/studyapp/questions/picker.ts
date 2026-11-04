@@ -8,7 +8,7 @@ import type { SubjectMeta } from "./subject";
  * code; everything here is given them.
  */
 
-/** A part as `public/question-bank/<subject>/parts.json` lists it. `x` is always there; the rest are optional flags. */
+/** A part as the subject's parts list (R2, `bank-data/<subject>/parts.<hash>.json`) lists it. `x` is always there; the rest are optional flags. */
 export type BankRow = QPart & { x: string; calc?: 1 };
 
 export type Band = "any" | "1-2" | "3-4" | "5-6" | "7+";

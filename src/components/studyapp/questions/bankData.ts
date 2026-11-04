@@ -49,21 +49,33 @@ function warmLast() {
     if (!Array.isArray(mine)) return;
     const slug = typeof f.last === "string" && mine.includes(f.last) ? f.last : mine[0];
     if (typeof slug !== "string" || !/^[a-z0-9-]+$/.test(slug) || f.view?.[slug] === "papers") return;
-    for (const url of [subjectFile(slug), bankFile(slug, "parts")]) {
+    // The subject's meta first (it carries the hashes that name the data files on R2), the parts list the moment it arrives: two requests, one after the other, started before the app has.
+    const ask = (url: string) => {
       const c = new AbortController();
       const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
       const p = fetch(url, { signal: c.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<unknown>; }).finally(() => clearTimeout(t));
       p.catch(() => undefined);
-      early.set(url, p);
-    }
+      return p;
+    };
+    const metaUrl = subjectFile(slug);
+    const mp = ask(metaUrl);
+    early.set(metaUrl, mp);
+    const pp = mp.then((m) => { const url = bankFile(slug, (m as { data?: Record<string, string> } | null)?.data, "parts"); if (!url) throw new Error("no parts list"); return ask(url); });
+    pp.catch(() => undefined);
+    early.set(`parts:${slug}`, pp);
   } catch { /* nothing remembered, or storage is blocked */ }
 }
 if (typeof window !== "undefined") warmLast();
-const json = (url: string): Promise<unknown> => {
-  const p = early.get(url);
-  early.delete(url);
+const json = (url: string, key = url): Promise<unknown> => {
+  const p = early.get(key);
+  early.delete(key);
   return p ? p.catch(() => fetched(url)) : fetched(url);
 };
+/** A subject's meta, once per visit (a failure is forgotten, so a retry asks again). */
+export const getMeta = (slug: string): Promise<SubjectMeta> => once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta));
+/** A subject's data file (`parts`, `text`, `reports`) from R2 by its hash, or null where the subject has none (the caller degrades calmly). */
+export const getData = (slug: string, file: "parts" | "text" | "reports"): Promise<unknown | null> =>
+  getMeta(slug).then((m) => { const url = bankFile(slug, m.data, file); return url ? json(url, file === "parts" ? `parts:${slug}` : url) : null; });
 const fetched = (url: string): Promise<unknown> =>
   slot().then(() => {
     const t = timeoutSignal(FETCH_TIMEOUT_MS);
@@ -96,7 +108,7 @@ export function useSubject(slug: string | null, attempt = 0, enabled = true): Lo
     let live = true;
     // Try again: whatever was asked for before (and may be stuck) is let go, and a fresh request is made.
     if (attempt > 0) { metas.delete(slug); parts.delete(slug); }
-    Promise.all([once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta)), once(parts, slug, () => json(bankFile(slug, "parts")).then(cleanRows))])
+    Promise.all([getMeta(slug), once(parts, slug, () => getData(slug, "parts").then((raw) => { if (raw === null) throw new Error("no parts list"); return cleanRows(raw); }))])
       .then(([meta, rows]) => { loadedSubject.set(slug, { meta, rows }); if (live) setGot({ slug, attempt, res: { meta, rows } }); })
       .catch(() => { if (live) setGot({ slug, attempt, res: null }); });
     return () => { live = false; };
@@ -114,7 +126,7 @@ export function useSubjectMeta(slug: string): SubjectMeta | null {
   useEffect(() => {
     if (loadedSubject.has(slug)) return;
     let live = true;
-    once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta)).then((meta) => { if (live) setGot({ slug, meta }); }).catch(() => undefined);
+    getMeta(slug).then((meta) => { if (live) setGot({ slug, meta }); }).catch(() => undefined);
     return () => { live = false; };
   }, [slug]);
   return loadedSubject.get(slug)?.meta ?? (got?.slug === slug ? got.meta : null);
@@ -150,7 +162,9 @@ export function useBankText(slug: string | null, wanted: boolean): BankText {
     let live = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     once(texts, slug, async () => {
-      const raw = cleanText(await json(bankFile(slug, "text")));
+      const got = await getData(slug, "text");
+      // (a subject with no search text: searching reads the titles only, no error)
+      const raw = got === null ? Object.create(null) as Record<string, string> : cleanText(got);
       const out: Record<string, string> = Object.create(null);
       const keys = Object.keys(raw);
       for (let i = 0; i < keys.length; i += 400) {

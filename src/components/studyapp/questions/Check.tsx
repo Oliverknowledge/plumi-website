@@ -2,7 +2,7 @@
 
 import { lostLayout } from "@/lib/studyapp/questions/approx";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { bankFile, papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
+import { papersBase, partImage, reportKey } from "@/lib/studyapp/questions/cropUrls";
 import { hasInk, hasText, markable, nameOf, questionOf, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { splitReport } from "@/lib/studyapp/questions/report";
 import { qa } from "@/lib/studyapp/questions/store";
@@ -11,6 +11,8 @@ import { CheckIcon, ReportIcon } from "./icons";
 import { MarkKey } from "./MarkKey";
 import { SchemeText } from "./ReadAsText";
 import { ChevronIcon } from "./pickerIcons";
+import { getMeta } from "./bankData";
+import { bankFile } from "@/lib/studyapp/questions/cropUrls";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
 const reports = new Map<string, Promise<Record<string, string>>>();
@@ -21,7 +23,11 @@ function reportsFor(slug: string): Promise<Record<string, string>> {
     const once = () => {
       const c = new AbortController();
       const t = setTimeout(() => c.abort(), 15_000);
-      return fetch(bankFile(slug, "reports"), { signal: c.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Record<string, string>>; }).finally(() => clearTimeout(t));
+      // (the hash of the reports file is in the subject's meta; a subject with none has no reports: an empty list, no error)
+      return getMeta(slug).then((m) => {
+        const url = bankFile(slug, m.data, "reports");
+        return url ? fetch(url, { signal: c.signal }).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<Record<string, string>>; }) : ({} as Record<string, string>);
+      }).finally(() => clearTimeout(t));
     };
     p = once().catch(() => new Promise<void>((go) => setTimeout(go, 1200)).then(once));
     reports.set(slug, p);

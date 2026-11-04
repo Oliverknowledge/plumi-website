@@ -30,6 +30,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     ...(trs ? { trs } : {}),
     ...(ins ? { ins } : {}),
     ...(code ? { code } : {}),
+    data: Object.fromEntries(Object.entries(s.data ?? {}).filter(([k]) => k === "parts" || k === "text" || k === "reports")),
     series: s.series.map((x) => ({ id: x.id, label: x.label })),
   };
   return Response.json(meta);

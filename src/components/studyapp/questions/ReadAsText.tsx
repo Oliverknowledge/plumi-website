@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { mathsLike } from "@/lib/studyapp/questions/approx";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
+import { getMeta } from "./bankData";
 import type { QPart, QSet } from "@/lib/studyapp/questions/model";
-import { partSchemeText, partText, type PartText, type SchemeText as SchemeTextData } from "@/lib/studyapp/questions/partText";
+import { partSchemeText, partText, questionText, type PartText, type SchemeText as SchemeTextData } from "@/lib/studyapp/questions/partText";
+
+/** Where the subject's text file is (its hash is in the meta), or null where it has none. */
+const textUrl = (slug: string): Promise<string | null> => getMeta(slug).then((m) => bankFile(slug, m.data, "text")).catch(() => null);
 
 /**
  * "Read as text" under a part's picture, for a screen reader, text to speech, or a student the picture is hard for.
@@ -17,7 +21,7 @@ export function ReadAsText({ set, part }: { set: Pick<QSet, "subject">; part: QP
   useEffect(() => {
     if (!open || got) return;
     let live = true;
-    void partText(set.subject, part, bankFile(set.subject, "text")).then((t) => { if (live) setGot(t); });
+    void textUrl(set.subject).then((url) => (url ? partText(set.subject, part, url) : questionText(undefined, part))).then((t) => { if (live) setGot(t); });
     return () => { live = false; };
   }, [open, got, set.subject, part]);
   return (
@@ -46,7 +50,7 @@ export function SchemeText({ set, part }: { set: Pick<QSet, "subject">; part: QP
   useEffect(() => {
     if (!open || (got !== undefined && got !== null)) return;
     let live = true;
-    void partSchemeText(set.subject, part, bankFile(set.subject, "text")).then((t) => { if (live) setGot(t); });
+    void textUrl(set.subject).then((url) => (url ? partSchemeText(set.subject, part, url) : null)).then((t) => { if (live) setGot(t); });
     return () => { live = false; };
   }, [open, got, set.subject, part, tries]);
   if (!part.ms) return null;

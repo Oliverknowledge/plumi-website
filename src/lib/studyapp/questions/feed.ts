@@ -1,4 +1,4 @@
-import { inBand, markBands, type MarkBand } from "@/lib/markBands";
+import { inType, markBands, type MarkBand } from "@/lib/markBands";
 import { feedId, isAnswered, isMarked, keyOf, MAX_SET_PARTS, questionKeyOf, type QAnswer, type QuestionsData } from "./model";
 import { matches, seeded, type BankRow } from "./picker";
 import { splitSeries } from "./papers";
@@ -70,7 +70,7 @@ export function feedMatcher(f: FeedFilters, c: FeedContext): (p: BankRow) => boo
     if (!matches(p, base, c.text)) return false;
     if (papers.length && !papers.includes(p.p.toLowerCase())) return false;
     if (f.series.length && !f.series.includes(p.s)) return false;
-    if (f.types.length && !bands.some((b) => inBand(p.m, b))) return false;
+    if (f.types.length && !bands.some((b) => inType(p, b))) return false;
     if (f.calc === "only" && !p.calc) return false;
     if (f.calc === "none" && p.calc) return false;
     if (f.hideDone && c.done?.has(p.id)) return false;
