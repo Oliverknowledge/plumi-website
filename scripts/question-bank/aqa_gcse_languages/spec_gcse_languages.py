@@ -1,9 +1,9 @@
-"""The GCSE French, Spanish and Bengali banks' topic tree: AQA's three themes and their topics.
+"""The GCSE French, Spanish, German and Bengali banks' topic tree: AQA's three themes and their topics.
 
-Imported by tag_gcse_languages.py and build_gcse_languages.py. French 8658, Spanish 8698 and
+Imported by tag_gcse_languages.py and build_gcse_languages.py. French 8658, Spanish 8698, German 8668 and
 Bengali 8638 share one subject content (specification section 3.1 to 3.3): three themes of four
 topics each, five of them split into sub-topics, which are the bank's topics here ("1.3 Music",
-"1.3 Sport"), so a student can practise one. French 8652 and Spanish 8692, first sat in 2026,
+"1.3 Sport"), so a student can practise one. French 8652, Spanish 8692 and German 8662, first sat in 2026,
 regroup the same ground into new themes (People and lifestyle; Popular culture; Communication
 and the world around us); their specimen papers are tagged to these topics too, as nothing in
 them falls outside.

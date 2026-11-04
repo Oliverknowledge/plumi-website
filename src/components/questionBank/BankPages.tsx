@@ -55,24 +55,25 @@ function Credit({ subject }: { subject?: BankSubject }) {
 /**
  * The hub's shelves, a level each and a book a subject (the founder, 30 October 2026: not three
  * "Maths" books in a row). Cambridge IGCSE shares GCSE's shelf, since an IGCSE student looks for
- * GCSE-level Maths, not for a board. Subjects go biggest first, Maths and the sciences ahead;
+ * GCSE-level Maths, not for a board; Pearson's International A Level shares A-Level's the same way,
+ * each after its UK books. Subjects go biggest first, Maths and the sciences ahead;
  * a book's boards go AQA, Edexcel, OCR, then the rest, the way most students sit them.
  */
 const LEVELS = [
   { id: "gcse", name: "GCSE & IGCSE", jump: "GCSE", match: (s: BankSubject) => s.level === "GCSE" || s.level === "IGCSE" || s.level === "Level 1/2" || s.level === "Level 2" },
-  { id: "a-level", name: display("A-Level"), jump: display("A-Level"), match: (s: BankSubject) => s.level === "A-Level" },
+  { id: "a-level", name: display("A-Level"), jump: display("A-Level"), match: (s: BankSubject) => s.level === "A-Level" || s.level === "IAL" },
   { id: "level-3", name: "Level 3 vocational", jump: "Level 3", match: (s: BankSubject) => s.level === "Level 3" },
 ];
 const FIRST = ["Maths", "Further Maths", "Biology", "Chemistry", "Physics", "Combined Science"];
 const BOARDS = ["AQA", "Edexcel", "OCR", "OCR MEI", "Eduqas", "WJEC", "CAIE"];
 const variant = (s: BankSubject) => s.subject.match(/ ([AB])$/)?.[1];
-/** The name on a board's key: "AQA", "OCR B", "Cambridge IGCSE", "Edexcel International GCSE". */
+/** The name on a board's key: "AQA", "OCR B", "Cambridge IGCSE", "Edexcel International GCSE", "Edexcel International A Level". */
 const boardKey = (s: BankSubject) =>
-  [s.board === "CAIE" ? (s.level === "IGCSE" ? "Cambridge IGCSE" : "Cambridge") : s.level === "IGCSE" ? `${s.board} International GCSE` : s.board, variant(s)].filter(Boolean).join(" ");
+  [s.board === "CAIE" ? (s.level === "IGCSE" ? "Cambridge IGCSE" : "Cambridge") : s.level === "IGCSE" ? `${s.board} International GCSE` : s.level === "IAL" ? `${s.board} International A Level` : s.board, variant(s)].filter(Boolean).join(" ");
 /** What the search matches a bank on: its board by every name, its level, subject and specification codes. */
 const findText = (s: BankSubject) => [
   s.board, s.board === "CAIE" ? "cambridge cie international" : s.board === "Edexcel" ? "pearson" : "",
-  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 1/2" ? "gcse cambridge national vocational l1 l2" : s.level === "Level 3" ? "applied diploma vocational" : "",
+  s.level, s.level === "A-Level" ? "alevel a level as" : s.level === "IAL" ? "alevel a level as international ial" : s.level === "IGCSE" ? "gcse international" : s.level === "Level 2" ? "gcse l2 certificate" : s.level === "Level 1/2" ? "gcse cambridge national vocational l1 l2" : s.level === "Level 3" ? "applied diploma vocational" : "",
   s.subject, s.fullName ?? "", /Maths/.test(s.subject) ? "math mathematics" : "", ...s.specs,
 ].join(" ").toLowerCase().replace(/[^a-z0-9 ]+/g, " ");
 
@@ -82,7 +83,7 @@ function shelves(): Shelf[] {
     const subjects = [...new Set(banks.map(baseSubject))];
     const books = subjects.map(subject => {
       const mine = banks.filter(s => baseSubject(s) === subject)
-        .sort((a, b) => (a.level === "IGCSE" ? 1 : 0) - (b.level === "IGCSE" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
+        .sort((a, b) => (a.level === "IGCSE" || a.level === "IAL" ? 1 : 0) - (b.level === "IGCSE" || b.level === "IAL" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
       return {
         subject, colour: subjectColours[subject] ?? "#d8c8ad", count: mine.reduce((a, s) => a + s.count, 0),
         banks: mine.map(s => ({ slug: s.slug, board: boardKey(s), title: display(bankTitle(s)), count: s.count, years: bankYears(s), find: findText(s) })),
@@ -99,7 +100,7 @@ export function BankHub() {
   const all = shelves();
   const total = bankSubjects.reduce((a, s) => a + s.count, 0);
   return (
-    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every exam question from the AQA, Pearson Edexcel, OCR, OCR MEI, Eduqas, WJEC and Cambridge (CAIE) GCSE, International GCSE, Level 2 and A-Level papers the boards publish, across maths, the sciences, English, French, Spanish, history, geography, religious studies, Islamic studies, computer science, business, economics, psychology, sociology, politics, law and more, sorted by topic, each with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
+    <CosyPage after={<PageStructuredData path="/question-bank" name="GCSE and A-Level Question Bank: Every Exam Question by Topic" description="Every exam question from the AQA, Pearson Edexcel, OCR, OCR MEI, Eduqas, WJEC and Cambridge (CAIE) GCSE, International GCSE, Level 2, A-Level and International A Level papers the boards publish, across maths, the sciences, English, French, Spanish, history, geography, religious studies, Islamic studies, computer science, business, economics, psychology, sociology, politics, law, physical education, food preparation and nutrition and more, sorted by topic, each with its mark scheme and examiner's report." type="CollectionPage" breadcrumb={[{ name: "Question bank", path: "/question-bank" }]} />}>
       <article className="pp qb-page qb-hub">
         <header className="lp-wrap qb-hub-hero">
           <span className="qb-hub-eyebrow">Free · no sign‑up · {total.toLocaleString("en-GB")} questions</span>
@@ -135,10 +136,10 @@ export function BankHub() {
 
 /** The same subject at the same level from the other boards: one tap to the right book, without the hub. */
 function OtherBoards({ subject }: { subject: BankSubject }) {
-  const level = (s: BankSubject) => (s.level === "IGCSE" ? "GCSE" : s.level);
+  const level = (s: BankSubject) => (s.level === "IGCSE" ? "GCSE" : s.level === "IAL" ? "A-Level" : s.level);
   const near = bankSubjects
     .filter(s => level(s) === level(subject) && baseSubject(s) === baseSubject(subject))
-    .sort((a, b) => (a.level === "IGCSE" ? 1 : 0) - (b.level === "IGCSE" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
+    .sort((a, b) => (a.level === "IGCSE" || a.level === "IAL" ? 1 : 0) - (b.level === "IGCSE" || b.level === "IAL" ? 1 : 0) || BOARDS.indexOf(a.board) - BOARDS.indexOf(b.board) || (variant(a) ?? "").localeCompare(variant(b) ?? ""));
   if (near.length < 2) return null;
   return (
     <BoardRow>

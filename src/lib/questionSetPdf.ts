@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { bankDataPath, bankOwner, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
+import { isChoice } from "@/lib/markBands";
+import { bankOwner, fetchBankData, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -168,7 +169,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   markSchemes: boolean; reports?: boolean; lines?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
 }): Promise<number> {
   const parts = [...picked];
-  const reports: Record<string, string> = opts.reports ? await fetch(bankDataPath(subject.slug, "reports")).then(r => r.json()).catch(() => ({})) : {};
+  const reports: Record<string, string> = opts.reports ? await fetchBankData<Record<string, string>>(subject, "reports").then(r => r ?? {}).catch(() => ({})) : {};
   let skipped = 0;
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);
@@ -260,7 +261,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
-  if (opts.markSchemes) for (const p of parts) if (p.ms) msCrops.set(p, want({ part: p, kind: "ms", label: `Mark scheme · ${labelFor(p)}` }));
+  if (opts.markSchemes) for (const p of parts) if (p.ms && !isChoice(p)) msCrops.set(p, want({ part: p, kind: "ms", label: `Mark scheme · ${labelFor(p)}` }));
   const drawn = async (c: Crop) => place(c, await fetched.get(c)!);
 
   for (const c of crops) await drawn(c);
@@ -318,21 +319,40 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     y -= GAP / 2;
   }
 
+  // Multiple-choice answers go in a grid, four to a row ("12 · Q3  B"), even where the board's scheme row
+  // exists (OCR's): a set of 30 of them was a page and a half of one-letter answers.
+  let keys: BankPart[] = [];
+  function flushKeys() {
+    if (!keys.length) return;
+    const cols = 4, colW = (A4.w - MARGIN * 2) / cols, rowH = 18;
+    for (let i = 0; i < keys.length; i += cols) {
+      if (y - rowH < MARGIN + 10) newPage();
+      if (pending) { drawHeading(pending); pending = null; }
+      keys.slice(i, i + cols).forEach((p, c) => {
+        const x = MARGIN + c * colW;
+        const n = opts.numbers?.get(p.id);
+        const tag = `${n != null ? `${n} · ` : ""}Q${p.l}`;
+        page.drawText(tag, { x, y: y - 12, size: 9.5, font, color: SOFT });
+        page.drawText(plain(p.k ?? ""), { x: x + font.widthOfTextAtSize(tag, 9.5) + 8, y: y - 12, size: 11, font: bold, color: INK });
+      });
+      y -= rowH;
+    }
+    y -= GAP / 2;
+    keys = [];
+  }
+
   if (opts.markSchemes || opts.reports) {
     // The schemes (and reports) start on a fresh page, their heading drawn with the first one.
     if (y < A4.h - MARGIN) newPage();
-    pending = { title: opts.markSchemes && opts.reports ? "Mark schemes and examiner's reports" : opts.markSchemes ? "Mark schemes" : "Examiner's reports" };
+    const allKeys = parts.every(p => isChoice(p));
+    pending = { title: opts.markSchemes && opts.reports ? "Mark schemes and examiner's reports" : opts.markSchemes ? (allKeys ? "Answers" : "Mark schemes") : "Examiner's reports" };
     for (const p of parts) {
       const c = opts.markSchemes ? msCrops.get(p) : undefined;
-      if (c) await drawn(c);
-      else if (opts.markSchemes && p.k) {
-        if (y - 20 < MARGIN + 10) newPage();
-        if (pending) { drawHeading(pending); pending = null; }
-        page.drawText(`${labelFor(p)}: answer ${p.k}`, { x: MARGIN, y: y - 12, size: 10.5, font: bold, color: INK });
-        y -= 24;
-      }
-      if (opts.reports) drawReport(p);
+      if (c) { flushKeys(); await drawn(c); }
+      else if (opts.markSchemes && p.k) keys.push(p);
+      if (opts.reports && reportAfter.get(reportKey(subject, p.id)) === p) { flushKeys(); drawReport(p); }
     }
+    flushKeys();
   }
 
   // Nothing could be fetched (offline, or the file host refusing): don't hand over an empty PDF.

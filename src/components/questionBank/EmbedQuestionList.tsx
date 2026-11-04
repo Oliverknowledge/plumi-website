@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { enterEmbedMode, track } from "@/lib/analytics";
 import { embedAppStoreHref, isAppleTouchDevice, partnerFromSearch, sortNewest, withEmbedParams } from "@/lib/embed";
-import { bankDataPath, bankOwner, bankTitle, bankTopicPath, topicName, type BankPart, type BankSubject, type BankTopic } from "@/content/questionBank";
+import { bankOwner, bankTitle, bankTopicPath, topicName, type BankPart, type BankSubject, type BankTopic, fetchBankData } from "@/content/questionBank";
 import { QuestionRow } from "./QuestionRow";
 
 const PAGE = 20;
@@ -78,7 +78,8 @@ export function EmbedQuestionList({ subject, topic, initial, total }: { subject:
     setBusy(true);
     try {
       if (!all) {
-        const parts: BankPart[] = await fetch(bankDataPath(subject.slug, "parts")).then(r => r.json());
+        const parts = await fetchBankData<BankPart[]>(subject, "parts");
+        if (!parts) throw new Error("no parts list");
         setAll(sortNewest(subject.papers, parts.filter(p => p.t.includes(topic.code))));
       }
       setShown(n => n + PAGE);

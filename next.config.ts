@@ -20,6 +20,32 @@ function libraryArtVersion(): string {
 }
 
 /**
+ * R2's public address. Production sets NEXT_PUBLIC_PAPERS_URL to it; a preview build falls back to it, because the
+ * question bank's topic pages read their data from R2 as they build. A local build stays on /papers-local unless
+ * .env.local says otherwise.
+ */
+const papersUrl = process.env.NEXT_PUBLIC_PAPERS_URL ?? (process.env.VERCEL ? "https://pub-e8a9dbab8e2a4d089f52b2a45e0d0b50.r2.dev" : undefined);
+
+/**
+ * The question bank's data used to be served from public/question-bank/<slug>/<file>.json; it now lives on R2 under
+ * its content hash (bankDataUrl in src/content/questionBank.ts). The Discord bot (plumibot/bank.py) still reads the
+ * old URLs for the question of the day, so each one redirects to the bank's current file, read off the bank's meta.
+ */
+function bankDataRedirects() {
+  const papers = (papersUrl ?? "").replace(/\/$/, "");
+  if (!papers.startsWith("http")) return [];
+  const dir = join(process.cwd(), "src", "content", "questionBank");
+  return readdirSync(dir).flatMap(name => {
+    const meta = JSON.parse(readFileSync(join(dir, name), "utf8")) as { slug?: string; data?: Record<string, string> };
+    return Object.entries(meta.data ?? {}).filter(([file]) => file !== "solutions").map(([file, hash]) => ({
+      source: `/question-bank/${meta.slug}/${file}.json`,
+      destination: `${papers}/bank-data/${meta.slug}/${file}.${hash}.json`,
+      permanent: false,   // the next cut is a new file
+    }));
+  });
+}
+
+/**
  * Every host that is not the canonical one, and must 308 to it.
  *
  * Both plumi.study and tryplumi.app are attached to this same Vercel project,
@@ -48,7 +74,7 @@ const removedPages: readonly (readonly [string, string])[] = [
 ];
 
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_LIBRARY_ART: libraryArtVersion() },
+  env: { NEXT_PUBLIC_LIBRARY_ART: libraryArtVersion(), ...(papersUrl ? { NEXT_PUBLIC_PAPERS_URL: papersUrl } : {}) },
   /**
    * Security headers.
    *
@@ -127,6 +153,7 @@ const nextConfig: NextConfig = {
        * indexed result lands on the nearest thing that still exists.
        */
       ...removedPages.map(([source, destination]) => ({ source, destination, permanent: true })),
+      ...bankDataRedirects(),
     ];
   },
 };

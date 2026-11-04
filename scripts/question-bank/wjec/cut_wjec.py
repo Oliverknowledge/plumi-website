@@ -1,7 +1,8 @@
 """Cut WJEC's A-Level papers into question parts, each paired with its mark scheme rows.
 
-    python3 scripts/question-bank/wjec/cut_wjec.py [work-dir] [--only=2420u10] [--whole]
+    python3 scripts/question-bank/wjec/cut_wjec.py [work-dir] [--only=2420u10] [--whole] [--squeeze]
     # work-dir: .work/wjec (fetch_wjec.py); --whole for maths, a whole question at a time
+    # --squeeze: Further Maths (.work/wjec-fm): take the dotted answer lines out of question crops
     # needs: pip install pymupdf pillow
 
 WJEC's papers are close enough to Pearson's that edexcel_sciences/cut_pearson.py does
@@ -105,7 +106,11 @@ def wjec_labels(doc):
         if stop:
             end_page = i
             break
+    qp_questions[0] = sum(1 for o in out if o[3] is None)
     return out, end_page
+
+
+qp_questions = [0]  # how many questions the paper being cut has: wjec_labels counts them, label_starts checks against it
 
 
 def wjec_frame(page):
@@ -174,11 +179,16 @@ def whole_questions(doc, tables, summary):
             m = re.fullmatch(r"Q\.?\s?(\d{1,2})", l["text"])
             if m and l["x0"] < 120:
                 starts[int(m.group(1))] = min(starts.get(int(m.group(1)), (i, l["y0"] - 6)), (i, l["y0"] - 6))
-            m = re.match(r"Total for Question (\d{1,2})\b", l["text"])
+            m = re.match(r"Total for Question (\d{1,2})\b(?!\s*\()", l["text"])  # (not a part's subtotal: "Total for Question 4 (a) (ii)", 2025's Unit 6)
             if m:
                 ends[int(m.group(1))] = (i, l["y1"] + 6)
             if section_b is None and re.match(r"SECTION B\b", l["text"]):
                 section_b = (i, l["y0"] - 4)
+    labelled = label_starts(doc, summary)
+    if labelled:
+        # Every question on the paper, in order: those are the starts. (cut_pearson's rows can take a number in the
+        # working for a label: 2024's Unit 4 scheme gave Q1's rows to Q3, and 2019's Unit 1 started Q3 inside Q2.)
+        starts = dict(labelled)
     last = max(list(starts) + list(ends) + [0])
     for q in range(2, last + 1):
         if q in starts or q - 1 not in starts:
@@ -188,23 +198,94 @@ def whole_questions(doc, tables, summary):
         elif section_b and section_b > starts[q - 1] and not any(starts[q - 1] < at < section_b for at in starts.values()):
             starts[q] = section_b
     order = sorted(starts.items(), key=lambda kv: kv[1])
+    ruled = {at for at in labelled.values() if at in starts.values()}
     out = {}
     for n, (q, (pg, top)) in enumerate(order):
         stop = order[n + 1][1] if n + 1 < len(order) else (summary, 0)
-        if q in ends:
+        # (a numbered scheme runs on to the next question: Further Mechanics prints a "Q1 Alternative Solution" table after "Total for Question 1")
+        if q in ends and not labelled:
             stop = min(stop, ends[q])
         pieces = []
         for p in range(pg, min(stop[0] + 1, summary)):
             box = cp.ms_page_box(doc, p)
+            if labelled:
+                # (a page's drawn rules can stop short of its rows, or start below them: the box takes in all its text)
+                h = doc[p].rect.height
+                page_no = lambda l: re.fullmatch(r"\d{1,3}", l["text"]) and abs(l["x0"] - doc[p].rect.width / 2) < 40  # noqa: E731
+                inked = [l for l in doc.lines(p) if not SCHEME_FOOT.match(l["text"]) and l["y0"] < h - 62 and not page_no(l)]
+                if inked:
+                    # (across too: on a page with no table the only drawn lines can be a diagram's, 2018's Unit 3 Q5)
+                    box = pymupdf.Rect(min(box.x0, min(l["x0"] for l in inked) - 2), min(box.y0, min(l["y0"] for l in inked) - 2),
+                                       max(box.x1, max(l["x1"] for l in inked) + 2), max(box.y1, max(l["y1"] for l in inked) + 2))
+                    # (and no further: 2018's Unit 3 draws no table, and its box is the whole page, footer and all)
+                    feet = [l["y0"] for l in doc.lines(p) if (SCHEME_FOOT.match(l["text"]) or page_no(l)) and l["y0"] >= max(o["y1"] for o in inked) - 4]
+                    if feet:
+                        box.y1 = min(box.y1, min(feet) - 2)
             t = top if p == pg else box.y0
-            b = stop[1] - 2 if p == stop[0] else box.y1
+            # (a start on a rule is just under it: the question before keeps the rule, and the "Total [9]" touching it)
+            b = (stop[1] - 1 if stop in ruled else stop[1] - 2) if p == stop[0] else box.y1
             foot = [l["y0"] for l in doc.lines(p) if re.match(r"[12]\d{3}U\d0-\d WJEC", l["text"]) and t < l["y0"] < b]
-            b = min([b] + [y - 6 for y in foot])
+            b = min([b] + [y - 2 for y in foot])  # (2019 Unit 2 sets its footer just under the last row)
             if b > t + 6 and doc.text(p, pymupdf.Rect(box.x0, t, box.x1, b)).strip():
                 pieces.append((p, pymupdf.Rect(box.x0, t, box.x1, b)))
         if pieces:
             out[(q, None, None)] = (pieces, re.sub(r"\s+", " ", " ".join(doc.text(p, r) for p, r in pieces)), None)
     return out
+
+
+SCHEME_FOOT = re.compile(r"©|[12]\d{3}U\d0-\d|Further Mathematics\b|UNIT \d|SUMMER 20|MS S\d\d")  # (set well above the foot of the page, and further left than the table)
+
+
+def question_label(doc, i, l):
+    """The question number a scheme's line prints, or None: "Q3" (2025's table header) anywhere near the margin,
+    or in the page's leftmost column "3", "3 (a)", "2.a)", "4. a) working" (wjec_ms_tables has taken "1."'s stop
+    off), "10 Dividing both sides". Further Statistics' column moves from 71 to 94 between pages, so the column is
+    the page's own. A number with anything else after it is working ("33 < 48", "9 ∫"), and so is a digit right of
+    the column."""
+    if l["x0"] >= 100:
+        return None
+    m = re.fullmatch(r"Q\s?(\d{1,2})", l["text"])
+    if m:
+        return int(m.group(1))
+    m = re.match(r"(\d{1,2})\.?(?:\s*\(?[a-z]{1,4}\)(?:\s|$|\().*|\s+[A-Za-z]{2,}\b.*|\s*)$", l["text"])
+    if not m:
+        return None
+    left = min((o["x0"] for o in doc.lines(i) if not SCHEME_FOOT.match(o["text"])), default=0)
+    return int(m.group(1)) if l["x0"] < left + 8 else None
+
+
+def label_starts(doc, summary):
+    """Further Maths: {q: (page, y)} where a scheme numbers its questions down the left, each counted only as the
+    next question's, so a label reprinted over a carried page ("3." or "Q1" again) isn't a start. Where no number
+    is text (Further Mechanics' 2022 and 2023 schemes draw their "Q1" header as pictures), each table's blue "Q"
+    header cell, in order, is the next question's. Either has to find every question on the paper (qp_questions)
+    to be believed."""
+    out = {}
+    for i in range(summary):
+        for l in doc.lines(i):
+            q = question_label(doc, i, l)
+            if q != len(out) + 1:
+                continue
+            drawn = [d["rect"].y0 for d in doc[i].get_drawings() if d["rect"].width > 100 and d["rect"].height < 3]
+            # From the rule over its row, where one is drawn just above: the row's working can sit higher than its number.
+            rules = [y for y in drawn if l["y0"] - 25 < y < l["y0"] + 3]
+            top = max(rules) + 1 if rules else l["y0"] - 4
+            # And from its table's header, where one is just above ("Qu Solution" as one line in 2024's, "Qu." over "No." in Statistics').
+            head = [o["y0"] for o in doc.lines(i) if o["x0"] < 100 and re.match(r"(Question|Qu\.?)(\s|$)", o["text"]) and l["y0"] - 60 < o["y0"] < l["y0"] - 2]
+            if head:
+                over = [y for y in drawn if min(head) - 20 < y < min(head) + 2]
+                top = max(over) + 1 if over else min(head) - 4
+            out[q] = (i, top)
+    if len(out) == qp_questions[0]:
+        return out
+    cells = []
+    for i in range(summary):
+        for d in doc[i].get_drawings():
+            r, fill = d["rect"], d.get("fill")
+            if fill and r.x0 < 100 and 15 < r.width < 45 and 12 < r.height < 30 and fill[0] < 0.3 and fill[1] > 0.4 and fill[2] > 0.6:
+                if not cells or cells[-1][0] != i or r.y0 - cells[-1][1] > 12:
+                    cells.append((i, r.y0))
+    return {n + 1: (i, y - 2) for n, (i, y) in enumerate(cells)} if len(cells) == qp_questions[0] else {}
 
 
 def wjec_report(path, section=None):
@@ -222,15 +303,20 @@ def wjec_report(path, section=None):
     # longest such stretch, which the contents page's line for it isn't.
     # Maths heads a unit's sections by name first: "APPLIED MATHEMATICS A – AS UNIT 2 SECTION B"; both are the unit's.
     heads = [(m.start(), m.group(1)) for m in re.finditer(
-        r"\n[ \t]*(?:[A-Z][A-Z ]+[–-] )?(?:AS |A2 |A LEVEL )?(?:UNIT|Unit)\s*(\d)(?=[ \t]*(?:[–:(-]|[A-Z]|\n))[^\n]{0,80}\n", text)]
+        r"\n[ \t]*(?:[A-Z][A-Z ]+[–−-] )?(?:AS |A2 |A LEVEL )?(?:UNIT|Unit)\s*(\d)(?=[ \t]*(?:[–−:(-]|[A-Z]|\n))[^\n]{0,80}\n", text)]
     chunks = {}
     for n, (pos, unit) in enumerate(heads):
         chunks.setdefault(unit, []).append(text[pos:heads[n + 1][0] if n + 1 < len(heads) else len(text)])
     found = chunks.get(section or "", [])
+    # (Further Maths's reports since 2024 open with a contents list: the stretch after its last line, "A2 Unit 6…",
+    # is the overview, long but no question's, so a unit's own section is the stretch that comments on its Q.1)
+    found = [c for c in found if re.search(r"\n[ \t]*(?:Q\.?\s*|Question\s+)1\b", c)] or found
     body = "\n".join(c for c in found if len(c) >= 800) or max(found, key=len, default="")
     if len(body) < 1500:
         return {}
     body = re.split(r"\n\s*(?:Summary of key points|Supporting you)", body)[0]
+    # A heading can carry its comment on its own line, "Q.10  This question was a high-point…": part them.
+    body = re.sub(r"\n([ \t]*Q\.\s?\d{1,2})[ \t]+(?=\S[^\n]{60})", r"\n\1\n", body)
     # Headings, in order: a question's number only counts when it's past the last one (a "1." in a list isn't one).
     marks, last = [], 0
     for m in re.finditer(r"\n[ \t]*(?:(?:Q\.?\s*|Question\s+)(\d{1,2})\b[^\n]{0,60}|(\d{1,2})\.[ \t]*|(?:Option|OPTION)\s+([A-F])\b[^\n]{0,80})\n", body):
@@ -274,8 +360,40 @@ def wjec_marks_in(doc, pieces):
     return marks
 
 
-pearson_frame, pearson_ms_tables, pearson_marks_in = cp.frame, cp.ms_tables, cp.marks_in
+def squeezed_region(doc, start, end, end_page):
+    """--squeeze: cut_pearson.region without the pages of dotted answer lines the papers since 2024 are printed with
+    (answered in the paper, a question's crop ran to 5,800px, most of it dots). A band of the dashed rules, with no
+    text or drawing among them, comes out; a grid or diagram to draw on stays."""
+    out = []
+    for pg, r in pearson_region(doc, start, end, end_page):
+        drawn = [d for d in doc[pg].get_drawings() if d["rect"].y1 >= r.y0 and d["rect"].y0 <= r.y1 and d["rect"].x1 >= r.x0 and d["rect"].x0 <= r.x1]  # (a rule's rect is empty: Rect.intersects says no)
+        dashed = sorted(d["rect"].y0 for d in drawn if d["rect"].height < 2 and d["rect"].width > 400 and re.search(r"\[\s*[\d.]", d.get("dashes") or ""))
+        others = [d["rect"] for d in drawn if d["rect"].height >= 2 and d["rect"].height < r.height + 40 and not d["rect"].contains(r)]
+        text = [l for l in doc.lines(pg) if cp.inside(l, r) and l["text"].strip()]
+        top, bands = r.y0, []
+        for y in dashed:
+            if not (r.y0 <= y <= r.y1):
+                continue
+            if bands and not any(bands[-1][1] < l["y1"] and l["y0"] < y for l in text) \
+                    and not any(bands[-1][1] < o.y1 and o.y0 < y for o in others):
+                bands[-1][1] = y
+            else:
+                bands.append([y, y])
+        # (and "TURN OVER FOR QUESTIONS 7(c) & 7(d)", which means nothing in a crop)
+        bands += [[l["y0"] - 1, l["y1"] + 1] for l in text if re.match(r"TURN OVER FOR\b", l["text"])]
+        for a, b in sorted(bands):
+            if a - 3 > top + 6:
+                out.append((pg, pymupdf.Rect(r.x0, top, r.x1, a - 3)))
+            top = b + 3
+        if r.y1 > top + 6:
+            out.append((pg, pymupdf.Rect(r.x0, top, r.x1, r.y1)))
+    return out
+
+
+pearson_frame, pearson_ms_tables, pearson_marks_in, pearson_region = cp.frame, cp.ms_tables, cp.marks_in, cp.region
 cp.qp_labels, cp.frame, cp.ms_tables, cp.marks_in, cp.examiner_report = wjec_labels, wjec_frame, wjec_ms_tables, wjec_marks_in, wjec_report
+if "--squeeze" in sys.argv:
+    cp.region = squeezed_region
 
 
 def run_set(job):
@@ -289,7 +407,7 @@ def main():
     for f in manifest:
         sets.setdefault((f["component"], f["series"]), {})[f["kind"]] = f
     jobs = []
-    maths = {"300"}
+    maths = {"300", "305"}  # (Further Maths too)
     for (comp, series), files in sorted(sets.items()):
         set_id = f"{comp}-{series}".lower()
         if "qp" not in files or (comp[1:4] in maths) != cp.WHOLE or (ONLY and not set_id.startswith(ONLY)):

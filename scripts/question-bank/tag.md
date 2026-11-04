@@ -8,6 +8,18 @@ The tags were made on 23 October 2026 by Claude subagents, one per few batches,
 following exactly the instructions below. To re-tag after a new exam series,
 split, tag only the new batches the same way, merge, and rebuild.
 
+## Before the bank's PR: its data goes to R2
+
+A bank's data (`public/question-bank/<slug>/`: parts, text, reports, practicals, ...) is no
+longer committed; git ignores the folder. Once the bank is built and tagged (and after
+practicals.py merge, tiers.py or maths_years.py), upload it and commit the meta:
+
+    python3 scripts/question-bank/upload_data.py <slug>
+
+That writes `"data": {...}` (each file's hash) into `src/content/questionBank/<slug>.json`.
+Re-cutting an existing bank in a fresh worktree? `upload_data.py --pull <slug>` first. See
+"Bank data on R2" in docs/seo/question-bank.md.
+
 ## The brief
 
 You are tagging AQA A-Level exam question parts to the topic of the AQA
@@ -96,6 +108,26 @@ collects them. The brief is the Edexcel one above, with these differences:
   specification sets in bold (2.36B, 1.20C, 5.6P), still under the same sub-topics.
 - Physics's "Units" sub-topics are left out: a question on a unit gets the sub-topic that uses it.
 - Practicals get the content sub-topic they sit in.
+
+## Edexcel International A Level sciences
+
+`edexcel_ial/tag_ial.py split` writes batches for Pearson Edexcel's International A Level
+Biology (WBI11-16), Chemistry (WCH11-16) and Physics (WPH11-16) to `.work/edexcel-ial/tag/`, and
+`merge` collects them. The brief is the Edexcel one above, with these differences:
+
+- Chemistry's codes are its lettered sub-topics where the specification has them (`8.B` is "8B
+  The elements of Groups 1 and 2"); elsewhere, and in Biology and Physics, a code is a group of
+  the specification's numbered statements (shown in brackets): `6.2` is the second group of
+  Topic 6, not statement 6.2, and Physics' `2.3.4` is the fourth group of heading 2.3. Tag by content.
+- Each line has a `paper`, its unit ("AS Unit 2", "Unit 5"). Units 1 and 2 test the topics marked
+  [AS]; Units 4 and 5 the [A-Level only] ones, and can lean on AS content.
+- Units 3 and 6 are the practical skills papers. Tag each part to the content topic its
+  experiment is about (a titration's calculation is the titration topic; an enzyme experiment is
+  "Proteins and enzymes"). Use `P.1` ("Practical skills") only when the part tests practical
+  skill with no content to speak of: uncertainty and percentage error, choosing apparatus,
+  plotting or reading a graph, safety, improving a method. A part can have a content topic and
+  `P.1`.
+- Practicals in Units 1, 2, 4 and 5 get the content topic they sit in.
 
 ## OCR sciences
 
@@ -863,6 +895,15 @@ these differences:
   one to three codes per question, the main one first. AS Unit 1 and A2 Unit 3 are
   pure maths; AS Unit 2 and A2 Unit 4 are statistics (Section A) and mechanics
   (Section B).
+- Further Maths (`further-topics.txt`, its own work dir `.work/wjec-fm`): a whole question at
+  a time, one to three codes, the main one first, from its specification's topics
+  (`spec_wjec_further.py`), coded unit and place in the unit: the specification's 2.4.3 is
+  `4.3`. AS Units 1 to 3 take only their own codes; an A2 unit also takes the AS unit it builds
+  on (Unit 4 `1.x`, Unit 5 `2.x`, Unit 6 `3.x`) where the marks really test it. Keep apart: `1.2`
+  basic complex numbers and loci, `4.1` de Moivre and nth roots; `1.3` 2x2 matrices and
+  transformations, `4.3` 3x3 and simultaneous equations; `3.1` direct collisions, `6.2` oblique
+  ones. Unit 2's specification heading 2.2.1 is three topics here (`2.1` to `2.3`), and 2.2.2 two
+  (`2.4`, `2.5`).
 
 ## Practical questions
 
@@ -1675,3 +1716,307 @@ brief is the one at the top, with these differences:
   garden business's costs is `2.6`; "Explain what is meant by division of labour" is `2.1`).
 - The 6-mark "Evaluate" and "Analyse" parts often span topics: give the main one first and a
   second only when the scheme's indicative content genuinely needs it.
+
+## OCR GCSE Classical Civilisation
+
+`ocr_gcse_classics/tag_ocr_gcse_classics.py split` writes a batch per option of OCR GCSE (9-1)
+Classical Civilisation (J199) parts to `.work/ocr-gcse-classics/tag/`, and `merge` collects them.
+The brief is the one at the top, with these differences:
+
+- `classics-topics.txt` lists the specification's key topics, eight per component: `code | component |
+  title — what learners study`. Codes are the bank's own: `11.x` Myth and Religion, `12.x` Women in the
+  Ancient World, `21.x` The Homeric World, `22.x` Roman City Life, `23.x` War and Warfare. Each line's
+  `codes` are the only ones it may take: its own component's.
+- Give one code, the topic the part mainly tests, and a second only when its scheme plainly tests another
+  topic too (a 15-mark essay comparing two). Each line has its `paper`, `area` ("A Culture", "B Literature",
+  "A Greece") and `marks`.
+- A question works from a source (the opening "Source D: …" names it): tag by what the part asks and its
+  scheme, not only the source's subject. "Which city is shown in this plan?" is Key Mycenaean sites; "What
+  was the original purpose of this item?" on a vase is Life in the Mycenaean age or Decorative arts as its
+  scheme says.
+- Literature parts on a passage: The Homeric World's are about the Odyssey's plot, characters, themes
+  (`21.6`, `21.7`, `21.8`) or Homer's technique (`21.5`, similes, epithets); recalling what happened next
+  is the character or theme the event belongs to. War and Warfare's are the same for its poems and texts
+  (`23.5`–`23.8`).
+- Roman City Life's literature parts (`22.5`–`22.8`) and culture parts (`22.1`–`22.4`) are split by `area`.
+
+## AQA A-Level Chemistry, legacy units (2420, 2010–2016)
+
+`aqa_chem_legacy/tag_legacy.py split` writes batches of the old CHEM1, CHEM2, CHEM4 and CHEM5
+parts to `.work-chem-legacy/tag/`, and `merge` collects them. They were tagged on 2 November 2026
+by Claude subagents with the brief above, against the current specification (7405), with these
+differences:
+
+- `chemistry-topics.txt` lists 7405's topics and, under each, its sub-topics with the start of
+  what the specification says. Answer with the topic code (`3.2.2`), as above.
+- Each line has a `unit` and a `label` ("2(b)(ii)"). The old units mixed content differently
+  (CHEM2 had industrial chemistry, CHEM5 had both energetics and transition metals), so tag by
+  what the part tests, not by unit.
+- These questions were written for the old specification. If what a student needs to score the
+  marks is not in 7405 at all, answer `["off", "<a few words why>"]` and the part is left out of
+  the bank. Examples: extracting iron, aluminium, copper or tungsten (the blast furnace,
+  electrolysis of alumina, scrap iron), recycling metals, deflecting ions in a magnetic-sector
+  mass spectrometer (7405 teaches time of flight). But extracting titanium with magnesium is in
+  7405 (3.2.2), as are cracking, CFCs and ozone, carbon neutrality and biofuels, IR absorption
+  by CO2, methane and water and global warming (3.3.6), and an ion gaining an electron at the
+  detector (3.1.1). The first brief also named the detector and the greenhouse effect as off;
+  the parts tagged off for those were put back by hand (`tag/overrides.json`). Mark a part off only when its marks depend on the missing content;
+  a part that merely mentions an old context but tests on-spec chemistry gets its topic.
+
+## AQA Physics A legacy (2450)
+
+`aqa_physics_legacy/tag_legacy.py split` writes the 2010–2016 Physics A units (PHYA1, PHYA2,
+PHYA4, PHYA5 and its four options, from `aqa_physics_legacy/cut_legacy.py`) to
+`.work/phya/tag/`, and `merge` collects them into `.work/phya/tags.json`. The brief is the
+one above, with the 7408 specification's topics (`topics.txt`), so the old questions sit
+under the topics the bank already has. Each line has the `unit` it comes from, its `setup`,
+its own words (`question`, answer lines shown as "…") and the start of its `scheme`, or the
+`key` of a multiple-choice question (PHYA4 Section A, whose `question` includes options A–D).
+
+- Tag what the part tests on the current specification. The legacy units map onto it:
+  PHYA1 → 3.2 Particles and radiation and 3.5 Electricity; PHYA2 → 3.4 Mechanics and
+  materials and 3.3 Waves; PHYA4 → 3.4.1 (momentum and impulse), 3.6.1 (circular motion,
+  simple harmonic motion, resonance) and 3.7 Fields (gravitational, electric, capacitance,
+  magnetic fields, electromagnetic induction, alternating current, transformers); PHYA5
+  Section A → 3.8 Nuclear physics and 3.6.2 Thermal physics; option A Astrophysics → 3.9;
+  option B Medical physics → 3.10; option C Applied physics (rotational dynamics,
+  thermodynamics and engines) → 3.11 Engineering physics; option D Turning points → 3.12.
+  A part that turns on measurement and uncertainty (reading a graph's gradient with its
+  uncertainty, percentage uncertainties, precision) may take 3.1.2 as a second code.
+- Where 7408's topics are broad, choose by what the part asks: 3.4.1 covers scalars and
+  vectors, moments, motion, Newton's laws, momentum, work, energy and power; 3.4.2 density,
+  Hooke's law, the Young modulus, stress, strain, elastic strain energy; 3.3.1 wave
+  properties, polarisation, superposition and stationary waves; 3.3.2 path difference,
+  interference, Young's slits, diffraction gratings, refraction, total internal reflection
+  and fibres; 3.2.1 particles, antiparticles, the strong and weak interactions, quarks,
+  hadrons, leptons and conservation laws; 3.2.2 the photoelectric effect, energy levels,
+  excitation and ionisation, line spectra and wave–particle duality; 3.5.1 current,
+  potential difference, resistance, resistivity, superconductivity, circuits, potential
+  dividers, emf and internal resistance; 3.7.1 is fields in general (only for a part that
+  compares field types); 3.7.2 gravitational fields and orbits; 3.7.3 electric fields;
+  3.7.4 capacitance; 3.7.5 magnetic fields, flux, induction, alternating currents and
+  transformers; 3.8.1 radioactivity, nuclear radius, mass and energy, fission and fusion.
+- A part whose physics is not on the 7408 specification at all gets `[]`, with a short
+  reason in `batch-NN.off.json` (`{"<id>": "why"}`). These are left out of the bank and
+  counted in the PR. Be strict about this only when the content is genuinely absent from
+  7408 (not when it is merely worded differently): check `topics.txt` and the lines above.
+- Tag every multiple-choice question on its own, from its stem and options.
+
+## Edexcel International A Level Maths and Further Maths (YMA01, YFM01)
+
+`edexcel_ial_maths/tag_ial_maths.py split` writes batches of Pearson Edexcel's International A Level unit papers
+(P1-P4, FP1-FP3, M1-M3, S1-S3, D1) to `.work/edexcel-ial-maths/tag/`, and `merge` collects them into `tags.json`.
+The brief is the one at the top, with these differences:
+
+- Each line is a whole question from one unit, and carries `topics`: that unit's own numbered topics as the
+  specification prints them (`P3.4 Differentiation`, `S2.1 The Binomial and Poisson distributions`). Choose from
+  those only; merge keeps nothing else. `ial-maths-topics.txt` lists every unit's.
+- Tag what the marks are for, by the scheme: a P4 question that differentiates parametric equations is `P4.5`,
+  not `P4.3`; a P3 question that solves a trig equation is `P3.2`. Give a second code only where a large share of
+  the marks needs a second topic (an S1 question half on probability, half on the Normal distribution).
+- Prior knowledge a unit assumes (differentiation in M2, integration in S2's continuous random variables) is not a
+  topic of its own: tag the unit topic the question is set in.
+
+## AQA PE
+
+`aqa_pe/tag_pe.py split` writes batches of AQA A-Level Physical Education (7582) questions to
+`.work/aqa-pe/tag/`, and `merge` collects them into `tags.json`. The brief is the one at the top,
+with these differences:
+
+- `pe-topics.txt` lists one topic per line: `code | area | title — what the specification says
+  under it`. Choose from these codes, never an area. Most are four numbers (`3.1.1.6` Energy
+  systems); Sport psychology is fourteen five-number topics (`3.2.3.1.1` Aspects of personality …
+  `3.2.3.1.14` Stress management), and the history of sport three (`3.1.3.1.1` pre-industrial,
+  `3.1.3.1.2` industrial and post-industrial 1780–1900, `3.1.3.1.3` post World War II).
+- Each line is a whole question (or a part, "04.2") with its `paper`, the `section` of the paper
+  it sits in, its `marks`, its words and the start of its scheme (for an 8- or 15-mark question,
+  what the scheme credits, without the levels table; for multiple choice, `Answer: D`).
+- **The section fixes the area.** Paper 1 Section A is Applied anatomy and physiology (`3.1.1.x`),
+  B Skill acquisition (`3.1.2.x`), C Sport and society (`3.1.3.x`); Paper 2 Section A is Exercise
+  physiology (`3.2.1.x`) and Biomechanical movement (`3.2.2.x`), B Sport psychology (`3.2.3.1.x`),
+  C Sport and society and technology (`3.2.4.x`). The first code is always from that area.
+- A 15-mark question that asks for two areas' knowledge on purpose (Paper 1 Section A's last
+  question often joins anatomy with biomechanics or skill: "Recruitment of muscle fibres and
+  Newton's laws") takes the second area's topic as its second code. Otherwise a second code only
+  when the marks really split between two topics (personality and arousal, levers and Newton's laws).
+- Where topics overlap, choose by what the scheme credits: cardiac output, heart rate, blood
+  pressure, venous return, vascular shunting and the cardiac conduction system are `3.1.1.2`; lung
+  volumes, gas exchange, ventilation and smoking `3.1.1.3`; motor units, muscle fibre types, PNF and
+  proprioceptors `3.1.1.4`; joints, agonists, planes and axes `3.1.1.5`; ATP, the energy systems,
+  EPOC, VO2 max, lactate and energy expenditure `3.1.1.6`; `3.1.1.1` only for a question about the
+  two systems working together. Training methods, periodisation, FITT, altitude and HIIT are
+  `3.2.1.2`; supplements and diet `3.2.1.1`; injury, recovery and rehabilitation `3.2.1.3`.
+  Memory models and information processing (Whiting, Baddeley and Hitch, reaction time, anticipation,
+  Schmidt's schema) are `3.1.2.5`; theories of learning (operant conditioning, insight, observational
+  learning, Vygotsky, the stages of learning, plateaus) `3.1.2.3`. Sociological theory, social
+  stratification, socialisation, barriers to participation and Sport England's partners are
+  `3.1.3.2`. Commercialisation, sponsorship, media and the Golden Triangle are `3.2.4.7`, except
+  as part of 1780–1900 or post-war history, which is the era's topic.
+
+## AQA GCSE Citizenship Studies
+
+`aqa_gcse_citizenship/tag_gcse_citizenship.py split` writes batches of AQA GCSE Citizenship
+Studies (8100) parts to `.work/aqa-gcse-citizenship/tag/`, and `merge` collects them. The brief
+is the one at the top, with these differences:
+
+- `gcse-citizenship-topics.txt` lists one topic per line: `code | theme | title — what the
+  specification covers there`. Codes have four numbers (`3.4.3.2`); never a theme like `3.4`.
+  The four themes are 3.2 Life in modern Britain, 3.3 Rights and responsibilities, 3.4 Politics
+  and participation and 3.5 Active citizenship.
+- Each line is a part with its `paper`, `marks`, its words (with its source, for a
+  source-based part) and the start of its scheme; multiple choice carries its answer
+  (`Answer: C and F`).
+- Paper 1 Section A (questions 1 and 2) is Active citizenship, Section B (3 to 7) Politics and
+  participation; Paper 2 Section A (1 to 5) is Life in modern Britain, Section B (6 to 10)
+  Rights and responsibilities. Any code is allowed on either paper: Paper 1's question 1
+  draws on all three content themes, and an 8-mark debate often spans two.
+- Paper 1's question 2 is the student's own investigation: `3.5.2.1` choosing the issue and
+  question, `3.5.2.2` research (primary, secondary, trusting sources), `3.5.2.3` planning,
+  `3.5.2.4` taking the action and communicating it, `3.5.2.5` impact and evaluation.
+- Each theme's "how citizens make a difference" content is kept once, under 3.5.1: actions
+  (petitions, e-petitions, demonstrations, boycotts, direct action, volunteering, lobbying,
+  joining a party) `3.5.1.1`; pressure groups, charities and voluntary groups `3.5.1.2`; using
+  the media `3.5.1.3`; citizens working together on a community issue `3.5.1.4`. Paper 1's
+  8-mark source question on what citizens could do about an issue (fuel poverty, child labour)
+  is `3.5.1.1`, or `3.5.1.4` when it is about community groups acting together.
+- Where things live: British values, tolerance, rule of law, individual liberty `3.2.1.1`;
+  rights and duties, equal opportunities `3.2.1.2`; identity and multiple identities `3.2.1.3`;
+  the four nations, national and regional identity `3.2.2.1`; migration and population
+  `3.2.2.2`; diversity, multiculturalism, respect `3.2.2.3`; free press, media roles, citizen
+  journalists `3.2.3.1`; public interest and privacy `3.2.3.2`; IPSO, IMPRESS, Ofcom,
+  censorship `3.2.3.3`; the UN and its agencies, NATO, the EU, the Council of Europe, the
+  Commonwealth, the WTO, veto, hard power `3.2.4.1`; Brexit `3.2.4.2`; mediation, sanctions,
+  military intervention `3.2.4.3`; NGOs in humanitarian crises `3.2.4.4`; barriers to
+  participation `3.2.5.1`. Principles of law, justice, due process `3.3.1.1`; equality law and
+  the EHRC, rules versus laws `3.3.1.2`; rights in conflict (privacy, free speech limits)
+  `3.3.1.3`; police powers, stop and search, warrants `3.3.2.1`; judges, solicitors,
+  barristers, the CPS, Citizens Advice `3.3.2.2`; courts, tribunals, ombudsmen `3.3.2.3`;
+  legal ages `3.3.2.4`; civil versus criminal law `3.3.2.5`; Scotland's and Northern Ireland's
+  systems `3.3.2.6`; Magna Carta `3.3.3.1`; common law and statute `3.3.3.2`; trade unions,
+  strikes, employers' associations `3.3.3.3`; types and causes of crime, reducing crime
+  `3.3.3.4`; sentencing, mitigating and aggravating factors `3.3.3.5`; youth courts and youth
+  sentences `3.3.3.6`; UDHR, ECHR, UNCRC, Human Rights Act `3.3.4.1`; rules of war, the ICC
+  `3.3.4.2`; juries, magistrates, witnesses, special constables, PCCs `3.3.5.1`. Democracy and
+  referendums `3.4.1.1`; democratic values `3.4.1.2`; the constitution `3.4.1.3`; councils,
+  councillors, mayors `3.4.2.1`; devolution `3.4.2.2`; standing for election `3.4.2.3`; who
+  can vote, voting age `3.4.2.4`; turnout, apathy, compulsory voting `3.4.2.5`; tax and
+  spending `3.4.2.6`; FPTP, by-elections `3.4.3.1`; AMS, STV, proportional systems `3.4.3.2`;
+  Commons, Lords, monarch, legislature `3.4.3.3`; parties `3.4.3.4`; scrutiny `3.4.3.5`; MPs,
+  the Speaker, Black Rod `3.4.3.6`; the legislative process, royal assent `3.4.3.7`; the PM and
+  cabinet `3.4.3.8`; the civil service and departments `3.4.3.9`; other countries' systems
+  (anarchy, theocracy, absolute monarchy, North Korea) `3.4.4.1`; digital democracy and
+  engagement `3.4.5.1`.
+## AQA GCSE Food Preparation and Nutrition
+
+`aqa_gcse_food/tag_food.py split` writes batches of AQA GCSE Food Preparation and Nutrition
+(8585/W) questions to `.work/aqa-gcse-food/tag/`, and `merge` collects them. The brief is the
+one at the top, with these differences:
+
+- `gcse-food-topics.txt` lists one topic per line: `code | area | title — what the
+  specification says beside it`. Codes have four numbers (`3.3.2.2`), except British and
+  international cuisines `3.5.2` and Sensory evaluation `3.5.3`, which have three; never an
+  area like `3.3`.
+- Each line is a question or part with its `marks`, the `setup` it is set on (an ingredient
+  list, recipe or scenario), its own words and the start of its scheme. Multiple-choice parts
+  (01.1–01.20) carry their answer as `scheme` ("Answer: C – Soft cheese").
+- Nutrition and food science share names: the nutrient itself (what it does in the body, its
+  sources, deficiency, excess, dietary reference values such as "35% of energy from fat") is
+  `3.2.1.x`/`3.2.2.x`; what it does in cooking (coagulation, gluten, foams, gelatinisation,
+  dextrinisation, caramelisation, shortening, plasticity, aeration by creaming, emulsions) is
+  `3.3.2.x`.
+- Where things live: Eatwell Guide, 5-a-day, salt and juice limits, planning for life stages
+  and dietary groups `3.2.3.1`; BMR, PAL, energy balance `3.2.3.2`; analysing a recipe's or
+  menu's nutritional information `3.2.3.3`; obesity, CHD, high blood pressure, osteoporosis,
+  anaemia, diabetes, a diet's long-term health effects `3.2.3.4`; reasons for cooking and
+  conduction, convection, radiation `3.3.1.1`; choosing cooking methods (dry, water-based,
+  fat-based) and keeping vitamins in `3.3.1.2`; enzymic browning and oxidation of fruit and
+  vegetables `3.3.2.4`; chemical, mechanical, steam and yeast raising agents, and a bake's
+  rising faults `3.3.2.5`; growth conditions for microorganisms and high risk foods `3.4.1.1`;
+  spoilage signs and mould growth `3.4.1.2`; cheese, yoghurt, blue cheese moulds and yeast in
+  bread production `3.4.1.3`; food poisoning bacteria, symptoms, sources and
+  cross-contamination `3.4.1.4`; fridge, freezer and ambient storage, the danger zone, use-by and
+  best before `3.4.2.1`; personal hygiene, chopping boards, defrosting, cooking and reheating
+  to 75 °C, temperature probes `3.4.2.2`; what influences choice (cost, lifestyle, PAL,
+  occasion, seasonality) `3.5.1.1`; religion, ethics (vegetarian, vegan, animal welfare),
+  intolerances and allergies `3.5.1.2`; labels (mandatory information, allergens) and marketing
+  `3.5.1.3`; organic, free range, intensive farming, sustainable fishing, and the advantages
+  and disadvantages of local, seasonal and GM foods `3.6.1.1`; food miles, carbon footprint,
+  packaging and food waste `3.6.1.2`; food security and Fairtrade `3.6.1.3`; primary and
+  secondary processing (milling, milk heat treatments, jam) `3.6.2.1`; fortification,
+  additives and GM technology `3.6.2.2`.
+- A question about a dish's faults or its ingredients' functions gets the food science topics
+  its answers need (a cake's ingredients: `3.3.2.3` and `3.3.2.1`; a bread dough's: `3.3.2.1`
+  and `3.3.2.5`).
+## AQA A-Level German
+
+`aqa_languages/tag_languages.py` tags AQA A-Level and AS German (7662, 7661) with no batches: nothing
+goes to a model. `THEME` there holds each Paper 1 passage's sub-theme, placed by reading it, because
+titles don't always say.
+
+- **A passage has one sub-theme:** `family`, `digital`, `youth-culture`, `festivals`, `art`, `berlin`
+  (Year 1, the only ones AS sets); `immigration`, `integration`, `racism`, `eu`, `politics-youth`,
+  `reunification` (Year 2).
+- **Close calls:** influencers, driverless cars and virtual museum visits are `digital`; a Berlin event
+  that is mainly a festival (Karneval der Kulturen) is `festivals`; an exhibition on East Berlin is
+  `berlin`; retiring to Austria ("Mehr Rente in Österreich") is `immigration`; music and television
+  are `youth-culture`, unless the passage is about Berlin's music scene (`berlin`).
+- **A literary extract has no theme:** it is `literary` instead.
+- The skill is worked out from the wording and the recording, and Paper 2's essays from the work named
+  in their heading.
+## Edexcel GCSE Religious Studies
+
+`edexcel_gcse_rs/tag_gcse_rs.py split` writes Pearson Edexcel's GCSE Religious Studies A (1RA0) and B
+(1RB0) parts to `.work/edexcel-gcse-rs/tag/`, one batch per section of content, and `merge` collects them.
+The brief is the one at the top, with these differences:
+
+- `topics-<section>.txt` lists the section's eight items: `code | title — what the specification says
+  under it`. A part's section is fixed by its paper and question (Question 3 of 1RB0 Paper 2F is Judaism's
+  "Living the Jewish Life"), so choose only from the batch's own file, by the code's prefix (`JUPRA.4`).
+- A batch line has `id`, `question` (the part's words) and `scheme` (the start of its mark scheme).
+- Judge by what the part is about, not by its command words: "Outline three…", "Explain two…" and
+  "Evaluate this statement" run through every item. For an evaluate statement, take the item its statement
+  is mainly about; the scheme's arguments are the strongest evidence.
+- The items overlap on purpose: pilgrimage in general and a named place, the nature of God and the problem
+  of evil, the sanctity of life and abortion. Pick the narrowest item that fits.
+- One code nearly always: a second only where the part plainly needs two items.
+## AQA GCSE German
+
+German (8668, and the 2026 specimens of 8662) is tagged exactly as the AQA GCSE French, Spanish and Bengali
+section says, with the same topic list: `tag_gcse_languages.py split .work/aqa-gcse-german` writes the batches.
+Questions that are about nothing in their printed words were tagged by hand into `batch-99-languages.tags.json`
+(merged last): the Foundation Writing photos from the photo, the dictations and the Nov 2020 Higher Listening
+free-time items (14 to 17) from AQA's transcripts, translations and grammar gap-fills by their sentences' topics.
+A general "free time" task with no activity named is `1.3.4`, `1.3.1`, `1.3.2`; a poem is `1.3.2` (reading).
+## AQA GCSE Physical Education
+
+`aqa_gcse_pe/tag_gcse_pe.py split` writes batches of AQA GCSE Physical Education (8582) questions
+to `.work/aqa-gcse-pe/tag/`, and `merge` collects them into `tags.json`. The brief is the one at
+the top, with these differences:
+
+- `gcse-pe-topics.txt` lists one topic per line: `code | area | title — what the specification says
+  under it`. Codes have four numbers (`3.1.3.2`); never an area like `3.1.3`.
+- Each line is a whole question or a part ("07.2") with its `paper`, its `marks`, its words (a
+  part's start with its question's stem) and the start of its scheme (for a 6- or 9-mark question,
+  what the scheme credits, without the levels table; for multiple choice, `Answer: D`).
+- Paper 1 takes codes from `3.1.x`, Paper 2 from `3.2.x`. The one crossing: a part that is marked for
+  reading or drawing data takes `3.1.4.x` on either paper, with the content topic as well if the marks
+  also need it (a table of participation by age and "explain why": `3.2.2.1` and `3.1.4.3`).
+- Where topics overlap, choose by what the scheme credits: bones, muscles, joints, tendons, joint
+  actions, agonists and antagonists and types of contraction are `3.1.1.1`; the pathway of air, gas
+  exchange, blood vessels, the heart, cardiac output, spirometer traces and breathing `3.1.1.2`;
+  aerobic and anaerobic exercise, their equations, EPOC and recovery methods (cool down, diet, ice
+  baths, massage) `3.1.1.3`; immediate, short-term and long-term effects of exercise `3.1.1.4`.
+- Defining and testing a component of fitness (the Illinois Agility Test, the multi-stage fitness
+  test, one-rep max as a test) is `3.1.3.2`; why a component matters to a performer too. SPORT, FITT
+  and the types of training (circuit, continuous, Fartlek, interval, plyometric, weight) are
+  `3.1.3.3`; training zones, 220 minus age, one-rep max percentages, reps and sets, training seasons,
+  altitude, injuries and their prevention, PPE `3.1.3.4`; warm up and cool down as such `3.1.3.5`.
+- Definitions of skill and ability, skill classification and performance or outcome goals are `3.2.1.1`;
+  SMART targets `3.2.1.2`; the information processing model `3.2.1.3`; guidance and feedback `3.2.1.4`;
+  arousal, the inverted-U, stress management, aggression, personality and motivation `3.2.1.5`.
+- Who takes part and why are `3.2.2.1`; sponsorship, media and technology `3.2.2.2`; conduct,
+  etiquette, sportsmanship, gamesmanship, prohibited substances and methods, spectators and
+  hooliganism `3.2.2.3`. Benefits of exercise to physical, mental and social health are `3.2.3.1`;
+  sedentary lifestyles, obesity and somatotypes `3.2.3.2`; energy, diet, nutrients and hydration `3.2.3.3`.
+- A 9-mark question that says what it wants (plyometrics for a triple jumper) goes under what it
+  asks about; a second code only when the marks really split between two topics.

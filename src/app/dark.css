@@ -78,6 +78,9 @@ html[data-theme="dark"] .lp .qb-sheet, html[data-theme="dark"] .lp .qb-row.is-in
 html[data-theme="dark"] .lp .qb-listen { background: #111; border-color: #333; color-scheme: dark; }
 html[data-theme="dark"] .lp .qb-row + .qb-row .qb-sheet, html[data-theme="dark"] .lp .qb-row:first-child .qb-sheet, html[data-theme="dark"] .lp .qb-row:last-child .qb-sheet { border-color: #333; }
 html[data-theme="dark"] .lp :is(.qb-img, .qb-stem img, .qb-reveal-ms img, .qb-zoom-inner img) { background: #fff; border-color: #333; border-radius: 6px; filter: none; mix-blend-mode: normal; box-shadow: 0 0 0 1px #3a3a3a; }
+/* the multiple-choice quiz: the same black stage, its crops the same paper cards until their dark copy is there */
+html[data-theme="dark"] .lp .qb-quiz-stage { background: #000; }
+html[data-theme="dark"] .lp .qb-quiz-stage img { background: #fff; border-color: #333; border-radius: 6px; filter: none; mix-blend-mode: normal; box-shadow: 0 0 0 1px #3a3a3a; }
 html[data-theme="dark"] .lp img[data-dq="dark"] { background: #000; box-shadow: none; }
 .lp img[data-dq="pending"], .lp img[data-dq="swap"], .lp img[data-dq="restore"] { opacity: 0; }
 /* the full-screen viewer: black too, its buttons and cards keep their warm dark */

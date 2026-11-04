@@ -22,7 +22,8 @@ OUT = os.path.join(WORK, "audio-out")
 os.makedirs(OUT, exist_ok=True)
 NUMBERS = {w: n for n, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve".split())}
 TRACKS = re.compile(r"Tracks?\s*:?\s*(\d+)\s*[–−-]\s*(\d+)")  # an en dash, or a minus sign (November 2021)
-LENGTH = re.compile(r"Length of passage:\s*([A-Za-z]+) minutes?(?: and ([A-Za-z0-9]+) seconds?)?", re.I)
+# "One minute and 29 seconds" (French, Spanish) or "1 minute and 26 seconds" (German)
+LENGTH = re.compile(r"Length of passage:\s*([A-Za-z0-9]+) minutes?(?: and ([A-Za-z0-9]+) seconds?)?", re.I)
 LABEL = re.compile(r"^\s*(\d)\s*(\d)\s*$")
 
 
@@ -33,7 +34,8 @@ def listening(qp):
     for line in lines:
         if m := LENGTH.search(line):
             secs = m.group(2) or "0"
-            length = NUMBERS.get(m.group(1).lower(), 0) * 60 + (int(secs) if secs.isdigit() else NUMBERS.get(secs.lower(), 0))
+            mins = m.group(1)
+            length = (int(mins) if mins.isdigit() else NUMBERS.get(mins.lower(), 0)) * 60 + (int(secs) if secs.isdigit() else NUMBERS.get(secs.lower(), 0))
         if m := TRACKS.search(line):
             pending = (int(m.group(1)), int(m.group(2)))
         elif pending and (m := LABEL.match(line)):

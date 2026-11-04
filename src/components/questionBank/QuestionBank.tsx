@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
-import { inBand, markBands } from "@/lib/markBands";
-import { baseSubject, bankDataPath, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { inType, isChoice, markBands } from "@/lib/markBands";
+import { baseSubject, fetchBankData, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
 import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
+import { ChoiceQuiz } from "./ChoiceQuiz";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -90,8 +91,8 @@ const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x 
 const yearOf = (s: string) => { const y = s.match(/^[A-Z]{3}(\d\d)/); return y ? 2000 + Number(y[1]) : 0; };
 const seriesRank = (s: string) => yearOf(s) * 100 + (s.startsWith("NOV") ? 11 : s.startsWith("OCT") ? 10 : s.startsWith("JUN") ? 6 : 0);
 const specRank = (code: string) => code.split(".").map(n => n.padStart(3, "0")).join(".");
-/** Accents folded away, so "benevolat" finds "bénévolat" and "nino" finds "niño" (French and Spanish). */
-const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+/** Accents folded away, so "benevolat" finds "bénévolat", "nino" finds "niño" and "strasse" finds "Straße" (French, Spanish and German). */
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
 const words = (q: string) => fold(q.toLowerCase()).match(/"[^"]+"|\S+/g)?.map(w => w.replace(/"/g, "")) ?? [];
 
 /** A seeded random number generator (mulberry32 over a string hash): the same seed gives the same mix. */
@@ -163,6 +164,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [year13, setYear13] = useState<Set<string> | null>(null);
   const [twins, setTwins] = useState<Map<string, string> | null>(null);
+  const [quiz, setQuiz] = useState(false);
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
   const [withReports, setWithReports] = useState(false);
@@ -195,27 +197,27 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   }, [isPhone]); // the phone's filters and the desk's card are different elements
 
   useEffect(() => {
-    fetch(bankDataPath(subject.slug, "parts")).then(r => r.json()).then(setParts).catch(() => setParts(null));
+    fetchBankData<BankPart[]>(subject, "parts").then(setParts).catch(() => setParts(null));
     // The practical parts' ids, for the sciences: no file (or an empty one) and the filter stays hidden.
     if (bankHasPracticals(subject)) {
-      fetch(bankDataPath(subject.slug, "practicals")).then(r => (r.ok ? r.json() : [])).then((ids: string[]) => setPracticals(new Set(ids))).catch(() => setPracticals(new Set()));
+      fetchBankData<string[]>(subject, "practicals").then(ids => setPracticals(new Set(ids ?? []))).catch(() => setPracticals(new Set()));
     }
     // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
-      fetch(bankDataPath(subject.slug, "year13")).then(r => (r.ok ? r.json() : null)).then((ids: string[] | null) => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
+      fetchBankData<string[]>(subject, "year13").then(ids => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
     // A GCSE's Foundation parts that its Higher paper prints too (tiers.py): no file and the switch stays hidden.
     if (bankHasTiers(subject)) {
-      fetch(bankDataPath(subject.slug, "tiers")).then(r => (r.ok ? r.json() : null))
-        .then((m: Record<string, string> | null) => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
+      fetchBankData<Record<string, string>>(subject, "tiers")
+        .then(m => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
     }
   }, [subject]);
 
   const needText = useCallback(() => {
     if (text || loadingText.current) return;
     loadingText.current = true;
-    fetch(bankDataPath(subject.slug, "text")).then(r => r.json()).then((t: Record<string, string>) => setText(Object.fromEntries(Object.entries(t).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
-  }, [subject.slug, text]);
+    fetchBankData<Record<string, string>>(subject, "text").then(t => setText(Object.fromEntries(Object.entries(t ?? {}).map(([k, v]) => [k, fold(v)])))).catch(() => { loadingText.current = false; });
+  }, [subject, text]);
   useEffect(() => { if (f.q) needText(); }, [f.q, needText]);
 
   function update(patch: Partial<Filters>) {
@@ -263,7 +265,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
     return (!f.part || p.id === f.part) &&
-      (skip === "marks" || !f.marks.length || bands.some(b => f.marks.includes(b.id) && inBand(p.m, b))) &&
+      (skip === "marks" || !f.marks.length || bands.some(b => f.marks.includes(b.id) && inType(p, b))) &&
       (skip === "done" || visible(p)) &&
       (skip === "topics" || !f.topics.length || p.t.some(t => f.topics.some(sel => t === sel || sectionOf.get(t) === sel))) &&
       (skip === "papers" || !f.papers.length || f.papers.includes(p.p)) &&
@@ -369,7 +371,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       if (year13 && matches(p, "yr")) bump(c.yr, year13.has(p.id) ? "13" : "12", p);
       // (a paper everyone sits counts under "": it is in every option's list)
       if (subject.options && matches(p, "opt")) bump(c.opt, optionOf.get(p.p) ?? "", p);
-      if (matches(p, "marks")) for (const b of bands) if (inBand(p.m, b)) bump(c.marks, b.id, p);
+      if (matches(p, "marks")) for (const b of bands) if (inType(p, b)) bump(c.marks, b.id, p);
     }
     return c;
   }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf, bands]);
@@ -469,6 +471,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
   const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
+  // The multiple-choice questions in view, in the list's order, for the quiz: offered once the
+  // Multiple choice type is picked, or when everything in view is multiple choice.
+  const choicePool = useMemo(() => (results ? [...new Map(results.flat().filter(isChoice).map(p => [p.id, p])).values()] : []), [results]);
+  const offerQuiz = choicePool.length > 1 && (f.marks.includes("mc") || choicePool.length === results?.flat().length);
+
   function mixUp() {
     update({ sort: "mix", seed: newSeed() });
     track("bank_mixed", { subject: subject.slug, topics: f.topics.length, results: results?.length ?? 0, again: f.sort === "mix" ? 1 : 0 });
@@ -607,7 +614,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
         {bands.length > 0 && (
           <div className="qb-field qb-types" role="group" aria-labelledby="qb-types-label">
-            <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">by the marks it’s worth</span></span>
+            <span className="qb-label" id="qb-types-label">Question type <span className="qb-hint">{bands[0]?.choice ? "multiple choice, or by the marks it’s worth" : "by the marks it’s worth"}</span></span>
             <div className="qb-type-chips">
               {bands.map(b => {
                 const on = f.marks.includes(b.id);
@@ -688,7 +695,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           <form className="qb-field qb-search" role="search" onSubmit={e => { e.preventDefault(); if (typed !== null) update({ q: typed.trim() }); if (isPhone) showResults(); }}>
             <label htmlFor="qb-q" className="qb-label">Search</label>
             <input id="qb-q" type="search" value={query} enterKeyHint="search"
-              placeholder={baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : baseSubject(subject) === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Islamic Studies" ? "Hijrah, \"Night of Power\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.subject === "Engineering Manufacture" ? "casting, \"lean manufacturing\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.level === "A-Level" && subject.subject === "French" ? "bénévolat, \"La Haine\"" : subject.level === "A-Level" && subject.subject === "Spanish" ? "inmigración, \"Bernarda Alba\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : subject.subject === "French" ? "vacances, \"free time\"" : subject.subject === "Spanish" ? "vacaciones, \"free time\"" : subject.subject === "Bengali" ? "festival, \"free time\"" : "capacitor, \"half-life\""}
+              placeholder={subject.subject === "Classical Civilisation" ? "Odysseus, \"Vestal Virgins\"" : baseSubject(subject) === "Chemistry" ? "titration, \"bond angle\"" : baseSubject(subject) === "Biology" ? "osmosis, \"active transport\"" : subject.subject === "Psychology" ? "conformity, \"working memory\"" : baseSubject(subject) === "Economics" ? "elasticity, \"market failure\"" : subject.subject === "Computer Science" ? "recursion, \"binary search\"" : baseSubject(subject) === "Geography" ? "regeneration, \"carbon cycle\"" : baseSubject(subject) === "English Literature" ? "ambition, \"Lady Macbeth\"" : subject.subject === "English Language" ? "structure, \"Source B\"" : subject.subject === "Sociology" ? "labelling, \"family diversity\"" : subject.subject === "Philosophy" ? "Gettier, \"problem of evil\"" : subject.subject === "Business" ? "gearing, \"break-even\"" : subject.level === "GCSE" && subject.subject === "Religious Studies" ? "euthanasia, \"Five Pillars\"" : subject.subject === "History" ? "Armada, \"Black Death\"" : subject.subject === "Religious Studies" ? "Bultmann, \"natural law\"" : subject.subject === "Islamic Studies" ? "Hijrah, \"Night of Power\"" : subject.subject === "Citizenship Studies" ? "jury, \"pressure group\"" : subject.subject === "Politics" ? "devolution, \"judicial review\"" : subject.subject === "Law" ? "duress, \"duty of care\"" : subject.subject === "Criminology" ? "labelling, \"zero tolerance\"" : subject.subject === "Engineering Manufacture" ? "casting, \"lean manufacturing\"" : subject.subject === "Physical Education" ? "plyometrics, \"cardiac output\"" : subject.subject === "Food Preparation and Nutrition" ? "gelatinisation, \"high risk foods\"" : subject.level === "GCSE" && subject.subject === "Maths" ? "simultaneous, \"standard form\"" : subject.level === "A-Level" && subject.subject === "French" ? "bénévolat, \"La Haine\"" : subject.level === "A-Level" && subject.subject === "Spanish" ? "inmigración, \"Bernarda Alba\"" : subject.level === "A-Level" && subject.subject === "German" ? "Einwanderung, \"Der Vorleser\"" : subject.subject === "Combined Science" ? "osmosis, \"half-life\"" : subject.subject === "French" ? "vacances, \"free time\"" : subject.subject === "Spanish" ? "vacaciones, \"free time\"" : subject.subject === "German" ? "Ferien, \"free time\"" : subject.subject === "Bengali" ? "festival, \"free time\"" : "capacitor, \"half-life\""}
               onChange={e => setTyped(e.target.value)} onFocus={needText} />
           </form>
           {!subject.noCalc && <div className="qb-field qb-calc" role="group" aria-label={subject.calcPapers ? "Calculator" : "Calculations"}>
@@ -817,6 +824,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
                 <span aria-hidden="true">⤨</span> {f.sort === "mix" ? "Reshuffle" : "Mix them up"}
               </button>
             )}
+            {offerQuiz && (
+              <button type="button" className="lp-btn qb-mix-btn qb-quiz-btn" onClick={() => setQuiz(true)} title="The multiple-choice questions in view, one at a time, marked as you go">
+                <span aria-hidden="true">✓</span> Quiz me
+              </button>
+            )}
           </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
@@ -881,6 +893,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
       <SetTray subject={subject} set={set} parts={parts} />
       <ZoomViewer />
+      {choicePool.length > 1 && <ChoiceQuiz subject={subject} pool={choicePool} open={quiz} onClose={() => setQuiz(false)} />}
     </div>
   );
 }

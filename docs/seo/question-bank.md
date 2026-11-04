@@ -25,9 +25,54 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
   `aqa/`, question crops under `bank/`. In development they're served from
   `public/papers-local` (a symlink into the gitignored work folder).
 - **Data the site reads:** `src/content/questionBank/*.json` (topics, papers,
-  series, the newest 20 parts; built into the pages) and
-  `public/question-bank/<subject>/{parts,text,reports}.json` (fetched by the
-  browser: the list, search text, examiner's reports).
+  series, the newest 20 parts; built into the pages) and the bank's data,
+  `{parts,text,reports}.json` (the list, search text, examiner's reports), on R2 under
+  `bank-data/<subject>/` (see "Bank data on R2" below): fetched by the browser, and
+  parts.json by the build for the topic pages.
+
+## Bank data on R2 (3 November 2026)
+
+The builders still write a bank's data to `public/question-bank/<slug>/` (parts, text,
+reports, and practicals, year13, tiers and `solutions/` where the bank has them), but git
+ignores that folder: 216 MB of JSON that every build cloned and deployed, and that every
+bank PR added to. The site reads the files from R2 instead, named by their content hash:
+
+- `bank-data/<slug>/parts.<hash>.json` (and text, reports, ...), and
+  `bank-data/<slug>/solutions.<hash>/<id>.json` for the worked solutions;
+- stored gzipped (R2's public URL doesn't compress) and cached for a year as immutable:
+  a new cut is a new name, and an older deployment keeps finding its own files;
+- the hashes sit in the bank's meta, `src/content/questionBank/<slug>.json`, as
+  `"data": {"parts": "…", …}`, which is what gets committed. `bankDataUrl` and
+  `bankSolutionUrl` build the URLs; `src/lib/bankParts.ts` reads parts.json for the topic
+  pages (at build) and the partner embed (on demand).
+
+**After building or re-cutting a bank** (and after any script that rewrites its data or meta:
+tiers.py, practicals.py merge, maths_years.py, the solutions):
+
+```bash
+python3 scripts/question-bank/upload_data.py <slug> [<slug> ...]   # --dry-run first to see what changes
+```
+
+It uploads only what is new, writes the hashes into the meta, and stops if a file the bank
+already has on R2 (practicals, year13, tiers) is missing on disk. Commit the meta; never
+`git add -f` anything under `public/question-bank/`. A builder that rewrites the meta drops
+`data`, and `next build` then stops at that bank's topic pages with the command to run.
+
+**In a fresh worktree** the folder is empty. Before re-cutting or rebuilding an existing bank,
+or running a script over every bank (tiers.py, practicals.py, ms_fallback.py,
+solutions/check_solutions.py), pull what is on R2 (no keys needed):
+
+```bash
+python3 scripts/question-bank/upload_data.py --pull <slug>   # or --pull --all
+```
+
+The old URLs, `/question-bank/<slug>/<file>.json`, redirect (307) to the bank's current file on R2
+(`bankDataRedirects` in next.config.ts), because the Discord bot's question of the day
+(`plumibot/bank.py`) still reads them.
+
+Previewing a bank locally needs its data uploaded first, as its crops do, and
+`NEXT_PUBLIC_PAPERS_URL` set: the pages fetch from R2 in development too. R2's CORS
+allows tryplumi.app and localhost:3000 only.
 
 ## Gaps, honestly
 
@@ -47,6 +92,31 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
   makes browsers fetch the new crops. Every new paper adds up (91, 75; Paper 3's 103 is
   78 plus the second essay choice). Chemistry's AS June 2016–17 and A-Level June 2017,
   and some specimens, are clipped the same way and not yet re-cut.
+- Chemistry goes back to 2010 with AQA's old specification (2420): units CHEM1 and CHEM2
+  (AS) and CHEM4 and CHEM5 (A2), January 2010 to June 2016, as papers "CHEM1 (old spec)"
+  and so on. A student's teacher sets tests from them. AQA publishes none of these now
+  (every file store address answers "not found" and its past paper search starts at June
+  2016), so the founder chose PMT's copies (2 November 2026), again **for the question
+  bank only**, with no examiners' reports. 44 sets, 2,069 parts, every paper adding up to
+  its 70 or 100 marks; 2,045 are in the bank, tagged to 7405's topics, and 24 whose marks
+  rest on content 7405 dropped (extracting metals, a magnetic-sector mass spectrometer's
+  deflection) are left out. CHEM3 and CHEM6 were the practical ISA/EMPA units. Scripts in
+  `scripts/question-bank/aqa_chem_legacy/`: `fetch_pmt.py`, `cut_legacy.py` (the old
+  "2 (b) (ii)" labels and the schemes' four table layouts), `tag_legacy.py` (tag.md's
+  "legacy units" brief), then `build_legacy.py`, which adds the legacy rows to the bank
+  `build_bank.py` wrote without rebuilding it, and prints the per-paper table.
+- Physics also goes back to 2010 with the legacy specification, Physics A (2450): PHYA1,
+  PHYA2, PHYA4 (Section A, the objective test, and Section B) and PHYA5 (Section A and the
+  four options), January and June 2010 to June 2016, 1,786 parts as extra papers named
+  "PHYA1 (old spec)" and so on, tagged to 7408's topics. A teacher builds tests from them.
+  AQA publishes none of it any more (its file store answers "not found" and its search
+  starts at June 2016), so the founder chose PMT's copies (2 November 2026), **for the
+  question bank only**, with no examiners' reports; PHYA3 (the practical ISA/EMPA) is left
+  out. Scripts in `scripts/question-bank/aqa_physics_legacy/`: `fetch_pmt.py`,
+  `cut_legacy.py` (the old "1 (a) (i)" labels and three scheme layouts, PHYA5 schemes to
+  2013 printing the core and the option in one file), `check_legacy.py`, `tag_legacy.py`
+  and `build_legacy.py`, which merges the rows into the built bank without touching the
+  7407/7408 rows or `files.json`.
 - Rebuilding from the shared work folder: `build_bank.py` has changed since Chemistry
   and Physics were last built (it trims the search text and links some scheme crops to
   the whole scheme), so this run kept their files as they were and took only Biology's
@@ -70,7 +140,8 @@ npm run bank:build
 npm run bank:upload     # to R2; needs the keys in .env.local (see upload_r2.py)
 ```
 
-Then build, check a subject and a topic page, commit the JSON, and resubmit the
+Then `python3 scripts/question-bank/upload_data.py --all` (the bank data, see "Bank data on R2"),
+build, check a subject and a topic page, commit the meta JSON, and resubmit the
 sitemap in Search Console.
 
 ## Students' feedback of 29 October 2026
@@ -706,6 +777,84 @@ python3 scripts/question-bank/edexcel_igcse/build_igcse.py
 python3 scripts/question-bank/practicals.py split --only=edexcel-igcse-biology,edexcel-igcse-chemistry,edexcel-igcse-physics --parts=scripts/question-bank/.work/edexcel-igcse/parts.json   # judge, then merge
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-igcse --pdf-prefix=edexcel-igcse/
 python3 scripts/question-bank/ms_fallback.py cut --bank=edexcel-igcse-chemistry   # and -biology, -physics; upload --crops-only --checksum, then apply
+```
+
+## Edexcel International A Level Biology, Chemistry and Physics
+
+`/question-bank/edexcel-ial-biology`, `-chemistry` and `-physics`, added 2 November 2026: every
+question from Pearson Edexcel's International A Level Biology (WBI11-WBI16), Chemistry
+(WCH11-WCH16) and Physics (WPH11-WPH16) unit papers that Pearson publishes, January 2019 to June
+2025. That is 10,109 question parts from 294 papers (Biology
+3,127 from 98, Chemistry 4,117 from 99, Physics 2,865 from 97), cut part by part with their mark scheme rows and examiner's reports. Every
+paper adds up to its unit's 80, 90 or 50 marks. The hub shows them as "Edexcel International A
+Level" on the A-Level shelf, after the UK boards' books (level `IAL`, read by `bankLevel`; the
+Edexcel IAL Maths banks use the same naming), and each links to the past paper library's
+`edexcel-ial` page for its subject, which links back (`bankFor`).
+
+- **Papers:** the six units. Units 1 to 3 are the International AS, marked AS ("AS Unit 1", `as`)
+  as the A-Level banks mark their AS papers; Units 3 and 6 are the practical skills papers, in
+  as normal papers. A sitting with a second paper sat in other time zones has it as its own
+  series: Chemistry Units 2 and 3 in June 2024 ("01R", "June 2024 (R)") and Chemistry Unit 5 in
+  June 2025 ("01A", "June 2025 (A)").
+- **Source papers:** Pearson's own site only, through the past paper library's search index
+  (`fetch_ial.py` imports `scripts/past-papers/boards/edexcel.py`). Each file's series is read off
+  its cover, as for the International GCSE: January's papers are dated March (results day), and
+  the papers printed for May/June 2020, which was cancelled, were sat in October 2020. Summer
+  2021's papers are June 2021 (their provisional schemes are replaced by the final ones). Whole
+  papers are on R2 under `edexcel-ial/` (`wch12-01-qp-jun24r.pdf`), crops under `bank/`.
+- **Topics:** Chemistry's lettered sub-topics where the specification has them ("8B The elements
+  of Groups 1 and 2"); elsewhere, and in Biology and Physics, groups of the specification's
+  numbered statements with their numbers as `points` (`spec_ial.py`'s `GROUPS`): Biology 47,
+  Chemistry 50, Physics 38, each subject's tiles its topics (Physics: its unit headings, "4.4
+  Electric and magnetic fields"). A last tile, "Practical skills (Units 3 and 6)", holds the
+  practical papers' parts that test skill with no content to speak of. Units 1 and 2 are year 1.
+- **Cutting:** `cut_ial.py` runs `cut_pearson.py` with eight patches, here only: "END" in capitals
+  (from `cut_igcse.py`); a levels grid's "0" row isn't a question label; nor is anything else in the
+  label column that can't start a row (`stray()`: a boxed digit numbering a long answer's indicative
+  content, a bare number whose question has parts, a label out of question order such as a formula's
+  "1" or a nuclide's "40", or one met before but not just before); a header split "Questio / n" is
+  read as "Question"; Cambria Math's inflated line boxes are measured by their size, so a scheme row
+  starts at its rule (WPH14 June 2022); a part opening with a built-up fraction doesn't start
+  through the marks above it; text in a font whose codes run 29 below its letters (WPH11 and WPH12
+  June 2019, "\x0bD\x0c\x03'UDZ" for "(a) Draw") is read as its letters, so its part labels count;
+  and a sub-part over the page that prints its letter again, "(b) (ii)", is read as (ii), so it no
+  longer runs on inside "(b) (i)" (WBI16 January 2023, WBI16 June 2021, WCH14 October 2023). Every crop was checked edge by edge against the page's text lines:
+  no question crop runs through a line. Marks
+  the cutter can't read are set in `labels/` (`wch1101-jan24`, `wch1201-jan21`, `wph1301-jan24`,
+  `wbi1101-jan19`), as are multiple-choice letters no scheme row gives (`wbi1401-jan22`, whose
+  first page heads its table "Answer | Mark" with no "Question"), and a scheme row that misprints
+  its label is matched to its part (`ms_alias`: "15(a)*" for the one-part Q15 in `wph1101-oct21`,
+  "1(b)(i)" and "3(a)(i)" for parts with no sub-parts in `wbi1501-jun21` and `wbi1501-oct24`).
+  Every scheme was also swept label by label (2 November 2026): no scheme crop holds another
+  question's label, and every scheme row has a part of its own. `cropVersion` 3 marks that re-cut.
+- **Multiple choice:** a part whose own words set out options A to D keeps its letter as `k`,
+  read by `cut_pearson.py` or, where Biology and Physics word the row their own way ("1(a)(i) B A
+  is incorrect because…", "Computer C …"), by `build_ial.py`'s `scheme_key`.
+- **Tags and practicals:** tagged by Claude following `tag.md` ("Edexcel International A Level
+  sciences"); practicals judged as for the other science banks.
+
+Gaps, honestly:
+- Pearson keeps October 2025 onwards for teachers, and never published October 2019's papers (its
+  schemes and reports are public, so nothing to cut). The units came in one by one: Unit 1 from
+  January 2019, Units 2 and 3 from June 2019, Unit 4 from January 2020, Units 5 and 6 from October
+  2020.
+- Three sittings have no public mark scheme, so their parts are left out: Chemistry Unit 1 June
+  2023, Chemistry Unit 6 October 2023 and Physics Unit 3 October 2020.
+- 15 parts (Biology 3, Chemistry 8, Physics 4) link their whole mark scheme instead of a crop of
+  their row: 7 whose rows the reader doesn't find, and 8 whose rows Pearson lays out across a table
+  rule (an equation or mechanism drawn over the border, a merged "clip with" row), listed in
+  `labels/`'s `wholeScheme`. Every part has a scheme. A few dozen scheme crops still graze a line
+  of maths whose glyph box overhangs a table rule; each was looked at and reads whole.
+
+```bash
+python3 scripts/question-bank/edexcel_ial/fetch_ial.py
+python3 scripts/question-bank/edexcel_ial/spec_ial.py
+python3 scripts/question-bank/edexcel_ial/cut_ial.py          # --only=wch1101-jan26 for one paper
+python3 scripts/question-bank/edexcel_ial/tag_ial.py split    # tag the new batches, then:
+python3 scripts/question-bank/edexcel_ial/tag_ial.py merge
+python3 scripts/question-bank/edexcel_ial/build_ial.py
+python3 scripts/question-bank/practicals.py split --only=edexcel-ial-biology,edexcel-ial-chemistry,edexcel-ial-physics --parts=scripts/question-bank/.work/edexcel-ial/parts.json   # judge, then merge
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-ial --pdf-prefix=edexcel-ial/
 ```
 
 ## Edexcel International GCSE Islamic Studies (4IS1)
@@ -1356,6 +1505,52 @@ python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-economics --crops-only
 ```
 
+## OCR GCSE Classical Civilisation
+
+Added 3 November 2026: `/question-bank/ocr-gcse-classical-civilisation`, every question from OCR's
+GCSE (9-1) Classical Civilisation (J199) that OCR publishes on ocr.org.uk with its mark scheme:
+November 2021 and June 2022 to June 2025. That is 713 parts from 23 papers, every one with its own
+mark scheme crop, its sources or instructions as a stem, and a topic, and 411 questions with the
+examiner's comments (November 2021 has no reports).
+
+- **Options:** a student sits one thematic study (J199/11 Myth and Religion, J199/12 Women in the
+  Ancient World) and one literature and culture component (J199/21 The Homeric World, J199/22 Roman
+  City Life, J199/23 War and Warfare). Each is a paper, and the filter offers the six pairs
+  (`takes`), so a student sees only the two they sit.
+- **Topics:** the specification's key topics, eight per component (40). The specification gives them
+  no numbers, so their codes are the bank's own and aren't shown. "Themes", which two components
+  share, became "Themes of the Odyssey" and "Themes of war literature".
+- **Sources:** printed in a separate Insert. Each source is read from its caption to the next, and a
+  question's stem is every source its "Study Source A" heading and its own words name, literature's
+  two translations (Rieu and Kline) both kept. The 15-mark essays show their instructions instead.
+- **Schemes:** 8-mark and 15-mark rows end with the scheme's levels grid for that mark, however the
+  scheme lays them out (it can print one grid once, for two essays). June 2022 Myth and Religion's
+  scheme prints no grids.
+- **Cutting:** `cut_ocr_gcse_classics.py` runs `ocr_gcse_geography/cut_ocr_gcse_geography.py`
+  unchanged, with J199 patches. A part ends at its marks and long runs of answer lines are left out.
+  Every paper's marks were checked against its printed total (90, plus each alternative essay).
+- **Erratum:** June 2022 Women's Question 14 prints "Source D"; OCR's erratum makes it Source E. Its
+  stem shows the notice and Source E.
+- **Gaps:** June 2018, June 2019 and November 2020 are on Teach Cambridge only. June 2025's Roman
+  City Life and War and Warfare are left out: OCR's mark scheme links serve June 2024's schemes.
+  The modified papers and sample assessment materials are left out. No past paper library page yet;
+  the whole papers are on R2 under `ocr/OCR-J199-*`.
+- **Removed sources:** OCR's published Inserts have some sources removed for copyright, printing a
+  notice instead, and its modified papers are redacted too. 27 parts show that notice in place of
+  their source: June 2025 Myth and Religion's I and J, Women's A and F, The Homeric World's D, E and
+  F, June 2024 Roman City Life's E, and November 2021 War and Warfare's A.
+
+```bash
+python3 scripts/question-bank/ocr_gcse_classics/fetch_ocr_gcse_classics.py
+python3 scripts/question-bank/ocr_gcse_classics/spec_ocr_gcse_classics.py
+python3 scripts/question-bank/ocr_gcse_classics/cut_ocr_gcse_classics.py
+python3 scripts/question-bank/ocr_gcse_classics/tag_ocr_gcse_classics.py split   # then tag each batch (tag.md)
+python3 scripts/question-bank/ocr_gcse_classics/tag_ocr_gcse_classics.py merge
+python3 scripts/question-bank/ocr_gcse_classics/build_ocr_gcse_classics.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-classics/r2 --pdf-prefix=ocr/
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-classics --crops-only
+```
+
 ## Edexcel GCSE Business
 
 Added 1 November 2026: `/question-bank/edexcel-gcse-business`, every question from Pearson Edexcel's
@@ -1870,6 +2065,56 @@ python3 scripts/question-bank/aqa_gcse_psychology/tag_gcse_psychology.py merge
 python3 scripts/question-bank/aqa_gcse_psychology/build_gcse_psychology.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-psychology
 ```
+## AQA GCSE Food Preparation and Nutrition
+
+Added 3 November 2026: `/question-bank/aqa-gcse-food-preparation-and-nutrition`, every question
+from AQA's GCSE Food Preparation and Nutrition (8585) written paper (8585/W, Food preparation and
+nutrition) that AQA publishes: November 2020, November 2021 and June 2022 to June 2025. That is
+215 questions and parts from 6 papers, every paper adding up to its 100 marks, every one tagged.
+
+- **Questions.** Section A is question 01: twenty 1-mark multiple-choice parts (01.1 to 01.20,
+  options A–D), 120 in all, each carrying its letter (`k`) instead of a scheme crop. Section B is
+  questions 02–06, mostly in parts ("0 3 . 2"), now and then a whole question (June 2025's
+  12-mark "0 4"); a shared ingredient list or scenario printed above a question's parts is their
+  stem (17 parts).
+- **Mark schemes:** each Section B part's row of AQA's "Qu | Part | Marking guidance" table, cut
+  from its label to the next and across pages, so a levels-marked answer brings its whole grid and
+  its indicative content (95 crops). Each multiple-choice key is read from Section A's "D – Yellow"
+  rows and checked against the question paper's option D before it is kept.
+- **Examiner's reports:** June 2022 to June 2025 (24 questions). AQA's reports comment part by part
+  ("Question 2.1"); each question's report keeps a "Question 02.1" heading over each part's
+  comments, so the report panel shows a part's own comments first. AQA published none for November
+  2020 or November 2021.
+- **Topics:** the specification's five areas as tiles (Food, nutrition and health; Food science;
+  Food safety; Food choice; Food provenance) and their 33 numbered topics under them (`3.2.1.1`
+  Protein … `3.6.2.2` Technological developments). British and international cuisines (`3.5.2`)
+  and Sensory evaluation (`3.5.3`) have no headings under them and are topics themselves. Food
+  science's four "functional and chemical properties" topics have short names ("Proteins in
+  cooking") so they don't share an address with the nutrition topics. The food preparation skills
+  (3.1) and techniques (3.7) run through the whole specification and are not topics.
+- **Pipeline:** `scripts/question-bank/aqa_gcse_food/`: `fetch_food.py` (fetch_aqa.py over 8585,
+  reading the paper's "8585W" file names), `spec_food.py`, `cut_food.py` (cut.py with patches made
+  from it, no shared script changed: the scheme's split "Qu | Part" labels, the scheme frame inside
+  the page-wide header and footer rules, a part ended above the "Section B" heading, multiple-choice
+  options and a table's "An example has been completed for you." kept with their own part, and a
+  table's bottom rule just under the frame kept), `tag_food.py` and `build_food.py`. Papers are on
+  R2 under `aqa/AQA-8585W*`, crops under `bank/8585w*`.
+- **Gaps:** AQA no longer publishes the first sitting, June 2018, nor June 2019's question paper
+  (its file store redirects; only June 2019's mark scheme is still listed, so that series is left
+  out), so the bank starts at November 2020. Only AQA's own site is used. The specimen paper, the
+  modified (large print) papers and the NEA (8585/C, coursework) are left out. There is no Food
+  Preparation and Nutrition page in the past paper library, so there is nothing to link to and back.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_food/fetch_food.py
+python3 scripts/question-bank/aqa_gcse_food/spec_food.py
+python3 scripts/question-bank/aqa_gcse_food/cut_food.py
+python3 scripts/question-bank/aqa_gcse_food/tag_food.py split   # tag each batch by tag.md's AQA GCSE Food brief, then
+python3 scripts/question-bank/aqa_gcse_food/tag_food.py merge
+python3 scripts/question-bank/aqa_gcse_food/build_food.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-food
+```
+
 ## AQA GCSE History
 
 Added 1 November 2026: `/question-bank/aqa-gcse-history`, every question from AQA's GCSE History
@@ -3139,6 +3384,99 @@ python3 scripts/question-bank/aqa_languages/build_languages.py
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-languages
 ```
 
+## AQA A-Level German
+
+Added 3 November 2026: `/question-bank/aqa-a-level-german`, every question from AQA's A-Level German
+(7662) Papers 1 and 2 that AQA still publishes, November 2020, November 2021 and June 2022 to June
+2025, with the AS papers (7661: November 2020, then June 2022 on) marked AS. 843 parts from 22 papers.
+Every part has its mark scheme cropped, 185 listening parts play AQA's own recording, and 363 parts
+have the examiner's comments. It runs on the French and Spanish pipeline (`aqa_languages/`); German
+has a work dir of its own, `.work/aqa-german`, and `fetch_languages.py` takes `--lang=german`.
+
+- **Topics:** the specification's four themes and twelve sub-themes, each passage placed by hand in
+  `tag_languages.py`, the skills, and the sixteen set works in Paper 2 (ten texts, six films).
+- **Where German differs from French and Spanish** (all in `cut_languages.py`, behind `GERMAN`, so
+  a French or Spanish re-cut is unchanged):
+  - A gap-fill's, a translation's or a reading summary's marks are printed above its passage, so
+    a whole question ends at its last line of text, not its last marks. A part still ends at its
+    marks, except A-Level June 2024's 07.1, whose word list is under them.
+  - Translations are labelled "Qu 10" on one line. Their general guidance has a page of its own and
+    stays out of the crops.
+  - AS Paper 2's table is headed "Question", with the label centred far down a merged cell. A summary's
+    label is centred far down too, so a row's header is looked for back to the previous label.
+  - The guidance can start under a section's last row, on the row's own page: the row stops there.
+- **Shared changes:** the essay grids now keep the last line of the AO3 page and leave out the AO4
+  page's running header. French and Spanish would pick this up on a re-cut. `audio_languages.py`
+  reads a passage length in digits ("1 minute and 26 seconds") as well as words.
+- **Listening:** November 2020 (A-Level and AS) has only an untracked recording, cut at the silence
+  nearest each passage's printed length; each piece runs 9 to 20 seconds over its printed length,
+  which fits the spoken introductions.
+- **Reports** head Paper 1's questions "Question 1 – Title". Paper 2's are prose, so an essay gets the
+  paragraphs that name its question ("Q10.1") or its work; many works get no comment because the
+  report doesn't discuss them. No reports are published for November 2020, November 2021 or AS June 2024.
+- **Checked:** every printed line of each question paper was matched against the crops. The only lines
+  left out are AQA's acknowledgement notices, section labels, the essay-plan rubric, and one instruction
+  in A-Level June 2023 ("Beantworten Sie nun...", above 06.5).
+- **Gaps:** June 2017 to June 2019 aren't on AQA's site, and AS has no November 2021 paper. Paper 3
+  (speaking) has no written questions, and the specimen papers are left out, as in French and Spanish.
+  The past-paper library (`pastPapers.json`) has no German entry, so there is no library page to link.
+
+```bash
+python3 scripts/question-bank/aqa_languages/fetch_languages.py scripts/question-bank/.work/aqa-german --lang=german
+python3 scripts/question-bank/aqa_languages/audio_languages.py scripts/question-bank/.work/aqa-german
+python3 scripts/question-bank/aqa_languages/cut_languages.py scripts/question-bank/.work/aqa-german
+python3 scripts/question-bank/aqa_languages/tag_languages.py scripts/question-bank/.work/aqa-german
+python3 scripts/question-bank/aqa_languages/build_languages.py scripts/question-bank/.work/aqa-german
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-german
+```
+
+## AQA A-Level Physical Education
+
+Added 3 November 2026: `/question-bank/aqa-a-level-physical-education`, every question from
+AQA's A-Level Physical Education (7582) Paper 1 (Factors affecting participation in physical
+activity and sport) and Paper 2 (Factors affecting optimal performance in physical activity and
+sport) that AQA publishes: November 2020, November 2021 and June 2022 to June 2025. That is 286
+questions from 12 papers, every paper adding up to its 105 marks, every question tagged.
+
+- **Whole questions, parts now and then.** Each paper is three sections, each opening with two
+  multiple-choice questions and closing with an 8-mark and a 15-mark extended answer; questions are
+  numbered through the paper ("0 7"), with parts ("0 4 . 2") under a shared stimulus, which is the
+  parts' stem (29 parts).
+- **Mark schemes:** each question's guidance under its reprinted question, cut from its label to the
+  next, so an 8- or 15-mark scheme brings its whole levels grid and its possible content, across
+  pages (214 crops). The 72 multiple-choice questions carry their letter (`k`) instead of a crop.
+  The cutter checks every extended answer's scheme for its whole grid ("0 | No relevant content")
+  and its content, and every scheme for a closing line, so none is cut short at a page foot or runs
+  into the next question.
+- **Examiner's reports:** June 2022 to June 2025 (156 questions). AQA published none for November
+  2020 and 2021, and June 2025's skip the multiple-choice questions.
+- **Topics:** the specification's seven areas as tiles (Applied anatomy and physiology, Skill
+  acquisition, Sport and society on Paper 1; Exercise physiology, Biomechanical movement, Sport
+  psychology, Sport, society and technology on Paper 2) and their numbered topics under them,
+  with Sport psychology's one five-page heading split into its fourteen (`3.2.3.1.1` Aspects of
+  personality … `3.2.3.1.14` Stress management) and the history of sport into its three eras. A
+  paper's section fixes its first tag's area (tag.md's AQA PE section); 3.1.1.1, the spec's
+  umbrella over the cardiovascular and respiratory systems, has no questions and is hidden.
+- **Pipeline:** `scripts/question-bank/aqa_pe/`: `fetch_pe.py` (fetch_aqa.py over 7582),
+  `spec_pe.py`, `cut_pe.py` (GCSE Psychology's cutter, which is cut.py with A-Level Psychology's
+  patches, plus a footer-only scheme frame and no stimulus moved down a question), `check_pe.py`,
+  `tag_pe.py` and `build_pe.py`. No shared script changed. Papers are on R2 under `aqa/AQA-7582*`,
+  crops under `bank/7582*`.
+- **Gaps:** AQA no longer publishes the first sittings, June 2018 and 2019 (its file store answers
+  "not found"), nor any AS (7581) paper (the AS has no resources page left, and none of its file
+  store addresses answers), so the bank starts at November 2020. Only AQA's own site is used for PE. The specimen papers and the practical NEA are left out.
+
+```bash
+python3 scripts/question-bank/aqa_pe/fetch_pe.py
+python3 scripts/question-bank/aqa_pe/spec_pe.py
+python3 scripts/question-bank/aqa_pe/cut_pe.py
+python3 scripts/question-bank/aqa_pe/check_pe.py
+python3 scripts/question-bank/aqa_pe/tag_pe.py split   # tag each batch by tag.md's AQA PE brief, then
+python3 scripts/question-bank/aqa_pe/tag_pe.py merge
+python3 scripts/question-bank/aqa_pe/build_pe.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-pe
+```
+
 ## Cambridge International (CAIE)
 
 Added 25 October 2026, after a student asked for CAIE:
@@ -3268,8 +3606,7 @@ Gaps: no 2016 reports for Physics or Chemistry (WJEC publishes none). A few repo
 sections are written by theme, not question (Chemistry Unit 4 and Biology Unit 2 in
 2025), and the maths reports comment only on some questions, so those have none;
 3,440 of 3,914 have one. 20 science parts have no scheme crop
-and link the whole scheme. Not built yet: Further Maths (on the same WJEC page) and
-the GCSEs (legacy Wales sciences and maths, being replaced by the Made-for-Wales GCSEs).
+and link the whole scheme. Not built yet: the GCSEs (legacy Wales sciences and maths, being replaced by the Made-for-Wales GCSEs).
 
 ```bash
 python3 scripts/question-bank/wjec/fetch_wjec.py            # --only=physics for one subject
@@ -3280,6 +3617,68 @@ python3 scripts/question-bank/wjec/tag_wjec.py split         # tag, then: merge
 python3 scripts/question-bank/wjec/build_wjec.py
 python3 scripts/question-bank/practicals.py split --parts=scripts/question-bank/.work/wjec/parts.json --only=wjec-a-level-biology,wjec-a-level-chemistry,wjec-a-level-physics   # judge, then merge --only=…
 python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec --pdf-prefix=wjec/
+```
+
+## WJEC A-Level Further Maths
+
+Added 3 November 2026, after the founder asked for it: `/question-bank/wjec-a-level-further-maths`,
+the Wales specification (AS 2305, A Level 1305), 259 whole questions from WJEC's 33 published
+papers: AS Units 1 to 3 from Summer 2018, A2 Units 4 to 6 from Summer 2019 (the first A2 sitting),
+Summers 2018, 2019 and 2022 to 2025. Every question has marks, topics and a scheme crop; every
+paper's marks add up to its total (AS 70, Unit 4 120, Units 5 and 6 80). 256 have the examiners'
+comments: WJEC prints none worth showing on the other three (Unit 1 2023 Q5 says only "Overall, a
+well-answered question."; Unit 6 2023 Q5 and Unit 3 2024 Q3 have no comment).
+
+| Unit | Paper | Marks | Questions |
+| --- | --- | --- | --- |
+| AS Unit 1 (2305U10) | Further Pure Mathematics A | 70 | 54 |
+| AS Unit 2 (2305U20) | Further Statistics A | 70 | 39 |
+| AS Unit 3 (2305U30) | Further Mechanics A | 70 | 40 |
+| A2 Unit 4 (1305U40) | Further Pure Mathematics B | 120 | 60 |
+| A2 Unit 5 (1305U50) | Further Statistics B | 80 | 36 |
+| A2 Unit 6 (1305U60) | Further Mechanics B | 80 | 30 |
+
+- **Source: WJEC's own site only.** Further Maths has no qualification page of its own: the
+  Maths page's past papers and key documents list its papers, its specification and its reports
+  beside Maths's, so `fetch_wjec.py --only=further` reads that page and keeps the 305 stem.
+  Whole papers are the library's `wjec/WJEC-2305U10-1-QP-JUN23.pdf`; the reports are
+  `wjec/WJEC-further-ER-JUN23.pdf`.
+- **Options.** The specification has A2 candidates sit Unit 4 and either Unit 5 or Unit 6 (the
+  AS units are all compulsory), so the bank's "A2 option" filter takes Further Statistics B or
+  Further Mechanics B, as AQA's Further Maths does its pairs.
+- **Topics** are the specification's own, 31 of them by unit (`wjec/spec_wjec_further.py`):
+  its 2.4.3 is `4.3`. Unit 2's two broad headings are split at their sub-headings, and titles
+  say which unit's complex numbers or matrices they are, so no two read alike.
+- **Year filter:** A2 units are Year 13 without any reading (`year13.json`, written by the build).
+- **Cutting.** Whole questions, as Maths. WJEC's schemes come in five layouts across these
+  years, and cut_pearson's table reader takes working for labels in several (it gave Unit 4
+  2024's Q1 rows to Q3), so `cut_wjec.py` finds each question's start itself (`label_starts`): the
+  number in the page's leftmost column, shaped like a label, counted only as the next question,
+  and believed only if it finds every question on the paper. Mechanics 2022 and 2023 draw their
+  "Q1" header as a picture, so there the table's blue header cell is counted instead. A question
+  runs on to the next question's start, past its "Total for Question 1": Mechanics prints a "Q1
+  Alternative Solution" table after that row, and those rows were being lost. A page's box takes
+  in all its text, as drawn rules can stop short or, on 2018's unruled Unit 3, be only a diagram's.
+- **Answer lines.** Since 2024 the papers are answered in the paper, with pages of dotted lines:
+  crops ran to 5,800px. `--squeeze` takes bands of those dashed rules out (median question crop
+  2,900px to 550px). WJEC Maths's 2024 and 2025 crops still have the lines (median 2,200px).
+- **Check:** `wjec/check_wjec_fm.py` (another question's number in a scheme crop, a scheme missing
+  its own, ink cut by a crop edge, a line on a scheme page in no crop or clipped at its side, the
+  printed total against the paper's marks, marks against the paper's total), then every crop's top
+  and bottom by eye on contact sheets. What it still reports is explained: Unit 6 2022's numbers
+  are pictures, so "own number" can't be read, and "Total 120" is a match on "120.7".
+
+Gaps: WJEC's public list has no Summer 2026 papers yet, though its Summer 2026 report is up (left
+out until the papers are). No 2020 or 2021 papers, none being sat in summer. The specimen papers
+aren't cut, having no series.
+
+```bash
+python3 scripts/question-bank/wjec/fetch_wjec.py scripts/question-bank/.work/wjec-fm --only=further
+python3 scripts/question-bank/wjec/cut_wjec.py scripts/question-bank/.work/wjec-fm --whole --squeeze
+python3 scripts/question-bank/wjec/check_wjec_fm.py scripts/question-bank/.work/wjec-fm --whole --squeeze
+python3 scripts/question-bank/wjec/tag_wjec.py split scripts/question-bank/.work/wjec-fm 300   # tag, then: merge
+python3 scripts/question-bank/wjec/build_wjec.py scripts/question-bank/.work/wjec-fm
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/wjec-fm --pdf-prefix=wjec/
 ```
 
 ## WJEC A-Level Business
@@ -4336,3 +4735,285 @@ its own mark scheme crop and tagged to a topic, and 136 with the examiner's comm
   2024); a table's marks set level with the margin one (January 2025 13(a), 6 marks); a mark at the
   page's foot, level with "Turn over", kept whole; and a first sub-part's own line kept where it has
   no word of three letters ("(i) AF", January 2025 16(a)(i)). Every paper's parts add up to 70.
+
+## Edexcel International A Level Maths and Further Maths (YMA01, YFM01)
+
+Added 2 November 2026: `/question-bank/edexcel-ial-maths` and `/question-bank/edexcel-ial-further-maths`, Pearson
+Edexcel's International A Level (2018 specification, first exams 2019), every unit paper Pearson's own site has
+public from January 2019 to June 2025, January, June and October series.
+
+| Bank | Units | Papers | Questions | Scheme crops | Reports |
+| --- | --- | --- | --- | --- | --- |
+| Maths (YMA01) | P1-P4, M1, M2, S1, S2, D1 | 149 | 1,251 | 1,251 | 1,142 |
+| Further Maths (YFM01) | FP1-FP3, M1-M3, S1-S3, D1 | 139 | 1,041 | 1,041 | 969 |
+
+211 unit papers, 1,741 questions in all (the applied units both banks count, M1, M2, S1, S2, D1, are in both,
+under the same crops). Every paper's questions add up to its 75 marks; every question has its scheme crop.
+
+- **Naming, shared with the IAL sciences session:** board "Edexcel", level "IAL", shown as "International A Level"
+  (`bankLevel`, so titles read "Edexcel International A Level Maths"); on the hub's A-Level shelf, keyed "Edexcel
+  International A Level", after the UK boards; "every paper" links go to the library's
+  `/past-papers/a-level-maths/edexcel-ial`. The landing page's bank index heads it "International A Level".
+- **Units:** each unit is a paper ("AS Pure 1 (P1)", "Mechanics 2 (M2)", title "WME02/01") and a topic area, its
+  topics the specification's numbered ones (P3.4 Differentiation; 82 in all). The AS units, P1, P2, M1, S1 and D1,
+  say "AS" in their names and areas and are marked `as`. The applied units are the bank's options ("Applied
+  units"): Maths offers the pairs International A Level Mathematics allows (M1 and S1, M1 and D1, M1 and M2, S1 and
+  D1, S1 and S2) and International AS's single unit; Further Maths offers Mechanics, Statistics and Decision and
+  their pairs, and "Further Pure only". A pick keeps the pure units and the picked units' papers and topics.
+  No Year filter: the units already say which year they are.
+- **Second papers:** since June 2024 some units also sat a paper in another time zone (01R, 01A). Each is a series
+  of its own, `JUN24R`, `JUN25A`, "June 2025 (A)", listed after its main paper; the banks' `note` says so.
+- **Sources, Pearson's own site only:** its search index, filtered to the 2018 specification's files
+  (`ial18-mathematics`: the FP, M and S codes are the 2013 specification's too), series read off Pearson's own tag
+  on each file (October 2020 sat the papers printed for May 2020). Two files are named off-pattern
+  (`wma12-01-mcs-20190815.pdf`, `Question-paper-Unit-3-WMA13- January-2020.pdf`). 538 of the 623 files are the
+  past paper library's copies already on R2 (`edexcel/EDX-W…`, matched by MD5); the other 85 are on R2 as
+  `edexcel-ial/<unit>-<kind>-<series>.pdf`.
+- **Cut** with the UK Edexcel Maths cutter for the questions (`cut_edexcel.py`'s `qp_regions`, `qp_marks`) and the
+  shared Pearson scheme reader (`cut_pearson.py`'s `ms_tables`, with `carried()`), through
+  `edexcel_ial_maths/cut_ial_maths.py`, which forks neither. What it adds:
+  - questions: the 2019 papers' "Leave blank" column (the legacy frame); Decision 1's answer book, bound in after
+    the questions, kept out; each crop edge settled on a row with no ink (a matrix standing taller than its label
+    had its top bracket cut; a "(6)" 4pt over the answer line its foot);
+  - schemes, through `SchemeLines`: labels printed "1.(a)", "2 .(a)", "7ai", "4." told from the working by order,
+    shape and column (Pearson bolds few of them and places them anywhere across a wide column; "9e−0.75t" and a
+    notes page's "4" are not labels); every part label moved out of the column, as each question's Notes repeat
+    "(a)", "(b)" and the reader kept a repeated label's first rows only (losing notes pages); the headings Pearson
+    uses ("QUESTION NUMBER", "Qu", "Q", "Questio"/"n") read as "Question"; a centred label lifted to its row's
+    top (Decision 1's networks lost their tops); pictures and diagrams given a line, so a page of pictured working
+    is kept; the page box widened to the text under the table and down to the foot (fraction bars ended crops),
+    the page numbers and Pearson's company notice left out; a question's rows laid out from its label's row to the
+    next question's, over every page between.
+- **Checks** (`check_ial_maths.py`, run over every paper, none left): no crop edge runs through ink (rows looked at
+  pixel by pixel, the tables' rules aside); Question 1 opens on its own label, never the cover or the formulae
+  note; each scheme crop opens on its own label and runs to the next question's start with nothing between but
+  the table's heading; its printed total ("(9 marks)") matches the question's marks; every paper makes 75. Crops
+  were also looked at by eye: Decision networks, multi-page schemes, 2019 papers, matrices at a question's top.
+- **Topics:** tagged by Claude subagents per tag.md's IAL section, each question from its own unit's topics, one
+  or two.
+- **Re-cut, 3 November 2026 (`cropVersion` 3):** testing found schemes that start a question with a bare "2" and
+  print "2(e)" where it carries over a page: the cutter took "2(e)" as the start, so Question 1's crop ran on
+  through 2(a) to (d) and Question 2's opened at (e) (Further Pure 1, June 2025). A question now starts only on its
+  first part ("2", "2.", "2(a)", "2(i)"); a bare number counts where it heads a table row, and gives way to a
+  printed "7(a)" unless it sits under its table's heading. A merged "Question Scheme" heading, notes in the
+  label column left of a label, and the guidance's numbered paragraphs before the first table no longer move a
+  start. The checker now looks for both faults (a crop opening past its question's first part, or holding the
+  next question's opening): 398 scheme crops changed (240 of Maths' 1,251, 312 of Further Maths' 1,041, the
+  shared units counted in both), no question crops. Six of its flags remain, each looked at by eye: a number in
+  the working read as a label, the crop itself right.
+- **Pipeline:** `scripts/question-bank/edexcel_ial_maths/`: `fetch_ial_maths.py`, `library_ial_maths.py`,
+  `cut_ial_maths.py`, `check_ial_maths.py`, `tag_ial_maths.py`, `build_ial_maths.py`; topics in
+  `ial_maths_topics.json`. Ids `wma13-jun22-09`, `wfm02-jun25a-03`; crops under `bank/` with those names.
+
+### Gaps
+
+- **Held back:** Pearson lists October 2025, January 2026 and June 2026 for teachers only.
+- **Not public:** the question papers for P1 and P2 October 2019 (their schemes are public, so left out); FP1 June
+  2019 and January 2020; M1 June 2019 and October 2019; S1 June 2019, October 2019 and January 2020.
+- **Not sat:** June 2020 (cancelled; October 2020 sat those papers). FP1-FP3, M3, S3 and D1 have no October series.
+- **Examiner's reports:** none for June 2021; elsewhere, the questions the examiners wrote about.
+- **The 2013 specification** (C12, C34, the old FP, M and S units before 2019) is left out.
+
+```bash
+pip install pymupdf pillow boto3
+python3 scripts/question-bank/edexcel_ial_maths/fetch_ial_maths.py
+python3 scripts/question-bank/edexcel_ial_maths/library_ial_maths.py
+python3 scripts/question-bank/edexcel_ial_maths/cut_ial_maths.py
+python3 scripts/question-bank/edexcel_ial_maths/check_ial_maths.py   # expect "0 problems"
+python3 scripts/question-bank/edexcel_ial_maths/tag_ial_maths.py split   # tag the batches, then:
+python3 scripts/question-bank/edexcel_ial_maths/tag_ial_maths.py merge && python3 scripts/question-bank/edexcel_ial_maths/build_ial_maths.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-ial-maths --crops-only --checksum
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-ial-maths/upload --pdf-prefix=edexcel-ial/
+```
+## AQA GCSE Citizenship Studies
+
+Added 3 November 2026: `/question-bank/aqa-gcse-citizenship`, every part from AQA's GCSE
+Citizenship Studies (8100) Paper 1 (Active citizenship; Politics and participation) and Paper 2
+(Life in modern Britain; Rights and responsibilities) that AQA still publishes, November 2020
+to June 2025. That is 306 parts from 12 papers (80 marks each), every one tagged to a topic;
+96 multiple-choice parts with their answer letters ("D", or "C and F" for "Shade in the two
+correct answers"), the other 210 with their mark scheme cropped, and 68 questions with the
+examiner's comments (AQA published no report for November 2020 or November 2021).
+
+- **Questions:** `cut.py`'s part finder. A source ("Source A …") is printed inside the part that
+  uses it, so a source-based part's crop carries its source, charts and all. Three fixes, made
+  from `cut_gcse_citizenship.py` without changing `cut.py`: a page with "Extra space" on it
+  ends a part only when nothing else is printed there (the 8-mark source question prints its
+  source on one page and its question on the next, which had been dropped); no setups are
+  moved (`move_setups` had taken multiple-choice options and their marks into the next part);
+  and a section's heading or "Question 1 continues on the next page" is cut off the part above
+  it. Paper 1's question 2 (the student's own investigation) and Paper 2's question 8 (a source
+  listing the options) are stems shown above their parts (48 parts).
+- **Mark schemes:** tables of "Qu | Part | Marking guidance | Total marks", a table per part from
+  June 2022, one ruled table before. A part's scheme runs from its table's (or row's) top to the
+  next part's, across pages, so an 8- or 12-mark scheme keeps its whole levels grid and its
+  indicative content; the cutter checks for both, and that each scheme reprints its part's
+  question. Multiple choice is keyed from "Correct response: C (Equal Pay Act) and F (Race
+  Relations Act)" ("Correct answer – B" in November 2020, whose papers print no "Shade in…"
+  line), and each letter's words are checked against the question paper's option. Where a
+  report names the answer, all 19 agree.
+- **Reports:** a heading per part ("Question 03.1 (Multiple choice)", or the bare "01.1" in
+  Paper 1, June 2022); a question's report is its parts' comments, each under its label.
+- **Topics:** the four themes as tiles and 61 topics: each key question's content bullets
+  (`3.4.3.2 Other voting systems`), with each theme's "how citizens make a difference" content
+  kept once under 3.5.1 (actions, groups, the media, working together) and the investigation's
+  stages under 3.5.2. Every topic has at least one part.
+- **Pipeline:** `scripts/question-bank/aqa_gcse_citizenship/`: `fetch_gcse_citizenship.py`
+  (`fetch_aqa.py` over 8100), `spec_gcse_citizenship.py`, `cut_gcse_citizenship.py`,
+  `tag_gcse_citizenship.py` (briefed by tag.md's AQA GCSE Citizenship Studies section) and
+  `build_gcse_citizenship.py`. Papers are on R2 under `aqa/AQA-8100*`, crops under `bank/8100*`.
+- **Gaps and oddities:** June 2018 and June 2019 are no longer on AQA's site (its file store
+  redirects), so the bank starts at November 2020. AQA publishes November 2021's Paper 1 only
+  with its copyright material removed: 05.3's Source D (a politician's social media posts) is a
+  blank box saying so. The specimen papers are left out, as for the other AQA banks. No library
+  page (`/past-papers`) yet.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_citizenship/fetch_gcse_citizenship.py
+python3 scripts/question-bank/aqa_gcse_citizenship/spec_gcse_citizenship.py
+python3 scripts/question-bank/aqa_gcse_citizenship/cut_gcse_citizenship.py
+python3 scripts/question-bank/aqa_gcse_citizenship/tag_gcse_citizenship.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_gcse_citizenship/tag_gcse_citizenship.py merge
+python3 scripts/question-bank/aqa_gcse_citizenship/build_gcse_citizenship.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-citizenship
+```
+## Edexcel GCSE Religious Studies A and B (1RA0, 1RB0)
+
+Added 3 November 2026: `/question-bank/edexcel-gcse-religious-studies`, every question from Pearson Edexcel's
+GCSE (9-1) Religious Studies A (1RA0) and B (1RB0) that Pearson publishes on qualifications.pearson.com: June
+2018, June 2019, November 2020, November 2021 and June 2022 to June 2025. That is 3,000 parts from 226 option
+papers (A: 968 parts, 99 sittings of 15 options; B: 2,032 parts, 127 sittings of 21 options), every one with
+its marks, its own scheme crop and a topic; 2,456 carry the examiner's comments on their question. The Short
+Courses (3RA0, 3RB0) are left out.
+
+- **Options.** Every option is a paper of its own, as Pearson codes them: `1ra01a` is "Spec A Paper 1A" ·
+  "Catholic Christianity (Study of Religion)", `1rb02f` is "Spec B Paper 2F" · "Judaism (Religion, Peace and
+  Conflict)". The bank's `options` filter is labelled **Course**: a specification and a religion
+  (`?option=b-ju`), or "Spec A: all religions" / "Spec B: all religions" for a student sitting two religions, who then
+  ticks papers under Paper. Each pick's `takes` covers its own papers and sections, and the sections both
+  specifications share. Mark's Gospel (Paper 4A) goes with Catholic Christianity and Christianity, the Qur'an (4B) with Islam.
+- **Topics.** A topic is one of the specification's numbered items, a section one religion's section of content.
+  Pearson prints the same sections many times: "Catholic Beliefs" under 1RB0's 1A, 2A and 3A and 1RA0's 1A and 2A;
+  1RA0's "Practices" is 1RB0's "Living the Catholic Life", item for item (likewise "Arguments for the Existence of God"
+  and "Philosophy of Religion", "Relationships and Families" and "Marriage and the Family"). Sections of a religion
+  whose items read the same are merged by `spec_gcse_rs.py`, so 960 printed items are 528 topics in 66 sections and a
+  topic's page shows every paper's questions on it. A title two religions share ("Pilgrimage") carries the religion in
+  brackets, and slugs start with the religion unless the title names it. A part's section is fixed by its paper and
+  question; `check_gcse_rs.py` compares each question's printed heading with it.
+- **Crops.** Every question runs (a) 3, (b) 4, (c) 5, (d) 12 or 15 marks: 15 includes 3 for SPaG, as printed, so a paper adds up to 102
+  (1RA0 Paper 1, all of 1RB0) or 51 (1RA0 Papers 2 to 4). Answers are written in the paper, so `cut_gcse_rs.py` uses
+  `edexcel_gcse_history/cut_gcse_history.py`'s reader: dotted lines whited out and closed up, furniture left out.
+- **Schemes.** A (d)'s crop runs through its indicative content, levels grid and, at 15 marks, the SPaG grid, over as many pages as
+  they take; every (d) was audited for all four levels. Patches, in `cut_gcse_rs.py` only: labels printed "Q2(b)" and "Level"
+  over "1" in a narrow column; a blank page between a (d) and its grid (1RB0 3D June 2019); Pearson's footer on a last page.
+- **Tags.** Many reports name the item a part tested ("Bullet point 2.5", "This referred to the specification: 1.3"): `tag_gcse_rs.py` takes those
+  for 1,603 parts. Claude subagents tagged the other 1,397 following `tag.md`'s "Edexcel GCSE Religious Studies" section. 13 topics have no
+  question yet.
+- **Reports** head parts in many ways ("1RA0_1A_Q01a", "Question 1a:", "2b:", "1a Outline…", "Question one"): all read by `cut_gcse_rs.py`.
+- **Gaps.** June 2026 is for teachers only. Pearson lists no question paper for 1RB0 3F June 2023 or 3A and 3F June 2024 (their schemes are public), and November 2021 1RB0 1D's
+  scheme is teachers only, so those four sittings are left out. 544 parts have no report comments: 30 sittings have a "will not publish" notice and 10 have
+  no report at all (`build_gcse_rs.py` links neither), and a few report headings aren't per part. No past paper library page yet: the whole papers are on R2 under `edexcel/1ra0-*` and `edexcel/1rb0-*`,
+  the crops under `bank/1ra0*` and `bank/1rb0*`.
+- **Oddities in Pearson's own schemes, cut as printed.** 1RB0 3D June 2018's 2(d) grid has no Level 4 row; 1RB0 3D June 2019's 2(d) grid has its descriptors moved down a row. 1RB0 3G
+  November 2020 prints 4(b) as "3(b)" (read as 4(b)). 1RA0 2B June 2025's 1(a) asks for religious traditions other than Christianity, which no item covers (filed under Christianity's beliefs, `CHBEL.1`).
+
+```bash
+python3 scripts/question-bank/edexcel_gcse_rs/fetch_gcse_rs.py
+python3 scripts/question-bank/edexcel_gcse_rs/spec_gcse_rs.py   # reads .work/edexcel-gcse-rs/specs/spec-a.pdf, spec-b.pdf
+python3 scripts/question-bank/edexcel_gcse_rs/cut_gcse_rs.py
+python3 scripts/question-bank/edexcel_gcse_rs/check_gcse_rs.py
+python3 scripts/question-bank/edexcel_gcse_rs/tag_gcse_rs.py split   # tag the batches, then:
+python3 scripts/question-bank/edexcel_gcse_rs/tag_gcse_rs.py merge
+python3 scripts/question-bank/edexcel_gcse_rs/build_gcse_rs.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/edexcel-gcse-rs --pdf-prefix=edexcel/
+```
+## AQA GCSE German
+
+Added 3 November 2026: `/question-bank/aqa-gcse-german`, on the GCSE shelf beside French, Spanish and
+Bengali, built with the same pipeline (`scripts/question-bank/aqa_gcse_languages/`, run with its own work
+directory). Every file is AQA's own, from the German 8668 and 8662 assessment-resources pages. Whole papers
+are on R2 under AQA's names (`aqa/AQA-8668RH-QP-JUN24.pdf`), the crops under `bank/8668*` and `bank/8662*`,
+and the Listening recordings under `aqa/audio/` (`aqa/audio/8668lh-jun24-07.mp3`). There is no German
+past-paper library page to link to.
+
+- **1,211 parts in 42 papers:** Listening, Reading and Writing, Higher and Foundation, for November 2020,
+  November 2021 and June 2022 to June 2025 (June 2018 and 2019 are withdrawn from AQA's site), plus the
+  8662 specimens. Every part has its marks, its topics (all 1,211) and its own scheme crop; every paper adds
+  up to its marks, less the left-out questions below. 226 questions have the examiner's comments (no
+  reports for November 2021, the Foundation papers of November 2020, or Higher Writing June 2022). `tiers.json` pairs 168
+  Foundation parts with their Higher copies.
+- **Listening with AQA's recordings:** all 521 Listening parts play their question's track (`au`); November
+  2020 has only the whole recording (`auw`, 78 parts). The specimens' dictations join their sentence tracks.
+- **The 2026 specification (8662).** First examined in June 2026; AQA has published only its specimens so
+  far, which are in the bank as "2026 specimen" with the "Specification" filter, as French and Spanish do.
+  How they differ: new themes (People and lifestyle; Popular culture; Communication and the world around
+  us), set vocabulary; Listening adds a dictation (Section B, 8 marks Foundation, 10 Higher); Reading is 50
+  marks (not 60) and ends with a translation into English (Section B, 10 marks), its first questions
+  short items on set vocabulary; Writing is 50 marks at both tiers (Higher was 60), Foundation adding a
+  grammar gap-fill (5 marks) and Higher three tasks: a translation (10), a choice of 90-word tasks (15) and
+  of 150-word tasks (25). The specimens are tagged to the old topic list, as French and Spanish do.
+- **Left out:** Paper 2 Speaking; 8 Reading questions whose texts AQA removes from the copyright-removed
+  copies it publishes (Foundation June 2023 Q6 and Q11, November 2021 Q6; Higher June 2022 Q4, June 2023
+  Q3 and Q8, November 2020 Q5): 29 marks; the old specification's 2016 specimens; modified papers.
+- **Cutter fixes made for German, shared with French, Spanish and Bengali** (`cut_gcse_languages.py`):
+  a crop edge that would slice an answer box or a line of text moves above it (`clear_edge`); a title set
+  below a separator rule, or at the question's first line rather than a table's left column, moves on to
+  the next question; a part whose own start is only "Answer both parts of the question." shows the
+  question before's start; the paper's last crop stops at "END OF QUESTIONS"; the next task's routing
+  ("Answer either Question 4.1 or Question 4.2.") is cut from the foot of a Writing crop; a specimen's
+  dictation never takes a shared start; a scheme's first label under a "Section B" heading starts at the
+  heading (the specimens' Reading translation); a specimen scheme's row keeps its own "Qu | Accept | Mark"
+  heading; a specimen's first Reading question takes the text on the page before its label; marks at the
+  frame's edge stay whole. French, Spanish and Bengali haven't been re-cut with them.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_languages/fetch_gcse_languages.py scripts/question-bank/.work/aqa-gcse-german --lang=german
+python3 scripts/question-bank/aqa_gcse_languages/cut_gcse_languages.py scripts/question-bank/.work/aqa-gcse-german   # needs ffmpeg
+python3 scripts/question-bank/aqa_gcse_languages/tag_gcse_languages.py split scripts/question-bank/.work/aqa-gcse-german   # tag the batches, then:
+python3 scripts/question-bank/aqa_gcse_languages/tag_gcse_languages.py merge scripts/question-bank/.work/aqa-gcse-german
+python3 scripts/question-bank/aqa_gcse_languages/build_gcse_languages.py scripts/question-bank/.work/aqa-gcse-german
+python3 scripts/question-bank/tiers.py aqa-gcse-german
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-german
+```
+## AQA GCSE Physical Education
+
+Added 3 November 2026: `/question-bank/aqa-gcse-physical-education`, every question from AQA's GCSE
+Physical Education (8582) Paper 1 (The human body and movement in physical activity and sport) and
+Paper 2 (Socio-cultural influences and well-being in physical activity and sport) that AQA publishes:
+November 2020, November 2021 and June 2022 to June 2025. That is 357 questions and parts from 12
+papers, every paper adding up to its 78 marks, every one tagged.
+
+- **Questions and parts.** Each paper opens with five to seven multiple-choice questions, then
+  short questions numbered through the paper ("0 7"), parts ("0 7 . 1") under a shared figure or
+  scenario, which is the parts' stem (81 parts), and closes with a 6-mark and a 9-mark answer.
+  Two parts ask about a figure or table printed only on the part before (November 2020 Paper 1's
+  10.5, June 2022 Paper 2's 13.2): each carries a copy, so it can be read on its own.
+- **Mark schemes:** each question's guidance under its reprinted question, cut from its label to the
+  next, so a levels scheme brings its whole grid and its possible content across pages (293 crops).
+  The 64 multiple-choice questions carry their letter (`k`) instead of a crop, each checked against
+  the option's words in the paper. The closing grid of marks by assessment objective is left out.
+- **Examiner's reports:** June 2022 to June 2025, kept per part under their "QUESTION 6.1" headings
+  (238 parts). A comment on the multiple choice as a whole goes to each of those questions. AQA
+  published none for November 2020 and 2021.
+- **Topics:** the specification's seven areas as tiles (Applied anatomy and physiology, Movement
+  analysis, Physical training, Use of data on Paper 1; Sports psychology, Socio-cultural influences,
+  Health, fitness and wellbeing on Paper 2) and their 25 numbered topics under them
+  (`3.1.3.2` Components of fitness and how they are measured). A part marked for reading or drawing
+  data takes `3.1.4.x` on either paper (tag.md's AQA GCSE Physical Education section).
+- **Pipeline:** `scripts/question-bank/aqa_gcse_pe/`: `fetch_gcse_pe.py` (`fetch_aqa.py` over 8582),
+  `spec_gcse_pe.py`, `cut_gcse_pe.py` (A-Level PE's cutter with GCSE PE's frame, closing grid, report
+  headings and 78 marks), `check_gcse_pe.py`, `tag_gcse_pe.py` and `build_gcse_pe.py`. No shared
+  script changed. Papers are on R2 under `aqa/AQA-8582*`, crops under `bank/8582*`.
+- **Gaps:** AQA no longer publishes the first sittings, June 2018 and June 2019, on its site or file
+  store, so the bank starts at November 2020. Only AQA's own site is used. The specimen papers and the
+  practical NEA are left out. No PE past-paper library page exists, so the bank has no library link.
+
+```bash
+python3 scripts/question-bank/aqa_gcse_pe/fetch_gcse_pe.py
+python3 scripts/question-bank/aqa_gcse_pe/spec_gcse_pe.py
+python3 scripts/question-bank/aqa_gcse_pe/cut_gcse_pe.py
+python3 scripts/question-bank/aqa_gcse_pe/check_gcse_pe.py
+python3 scripts/question-bank/aqa_gcse_pe/tag_gcse_pe.py split   # tag the batches, then:
+python3 scripts/question-bank/aqa_gcse_pe/tag_gcse_pe.py merge && python3 scripts/question-bank/aqa_gcse_pe/build_gcse_pe.py
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/aqa-gcse-pe --checksum
+```

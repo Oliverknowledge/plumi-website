@@ -42,6 +42,8 @@ QUALS = {
     "chemistry": ("chemistry-asa-level", "wjec-a-level-chemistry", "410"),
     "biology": ("biology-asa-level", "wjec-a-level-biology", "400"),
     "maths": ("mathematics-aas-level", "wjec-a-level-maths", "300"),
+    # (Further Maths has no page of its own: Maths's lists its papers, reports and specification beside Maths's)
+    "further": ("mathematics-aas-level", "wjec-a-level-further-maths", "305"),
     "business": ("business-asa-level", "wjec-a-level-business", "510"),
     # Level 3 Applied Diploma: its two exams are Units 2 and 4, coded by letter, 4543UB0-1 and 4543UD0-1
     "criminology": ("criminology-level-3", "wjec-criminology", "543"),
@@ -117,9 +119,9 @@ def read_cover(path):
     said = re.search(r"\bUNIT\s*[–-]?\s*(\d)\b", text)
     if code and kind == "ms" and said and not letter:
         # A scheme's cover can misprint its code ("CHEMISTRY - UNIT 3 / 2410U20-1" in 2017, "2410U30-1" in 2018):
-        # its unit's name wins, and Units 1 and 2 are AS (2…), the rest A-Level (1…).
+        # its unit's name wins, and Units 1 and 2 are AS (2…), the rest A-Level (1…); Further Maths's AS is Units 1 to 3.
         n = int(said.group(1))
-        code = f"{2 if n <= 2 else 1}{code[1:4]}U{n}0-{code[-1]}"
+        code = f"{2 if n <= (3 if code[1:4] == '305' else 2) else 1}{code[1:4]}U{n}0-{code[-1]}"
     return kind, code, welsh, cover_series(text) if letter else None
 
 
@@ -137,7 +139,8 @@ def main():
         seen = {}  # md5: file, so a second copy of a file is left out
         for it in sorted(rows, key=lambda r: r["Url"]):
             name = it["FileName"] or ""
-            if it["ProductReference"] not in ("Past Paper", "Mark Scheme") or re.search(r"Practical|Further Math", name, re.I):
+            if it["ProductReference"] not in ("Past Paper", "Mark Scheme") or re.search(r"Practical", name, re.I) or "[Resource]" in name \
+                    or (subject == "maths" and re.search(r"Further Math", name)):
                 continue
             if re.search(r"-mlp(-a\d-\d\d)?\.pdf$|-BRL\.pdf$", it["Url"], re.I) or re.search(r"Modified|Font size|Braille", name, re.I):
                 continue  # a large-print copy, sometimes listed as the "Past Paper" itself (2018 Maths Unit 1)
@@ -177,6 +180,8 @@ def main():
         docs = items(tab(qual_id, "keydocuments"))
         reports = {}
         for d in docs:
+            if ("Further" in d["Name"]) != (subject == "further"):
+                continue  # the Maths page's Further Maths documents are Further Maths's, and only its
             link = SITE + d["Link"] if d["Link"].startswith("/") else d["Link"]
             # (Criminology lists the Applied Certificate's, Units 1 and 2 only, before the Diploma's: the Diploma's is the bank's)
             if d["DocumentType"] == "Specification" and "Applied Certificate" not in d["Name"] and not os.path.exists(os.path.join(spec_dir, f"{subject}.pdf")):
