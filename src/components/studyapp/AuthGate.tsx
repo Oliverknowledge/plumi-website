@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { signInHref, useAccount } from "@/lib/account";
 
 /**
@@ -15,16 +15,32 @@ import { signInHref, useAccount } from "@/lib/account";
  * With accounts switched off (no Supabase project configured, e.g. a bare local build) there is nobody to
  * sign in as, so the app opens as it is.
  */
+/** How long the loading screen stays up when the app is opened, so it is seen as a moment and not a flash (milliseconds). */
+const SPLASH_MS = 1300;
+/** Set once the splash has been shown in this page load: moving around inside the app never shows it again. */
+let splashShown = false;
+
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { ready, user, on } = useAccount();
   const router = useRouter();
   const signedOut = on && ready && !user;
+  /* Server and first client render agree (held); a remount inside the app (client navigation) starts released. */
+  const [hold, setHold] = useState(() => typeof window === "undefined" || !splashShown);
+
+  useEffect(() => {
+    if (splashShown) return;
+    const t = setTimeout(() => {
+      splashShown = true;
+      setHold(false);
+    }, SPLASH_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (signedOut) router.replace(signInHref("header", `${window.location.pathname}${window.location.search}`));
   }, [signedOut, router]);
 
-  if (!on || user) return <>{children}</>;
+  if (!hold && (!on || user)) return <>{children}</>;
   const line = signedOut ? "Taking you to sign in…" : "Opening your desk…";
   return (
     <div className="gate" role="status" aria-live="polite" aria-label={`Plumi. ${line}`} data-testid="auth-gate">

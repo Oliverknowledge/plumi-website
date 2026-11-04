@@ -1,8 +1,11 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { signInHref, signOut } from "@/lib/account";
-import { COLOUR_NAMES, LIBRARY_COLOURS, colourOf, generatedName, joinLibrary, nameProblem, suggestedName } from "@/lib/library";
+import { generatedName, joinLibrary, suggestedName } from "@/lib/library";
+import { entryMemory } from "@/lib/studyapp/library/entry";
+import { playEnter } from "@/lib/studyapp/library/entrySound";
+import { enterBrowserFullscreen } from "@/lib/studyapp/library/fullscreen";
 import { FrontScene, Key, KeyLink, Plaque, Wordmark } from "./Front";
 
 /**
@@ -29,60 +32,41 @@ export function SignedOutCard({ accountsOn }: { accountsOn: boolean }) {
   );
 }
 
+/**
+ * A signed-in student who has not joined yet: the same scene as the door, with one key. Pressing it puts them in the
+ * library (the name is their first name when it passes the rule, else a made-up one; the colour is picked for them;
+ * both can be changed later from the library) and straight on into the room, with no second key to press. The press
+ * is still the student's own act: nobody is put in a shared room by loading a page.
+ */
 export function JoinCard({ accountName }: { accountName: string | null }) {
-  const ids = { name: useId(), err: useId() };
-  const [name, setName] = useState(() => suggestedName(accountName));
-  const [colour, setColour] = useState(() => Math.floor(Math.random() * 8));
-  const [tries, setTries] = useState(0);
-  const [fallback, setFallback] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const problem = name ? nameProblem(name) : null;
+  const [failed, setFailed] = useState(false);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function enter() {
     if (busy) return;
-    setBusy(true); setError(null);
-    const r = await joinLibrary(name, colour);
-    setBusy(false);
-    if (r.ok) return;                       // the page now shows the room
-    setError(r.message);
-    if (r.refused) {
-      const n = tries + 1;
-      setTries(n);
-      // Three refused names and the field becomes a made-up one that always passes: nobody is stuck at the door.
-      if (n >= 3 && !fallback) { setFallback(true); setName(generatedName(name)); setError("You can change it later"); }
+    setBusy(true); setFailed(false);
+    enterBrowserFullscreen();
+    playEnter();
+    const colour = Math.floor(Math.random() * 8);
+    let name = suggestedName(accountName);
+    let r = await joinLibrary(name, colour);
+    // A refused name (the server has a blocklist the page cannot see) is swapped for a made-up one that always passes.
+    for (let tries = 0; !r.ok && r.refused && tries < 3; tries++) { name = generatedName(name); r = await joinLibrary(name, colour); }
+    if (r.ok) {
+      entryMemory.entered(); entryMemory.left();   // the door has just been pressed: the room opens without a second key
+      return;                                       // the page now shows the room
     }
+    setBusy(false); setFailed(true);
   }
 
   return (
-    <FrontScene testid="library-join" onLogOut={() => void signOut()}>
+    <FrontScene testid="library-join" onLogOut={() => void signOut()} busy={busy}>
       <div className="en-col">
-        <Wordmark small />
-        <Plaque as="form" onSubmit={submit}>
-          <h2>Join the library</h2>
-          <p>Friends see your name, everyone else a nickname.</p>
-          <label htmlFor={ids.name} className="lbl">Your name</label>
-          <div className="lb-name">
-            <span className="lb-badge" style={{ background: colourOf(colour) }} aria-hidden="true">{(name.trim()[0] ?? "?").toUpperCase()}</span>
-            <input id={ids.name} type="text" autoComplete="given-name" maxLength={24} value={name} placeholder="Your name"
-              aria-invalid={!!problem || undefined} aria-describedby={ids.err} onChange={(e) => { setName(e.target.value); setError(null); }} />
-            <button type="button" className="btn ghost" onClick={() => { setName(generatedName(name)); setError(null); }}>Make one up</button>
-          </div>
-          <p id={ids.err} className="lb-rule bad" role={error ? "alert" : undefined}>{error ?? problem ?? " "}</p>
-          <fieldset className="lb-colours">
-            <legend className="lbl">Your colour</legend>
-            <div>
-              {LIBRARY_COLOURS.map((c, i) => (
-                <label key={c} className="lb-swatch" style={{ background: c }}>
-                  <input type="radio" name="lb-colour" checked={colour === i} onChange={() => setColour(i)} aria-label={COLOUR_NAMES[i]} />
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <Key type="submit" small label={busy ? "Joining…" : fallback ? `Join as ${name.trim()}` : "Join"} disabled={busy || !!problem || !name.trim()} testid="join-library" />
-          <p className="lb-hint">You can leave any time from this page.</p>
-        </Plaque>
+        <Wordmark />
+        <div className="en-cta">
+          <Key label="Enter" glyph pressed={busy} onClick={() => void enter()} disabled={busy} aria-label="Enter the Grand Library" testid="join-library" />
+          {failed && <p className="lb-hint" role="alert">That did not go through. Press Enter to try again.</p>}
+        </div>
       </div>
     </FrontScene>
   );
