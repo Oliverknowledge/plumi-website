@@ -78,3 +78,9 @@ test("the code files say they are a download, not a new tab", () => {
   const f = specialsFor({ subject: "Computer Science", code: { "1cp22-JUN22": "edexcel/x.zip" } }, { p: "1cp22", s: "JUN22" });
   assert.ok(f[0].download && /zip/.test(f[0].label));
 });
+
+test("a 40-mark English Language task with no reading words is a writing task whatever its first words say", () => {
+  assert.ok(!needsInsert("English Language", { x: "‘Choosing a future career should be based on helping others and making a positive contribution to society, not on earning money.’", m: 40 }));
+  assert.ok(needsInsert("English Language", { x: "Compare how the writers convey their different perspectives on the sea.", m: 16 }));
+  assert.ok(needsInsert("English Language", { x: "Analyse how language is used in Text A and Text B to present views.", m: 40 }));
+});

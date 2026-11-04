@@ -20,5 +20,12 @@ export function Toaster() {
     say = (m) => { setMessage(m); clearTimeout(timer); timer = setTimeout(() => setMessage(null), TOAST_MS); };
     return () => { say = null; clearTimeout(timer); };
   }, []);
+  // Escape puts the line away (a keyboard student can always dismiss it)
+  useEffect(() => {
+    if (!message) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setMessage(null); };
+    document.addEventListener("keydown", esc);
+    return () => document.removeEventListener("keydown", esc);
+  }, [message]);
   return message ? <div className="toast" role="status" aria-live="polite" onClick={() => setMessage(null)}>{message}</div> : null;
 }

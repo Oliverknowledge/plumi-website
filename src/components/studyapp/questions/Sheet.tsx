@@ -227,7 +227,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
         {prog.of > 0 && <span className="qs-count" aria-hidden="true">{prog.done} of {prog.of} marked here</span>}
         <PagePopover prefs={prefs} />
         <button type="button" className="btn qs-finish-top" onClick={askFinish} data-testid="finish-top">Finish</button>
-        {!persisted && <p className="qs-bar-warn" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open.</p>}
+        {!persisted && <p className="qs-bar-warn" role="status" data-testid="not-saved">Not saved on this device. Keep this tab open.</p>}
       </div>
       <p className="qs-sr" role="status" data-testid="progress-status">{prog.of > 0 ? `${prog.done} of ${prog.of} marked here` : ""}</p>
       <p className="qs-sr" role="status" aria-live="polite" data-testid="sheet-say">{said}</p>

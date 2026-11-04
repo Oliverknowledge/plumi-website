@@ -558,7 +558,12 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
   .pa .qs-mixhead { row-gap: 6px; }
 }
 @media (max-width: 339px) {
-  .pa .qf-subj-name, .pa .qf-subj-sub { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+  .pa .qf-subj-name, .pa .qf-subj-sub { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: break-word; hyphens: manual; }
+  /* the subject chip is a row of its own, full width above Questions | Papers (a word is never broken to fit a half row) */
+  .pa .qf-head-phone .qf-head-acts { flex-wrap: wrap; }
+  .pa .qf-head-phone .qf-subj { flex: 1 1 100%; }
+  .pa .qf-head-phone .qf-views { flex: 1 1 100%; }
+  .pa .qf-head-phone .qf-views button { flex: 1; }
   .pa .top .tm-chipbtn.is-idle { display: none; }
 }
 
@@ -571,3 +576,34 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 /* the phone's Filters card: Mix them up says its name */
 .pa .qf-actsrow .qf-mixbtn { width: auto; padding: 0 14px; }
 .pa .qf-actsrow .qf-mixbtn span { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: nowrap; }
+
+/* ── Build a set's bottom bar at 320px: the count gives way (never the Start button, which would run under the lofi record) ── */
+@media (max-width: 379px) {
+  .pa .qs-selbar { gap: 4px; padding-left: 12px; }
+  .pa .qs-selbar .qs-sel-count { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pa .qs-selbar .qs-sel-min { display: none; }
+  .pa .qs-selbar .qs-start, .pa .qs-selbar .qs-clear { flex: none; }
+}
+
+/* ── the marking stepper, round 9: step buttons you can see (a 2px ink border, bold sign), the number the largest thing, one row where it fits and two clean rows where it does not ── */
+.pa .qs-step .qs-mini { border: 2px solid var(--ink); background: #fffaf0; color: var(--ink); font: 800 22px/1 var(--f-body); box-shadow: 0 2px 0 var(--ink); }
+.pa .qs-step .qs-mini .qs-step5 { font: 800 17px/1 var(--f-body); }
+.pa .qs-step-edit { display: inline-grid; gap: 2px; }
+.pa .qs-step-in.is-bad { border-color: #a23a2a; animation: qs-nudge .3s ease-in-out 1; }
+.pa .qs-step-hint { font: 800 12px/1.2 var(--f-body); color: #8a2f2f; }
+@keyframes qs-nudge { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) { .pa .qs-step-in.is-bad { animation: none; } }
+@media (max-width: 479px) {
+  .pa .qs-step { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 8px; }
+  .pa .qs-step > .qs-step-n, .pa .qs-step > .qs-step-edit { order: -1; grid-column: 1 / -1; justify-self: center; }
+}
+@media (max-width: 599px) { .pa .qf-notsaved, .pa .qs-bar-warn { white-space: normal; overflow: visible; text-overflow: clip; } }
+
+/* ── round 9, small things: the copied answer behind the faded line reads at 4.5 to 1; a one-question set's progress is one short mark, not a full bar ── */
+.pa .qf-other-body { opacity: .78; }
+.pa .qs-pn ol:has(li:only-child) { justify-content: flex-start; }
+.pa .qs-pn li:only-child { flex: 0 0 64px; }
+
+/* the toast on the Questions pages: one line each (a joined message is two lines), and on a phone it sits at the foot, above the pen and the record, not over the question's heading */
+.pa .toast { white-space: pre-line; text-align: center; }
+@media (max-width: 640px) { .pa:has(.qs-page) .toast { top: auto; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }

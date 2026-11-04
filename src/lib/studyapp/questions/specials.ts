@@ -35,11 +35,12 @@ const WRITING_TASK = /\bwrite (?:a|an|the|about|what|your|opinion|out)\b|\bwrite
 const ALWAYS_SUBJECTS = new Set(["Chemistry B", "Physics B"]);
 
 /** Does this question need the paper's booklet open? (`x` is the question's opening words; `src` the bank's own flag for a reading question whose words do not say so.) */
-export function needsInsert(subject: string, part: { x?: string; src?: 1 }): boolean {
+export function needsInsert(subject: string, part: { x?: string; src?: 1; m?: number | null }): boolean {
   const s = subject.replace(/ [AB]$/, "");
   if (part.src) return true;
   const x = part.x ?? "";
-  if (s === "English Language" && WRITING_TASK.test(x) && !READS_SOURCES.test(x)) return false;
+  // (the bank keeps only the first words of a question, so a long writing task is known by its 40 marks as well as by its words)
+  if (s === "English Language" && !READS_SOURCES.test(x) && (WRITING_TASK.test(x) || (part.m ?? 0) >= 40)) return false;
   if (ALWAYS.has(s) || ALWAYS_SUBJECTS.has(subject)) return true;
   if (READS_SOURCES.test(x)) return true;
   if (s === "History") return READS_INTERPRETATION.test(x);
@@ -57,7 +58,7 @@ const find = (m: Record<string, string> | undefined, p: string, s: string) => sa
 export const transcriptOf = (trs: Record<string, string> | undefined, p: string, s: string) => find(trs, p, s) ?? null;
 
 /** The booklet, code files and transcript this question of this paper offers, in that order. `listening` is whether the question has a recording (a transcript is for those). */
-export function specialsFor(meta: PaperFiles & { subject: string }, part: { p: string; s: string; x?: string; src?: 1; au?: string }): Special[] {
+export function specialsFor(meta: PaperFiles & { subject: string }, part: { p: string; s: string; x?: string; src?: 1; au?: string; m?: number | null }): Special[] {
   const out: Special[] = [];
   const ins = find(meta.ins, part.p, part.s);
   if (ins && needsInsert(meta.subject, part)) {

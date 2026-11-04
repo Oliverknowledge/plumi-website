@@ -48,6 +48,8 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   const [width, setWidth] = useState(() => (typeof window === "undefined" ? 1000 : Math.min(1184, Math.max(320, window.innerWidth - 32))));
   const [tick, setTick] = useState(0);
   const pinned = useRef<number | null>(null);
+  /** While the list is being put back where it was left: the question it opens at stays drawn (its open scheme loads and is measured) and the page is aligned again each time a height settles. */
+  const restoring = useRef<{ at: number; go(): void } | null>(null);
   const ahead = useRef(AHEAD_AT_FIRST);
   const latest = useRef({ items, gap, onPos, onHere, estimate, width });
   useLayoutEffect(() => { latest.current = { items, gap, onPos, onHere, estimate, width }; });
@@ -72,7 +74,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     const n = o.length - 1;
     const y = window.scrollY - boxTop();
     const vh = window.innerHeight;
-    const r = withPinned(rangeOf(o, y - vh * ahead.current, y + vh * (1 + ahead.current)), pinned.current, n);
+    const r = withPinned(rangeOf(o, y - vh * ahead.current, y + vh * (1 + ahead.current)), pinned.current ?? restoring.current?.at ?? null, n, restoring.current ? 400 : 10);
     setWin((w) => (w.from === r.from && w.to === r.to ? w : r));
   }, []);
 
@@ -124,7 +126,8 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
           const d = at.getBoundingClientRect().top - a.top;
           if (Math.abs(d) >= 0.5) jump(window.scrollY + d);
         }
-        capture();
+        // Being put back where it was left: a height that has settled (an open scheme's picture) moves the place, so the page is aligned to the place again, not kept to a neighbour.
+        if (restoring.current) restoring.current.go(); else capture();
         setTick((t) => t + 1);
       });
     }
@@ -231,7 +234,8 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     const i = indexRef.current.get(start.id);
     if (i === undefined) return;
     let touched = false;
-    const stop = () => { touched = true; };
+    const done = () => { restoring.current = null; };
+    const stop = () => { touched = true; done(); };
     const evs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
     evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
     const go = () => {
@@ -239,9 +243,13 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
       const want = i === 0 && start.off === 0 ? 0 : boxTop() + offsRef.current[i] + start.off - latest.current.gap();
       if (Math.abs(window.scrollY - want) > 3) { jump(want); capture(); }
     };
+    restoring.current = { at: i, go };
+    fit();
     go();
     const ts = [60, 250, 600, 1200, 2200].map((ms) => setTimeout(go, ms));
-    return () => { evs.forEach((e) => window.removeEventListener(e, stop)); ts.forEach(clearTimeout); };
+    // (an open scheme's picture can take a few seconds: the question is held and the page re-aligned for as long as the student has not taken over)
+    const end = setTimeout(done, 12000);
+    return () => { evs.forEach((e) => window.removeEventListener(e, stop)); ts.forEach(clearTimeout); clearTimeout(end); done(); };
     // only on opening
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

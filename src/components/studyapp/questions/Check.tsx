@@ -102,7 +102,7 @@ export function ReportBody({ part, state, subject }: { part: QPart; state: Retur
       {split && split.mine.length > 0 && <><p className="qs-scheme-label">On {part.l}</p>{split.mine.map((p, i) => <p key={i}>{p}</p>)}</>}
       {split && split.rest.length > 0 && (
         <details open={split.mine.length === 0}>
-          <summary className="qs-scheme-label">{split.mine.length ? `The rest of question ${questionOf(part.l)}` : `On question ${questionOf(part.l)}`}</summary>
+          <summary className="qs-scheme-label">{split.mine.length ? `The rest of question\u00a0${questionOf(part.l)}` : `On question\u00a0${questionOf(part.l)}`}</summary>
           {split.rest.map((p, i) => <p key={i}>{p}</p>)}
         </details>
       )}
@@ -197,16 +197,13 @@ export function MarkYourself({ set, part, got }: { set: QSet; part: QPart; got: 
   return <Marking set={set} part={part} got={got} />;
 }
 
-/**
- * Marks for a long question (more than 12): a tap per mark is a chore, so + and - repeat while they are held, +5 and -5 step in fives, and the number is a field a student can
- * type into (Enter or leaving it sets it, clamped to 0 to the total, Escape puts it back). Every control has a name, and the value is read out as it changes.
- */
-/** A button that acts at once, repeats while it is held (after a short wait), and acts once for a key. */
-function RepeatButton({ onStep, label, children }: { onStep(): void; label: string; children: React.ReactNode }) {
+/** A button that acts at once, repeats while it is held (after a short wait), and acts once for a key. `before` runs first (a number being typed is taken in before the step acts). */
+function RepeatButton({ onStep, before, label, children }: { onStep(): void; before(): void; label: string; children: React.ReactNode }) {
   const wait = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rep = useRef<ReturnType<typeof setInterval> | null>(null);
   const act = useRef(onStep);
-  useEffect(() => { act.current = onStep; });
+  const pre = useRef(before);
+  useEffect(() => { act.current = onStep; pre.current = before; });
   const stop = useCallback(() => { if (wait.current) clearTimeout(wait.current); if (rep.current) clearInterval(rep.current); wait.current = null; rep.current = null; }, []);
   useEffect(() => stop, [stop]);
   return (
@@ -216,42 +213,76 @@ function RepeatButton({ onStep, label, children }: { onStep(): void; label: stri
         if (e.button > 0) return;
         stop();
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* not an active pointer */ }
+        pre.current();
         act.current();
         wait.current = setTimeout(() => { rep.current = setInterval(() => act.current(), 90); }, 420);
       }}
       onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
-      onClick={(e) => { if (e.detail === 0) act.current(); }}
+      onClick={(e) => { if (e.detail === 0) { pre.current(); act.current(); } }}
     >{children}</button>
   );
 }
 
+const WHOLE = /^\s*\d+\s*$/;
+
+/**
+ * Marks for a long question (more than 12): a tap per mark is a chore, so + and - repeat while they are held, 5 more and 5 fewer step in fives, and the number is a field a student
+ * can type into (a whole number: Enter or leaving it sets it, clamped to 0 to the total; Escape puts it back; "17/34" or "12.5" is not a number here and is left alone with a hint). Every
+ * control is named for what it does ("Minus 1 mark"), the value is read out once the changing has stopped (not at every step of a held button), and a number being typed is taken in before a step acts.
+ */
 function Stepper({ id, m, got, choose }: { id: string; m: number; got: number | undefined; choose(n: number): void }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const [bad, setBad] = useState(false);
+  const [spoken, setSpoken] = useState(got ?? 0);
   const cur = useRef(got ?? 0);
+  const editRef = useRef(false);
+  const draftRef = useRef("");
+  const numBtn = useRef<HTMLButtonElement>(null);
+  const refocus = useRef(false);
   useEffect(() => { cur.current = got ?? 0; }, [got]);
+  // read out once the value has stopped changing
+  useEffect(() => { const t = setTimeout(() => setSpoken(got ?? 0), 600); return () => clearTimeout(t); }, [got]);
+  useEffect(() => { if (!editing && refocus.current) { refocus.current = false; numBtn.current?.focus({ preventScroll: true }); } }, [editing]);
   const step = useCallback((d: number) => { const n = Math.max(0, Math.min(m, cur.current + d)); if (n !== cur.current) { cur.current = n; choose(n); } }, [m, choose]);
-  const commit = () => {
-    setEditing(false);
-    const n = parseInt(draft.replace(/\D/g, ""), 10);
-    if (Number.isFinite(n)) { const c = Math.max(0, Math.min(m, n)); cur.current = c; choose(c); }
+  const leave = (back: boolean) => { editRef.current = false; refocus.current = back; setBad(false); setEditing(false); };
+  /** The typed number is taken in (a whole number only); true if the field has been left. */
+  const take = (back: boolean): boolean => {
+    if (!editRef.current) return true;
+    const d = draftRef.current;
+    if (d.trim() === "") { leave(back); return true; }
+    if (!WHOLE.test(d)) return false;
+    const c = Math.max(0, Math.min(m, parseInt(d, 10)));
+    cur.current = c; choose(c);
+    leave(back);
+    return true;
   };
+  /** Before a step acts: a number typed is taken in; one that is not a whole number is put away (the tap then steps from the number that was there). */
+  const before = () => { if (editRef.current && !take(false)) leave(false); };
   return (
     <div className="qs-step" role="group" aria-labelledby={`self-${id}`}>
-      <button type="button" className="qs-mini qs-step5" onClick={() => step(-5)} aria-label="Five marks fewer">-5</button>
-      <RepeatButton onStep={() => step(-1)} label="One mark fewer">-</RepeatButton>
+      <RepeatButton onStep={() => step(-5)} before={before} label="Minus 5 marks"><span className="qs-step5">{"\u22125"}</span></RepeatButton>
+      <RepeatButton onStep={() => step(-1)} before={before} label="Minus 1 mark">{"\u2212"}</RepeatButton>
       {editing ? (
-        <input
-          className="qs-step-in" inputMode="numeric" autoFocus value={draft} aria-label={`Marks out of ${m}`} onChange={(e) => setDraft(e.target.value)}
-          onFocus={(e) => e.currentTarget.select()} onBlur={commit}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEditing(false); } }}
-        />
+        <span className="qs-step-edit">
+          <input
+            className={`qs-step-in${bad ? " is-bad" : ""}`} inputMode="numeric" autoFocus value={draft} aria-label={`Marks out of ${m}`} aria-invalid={bad} aria-describedby={bad ? `${id}-hint` : undefined}
+            onChange={(e) => { draftRef.current = e.target.value; setDraft(e.target.value); setBad(false); }}
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={() => { if (editRef.current && !take(false)) leave(false); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); if (!take(true)) setBad(true); }
+              else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); leave(true); }
+            }}
+          />
+          {bad && <span className="qs-step-hint" id={`${id}-hint`} role="status">A whole number, 0 to {m}</span>}
+        </span>
       ) : (
-        <button type="button" className="qs-step-n" onClick={() => { setDraft(String(got ?? 0)); setEditing(true); }} aria-label={`${got ?? 0} out of ${m} marks. Type a number`} data-testid="step-n"><b>{got ?? 0}</b> / {m}</button>
+        <button ref={numBtn} type="button" className="qs-step-n" onClick={() => { draftRef.current = String(got ?? 0); setDraft(String(got ?? 0)); editRef.current = true; setBad(false); setEditing(true); }} aria-label={`${got ?? 0} out of ${m} marks. Type a number`} data-testid="step-n"><b>{got ?? 0}</b> / {m}</button>
       )}
-      <RepeatButton onStep={() => step(1)} label="One mark more">+</RepeatButton>
-      <button type="button" className="qs-mini qs-step5" onClick={() => step(5)} aria-label="Five marks more">+5</button>
-      <span className="qs-sr" role="status" aria-live="polite">{got ?? 0} out of {m}</span>
+      <RepeatButton onStep={() => step(1)} before={before} label="Plus 1 mark">+</RepeatButton>
+      <RepeatButton onStep={() => step(5)} before={before} label="Plus 5 marks"><span className="qs-step5">+5</span></RepeatButton>
+      <span className="qs-sr" role="status" aria-live="polite">{spoken} out of {m}</span>
     </div>
   );
 }

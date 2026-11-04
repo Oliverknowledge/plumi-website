@@ -217,7 +217,7 @@ async function continueHere(fromSetId: string, toSetId: string, partId: string, 
   // here" button, which is no gesture in progress, turns to the kind of answer it copied.
   if (hasInk(a)) {
     const r = await copyInk(keyOf(fromSetId, partId), keyOf(toSetId, partId));
-    if (r.n > 0) { if (flip) qa.mode(toSetId, partId, "ink"); qa.ink(toSetId, partId, r.n, r.bytes); }
+    if (r.n > 0) { if (flip && !(hasText(a) && a.text)) qa.mode(toSetId, partId, "ink"); qa.ink(toSetId, partId, r.n, r.bytes); }
   }
   if (hasText(a) && a.text) { qa.text(toSetId, partId, a.text); if (flip && !hasInk(a)) qa.mode(toSetId, partId, "type"); }
 }

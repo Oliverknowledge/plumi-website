@@ -45,7 +45,7 @@ export const FeedHead = forwardRef<HTMLDivElement, {
         )}
       </div>
       {!phone && <div className="qf-acts">{acts}</div>}
-      {notSaved && <p className="qf-notsaved" role="status" data-testid="not-saved">Your answers are not being saved on this device. Keep this tab open.</p>}
+      {notSaved && <p className="qf-notsaved" role="status" data-testid="not-saved">Not saved on this device. Keep this tab open.</p>}
     </div>
   );
 });

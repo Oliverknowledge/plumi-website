@@ -176,14 +176,15 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   useEffect(() => {
     if (!bodyOpen) return;
     const esc = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(".qf-multi[open]")) return;
+      // (a dropdown inside the card, or a dialog over the page, takes the key first and alone)
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(".qf-multi[open], dialog[open]")) return;
       const a = document.activeElement;
       if (a && a !== document.body && a.matches?.("textarea, input:not([type=search])") && !a.closest?.(".qf-body")) return;
       setFolded(true);
       document.querySelector<HTMLElement>('[data-testid="feed-filters-toggle"]')?.focus({ preventScroll: true });
     };
-    document.addEventListener("keydown", esc);
-    return () => document.removeEventListener("keydown", esc);
+    document.addEventListener("keydown", esc, true);
+    return () => document.removeEventListener("keydown", esc, true);
   }, [bodyOpen, setFolded]);
   const toggleBody = () => {
     if (!bodyOpen && phone && window.scrollY > 200) { backTo.current = { y: window.scrollY, key: listKey }; toTop(0); }
@@ -254,8 +255,12 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     const writing = () => { const a = document.activeElement; return !!a && a !== document.body && !!a.closest?.(".qf-list") && !!a.matches?.("textarea, input, select, canvas, [contenteditable='true']"); };
     const sync = () => {
       // under the sticky bar at the top (the writing, its symbol keys and the pen are all lower down)
-      const h = head.current; if (h) setPillTop(Math.round(h.getBoundingClientRect().bottom) + 10);
-      setDeep(moved && up && window.scrollY > window.innerHeight * 3 && !writing());
+      const h = head.current; const top = h ? Math.round(h.getBoundingClientRect().bottom) + 10 : 132;
+      if (h) setPillTop(top);
+      // the pill has a safe slot: it is not shown where it would sit on the symbol keys or the Write | Type toggle
+      const box = { l: window.innerWidth - 110, r: window.innerWidth, t: top - 4, b: top + 52 };
+      const onKeys = [...document.querySelectorAll(".qs-sym, .qs-mode")].some((e) => { const r = e.getBoundingClientRect(); return r.right > box.l && r.left < box.r && r.bottom > box.t && r.top < box.b; });
+      setDeep(moved && up && window.scrollY > window.innerHeight * 3 && !writing() && !onKeys);
     };
     // The student's own scrolling (wheel, finger, keys, dragging the bar) is what counts.
     const mine = () => { moved = true; };
