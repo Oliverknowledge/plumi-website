@@ -45,13 +45,13 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
   }, []);
 
   return (
-    <main className={`qs-page qs-picker${leaving ? " is-leaving" : ""}${tint ? " is-tinted" : ""}`} style={tint ? ({ "--tint": tint } as React.CSSProperties) : undefined} data-testid="picker" id="qs-main">
+    <main className={`qs-page qs-picker qf-ground${leaving ? " is-leaving" : ""}${tint ? " is-tinted" : ""}`} style={tint ? ({ "--tint": tint } as React.CSSProperties) : undefined} data-testid="picker" id="qs-main">
       <div className="wrap">
         <div className="qs-col">
           <header className="qs-head">
             <div className="qs-head-text">
               <button type="button" className="qs-homeback" onClick={onHome} data-testid="back-to-papers"><BackIcon />Back</button>
-              <h1 ref={h1} tabIndex={-1}>Questions</h1>
+              <h1 ref={h1} tabIndex={-1}>Build a set</h1>
               {browsing ? (
                 <button type="button" className="qs-subj" onClick={() => setChoosing(true)} data-testid="change-subject" aria-label={`${title}. Change subject`}>
                   <span>{title}</span><ChevronIcon />

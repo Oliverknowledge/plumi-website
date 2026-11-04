@@ -5,11 +5,11 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { INK_TOTAL_CAP, REF_W } from "@/lib/studyapp/questions/ink";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import {
-  blockScore, blocks, cutWords, feedId, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
+  blockScore, blocks, cutWords, feedId, hasInk, hasText, finishCheck, inkTotal, isAnswered, isMarked, keyOf, markable, nameOf, partAlt, progress,
   zoneHeight, type Block, type QAnswer, type QPart, type QPrefs, type QSet, type QuestionsData,
 } from "@/lib/studyapp/questions/model";
 import { qa, useQuestions } from "@/lib/studyapp/questions/store";
-import { rememberPos, updateFeedPrefs } from "@/lib/studyapp/questions/feedStore";
+import { rememberPos, takeOpenPart, updateFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { useDocumentTitle } from "./useDocumentTitle";
 import { useWindowed } from "./useWindowed";
 import { useMatch } from "./useMatch";
@@ -18,6 +18,7 @@ import { Check } from "./Check";
 import { Crop } from "./Crop";
 import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
+import { OtherCopy } from "./OtherCopy";
 import { PagePopover } from "./PagePopover";
 import { PenTray } from "./PenTray";
 import { ReadAsText } from "./ReadAsText";
@@ -59,6 +60,9 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const mountAt = useMemo(() => set.at, [set.id, reviewing]);
   const pn = useRef<(HTMLButtonElement | null)[]>([]);
+  const openPartRef = useRef<string | null>(null);
+  // (read once, as the sheet opens)
+  if (openPartRef.current === null) openPartRef.current = takeOpenPart() ?? "";
 
   // A pen seen before on this device: the page starts as a pen page. A pen seen now: remember it.
   useEffect(() => { if (prefs.penSeen) setPenSeen(true); }, [prefs.penSeen]);
@@ -91,16 +95,19 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
   useEffect(() => {
     if (set.finishedAt && !reviewing) return;
     let touched = false, aligned: number | null = null;
+    // Opened from a question of the feed: that part, in the middle of the screen.
+    const wanted = openPartRef.current;
     const stop = () => { touched = true; };
     const evs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
     evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
     const go = () => {
-      const el = refs.current[set.at];
-      if (touched || set.at <= 0 || !el) return;
+      const part = wanted ? document.getElementById(`part-${wanted}`) : null;
+      const el = part ?? refs.current[set.at];
+      if (touched || (set.at <= 0 && !part) || !el) return;
       const top = el.getBoundingClientRect().top;
       if (aligned !== null && Math.abs(top - aligned) < 6) return;
       // At once, not smoothly (the page may animate its scrolling): the position read right after is then the real one to compare the next check with.
-      el.scrollIntoView({ block: "start", behavior: "instant" as ScrollBehavior });
+      el.scrollIntoView({ block: part ? "center" : "start", behavior: "instant" as ScrollBehavior });
       aligned = el.getBoundingClientRect().top;
     };
     const ts = [60, 250, 500, 800, 1100, 1400, 1800, 2300].map((ms) => setTimeout(go, ms));
@@ -313,6 +320,14 @@ interface PProps { set: QSet; part: QPart; block: Block; answer: QAnswer | undef
 
 const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, prefs, startNear }: PProps) {
   // "Always type": a part the student has not switched itself starts in Type. (Its own choice, once made, is stored and wins.)
+  const [gen, setGen] = useState(0);   // writing was copied in: the space is drawn afresh so it shows it
+  const feedCopy = !!feed && !(hasInk(answer) || hasText(answer)) && (hasInk(feed) || hasText(feed));
+  const seeFeed = () => {
+    // back to the feed, at this question
+    updateFeedPrefs((p) => ({ ...p, last: set.subject, view: { ...p.view, [set.subject]: "questions" } }));
+    rememberPos(set.subject, { id: part.id, off: 0 });
+    qa.open(null);
+  };
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
@@ -338,19 +353,17 @@ const PartBlock = memo(function PartBlock({ set, part, block, answer, feed, pref
           <Crop src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom />
           <ReadAsText set={set} part={part} />
           <div className="qs-answer">
-            <AnswerZone set={set} part={part} answer={shown} prefs={prefs} showMark />
+            <AnswerZone key={gen} set={set} part={part} answer={shown} prefs={prefs} showMark />
+            {feedCopy && (
+              <OtherCopy
+                partId={part.id} setId={feedId(set.subject)} answer={feed!} label="Also in your feed"
+                onSee={seeFeed} onContinue={() => { void qa.continueHere(feedId(set.subject), set.id, part.id, feed!).then(() => setGen((g) => g + 1)); }}
+              />
+            )}
             {answer?.got !== undefined && part.m != null && (
               <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>
             )}
           </div>
-          {feed && (isAnswered(feed) || isMarked(feed)) && (
-            <p className="qs-also">Also {isMarked(feed) ? "marked" : "written"} in your feed. <button type="button" className="qs-link" onClick={() => {
-              // back to the feed, at this question
-              updateFeedPrefs((p) => ({ ...p, last: set.subject, view: { ...p.view, [set.subject]: "questions" } }));
-              rememberPos(set.subject, { id: part.id, off: 0 });
-              qa.open(null);
-            }}>See it</button></p>
-          )}
           <Check set={set} part={part} answer={answer} />
           <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
         </>

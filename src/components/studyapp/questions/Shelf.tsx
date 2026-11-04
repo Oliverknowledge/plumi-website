@@ -99,7 +99,6 @@ export function Shelf({ entry, q, onPick }: { entry: CatalogueSubject; q: Questi
   const failed = data.state === "error";
   const ready = data.state === "ready";
   const mix = useCallback(() => onPick(entry.slug, true), [onPick, entry.slug]);
-  const pick = useCallback(() => onPick(entry.slug, false), [onPick, entry.slug]);
   return (
     <section ref={box} className="qh-shelf" aria-labelledby={`${id}-h`} style={{ "--tint": tint } as React.CSSProperties} data-testid="shelf" data-slug={entry.slug}>
       <header className="qh-shelf-head">
@@ -109,7 +108,7 @@ export function Shelf({ entry, q, onPick }: { entry: CatalogueSubject; q: Questi
           {ready && <span className="qh-n">{papers.length} {papers.length === 1 ? "paper" : "papers"}</span>}
         </div>
         <div className="qh-acts">
-          <ShelfPills onMix={mix} onPick={pick} name={name} />
+          <ShelfPills onMix={mix} name={name} />
           {all ? (
             <button type="button" className="qs-link" onClick={() => { setAll(false); setCur(0); }} aria-label={`Back to the latest ${name} papers`}><BackIcon />Latest</button>
           ) : (

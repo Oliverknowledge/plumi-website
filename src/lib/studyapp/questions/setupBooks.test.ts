@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { draftKey } from "./mine";
-import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, isMoreOpen, keptTier, pileOf } from "./setupBooks";
+import { artSlug, barLine, bookLabel, countAt, fallbackTilt, firstMissing, hasChoices, isMoreOpen, keptTier, levelHint, pileOf, TIER_HINT } from "./setupBooks";
 import type { CatalogueSubject } from "./subject";
 
 const c = (slug: string, board: string, level: string, subject: string): CatalogueSubject => ({ slug, title: slug, board, level, subject, count: 10 });
@@ -72,5 +72,11 @@ describe("setup books", () => {
     assert.deepEqual(keptTier(undefined, ["Higher", "Foundation"]), ["Higher", "Foundation"]);
     assert.equal(keptTier(["Higher"], undefined), null);
     assert.equal(keptTier([], ["Core"]), null);
+  });
+  test("the other levels each carry a one-word hint, and a main level none", () => {
+    for (const l of ["IGCSE", "International GCSE", "Level 1/2", "Level 2", "Level 3"]) assert.ok(levelHint(l), l);
+    assert.notEqual(levelHint("IGCSE"), levelHint("International GCSE"));
+    assert.equal(levelHint("GCSE"), null);
+    assert.ok(!TIER_HINT.includes("\u2014"));
   });
 });

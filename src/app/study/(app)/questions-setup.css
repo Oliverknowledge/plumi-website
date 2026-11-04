@@ -159,6 +159,10 @@
 .pa .qk-tab.on, .pa .qk-tab.open { min-height: 52px; background: #fffaf0; border-bottom-color: #fffaf0; font-weight: 900; }
 .pa .qk-tab.on:hover, .pa .qk-tab.open:hover { transform: none; }
 .pa .qk-tab-more { border-style: dashed; border-bottom-style: solid; }
+.pa .qk-tab-hint { display: block; font: 700 11px/1 var(--f-body); color: #4b5878; }
+.pa .qk-tabs-more .qk-tab { flex-direction: column; justify-content: center; gap: 1px; padding-top: 3px; padding-bottom: 3px; }
+.pa .qk-tabs-more .qk-tab > span:first-child { line-height: 1.1; }
+.pa .qk-hint { position: absolute; z-index: 7; left: 8px; right: 0; top: calc(100% + 2px); margin: 0; font: 700 17px/1 var(--f-hand); color: #8a3b17; pointer-events: none; animation: qk-pop .18s ease-out both; }
 .pa .qk-tab-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; font: 800 12px var(--f-body); color: var(--ink); }
 
 /* the shelf: books stand on one line with their bottoms together, at different heights, a little off true */
@@ -199,9 +203,11 @@
 /* ── screens ─────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) { .pa .qk-d-lamp, .pa .qk-d-mug { display: none; } }
 @media (max-width: 900px) { .pa .qk-books { padding-left: 20px; padding-right: 12px; } }
-@media (max-width: 760px) {
-  .pa .qk-setup::before { display: none; }
-  .pa .qk-d-star2, .pa .qk-d-heart2, .pa .qk-d-star3, .pa .qk-d-spark { display: none; }
+/* the margin doodles live in a wide margin: below 900px (and at 200% zoom) none may touch the heading, so they all go; a phone keeps two, in the empty corner of the mascot's row */
+@media (max-width: 899px) { .pa .qk-d { display: none; } }
+@media (max-width: 760px) { .pa .qk-setup::before { display: none; } }
+@media (min-width: 381px) and (max-width: 560px) {
+  .pa .qk-d-star1, .pa .qk-d-heart1 { display: block; }
   .pa .qk-d-star1 { top: 30px; left: 22px; }
   .pa .qk-d-heart1 { top: 44px; left: 62px; }
 }
@@ -279,3 +285,7 @@
   .pa .qk-tab:hover { transform: none; }
   .pa .qk-stamp { transform: none; }
 }
+
+/* a count on a two-line tab sits on its corner */
+.pa .qk-tabs-more .qk-tab-n { position: absolute; top: -9px; right: -4px; }
+@media (forced-colors: active) { .pa .qk-tab-hint { color: inherit; } .pa .qk-hint { color: CanvasText; } }

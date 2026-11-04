@@ -2,14 +2,15 @@
 
 import { memo, useEffect, useId, useMemo, useState } from "react";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
-import { alsoLine, bestState, qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
+import { bestState, otherCopy, qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
 import { cutWords, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs, type QSet } from "@/lib/studyapp/questions/model";
 import { toQPart, type BankRow } from "@/lib/studyapp/questions/picker";
-import { registerFeedPart } from "@/lib/studyapp/questions/store";
+import { qa, registerFeedPart } from "@/lib/studyapp/questions/store";
 import { AnswerZone } from "./AnswerZone";
 import { Check, ReportBody, useReport } from "./Check";
 import { Crop } from "./Crop";
 import { ChevronIcon } from "./pickerIcons";
+import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
 
 /** The names a card needs of a subject, made once: the sitting, the paper (by lower-case code) and the topic. */
@@ -56,7 +57,8 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const earlier = at > 0 ? siblings.slice(0, at) : [];
   const hasStart = !!stemPart || earlier.length > 0;
   const st = bestState(stateOf(answer, part.m), other);
-  const also = alsoLine(stateOf(answer, part.m), other);
+  const copy = otherCopy(answer, other);
+  const [gen, setGen] = useState(0);   // a copy was made: the writing space is drawn afresh so it shows the ink that arrived
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
@@ -114,15 +116,20 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           <ReadAsText set={view} part={part} />
         </div>
         {full && answer === undefined ? (
-          <p className="qf-full" role="status">Your feed is full of answers. Delete some in Your sets, or practise these questions in a set.</p>
+          <p className="qf-full" role="status">Your feed already holds 1,200 questions with answers. Your sets can clear the whole feed to make room, or practise these questions in a set instead.</p>
         ) : (
           <>
             {cue && <p className="qf-cue" aria-hidden="true">write in the box below<svg viewBox="0 0 40 28" width="34" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4c4 12 12 16 24 17" /><path d="M24 14l7 7-9 4" /></svg></p>}
             <div className="qs-answer qf-answer">
-              <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
+              <AnswerZone key={gen} set={view} part={part} answer={shown} prefs={prefs} showMark />
+              {copy && (
+                <OtherCopy
+                  partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
+                  onSee={() => onSee(copy.setId!, part.id)} onContinue={() => { void qa.continueHere(copy.setId!, view.id, part.id, copy.answer!).then(() => setGen((g) => g + 1)); }}
+                />
+              )}
               {answer?.got !== undefined && part.m != null && <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>}
             </div>
-            {also && other?.setId && <p className="qf-also" data-testid="feed-also">{also} <button type="button" className="qs-link" onClick={() => onSee(other.setId!, part.id)}>See it</button></p>}
             <Check set={view} part={part} answer={answer} reportOutside />
           </>
         )}
@@ -135,7 +142,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
 }, (a, b) =>
   a.n === b.n && a.part === b.part && a.view === b.view && a.info === b.info && a.lookup === b.lookup && a.answer === b.answer && a.prefs === b.prefs && a.siblings === b.siblings
   && a.eager === b.eager && a.full === b.full && a.cue === b.cue && a.onTopic === b.onTopic && a.onWhole === b.onWhole && a.onSee === b.onSee
-  && a.other?.state === b.other?.state && a.other?.got === b.other?.got && a.other?.where === b.other?.where && a.other?.setId === b.other?.setId);
+  && a.other?.state === b.other?.state && a.other?.got === b.other?.got && a.other?.where === b.other?.where && a.other?.setId === b.other?.setId && a.other?.answer === b.other?.answer);
 
 /** The examiner's report, a taped note in the right margin (below the card on a narrow screen): opened by the student, fetched when it is. */
 function ExaminerNote({ view, part }: { view: QSet; part: BankRow }) {

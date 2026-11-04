@@ -190,6 +190,18 @@ export function saveInk(key: string, ink: Ink): Promise<number> {
   });
 }
 
+/**
+ * Copy one answer's handwriting to another key (a question's answer in a paper, to the same question's answer in the feed, or back): only ever on the student's own tap
+ * ("Continue here"), never automatically. The strokes are the same strokes (their ids are hashes of their content), so a copy is never mistaken for new writing elsewhere.
+ * Returns how many strokes and bytes arrived (0 if there was nothing to copy).
+ */
+export async function copyInk(from: string, to: string): Promise<{ n: number; bytes: number }> {
+  const ink = await loadInk(from);
+  if (!ink.length) return { n: 0, bytes: 0 };
+  const bytes = await saveInk(to, ink);
+  return { n: ink.length, bytes };
+}
+
 function forget(key: string) { mem.delete(key); loading.delete(key); seen.delete(key); locked.delete(key); }
 
 export function removeInk(keys: readonly string[]): Promise<void> {

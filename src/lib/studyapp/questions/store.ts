@@ -1,10 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { removeInk, removeSetInk } from "./inkDb";
+import { copyInk, removeInk, removeSetInk } from "./inkDb";
 import {
   againInput, checkPart, createSet, feedTouch, setMine, setTiers, deleteSet, EMPTY_QUESTIONS, finishSet, keyOf, markPart, openSet, catchUpInput, redoInput, renameSet, reopenSet, resetPart, setAt, setHeight, setInkMeta, setMode, setPick, setPrefs, setText,
-  feedId, type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
+  feedId, hasInk, hasText, type QAnswer, type FeedInfo, type Mode, type QPart, type QPrefs, type QuestionsData, type SetInput,
 } from "./model";
 import { APP_KEY, chooseRecoveryKey, QUESTIONS_KEY, readIncoming, readQuestions, serialise, setQuestionsDurable } from "./persist";
 
@@ -207,7 +207,20 @@ function askToKeep() {
   try { void navigator.storage?.persist?.().catch(() => undefined); } catch { /* not offered here */ }
 }
 
+/**
+ * "Continue here": the same question's writing and typing from another place (a paper, a set, the feed) copied into this answer, on the student's own tap.
+ * The handwriting is copied under this answer's key first, then the document is told, so nothing is ever in one without the other.
+ */
+async function continueHere(fromSetId: string, toSetId: string, partId: string, a: QAnswer): Promise<void> {
+  if (hasInk(a)) {
+    const r = await copyInk(keyOf(fromSetId, partId), keyOf(toSetId, partId));
+    if (r.n > 0) { qa.mode(toSetId, partId, "ink"); qa.ink(toSetId, partId, r.n, r.bytes); }
+  }
+  if (hasText(a) && a.text) { qa.text(toSetId, partId, a.text); if (!hasInk(a)) qa.mode(toSetId, partId, "type"); }
+}
+
 export const qa = {
+  continueHere,
   /** Make a set from chosen parts and put it on the desk. Ink of any set pushed out by the cap is deleted. */
   start(input: SetInput): string {
     let id = "";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { hasFeedAnswer, alsoLine, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
+import { hasFeedAnswer, otherCopy, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
 import { compareLabels, EMPTY_QUESTIONS, feedId, feedTouch, markPart, MAX_SET_PARTS, setText, type QPart, type QuestionsData } from "./model";
 import { sortRows, type BankRow } from "./picker";
 
@@ -185,8 +185,8 @@ describe("how a question stands", () => {
     let q: QuestionsData = { ...EMPTY_QUESTIONS, sets: [set], answers: { "qs_paper/a-01-2": { got: 3, at: 5 }, "qs_paper/other": { text: "x", at: 5 } } };
     const rows = new Set(["a-01-2", "other", "third"]);
     const other = elsewhere(q, INFO.subject);
-    assert.equal(qStateLine(other.get("a-01-2")!), "Marked 3 of 3 in June 2025 Paper 1");
-    assert.equal(qStateLine(other.get("other")!), "Written in June 2025 Paper 1");
+    assert.equal(qStateLine(other.get("a-01-2")!), "Marked 3 of 3 in a set");
+    assert.equal(qStateLine(other.get("other")!), "Written in a set");
     assert.deepEqual(feedProgress(q, INFO.subject, rows, other), { total: 3, marked: 1, written: 1 });
     q = touched(q);
     q = setText(q, feedId(INFO.subject), PART.id, "again", 6000).q;
@@ -220,19 +220,31 @@ describe("the better of the feed and a paper", () => {
     assert.equal(bestState(own("written"), set("written")).from, "feed");
     assert.equal(bestState(own("new"), undefined).state, "new");
   });
-  test("the line says where, and never claims more than was done", () => {
-    assert.equal(alsoLine(own("new"), set("written")), "You wrote this in June 2025 Paper 1.");
-    assert.equal(alsoLine(own("written"), set("written")), "You also wrote this in June 2025 Paper 1.");
-    assert.equal(alsoLine(own("new"), set("marked")), "You marked this in June 2025 Paper 1.");
-    assert.equal(alsoLine(own("new"), undefined), null);
+  test("work in a paper is named for what it is, not by a long set name", () => {
+    assert.equal(qStateLine({ ...set("written"), kind: "paper" }), "Written in a paper");
+    assert.equal(qStateLine({ ...set("marked"), kind: "paper" }), "Marked 2 of 3 in a paper");
+    assert.equal(qStateLine({ ...set("written"), kind: "set" }), "Written in a set");
+  });
+  test("the other copy is offered only where this box is empty and the other holds writing or typing", () => {
+    const withText: QState = { ...set("written"), answer: { text: "hello", at: 1 } };
+    const withInk: QState = { ...set("written"), answer: { ink: { n: 3, b: 100 }, at: 1 } };
+    const markOnly: QState = { ...set("marked"), answer: { got: 2, at: 1 } };
+    assert.equal(otherCopy(undefined, withText), withText);
+    assert.equal(otherCopy({ at: 1, mode: "ink" }, withInk), withInk);
+    assert.equal(otherCopy({ text: "mine", at: 1 }, withText), null);
+    assert.equal(otherCopy(undefined, markOnly), null);
+    assert.equal(otherCopy(undefined, undefined), null);
   });
 });
 
 describe("the write-here cue", () => {
-  test("goes once any answer exists in a feed", () => {
+  test("goes once a real answer exists in a feed, not a peek at a scheme or a drag on the grip", () => {
     assert.equal(hasFeedAnswer({}), false);
-    assert.equal(hasFeedAnswer({ "qs_1/a": {} }), false);
-    assert.equal(hasFeedAnswer({ "qs_1/a": {}, "feed-x/b": {} }), true);
+    assert.equal(hasFeedAnswer({ "qs_1/a": { text: "x", at: 1 } }), false);
+    assert.equal(hasFeedAnswer({ "feed-x/b": { chk: 1, at: 1 } }), false);
+    assert.equal(hasFeedAnswer({ "feed-x/b": { mode: "type", h: 300, at: 1 } }), false);
+    assert.equal(hasFeedAnswer({ "feed-x/b": { text: "x", at: 1 } }), true);
+    assert.equal(hasFeedAnswer({ "feed-x/b": { got: 1, at: 1 } }), true);
   });
 });
 

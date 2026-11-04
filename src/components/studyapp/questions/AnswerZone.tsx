@@ -67,7 +67,8 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
     if (!el) return;
     const r = el.getBoundingClientRect();
     setNear(r.bottom > -NEAR && r.top < window.innerHeight + NEAR);
-    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: `${NEAR}px 0px` });
+    // (A batch can hold two reports for the zone, gone then back: the LAST one is the truth. Reading the first left a visible zone without its canvas.)
+    const io = new IntersectionObserver((es) => { const e = es[es.length - 1]; if (e) setNear(e.isIntersecting); }, { rootMargin: `${NEAR}px 0px` });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -75,7 +76,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   useEffect(() => {
     const el = box.current;
     if (!el || mode !== "ink") return;
-    const io = new IntersectionObserver(([e]) => setZoneVisible(key, e.isIntersecting));
+    const io = new IntersectionObserver((es) => { const e = es[es.length - 1]; if (e) setZoneVisible(key, e.isIntersecting); });
     io.observe(el);
     return () => { io.disconnect(); setZoneVisible(key, false); };
   }, [key, mode]);
@@ -100,6 +101,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   };
 
   const startGrip = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;   // a finger on the strip is scrolling the page; the zone is made taller with its button or the keys
     const w = box.current?.getBoundingClientRect().width ?? REF_W;
     const k = REF_W / w;
     const y0 = e.clientY, h0 = units;
@@ -159,7 +161,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
               onFingerTap={() => { if (!penSeen) setHint(true); }}
               onBottom={setLow}
             />
-          ) : <div className={`qs-ink bg-${prefs.bg}`} style={{ aspectRatio: `${REF_W} / ${units}` }} aria-hidden="true" />
+          ) : <div className={`qs-ink bg-${prefs.bg}`} style={{ aspectRatio: `${REF_W} / ${units}` }} aria-hidden="true" onPointerDown={() => setNear(true)} />
         ) : (
           <TypePad
             text={answer?.text ?? ""} units={units} hand={!!prefs.hand} label={label} full={full}

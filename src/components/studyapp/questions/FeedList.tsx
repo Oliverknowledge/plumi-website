@@ -177,6 +177,14 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     if (h && it) latest.current.onPos({ id: it.id, off: h.off });
   }, [here]);
   const lastHere = useRef<string | undefined>(undefined);
+  // a different list: the question under the reading line is read again (it may not be in the new list at all)
+  useEffect(() => {
+    lastHere.current = undefined;
+    const h = here();
+    const it = h ? latest.current.items[h.i] : undefined;
+    lastHere.current = it?.id;
+    latest.current.onHere?.(it ?? null);
+  }, [items, here]);
   useEffect(() => {
     let raf = 0;
     let quiet: ReturnType<typeof setTimeout> | undefined;
@@ -245,12 +253,13 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     fit();
   }, [listKey, fit]);
 
-  // an item with the keyboard stays in the page
+  // an item with the keyboard stays in the page. (A browser may say nothing, or say "nothing is focused", when the focused card is taken out of the page, so a
+  // let-go is not read as the student leaving: the card is remembered until focus goes to something else in the page.)
   useEffect(() => {
     const el = box.current;
     if (!el) return;
     const inn = (e: FocusEvent) => { const it = (e.target as HTMLElement).closest<HTMLElement>("[data-i]"); pinned.current = it ? Number(it.dataset.i) : null; };
-    const out = (e: FocusEvent) => { if (!(e.relatedTarget as HTMLElement | null)?.closest?.("[data-i]")) pinned.current = null; };
+    const out = (e: FocusEvent) => { const to = e.relatedTarget as HTMLElement | null; if (to && !to.closest?.("[data-i]")) pinned.current = null; };
     el.addEventListener("focusin", inn);
     el.addEventListener("focusout", out);
     return () => { el.removeEventListener("focusin", inn); el.removeEventListener("focusout", out); };
@@ -258,15 +267,16 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
 
   // A card with the keyboard that is far off the screen is let go; focus then goes to the nearest drawn card instead of to the page.
   useEffect(() => {
-    if (pinned.current === null) return;
+    const gone = pinned.current;
+    if (gone === null) return;
     const el = box.current;
     if (!el || el.contains(document.activeElement)) return;
     if (document.activeElement && document.activeElement !== document.body) { pinned.current = null; return; }
+    if (el.querySelector(`[data-i="${gone}"]`)) return;   // still drawn: nothing was lost
     const drawn = [...el.querySelectorAll<HTMLElement>("[data-i]")];
-    const gone = pinned.current;
-    pinned.current = null;
     if (!drawn.length) return;
     drawn.sort((a, b) => Math.abs(Number(a.dataset.i) - gone) - Math.abs(Number(b.dataset.i) - gone));
+    pinned.current = Number(drawn[0].dataset.i);
     drawn[0].focus({ preventScroll: true });
   }, [win]);
 

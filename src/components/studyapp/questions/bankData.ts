@@ -94,6 +94,8 @@ export function useSubject(slug: string | null, attempt = 0, enabled = true): Lo
   useEffect(() => {
     if (!slug || !enabled) return;
     let live = true;
+    // Try again: whatever was asked for before (and may be stuck) is let go, and a fresh request is made.
+    if (attempt > 0) { metas.delete(slug); parts.delete(slug); }
     Promise.all([once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta)), once(parts, slug, () => json(bankFile(slug, "parts")).then(cleanRows))])
       .then(([meta, rows]) => { loadedSubject.set(slug, { meta, rows }); if (live) setGot({ slug, attempt, res: { meta, rows } }); })
       .catch(() => { if (live) setGot({ slug, attempt, res: null }); });

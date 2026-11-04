@@ -231,18 +231,22 @@
 
 /* ═══ Round 4 ═══════════════════════════════════════════════════════════════════════════════════════════════════════ */
 
-/* ── the page's ground: the same warm cream and lamp as the setup, with its ruled page and red margin (no cold blue behind the questions) ── */
-.pa .qf-home {
-  --qf-rule: rgba(172, 134, 100, .26);
+/* ── the page's ground: Setup's warm cream and lamp, with its ruled page and (hairline) red margin, painted ONCE on a layer the size of the screen that stays put.
+   (On the page itself it was a background on a page two million pixels tall: it was smeared into bands after a deep scroll and cost every frame.) The list stays transparent. ── */
+html:has(.qf-ground) { background: #fbf2de; }
+body:has(.qf-ground) { background: transparent; }
+.pa:has(.qf-ground) { background: none; }
+.pa:has(.qf-ground)::before { background: #fbf2de; }
+.pa .qf-ground { position: relative; background: none; box-shadow: none; }
+.pa .qf-ground::before {
+  content: ""; position: fixed; z-index: -1; inset: 0; pointer-events: none;
   background:
+    linear-gradient(90deg, transparent 30px, rgba(214, 104, 98, .5) 30px 31px, transparent 31px),
     radial-gradient(ellipse 54% 44% at 88% -10%, rgba(255, 203, 108, .5), rgba(255, 203, 108, 0) 72%),
-    radial-gradient(ellipse 80% 38% at 8% 112%, rgba(122, 74, 42, .14), rgba(122, 74, 42, 0) 72%),
-    repeating-linear-gradient(transparent 0 35px, var(--qf-rule) 35px 37px),
+    repeating-linear-gradient(transparent 0 35px, rgba(172, 134, 100, .26) 35px 37px),
     #fbf2de;
-  box-shadow: inset 0 0 130px rgba(122, 74, 42, .1);
 }
-.pa:has(.qf-home) { background: #fbf2de; }
-.pa:has(.qf-home)::before { background: #fbf2de; }
+.pa .qf-home { --qf-rule: rgba(172, 134, 100, .26); }
 .pa .qf-head { background: rgba(251, 242, 222, .95); border-bottom-color: rgba(172, 134, 100, .4); }
 .pa .qf-home .qs-search, .pa .qf-home .qs-tbtn { border-color: rgba(122, 74, 42, .35); }
 .pa .qf-home .qs-search { background: #fffaf0; }
@@ -312,7 +316,7 @@
   /* the scheme's picture fits the width of the card (the "Mark" column is not cut off); tap it for the large one */
   .pa .qf-sheet .qs-scheme .qs-cropbox { overflow: visible; }
   .pa .qf-sheet .qs-scheme .qs-crop { min-width: 0; }
-  .pa dialog.qs-zoomd .qs-zoomd-img { width: 100%; }
+  .pa dialog.qs-zoomd.is-fit .qs-zoomd-img { width: 100%; }
 }
 
 /* ── the toast never covers the paper's name bar ── */
@@ -344,3 +348,97 @@
   .pa .qf-here { max-width: 110px; }
   .pa .qf-search input { min-width: 0; }
 }
+
+/* ═══ Round 5 ═══════════════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ── the subjects: tabs wrap onto a second row (nine or ten fit), nothing sticks over anything, the + is a cream tab like the others ── */
+.pa .qf-tabrow { align-items: flex-start; }
+.pa .qf-tabs { flex-wrap: wrap; overflow: visible; row-gap: 6px; padding: 6px 4px 8px; border-bottom: 2px solid var(--ink); align-items: stretch; }
+.pa .qf-tablist { flex-wrap: wrap; row-gap: 6px; min-width: 0; }
+.pa .qf-tab { position: static; transform: none; border: 2px solid var(--ink); border-radius: 14px; min-height: 52px; min-width: 0; padding: 5px 12px; background: color-mix(in srgb, var(--tint) 55%, #fffaf0); }
+.pa .qf-tab:hover, .pa .qf-tab.on { transform: none; }
+.pa .qf-tab.on { background: var(--tint); min-height: 52px; box-shadow: 0 3px 0 var(--ink); }
+.pa .qf-tab-name { font-size: 16px; }
+.pa .qf-tab-add { background: #fffaf0; border-style: dashed; min-width: 48px; }
+.pa .qf-tab-add:hover { background: #fff; }
+.pa .qf-change { margin-top: 12px; }
+
+/* ── a phone: one subject button and the Questions | Papers switch in a single row (the subjects are in a sheet) ── */
+.pa .qf-head-phone { flex-wrap: nowrap; padding: 8px 0 2px; }
+.pa .qf-head-phone .qs-head-text { flex: 0 0 0; min-width: 0; }
+.pa .qf-head-phone .qf-head-acts { flex: 1 1 auto; flex-wrap: nowrap; min-width: 0; justify-content: space-between; gap: 8px; }
+.pa .qf-subj { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 6px; align-items: center; flex: 1 1 0; min-width: 0; min-height: 52px; padding: 3px 10px 3px 12px; text-align: left; border: 2px solid var(--ink); border-radius: 14px; background: color-mix(in srgb, var(--tint) 60%, #fffaf0); box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
+.pa .qf-subj-name { grid-column: 1; font: 600 17px/1.1 var(--f-px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .qf-subj-sub { grid-column: 1; font: 800 11px/1.2 var(--f-body); color: #3b4768; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .qf-subj svg { grid-column: 2; grid-row: 1 / span 2; }
+.pa .qf-head-phone .qf-views { flex: 0 0 auto; }
+.pa .qf-head-phone .qf-views button { padding: 0 9px; font-size: 13px; }
+dialog.qf-subjsheet { position: fixed; inset: auto 0 0 0; margin: 0; width: 100%; max-width: none; max-height: 82dvh; padding: 0; border: 0; border-radius: 18px 18px 0 0; background: #fffaf0; color: var(--ink, #22304d); box-shadow: 0 -10px 30px rgba(60, 40, 30, .25); overflow: auto; font-family: var(--f-body, inherit); }
+dialog.qf-subjsheet::backdrop { background: rgba(60, 40, 30, .32); }
+.qf-subjsheet-in { display: grid; gap: 10px; padding: 14px 14px calc(18px + env(safe-area-inset-bottom, 0px)); }
+.qf-subjsheet-head { display: flex; align-items: center; justify-content: space-between; }
+.qf-subjsheet-head h2 { margin: 0; font: 600 22px var(--f-px, monospace); }
+.qf-subjlist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.qf-subjrow { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; width: 100%; min-height: 56px; padding: 6px 12px; text-align: left; border: 2px solid var(--ink, #22304d); border-radius: 14px; background: color-mix(in srgb, var(--tint) 45%, #fffaf0); cursor: pointer; font: inherit; color: inherit; }
+.qf-subjrow.on { background: var(--tint); box-shadow: 0 3px 0 var(--ink, #22304d); }
+.qf-subjrow-dot { grid-row: 1 / span 2; width: 14px; height: 14px; border: 2px solid var(--ink, #22304d); border-radius: 50%; background: var(--tint); }
+.qf-subjrow-name { font: 600 18px/1.1 var(--f-px, monospace); }
+.qf-subjrow-sub { font: 800 12px/1.2 var(--f-body, inherit); color: #3b4768; }
+.qf-subjacts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-top: 4px; }
+
+/* ── the magnifier never covers anything: it has a row of its own under the picture (the main picture shares the row of "Read as text") ── */
+.pa .qf-sheet .qs-cropbox:not(.qf-pic .qs-cropbox) { margin-bottom: 44px; }
+.pa .qf-sheet .qs-cropbox .qs-zoom { left: 0; right: auto; top: auto; bottom: -44px; }
+@media (max-width: 640px) {
+  .pa .qs-paper .qs-cropbox { margin-bottom: 44px; }
+  .pa .qs-paper .qs-cropbox .qs-zoom { left: 0; right: auto; top: auto; bottom: -44px; }
+  .pa .qs-paper .qs-part > .qs-cropbox { margin-bottom: 0; }
+}
+
+/* ── the filters card never makes the page scroll sideways ── */
+.pa .qf-feed, .pa .qf-body, .pa .qf-row, .pa .qf-controls, .pa .qf-chips { min-width: 0; max-width: 100%; }
+.pa .qf-body { box-sizing: border-box; }
+.pa .qf-controls > * { min-width: 0; }
+.pa .qf-sort select, .pa .qf-multi > summary { max-width: 100%; }
+@media (max-width: 640px) {
+  .pa .qf-home .qs-col, .pa .qf-feed { overflow-x: clip; }
+  .pa .qf-body { padding: 4px 10px 8px; }
+  .pa .qf-seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pa .qf-seg button { padding: 0 6px; min-width: 0; font-size: 13px; }
+  .pa .qf-actsrow .qs-tbtn { min-width: 0; padding: 0 10px; }
+  .pa .qf-prog-n + .qf-here::before { content: none; }
+}
+
+/* ── the lofi record and its bubble: the notes stay clear of them; the bubble goes once the student has scrolled or pressed anything ── */
+@media (min-width: 981px) { .pa .qf-list { padding-right: 96px; } }
+html[data-qf-engaged] .rp-tip { display: none; }
+
+/* ── the toast: under the app bar, and below the paper's name bar on a sheet (never over the answer box or the title) ── */
+.pa:has(.qs-sheet-page) .toast { top: calc(128px + env(safe-area-inset-top, 0px)); bottom: auto; }
+
+/* ── the grip: a finger on it scrolls the page ── */
+.pa .qs-grip { touch-action: pan-y; }
+
+/* ── the other copy of an answer, read only and faded in the empty box ── */
+.pa .qs-answer { position: relative; }
+.pa .qf-other { position: absolute; z-index: 2; left: 10px; right: 10px; top: 48px; bottom: 26px; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; pointer-events: none; }
+.pa .qf-other-body { flex: 1 1 auto; min-height: 0; overflow: hidden; opacity: .5; }
+.pa .qf-other-body p { margin: 0; font: 600 16px/1.5 var(--f-body); color: #1d2433; white-space: pre-wrap; }
+.pa .qf-other-body img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; object-position: left top; mix-blend-mode: multiply; }
+.pa .qf-other-line { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; margin: 0; font: 800 12.5px var(--f-body); color: var(--soft); }
+.pa .qf-other-line > * { pointer-events: auto; }
+.pa .qf-continue { background: #fff; }
+/* the tabs and the + wrap in ONE flow (the list of tabs adds no box of its own), so the + follows the last tab instead of taking a row to itself */
+.pa .qf-tabs > .qf-tablist { display: contents; }
+.pa .qf-pic > .qs-astext > summary { width: fit-content; margin-left: auto; }
+@media (max-width: 640px) {
+  /* on the paper sheet the picture's chip shares the row of "Read as text", on the other side of it */
+  .pa .qs-paper .qs-part > .qs-cropbox .qs-zoom { left: auto; right: 0; }
+  .pa .qs-paper .qs-part > .qs-cropbox .qs-zoom::before { left: auto; right: 8px; }
+}
+.pa .qs-answer:has(.qf-other) .qs-ph { display: none; }
+@media (hover: hover) and (pointer: fine) { .pa .qf-other { top: 14px; } }
+/* in a typing box the symbols come first: the other copy sits below them */
+.pa .qs-answer:has([data-mode="type"]) .qf-other { top: 112px; }
+.pa .qs-answer:has([data-mode="type"]) .qs-ph { display: none; }
+@media (max-width: 640px) { .pa:has(.qs-sheet-page) .toast { top: calc(178px + env(safe-area-inset-top, 0px)); } }

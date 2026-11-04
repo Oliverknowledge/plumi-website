@@ -6,7 +6,7 @@ import {
   bandsFor, cleanFeedFilters, elsewhere, feedActive, hasFeedAnswer, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine,
   type FeedFilters, type FeedSort,
 } from "@/lib/studyapp/questions/feed";
-import { holdScroll, rememberPos, savedPos, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
+import { holdScroll, rememberPos, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { blocks, feedHasRoom, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { groupPapers, paperKey, paperSetInput, paperState } from "@/lib/studyapp/questions/papers";
 import { buildSetInput, hasScheme, partsByQuestion, type BankRow } from "@/lib/studyapp/questions/picker";
@@ -129,6 +129,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     const key = paperKey(part.s, part.p);
     const paper = groupPapers(rows.filter((r) => paperKey(r.s, r.p) === key), meta)[0];
     if (!paper) return;
+    setOpenPart(part.id);
     const cur = currentQuestions();
     const st = paperState(slug, key, cur.sets, cur.answers);
     const id = st.set ? st.set.id : qa.start(paperSetInput(meta, paper));
@@ -140,6 +141,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const onSee = useCallback((setId: string, partId: string) => {
     const set = currentQuestions().sets.find((x) => x.id === setId);
     if (!set) return;
+    setOpenPart(partId);
     const at = blocks(set.parts).findIndex((b) => b.parts.some((p) => p.id === partId));
     if (at > 0) qa.at(setId, at);
     qa.open(setId);
@@ -148,16 +150,19 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     const r = practiseRows(list);
     if (!r.rows.length) return;
     qa.start(buildSetInput(meta, r.rows, { name: `${meta.title}, ${r.rows.length} ${r.rows.length === 1 ? "question" : "questions"}` }));
-    if (r.left > 0) toast(`A set holds up to ${MAX_SET_PARTS} questions: this is the first ${MAX_SET_PARTS}.`);
+    if (r.left > 0) toast(`First ${MAX_SET_PARTS} questions`);
   };
   const setSort = (s: FeedSort) => change(s === "mix" ? { sort: "mix", seed: newSeed() } : { sort: s });
   const mixUp = () => change({ sort: "mix", seed: newSeed() });
   const clearAll = () => { setSearch(""); change({ topics: [], papers: [], series: [], types: [], calc: "", scheme: false, q: "", hideDone: false }); };
   const active = feedActive(filters);
   const setFolded = useCallback((f: boolean) => updateFeedPrefs((p) => ({ ...p, folded: { ...p.folded, [slug]: f } })), [slug]);
+  /** Where the page was when the filters were opened from far down the list on a phone (where they sit above the list): put back when they are closed. */
+  const backTo = useRef<{ y: number; key: string } | null>(null);
+  const toTop = (y: number) => window.scrollTo({ top: y, left: 0, behavior: "instant" as ScrollBehavior });
   const toggleBody = () => {
-    // On a phone the filters are in the flow above the list: opening them from far down the list brings the top into view.
-    if (!bodyOpen && window.scrollY > 200) window.scrollTo({ top: 0 });
+    if (!bodyOpen && phone && window.scrollY > 200) { backTo.current = { y: window.scrollY, key: listKey }; toTop(0); }
+    else if (bodyOpen && backTo.current) { const b = backTo.current; backTo.current = null; if (b.key === listKey) toTop(b.y); }
     setFolded(bodyOpen);
   };
 
@@ -189,13 +194,25 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const searchNote = searching && !bank.text && !bank.failed ? <span className="qf-note-l"> {"·"} looking through the papers</span>
     : searching && bank.failed ? <span className="qf-note-l"> {"·"} searching titles only <button type="button" className="qs-link" onClick={bank.retry}>Try again</button></span> : null;
 
+  // Once the student has scrolled or pressed something, the "tap for lofi" bubble has done its job and is put away (it would sit on the examiner's notes).
+  useEffect(() => {
+    const el = document.documentElement;
+    const on = () => { if (window.scrollY > 30) el.dataset.qfEngaged = "1"; };
+    const press = () => { el.dataset.qfEngaged = "1"; };
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("pointerdown", press, { passive: true });
+    on();
+    return () => { window.removeEventListener("scroll", on); window.removeEventListener("pointerdown", press); delete el.dataset.qfEngaged; };
+  }, []);
   const first = list.length > MAX_SET_PARTS;
   const acts = (
     <FeedActs mixed={filters.sort === "mix"} onMix={mixUp} onPractise={practise} count={list.length} practiseLabel={first ? `Practise the first ${MAX_SET_PARTS}` : "Practise these"}
       practiseNote={first ? `The first ${MAX_SET_PARTS} of these` : "Make a set of these questions"} />
   );
   const allTiers = entry.tiers ?? [];
-  const hereLine = here ? `Q${here.l}${here.m ? ` \u00b7 ${here.m} ${here.m === 1 ? "mark" : "marks"}` : ""}` : null;
+  const listIds = useMemo(() => new Set(list.map((r) => r.id)), [list]);
+  const hereNow = list.length > 0 && here && listIds.has(here.id) ? here : null;
+  const hereLine = hereNow ? `Q${hereNow.l}${hereNow.m ? ` \u00b7 ${hereNow.m} ${hereNow.m === 1 ? "mark" : "marks"}` : ""}` : null;
   const skip = (e: React.MouseEvent) => { e.preventDefault(); const el = document.getElementById("qf-results"); el?.scrollIntoView({ block: "start" }); el?.focus({ preventScroll: true }); };
 
   return (
@@ -203,7 +220,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
-        tier={tier} phone={phone} here={here ? hereLine : null} acts={acts}
+        tier={tier} phone={phone} here={hereLine} acts={acts}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
       <FeedFilterBody
@@ -211,7 +228,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
         acts={phone ? acts : undefined} tiers={allTiers} tierNow={tier} onTier={(t) => qa.tiers(slug, t ? [t] : [], allTiers)}
       />
       {phone && bodyOpen && (
-        <button type="button" className="btn gold qf-showall" onClick={() => { setFolded(true); window.scrollTo({ top: 0 }); }} data-testid="feed-show">
+        <button type="button" className="btn gold qf-showall" onClick={() => { const b = backTo.current; backTo.current = null; setFolded(true); toTop(b && b.key === listKey ? b.y : 0); }} data-testid="feed-show">
           Show {list.length.toLocaleString("en-GB")} {list.length === 1 ? "question" : "questions"}
         </button>
       )}
@@ -221,7 +238,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
       ) : list.length === 0 ? (
         <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>Nothing matches</b><button type="button" className="btn" onClick={clearAll}>Clear filters</button></div>
       ) : (
-        <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => rememberPos(slug, pos)} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
+        <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
       )}
       <FeedPen prefs={q.prefs} />
     </div>

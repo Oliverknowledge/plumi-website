@@ -85,3 +85,11 @@ const HOLD_MS = 300;
 let heldAt = -Infinity;
 export const holdScroll = () => { heldAt = performance.now(); };
 export const takeHeldScroll = (): boolean => { const held = performance.now() - heldAt < HOLD_MS; heldAt = -Infinity; return held; };
+
+/**
+ * A paper opened from a question of the feed (The whole paper, See it) lands on THAT part, in the middle of the screen, not on the top of its question under the bars:
+ * the feed says which part just before it opens the paper, and the sheet takes it once.
+ */
+let openPart: string | null = null;
+export const setOpenPart = (id: string | null) => { openPart = id; };
+export const takeOpenPart = (): string | null => { const p = openPart; openPart = null; return p; };

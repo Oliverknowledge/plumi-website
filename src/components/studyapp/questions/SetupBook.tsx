@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import type { SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { bookLabel } from "@/lib/studyapp/questions/setupBooks";
+import { bookLabel, TIER_HINT } from "@/lib/studyapp/questions/setupBooks";
 import { sortTiers, subjectTint } from "@/lib/studyapp/questions/subject";
 import { bookArt, SETUP_ART } from "./BookArt";
 
@@ -12,7 +12,7 @@ import { bookArt, SETUP_ART } from "./BookArt";
  * The cover is fixed in size, so nothing around it moves when it is ticked. What it looks like is all in BookArt.tsx and the EXERCISE BOOK ART
  * block of questions-setup.css.
  */
-export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, tierOnly, onToggle, onBoard, onTier, onOpen, onClose }: {
+export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open, tierOnly, hint, onToggle, onBoard, onTier, onOpen, onClose }: {
   choice: SubjectChoice;
   /** The draft key (level and subject): how the page finds this book again. */
   dataKey: string;
@@ -26,6 +26,8 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   open: boolean;
   /** The flap shows only the tier stickers (the board is already chosen). */
   tierOnly: boolean;
+  /** Say once, under the book, that it is at any tier. */
+  hint: boolean;
   onToggle(): void; onBoard(slug: string): void; onTier(sel: string[]): void; onOpen(): void; onClose(): void;
 }) {
   const art = bookArt(choice.base);
@@ -73,6 +75,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
           <span className="qk-label"><span className="qk-sticker" data-testid="board-fixed">{choice.boards[0].label}</span></span>
         ))}
       </div>
+      {hint && !showFlap && <p className="qk-hint" role="status">{TIER_HINT}</p>}
       {showFlap && (
         <div className="qk-flap" id={flapId} ref={flap} onClick={(e) => { if (!(e.target as Element).closest("button")) onClose(); }}>
           {!tierOnly && (

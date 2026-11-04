@@ -186,9 +186,9 @@ export const toggleIn = (list: readonly string[], v: string): string[] => (list.
 export function calcWords(meta: Pick<SubjectMeta, "calcPapers">): { label: string; only: string; none: string } {
   return meta.calcPapers ? { label: "Calculator", only: "Allowed", none: "Not allowed" } : { label: "Calculation questions", only: "Only", none: "Skip" };
 }
-/** Whether the student has written, marked or opened a scheme on any question in any subject's feed (the cue for where to write goes once they have). */
-export function hasFeedAnswer(answers: Record<string, unknown>): boolean {
-  for (const k in answers) if (k.startsWith("feed-")) return true;
+/** Whether the student has really answered something in any subject's feed (written, typed or marked: a peek at a scheme or a drag on the grip is not an answer): the cue for where to write goes once they have. */
+export function hasFeedAnswer(answers: Record<string, QAnswer>): boolean {
+  for (const k in answers) if (k.startsWith("feed-") && (isAnswered(answers[k]) || isMarked(answers[k]))) return true;
   return false;
 }
 
@@ -218,14 +218,16 @@ export interface QState {
   /** Where the answer lives: the feed, or a paper or set the question is also in (then `where` is its name). */
   from: "feed" | "set";
   where?: string;
-  /** For work done elsewhere: the set it is in, so the card can open it at this question. */
+  /** For work done elsewhere: the set it is in, so the card can open it at this question, what kind of set it is, and the answer itself (to show it, read only). */
   setId?: string;
+  kind?: "paper" | "set";
+  answer?: QAnswer;
 }
 
 /** "Not started", "Written", "Marked 2 of 3": one honest line for a question. */
 export function qStateLine(s: QState): string {
   if (s.state === "new") return "Not started";
-  const where = s.from === "set" && s.where ? ` in ${s.where}` : "";
+  const where = s.from === "set" ? (s.kind === "paper" ? " in a paper" : " in a set") : "";
   if (s.state === "written") return `Written${where}`;
   return s.of != null && s.got !== undefined ? `Marked ${s.got} of ${s.of}${where}` : `Marked${where}`;
 }
@@ -246,11 +248,12 @@ export function bestState(own: QState, other: QState | undefined): QState {
   return other && rank(other) > rank(own) ? other : own;
 }
 
-/** The quiet line under the writing space for work done elsewhere: "You also wrote this in June 2025 Paper 1." (null when there is none). */
-export function alsoLine(own: QState, other: QState | undefined): string | null {
-  if (!other || other.state === "new" || !other.where) return null;
-  return `${other.state === "marked" ? "You marked this" : own.state === "new" ? "You wrote this" : "You also wrote this"} in ${other.where}.`;
+/** Work done elsewhere that the box can show (read only) and "Continue here" can copy in: there is writing or typing in it, and none yet in this box. */
+export function otherCopy(own: QAnswer | undefined, other: QState | undefined): QState | null {
+  if (!other?.answer || !other.setId || hasContent(own)) return null;
+  return hasContent(other.answer) ? other : null;
 }
+const hasContent = (a: QAnswer | undefined): boolean => !!a && ((!!a.ink && a.ink.n > 0) || !!a.text?.trim());
 
 /**
  * Where else this subject's questions have been answered: in a paper or a set the student made, which keeps its own answers (an answer belongs to the set
@@ -268,8 +271,8 @@ export function elsewhere(q: Pick<QuestionsData, "sets" | "answers">, slug: stri
     const set = at > 0 ? sets.get(k.slice(0, at)) : undefined;
     if (!set) continue;
     const m = marks.get(k) ?? null;
-    const st: QState = isMarked(a) ? { state: "marked", got: m != null ? Math.min(a.got ?? 0, m) : a.got, of: m, from: "set", where: set.name, setId: set.id }
-      : isAnswered(a) ? { state: "written", of: m, from: "set", where: set.name, setId: set.id } : { state: "new", of: m, from: "set" };
+    const st: QState = isMarked(a) ? { state: "marked", got: m != null ? Math.min(a.got ?? 0, m) : a.got, of: m, from: "set", where: set.name, setId: set.id, kind: set.paper ? "paper" : "set", answer: a }
+      : isAnswered(a) ? { state: "written", of: m, from: "set", where: set.name, setId: set.id, kind: set.paper ? "paper" : "set", answer: a } : { state: "new", of: m, from: "set" };
     if (st.state === "new") continue;
     const id = k.slice(at + 1);
     const have = out.get(id);

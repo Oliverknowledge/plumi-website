@@ -70,3 +70,10 @@ export const isMoreOpen = (level: string, main: readonly string[], other: readon
 /** The tier a kept subject starts the setup with: what they chose, or every tier ("any tier", an answer) so coming back never asks again. */
 export const keptTier = (saved: readonly string[] | undefined, all: readonly string[] | undefined): string[] | null =>
   !all || all.length < 2 ? null : saved && saved.length ? [...saved] : [...all];
+
+/** One word to tell the other levels apart (a student must know which is theirs): who sets the exam, or what kind of course it is. */
+const LEVEL_HINTS: Record<string, string> = { IGCSE: "Cambridge", "International GCSE": "Edexcel", "Level 1/2": "vocational", "Level 2": "Further Maths", "Level 3": "vocational" };
+export const levelHint = (level: string): string | null => LEVEL_HINTS[level] ?? null;
+
+/** The quiet line under a book left at any tier. */
+export const TIER_HINT = "Pick a tier to start on the right questions";

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { memo } from "react";
 import { paperAria, shortMonth, splitSeries, stateLine, type Paper, type PaperState } from "@/lib/studyapp/questions/papers";
 import { lookFor, Mid, PaperArt } from "./paperArt";
-import { RetryIcon, SearchIcon } from "./icons";
+import { RetryIcon } from "./icons";
 import { ShuffleIcon } from "./pickerIcons";
 
 /** What a shelf gives each of its cards so the arrow keys can move among them: whether it is the one tab stop, and where to report. */
@@ -92,11 +92,10 @@ export function MoreCard({ more, onClick, tint, n, stop, attach, focused }: { mo
 }
 
 /** "Mix them up" and "Choose questions": two small pills in a shelf's header, always there (they need no list to be drawn). */
-export function ShelfPills({ onMix, onPick, name }: { onMix(): void; onPick(): void; name: string }) {
+export function ShelfPills({ onMix, name }: { onMix(): void; name: string }) {
   return (
     <span className="qh-pills" role="group" aria-label={`${name} questions`}>
       <button type="button" className="qh-pill mix" onClick={onMix} data-testid="card-mix"><span className="qh-pill-ico" aria-hidden="true"><ShuffleIcon /></span>Mix them up</button>
-      <button type="button" className="qh-pill pick" onClick={onPick} data-testid="card-pick"><span className="qh-pill-ico" aria-hidden="true"><SearchIcon /></span>Choose questions</button>
     </span>
   );
 }

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { choicesAt, draftKey, draftOf, draftSlugs, levelsOf, tickSubject, type SubjectChoice } from "@/lib/studyapp/questions/mine";
-import { barLine, countAt, firstMissing, isMoreOpen, keptTier, pileOf } from "@/lib/studyapp/questions/setupBooks";
+import { barLine, countAt, firstMissing, isMoreOpen, keptTier, levelHint, pileOf } from "@/lib/studyapp/questions/setupBooks";
 import { baseSubject, sortTiers, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import { DESK_ART, SETUP_ART } from "./BookArt";
 import { BackIcon } from "./icons";
@@ -43,7 +43,23 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
   const [active, setActive] = useState<string | null>(null);
   /** The flap shows only the tier stickers (the board is chosen): small, so it covers little of what is below. */
   const [tierOnly, setTierOnly] = useState(false);
-  const openFlap = (k: string | null, tiersOnly = false) => { setActive(k); setTierOnly(tiersOnly); };
+  const openFlap = (k: string | null, tiersOnly = false) => { setActive(k); setTierOnly(tiersOnly); if (k) setHint(null); };
+  /** The one quiet hint about tiers (shown once, for a few seconds, on the book that was left at any tier). */
+  const [hint, setHint] = useState<string | null>(null);
+  const hinted = useRef(false);
+  const showHint = (k: string) => { if (hinted.current) return; hinted.current = true; setHint(k); };
+  useEffect(() => {
+    if (!hint) return;
+    const t = window.setTimeout(() => setHint(null), 7000);
+    return () => window.clearTimeout(t);
+  }, [hint]);
+  /** Fold the flap away; a tier flap folded with no tier chosen leaves the book at any tier, which is said once. */
+  const fold = () => {
+    if (active && tierOnly && !tierDraft.get(active)?.length) showHint(active);
+    openFlap(null);
+  };
+  const foldNow = useRef(fold);
+  useEffect(() => { foldNow.current = fold; });
   /** A book on another level to take focus once that level is drawn (the bar sends them to the book that needs a board). */
   const goTo = useRef<string | null>(null);
   const choices = useMemo(() => choicesAt(catalogue, level), [catalogue, level]);
@@ -70,7 +86,12 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
     openFlap(tiersOfSlug(slug).length >= 2 && !(tierDraft.get(k)?.length) ? k : null, true);
   };
   /** One tier, or any (every tier): a choice, so the label stops asking. */
-  const pickTier = (c: SubjectChoice, sel: string[]) => { setTierDraft((d) => new Map(d).set(draftKey(level, c.base), sel)); openFlap(null); };
+  const pickTier = (c: SubjectChoice, sel: string[]) => {
+    const k = draftKey(level, c.base);
+    setTierDraft((d) => new Map(d).set(k, sel));
+    openFlap(null);
+    if (sel.length === (tiersOfSlug(draft.get(k)).length)) showHint(k);
+  };
   const missing = firstMissing(draft, level);
   const ready = draft.size > 0 && !missing;
   const pile = useMemo(() => pileOf(draft, catalogue), [draft, catalogue]);
@@ -113,7 +134,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
     if (!active) return;
     const away = (e: PointerEvent) => {
       const slot = (e.target as Element | null)?.closest?.(".qk-slot") as HTMLElement | null;
-      if (slot?.dataset.key !== active) openFlap(null);
+      if (slot?.dataset.key !== active) foldNow.current();
     };
     document.addEventListener("pointerdown", away, true);
     return () => document.removeEventListener("pointerdown", away, true);
@@ -122,7 +143,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
   const changeLevel = (l: string) => { setLevel(l); openFlap(null); };
   const tab = (l: string) => (
     <button key={l} type="button" className={`qk-tab${l === level ? " on" : ""}`} aria-pressed={l === level} onClick={() => changeLevel(l)}>
-      <span>{l}</span>{countAt(draft, l) > 0 && <span className="qk-tab-n" aria-label={`${countAt(draft, l)} chosen`}>{countAt(draft, l)}</span>}
+      <span>{l}</span>{!main.includes(l) && levelHint(l) && <small className="qk-tab-hint">{levelHint(l)}</small>}{countAt(draft, l) > 0 && <span className="qk-tab-n" aria-label={`${countAt(draft, l)} chosen`}>{countAt(draft, l)}</span>}
     </button>
   );
   const otherN = other.reduce((n, l) => n + countAt(draft, l), 0);
@@ -137,7 +158,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
         <div className="qk-col">
           <header className="qk-head">
             <div className="qk-head-text">
-              {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />My papers</button>}
+              {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />Back</button>}
               <h1 id="qh-setup-h" ref={h1} tabIndex={-1}>What are you studying?</h1>
             </div>
             <div className="qk-mascot" aria-hidden="true">
@@ -161,7 +182,7 @@ export function Setup({ catalogue, mine, tiers, first, onDone, onCancel }: {
               return (
                 <SetupBook
                   key={c.base} choice={c} dataKey={k} slug={slug} tierOptions={tiersOfSlug(slug)} tierChosen={tierDraft.get(k)} open={active === k} tierOnly={tierOnly}
-                  onToggle={() => toggle(c)} onBoard={(s) => choose(c, s)} onTier={(sel) => pickTier(c, sel)} onOpen={() => openFlap(k)} onClose={() => openFlap(null)}
+                  onToggle={() => toggle(c)} onBoard={(s) => choose(c, s)} onTier={(sel) => pickTier(c, sel)} onOpen={() => openFlap(k)} onClose={fold} hint={hint === k}
                 />
               );
             })}

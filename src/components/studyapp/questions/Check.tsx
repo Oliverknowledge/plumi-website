@@ -35,12 +35,17 @@ function reportsFor(slug: string): Promise<Record<string, string>> {
  * named for what it shows, so it never reads as "Plumi will check my answer". It is quiet until something is written, and
  * it is never gold (the sheet's one gold button is Finish set).
  */
+/** Mark schemes the student has closed (kept while the page lives, so a card that is drawn again after scrolling away does not reopen what was shut). */
+const shutSchemes = new Set<string>();
+
 export function Check({ set, part, answer, reportOutside }: { set: QSet; part: QPart; answer: QAnswer | undefined; /** The examiner's report has a place of its own beside the question (the feed): no button for it in the scheme card. */ reportOutside?: boolean }) {
-  const [shut, setShut] = useState(false);
-  const open = !!answer?.chk && !shut;
+  const [, redraw] = useState(0);
+  const mark = `${set.id}/${part.id}`;
+  const open = !!answer?.chk && !shutSchemes.has(mark);
   const toggle = () => {
-    if (open) { setShut(true); return; }
-    setShut(false);
+    if (open) { shutSchemes.add(mark); redraw((n) => n + 1); return; }
+    shutSchemes.delete(mark);
+    redraw((n) => n + 1);
     qa.check(set.id, part.id);
   };
   const id = `scheme-${part.id}`;
@@ -73,7 +78,14 @@ export function useReport(set: Pick<QSet, "subject" | "rq">, part: QPart, wanted
       .catch(() => { if (live) setFailed(true); });
     return () => { live = false; };
   }, [wanted, report, tries, set.subject, set.rq, part.id]);
-  return { report, failed, retry: () => { setFailed(false); setTries((t) => t + 1); } };
+  return { report, failed, retry: () => { reports.delete(set.subject); setFailed(false); setTries((t) => t + 1); } };
+}
+
+/** "Opening...", and after about 8 seconds a way to try again (a request that has stalled must not leave the student waiting for good). */
+function Opening({ retry }: { retry(): void }) {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setSlow(true), 8000); return () => clearTimeout(t); }, []);
+  return <p className="qs-scheme-note">Opening...{slow && <> <button type="button" className="qs-link" onClick={retry}>Try again</button></>}</p>;
 }
 
 /** What the examiner's report says about a part: the paragraphs that name it first, then the rest of the question's under a fold. */
@@ -81,7 +93,7 @@ export function ReportBody({ part, state }: { part: QPart; state: ReturnType<typ
   const { report, failed, retry } = state;
   const split = report ? splitReport(report, part.l) : null;
   if (failed) return <p className="qs-scheme-note">Could not open the report. <button type="button" className="qs-link" onClick={retry}>Try again</button></p>;
-  if (report === null) return <p className="qs-scheme-note">Opening...</p>;
+  if (report === null) return <Opening retry={retry} />;
   if (!report) return <p className="qs-scheme-note">No report for this question.</p>;
   return (
     <div className="qs-er-text">

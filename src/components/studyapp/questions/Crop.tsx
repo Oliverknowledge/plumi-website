@@ -92,7 +92,7 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
   useEffect(() => {
     const el = box.current;
     if (!el || eager) return;
-    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: "800px 0px" });
+    const io = new IntersectionObserver((es) => { const e = es[es.length - 1]; if (e) setNear(e.isIntersecting); }, { rootMargin: "800px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [eager]);
@@ -140,18 +140,19 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
         <button type="button" className="qs-zoom" aria-label={`Enlarge ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /></button>
       )}
     </div>
-    {big && <ZoomDialog src={withTry(src, n)} alt={alt} onClose={() => setBig(false)} />}
+    {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} onClose={() => setBig(false)} />}
     </>
   );
 }
 
 /** The picture large: a native modal dialog, scrollable both ways (and pinchable), closed by its button, Escape or a tap outside. */
-function ZoomDialog({ src, alt, onClose }: { src: string; alt: string; onClose(): void }) {
+/** `fit`: a mark scheme's table opens fitted to the width (its columns are read across), a question opens large and pans. */
+function ZoomDialog({ src, alt, fit, onClose }: { src: string; alt: string; fit?: boolean; onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
   const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
   return (
-    <dialog ref={ref} className="qs-zoomd" aria-label="The picture, larger" onClose={onClose} onClick={(e) => { if (e.target === ref.current) close(); }} data-testid="crop-zoom-dialog">
+    <dialog ref={ref} className={`qs-zoomd${fit ? " is-fit" : ""}`} aria-label="The picture, larger" onClose={onClose} onClick={(e) => { if (e.target === ref.current) close(); }} data-testid="crop-zoom-dialog">
       <button type="button" className="btn ghost icon qs-zoomd-close" aria-label="Close" onClick={close} autoFocus><CloseIcon /></button>
       <div className="qs-zoomd-body" tabIndex={0} role="region" aria-label="Scrolls sideways and down">
         {/* eslint-disable-next-line @next/next/no-img-element */}
