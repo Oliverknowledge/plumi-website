@@ -111,9 +111,9 @@
 .pa .qf-card.is-marked .qf-num { background: #8fb35a; }
 .pa .qf-q { margin: 0; font: 700 21px/1.1 var(--f-px); overflow-wrap: anywhere; }
 .pa .qf-meta { margin: 0; font: 800 13.5px/1.35 var(--f-body); color: var(--soft); }
-.pa .qf-state { margin: 0; display: inline-flex; align-items: center; gap: 7px; font: 800 12.5px/1.3 var(--f-body); color: var(--mute); }
+.pa .qf-state { margin: 0; display: inline-flex; align-items: center; gap: 7px; font: 800 12.5px/1.3 var(--f-body); color: var(--soft); }
 .pa .qf-state::before { content: ""; flex: none; width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 50%; }
-.pa .qf-state.is-written { color: var(--mid); }
+.pa .qf-state.is-written { color: #8a5200; }
 .pa .qf-state.is-written::before { background: currentColor; opacity: .55; }
 .pa .qf-state.is-marked { color: var(--ok-ink, #236b38); }
 .pa .qf-state.is-marked::before { background: currentColor; }
@@ -423,7 +423,7 @@ html[data-qf-engaged] .rp-tip { display: none; }
 .pa .qs-answer { position: relative; }
 .pa .qf-other { position: absolute; z-index: 2; left: 10px; right: 10px; top: 48px; bottom: 26px; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; pointer-events: none; }
 .pa .qf-other-body { flex: 1 1 auto; min-height: 0; overflow: hidden; opacity: .5; }
-.pa .qf-other-body p { margin: 0; font: 600 16px/1.5 var(--f-body); color: #1d2433; white-space: pre-wrap; }
+.pa .qf-other-body p { margin: 0; font: 600 16px/1.5 var(--f-body); color: #0b1020; white-space: pre-wrap; }
 .pa .qf-other-body img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; object-position: left top; mix-blend-mode: multiply; }
 .pa .qf-other-line { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; margin: 0; font: 800 12.5px var(--f-body); color: var(--soft); }
 .pa .qf-other-line > * { pointer-events: auto; }
@@ -600,7 +600,10 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 @media (max-width: 599px) { .pa .qf-notsaved, .pa .qs-bar-warn { white-space: normal; overflow: visible; text-overflow: clip; } }
 
 /* ── round 9, small things: the copied answer behind the faded line reads at 4.5 to 1; a one-question set's progress is one short mark, not a full bar ── */
-.pa .qf-other-body { opacity: .78; }
+.pa .qf-other { justify-content: flex-start; }
+/* (the line is at the top now, where the box's own prompt is: the prompt steps aside while a copy is there) */
+.pa .qs-answer:has(.qf-other) .qs-text::placeholder { color: transparent; }
+.pa .qf-other-body { opacity: .62; border: 1.5px dashed rgba(34, 48, 77, .5); border-radius: 10px; padding: 4px 10px; }
 .pa .qs-pn ol:has(li:only-child) { justify-content: flex-start; }
 .pa .qs-pn li:only-child { flex: 0 0 64px; }
 
@@ -609,8 +612,8 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 @media (max-width: 640px) { .pa:has(.qs-page) .toast { top: auto; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
 
 /* ── typed answers shown back (the faded copy from a paper or the feed) are in the handwriting face too; code stays in a monospace ── */
-.pa .qf-other-body p.is-hand { font: 600 25px/2rem var(--f-hand); color: #23345e; }
-.pa .qf-other-body p.is-code { font: 500 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #1d2433; }
+.pa .qf-other-body p.is-hand { font: 600 25px/2rem var(--f-hand); color: #0f1830; }
+.pa .qf-other-body p.is-code { font: 500 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #0b1020; }
 
 /* ── marks drawn ON the printed question: a layer over the picture, a row of tools under it ── */
 .pa .qs-cropbox { position: relative; }
@@ -625,7 +628,9 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qs-annot-btn:hover { background: #fff; border-color: var(--ink); }
 .pa .qs-annot-btn.on { background: var(--navy); border-color: var(--navy); color: #fff; }
 .pa .qs-annot-t { white-space: nowrap; }
-@media (max-width: 640px) { .pa .qs-annot-btn:not(.qs-annot-btn-t) .qs-annot-t, .pa .qs-annot-t-d { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+/* (short words stay under the icons on a phone too: Hide, Undo, Clear) */
+.pa .qs-annot-short { display: none; }
+@media (max-width: 640px) { .pa .qs-annot-long { display: none; } .pa .qs-annot-short { display: inline; } }
 .pa .qs-annot-dot { width: 10px; height: 10px; border-radius: 50%; background: #2b57c9; box-shadow: 0 0 0 2px #fff; }
 .pa .qs-annot-ask { display: inline-flex; align-items: center; gap: 8px; font: 800 13px var(--f-body); }
 .pa .qs-annot-ask .qs-mini { min-height: 44px; min-width: 56px; }
@@ -637,5 +642,6 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qs-annot-view canvas { display: block; width: 100%; height: 100%; }
 .pa .qs-annot-dot-t { font: 800 12.5px var(--f-body); color: #3b4768; }
 @media (max-width: 640px) { .pa .qs-annot-dot-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+.pa .qs-annot-note { flex: 1 1 100%; margin: 0; font: 800 13px/1.3 var(--f-body); color: #8a2f2f; }
 .pa .qs-annot-cue { margin: 0; font: 700 21px/1.2 var(--f-hand); color: #3b4768; }
 .pa .qs-annot-host.is-hidden { pointer-events: auto; }

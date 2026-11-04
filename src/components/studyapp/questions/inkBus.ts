@@ -49,8 +49,15 @@ export function setZoneVisible(key: string, on: boolean) {
   if (on) visible.add(key); else visible.delete(key);
   visSubs.forEach((s) => s());
 }
+/** Something that needs the foot of the screen (the Fraction box) asks the tray to stand aside while it is open; it gives the place back by calling what this returns. */
+let holds = 0;
+export function holdTray(): () => void {
+  holds++; visSubs.forEach((s) => s());
+  let given = false;
+  return () => { if (given) return; given = true; holds--; visSubs.forEach((s) => s()); };
+}
 export function useInkZoneVisible(): boolean {
-  return useSyncExternalStore((cb) => { visSubs.add(cb); return () => { visSubs.delete(cb); }; }, () => visible.size > 0, () => false);
+  return useSyncExternalStore((cb) => { visSubs.add(cb); return () => { visSubs.delete(cb); }; }, () => visible.size > 0 && holds === 0, () => false);
 }
 
 /** False once handwriting cannot be kept on this device (see inkDb.ts); true while we do not know yet. */
@@ -58,11 +65,28 @@ export function useInkSaving(): boolean {
   return useSyncExternalStore(onInkDbChange, () => inkDbOk() !== false, () => true);
 }
 
-/** A pen has touched this page: from then on the writing surfaces leave touch scrolling to the page (see InkCanvas). */
+/**
+ * A pen has touched this page: from then on the writing surfaces leave touch scrolling to the page (see InkCanvas). Remembered on this device (an optimisation only: the first
+ * pen contact on a page that has never seen one is taken up all the same, see AnnotCrop), so the canvases of a returning pencil student are ready before the pencil comes down.
+ */
+export const PEN_KEY = "plumi-pen-seen";
 let penSeen = false;
+let penRead = false;
 const penSubs = new Set<() => void>();
-export function setPenSeen(v: boolean) { if (penSeen !== v) { penSeen = v; penSubs.forEach((s) => s()); } }
-export function usePenSeen(): boolean {
-  return useSyncExternalStore((cb) => { penSubs.add(cb); return () => { penSubs.delete(cb); }; }, () => penSeen, () => false);
+function readPen() {
+  if (penRead || typeof window === "undefined") return;
+  penRead = true;
+  try { if (window.localStorage.getItem(PEN_KEY) === "1") penSeen = true; } catch { /* not remembered */ }
 }
-export const penSeenNow = () => penSeen;
+export function setPenSeen(v: boolean) {
+  readPen();
+  if (penSeen !== v) {
+    penSeen = v; penSubs.forEach((s) => s());
+    if (v) { try { window.localStorage.setItem(PEN_KEY, "1"); } catch { /* the page still knows */ } }
+  }
+}
+const penSnapshot = () => { readPen(); return penSeen; };
+export function usePenSeen(): boolean {
+  return useSyncExternalStore((cb) => { penSubs.add(cb); return () => { penSubs.delete(cb); }; }, penSnapshot, () => false);
+}
+export const penSeenNow = () => penSnapshot();

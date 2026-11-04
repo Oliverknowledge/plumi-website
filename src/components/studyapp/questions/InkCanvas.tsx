@@ -30,7 +30,7 @@ import { activateInk, registerInk, reportInk, setPenSeen } from "./inkBus";
  * has now (and the page zoom, so a pinch stays sharp), capped so no zone is more than a few million pixels.
  */
 
-export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void; /** Take away the newest stroke (marks on a question: "Undo mark", which also works on strokes from an earlier visit). */ dropLast(): void; /** Take up a stroke whose pen-down arrived before this canvas was mounted (the first stroke after a quick jump is never lost). */ begin(ev: PointerEvent): void }
+export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void; /** Take away the newest stroke (marks on a question: "Undo mark", which also works on strokes from an earlier visit). */ dropLast(): void; /** Take up a stroke whose pen-down arrived before this canvas was mounted (the first stroke after a quick jump is never lost). */ begin(ev: PointerEvent, early?: PointerEvent[], ended?: PointerEvent | null): void }
 
 interface Props {
   inkKey: string;
@@ -246,7 +246,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     clear() { const s = st.current; if (s.ink.length) commit([], "all"); },
     focus() { canvas.current?.focus({ preventScroll: true }); },
     dropLast() { const s = st.current; if (s.ink.length) commit(s.ink.slice(0, -1), "all"); },
-    begin(ev) {
+    begin(ev, early = [], ended = null) {
       // A pen or mouse put down on the picture before this canvas existed: the stroke is taken up here, from that point on, without relying on pointer capture (a capture asked for
       // by a stand-in event is dropped at once for a mouse, which would end the stroke as a dot): moves and the lift that do not reach the canvas are read from the window.
       const c = canvas.current, h = handlers.current;
@@ -256,6 +256,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       const shim = (e: PointerEvent, type: string) => ({ pointerType: e.pointerType, pointerId: e.pointerId, button: e.button, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY, width: e.width, height: e.height, pressure: e.pressure, type, currentTarget: c, target: c, nativeEvent: e, preventDefault() {}, stopPropagation() {} }) as unknown as RPointerEvent<HTMLCanvasElement>;
       s.adopt = id;
       h.down(shim(ev, "pointerdown"));
+      for (const e of early) h.move(shim(e, "pointermove"));        // what the pen did before this canvas was there
+      if (ended) { (ended.type === "pointercancel" ? h.cancel : h.up)(shim(ended, ended.type)); s.adopt = null; return; }
       const move = (e: PointerEvent) => { if (e.pointerId === id && e.target !== c) handlers.current?.move(shim(e, "pointermove")); };
       const done = (e: PointerEvent) => {
         if (e.pointerId !== id) return;

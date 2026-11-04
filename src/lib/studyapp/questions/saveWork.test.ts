@@ -33,3 +33,12 @@ test("a question the student marked up is in the page with its marks on it, and 
   assert.match(html, /<img class="q" alt="The question 01\.1 with your marks on it" src="data:image\/png;base64,BBBB">/);
   assert.doesNotMatch(html, /Nothing was written/);
 });
+
+test("the saved page carries the handwriting face it is given, and a real handwriting fallback stack with ruled lines", () => {
+  const r = createSet(EMPTY_QUESTIONS, { name: "n", subject: "s", title: "t", names: {}, topics: {}, parts: [part("a", "01.1", 1)] }, 1);
+  const d = setText(r.q, r.id, "a", "an answer", 2).q;
+  const html = workHtml(d.sets[0], d.answers, {}, new Date("2026-11-03T10:00:00Z"), {}, '@font-face{font-family:"Plumi Hand";src:url(data:font/woff2;base64,AAAA) format("woff2")}');
+  assert.match(html, /<style>@font-face\{font-family:"Plumi Hand"/);
+  assert.match(html, /\.t\{[^}]*font-family:"Plumi Hand",Caveat,"Bradley Hand",Noteworthy,"Segoe Print"[^}]*cursive[^}]*repeating-linear-gradient/);
+  assert.ok(!workHtml(d.sets[0], d.answers, {}).includes("@font-face"));
+});

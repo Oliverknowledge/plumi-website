@@ -9,7 +9,7 @@ import { blocks, hasText, keyOf, markable, nameOf, type QAnswer, type QSet } fro
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** The page. `images` is a part's handwriting as a data URL, by part id. */
-export function workHtml(set: QSet, answers: Record<string, QAnswer>, images: Readonly<Record<string, string>>, when: Date = new Date(), onQuestion: Readonly<Record<string, string>> = {}): string {
+export function workHtml(set: QSet, answers: Record<string, QAnswer>, images: Readonly<Record<string, string>>, when: Date = new Date(), onQuestion: Readonly<Record<string, string>> = {}, fontCss = ""): string {
   const rows: string[] = [];
   for (const b of blocks(set.parts)) {
     const small = [nameOf(set.names, b.parts[0].s) ?? b.parts[0].s, nameOf(set.names, b.parts[0].p) ?? b.parts[0].p].filter(Boolean).join(", ");
@@ -27,7 +27,7 @@ export function workHtml(set: QSet, answers: Record<string, QAnswer>, images: Re
   }
   const body = rows.length ? rows.join("\n") : "<p>Nothing was written in this set.</p>";
   return `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(set.name)}</title>
-<style>body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;color:#1d2433}h1{font-size:1.5rem}h2{margin-top:2rem;font-size:1.15rem;border-bottom:1px solid #d8d2c4}h3{font-size:1rem;margin:1rem 0 .25rem}small{font-weight:400;color:#5b6170}img{max-width:100%;border:1px solid #d8d2c4;background:#fff}.t{white-space:pre-wrap;font-family:Caveat,"Bradley Hand","Segoe Print","Noteworthy","Comic Sans MS","Lucida Handwriting",cursive;font-size:1.3rem;line-height:2rem;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2rem - 1px),#cfd9ea calc(2rem - 1px),#cfd9ea 2rem)}.m{color:#2f6b3f}</style></head><body>
+<style>${fontCss}body{font:16px/1.5 system-ui,sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;color:#1d2433}h1{font-size:1.5rem}h2{margin-top:2rem;font-size:1.15rem;border-bottom:1px solid #d8d2c4}h3{font-size:1rem;margin:1rem 0 .25rem}small{font-weight:400;color:#5b6170}img{max-width:100%;border:1px solid #d8d2c4;background:#fff}.t{white-space:pre-wrap;font-family:"Plumi Hand",Caveat,"Bradley Hand",Noteworthy,"Segoe Print","Comic Sans MS","Lucida Handwriting",cursive;font-weight:600;font-size:1.3rem;line-height:2rem;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(2rem - 1px),#cfd9ea calc(2rem - 1px),#cfd9ea 2rem)}.m{color:#2f6b3f}</style></head><body>
 <h1>${esc(set.name)}</h1><p><small>Saved from Plumi on ${esc(when.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }))}. Your marks are the ones you gave yourself.</small></p>
 ${body}
 </body></html>`;

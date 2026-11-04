@@ -5,7 +5,7 @@ import { getAnswerImage } from "@/lib/studyapp/questions/answerImage";
 import { hasInk, type QAnswer } from "@/lib/studyapp/questions/model";
 
 /**
- * The same question's answer from another place, shown READ ONLY and faded in the empty writing box, with one clear line: where it is from, "See it" (opens that
+ * The same question's answer from another place, shown READ ONLY and faded and dashed in the empty writing box, with one clear line at the top: where it is from, "See it" (opens that
  * place at this question) and "Continue here" (copies it into this box, on the student's tap only). Typing is shown as text, handwriting as a picture of the ink.
  * It is gone as soon as there is anything in this box. The box beneath stays writable: it is only in the way of the eye, never of a pen.
  */
@@ -20,11 +20,6 @@ export function OtherCopy({ partId, setId, answer, label, onSee, onContinue, cod
   }, [ink, partId, setId, answer.ink?.n]);
   return (
     <div className="qf-other" data-testid="other-copy">
-      <div className="qf-other-body" role="img" aria-label={`Your earlier answer: ${answer.text?.trim() || (ink ? "handwriting" : "")}`}>
-        {answer.text?.trim() ? <p className={code ? "is-code" : "is-hand"}>{answer.text}</p> : null}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        {img && <img src={img} alt="" />}
-      </div>
       <p className="qf-other-line">
         <span>{label}</span>
         <button type="button" className="qs-link" onClick={onSee}>See it</button>
@@ -42,6 +37,11 @@ export function OtherCopy({ partId, setId, answer, label, onSee, onContinue, cod
           }}
         >Continue here</button>
       </p>
+      <div className="qf-other-body" role="img" aria-label={`Your earlier answer: ${answer.text?.trim() || (ink ? "handwriting" : "")}`}>
+        {answer.text?.trim() ? <p className={code ? "is-code" : "is-hand"}>{answer.text}</p> : null}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {img && <img src={img} alt="" />}
+      </div>
     </div>
   );
 }

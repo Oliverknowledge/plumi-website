@@ -598,3 +598,13 @@ html:has(.qs-sheet-page) { scroll-padding-top: 130px; scroll-padding-bottom: 110
   .pa .qs-page *, .pa .qs-page *::before, .pa .qs-page *::after, .pa .qs-dialog, .pa .qs-dialog::backdrop, .pa .qs-popd, .pa .qs-confirm, .pa .qs-confirm::backdrop, .pa dialog.qs-zoomd, .pa dialog.qs-zoomd::backdrop { animation: none !important; transition: none !important; }
   .pa .qs-tile:hover, .pa .qs-picker.is-leaving .qs-col { transform: none; }
 }
+/* the strip of symbols has arrows at its ends where it runs on (a mouse has no swipe, and the scrollbar is hidden) */
+.pa .qs-symwrap { position: relative; }
+.pa .qs-zone-body > .qs-type .qs-symwrap { z-index: 2; }
+.pa .qs-sym-arrow { position: absolute; top: 0; bottom: 1.5px; z-index: 3; width: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: rgba(255, 250, 236, .97); color: var(--ink); cursor: pointer; }
+.pa .qs-sym-arrow.is-l { left: 0; border-right: 1.5px solid var(--line); border-radius: 12px 0 0 0; }
+.pa .qs-sym-arrow.is-r { right: 0; border-left: 1.5px solid var(--line); border-radius: 0 12px 0 0; }
+.pa .qs-sym-arrow:hover { background: #fff; }
+.pa .qs-sym-arrow:focus-visible { outline: 3px solid var(--navy); outline-offset: -3px; }
+/* the box is brought into view clear of the sticky bars above it and the foot of the screen below it */
+.pa .qs-frac { scroll-margin-top: 160px; scroll-margin-bottom: 24px; }

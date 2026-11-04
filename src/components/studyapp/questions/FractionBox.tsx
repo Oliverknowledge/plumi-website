@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { buildFraction } from "@/lib/studyapp/questions/fraction";
+import { holdTray } from "./inkBus";
 
 /** The little stacked-fraction picture on the key and in the box. */
 export const FractionIcon = () => (
@@ -20,6 +21,19 @@ export function FractionBox({ top = "", left, onInsert, onCancel }: { top?: stri
   const botIn = useRef<HTMLInputElement>(null);
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => { topIn.current?.focus({ preventScroll: true }); topIn.current?.select(); }, []);
+  // While the box is open the pen tray stands aside (it is fixed to the foot of the screen and would cover Insert and Cancel), and the box is brought fully into view: after the page has
+  // settled, and again when the keyboard (a smaller visual viewport) takes room from it.
+  useEffect(() => {
+    const release = holdTray();
+    const el = root.current;
+    const show = () => el?.scrollIntoView({ block: "nearest", behavior: "instant" as ScrollBehavior });
+    show();
+    const raf = requestAnimationFrame(show);
+    const t1 = setTimeout(show, 120), t2 = setTimeout(show, 450);
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", show);
+    return () => { release(); cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); vv?.removeEventListener("resize", show); };
+  }, []);
   const go = () => {
     const r = buildFraction(a, b);
     if (!r.ok) { setHint(r.hint); (a.trim() ? botIn : topIn).current?.focus(); return; }

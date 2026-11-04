@@ -8,21 +8,52 @@ import { useQuestionsValue } from "@/lib/studyapp/questions/store";
 import { isFractionShortcut } from "@/lib/studyapp/questions/fraction";
 import { FractionBox, FractionIcon } from "./FractionBox";
 
-/** The strip of symbols: drawn once, not on every keystroke (it only depends on the function that inserts). */
+const ArrowIcon = ({ dir }: { dir: "l" | "r" }) => (
+  <svg viewBox="0 0 12 18" width="12" height="18" fill="none" stroke="currentColor" strokeWidth="2.200" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={dir === "l" ? "M9 2L3 9l6 7" : "M3 2l6 7-6 7"} /></svg>
+);
+
+/**
+ * The strip of symbols: drawn once, not on every keystroke (it only depends on the function that inserts). Keys beyond its width are reached with the arrow buttons at its ends (a mouse has
+ * no swipe and the scrollbar is hidden), a vertical wheel over it, a swipe, or the keyboard (focus scrolls it).
+ */
 const SymbolBar = memo(function SymbolBar({ put, kit, onFraction, fractionOpen }: { put(ch: string, wrap?: (s: string) => string): void; kit: SymbolKit; onFraction(e: React.MouseEvent<HTMLButtonElement>): void; fractionOpen: boolean }) {
   const keep = (e: { preventDefault(): void }) => e.preventDefault();   // do not take the selection from the box
+  const strip = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState({ l: false, r: false });
+  useEffect(() => {
+    const el = strip.current;
+    if (!el) return;
+    const look = () => { const l = el.scrollLeft > 4, r = el.scrollLeft + el.clientWidth < el.scrollWidth - 4; setMore((m) => (m.l === l && m.r === r ? m : { l, r })); };
+    // A vertical wheel over the strip moves it sideways, but only while it can move that way (at either end the page scrolls as usual).
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || el.scrollWidth <= el.clientWidth) return;
+      const to = e.deltaY * (e.deltaMode === 1 ? 24 : 1);
+      if ((to < 0 && el.scrollLeft <= 0) || (to > 0 && el.scrollLeft + el.clientWidth >= el.scrollWidth - 1)) return;
+      e.preventDefault(); el.scrollLeft += to;
+    };
+    const ro = new ResizeObserver(look);
+    ro.observe(el);
+    el.addEventListener("scroll", look, { passive: true });
+    el.addEventListener("wheel", wheel, { passive: false });
+    return () => { ro.disconnect(); el.removeEventListener("scroll", look); el.removeEventListener("wheel", wheel); };
+  }, [kit]);
+  const slide = (dir: -1 | 1) => { const el = strip.current; if (el) el.scrollBy({ left: dir * Math.max(120, el.clientWidth * 0.7), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
   if (!kit.keys.length) return null;
   return (
-    <div className="qs-sym" role="toolbar" aria-label={kit.script ? "Symbols" : "Letters and punctuation"}>
-      {kit.fraction && (
-        <button type="button" className="qs-sym-frac" onPointerDown={keep} onMouseDown={keep} onClick={onFraction} aria-haspopup="dialog" aria-expanded={fractionOpen} aria-label="Fraction, opens a box for the top and bottom" title="Fraction (Ctrl and /)" data-testid="fraction-key">
-          <FractionIcon /><span>Fraction</span>
-        </button>
-      )}
-      {kit.keys.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
-      {kit.script && <><span className="qs-sym-sep" aria-hidden="true" />
-      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSup)} aria-label="Raise the selected text (superscript)" title="Select some text, then tap">x<sup>n</sup></button>
-      <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button></>}
+    <div className="qs-symwrap">
+      {more.l && <button type="button" className="qs-sym-arrow is-l" tabIndex={-1} onPointerDown={keep} onMouseDown={keep} onClick={() => slide(-1)} aria-label="Earlier symbols" title="Earlier symbols" data-testid="sym-left"><ArrowIcon dir="l" /></button>}
+      <div ref={strip} className="qs-sym" role="toolbar" aria-label={kit.script ? "Symbols" : "Letters and punctuation"}>
+        {kit.fraction && (
+          <button type="button" className="qs-sym-frac" onPointerDown={keep} onMouseDown={keep} onClick={onFraction} aria-haspopup="dialog" aria-expanded={fractionOpen} aria-label="Fraction, opens a box for the top and bottom" title="Fraction (Ctrl and /)" data-testid="fraction-key">
+            <FractionIcon /><span>Fraction</span>
+          </button>
+        )}
+        {kit.keys.map((s) => <button key={s.ch} type="button" onPointerDown={keep} onMouseDown={keep} onClick={() => put(s.ch)} aria-label={s.name} title={s.name}>{s.ch}</button>)}
+        {kit.script && <><span className="qs-sym-sep" aria-hidden="true" />
+        <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSup)} aria-label="Raise the selected text (superscript)" title="Select some text, then tap">x<sup>n</sup></button>
+        <button type="button" className="wide" onPointerDown={keep} onMouseDown={keep} onClick={() => put("", toSub)} aria-label="Lower the selected text (subscript)" title="Select some text, then tap">x<sub>n</sub></button></>}
+      </div>
+      {more.r && <button type="button" className="qs-sym-arrow is-r" tabIndex={-1} onPointerDown={keep} onMouseDown={keep} onClick={() => slide(1)} aria-label="More symbols" title="More symbols" data-testid="sym-right"><ArrowIcon dir="r" /></button>}
     </div>
   );
 });

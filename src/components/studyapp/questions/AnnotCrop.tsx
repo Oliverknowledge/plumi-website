@@ -7,7 +7,7 @@ import { currentQuestions, qa } from "@/lib/studyapp/questions/store";
 import { annotOff, setAnnotCueSeen, setAnnotMouse, useAnnotCueSeen, useAnnotMouse } from "@/lib/studyapp/questions/annotMode";
 import { Crop, type CropProps } from "./Crop";
 import { InkCanvas, type InkCanvasHandle } from "./InkCanvas";
-import { setZoneVisible, usePenSeen } from "./inkBus";
+import { setZoneVisible, useInkSaving, usePenSeen } from "./inkBus";
 import { useMatch } from "./useMatch";
 
 /** The key a part's marks on the question are kept under (IndexedDB), beside its answer's. */
@@ -42,9 +42,9 @@ type Props = CropProps & {
 export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }: Props) {
   const key = annotKey(setId, part.id);
   const coarse = useMatch("(pointer: coarse)");
-  const phone = useMatch("(max-width: 640px)");
   const mouseAble = useMatch("(hover: hover) and (pointer: fine)");
   const penSeen = usePenSeen();
+  const saving = useInkSaving();
   const mouse = useAnnotMouse();
   const cueSeen = useAnnotCueSeen();
   const fingerScrolls = prefs.fingerScrolls ?? coarse;
@@ -113,24 +113,58 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
     to?.focus({ preventScroll: true });
   }, [asking, count]);
 
-  // A pen (or a writing mouse or finger) put down on the layer before its canvas is there: the canvas is made, and takes the stroke up where it began. The click that follows
-  // must not open the picture large.
-  const pending = useRef<PointerEvent | null>(null);
-  const stop = useRef(false);
-  const writes = (t: string) => t === "pen" || (t === "mouse" && mouse) || (t === "touch" && !fingerScrolls);
+  // A pen (or a writing mouse or finger) put down on the layer before its canvas is there. The listener is the host's own (not a React prop, which a re-render can take away between the
+  // page seeing a pen and this handler running: that re-render is what lost the first stroke on a wide touch screen): it is always there, buffers what the pointer does until the canvas
+  // is mounted, and then hands the canvas the stroke from its first point. The click that follows a stroke (however long) or a drag must never open the picture large: from the pointer
+  // going down until it lifts, and a moment after, a click is stopped at the window if the pointer wrote, or moved more than a few pixels.
+  const pending = useRef<{ e: PointerEvent; buf: PointerEvent[]; end: PointerEvent | null } | null>(null);
+  const wr = useRef({ mouse, fingerScrolls });
+  useEffect(() => { wr.current = { mouse, fingerScrolls }; });
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    let st: { id: number; x: number; y: number; writing: boolean; moved: number } | null = null;
+    let grace: ReturnType<typeof setTimeout> | null = null;
+    const onMove = (e: PointerEvent) => {
+      if (!st || e.pointerId !== st.id) return;
+      st.moved = Math.max(st.moved, Math.hypot(e.clientX - st.x, e.clientY - st.y));
+      const p = pending.current;
+      if (p && p.e.pointerId === e.pointerId) { const co = e.getCoalescedEvents?.() ?? []; p.buf.push(...(co.length ? co : [e])); }
+    };
+    const onClick = (e: MouseEvent) => { if (st && (st.writing || st.moved > 6)) { e.stopPropagation(); e.preventDefault(); } };
+    const stopListening = () => { window.removeEventListener("pointermove", onMove, true); window.removeEventListener("pointerup", onEnd, true); window.removeEventListener("pointercancel", onEnd, true); };
+    const finish = () => { stopListening(); window.removeEventListener("click", onClick, true); if (grace) clearTimeout(grace); grace = null; st = null; };
+    function onEnd(e: PointerEvent) {
+      if (!st || e.pointerId !== st.id) return;
+      stopListening();
+      const p = pending.current;
+      if (p && p.e.pointerId === e.pointerId) p.end = e;
+      grace = setTimeout(finish, 350);
+    }
+    const onDown = (e: PointerEvent) => {
+      finish();
+      const t = e.pointerType;
+      const writing = t === "pen" || (t === "mouse" && wr.current.mouse) || (t === "touch" && !wr.current.fingerScrolls);
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, writing, moved: 0 };
+      window.addEventListener("pointermove", onMove, true); window.addEventListener("pointerup", onEnd, true); window.addEventListener("pointercancel", onEnd, true);
+      window.addEventListener("click", onClick, true);
+      if (!writing || e.target !== el) return;       // (a pointer put down on the canvas itself is the canvas's own)
+      e.preventDefault();
+      setHidden(false);
+      if (ink.current) { ink.current.begin(e); return; }
+      pending.current = { e, buf: [], end: null };
+      setEngaged(true); setNear(true);
+    };
+    el.addEventListener("pointerdown", onDown, true);
+    return () => { el.removeEventListener("pointerdown", onDown, true); finish(); };
+  }, [off]);
   useLayoutEffect(() => {
-    const e = pending.current;
-    if (canvasUp && e && ink.current) { pending.current = null; ink.current.begin(e); }
+    const p = pending.current;
+    if (canvasUp && p && ink.current) { pending.current = null; ink.current.begin(p.e, p.buf, p.end); }
   });
   const overlay = (
     <div
       ref={host} className={`qs-annot-host${hidden ? " is-hidden" : ""}`} data-testid="annot-host"
-      onPointerDown={canvasUp ? undefined : (e) => {
-        if (!writes(e.pointerType)) return;
-        pending.current = e.nativeEvent; stop.current = true; setTimeout(() => { stop.current = false; }, 900);
-        setHidden(false); setEngaged(true); setNear(true);
-      }}
-      onClick={(e) => { if (stop.current) { e.stopPropagation(); e.preventDefault(); } }}
     >
       {canvasUp && (
         <InkCanvas
@@ -141,8 +175,8 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
     </div>
   );
 
-  const cue = count === 0 && !cueSeen && !asking && (penSeen || (coarse && !phone));
-  const bare = !mouseAble && count === 0 && !asking && !cue;
+  const cue = count === 0 && !cueSeen && !asking && (penSeen || coarse);
+  const bare = !mouseAble && count === 0 && !asking && !cue && !full;
   const toolsRow = (
     <div ref={tools} className={`qs-annot-tools${bare ? " is-bare" : ""}`} role="group" aria-label="Marks on the question" data-testid="annot-tools">
       {mouseAble && (
@@ -154,8 +188,8 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
       {count > 0 && !asking && (
         <>
           <button type="button" className="qs-annot-btn" aria-pressed={!hidden} aria-label="My marks on the question" title={hidden ? "Show my marks" : "Hide my marks"} onClick={() => setHidden((v) => !v)} data-testid="annot-hide"><Icon d={hidden ? EYE_OFF : EYE} /><span className="qs-annot-t qs-annot-t-d">{hidden ? "Show" : "Hide"}</span></button>
-          {!hidden && <button type="button" className="qs-annot-btn" aria-label="Undo mark on the question" title="Undo mark on the question" onClick={() => ink.current?.dropLast()} data-testid="annot-undo"><Icon d={UNDO} /><span className="qs-annot-t qs-annot-t-d">Undo mark</span></button>}
-          {!hidden && <button ref={clearBtn} type="button" className="qs-annot-btn" aria-label="Clear my marks" title="Clear my marks" onClick={() => setAsking(true)} data-testid="annot-clear"><Icon d={BIN} /></button>}
+          {!hidden && <button type="button" className="qs-annot-btn" aria-label="Undo mark on the question" title="Undo mark on the question" onClick={() => ink.current?.dropLast()} data-testid="annot-undo"><Icon d={UNDO} /><span className="qs-annot-t qs-annot-t-d"><span className="qs-annot-long">Undo mark</span><span className="qs-annot-short">Undo</span></span></button>}
+          {!hidden && <button ref={clearBtn} type="button" className="qs-annot-btn" aria-label="Clear my marks" title="Clear my marks" onClick={() => setAsking(true)} data-testid="annot-clear"><Icon d={BIN} /><span className="qs-annot-t qs-annot-t-d">Clear</span></button>}
           <span className="qs-annot-dot" title="You marked up this question" aria-hidden="true" /><span className="qs-annot-dot-t">You marked up this question</span>
         </>
       )}
@@ -166,7 +200,8 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
           <button type="button" className="qs-mini danger" onClick={() => closeAsk(true)} data-testid="annot-clear-yes">Clear</button>
         </span>
       )}
-      <span className="qs-sr" role="status" aria-live="polite">{said}{full ? ". These marks are full" : ""}</span>
+      {(full || (!saving && count > 0)) && <p className="qs-annot-note" data-testid="annot-note">{full ? "These marks are full. Clear some to add more." : "Not saved on this device. Keep this tab open."}</p>}
+      <span className="qs-sr" role="status" aria-live="polite">{!saving && count > 0 ? "Not saved" : said}{full ? ". These marks are full" : ""}</span>
     </div>
   );
 
