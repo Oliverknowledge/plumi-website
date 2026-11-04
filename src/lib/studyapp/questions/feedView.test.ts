@@ -47,6 +47,20 @@ describe("the feed's remembered choices", () => {
   test("cleanFilters of nothing is no filters", () => assert.deepEqual(cleanFilters(undefined), NO_FEED));
 });
 
+describe("filters saved before the new ones were added", () => {
+  test("an old record loads, with the new filters off", () => {
+    const old = { topics: ["4.1.1"], papers: [], series: ["JUN25"], types: [], calc: "only", scheme: true, q: "", hideDone: false, sort: "mix", seed: "ab" };
+    const p = parseFeedPrefs(JSON.stringify({ filters: { x: old } }));
+    assert.deepEqual(p.filters.x, { ...NO_FEED, ...old });
+    assert.equal(p.filters.x.yr, ""); assert.equal(p.filters.x.once, false);
+  });
+  test("the new filters are kept, and junk in them is dropped", () => {
+    const p = parseFeedPrefs(JSON.stringify({ filters: { x: { yr: "13", opt: "islam", prac: "only", once: true, sort: "spec" }, y: { yr: "99", opt: 5, prac: "x", once: "yes", sort: "spec" } } }));
+    assert.deepEqual([p.filters.x.yr, p.filters.x.opt, p.filters.x.prac, p.filters.x.once, p.filters.x.sort], ["13", "islam", "only", true, "spec"]);
+    assert.deepEqual([p.filters.y.yr, p.filters.y.opt, p.filters.y.prac, p.filters.y.once], ["", "", "", false]);
+  });
+});
+
 describe("two tabs", () => {
   const none = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>() };
   const stored = parseFeedPrefs(JSON.stringify({ last: "a", view: { a: "papers" }, filters: { a: { ...NO_FEED, q: "x" } }, pos: { a: { id: "p1", off: 1 } }, folded: { a: true } }));

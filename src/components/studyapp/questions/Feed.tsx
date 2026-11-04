@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { tabColour } from "@/lib/studyapp/questions/setupBooks";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
-  bandsFor, cleanFeedFilters, elsewhere, feedActive, hasFeedAnswer, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine,
-  type FeedFilters, type FeedSort,
+  bandsFor, CLEARED, cleanFeedFilters, elsewhere, feedActive, feedCounts, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine, twinPapers,
+  type FeedExtras, type FeedFilters, type FeedSort,
 } from "@/lib/studyapp/questions/feed";
 import { clearLeftCard, getLeftCard, holdScroll, rememberPos, setLeftCard, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
 import { blocks, feedHasRoom, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
@@ -15,9 +15,9 @@ import { currentQuestions, qa, useQuestions } from "@/lib/studyapp/questions/sto
 import { baseSubject, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 import { cardEstimate } from "@/lib/studyapp/questions/virtual";
 import { toast } from "../toast";
-import { useBankText, useSubject } from "./bankData";
+import { useBankExtras, useBankText, useSubject } from "./bankData";
 import { FeedCard, type FeedLookup } from "./FeedCard";
-import { FeedActs, FeedFilterBody, FeedHead, FeedPills } from "./FeedBar";
+import { FeedActs, FeedFilterBody, FeedHead, FeedPills, SchoolYear } from "./FeedBar";
 import { FeedList } from "./FeedList";
 import { FeedPen } from "./FeedPen";
 import { useMatch } from "./useMatch";
@@ -32,8 +32,13 @@ const NO_IDS: ReadonlySet<string> = new Set();
 export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }) {
   const [attempt, setAttempt] = useState(0);
   const data = useSubject(entry.slug, attempt);
+  const ex = useBankExtras(data.state === "ready" ? data.meta : null);
+  const prefs0 = useFeedPrefs();
+  // A remembered school year, practicals or both-tiers choice waits for its file (a moment) so the list is never shown unfiltered and then cut.
+  const f0 = prefs0.filters[entry.slug];
+  const waitsForExtras = data.state === "ready" && !ex.ready && !!f0 && (!!f0.yr || !!f0.prac || f0.once);
   const [slow, setSlow] = useState(false);
-  const loading = data.state === "loading";
+  const loading = data.state === "loading" || waitsForExtras;
   useEffect(() => {
     if (!loading) return;
     const t = setTimeout(() => setSlow(true), 8000);
@@ -49,7 +54,7 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
       </div>
     );
   }
-  if (data.state === "loading") {
+  if (data.state === "loading" || data.state === "ready" && waitsForExtras) {
     return (
       <div className="qf-feed" role="status" aria-label={`Loading ${entry.title}`}>
         <div className="qf-ghosthead" aria-hidden="true"><i /><i /><i /></div>
@@ -59,10 +64,10 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
       </div>
     );
   }
-  return <FeedReady key={entry.slug} entry={entry} meta={data.meta} rows={data.rows} tier={data.tier} q={q} />;
+  return <FeedReady key={entry.slug} entry={entry} meta={data.meta} rows={data.rows} tier={data.tier} q={q} extras={ex.extras} extrasReady={ex.ready} />;
 }
 
-function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData }) {
+function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData; extras: FeedExtras; extrasReady: boolean }) {
   const { persisted } = useQuestions();
   const slug = entry.slug;
   const phone = useMatch("(max-width: 640px)");
@@ -75,7 +80,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   /* ── the filters ───────────────────────────────────────────────── */
   const bands = useMemo(() => bandsFor(meta.subject, rows), [meta.subject, rows]);
   const stored = prefs.filters[slug] ?? NO_FEED;
-  const filters = useMemo(() => cleanFeedFilters(stored, meta, bands), [stored, meta, bands]);
+  const filters = useMemo(() => cleanFeedFilters(stored, meta, bands, extrasReady ? extras : undefined), [stored, meta, bands, extras, extrasReady]);
   const change = useCallback((patch: Partial<FeedFilters>) => {
     updateFeedPrefs((p) => ({ ...p, filters: { ...p.filters, [slug]: { ...(p.filters[slug] ?? NO_FEED), ...patch } } }));
   }, [slug]);
@@ -90,7 +95,8 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
 
   /* ── the list ──────────────────────────────────────────────────── */
   const orders = useMemo(() => feedOrders(rows, meta.series), [rows, meta.series]);
-  const ctx = useMemo(() => ({ text: bank.text, bands, done }), [bank.text, bands, done]);
+  const twinPaper = useMemo(() => twinPapers(rows, extras.twins), [rows, extras.twins]);
+  const ctx = useMemo(() => ({ text: bank.text, bands, done, extras, meta, twinPaper }), [bank.text, bands, done, extras, meta, twinPaper]);
   const list = useMemo(() => feedList(orders, filters, ctx), [orders, filters, ctx]);
   const byQuestion = useMemo(() => partsByQuestion(orders.new), [orders]);
   const listKey = useMemo(() => JSON.stringify([filters, tier]), [filters, tier]);
@@ -100,7 +106,8 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     for (const g of byQuestion.values()) g.forEach((p, i) => { if (i > 0 || g.some((x) => x.st)) ids.add(p.id); });
     return ids;
   }, [byQuestion]);
-  const estimate = useCallback((p: BankRow, w: number) => cardEstimate(p, w, withStart.has(p.id)), [withStart]);
+  const mouse = useMatch("(hover: hover) and (pointer: fine)");
+  const estimate = useCallback((p: BankRow, w: number) => cardEstimate(p, w, withStart.has(p.id), mouse), [withStart, mouse]);
 
   const lookup = useMemo<FeedLookup>(() => ({
     series: new Map(meta.series.map((s) => [s.id, s.label])),
@@ -125,7 +132,6 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const progress = useMemo(() => feedProgress(q, slug, ids, other), [q, slug, ids, other]);
   const line = progressLine(progress);
   const full = !feedHasRoom(q, slug, "\0");
-  const wrote = hasFeedAnswer(q.answers);
   const [here, setHere] = useState<BankRow | null>(null);
 
   /* ── actions ───────────────────────────────────────────────────── */
@@ -161,7 +167,7 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     if (r.left > 0) toast(`First ${MAX_SET_PARTS} questions`);
   };
   const setSort = (s: FeedSort) => change(s === "mix" ? { sort: "mix", seed: newSeed() } : { sort: s });
-  const clearAll = () => { setSearch(""); change({ topics: [], papers: [], series: [], types: [], calc: "", scheme: false, q: "", hideDone: false }); };
+  const clearAll = () => { setSearch(""); change(CLEARED); };
   const active = feedActive(filters);
   const setFolded = useCallback((f: boolean) => updateFeedPrefs((p) => ({ ...p, folded: { ...p.folded, [slug]: f } })), [slug]);
   /** Where the page was when the filters were opened from far down the list on a phone (where they sit above the list): put back when they are closed. */
@@ -192,6 +198,10 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
     setFolded(bodyOpen);
   };
 
+  // How many each option would give: made when the filters are on screen (or the phone's school year is), for the filters as they were a moment ago, so a tap shows the list first and the counts after.
+  const showCounts = bodyOpen || (phone && !!extras.year13);
+  const countFilters = useDeferredValue(filters);
+  const counts = useMemo(() => (showCounts ? feedCounts(rows, countFilters, ctx, bands) : null), [showCounts, rows, countFilters, ctx, bands]);
   const hasSchemeFilter = useMemo(() => rows.some(hasScheme) && rows.some((r) => !hasScheme(r)), [rows]);
   const hasCalc = useMemo(() => hasCalcChoice(meta, rows), [meta, rows]);
   // Where the list was left is for the first drawing of the list only: a different list (a search cleared, a filter changed) starts at its top.
@@ -205,9 +215,9 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
   const render = useCallback((p: BankRow, i: number) => {
     const sib = byQuestion.get(questionKeyOf(p)) ?? [p];
     return (
-      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} full={full} cue={i < 3} wrote={wrote} onTopic={onTopic} onWhole={onWhole} onSee={onSee} />
+      <FeedCard n={i + 1} part={p} view={view} info={info} lookup={lookup} answer={q.answers[keyOf(view.id, p.id)]} other={other.get(p.id)} prefs={q.prefs} siblings={sib} eager={i < 2} full={full} onTopic={onTopic} onWhole={onWhole} onSee={onSee} />
     );
-  }, [byQuestion, view, info, lookup, q.answers, q.prefs, other, full, wrote, onTopic, onWhole, onSee]);
+  }, [byQuestion, view, info, lookup, q.answers, q.prefs, other, full, onTopic, onWhole, onSee]);
 
   /** The reading line: where the sticky strip ends when it is stuck (its own top and its height), the same whether or not it is stuck yet. */
   const gap = useCallback(() => {
@@ -297,7 +307,9 @@ function FeedReady({ entry, meta, rows, tier, q }: { entry: CatalogueSubject; me
         tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
+      {phone && extras.year13 && <div className="qf-yearphone"><SchoolYear f={filters} counts={counts} onChange={change} /></div>}
       <FeedFilterBody
+        extras={extras} counts={counts} phone={phone}
         meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen}
         acts={phone ? acts : undefined} tiers={allTiers} tierNow={tier} onTier={(t) => qa.tiers(slug, t ? [t] : [], allTiers)}
       />

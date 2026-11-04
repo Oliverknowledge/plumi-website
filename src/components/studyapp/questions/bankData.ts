@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { bankFile, subjectFile } from "@/lib/studyapp/questions/cropUrls";
+import { bankFile, subjectFile, type BankFileName } from "@/lib/studyapp/questions/cropUrls";
 import { cleanRows, cleanText, fold, type BankRow } from "@/lib/studyapp/questions/picker";
 import { FEED_KEY } from "@/lib/studyapp/questions/feedView";
 import { QUESTIONS_KEY } from "@/lib/studyapp/questions/persist";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
+import { NO_EXTRAS, type FeedExtras } from "@/lib/studyapp/questions/feed";
 import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 
 /**
@@ -74,7 +75,7 @@ const json = (url: string, key = url): Promise<unknown> => {
 /** A subject's meta, once per visit (a failure is forgotten, so a retry asks again). */
 export const getMeta = (slug: string): Promise<SubjectMeta> => once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta));
 /** A subject's data file (`parts`, `text`, `reports`) from R2 by its hash, or null where the subject has none (the caller degrades calmly). */
-export const getData = (slug: string, file: "parts" | "text" | "reports"): Promise<unknown | null> =>
+export const getData = (slug: string, file: BankFileName): Promise<unknown | null> =>
   getMeta(slug).then((m) => { const url = bankFile(slug, m.data, file); return url ? json(url, file === "parts" ? `parts:${slug}` : url) : null; });
 const fetched = (url: string): Promise<unknown> =>
   slot().then(() => {
@@ -142,6 +143,36 @@ export function narrowToTier(meta: SubjectMeta, rows: BankRow[], chosen: readonl
   const kept = rows.filter((r) => keep.has(r.p.toLowerCase()) || !known.has(r.p.toLowerCase()));
   if (!kept.length) return { meta, rows, tier: null };
   return { meta: { ...meta, papers: meta.papers.filter((p) => paperKeeps(p, chosen)) }, rows: kept, tier };
+}
+
+const extras = new Map<string, Promise<FeedExtras>>();
+/** The ids in a data file, or null where it is not a list of strings (or not there). */
+const idSet = (raw: unknown): Set<string> | null => (Array.isArray(raw) ? new Set(raw.filter((x): x is string => typeof x === "string")) : null);
+/** The bank's extra files for a subject: the practicals, the questions that need second-year content, and the Foundation parts a Higher paper prints too. A file the subject has none of (or that did not arrive) is null. */
+const loadExtras = (meta: SubjectMeta): Promise<FeedExtras> => {
+  const d = meta.data ?? {};
+  const get = (file: "practicals" | "year13" | "tiers") => (d[file] ? getData(meta.slug, file).catch(() => null) : Promise.resolve(null));
+  return Promise.all([get("practicals"), get("year13"), get("tiers")]).then(([prac, y13, tiers]) => {
+    const map = tiers && typeof tiers === "object" && !Array.isArray(tiers) ? new Map(Object.entries(tiers as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string")) : null;
+    const pr = idSet(prac);
+    return { practicals: pr && pr.size ? pr : null, year13: idSet(y13), twins: map && map.size ? map : null };
+  });
+};
+
+/** What the subject's filters need beyond its parts: `ready` is false until the files have been asked for (a subject with none is ready at once). */
+export function useBankExtras(meta: SubjectMeta | null): { ready: boolean; extras: FeedExtras } {
+  const slug = meta?.slug ?? null;
+  const [got, setGot] = useState<{ slug: string; extras: FeedExtras } | null>(null);
+  const needs = !!meta && !!(meta.data?.practicals || meta.data?.year13 || meta.data?.tiers);
+  useEffect(() => {
+    if (!meta || !needs) return;
+    let live = true;
+    once(extras, meta.slug, () => loadExtras(meta)).then((x) => { if (live) setGot({ slug: meta.slug, extras: x }); }).catch(() => { if (live) setGot({ slug: meta.slug, extras: NO_EXTRAS }); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- by subject
+  }, [slug, needs]);
+  if (!needs) return { ready: true, extras: NO_EXTRAS };
+  return got && got.slug === slug ? { ready: true, extras: got.extras } : { ready: false, extras: NO_EXTRAS };
 }
 
 export interface BankText {

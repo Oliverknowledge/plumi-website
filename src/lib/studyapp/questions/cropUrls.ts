@@ -27,7 +27,8 @@ export const reportKey = (byQuestion: boolean, id: string) => (byQuestion ? id :
  * equal). The hashes come with the subject's meta (`SubjectMeta.data`); null where the subject has no such file (no reports, say), so the caller degrades without an error.
  */
 export type BankDataHashes = Readonly<Record<string, string | undefined>> | undefined;
-export const bankFile = (slug: string, data: BankDataHashes, file: "parts" | "text" | "reports"): string | null => {
+export type BankFileName = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers";
+export const bankFile = (slug: string, data: BankDataHashes, file: BankFileName): string | null => {
   const h = data?.[file];
   return typeof h === "string" && /^[\w-]{4,64}$/.test(h) ? `${papersBase}/bank-data/${slug}/${file}.${h}.json` : null;
 };

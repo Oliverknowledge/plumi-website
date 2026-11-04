@@ -28,7 +28,8 @@ export function cleanFilters(raw: unknown): FeedFilters {
   const calc: CalcMode = raw.calc === "only" || raw.calc === "none" ? raw.calc : "";
   return {
     topics: strs(raw.topics), papers: strs(raw.papers), series: strs(raw.series), types: strs(raw.types, 12), calc,
-    scheme: raw.scheme === true, q: typeof raw.q === "string" ? raw.q.slice(0, 120) : "", hideDone: raw.hideDone === true, sort,
+    scheme: raw.scheme === true, yr: raw.yr === "12" || raw.yr === "13" ? raw.yr : "", opt: typeof raw.opt === "string" ? raw.opt.slice(0, 60) : "",
+    prac: raw.prac === "only" || raw.prac === "none" ? raw.prac : "", once: raw.once === true, q: typeof raw.q === "string" ? raw.q.slice(0, 120) : "", hideDone: raw.hideDone === true, sort,
     seed: typeof raw.seed === "string" ? raw.seed.slice(0, 12) : "",
   };
 }

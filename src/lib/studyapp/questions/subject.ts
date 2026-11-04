@@ -21,9 +21,15 @@ export interface SubjectMeta {
   /** The content hash of each of the bank's data files on R2 (`parts`, `text`, `reports`...): what `bankFile` (cropUrls.ts) names them by. A file the subject has none of is left out. */
   data?: Record<string, string>;
   topics: SubjectTopic[];
-  sections: { code: string; title: string }[];
-  papers: { id: string; name: string; title?: string }[];
+  sections: { code: string; title: string; option?: string }[];
+  /** `option`: the paper is for one of `options` (a religion's paper); a paper without one is sat by everyone. */
+  papers: { id: string; name: string; title?: string; option?: string }[];
   series: { id: string; label: string }[];
+  /**
+   * Papers a student chooses between (Eduqas Religious Studies: a religion; AQA Computer Science: a programming language), by `label` ("Religion"). `takes`: the options a pick stands for
+   * where a student takes more than one (AQA Further Maths' "Mechanics and Statistics"). The bank's own (`BankSubject.options`).
+   */
+  options?: { label: string; list: { id: string; name: string; takes?: string[] }[] };
 }
 
 /** One line of the subject chooser. */
@@ -40,6 +46,15 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object
 const list = <T,>(v: unknown, ok: (x: unknown) => x is T): T[] => (Array.isArray(v) ? v.filter(ok) : []);
 const hasStr = (...keys: string[]) => (x: unknown): x is Record<string, string> => isObj(x) && keys.every((k) => typeof x[k] === "string");
 
+function cleanOptions(raw: unknown): SubjectMeta["options"] {
+  if (!isObj(raw) || typeof raw.label !== "string") return undefined;
+  const opts = list(raw.list, hasStr("id", "name")).map((o) => {
+    const takes = (o as unknown as { takes?: unknown }).takes;
+    return { id: o.id, name: o.name, ...(Array.isArray(takes) && takes.every((t) => typeof t === "string") ? { takes: takes as string[] } : {}) };
+  });
+  return opts.length ? { label: raw.label, list: opts } : undefined;
+}
+
 /** A subject's names and topic tree as the browser got it, made safe to draw. Throws when it is not a subject at all. */
 export function cleanMeta(raw: unknown): SubjectMeta {
   if (!isObj(raw) || typeof raw.slug !== "string" || typeof raw.title !== "string") throw new Error("not a subject");
@@ -47,8 +62,12 @@ export function cleanMeta(raw: unknown): SubjectMeta {
     ...(raw as unknown as SubjectMeta),
     topics: list(raw.topics, hasStr("code", "title", "section")) as unknown as SubjectTopic[],
     sections: list(raw.sections, hasStr("code", "title")) as unknown as SubjectMeta["sections"],
-    papers: (list(raw.papers, hasStr("id", "name")) as unknown as SubjectMeta["papers"]).map((p) => (typeof (p as { title?: unknown }).title === "string" ? p : { id: p.id, name: p.name })),
+    papers: (list(raw.papers, hasStr("id", "name")) as unknown as SubjectMeta["papers"]).map((p) => {
+      const x = p as { title?: unknown; option?: unknown };
+      return { id: p.id, name: p.name, ...(typeof x.title === "string" ? { title: x.title } : {}), ...(typeof x.option === "string" ? { option: x.option } : {}) };
+    }),
     series: list(raw.series, hasStr("id", "label")) as unknown as SubjectMeta["series"],
+    options: cleanOptions(raw.options),
   };
 }
 

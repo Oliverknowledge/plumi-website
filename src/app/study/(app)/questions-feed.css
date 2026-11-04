@@ -645,3 +645,30 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qs-annot-note { flex: 1 1 100%; margin: 0; font: 800 13px/1.3 var(--f-body); color: #8a2f2f; }
 .pa .qs-annot-cue { margin: 0; font: 700 21px/1.2 var(--f-hand); color: #3b4768; }
 .pa .qs-annot-host.is-hidden { pointer-events: auto; }
+
+/* ── the public bank's other filters: school year, option, practicals, both tiers, counts, quick picks ── */
+.pa .qf-n { margin-left: 6px; font: 800 12px var(--f-body); font-variant-numeric: tabular-nums; color: var(--soft); }
+.pa .qs-chip.on .qf-n, .pa .qf-seg button.is-on .qf-n { color: inherit; opacity: .85; }
+.pa .qf-multi-list label .qf-n { margin-left: auto; padding-left: 10px; }
+.pa .qf-quick { display: flex; flex-wrap: wrap; gap: 0 14px; margin: 0 4px 4px; }
+.pa .qf-quick .qs-link { min-height: 36px; }
+@media (pointer: coarse) { .pa .qf-quick .qs-link { min-height: 44px; } }
+.pa .qf-yearrow { padding-top: 2px; }
+.pa .qf-yearswitch { grid-template-columns: repeat(3, auto); }
+/* the phone's school year sits above the folded filters, in the flow, one full-width segmented control */
+.pa .qf-yearphone { margin: 4px 0 6px; }
+.pa .qf-yearphone .qf-seg { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* ── under a question's picture: two small dashed buttons, not an empty space to write on ── */
+.pa .qf-ans-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
+.pa .qf-ans-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px dashed rgba(34, 48, 77, .5); border-radius: 12px; background: #fffaf0; color: var(--ink); font: 600 15px var(--f-px); cursor: pointer; transition: background .15s, border-color .15s; }
+.pa .qf-ans-btn:hover { background: #fff3cf; border-style: solid; border-color: var(--ink); }
+.pa .qf-ans-btn[aria-pressed="true"] { background: #fff3cf; border-style: solid; border-color: var(--ink); box-shadow: 0 2px 0 var(--ink); }
+.pa .qf-ans-btn:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.pa .qf-ans-btn svg { flex: none; }
+.pa .qf-ans-short { display: none; }
+@media (max-width: 400px) { .pa .qf-ans-btn { flex: 1 1 0; padding: 0 10px; } .pa .qf-ans-long { display: none; } .pa .qf-ans-short { display: inline; } }
+/* an opened space sits right under the buttons */
+.pa .qf-ans.is-open > .qf-ans-btns { margin-bottom: 8px; }
+.pa .qf-ans .qs-zone-head { min-height: 32px; }
+@media (prefers-reduced-motion: reduce) { .pa .qf-ans-btn { transition: none; } }

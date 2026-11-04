@@ -23,9 +23,9 @@ const INK_ROOM = 24;
  * Memoised on what it draws (set, part, answer, prefs): a stroke or a keystroke in another part does not draw this
  * one again. The device-wide ink room is read when a stroke ends, not passed down (so it is not a prop that changes on every stroke).
  */
-export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark);
+export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark && a.bare === b.bare);
 
-function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; part: QPart; answer: QAnswer | undefined; prefs: QPrefs; showMark: boolean; inkTotal?: number }) {
+function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false }: { set: QSet; part: QPart; answer: QAnswer | undefined; prefs: QPrefs; showMark: boolean; inkTotal?: number; /** The feed's card opened this space from its Type or Draw button (and it is still empty): those buttons say which it is, so the Write | Type toggle waits until there is something in it. */ bare?: boolean }) {
   const phone = useMatch("(max-width: 640px)");
   const coarse = useMatch("(pointer: coarse)");
   const penSeen = usePenSeen();
@@ -125,7 +125,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   return (
     <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}${has ? " is-has" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
       <div className="qs-zone-body">
-        <div className="qs-zone-head">
+        {!bare && <div className="qs-zone-head">
           <div className="qs-mode" role="group" aria-label="How to answer">
             <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Write by hand${written ? ", has writing" : ""}`}>
               <PenSmallIcon /> Write{written && <i aria-hidden="true" />}
@@ -150,7 +150,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
               {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Reset</button>}
             </span>
           )}
-        </div>
+        </div>}
         {mode === "ink" ? (
           near ? (
             <InkCanvas
