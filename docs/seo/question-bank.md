@@ -2097,7 +2097,9 @@ nutrition) that AQA publishes: November 2020, November 2021 and June 2022 to Jun
   from it, no shared script changed: the scheme's split "Qu | Part" labels, the scheme frame inside
   the page-wide header and footer rules, a part ended above the "Section B" heading, multiple-choice
   options and a table's "An example has been completed for you." kept with their own part, and a
-  table's bottom rule just under the frame kept), `tag_food.py` and `build_food.py`. Papers are on
+  table's bottom rule just under the frame kept, but not the page's own border, which would keep
+  the white space above it, and not "Question 2 continues on the next page"; 105 crops re-cut for
+  those on 4 November 2026, `cropVersion` 1), `tag_food.py` and `build_food.py`. Papers are on
   R2 under `aqa/AQA-8585W*`, crops under `bank/8585w*`.
 - **Gaps:** AQA no longer publishes the first sitting, June 2018, nor June 2019's question paper
   (its file store redirects; only June 2019's mark scheme is still listed, so that series is left
