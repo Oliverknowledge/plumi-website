@@ -240,7 +240,7 @@ export function bookArt(base: string): BookArtEntry {
   const own = BOOK_ART[slug];
   if (own) return own;
   const h = hash(slug);
-  return { Doodle: PencilStar, cover: TEXTURES[h % TEXTURES.length], tape: TAPES[(h >> 3) % TAPES.length], binding: BINDINGS[(h >> 5) % BINDINGS.length], tilt: fallbackTilt(slug), size: SIZES[(h >> 7) % SIZES.length] };
+  return { Doodle: PencilStar, cover: TEXTURES[h % TEXTURES.length], tape: TAPES[(h >>> 3) % TAPES.length], binding: BINDINGS[(h >>> 5) % BINDINGS.length], tilt: fallbackTilt(slug), size: SIZES[(h >>> 7) % SIZES.length] };
 }
 
 /* ── the stickers on a book ──────────────────────────────────────────── */

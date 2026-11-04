@@ -343,3 +343,33 @@
 .pa .en-plaque h2 { font-size: 22px; }
 .pa .en-mark.is-small { display: none; }
 }
+
+
+/* ── the door is the loading screen and a key (founder, 4 November 2026) ──
+   Ruled paper with the red margin, Plumi beside the wordmark, the name of the place, and Enter. The room's art, lamps,
+   dust and the big lettering are gone from the door; the room is still what the door opens onto (the press fades this
+   paper away to it, as before). */
+.pa .en {
+  background: repeating-linear-gradient(to bottom, #eff4fb 0 31px, #d8e2ee 31px 32px);
+  color: #222f4d;
+}
+.pa .en::before { content: ""; position: absolute; z-index: 1; inset: 0 auto 0 clamp(18px, 6vw, 88px); width: 2px; background: #e9b9b5; pointer-events: none; }
+.pa .en-world { display: none; }
+.pa .en-col { --en-fs: 16px; gap: 22px; font-size: 16px; }
+.pa .en-mark { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 0; width: auto; }
+.pa .en-mark .gate-lockup { display: flex; align-items: center; gap: 18px; }
+.pa .en-mark .gate-mascot { width: 104px; height: 104px; animation: gate-float 1.8s steps(6, end) infinite; }
+.pa .en-mark .gate-wordmark { width: 156px; height: auto; color: #222f4d; }
+.pa .en-name { margin: 0; font: 500 15px system-ui, sans-serif; color: #4d5e7c; text-transform: none; letter-spacing: 0; text-align: center; }
+.pa .en :focus-visible { outline-color: #222f4d; }
+.pa .en-pill { box-shadow: 0 3px 0 var(--en-ink), 0 8px 16px rgba(34, 47, 77, .18); }
+.pa .en .en-line.is-quiet { color: #4d5e7c; }
+.pa .en[data-stage="press"] .en-mark, .pa .en[data-stage="go"] .en-mark { scale: 1; }
+@media (max-width: 420px) {
+  .pa .en-mark .gate-mascot { width: 84px; height: 84px; }
+  .pa .en-mark .gate-wordmark { width: 128px; }
+}
+@media (prefers-reduced-motion: reduce) { .pa .en-mark .gate-mascot { animation: none; } }
+.pa .en-cta { font-size: 60px; }
+.pa .en-cta .en-line { font-size: 15px; }
+@media (max-width: 420px) { .pa .en-cta { font-size: 48px; } }

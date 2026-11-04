@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, type CSSProperties, type ReactNode, type Ref } from "react";
 import { preload } from "react-dom";
 import { AppLink } from "@/components/studyapp/AppLink";
+import { PlumiLockup } from "@/components/studyapp/PlumiLockup";
 import { artUrl } from "@/lib/studyapp/library/art";
 import { lampLayers, type TimeOfDay } from "@/lib/studyapp/library/entry";
 import { useCoverScale, useParallax, useReducedMotion, useScrollLock, useSky } from "./useFront";
@@ -111,28 +111,11 @@ function FrontBar({ onLogOut }: { onLogOut?: (() => void) | null }) {
  * as one solid, chunky piece. Three copies of the same words are stacked in one grid cell (so they wrap identically at
  * 320px and at 2560px); only the top one is read aloud. Plumi stands on top of it.
  */
-function Words() {
-  return <><span className="w">Grand</span><span className="sp"> </span><span className="w">Library</span></>;
-}
-
-export function Wordmark({ mascot = true, small = false }: { mascot?: boolean; small?: boolean }) {
+export function Wordmark({ mascot = true }: { mascot?: boolean; small?: boolean }) {
   return (
-    <div className={`en-mark${small ? " is-small" : ""}`}>
-      {mascot && (
-        <div className="en-plumi" aria-hidden="true">
-          <Image src="/study/mascot/plumi-welcoming.svg" alt="" width={160} height={160} unoptimized priority draggable={false} />
-          <i className="en-shadow" />
-        </div>
-      )}
-      <h1 className="en-title">
-        <span className="en-the">The</span>
-        <span className="en-word">
-          <span className="en-l en-l-ink" aria-hidden="true"><Words /></span>
-          <span className="en-l en-l-gold" aria-hidden="true"><Words /></span>
-          <span className="en-l en-l-face"><Words /></span>
-        </span>
-      </h1>
-      <div className="en-spark" aria-hidden="true"><i /><i /><i /><i /></div>
+    <div className="en-mark">
+      {mascot && <PlumiLockup />}
+      <h1 className="en-name">The Grand Library</h1>
     </div>
   );
 }

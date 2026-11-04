@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { totalHere, type LobbyServers } from "@/lib/social/lobby";
-import { HIDDEN_NOTE, entryMemory, friendsIn, friendsLine, liveLine, namesAreFresh, type TimeOfDay } from "@/lib/studyapp/library/entry";
+import type { LobbyServers } from "@/lib/social/lobby";
+import { HIDDEN_NOTE, entryMemory, namesAreFresh, type TimeOfDay } from "@/lib/studyapp/library/entry";
 import { useLiveSummary } from "@/lib/studyapp/live";
 import { FrontScene, Key, Wordmark, type Stage } from "./Front";
 
@@ -67,9 +67,9 @@ export function EntryScreen({ stage, quick, onPress, onSkip, onFaded, read, onLo
     return () => window.removeEventListener("keydown", on);
   }, [waiting, onPress]);
 
-  const total = seen?.peek.servers ? totalHere(seen.peek.servers) : null;
-  const friends = seen?.peek.servers ? friendsIn(seen.peek.servers) : null;
-  const one = liveLine(total), two = friendsLine(friends, seen?.names ?? null), three = seen?.peek.hidden ? HIDDEN_NOTE : null;
+  // The door is only the loading screen and a key now: how many are studying and which friends are in are not said here.
+  // The one thing still said is the truth about a student who has hidden themselves (the room shows them to nobody).
+  const hiddenNote = seen?.peek.hidden ? HIDDEN_NOTE : null;
 
   return (
     <FrontScene ref={root} stage={stage} quick={quick} tod={tod} onLogOut={onLogOut} onFaded={onFaded} onSkip={onSkip} testid="library-entry">
@@ -78,9 +78,7 @@ export function EntryScreen({ stage, quick, onPress, onSkip, onFaded, read, onLo
         <div className="en-cta">
           <Key ref={key} label="Enter" glyph pressed={!waiting} onClick={onPress} aria-label="Enter the Grand Library" testid="enter-library" />
           <div className="en-live" aria-live="polite" data-testid="entry-live">
-            {one && <p className="en-line is-live" data-testid="entry-count"><i aria-hidden="true" />{one}</p>}
-            {two && <p className="en-line" data-testid="entry-friends">{two}</p>}
-            {three && <p className="en-line is-quiet" data-testid="entry-hidden">{three}</p>}
+            {hiddenNote && <p className="en-line is-quiet" data-testid="entry-hidden">{hiddenNote}</p>}
           </div>
         </div>
       </div>
