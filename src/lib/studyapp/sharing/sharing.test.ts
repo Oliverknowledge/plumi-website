@@ -13,13 +13,13 @@ import type { Api } from "@/lib/social/api";
 import type { ApiError } from "@/lib/social/failure";
 import { addCard, addDeck, addStarters, EMPTY, sanitise, type AppData } from "../model";
 import {
-  ADDED_KEY, addSharedDeck, addedDeckFor, canRetry, canShare, CODE_PATTERN, codeForDeck, codeIn, ERROR_CODES, isShareCode, makeProbe, parseShareCode,
+  ADDED_KEY, addSharedDeck, addedDeckFor, canRetry, canShare, CODE_PATTERN, codeForDeck, codeIn, ERROR_CODES, isShareCode, makeProbe, normaliseCode, parseShareCode,
   probeSharing, PROBE_CODE, reasonFor, reasonLine, readCodes, REPORT_REASONS, restApi, restConfig, createSharing, SHARE_LIMITS, SHARE_RPC, shareLink, sharePayload,
   writeCodes, type ShareReason,
 } from "./index";
 
 const T = Date.UTC(2026, 10, 5, 10, 0, 0);
-const CODE = "Ab3dEf6hJk9mNp2q";
+const CODE = "ab3def6hjk9mnp2q";
 
 /** A deck of the student's own with cards in it. */
 function deckWith(cards: [string, string][], title = "Chemistry · Rates", subject: string | null = "Chemistry"): { data: AppData; deckId: string } {
@@ -46,9 +46,14 @@ function fakeApi(reply: (name: string, args: Record<string, unknown>) => { data?
 
 describe("codes and links", () => {
   it("accepts what the server mints and nothing that could break a URL", () => {
-    for (const ok of [CODE, "a".repeat(12), "A-b_C".repeat(4), "x".repeat(64)]) assert.ok(isShareCode(ok), ok);
-    for (const bad of ["", "short", "a".repeat(11), "a".repeat(65), "has space 1234567", "slash/slash/slash", "dot.dot.dot.dot", "é".repeat(16), "../../etc/passwd", "a=b&c=d?e=f", null, 5, undefined]) assert.ok(!isShareCode(bad), String(bad));
-    assert.equal(CODE_PATTERN.source, "^[A-Za-z0-9_-]{12,64}$");
+    for (const ok of [CODE, "a".repeat(12), "0123456789abcdef", "x".repeat(64)]) assert.ok(isShareCode(ok), ok);
+    for (const bad of ["", "short", "a".repeat(11), "a".repeat(65), "has space 1234567", "slash/slash/slash", "dot.dot.dot.dot", "é".repeat(16), "../../etc/passwd", "a=b&c=d?e=f", "A-b_C".repeat(4), "UPPERCASEUPPERCASE", null, 5, undefined]) assert.ok(!isShareCode(bad), String(bad));
+    assert.equal(CODE_PATTERN.source, "^[0-9a-z]{12,64}$");
+  });
+  it("ignores case and surrounding spaces, as the server does on lookup", () => {
+    assert.equal(normaliseCode(`  ${CODE.toUpperCase()}\n`), CODE);
+    assert.equal(parseShareCode(CODE.toUpperCase()), CODE);
+    assert.equal(shareLink(CODE.toUpperCase()), `https://study.tryplumi.app/d/${CODE}`);
   });
   it("writes the link on the app's host in production, and on the page's own address while developing", () => {
     assert.equal(shareLink(CODE), `https://study.tryplumi.app/d/${CODE}`);
@@ -65,6 +70,7 @@ describe("codes and links", () => {
     assert.equal(parseShareCode(`  ${CODE}\n`), CODE);
     assert.equal(parseShareCode(`https://study.tryplumi.app/d/${CODE}`), CODE);
     assert.equal(parseShareCode(`https://study.tryplumi.app/d/${CODE}/?x=1#y`), CODE);
+    assert.equal(parseShareCode(`https://study.tryplumi.app/d/${CODE.toUpperCase()}`), CODE);
     assert.equal(parseShareCode("https://study.tryplumi.app/d/short"), null);
     assert.equal(parseShareCode("https://example.com/other"), null);
     assert.equal(parseShareCode(""), null);
@@ -149,6 +155,16 @@ describe("what is sent for a deck", () => {
     assert.equal(p.cards[0].front, "q0");
     assert.equal(p.cards[499].front, "q499");
   });
+  it("keeps a payload under the database's 2,000,000 byte guard, dropping the last cards (emoji are 4 bytes each)", () => {
+    const { data, deckId } = deckWith([["a", "b"]]);
+    const base = data.cards[0];
+    const heavy = { ...data, cards: Array.from({ length: 400 }, (_, i) => ({ ...base, id: `c${i}`, front: "\u{1F600}".repeat(700), back: "\u{1F600}".repeat(700), createdAt: T + i })) };
+    const p = sharePayload(heavy, deckId)!;
+    assert.ok(p.count < 400 && p.count > 100, String(p.count));
+    assert.ok(new TextEncoder().encode(JSON.stringify(p.cards)).length < SHARE_LIMITS.maxJsonBytes);
+    assert.equal(p.overLimit, 400 - p.count);
+    assert.equal(p.cards[0].front, "\u{1F600}".repeat(700), "the first cards are the ones kept");
+  });
   it("cuts a long title, tidies its spaces, and leaves out an empty subject", () => {
     const { data, deckId } = deckWith([["a", "b"]], "  Spaced   out  ", null);
     const p = sharePayload({ ...data, decks: data.decks.map((d) => ({ ...d, title: `  ${"t".repeat(100)}  ` })) }, deckId)!;
@@ -191,6 +207,7 @@ describe("the line a student reads", () => {
   it("finds the database's word whatever wraps it", () => {
     for (const c of ERROR_CODES) {
       assert.equal(codeIn(c), c);
+      assert.equal(codeIn(`social:${c}`), c);
       assert.equal(codeIn(`shared:${c}`), c);
       assert.equal(codeIn(`ERROR: ${c.toUpperCase()}\nCONTEXT: PL/pgSQL function`), c);
     }
@@ -209,6 +226,9 @@ describe("the line a student reads", () => {
     assert.equal(reasonFor({ message: "TimeoutError: The operation was aborted due to timeout" }), "offline");
     assert.equal(reasonFor({ message: "x", status: 429 }), "rate_limited");
     assert.equal(reasonFor({ message: "JWT expired", status: 401 }), "not_signed_in");
+    assert.equal(reasonFor({ message: "permission denied for function share_deck", code: "42501", status: 403 }), "not_signed_in", "the plain anon role may not share: sign in");
+    assert.equal(reasonFor({ message: "social:not_signed_in", code: "P0001", status: 400 }), "not_signed_in");
+    assert.equal(reasonFor({ message: "social:some_new_word", code: "P0001", status: 400 }), "other", "an unknown word is a quiet try-again-later");
     assert.equal(reasonFor({ message: "boom", status: 503 }), "busy");
     assert.equal(reasonFor({ message: "weird", status: 400 }), "other");
   });
@@ -265,13 +285,13 @@ describe("the service", () => {
     assert.equal(yes.calls.length, 1, "a malformed code is never sent");
   });
   it("mine: reads the rows, newest first as given, and drops rows it cannot use", async () => {
-    const { api, calls } = fakeApi(() => ({ data: [row, { ...row, code: "short" }, { nope: true }, { ...row, code: "Zz3dEf6hJk9mNp2q", title: "Second", card_count: "7" }] }));
+    const { api, calls } = fakeApi(() => ({ data: [row, { ...row, code: "short" }, { nope: true }, { ...row, code: "zz3def6hjk9mnp2q", title: "Second", card_count: "7" }] }));
     const r = await createSharing(api).mine();
     assert.equal(calls[0].name, SHARE_RPC.mine.name);
     assert.deepEqual(calls[0].args, {});
     assert.deepEqual(r, { ok: true, value: [
       { code: CODE, title: "Rates", cardCount: 12, createdAt: "2026-11-05T10:00:00Z" },
-      { code: "Zz3dEf6hJk9mNp2q", title: "Second", cardCount: 7, createdAt: "2026-11-05T10:00:00Z" },
+      { code: "zz3def6hjk9mnp2q", title: "Second", cardCount: 7, createdAt: "2026-11-05T10:00:00Z" },
     ] });
   });
   it("mine: one row is still a list, no rows is an empty list", async () => {
@@ -311,7 +331,7 @@ describe("the service", () => {
     assert.deepEqual(REPORT_REASONS.map((r) => r.label), ["Not school work", "Rude or unkind", "Other"]);
   });
   it("turns every error the database raises into its reason, for every call", async () => {
-    const s = (code: string) => createSharing(fakeApi(() => ({ error: { message: code, code: "P0001", status: 400 } })).api);
+    const s = (code: string) => createSharing(fakeApi(() => ({ error: { message: `social:${code}`, code: "P0001", status: 400 } })).api);
     for (const c of ERROR_CODES) {
       assert.deepEqual(await s(c).share(payload), { ok: false, reason: c }, `share ${c}`);
       assert.deepEqual(await s(c).unshare(CODE), { ok: false, reason: c }, `unshare ${c}`);
@@ -320,9 +340,15 @@ describe("the service", () => {
       assert.deepEqual(await s(c).report(CODE, "other"), { ok: false, reason: c }, `report ${c}`);
     }
   });
-  it("unknown, stopped and hidden codes fail the same way: not_found", async () => {
-    const r = await createSharing(fakeApi(() => ({ error: { message: "not_found", status: 400 } })).api).get(CODE);
+  it("unknown, stopped and hidden codes fail the same way: not_found, whether raised or answered with a JSON null", async () => {
+    const r = await createSharing(fakeApi(() => ({ error: { message: "social:not_found", status: 400 } })).api).get(CODE);
     assert.deepEqual(r, { ok: false, reason: "not_found" });
+    assert.deepEqual(await createSharing(fakeApi(() => ({ data: null })).api).get(CODE), { ok: false, reason: "not_found" });
+  });
+  it("sends a code in its normal form even when it was typed in capitals", async () => {
+    const { api, calls } = fakeApi(() => ({ data: true }));
+    await createSharing(api).unshare(`  ${CODE.toUpperCase()} `);
+    assert.deepEqual(calls[0].args, { p_code: CODE });
   });
   it("is unavailable, not broken, when the project has no such function or no project at all", async () => {
     const missing = fakeApi(() => ({ error: { message: "Could not find the function public.share_deck", code: "PGRST202", status: 404 } }));
@@ -421,11 +447,11 @@ describe("remembering codes on this device", () => {
     const r = addSharedDeck(EMPTY, { title: "T", subjectHint: null, cardCount: 1, cards: [{ front: "q", back: "a" }] }, T);
     const codes = { [CODE]: r.deckId! };
     assert.equal(addedDeckFor(r.data, codes, CODE), r.deckId);
-    assert.equal(addedDeckFor(r.data, codes, "Other0000000000"), null);
+    assert.equal(addedDeckFor(r.data, codes, "other0000000000"), null);
     assert.equal(addedDeckFor({ decks: [] }, codes, CODE), null, "the copy was deleted");
   });
   it("finds the live link of a deck: the code must still be live when the list is known", () => {
-    const codes = { [CODE]: "d_1", Other0000000000: "d_2" };
+    const codes = { [CODE]: "d_1", other0000000000: "d_2" };
     assert.equal(codeForDeck(codes, "d_1", new Set([CODE])), CODE);
     assert.equal(codeForDeck(codes, "d_1", new Set()), null, "stopped from another device");
     assert.equal(codeForDeck(codes, "d_1", null), CODE, "list not loaded (offline): the last known link");

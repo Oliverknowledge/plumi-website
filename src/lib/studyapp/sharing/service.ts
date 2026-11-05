@@ -1,6 +1,6 @@
 import type { Api } from "@/lib/social/api";
 import { isMissingFunction, type ApiError } from "@/lib/social/failure";
-import { isShareCode } from "./code";
+import { isShareCode, normaliseCode } from "./code";
 import { SHARE_LIMITS, SHARE_RPC, type ReportReason, type ShareRpcKey, type SharedDeck, type SharedRow } from "./contract";
 import { codeIn, type ShareReason } from "./lines";
 import type { SharePayload } from "./payload";
@@ -23,6 +23,8 @@ const OFFLINE = /failed to fetch|fetch failed|networkerror|network request faile
 /** An answer from the transport that went wrong, as a reason. A missing function (migration not applied) is `unavailable`. */
 export function reasonFor(error: ApiError): ShareReason {
   if (isMissingFunction(error)) return "unavailable";
+  // The plain anon role may not call share_deck at all (42501): the same answer to the student as no session.
+  if (error.code === "42501" || /permission denied/i.test(error.message)) return "not_signed_in";
   const raised = codeIn(error.message);
   if (raised) return raised;
   if (OFFLINE.test(error.message)) return "offline";
@@ -46,7 +48,7 @@ function unwrap(data: unknown, fn: string): unknown {
   return v;
 }
 
-/** `get_shared_deck`'s answer as a deck, or null if it is not one (a deck with no readable card is treated as not there). */
+/** `get_shared_deck`'s answer as a deck, or null if it is not one: a JSON null body (a project that hides rather than raises), or a deck with no readable card, is not found. */
 export function decodeDeck(data: unknown): SharedDeck | null {
   let v = unwrap(data, SHARE_RPC.get.name);
   if (Array.isArray(v) && v.length === 1) v = unwrap(v[0], SHARE_RPC.get.name);   // a function that returns a table of one row
@@ -103,7 +105,8 @@ export function createSharing(api: ShareApi) {
     },
 
     /** Stop sharing. `true` when a live deck of the caller's was stopped, `false` when there was nothing to stop (already stopped). */
-    async unshare(code: string): Promise<ShareResult<boolean>> {
+    async unshare(raw: string): Promise<ShareResult<boolean>> {
+      const code = normaliseCode(raw);
       if (!isShareCode(code)) return no("not_found");
       if (!api.userId()) return no("not_signed_in");
       const r = await call("unshare", { p_code: code });
@@ -118,7 +121,8 @@ export function createSharing(api: ShareApi) {
     },
 
     /** A shared deck, no sign-in needed. Unknown, stopped and hidden codes all come back `not_found`. */
-    async get(code: string): Promise<ShareResult<SharedDeck>> {
+    async get(raw: string): Promise<ShareResult<SharedDeck>> {
+      const code = normaliseCode(raw);
       if (!isShareCode(code)) return no("not_found");
       const r = await call("get", { p_code: code });
       if (!r.ok) return r;
@@ -127,7 +131,8 @@ export function createSharing(api: ShareApi) {
     },
 
     /** Tell us a deck should not be there. No sign-in needed. */
-    async report(code: string, reason: ReportReason): Promise<ShareResult<true>> {
+    async report(raw: string, reason: ReportReason): Promise<ShareResult<true>> {
+      const code = normaliseCode(raw);
       if (!isShareCode(code)) return no("not_found");
       const r = await call("report", { p_code: code, p_reason: reason });
       return r.ok ? ok(true) : r;
