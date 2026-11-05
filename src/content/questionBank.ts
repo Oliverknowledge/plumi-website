@@ -159,14 +159,11 @@ export const bankSolutionUrl = (s: Pick<BankSubject, "slug" | "data">, id: strin
  * doing an experiment (scripts/question-bank/practicals.py), for the "Practicals" filter.
  */
 /**
- * A-Level Maths and Further Maths have a year13.json beside their data (Cambridge's Further Maths, with no AS, has none, and no filter): the ids of the questions that need second-year
- * content (scripts/question-bank/maths_years.py), for the "Year" filter. A Year 12 student wants the
- * ones they can already do; maths topics span both years, so the split is by question, not by topic.
+ * A bank with a year13.json beside its data has the "Year" filter: the ids of the questions that need second-year
+ * content (for maths, scripts/question-bank/maths_years.py). A Year 12 student wants the ones they can already do.
+ * Adding the file is all a bank needs: its hash in the meta's `data` turns the filter on.
  */
-export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
-  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE")
-    // English Literature (not Eduqas: no AS papers) and AQA French, German, Spanish: scripts/question-bank/english_languages_years.py
-    || (/^English Literature\b/.test(s.subject) && s.board !== "Eduqas") || (s.board === "AQA" && /^(French|German|Spanish)$/.test(s.subject)));
+export const bankHasYears = (s: Pick<BankSubject, "data">) => Boolean(s.data?.year13);
 /**
  * A GCSE (or International GCSE) bank with Higher and Foundation papers (by name, "Paper 1 Higher", as the tier links read them) has a
  * tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too.
