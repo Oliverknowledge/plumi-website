@@ -592,6 +592,8 @@ html[data-plumi-skin="ex"] #status.CY { top: 116px; }
 html[data-plumi-skin="ex"] #screen.CY { top: 130px; }
 html[data-plumi-skin="ex"] #keypadCY { position: absolute; top: 70px; left: 0; width: 375px; height: 635px; }
 html[data-plumi-skin="ex"] #keypadCY > :nth-child(n+9) { border-radius: 5px; box-shadow: inset 0 1px 0 #ffffff20, 0 1px 1px #00000080; }
+/* Keep rapid taps responsive on touchscreens without double-tap zoom. */
+#keypadCY [data-ki] { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 [data-ki]:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 </style>
 
