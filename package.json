@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
+    "calculator:test": "node scripts/calculator/check-runtime.mjs && node scripts/calculator/check-firmware.mjs",
     "og": "tsx scripts/build-og-image.ts",
     "og:lofi": "tsx scripts/build-og-lofi.ts",
     "study:tokens": "tsx scripts/study-tokens.ts",
