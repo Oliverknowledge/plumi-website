@@ -309,6 +309,14 @@ need only the AS content) or Year 13 (questions that need second-year content).
   are Year 12, and each A-Level paper question was read against that board's AS Further
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
+- **A-Level Physics** (AQA, Edexcel, OCR A, OCR B, Eduqas, WJEC, Cambridge; 5 November 2026)
+  splits by rule, not by reading (`physics_years.py`, which says how): each topic's `year` in
+  the bank's meta comes from the board's specification, so an AS paper's questions are Year 12,
+  and a full A-Level paper's are Year 12 only when every topic tag is a first-year topic and the
+  text has none of the second-year terms (capacitor, magnetic field, simple harmonic…). AQA's
+  legacy 2010–2016 papers: the AS units (PHYA1, PHYA2) are Year 12, the A2 units (PHYA4, PHYA5)
+  all Year 13, because their tags are unreliable. WJEC's Units 3 and 4 are all Year 13. A
+  re-tag of a Physics bank changes its topics, so run `physics_years.py` again, then `upload_data.py`.
 
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
