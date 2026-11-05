@@ -9,6 +9,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { privacy } from "@/content/legal";
 import type { Api } from "@/lib/social/api";
 import type { ApiError } from "@/lib/social/failure";
 import { addCard, addDeck, addStarters, EMPTY, sanitise, type AppData } from "../model";
@@ -193,7 +194,7 @@ describe("the line a student reads", () => {
   it("is calm: no em dash, no jargon, no codes, never the word error, one short line", () => {
     for (const r of all) {
       const line = reasonLine(r);
-      assert.doesNotMatch(line, /—|–/, `${r}: no dashes`);
+      assert.doesNotMatch(line, new RegExp("[\\u2014\\u2013]"), `${r}: no dashes`);
       assert.doesNotMatch(line, /error|exception|rpc|supabase|postgres|json|status|http|_/i, `${r}: ${line}`);
       assert.ok(line.length <= 90, `${r} is short`);
       assert.doesNotMatch(line, /\n/);
@@ -493,6 +494,13 @@ describe("is sharing on in this project", () => {
     const throws = { configured: true, userId: () => null, rpc: async () => { throw new Error("boom"); } } as Pick<Api, "configured" | "userId" | "rpc">;
     assert.equal(await probeSharing(throws), "unknown");
   });
+  it("is off, without asking, when the kill switch NEXT_PUBLIC_SHARED_DECKS=off is set", async () => {
+    const { api, calls } = fakeApi(() => ({ error: { message: "not_found" } }));
+    process.env.NEXT_PUBLIC_SHARED_DECKS = "off";
+    try { assert.equal(await probeSharing(api), "off"); assert.equal(await probeSharing(api, "mine"), "off"); } finally { delete process.env.NEXT_PUBLIC_SHARED_DECKS; }
+    assert.equal(calls.length, 0);
+    assert.equal(await probeSharing(api), "on", "and back on when it is removed");
+  });
   it("asks once per visit: concurrent callers share one question, a definite answer is remembered, an unknown one is not", async () => {
     const mem = new Map<string, string>();
     const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v) };
@@ -581,5 +589,20 @@ describe("the fetch transport", () => {
     const { f } = fakeFetch(200, { title: "T", subject_hint: null, card_count: 1, cards: [{ front: "q", back: "a" }] });
     const r = await createSharing(restApi(config, { fetch: f })).get(CODE);
     assert.deepEqual(r, { ok: true, value: { title: "T", subjectHint: null, cardCount: 1, cards: [{ front: "q", back: "a" }] } });
+  });
+});
+
+describe("the privacy policy", () => {
+  const all = JSON.stringify(privacy);
+  it("says what sharing a deck stores, who can read it, how long, and that reports may be looked at", () => {
+    assert.match(all, /flashcard deck you choose to share/);
+    assert.match(all, /anyone with the link can read/i);
+    assert.match(all, /no name, email address or avatar/);
+    assert.match(all, /until you stop sharing/);
+    assert.match(all, /deleted when you delete your account/);
+    assert.match(all, /reports may be looked at/i);
+  });
+  it("has no em dash or en dash", () => {
+    assert.doesNotMatch(all, new RegExp("[\\u2014\\u2013]"));
   });
 });

@@ -316,3 +316,5 @@
 .pa .shr-row-t small { font: 700 12.5px var(--f-body); color: var(--soft); }
 .pa .shr-small { min-height: 44px; padding: 0 12px; font-size: 15px; }
 @media (max-width: 520px) { .pa .shr-rows li { grid-template-columns: minmax(0, 1fr); } .pa .shr-small { justify-self: start; } }
+.pa .fcp-bar .btn { min-height: 44px; }
+.pa .shr-list { min-height: 44px; }

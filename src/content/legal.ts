@@ -3,8 +3,8 @@ export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
 const updated = "14 October 2026";
 const updatedIso = "2026-10-14";
-const privacyUpdated = "31 October 2026";
-const privacyUpdatedIso = "2026-10-31";
+const privacyUpdated = "5 November 2026";
+const privacyUpdatedIso = "2026-11-05";
 /**
  * Rewritten 27 October 2026 to cover the app as well as the website. The App Store listing and the
  * app's consent screen both link here, and the previous text said it covered the website only and that
@@ -24,6 +24,7 @@ export const privacy: LegalDoc = {
       "Your notebooks, handwriting and marked work are stored on your device. We do not keep a copy of them on our servers.",
       "When you ask Plumi to mark, explain or give a hint, the part of your work you asked about is sent, through Plumi, to our AI provider DeepSeek. This happens only after you agree, and you can say no or change your mind in Account.",
       "You do not need an account to use the app or the website. An account lets you keep your subscription, use the social features and, on the website, keep your question bank marks on every device.",
+      "Sharing a flashcard deck is your choice. Only if you tap Share, the deck’s name and the words on its cards are stored on our servers, and anyone with the link can read them until you stop sharing.",
       "The social features (friends, groups, the Grand Library) are optional. In the Grand Library strangers see a random nickname, never your name, and nobody can message you privately.",
       "We never sell your information. The app shows no adverts, and nothing you write, draw or upload is shared for advertising.",
 "We email you only about your account and the app, such as an update being out. News about new things from Plumi comes only if you opt in, and every email has an unsubscribe link.",
@@ -35,6 +36,7 @@ export const privacy: LegalDoc = {
         "Work you send to be marked or explained: a picture of the handwriting you asked about, text you typed, pictures or pages you placed on the notebook, text from your notes or a lecture recording when you ask Plumi to summarise it or make flashcards, and the question and mark scheme it belongs to. If you write your name or another person’s details on a page you ask us to mark, that is sent too, so please do not.",
         "What you set up for studying: your subjects, exam boards, exam dates and target grades, which stay on your device, and a small summary used to run the subscription.",
         "If you turn friends on: a display name, an avatar look, a friend code, your streak and level, your groups and the messages you send in them. In the Grand Library: a random nickname, where you are standing, whether you are seated, the subject you are studying and how long you have been studying. If you start a study session anywhere in the app while friends are on, you appear in the library as studying until the session ends. Chat messages are checked by automatic rules before they are sent.",
+        "A flashcard deck you choose to share by link: its name, an optional subject label and the text on its cards (not pictures, not how well you know them), kept with your account so you can see and stop your shared decks. The shared page shows no name, email address or avatar, and nobody who opens it needs an account. Anyone with the link can read it, and can add a copy to their own cards. A shared page can be reported; reports may be looked at by us, and a deck reported enough times is hidden.",
         "Reports and blocks: if you report or block someone, we keep the report and who made it so we can act on it.",
         "Question bank marks on the website, if you are signed in: for each question part you mark yourself on, its id, subject and topics, your score and what it was out of, the letter you picked for a multiple-choice question, and when. Signed out, these stay in your browser. Answers you type into the question bank stay in your browser and are never sent to us.",
         "Your subscription: whether you have Plumi Pro and the plan, through Apple and our payments service. We never see your card details.",
@@ -63,7 +65,7 @@ export const privacy: LegalDoc = {
         "Apple (the App Store, Sign in with Apple, payments and dictation) and Google (Sign in with Google, and advert measurement if you agree).",
         "Resend (the email service that sends our emails). It receives your email address and the message we send you. We use its EU sending region. Your address is taken off its lists when you unsubscribe, and before we next send if you have deleted your account.",
 "Our website hosting provider, Vercel, and Discord only if you choose to join the community from our website.",
-        "Other people, only where you have chosen it: friends and group members see your display name and what you share; people in the Grand Library see your nickname and what you are studying; messages you send in a chat are seen by that chat.",
+        "Other people, only where you have chosen it: anyone you give the link of a shared flashcard deck can read the deck, and anyone who has the link can pass it on; friends and group members see your display name and what you share; people in the Grand Library see your nickname and what you are studying; messages you send in a chat are seen by that chat.",
         "Authorities or others where the law requires, or to protect someone’s safety.",
       ]},
     ] },
@@ -73,6 +75,7 @@ export const privacy: LegalDoc = {
     { heading: "How long we keep it", blocks: [{kind:"list",items:[
       "Your notebooks and marked work stay on your device until you delete them. We do not hold a copy.",
       "Account and social information is kept while your account exists and deleted when you delete your account.",
+      "A shared flashcard deck is kept until you stop sharing it, and then it can no longer be opened with its link. Your shared decks are also deleted when you delete your account. A copy someone has already added to their own cards is theirs and stays with them.",
 "Our email list is kept while you are subscribed. When you unsubscribe your address is taken off it, and if you delete your account it is removed before we next send. We keep only a note that you opted out, so that we do not email you again.",
       "Chat messages are kept until they are removed or your account is deleted.",
       "Reports and blocks are kept as long as we need them to keep people safe.",
@@ -80,7 +83,7 @@ export const privacy: LegalDoc = {
       "What the AI provider keeps is governed by its own policy. We do not control it and cannot delete it for you, so please do not send anything you would not want a provider to hold.",
     ]}] },
     { heading: "Your choices and rights", blocks: [
-      {kind:"text",text:"Every email we send has an unsubscribe link. In the app, Account lets you change or withdraw your AI and advert-measurement choices, hide yourself from strangers in the Grand Library, sign out, and delete your account. On the website, the account menu lets you sign out and leave the Grand Library; to delete an account you made on the website, use the app or email hello@tryplumi.app and we will delete it. Deleting your account removes your account and social information from our servers. You can also delete the work on your device when you delete the account, or delete the app."},
+      {kind:"text",text:"Every email we send has an unsubscribe link. In the app, Account lets you change or withdraw your AI and advert-measurement choices, hide yourself from strangers in the Grand Library, sign out, and delete your account. On the website’s flashcards page you can stop sharing a deck at any time, and the link stops working at once. On the website, the account menu lets you sign out and leave the Grand Library; to delete an account you made on the website, use the app or email hello@tryplumi.app and we will delete it. Deleting your account removes your account and social information from our servers. You can also delete the work on your device when you delete the account, or delete the app."},
       {kind:"text",text:"You can ask us for a copy of the information we hold about you, to correct it, to delete it, to restrict or stop us using it, to move it, or to object to something we do on the basis of legitimate interests, by emailing hello@tryplumi.app. If you have given consent you can withdraw it at any time. We will reply within one month."},
       {kind:"text",text:"If you are unhappy with how we handle your information you can complain to the Information Commissioner’s Office at ico.org.uk. We would like the chance to put it right first."},
     ] },

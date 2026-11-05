@@ -12,6 +12,7 @@ The Subjects UI is going to change, so nothing was built for it.
 | `/study/library` | Study: the Grand Library room with real people | `src/components/studyapp/library/`, `docs/study/library.md` |
 | `/study/questions` | Questions: pick bank questions, write under each part (ink or type), check, mark yourself. See `questions.md` | `src/components/studyapp/questions/` |
 | `/study/flashcards` | The iPad's two-pane page: subject toggle, My sessions, decks to tick and mix, the wooden desk, Import. See below | `src/components/studyapp/flashcards/` |
+| `/d/<code>` | A flashcard deck shared by link: public, no sign-in, its own small page. See `sharing.md` | `src/app/d/` |
 | `/study/design`, `/dashboards`, `/shells` | Design system and exploration pages (kept, in the `(system)` route group) | `src/app/study/(system)/` |
 
 Visual source: the founder's artifact (`#desk`), ported to `src/app/study/(app)/app.css`, every selector
