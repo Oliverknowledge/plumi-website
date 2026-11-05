@@ -30,6 +30,9 @@ specification's 86 numbered topics (4.1.1 Cell structure), with no year split.
   those changes. As there, a later part can still lean on an earlier part's own words. Some specimen
   crops still lose the end of "[1 mark]" at the right edge: `cut.frame`'s fix on
   `claude/question-crops-audit` wasn't applied here.
+- **Notice page (November 2026):** `84611h-nov20-05-7` held a whole "There are no questions on this page" sheet, which `cut.py` now
+  skips. Biology only: the check doesn't flag Chemistry or Physics. `cut.py`'s rule now leaves "Each organism may be..." and
+  "The first box..." on their own part, as `setups.py`'s does, because without the notice page they'd have moved on `84612f-jun23-03-2`.
 - **Crops and rows go live together:** the study feed (`Crop.tsx`) draws a crop at its row's `w`/`h`, so
   a new crop with an old row is squashed (one grown from 601 to 2,174 tall drew at 28% of its height);
   the bank pages use the picture's own shape. And a `cropVersion` that goes live before its crops are up
