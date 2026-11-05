@@ -309,6 +309,30 @@ need only the AS content) or Year 13 (questions that need second-year content).
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
 
+**Psychology, Sociology, Politics, Law and Geography (5 November 2026).** The founder asked for
+the same switch on every A-Level subject that has an AS. These banks split by the board's own
+AS specification, so most of the decision is a map, not a read (`humanities_years.py`; rules
+and reasons in its docstring, `humanities_years.py report` for the counts):
+
+- An AS paper's questions are Year 12. On a full A-Level paper a question is Year 12 when
+  the board's AS covers all of it, and Year 13 when it needs content only the A-Level has:
+  a whole paper (OCR Sociology Paper 3, OCR Psychology Paper 3, Edexcel Psychology Papers 2
+  and 3, Edexcel Geography Paper 3, AQA Psychology Paper 3), a topic (Edexcel Politics' ideas,
+  USA and global politics; AQA Geography's deserts, ecosystems, global systems, population
+  and resources), or a named item inside an AS topic (AQA Psychology's localisation of
+  function, inferential tests other than the sign test…, found by keyword in the question).
+- Year 12 means "in the AS", not "what a school teaches first": Edexcel Politics' core
+  ideas are Year 13 here because 8PL0 has no ideas, though many schools teach them in Year 12.
+- Banks with no AS and no year split in the specification are skipped: AQA Politics (7152)
+  and AQA Law (7162) are linear A-Levels, and AQA lists no AS for either.
+- Hand reads (54 parts: OCR Psychology and OCR Law questions that mix the years, one Edexcel
+  Psychology question) are in `humanities_years_reads.json`; they win over the rules. AQA
+  Sociology Paper 3's five methods questions were read too, and are all AS content.
+- Like Maths, the ids are in `year13.json` on R2 (`upload_data.py`); `bankHasYears` lets the
+  page ask for it, and a bank without the file shows no switch.
+- After a new series: `humanities_years.py build <slug>`, check `report` for the new
+  tags, read what the rules cannot place, then `upload_data.py <slug>`.
+
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
 now, not a single choice: every sitting starts ticked, untick the ones to keep back (or
