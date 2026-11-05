@@ -161,6 +161,10 @@ def apply(work):
                     p["m"] = cut[p["id"]]["marks"]
             if p["id"] in started:
                 p["st"] = 1
+                # A setup shared from an earlier question has that question's name, which this row's id doesn't give: without "sk" the site asks for a crop that doesn't exist.
+                stem = cut[p["id"]]["stem"].removesuffix("-stem.webp")
+                if stem != p["id"].rsplit("-", 1)[0]:
+                    p["sk"] = stem
         json.dump(parts, open(path, "w"), ensure_ascii=False, separators=(",", ":"))
         path = os.path.join(META, f"{slug}.json")
         meta = json.load(open(path))
