@@ -26,6 +26,7 @@
  * in the meta's `data`. The browser fetches it only when it needs it; the build reads parts.json
  * for the topic pages.
  */
+import { papersBase } from "@/config/papers";
 import biology from "./questionBank/aqa-a-level-biology.json";
 import chemistry from "./questionBank/aqa-a-level-chemistry.json";
 import physics from "./questionBank/aqa-a-level-physics.json";
@@ -320,11 +321,7 @@ export const bankHasTiers = (s: Pick<BankSubject, "level" | "papers">) =>
 export const bankHasPracticals = (s: Pick<BankSubject, "subject">) => /^(Biology|Chemistry|Physics|Combined Science)\b/.test(s.subject);
 
 /** Where our files live: R2 in production, a local folder in development. */
-/**
- * Where the pictures are served from: NEXT_PUBLIC_PAPERS_URL if set, otherwise (in any built site, a Vercel preview included)
- * the public R2 bucket, so a preview deployment without the variable still shows the pictures; `next dev` keeps /papers-local.
- */
-export const papersBase = (process.env.NEXT_PUBLIC_PAPERS_URL ?? (process.env.NODE_ENV === "production" ? "https://pub-e8a9dbab8e2a4d089f52b2a45e0d0b50.r2.dev" : "/papers-local")).replace(/\/$/, "");
+export { papersBase };
 /**
  * A part's crop. Crops are cached for a year as immutable, so a re-cut that replaces them under
  * the same names asks for a new version: every bank's scheme crops for the scheme re-cut of

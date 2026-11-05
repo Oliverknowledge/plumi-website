@@ -7,8 +7,8 @@ Reads the bucket and keys from .env.local (never committed):
     R2_ACCOUNT_ID=...            # Cloudflare dashboard > R2 > Account details
     R2_ACCESS_KEY_ID=...         # an R2 API token with Object Read & Write on the bucket
     R2_SECRET_ACCESS_KEY=...
-    R2_BUCKET=plumi-papers
-    NEXT_PUBLIC_PAPERS_URL=https://papers.tryplumi.app   # the bucket's public domain
+    R2_BUCKET=plumipapers
+    NEXT_PUBLIC_PAPERS_URL=...   # the bucket's public address, as Vercel's production value (src/config/papers.ts)
 
 Uploads <work-dir>/pdf/*.pdf to aqa/ (or --pdf-prefix), <work-dir>/img/*.webp to bank/ and any
 <work-dir>/audio-out/*.mp3 (a languages bank's listening recordings) to aqa/audio/, each
