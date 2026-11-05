@@ -309,6 +309,28 @@ need only the AS content) or Year 13 (questions that need second-year content).
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
 
+## Year 12 and Year 13 (A-Level Biology, 5 November 2026)
+
+The same "School year" switch (Both years · Year 12 · Year 13) on the eight A-Level Biology banks
+(AQA, Edexcel A and B, OCR A and B, Eduqas, WJEC, Cambridge). Unlike maths, Biology's topics
+already sit in a year (each topic's `year` in the meta: 1 AS, 2 second year, 3 Eduqas's options), so
+`scripts/question-bank/biology_years.py` decides by rule rather than by reading every question:
+
+- a part on an AS paper is Year 12;
+- a part on a full A-Level paper is Year 13 if any of its topics is second-year content, else Year 12;
+- a short list of parts whose tag was wrong, found by reading, is overridden in `HAND_READ` (10 AQA
+  parts tagged 3.7.3 that only ask natural selection, which AQA examines at AS; 13 WJEC A2-unit parts
+  tagged with AS topics that ask ATP, pigments, the electron transport chain, the kidney, the options).
+
+The topic years match each board's AS content: every AS topic is drawn on by that board's AS papers, and
+no second-year topic is, bar 21 AQA parts (3.5.1, 3.5.2, 3.7.2, 3.7.3, 3.7.4) on AS papers, which stay Year 12.
+`bankHasYears` is on for any A-Level Biology bank; the data is `year13.json` as for maths. After a new
+series: `biology_years.py`, then `upload_data.py <slug>`.
+
+Known edges: AQA Paper 3's 25-mark essays go by their tags (an essay titled on a first-year topic is Year
+12 although a full-marks answer may draw on the whole specification); Cambridge Paper 5 (planning and
+evaluation) goes by the topic its experiment is on.
+
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
 now, not a single choice: every sitting starts ticked, untick the ones to keep back (or
