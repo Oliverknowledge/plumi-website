@@ -26,7 +26,7 @@ os.makedirs(IMG, exist_ok=True)
 SCALE = 2.2  # ~160 dpi: sharp on a retina phone, small as WebP
 
 QLABEL = re.compile(r"^(\d{2})(?:\.(\d{1,2}))?$")
-NOT_QUESTIONS = re.compile(r"no questions printed on this page|do not write on this page", re.I)
+NOT_QUESTIONS = re.compile(r"no\s+questions\s+(?:printed\s+)?on\s+this\s+page|do\s+not\s+write\s+on\s+this\s+page", re.I)  # newer papers print double spaces
 EXTRA_SPACE = re.compile(r"^\s*extra space\s*$", re.I | re.M)
 MARKS_END = re.compile(r"\bmarks?\]$")
 
@@ -305,9 +305,10 @@ def regions(doc, max_x, bold_only, portrait):
             marks.append((i, label_top(page, y, frame(page, portrait)) + 6 if portrait else max(prev + 8, row_start(page, y, prev)) + 6, q, p))
             prev = y
     out = []
+    carried = []  # what the part before left after a notice page: this part's setup
     for n, (i, y, q, p) in enumerate(marks):
         nxt = marks[n + 1] if n + 1 < len(marks) else None
-        pieces, pg = [], i
+        pieces, pg, carried = carried, i, []
         while True:
             page = doc[pg]
             f = frame(page, portrait) if portrait else ms_frame(page)
@@ -321,6 +322,15 @@ def regions(doc, max_x, bold_only, portrait):
             if nxt and pg > nxt[0]:
                 break
             if skip_page(doc[pg], max_x, bold_only):
+                # A notice page can fall inside a question: what follows it, up to the next label, sets up the next part.
+                if portrait and nxt and NOT_QUESTIONS.search(doc[pg].get_text()):
+                    for after in range(pg + 1, nxt[0] + 1):
+                        if skip_page(doc[after], max_x, bold_only):
+                            continue
+                        f = frame(doc[after], portrait)
+                        end = nxt[1] - 6 if after == nxt[0] else f.y1
+                        if end > f.y0 + 8 and doc[after].get_text("text", clip=pymupdf.Rect(f.x0, f.y0, f.x1, end)).strip():
+                            carried.append((after, pymupdf.Rect(f.x0, f.y0, f.x1, end)))
                 break
         text = "\n".join(doc[pg].get_text("text", clip=r) for pg, r in pieces)
         out.append([(q, p), pieces, text])

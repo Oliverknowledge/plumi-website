@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 PUB = os.path.join(ROOT, "public", "question-bank")
 META = os.path.join(ROOT, "src", "content", "questionBank")
-DO_NOT_WRITE = re.compile(r"do not write on this page", re.I)
+DO_NOT_WRITE = re.compile(r"do\s+not\s+write\s+on\s+this\s+page|no\s+questions\s+(?:printed\s+)?on\s+this\s+page", re.I)
 MIN_HEIGHT = 24  # px: shorter than one line of print at SCALE 2.2
 MAX_RATIO = 12  # a crop this much taller than wide has taken in more than its part
 SAMPLE, PER_SHEET, COLUMN = 24, 24, 560
@@ -30,6 +30,12 @@ def load(slug):
     if not os.path.exists(path):
         subprocess.run([sys.executable, os.path.join(HERE, "upload_data.py"), "--pull", slug], check=True)
     return json.load(open(path))
+
+
+def check_text(slug):
+    """A part's opening words stop at 160 characters, so a notice page further into its crop shows only in the search text."""
+    path = os.path.join(PUB, slug, "text.json")
+    return [(pid, 'holds a "do not write on this page" page') for pid, words in json.load(open(path)).items() if DO_NOT_WRITE.search(words)] if os.path.exists(path) else []
 
 
 def check_rows(meta, parts):
@@ -169,6 +175,7 @@ def main():
         meta = json.load(open(os.path.join(META, f"{slug}.json")))
         parts = load(slug)
         fails, warns = check_rows(meta, parts)
+        fails += [row for row in check_text(slug) if row not in fails]
         sheets = []
         if IMG:
             crop_fails, crop_warns, doubts = check_crops(parts, IMG)
