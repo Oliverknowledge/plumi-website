@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { useNow } from "@/lib/studyapp/clock";
 import { deckStats, exportDeck } from "@/lib/studyapp/model";
+import { canShare } from "@/lib/studyapp/sharing";
+import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { toast } from "../toast";
 import { CardFields } from "./CardFields";
 
 /** One deck: rename it, add cards, edit or delete them, bring a list in, copy the deck out, review it, or delete it. */
-export function DeckEditor({ deckId, onBack, onReview, onImport }: { deckId: string; onBack: () => void; onReview: (id: string) => void; onImport: (id: string) => void }) {
+export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { deckId: string; onBack: () => void; onReview: (id: string) => void; onImport: (id: string) => void; onShare: (id: string) => void }) {
   const { data } = useApp();
+  const sharing = useSharing();
   const now = useNow();
   const deck = data.decks.find((d) => d.id === deckId);
   const [editing, setEditing] = useState<string | null>(null);
@@ -31,6 +34,9 @@ export function DeckEditor({ deckId, onBack, onReview, onImport }: { deckId: str
         <button type="button" className="btn ghost" onClick={onBack}>&lsaquo; Back to the desk</button>
         <input key={deck.id} className="fcp-title" defaultValue={deck.title} maxLength={50} aria-label="Deck name" onBlur={(e) => { actions.renameDeck(deckId, e.target.value); }} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} />
         <span className="grow" />
+        {sharing.available && canShare(deck) && (
+          <button type="button" className="btn" onClick={() => onShare(deckId)} data-testid="share-open">{sharing.codeFor(deckId) ? "Shared" : "Share"}</button>
+        )}
         <button type="button" className="btn gold" disabled={st.due === 0} onClick={() => onReview(deckId)} data-testid="review-deck">{st.due === 0 ? "Nothing due" : `Review ${st.due} due`}</button>
       </div>
       <p className="fcp-counts"><b>{st.total}</b> cards &middot; {st.fresh} new &middot; {st.learning} learning &middot; {st.mature} well known</p>
