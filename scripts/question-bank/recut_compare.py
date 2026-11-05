@@ -13,13 +13,16 @@ is rate limited, and students use it) and sets each against the new cut:
   changed  a new crop whose height moved by no more than MAX_MOVE, copied to <work-dir>/changed/img/
   review   moved further (a part got words back, or lost them): listed, and held back unless --accept-review,
            because a cutter run today can also disagree with a cut made for a reason since forgotten
-  marks    the new crop's "[n marks]" add up differently from the live row, or it holds a "do not write" page: a part took in its neighbour, left alone
+  marks    the new crop's "[n marks]" add up differently from the live row's marks, if it has any, or it holds a "do not write" page: a part took in its neighbour, left alone
   sliced   the new crop's top or bottom edge cuts through something the live crop's didn't, left alone
   narrower narrower than live: another cutter made it wider for a reason (cut_aqa_bio_pmt.py keeps "[1 mark]" on AS June 2016), left alone
   missing  live, but this run did not cut it: listed, left alone
 The list is <work-dir>/report.json.
 
-`apply` writes the new sizes into each changed bank's live rows (and nothing else: a work folder's other data can be
+With --base=<work-dir>, a second run of the same cutter from before the fix, a crop that fix left byte for byte as it was is "same" too:
+a bank cut with another PyMuPDF renders a pixel or two differently everywhere, and A-Level Maths showed 317 changes for 54 questions the fix touched.
+
+`apply` writes the new sizes, and marks where a row had none, into each changed bank's live rows (and nothing else: a work folder's other data can be
 older than what is live) and bumps the bank's cropVersion, so browsers fetch the new crops. Keys and bucket come from .env.local.
 """
 import io, json, os, re, shutil, sys
@@ -75,7 +78,7 @@ def sliced(img):
     return out
 
 
-def compare(work, slugs, accept_review):
+def compare(work, slugs, accept_review, base=None):
     s3, bucket = client()
     names = {}  # crop name: (slug, part id or None for a setup)
     live = {}
@@ -104,6 +107,8 @@ def compare(work, slugs, accept_review):
         row = {"name": name, "slug": slug, "id": pid}
         if not os.path.exists(path):
             return {**row, "state": "missing"}
+        if base and os.path.exists(os.path.join(base, "img", f"{name}.webp")) and open(path, "rb").read() == open(os.path.join(base, "img", f"{name}.webp"), "rb").read():
+            return {**row, "state": "same"}
         new = Image.open(path).convert("RGB")
         old = Image.open(io.BytesIO(s3.get_object(Bucket=bucket, Key=f"bank/{name}.webp")["Body"].read())).convert("RGB")
         row.update(old=old.size, new=new.size)
@@ -111,7 +116,8 @@ def compare(work, slugs, accept_review):
             return {**row, "state": "same"}
         if new.width < old.width - 1:
             return {**row, "state": "narrower"}
-        if pid and pid in cut and (cut[pid].get("marks") or 0) != (live[pid].get("m") or 0) or name in blank_page:
+        # (A live row with no marks at all is one whose "[1 mark" was cut off: the new crop gives them to it, and `apply` writes them.)
+        if pid and pid in cut and live[pid].get("m") is not None and (cut[pid].get("marks") or 0) != live[pid]["m"] or name in blank_page:
             return {**row, "state": "marks"}
         if any(n and not o for n, o in zip(sliced(new), sliced(old))):
             return {**row, "state": "sliced"}
@@ -144,10 +150,13 @@ def apply(work):
         sizes = {r["id"]: r["new"] for r in rows if r["slug"] == slug and r["id"]}
         path = os.path.join(PUB, slug, "parts.json")
         parts = json.load(open(path))
+        cut = {p["id"]: p for p in json.load(open(os.path.join(work, "parts.json")))}
         started = {pid for r in rows if r["slug"] == slug for pid in r.get("parts", [])}
         for p in parts:
             if p["id"] in sizes:
                 p["w"], p["h"] = sizes[p["id"]]
+                if p.get("m") is None and cut.get(p["id"], {}).get("marks"):
+                    p["m"] = cut[p["id"]]["marks"]
             if p["id"] in started:
                 p["st"] = 1
         json.dump(parts, open(path, "w"), ensure_ascii=False, separators=(",", ":"))
@@ -164,7 +173,8 @@ def apply(work):
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if args[:1] == ["compare"]:
-        compare(os.path.abspath(args[1]), args[2:], "--accept-review" in sys.argv)
+        base = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--base=")), None)
+        compare(os.path.abspath(args[1]), args[2:], "--accept-review" in sys.argv, base and os.path.abspath(base))
     elif args[:1] == ["apply"]:
         apply(os.path.abspath(args[1]))
     else:

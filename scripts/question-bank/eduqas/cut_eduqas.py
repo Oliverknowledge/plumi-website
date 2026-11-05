@@ -289,14 +289,45 @@ def qp_labels(doc):
     return out, end_page
 
 
+def ink_row(page, x0, x1, y):
+    """Is there ink on the line y across x0 to x1?"""
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=pymupdf.Rect(x0, y, x1, y + 0.5), colorspace=pymupdf.csGRAY, alpha=False)
+    return bool(pix.samples) and min(pix.samples) < 200
+
+
+def label_top(doc, pg, y):
+    """Where a label's line begins: above the label for a power or fraction beside it, which runs down past its top; or, where what is just above
+    ends within reach of the label (a "[2]", a table's last rule), just below that, so it stays whole on the part above. As cut_pearson.label_top."""
+    f, page = area(doc, pg), doc.doc[pg]
+    top, high = y - 5, y
+    lines = doc.lines(pg)
+    for l in lines:
+        # (Only where the cut goes through ink: a line's box can stand far above its letters, which took in the answer line above.)
+        if f.y0 - 4 <= l["y0"] < y - 5 and l["y1"] > y + 2 and y - l["y0"] < 32 and l["x0"] >= f.x0 - 2 and l["x1"] <= f.x1 + 2 and ink_row(page, l["x0"], l["x1"], y - 5):
+            top, high = min(top, l["y0"] - 3), min(high, l["y0"])
+    drawn = [d["rect"] for d in doc.draws(pg)]
+    pieces = [(l["x0"], l["y0"], l["x1"], l["y1"]) for l in lines] + [tuple(r) for r in drawn]
+    if top < y - 5:  # rising, stop short of what is above: the foot of the line before ("Write 7/100" took in the tails of the instructions over it), a question's closing rule
+        over = [l["y1"] - 1 for l in lines if l["y1"] <= high + 2 and l["x0"] < f.x1 and l["x1"] > f.x0] + [e + 1 for r in drawn if r.width > 300 for e in (r.y0, r.y1) if e <= high]
+        top = max([top] + over)
+    else:  # what the cut would go through and ends within reach of the label goes with the part above, whole: its "[4]", a table's last rule, not a sliver of a question's number over "(a)" here
+        # (Only a number or marks in the margins, a long line or a table's rule: a short piece mid-line can be a fraction's top or a drawn arrow's tip, part of this line.)
+        foot = [y1 + (1 if n >= len(lines) else 0) for n, (x0, y0, x1, y1) in enumerate(pieces)
+                if y0 < top < y1 <= y + 2 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2 and (x1 - x0 >= 160 and (n < len(lines) or y1 - y0 < 3) or n < len(lines) and (x0 <= f.x0 + 50 or x1 >= f.x1 - 40))
+                and ink_row(page, x0, x1, top)]
+        if foot:
+            top = min(max(foot), y)
+    return max(top, f.y0 - 4)
+
+
 def region(doc, start, end, end_page):
     """[(page, rect)] from one label to the next, across pages, skipping blank pages."""
     (pg, y), nxt = start, end
     pieces = []
     while True:
         f = area(doc, pg)
-        top = y - 5 if (pg, y) == start else f.y0
-        bottom = nxt[1] - 5 if nxt and nxt[0] == pg else f.y1
+        top = label_top(doc, pg, y) if (pg, y) == start else f.y0
+        bottom = label_top(doc, nxt[0], nxt[1]) if nxt and nxt[0] == pg else f.y1
         for l in doc.lines(pg):
             # (also Physics Component 3's option headings, "Option B – Medical Physics", above the option's question)
             if (top + 2 < l["y0"] or (pg, y) != start and top - 4 <= l["y0"]) and l["y0"] < bottom and (END.match(l["text"]) or re.match(r"^(SECTION [A-D]\b|Option [A-D]\s*[–-]\s*[A-Z])", l["text"])):

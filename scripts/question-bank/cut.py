@@ -99,6 +99,12 @@ def frame(page, portrait=True):
                     right = min(right, s["bbox"][0] - 5)
                 if MARKS_END.search(t):
                     marks = max(marks, s["bbox"][2] + 0.8)
+    if portrait and right == w - 54 and not any(d["rect"].height > 100 for d in page.get_drawings()):
+        # A specimen draws no frame and prints no margin note, and its lines run on past the frame's place: "[2 mark" and half a sentence were cut at 537pt.
+        # Its page number stands higher than the frame's top reaches too, over a rule: start below that.
+        top = max([top] + [d["rect"].y1 + 1 for d in page.get_drawings() if d["rect"].width > 300 and d["rect"].y0 < 66])
+        ends = [s["bbox"][2] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) for s in l["spans"] if s["text"].strip() and top <= s["bbox"][1] < bottom]
+        return pymupdf.Rect(44, top, min(max([537, marks] + [e + 0.8 for e in ends]), w - 20), bottom - 5)
     if portrait:
         # Inside the answer frame's border lines, so trailing white space can be trimmed; a "[35 marks]" can end just past 537 and lost its bracket (a specimen's page sits further right, and lost more).
         if marks > 537:
@@ -125,17 +131,41 @@ def ms_frame(page):
     return pymupdf.Rect(38, top, w - 38, min(foot) - 2 if foot else h - 76)
 
 
+def ink_row(page, x0, x1, y):
+    """Is there ink on the line y across x0 to x1?"""
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=pymupdf.Rect(x0, y, x1, y + 0.5), colorspace=pymupdf.csGRAY, alpha=False)
+    return bool(pix.samples) and min(pix.samples) < 200
+
+
 def label_top(page, y, f):
     """Where the line a label sits on really begins. An answer box or a fraction beside the label stands taller than it: cropping
     from the label alone left the top of those boxes on the part (or the setup) above and took them off this one (a student
     reported AQA Spanish's "01.1 Clara" and its two boxes as a question cut off, 4 November 2026). The top is the highest text
-    or drawing inside the frame that starts above the label and runs down past its top; a tall rule or a wide box is the frame or a section's heading, not this line."""
+    or drawing inside the frame that starts above the label and runs down past its top; a tall rule or a wide box is the frame or a section's heading, not this line.
+    A numerator or a matrix's top rows stop short of that: a short piece, away from the label and the marks, that the cut would go through counts too, and so does a row just over it."""
     top = y - 6
     spans = [s["bbox"] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) for s in l["spans"]
              if s["text"].strip() and not re.search(r"\bmarks?\]", s["text"])]  # (the part before's "[2 marks]" can sit beside this label)
-    for x0, y0, x1, y1 in spans + [tuple(d["rect"]) for d in page.get_drawings()]:
+    drawn = [tuple(d["rect"]) for d in page.get_drawings()]
+    for x0, y0, x1, y1 in spans + drawn:
         if f.y0 - 4 <= y0 < top and y1 > y + 2 and y - y0 < 40 and y1 - y0 < 70 and x1 - x0 < 300 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2:
             top = min(top, y0 - 3)
+    moved = True
+    while moved:
+        moved = False
+        for x0, y0, x1, y1 in spans + drawn:
+            if f.y0 - 4 <= y0 < top and (y0 < top < y1 and ink_row(page, x0, x1, top) if top == y - 6 else y1 > top - 3) and y - y0 < 45 and y1 - y0 < 70 \
+                    and x1 - x0 < 160 and x0 > f.x0 + 50 and x1 < f.x1 - 40:
+                top, moved = y0 - 3, True
+    if top < y - 6:
+        # Rising, stop below what is the part above's (a whole line, even its "[2 marks]") and a page's frame or a working line,
+        # and go only as far as there is ink: some fonts' boxes reach far above their glyphs, which left a band of white over the question.
+        high = top + 3
+        top = max([top, f.y0 - 4] + [e + 1 for x0, y0, x1, y1 in drawn if x1 - x0 > 300 for e in (y0, y1) if e < high]
+                  + [l["bbox"][3] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) if l["bbox"][3] <= high + 1 and "".join(s["text"] for s in l["spans"]).strip()])
+        pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=pymupdf.Rect(f.x0, top, f.x1, y - 6), colorspace=pymupdf.csGRAY, alpha=False)
+        row = next((r for r in range(pix.height) if min(pix.samples[r * pix.stride:r * pix.stride + pix.width]) < 200), None)
+        top = y - 6 if row is None else min(y - 6, top + row / 2 - 3)
     return max(top, f.y0 - 4)
 
 

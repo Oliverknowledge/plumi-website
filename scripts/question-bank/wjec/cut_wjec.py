@@ -117,8 +117,14 @@ def wjec_frame(page):
     """cut_pearson's frame; where a page draws none (maths, some years' sciences), the text's own margins:
     below the page number, left of the "Examiner only" column."""
     f = pearson_frame(page)
-    if f == pymupdf.Rect(40, 40, page.rect.width - 40, page.rect.height - 50):
+    drawn = f != pymupdf.Rect(40, 40, page.rect.width - 40, page.rect.height - 50)
+    if not drawn:
         f = pymupdf.Rect(50, 76, 541, page.rect.height - 50)
+    # A line can run to the frame's border or a little past that margin, which took the end off its last letter: reach it, but not the column beside it nor the border's own line.
+    ends = [s["bbox"][2] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) for s in l["spans"]
+            if s["text"].strip() and f.y0 < s["bbox"][1] < f.y1 and s["bbox"][0] < f.x1 - 1 and f.x1 < s["bbox"][2] <= f.x1 + 12]
+    if ends:
+        f = pymupdf.Rect(f.x0, f.y0, min(max(ends) + 0.5, f.x1 + 2.7) if drawn else max(ends) + 0.5, f.y1)
     return f
 
 
