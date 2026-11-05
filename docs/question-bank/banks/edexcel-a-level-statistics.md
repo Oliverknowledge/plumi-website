@@ -13,7 +13,7 @@ banks have WST01 to WST03.
 
 | Papers | Sittings | Questions | Scheme crops | Reports |
 | --- | --- | --- | --- | --- |
-| 9ST0/01 Data and Probability, 9ST0/02 Statistical Inference, 9ST0/03 Statistics in Practice (A level, 2 hours, 80 marks), 8ST0/01, 8ST0/02 (AS, 1 hour 30, 60 marks) | 8 (25 papers cut, 2 scanned) | 173 | 173 | 138 |
+| 9ST0/01 Data and Probability, 9ST0/02 Statistical Inference, 9ST0/03 Statistics in Practice (A level, 2 hours, 80 marks), 8ST0/01, 8ST0/02 (AS, 1 hour 30, 60 marks) | 8 (27 papers) | 187 | 187 | 152 |
 
 Every paper's questions add up to its marks: 80 for each 9ST0 paper, 60 for each AS paper. Calculators are allowed
 in every paper, so the bank sets `noCalc` (no calculator filter), as the Maths banks do.
@@ -25,11 +25,16 @@ in every paper, so the bank sets `noCalc` (no calculator filter), as the Maths b
   autumn 2021 is November 2021; both are `NOV20` and `NOV21`, shown as "November", as the Maths banks show
   autumn 2020. June 2019's 9ST0 is the first A level sitting; AS ran in June 2018, June 2019 and October 2020.
 - **Gaps:**
-  - AS June 2019 (8ST0/01 and 8ST0/02) are scanned images with no text layer, so they are in the file list (`wholes`)
-    but not cut. OCR could bring them in (about 12 questions).
   - June 2026 papers and schemes are on Pearson's site for teachers only, so they are not fetched.
   - Pearson published no examiner report for AS October 2020 ("last sitting") or for 9ST0 November 2021
     ("insufficient entries"), so those 35 questions have a scheme crop and no report.
+- **Scanned papers (AS June 2019):** 8ST0/01 and 8ST0/02 June 2019 are scans with no text layer (14 questions).
+  `edexcel_statistics/ocr_scans.py` (macOS only: the Vision framework, `pip install pyobjc-framework-Vision`)
+  writes a copy of each with the recognised lines as invisible text, a question number where Vision missed the digit
+  (found from its "(Total for Question N ..." line), and an underscore line for each ruled answer line (uniform light
+  grey, edge to edge; tables stop short and have dark pixels). `cut_statistics.py` cuts that copy like any other
+  paper; the crops are rendered from the scan and the hosted paper is the original. Both papers' questions add up
+  to 60, and the crops were read by eye. The scheme and report come from their own text layers.
 - **Cutter:** `edexcel_statistics/cut_statistics.py` reuses `cut_edexcel.py` and changes how a question ends,
   because Statistics papers print answer lines after every part (the Maths cutter stops at the first line and
   took only part (a) of 9ST0/01 November 2021 question 4). A question here runs to its "(Total for Question N is M
@@ -48,6 +53,7 @@ in every paper, so the bank sets `noCalc` (no calculator filter), as the Maths b
 ```bash
 python3 scripts/question-bank/edexcel_statistics/fetch_statistics.py <work-dir>
 python3 scripts/question-bank/edexcel_statistics/cut_statistics.py <work-dir>      # about 10 minutes
+# AS June 2019 only: ocr_scans.py <scan.pdf> <ocr-work-dir>/pdf/<same name>.pdf, then cut_statistics.py <ocr-work-dir>, merge its parts.json and img/ in
 python3 scripts/question-bank/edexcel_statistics/tag_statistics.py split <work-dir>   # then tag, then merge
 python3 scripts/question-bank/edexcel_statistics/tag_statistics.py merge <work-dir>
 python3 scripts/question-bank/edexcel_statistics/build_statistics.py <work-dir>
