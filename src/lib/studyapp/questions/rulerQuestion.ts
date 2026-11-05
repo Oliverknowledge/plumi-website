@@ -59,6 +59,9 @@ const CALC_MAG = /\b(?:calculate|work out|determine|find|what is)\b[^.?!]{0,15}\
 const ACTUAL = new RegExp(`\\b(?:calculate|work out|determine|find)\\b[^.?!]{0,30}\\b(?:actual|real|true)\\b[^.?!]{0,10}\\b${LENGTHY}\\b`, "i");
 /** ... of something seen through a microscope or in a numbered figure (not a map's "actual distance", which a grid gives by counting). */
 const MICRO = /\b(?:magnification|magnified|micrograph|microscope|photomicrograph)\b|\bfig(?:ure)?\.? ?\d/i;
+/** "The magnification was x950. Calculate the diameter of cell X in Fig. 4.1": a magnification given, the size on the picture to be measured. */
+const MAG_GIVEN = /\bmagnification\b|\bmagnified\b/i;
+const CALC_SIZE = new RegExp(`\\bcalculate\\b[^.?!]{0,10}\\bthe (?:mean |maximum |actual |real )?${LENGTHY}\\b[^.?!]{0,30}\\b(?:of|between)\\b`, "i");
 /** "How long is the tardigrade in real life?" with a magnification given. */
 const HOW_LONG = /\bhow (?:long|wide|tall|big|large|thick)\b[^.?!]{0,60}\b(?:real life|actually|in real)\b/i;
 /** A picture whose parts are measured (not a bare "Figure 3", which may be a graph or a table). */
@@ -116,6 +119,7 @@ export function rulerRule(words: string | undefined, label?: string): string | n
   if (CALC_MAG.test(t) && !/\bmagnification = ?(?:image|size of image)/i.test(t)) return "calc-magnification";
   if (ACTUAL.test(t) && MICRO.test(all)) return "actual-size";
   if (HOW_LONG.test(t)) return "how-long";
+  if (CALC_SIZE.test(t) && MAG_GIVEN.test(all) && /\bfig(?:ure)?\.? ?\d|\bimage\b|\bmicrograph\b/i.test(all)) return "magnification-given";
   if (TO_SCALE.test(all) && READ_FROM.test(t)) return "to-scale";
   if (LINE_SIZE.test(t)) return "line-size";
   if (INMM.test(t) && PICTURE.test(all)) return "in-mm";
