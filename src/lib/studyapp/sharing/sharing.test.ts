@@ -9,6 +9,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { classify, KEEP_MS, makeLoader } from "./loader";
 import { privacy } from "@/content/legal";
 import type { Api } from "@/lib/social/api";
 import type { ApiError } from "@/lib/social/failure";
@@ -604,5 +605,39 @@ describe("the privacy policy", () => {
   });
   it("has no em dash or en dash", () => {
     assert.doesNotMatch(all, new RegExp("[\\u2014\\u2013]"));
+  });
+});
+
+describe("what the public page does with an answer", () => {
+  const deck = { title: "T", subjectHint: null, cardCount: 1, cards: [{ front: "q", back: "a" }] };
+  it("tells a busy minute apart from a deck that is gone: rate_limited is never the not-shared state", () => {
+    assert.deepEqual(classify({ ok: false, reason: "rate_limited" }), { kind: "crowded" });
+    for (const r of ["not_found", "unavailable", "bad_request"] as ShareReason[]) assert.deepEqual(classify({ ok: false, reason: r }), { kind: "gone" }, r);
+    for (const r of ["offline", "busy", "other"] as ShareReason[]) assert.deepEqual(classify({ ok: false, reason: r }), { kind: "busy" }, r);
+    assert.deepEqual(classify({ ok: true, value: deck }), { kind: "deck", deck });
+  });
+  it("keeps a found deck for 20 seconds only, and never keeps a refusal", async () => {
+    let t = 1000, reads = 0;
+    let answer: Parameters<typeof classify>[0] = { ok: true, value: deck };
+    const load = makeLoader(async () => { reads++; return answer; }, () => t);
+    assert.equal((await load(CODE)).kind, "deck");
+    t += KEEP_MS - 1;
+    assert.equal((await load(CODE)).kind, "deck");
+    assert.equal(reads, 1, "kept");
+    t += 2;
+    answer = { ok: false, reason: "not_found" };
+    assert.equal((await load(CODE)).kind, "gone");
+    assert.equal(reads, 2, "a stopped deck is gone once the 20 seconds are up");
+    assert.equal((await load(CODE)).kind, "gone");
+    assert.equal(reads, 3, "a refusal is read again each time");
+    answer = { ok: false, reason: "rate_limited" };
+    await load("other0000000000"); await load("other0000000000");
+    assert.equal(reads, 5);
+    assert.ok(KEEP_MS <= 30_000);
+  });
+  it("keeps each code apart", async () => {
+    const load = makeLoader(async () => ({ ok: true as const, value: deck }), () => 0);
+    await load(CODE);
+    assert.equal((await load("zz3def6hjk9mnp2q")).kind, "deck");
   });
 });

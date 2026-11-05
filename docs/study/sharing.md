@@ -52,7 +52,11 @@ a test lists a deck's fields so that a new kind of deck forces a decision in `ca
   the code in `plumi-shared-added`, so the same link says "Already in your decks" until the copy is deleted. "Open my decks" goes to
   the app's flashcards page, which has its usual sign-in door.
 * **Report this deck**: three reasons, `report_shared_deck`, one confirmation line.
-* A deck that is unknown, stopped, hidden, rate limited, or a project that has not had the migration: "This deck is not shared any
+* A busy minute (`rate_limited`: the database throttles per caller, and every server render comes from the site's own address) shows
+  "Lots of people are looking right now. Try again in a minute." with Try again, never the not-shared wording.
+* A found deck is kept 20 seconds per server instance and code (`loader.ts`) to spare the database, so a stopped link can still open for
+  up to 20 seconds. Refusals are never kept. The HTTP response itself stays `no-store`.
+* A deck that is unknown, stopped, hidden, or a project that has not had the migration: "This deck is not shared any
   more." with a button to the app. A connection that fails shows "This deck is taking a nap." with Try again.
 
 ### Until the migration is applied

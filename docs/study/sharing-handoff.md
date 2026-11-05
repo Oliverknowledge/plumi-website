@@ -66,6 +66,6 @@ these functions, so whether the App Store answer must change is the founder's ca
 * Report reasons sent are `not_school_work`, `rude`, `other` (the contract takes free text).
 * `Cache-Control: private, no-store` on `/d/:code` and `force-dynamic` in production need a look on a Vercel preview.
 * If a browser blocks storage, Add to my decks works for the visit only.
-* The server allows 60 successful lookups a minute per caller; beyond that the page shows the not-shared state.
+* The server allows 60 successful lookups a minute per caller, and all server renders share one address: beyond that the page shows "Lots of people are looking right now" (not the not-shared wording). A found deck is kept 20 seconds per server instance to spare it, so a stopped link can open for up to 20 seconds.
 
 Paid model calls: 0.

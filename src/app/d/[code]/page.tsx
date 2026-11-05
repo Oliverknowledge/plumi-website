@@ -24,6 +24,6 @@ export default async function SharedDeckPage({ params }: Props) {
   const code = normaliseCode((await params).code);   // the database ignores case and spaces; so does the page
   if (!isShareCode(code)) return <NotShared />;
   const r = await loadSharedDeck(code);
-  if (r.kind !== "deck") return <NotShared busy={r.kind === "busy"} />;
+  if (r.kind !== "deck") return <NotShared variant={r.kind} />;
   return <SharedDeckView code={code} deck={r.deck} />;
 }
