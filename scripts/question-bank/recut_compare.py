@@ -5,8 +5,8 @@
     python3 scripts/question-bank/recut_compare.py compare <work-dir> <slug> [...]
     python3 scripts/question-bank/recut_compare.py apply <work-dir>
     python3 scripts/question-bank/upload_data.py <slug> [...]            # then commit the metas
-    python3 scripts/question-bank/upload_r2.py <work-dir>/changed --crops-only --checksum    # just before the merge, never days ahead and never after
-    python3 scripts/question-bank/recut_compare.py verify <work-dir>/changed                 # every crop's ETag, then merge
+    python3 scripts/question-bank/upload_r2.py <work-dir>/changed --crops-only --checksum    # just before the deploy, never hours ahead and never after
+    python3 scripts/question-bank/recut_compare.py verify <work-dir>/changed                 # every crop's ETag, then merge and npm run deploy
 
 `compare` reads each question and setup crop the bank has live (through the storage API: the public r2.dev address
 is rate limited, and students use it) and sets each against the new cut:

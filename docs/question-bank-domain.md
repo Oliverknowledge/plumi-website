@@ -53,7 +53,7 @@ The steps below use `papers.plumi.study`.
 **Vercel**
 
 8. Settings > Environment Variables: set `NEXT_PUBLIC_PAPERS_URL` to `https://papers.plumi.study` for Production and Preview.
-   It's compiled in, so it takes effect at the next production build. Set it just before the next batched merge and it costs no
+   It's compiled in, so it takes effect at the next production build. Set it just before the next `npm run deploy` and it costs no
    extra build. That build fetches about 137 banks' lists afresh, as their addresses change.
 
 **Afterwards**

@@ -1,5 +1,22 @@
 # Deploying the community-first Plumi website
 
+## How a change goes live
+
+Merging to `main` doesn't deploy. Vercel's production site follows the `production` branch, so a change goes live when `main` is pushed there:
+
+```bash
+npm run deploy:pending   # what would go out
+npm run deploy           # one production build, 5 to 9 minutes
+```
+
+Deploy a couple of times a day, or straight away for a hotfix: merge the fix, then deploy. Every merge since the last deploy goes out in that one build, and builds queue one at a time.
+
+`production` only ever receives `main`, so `npm run deploy` is a fast-forward. If the push is refused, someone has committed to `production` directly: bring that commit into `main` through a PR rather than forcing the push.
+
+To undo a bad deploy, use Vercel's Instant Rollback. It takes seconds and needs no build. Then fix `main` and deploy again.
+
+To go back to deploying on every merge, set Vercel's production branch to `main` first, then remove `"main": false` from `vercel.json`. In that order, because with `"main": false` still set while `main` is the production branch, nothing deploys.
+
 ## Existing production architecture — unchanged
 This is the existing Next.js16 / React19 / TypeScript app, intended for Vercel. The rebuild does not introduce FastAPI, MongoDB, a separate backend, an animation framework or a CMS.
 
