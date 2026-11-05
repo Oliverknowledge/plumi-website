@@ -55,6 +55,15 @@ Component 2"), and the October–November 2020 and 2021 sittings are "Autumn" (`
 - **Tagging:** `eduqas/tag_eduqas.py split|merge`, briefed by tag.md's Eduqas section.
   Moments, equilibrium and centre of gravity are Physics 1.1 (Basic physics) in this
   specification; `tag/overrides.json` puts 16 parts one reader had under Dynamics there.
+- **Tag corrections:** until November 2026 the topics file readers tag from hid much of the
+  specification. The split clipped each topic at 1,500 characters, missed Chemistry's
+  "understanding of" (printed without a colon, so its clip was spent on the overview), and kept
+  only the last block of Biology's options; `spec_eduqas.py` cut every topic at 4,000 first. All
+  four are fixed. An audit moved 28 live parts, listed in `eduqas/corrections.json`, which `merge`
+  keeps: 5 to Physics 3.2 (stationary waves), 3 to Biology 3.2 (xerophytes and hydrophytes), 2 to
+  Biology 1.5 (eutrophication), 9 to Chemistry `OA4` (high resolution NMR), 5 to `PI2.1` and 4 to
+  `PI2.2`. It rests on a term search over the hidden statements, not a full re-tag, and left the
+  parts it was less sure of as they were.
 - **Practicals:** Eduqas's schemes give each part's practical-skills marks in a "Prac"
   column (`prac` in parts.json). `eduqas/practical_candidates.py` adds those the usual
   net misses to practicals.py's batches; every candidate (1,691) was judged by the usual

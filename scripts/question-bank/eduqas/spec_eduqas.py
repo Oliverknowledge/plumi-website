@@ -147,7 +147,7 @@ def main():
         for t in topics:
             t["ref"] = t["code"]
             t["year"] = 3 if t.pop("option", False) else 1 if norm(t["title"]) in as_set else 2
-            t["text"] = clean(t["text"])[:4000]
+            t["text"] = clean(t["text"])
         out[subject] = {"sections": sections, "topics": topics}
         print(f"{subject}: {len(sections)} sections, {len(topics)} topics, {sum(1 for t in topics if t['year'] == 1)} AS, "
               f"{sum(1 for t in topics if not t['text'])} without text", file=sys.stderr)
