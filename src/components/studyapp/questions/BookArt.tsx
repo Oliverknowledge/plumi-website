@@ -252,7 +252,7 @@ const TickStamp = () => (
     <path d="M17 33l10.500 11.500L48 19" strokeWidth="6.500" />
   </svg>
 );
-export const SETUP_ART = { TickStamp, mascot: "/study/mascot/plumi-welcoming.svg", bubble: "Pick up your books!" } as const;
+export const SETUP_ART = { TickStamp, mascot: "/study/mascot/plumi-welcoming.svg", bubble: "Tick your subjects." } as const;
 
 /* ── the desk: the doodles in the margin of the ruled page (positions are `.qk-d-*` in the CSS) ──────── */
 const Star = () => (

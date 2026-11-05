@@ -132,7 +132,7 @@ function Running({ doc, session, view, now }: { doc: TimerDoc; session: TimerSes
         {(view === "break" || view === "over") && <button type="button" className="btn" onClick={() => timer.extendBreak()} data-testid="timer-plus5">+5 min</button>}
         {view === "work" && <button type="button" className="btn gold" onClick={() => timer.pause()} data-testid="timer-pause">Pause</button>}
         {view === "paused" && <button type="button" className="btn gold" onClick={() => timer.resume()} data-testid="timer-resume">Resume</button>}
-        {view === "work" && canFinishPage(s, now) && <button type="button" className="btn" onClick={() => timer.finishPage()} data-testid="timer-finish">Finish page</button>}
+        {view === "work" && canFinishPage(s, now) && <button type="button" className="btn" onClick={() => timer.finishPage()} data-testid="timer-finish">Start break now</button>}
         {view !== "over" && view !== "break" && <button type="button" className="btn" onClick={() => timer.stop()} data-testid="timer-stop">Stop</button>}
         {(view === "break" || view === "over") && <button type="button" className="btn ghost" onClick={() => timer.stop()} data-testid="timer-stop">Stop</button>}
       </div>

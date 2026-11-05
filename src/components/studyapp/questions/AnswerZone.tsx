@@ -156,7 +156,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
           ) : (
             <span className="qs-zone-tools">
               <button type="button" className="qs-mini qs-icon" onClick={more} disabled={base >= ZONE_MAX_H} title="More space" aria-label="More space"><ExpandIcon /></button>
-              {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Reset</button>}
+              {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Clear answer</button>}
             </span>
           )}
         </div>}
