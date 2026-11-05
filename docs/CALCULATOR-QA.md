@@ -167,8 +167,78 @@ checks selected results, not every pixel/state or equivalence to physical hardwa
   model package for the entire test set.
 - No Safari, Firefox, real iPhone/Android, long-session, or performance audit.
 - The LCD remains a canvas without spoken mathematical output.
-- Calculator RAM persists within the mounted bank page, not across refresh or
-  navigation. This behaviour is documented rather than treated as saved progress.
+- Calculator RAM persists across client-side navigation through the shared root
+  layout, but not across refreshes or full-page navigation.
 
 The engine licensing clarification already recorded in `CALCULATOR.md` and
 `docs/CALCULATOR-NOTICE.md` remains separate from this functional audit.
+
+## Site-wide launcher update
+
+- Moved the existing edge-tab calculator into the root layout and its styles
+  into a dedicated global stylesheet. Removed the bank-only instance and
+  subject eligibility restriction.
+- Browser checks covered the homepage, question-bank index, AQA GCSE Maths
+  bank and past-paper index. Each page had one launcher; `8 × 7 = 56` survived
+  client-side navigation and minimising/reopening.
+- At 390 × 844, the past-paper launcher and open calculator fitted the viewport.
+- Lint, TypeScript, calculator runtime/56 firmware checks and bank consistency
+  checks passed. Browser checks used webpack because the local Turbopack dev
+  server failed to resolve its internal Google font loader.
+
+## PR #189 loading and embed follow-up — 5 November 2026
+
+The shared layout now renders a small launcher inside `SiteOnly`. Clicking it
+imports the panel, its drag hook and its stylesheet. Only then is the calculator
+iframe created, which loads its emulator scripts, worker, ROM and WebAssembly.
+The 219,895-byte WASM file is never referenced by the initial route bundles.
+The mounted panel still retains its state across normal site navigation.
+Partner `/embed/` routes, shared decks and study app routes follow the existing
+`SiteOnly` exclusions and do not mount the launcher or panel.
+
+### Homepage first-load JavaScript
+
+| Revision | Raw bytes | Sum of gzip bytes |
+| --- | ---: | ---: |
+| Before PR, `b108f6e` | 790,965 | 233,522 |
+| Original PR, `4a92f2a` | 797,081 | 235,606 |
+| With on-demand panel | 792,710 | 234,285 |
+
+The final addition over the baseline is **1,745 raw bytes / 763 gzip bytes**
+(0.33% compressed). This is the launcher, copy and async chunk-loading glue;
+adding a working launcher has a small nonzero initial cost. The panel code is
+in a separate 5,785-byte / 2,123-byte gzip chunk, absent from the initial script
+list. Its CSS is also absent until first open. Initial homepage CSS increased
+from 100,415 raw / 22,783 gzip bytes to 100,951 raw / 22,899 gzip bytes: the
+launcher and always-available print exclusion cost **116 gzip bytes**.
+
+Method: production webpack builds with `next build --webpack
+--experimental-build-mode compile`, served with `next start`. Summed each
+unique external `/_next/` script in the homepage HTML, excluding the `nomodule`
+polyfill; measured raw file lengths and `node:zlib.gzipSync` separately per file.
+These are local route-bundle sizes, not a CDN transfer or timing measurement;
+unchanged third-party analytics and inline RSC/bootstrap data are outside this
+comparison. Baseline and final builds were repeated with clean webpack caches.
+All builds used the same local font-fixture configuration because the normal
+Google font URLs failed the local Next font loader; no font or build-config
+changes are committed. Fixtures affect font/CSS output, not calculator code.
+
+### Browser and print checks
+
+- Production homepage: no calculator iframe before opening; after clicking,
+  the dialog and working emulator appear and the separate panel stylesheet is
+  added. Minimise/reopen and keyboard activation work.
+- Visited `/embed/question-bank/aqa-gcse-maths/ordering-numbers?ref=examnoob`
+  after using the calculator: correct question content, **zero launchers,
+  zero panels and zero iframes**. Checked the embed route directly; partner
+  framing permissions and CSP were not changed.
+- Inspected the loaded stylesheet: `@media print` hides both `.qb-calculator`
+  and `.qb-calculator-restore` with `display: none !important`, even before the
+  lazy panel styles load. No physical-printer check was performed.
+- Downloaded question 1 from AQA GCSE Maths while the calculator was open.
+  The PDF was **102,741 bytes, two A4 pages, no embedded JavaScript**. Rendered
+  and visually checked both the question and mark-scheme pages: neither
+  contains calculator controls or artwork. The PDF builder is unchanged and
+  constructs pages from question crops and data, independently of page DOM.
+- Full lint, typecheck, 16 PDF tests, calculator runtime checks, all 56 firmware
+  checks, and `bank:status -- --check` (137 banks, zero problems) passed.

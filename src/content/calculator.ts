@@ -1,4 +1,4 @@
-/** Copy and model selection for the question-bank calculator. */
+/** Copy and model selection for the site-wide calculator. */
 export const calculator = {
   label: "Calculator",
   open: "Open ClassWiz calculator",
@@ -14,11 +14,5 @@ export const calculator = {
   error: "The calculator couldn’t start. Please try again.",
   retry: "Try again",
   minimise: "Minimise calculator",
-  hint: "Tap the keys or click the calculator and use your keyboard. Esc minimises it. Your work stays here while you browse these questions.",
+  hint: "Tap the keys or click the calculator and use your keyboard. Esc minimises it. Your work stays here while you browse the site.",
 } as const;
-
-export function offersCalculator(subject: string) {
-  // Quantitative revision subjects, including statistics and applied calculations.
-  // This is a revision aid, not a statement of each paper's exam-room rules.
-  return /^(Maths|Further Maths|Additional Maths|Physics|Chemistry|Biology|Combined Science|Psychology|Economics|Business|Geography|Computer Science|Engineering Manufacture|Physical Education|Food Preparation and Nutrition|Design and Technology|Sociology)( [AB])?$/.test(subject);
-}

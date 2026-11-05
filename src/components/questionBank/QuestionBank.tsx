@@ -11,8 +11,6 @@ import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
 import { ChoiceQuiz } from "./ChoiceQuiz";
-import { offersCalculator } from "@/content/calculator";
-import { Calculator } from "./Calculator";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -896,7 +894,6 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       </section>
 
       <SetTray subject={subject} set={set} parts={parts} />
-      {offersCalculator(subject.subject) && <Calculator />}
       <ZoomViewer />
       {choicePool.length > 1 && <ChoiceQuiz subject={subject} pool={choicePool} open={quiz} onClose={() => setQuiz(false)} />}
     </div>

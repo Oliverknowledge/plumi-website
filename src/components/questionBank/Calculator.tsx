@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { calculator as copy } from "@/content/calculator";
 import { useCalculatorDrag } from "./useCalculatorDrag";
+import "@/app/calculator.css";
 
 type Status = "loading" | "ready" | "error";
 
 /** The runtime is fetched only on first open. Hiding the panel preserves its RAM. */
 export function Calculator() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(true);
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<Status>("loading");
   const trigger = useRef<HTMLButtonElement>(null);
@@ -84,7 +85,7 @@ export function Calculator() {
             {status !== "error" && <iframe key={attempt} ref={frame} title={copy.frameTitle} src={copy.src} className="qb-calculator-frame" />}
             {status !== "ready" && <div className="qb-calculator-status" role="status">
               <p>{status === "error" ? copy.error : copy.loading}</p>
-              {status === "error" && <button type="button" className="lp-btn" onClick={() => { setStatus("loading"); setAttempt(value => value + 1); }}>{copy.retry}</button>}
+              {status === "error" && <button type="button" className="qb-calculator-retry" onClick={() => { setStatus("loading"); setAttempt(value => value + 1); }}>{copy.retry}</button>}
             </div>}
           </div>
           <p id="qb-calculator-hint" className="sr-only">{copy.hint}</p>
