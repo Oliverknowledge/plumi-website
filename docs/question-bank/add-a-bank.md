@@ -1,8 +1,8 @@
 # Adding a question bank
 
 The steps every new bank has followed, so a session can start here instead of working them out again.
-`docs/seo/question-bank.md` has the history and each bank's own notes. `scripts/question-bank/tag.md` has the
-tagging brief.
+`docs/seo/question-bank.md` has what every bank shares and `docs/question-bank/banks/` each bank's own notes.
+`scripts/question-bank/tag.md` has the tagging brief and `scripts/question-bank/tag/` each bank's additions to it.
 
 ## 1. Before you start
 
@@ -32,18 +32,37 @@ Keep each option a separate paper, so students can filter to the ones they study
 
 ## 3. Register it
 
-These are the files every bank touches, and the ones most likely to conflict with a parallel bank. Keep your
-edits small, and merge `origin/main` before opening the PR.
+There's nothing to register: a meta in `src/content/questionBank/` is a live bank. `scripts/question-bank/bank-registry.mjs`
+finds it and writes the gitignored `src/content/questionBank.generated.ts`, whenever `next` starts and before
+`npm run typecheck`. In a dev server that's already running, `npm run bank:registry` picks up a new meta. The bank's
+search query, `<board> <level> <subject> questions by topic`, goes in the keyword map from the meta too. A new bank goes
+after the existing ones, by slug, wherever the site's lists aren't sorted.
+
+A bank only adds its own files, so parallel banks can't conflict:
+
+| File | What it holds |
+| --- | --- |
+| `src/content/questionBank/<slug>.json` | written by your builder |
+| `docs/question-bank/banks/<slug>.md` | the bank's notes: series, counts, gaps, how it was built |
+| `scripts/question-bank/tag/<slug>.md` | how its tagging differs from the brief in `tag.md` |
+| `scripts/question-bank/<board_subject>/` | its pipeline |
+
+Several banks built together can share one notes file, named for the group, with a line listing their slugs as
+`docs/question-bank/banks/ocr-b-sciences.md` does. `bank:status -- --check` fails a bank with no notes.
+
+Don't edit `questionBank.ts`, `routes.ts`, `tag.md` or `docs/seo/question-bank.md` for a bank. Only a new subject touches
+shared code, and both of these are optional, because each has a default:
 
 | File | What to add |
 | --- | --- |
-| `src/content/questionBank.ts` | the import, the name in `bankSubjects`, the header comment, and the subject in `BankSubject` if it's new |
-| `src/content/questionBank/<slug>.json` | written by your builder |
-| `src/config/routes.ts` | the bank's search queries in `secondaryQueries` |
-| `src/components/cosy/Book.tsx` | a colour, if the subject is new |
-| `src/components/questionBank/QuestionBank.tsx` | a search placeholder, if the subject is new |
-| `scripts/question-bank/tag.md` | the bank's tagging notes |
-| `docs/seo/question-bank.md` | the bank's section: series, counts, gaps |
+| `src/components/cosy/Book.tsx` | a colour |
+| `src/components/questionBank/QuestionBank.tsx` | a search placeholder |
+
+A new board or level does need `questionBank.ts`, for its type and `bankOwner`, and the sort orders in `BankPages.tsx`
+and `CosyHome.tsx`.
+
+Started your branch before this rule, and it conflicts on those files? Take `origin/main`'s version of each, then move
+your additions to your bank's own files.
 
 Link to the bank's past paper library page and back, if it has one.
 

@@ -2,9 +2,9 @@
 
     npm run bank:status                     # every bank, by board and level, with the totals
     npm run bank:status -- ocr economics    # the banks matching all those words, and open PRs that mention them
-    npm run bank:status -- --check          # are the metas sound and registered? exits 1 if not (CI runs this)
+    npm run bank:status -- --check          # are the metas sound, with notes? exits 1 if not (CI runs this)
 
-It reads this checkout's src/content/questionBank/*.json and questionBank.ts, so a stale checkout gives a
+It reads this checkout's src/content/questionBank/*.json, so a stale checkout gives a
 stale answer: it says when the checkout is behind origin/main as last fetched. Open PRs come from `gh`,
 and are skipped with a note where it isn't available. Needs nothing installed.
 """
@@ -13,7 +13,8 @@ import glob, json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 META = os.path.join(ROOT, "src", "content", "questionBank")
-REGISTRY = os.path.join(ROOT, "src", "content", "questionBank.ts")
+TYPES = os.path.join(ROOT, "src", "content", "questionBank.ts")
+NOTES = os.path.join(ROOT, "docs", "question-bank", "banks")
 REQUIRED = ("slug", "board", "level", "subject", "topics", "papers", "series", "count")
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 
@@ -28,16 +29,24 @@ def metas():
     return out
 
 
-def registered():
-    """(file name: import name, the names in bankSubjects), from questionBank.ts."""
-    source = open(REGISTRY).read()
-    imports = {file: name for name, file in re.findall(r'^import (\w+) from "\./questionBank/([^"]+)\.json";', source, re.M)}
-    subjects = re.search(r"export const bankSubjects = \[([^\]]*)\]", source)
-    return imports, set(re.findall(r"\w+", subjects.group(1))) if subjects else set()
+def allowed(field):
+    """The values questionBank.ts's BankSubject allows for a field. Importing a meta doesn't check them."""
+    return set(re.findall(r'"([^"]+)"', re.search(rf'^  {field}: (.+);$', open(TYPES).read(), re.M).group(1)))
+
+
+def with_notes():
+    """The banks with notes: a file named for the bank, or one listing it on its "Banks:" line."""
+    out = set()
+    for path in glob.glob(os.path.join(NOTES, "*.md")):
+        out.add(os.path.basename(path)[:-3])
+        for line in open(path, encoding="utf8"):
+            if line.startswith("Banks: "):
+                out.update(re.findall(r"`([^`]+)`", line))
+    return out
 
 
 def problems(banks):
-    imports, subjects = registered()
+    boards, levels, notes = allowed("board"), allowed("level"), with_notes()
     out = []
     for file, meta in banks.items():
         slug = meta["slug"]
@@ -46,15 +55,14 @@ def problems(banks):
         for key in REQUIRED:
             if not meta.get(key):
                 out.append(f"{slug}: no {key}")
+        if meta.get("board") not in boards:
+            out.append(f"{slug}: board {meta.get('board')} isn't one questionBank.ts knows")
+        if meta.get("level") not in levels:
+            out.append(f"{slug}: level {meta.get('level')} isn't one questionBank.ts knows")
         if not (meta.get("data") or {}).get("parts"):
             out.append(f"{slug}: no data hashes, so `next build` stops at its topic pages (run upload_data.py {slug})")
-        if file not in imports:
-            out.append(f"{slug}: not imported in questionBank.ts")
-        elif imports[file] not in subjects:
-            out.append(f"{slug}: imported in questionBank.ts but not in bankSubjects")
-    for file in imports:
-        if file not in banks and not os.path.exists(os.path.join(META, f"{file}.json")):
-            out.append(f"{file}: imported in questionBank.ts but its meta is missing")
+        if slug not in notes:
+            out.append(f"{slug}: no notes (write docs/question-bank/banks/{slug}.md)")
     return out
 
 

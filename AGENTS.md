@@ -63,7 +63,7 @@ Passing checks don't prove a page works. Look at UI changes in a browser, and wa
 - **Migrations:** files in `supabase/migrations` are numbered, so only one task adds one at a time. Renumber before merging if another landed first.
 - **Dependencies:** don't add or upgrade any unless the task says so. Use npm: `package-lock.json` is the lockfile to change. `next` can rewrite `yarn.lock` locally, so don't commit that.
 - **Global styles:** take care with `src/app/globals.css` and `src/app/layout.tsx`, which reach every page.
-- **Bank registration:** `questionBank.ts`, `routes.ts`, `tag.md` and `docs/seo/question-bank.md` change with every bank, so merge `origin/main` before opening a bank's PR.
+- **Bank registration:** there is none to collide on. A bank's meta in `src/content/questionBank/` registers it, and its notes go in its own files. Don't edit `questionBank.ts`, `routes.ts`, `tag.md` or `docs/seo/question-bank.md` for a bank. If `questionBank.generated.ts` is missing or a new bank doesn't show, run `npm run bank:registry`.
 
 ## Question bank files
 

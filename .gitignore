@@ -58,6 +58,8 @@ scripts/past-papers/.cache/
 scripts/question-bank/.work/
 # local copies of our papers and crops, served at /papers-local in development (R2 in production)
 public/papers-local
+# the list of banks, written from src/content/questionBank/*.json (scripts/question-bank/bank-registry.mjs)
+src/content/questionBank.generated.ts
 # the question bank's data, which the builders write here: the site reads it from R2 (scripts/question-bank/upload_data.py)
 public/question-bank/
 scripts/question-bank/.work-edexcel/

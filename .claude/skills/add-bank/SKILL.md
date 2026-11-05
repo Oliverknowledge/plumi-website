@@ -5,7 +5,7 @@ description: Add a new question bank for a UK exam board and subject, or extend 
 
 # Add a question bank
 
-Follow `docs/question-bank/add-a-bank.md`. It has the steps, the files to register and the checks.
+Follow `docs/question-bank/add-a-bank.md`. It has the steps, the files a bank owns and the checks.
 
 1. Run `npm run bank:status -- <board> <level> <subject>` first. If the bank is live or has an open PR, say so and stop.
 2. Build it from the closest existing bank, then run `npm run bank:check -- <slug> --img <work-dir>/img`.
