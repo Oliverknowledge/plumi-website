@@ -118,7 +118,7 @@ export function FlashcardsPage() {
           <SidePanel
             scope={scope} onScope={(s, pointer) => { setScopeRaw(s); reset(); if (pointer) showPane("fc-desk", false); }} source={source} ticked={ticked}
             onTick={tick} onClearTicks={() => setTicked([])} onReviewTicked={() => showPane("fc-desk")}
-            onPickDeck={pickDeck} onPickSession={pickSession} onEdit={edit}
+            onPickDeck={pickDeck} onPickSession={pickSession} onEdit={edit} onShare={(id) => setSheet({ kind: "share", deckId: id })}
             onImport={() => setSheet({ kind: "import" })} onNewDeck={() => setSheet({ kind: "newdeck" })} onStarters={() => setSheet({ kind: "starters" })} onShared={() => setSheet({ kind: "shared" })}
           />
         </div>
@@ -128,6 +128,7 @@ export function FlashcardsPage() {
             key={view.key} label={view.label} deckIds={view.ids} expanded={expanded} hidden={!!editingDeck} keysOn={!sheet}
             onToggleExpand={() => { setExpanded((e) => !e); showPane("fc-desk"); }}
             onAddCard={(current) => setSheet({ kind: "card", current })}
+            onShare={(id) => setSheet({ kind: "share", deckId: id })}
             onStarters={() => setSheet({ kind: "starters" })}
             onBackToToday={atToday ? undefined : reset}
           />

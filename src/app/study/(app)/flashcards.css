@@ -52,6 +52,10 @@
 .pa .known i { display: block; height: 100%; background: var(--good); }
 .pa .row-more { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; font: 800 20px/1 var(--f-body); color: var(--soft); cursor: pointer; }
 .pa .row-more:hover { background: var(--card2); color: var(--ink); }
+.pa .dbox.can-share { grid-template-columns: 40px minmax(0, 1fr) 34px 40px 40px; }
+.pa .row-more.share { color: var(--ink); border: 2px solid var(--line); background: var(--card); width: 36px; height: 36px; }
+.pa .row-more.share:hover { background: #fff3cf; border-color: var(--ink); }
+@media (pointer: coarse) { .pa .row-more.share { width: 44px; height: 44px; } .pa .dbox.can-share { grid-template-columns: 40px minmax(0, 1fr) 34px 44px 44px; } }
 .pa .sess { grid-template-columns: minmax(0, 1fr) 34px 40px; background: var(--t-fm); padding-left: 10px; border-color: #b9a8dc; }
 .pa .sess.on { background: #fff4d2; }
 .pa .sess small { color: #3a4666; }
@@ -96,6 +100,8 @@
 .pa .dsk-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
 .pa .dsk-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 0 14px; border: 2px solid var(--wood-ink); border-radius: 12px; background: var(--card); box-shadow: 0 3px 0 var(--wood-ink); font: 600 18px var(--f-px); color: var(--ink); cursor: pointer; white-space: nowrap; }
 .pa .dsk-btn.icon { padding: 0; }
+.pa .dsk-right { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 420px) { .pa .dsk-share span { display: none; } .pa .dsk-share { padding: 0; } }
 .pa .dsk-btn:hover { background: #fff3cf; }
 .pa .dsk-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-ink); }
 .pa .dsk-pill { justify-self: center; display: inline-flex; align-items: center; gap: 10px; max-width: 100%; min-height: 44px; padding: 0 16px; border: 2px solid var(--wood-ink); border-radius: 12px; background: var(--card); box-shadow: 0 3px 0 var(--wood-ink); }

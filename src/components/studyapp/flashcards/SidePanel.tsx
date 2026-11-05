@@ -5,6 +5,7 @@ import { useNow } from "@/lib/studyapp/clock";
 import {
   deckStats, dueNow, SESSION_NAME_MAX, subjectColour, subjectsInUse, suggestSessionName, type AppData, type Deck, type Session,
 } from "@/lib/studyapp/model";
+import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
 
@@ -44,11 +45,11 @@ function NameForm({ initial, label, submit, onSubmit, onCancel, onDelete }: { in
 }
 
 export function SidePanel({
-  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onImport, onNewDeck, onStarters, onShared,
+  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onShare, onImport, onNewDeck, onStarters, onShared,
 }: {
   scope: string; onScope: (s: string, pointer: boolean) => void; source: Source; ticked: string[];
   onTick: (id: string, on: boolean) => void; onClearTicks: () => void; onReviewTicked: () => void;
-  onPickDeck: (id: string) => void; onPickSession: (id: string) => void; onEdit: (id: string) => void;
+  onPickDeck: (id: string) => void; onPickSession: (id: string) => void; onEdit: (id: string) => void; onShare: (id: string) => void;
   onImport: () => void; onNewDeck: () => void; onStarters: () => void; onShared: () => void;
 }) {
   const { data } = useApp();
@@ -92,12 +93,13 @@ export function SidePanel({
     );
   };
 
+  const canShareIt = (d: Deck) => sharing.available && canShare(d);
   const deckRow = (d: Deck) => {
     const st = now ? deckStats(data, d.id, now) : { total: 0, due: 0, fresh: 0, learning: 0, mature: 0 };
     const on = source.kind === "deck" && source.id === d.id;
     const checked = ticked.includes(d.id);
     return (
-      <li key={d.id} className={`dbox${on ? " on" : ""}${checked ? " ticked" : ""}`} data-testid="deck-row">
+      <li key={d.id} className={`dbox${on ? " on" : ""}${checked ? " ticked" : ""}${canShareIt(d) ? " can-share" : ""}`} data-testid="deck-row">
         <label className="tick">
           <input type="checkbox" checked={checked} onChange={(e) => onTick(d.id, e.target.checked)} data-testid="deck-tick" />
           <span className="sr">Mix {d.title}</span>
@@ -108,6 +110,11 @@ export function SidePanel({
           <span className="known" aria-hidden="true"><i style={{ width: `${st.total ? Math.round((st.mature / st.total) * 100) : 0}%` }} /></span>
         </button>
         {st.due > 0 ? <span className="due-n" role="img" aria-label={`${st.due} due`}>{st.due}</span> : <span aria-hidden="true" />}
+        {canShareIt(d) && (
+          <button type="button" className="row-more share" onClick={() => onShare(d.id)} aria-label={`${sharing.codeFor(d.id) ? "Shared: manage" : "Share"} ${d.title}`} title={sharing.codeFor(d.id) ? "Shared" : "Share this deck"} data-testid="deck-share">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square"><path d="M8 10V1.5M4.5 5L8 1.5 11.5 5M2.5 8.5v6h11v-6" /></svg>
+          </button>
+        )}
         <button type="button" className="row-more" onClick={() => onEdit(d.id)} aria-label={`Edit ${d.title}`} data-testid="deck-edit"><span aria-hidden="true">&#8943;</span></button>
       </li>
     );
