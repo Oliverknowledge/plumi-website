@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
 
 type Point = { x: number; y: number };
 type Drag = { id: number; start: Point; origin: Point; moved: boolean };
@@ -11,7 +11,6 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
   const position = useRef<Point | null>(null);
   const gesture = useRef<Drag | null>(null);
   const ignoreClick = useRef(false);
-  const [dragging, setDragging] = useState(false);
 
   const place = useCallback((point: Point) => {
     const element = ref.current;
@@ -44,6 +43,9 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
     const rect = ref.current.getBoundingClientRect();
     ignoreClick.current = false;
     gesture.current = { id: event.pointerId, start: { x: event.clientX, y: event.clientY }, origin: { x: rect.x, y: rect.y }, moved: false };
+    // Disable iframe hit-testing before the first move. Waiting for a React
+    // render after movement can let the iframe interrupt native capture.
+    ref.current.dataset.dragging = "true";
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
@@ -52,7 +54,7 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
     if (!drag || drag.id !== event.pointerId) return;
     const dx = event.clientX - drag.start.x, dy = event.clientY - drag.start.y;
     if (!drag.moved && Math.hypot(dx, dy) < 6) return;
-    if (!drag.moved) { drag.moved = true; setDragging(true); }
+    drag.moved = true;
     event.preventDefault();
     place({ x: drag.origin.x + dx, y: drag.origin.y + dy });
   };
@@ -61,7 +63,7 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
     if (gesture.current?.id !== event.pointerId) return;
     ignoreClick.current = gesture.current.moved;
     gesture.current = null;
-    setDragging(false);
+    if (ref.current) delete ref.current.dataset.dragging;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
@@ -76,7 +78,7 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
   };
 
   return {
-    ref, dragging, clamp,
+    ref, clamp,
     handlers: { onPointerDown, onPointerMove, onPointerUp: finish, onPointerCancel: finish, onLostPointerCapture: finish, onKeyDown },
     consumeDragClick: () => { const ignored = ignoreClick.current; ignoreClick.current = false; return ignored; },
   };

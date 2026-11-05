@@ -19,8 +19,8 @@ export function Calculator() {
   const restore = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
-  const { ref: miniRef, dragging: miniDragging, handlers: miniHandlers, consumeDragClick } = useCalculatorDrag<HTMLDivElement>(!open && !dismissed);
-  const { ref: panelRef, dragging: panelDragging, handlers: panelHandlers, clamp: clampPanel } = useCalculatorDrag<HTMLDialogElement>(open && !fullscreen);
+  const { ref: miniRef, handlers: miniHandlers, consumeDragClick } = useCalculatorDrag<HTMLDivElement>(!open && !dismissed);
+  const { ref: panelRef, handlers: panelHandlers, clamp: clampPanel } = useCalculatorDrag<HTMLDialogElement>(open && !fullscreen);
   const modal = useRef(false);
   const minimise = useCallback(() => {
     setOpen(false);
@@ -68,7 +68,7 @@ export function Calculator() {
 
   return (
     <>
-      <div ref={miniRef} className="qb-calculator-dock" hidden={open || dismissed} data-dragging={miniDragging || undefined}>
+      <div ref={miniRef} className="qb-calculator-dock" hidden={open || dismissed}>
         <div className="qb-calculator-bob">
           <button ref={trigger} type="button" className="qb-calculator-trigger" aria-label={copy.label} title={copy.open} aria-describedby="qb-calculator-drag-hint" aria-expanded={open} aria-controls={started ? "qb-calculator" : undefined} {...miniHandlers} onClick={event => {
             if (event.detail !== 0 && consumeDragClick()) return;
@@ -95,7 +95,7 @@ export function Calculator() {
         </svg>
       </button>}
       {started && (
-        <dialog ref={panelRef} id="qb-calculator" className="qb-calculator" data-fullscreen={fullscreen} data-dragging={panelDragging || undefined} aria-label={copy.title} aria-describedby="qb-calculator-hint" onCancel={event => { event.preventDefault(); minimise(); }} onKeyDown={event => {
+        <dialog ref={panelRef} id="qb-calculator" className="qb-calculator" data-fullscreen={fullscreen} aria-label={copy.title} aria-describedby="qb-calculator-hint" onCancel={event => { event.preventDefault(); minimise(); }} onKeyDown={event => {
           if (event.key === "Escape") { event.stopPropagation(); minimise(); }
         }}>
           <button ref={closeButton} type="button" className="qb-calculator-close" aria-label={copy.minimise} title={copy.minimise} onClick={minimise}>−</button>
