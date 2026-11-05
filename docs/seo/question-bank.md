@@ -309,15 +309,6 @@ need only the AS content) or Year 13 (questions that need second-year content).
   are Year 12, and each A-Level paper question was read against that board's AS Further
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
-- **Business and Economics (5 November 2026)** get the same switch for AQA, Edexcel (Business,
-  Economics A, Economics B), OCR and WJEC. Their topics already say which year they are, so
-  questions weren't judged one by one (a sample of each side was read): `business_economics_years.py build` marks a part Year 13 when
-  it is on WJEC's Unit 3, or when any of its topics is second-year content in the board's own
-  specification; AS-paper parts and parts on first-year topics are Year 12. Edexcel Business and
-  Economics B have no AS papers in the bank, but Pearson has centres teach Themes 1 and 2 in the
-  first year (Business: every Theme 1 and 2 sub-topic is in the AS specification) and Themes 3
-  and 4 in the second, so the themes decide. The script's docstring lists each board's source.
-  After a new series, rerun `build` (a new topic needs a line in the script only for OCR Business).
 
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
