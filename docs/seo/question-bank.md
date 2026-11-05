@@ -329,8 +329,8 @@ and reasons in its docstring, `humanities_years.py report` for the counts):
 - Hand reads (54 parts: OCR Psychology and OCR Law questions that mix the years, one Edexcel
   Psychology question) are in `humanities_years_reads.json`; they win over the rules. AQA
   Sociology Paper 3's five methods questions were read too, and are all AS content.
-- Like Maths, the ids are in `year13.json` on R2 (`upload_data.py`); `bankHasYears` lets the
-  page ask for it, and a bank without the file shows no switch.
+- Like Maths, the ids are in `year13.json` on R2 (`upload_data.py`); the hash in the
+  bank's meta turns the switch on, and a bank without the file shows none.
 - After a new series: `humanities_years.py build <slug>`, check `report` for the new
   tags, read what the rules cannot place, then `upload_data.py <slug>`.
 
