@@ -43,7 +43,7 @@ def split():
     parts, tree = load()
     codes = [t["code"] for t in tree["topics"]]
     sections = {s["code"]: s["title"] for s in tree["sections"]}
-    lines = [f"{t['code']} | {sections[t['section']]} | {t['title']} — {clip(t['text'], 500)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {sections[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "gcse-business-topics.txt"), "w").write("\n".join(lines) + "\n")
     for old in glob.glob(os.path.join(TAG, "batch-*.jsonl")):
         os.remove(old)

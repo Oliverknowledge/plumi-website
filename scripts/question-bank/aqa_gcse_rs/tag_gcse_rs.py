@@ -49,7 +49,7 @@ def split():
         code = sec["code"]
         topics = [t for t in tree["topics"] if t["section"] == code]
         open(os.path.join(TAG, f"topics-{code}.txt"), "w").write(
-            "\n".join(f"{t['code']} | {sec['title']} | {t['title']} — {clip(t['text'], 700)}" for t in topics) + "\n")
+            "\n".join(f"{t['code']} | {sec['title']} | {t['title']} — {clip(t['text'], 3000)}" for t in topics) + "\n")
         mine = sorted((p for p in parts if section(p) == code), key=lambda p: p["id"])
         with open(os.path.join(TAG, f"batch-{code}.jsonl"), "w") as f:
             for p in mine:

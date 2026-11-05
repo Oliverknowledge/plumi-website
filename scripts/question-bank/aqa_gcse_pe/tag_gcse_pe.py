@@ -32,7 +32,7 @@ def split():
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp")]
     tree = json.load(open(os.path.join(WORK, "spec.json")))["8582"]
     names = {s["code"]: s["title"] for s in tree["sections"]}
-    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 1500)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "gcse-pe-topics.txt"), "w").write("\n".join(lines) + "\n")
     n = 0
     for i in range(0, len(parts), SIZE):

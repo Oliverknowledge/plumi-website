@@ -27,7 +27,7 @@ def split():
     tree = json.load(open(os.path.join(WORK, "spec.json")))["H460"]
     sections = {s["code"]: s["title"] for s in tree["sections"]}
     lines = [f"{t['code']} | {sections[t['section']]} | {t['ref']} {t['title']}" + (" [AS]" if t["year"] == 1 else " [A-Level only]")
-             + f" — {clip(t['text'], 600)}" for t in tree["topics"]]
+             + f" — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "economics-topics.txt"), "w").write("\n".join(lines) + "\n")
     done = json.load(open(os.path.join(WORK, "tags.json"))) if os.path.exists(os.path.join(WORK, "tags.json")) else {}
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp") and p["id"] not in done]

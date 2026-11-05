@@ -77,7 +77,7 @@ def split():
     for sec in tree["sections"]:
         code = sec["code"]
         open(os.path.join(TAG, f"topics-{code}.txt"), "w").write(
-            "\n".join(f"{t['code']} | {t['title']} — {clip(t['text'], 700)}" for t in tree["topics"] if t["section"] == code) + "\n")
+            "\n".join(f"{t['code']} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"] if t["section"] == code) + "\n")
         mine = [p for p in parts if section(p, tree) == code and p["id"] in first.values()]
         with open(os.path.join(TAG, f"batch-{code}.jsonl"), "w") as f:
             for p in mine:

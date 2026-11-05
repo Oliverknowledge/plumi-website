@@ -40,7 +40,7 @@ def split():
     parts, tree = load()
     sections = {s["code"]: s["title"] for s in tree["sections"]}
     open(os.path.join(TAG, "law-topics.txt"), "w").write(
-        "\n".join(f"{t['code']} | {sections[t['section']]} | {t['title']} — {clip(t['text'], 300)}" for t in tree["topics"]) + "\n")
+        "\n".join(f"{t['code']} | {sections[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]) + "\n")
     for old in glob.glob(os.path.join(TAG, "batch-*")):
         os.remove(old)
     parts.sort(key=lambda p: p["id"])

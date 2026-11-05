@@ -39,7 +39,7 @@ def split():
     tree = json.load(open(os.path.join(WORK, "spec.json")))["8525"]
     sections = {s["code"]: s["title"] for s in tree["sections"]}
     open(os.path.join(TAG, "cs-topics.txt"), "w").write("".join(
-        f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']} — {clip(t['text'], 500)}\n" for t in tree["topics"]))
+        f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']} — {clip(t['text'], 3000)}\n" for t in tree["topics"]))
     done = json.load(open(os.path.join(WORK, "tags.json"))) if os.path.exists(os.path.join(WORK, "tags.json")) else {}
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp")]
     ids = {p["id"] for p in parts}

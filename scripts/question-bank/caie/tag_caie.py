@@ -53,7 +53,7 @@ def split():
         sections = {s["code"]: s["title"] for s in tree["sections"]}
         lines = [f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']}"
                  + ("" if t["year"] == 0 else " [AS]" if t["year"] == 1 else " [A Level only]") + (" [Extended only]" if t.get("extended") else "")
-                 + f" — {clip(t['text'].replace('Candidates should be able to:', ''), 420)}"
+                 + f" — {clip(t['text'].replace('Candidates should be able to:', ''), 3000)}"
                  for t in tree["topics"]]
         open(os.path.join(TAG, f"{code}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if syllabus(p) == code and p.get("qp")]

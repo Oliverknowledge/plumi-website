@@ -66,7 +66,7 @@ def split():
     parts, tree = load()
     areas = {s["code"]: s["short"] for s in tree["sections"]}
     areas["4.1.2"] = "Methods in Context"
-    lines = [f"{t['code']} | {areas[t['section']]} | {t['title']} — {clip(t['text'], 300)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {areas[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "sociology-topics.txt"), "w").write("\n".join(lines) + "\n")
     for old in glob.glob(os.path.join(TAG, "batch-*.jsonl")):
         os.remove(old)

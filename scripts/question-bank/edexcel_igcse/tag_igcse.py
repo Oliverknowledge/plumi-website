@@ -32,7 +32,7 @@ def split():
     for subject, (code, _) in SUBJECTS.items():
         tree = spec[code]
         titles = {s["code"]: s["title"] for s in tree["sections"]}
-        lines = [f"{t['code']} | {titles[t['section']]} | {t['title']} (statements {t['points']}) — {tp.clip(t['text'], 420)}"
+        lines = [f"{t['code']} | {titles[t['section']]} | {t['title']} (statements {t['points']}) — {tp.clip(t['text'], 3000)}"
                  for t in tree["topics"]]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if p["spec"] == code and p.get("qp")]

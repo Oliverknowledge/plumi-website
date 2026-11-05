@@ -63,7 +63,7 @@ def split():
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p["series"] in SERIES and p.get("qp")]
     tree = json.load(open(os.path.join(WORK, "spec.json")))["7182"]
     names = {s["code"]: s["title"] for s in tree["sections"]}
-    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 600)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "psychology-topics.txt"), "w").write("\n".join(lines) + "\n")
     manifest = json.load(open(os.path.join(WORK, "manifest.json")))
     qp = {f"{f['component']}-{f['series']}".lower(): os.path.join(WORK, "pdf", f["file"]) for f in manifest if f["kind"] == "qp"}

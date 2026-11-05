@@ -47,7 +47,7 @@ def split():
     os.makedirs(TAG, exist_ok=True)
     parts, tree = load()
     areas = {s["code"]: s["short"] for s in tree["sections"]}
-    lines = [f"{t['code']} | {areas[t['section']]} | {t['title']} — {clip(t['text'], 400)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {areas[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "geography-topics.txt"), "w").write("\n".join(lines) + "\n")
     for old in glob.glob(os.path.join(TAG, "batch-*.jsonl")):
         os.remove(old)

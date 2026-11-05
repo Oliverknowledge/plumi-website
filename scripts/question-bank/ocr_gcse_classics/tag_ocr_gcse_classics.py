@@ -32,7 +32,7 @@ def split():
     tree = json.load(open(os.path.join(WORK, "spec.json")))["J199"]
     titles = {s["code"]: s["title"] for s in tree["sections"]}
     open(os.path.join(TAG, "classics-topics.txt"), "w").write("".join(
-        f"{t['code']} | {titles[t['section']]} | {t['title']} — {clip(t['text'], 600)}\n" for t in tree["topics"]))
+        f"{t['code']} | {titles[t['section']]} | {t['title']} — {clip(t['text'], 3000)}\n" for t in tree["topics"]))
     done = json.load(open(os.path.join(WORK, "tags.json"))) if os.path.exists(os.path.join(WORK, "tags.json")) else {}
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp") and p["id"] not in done]
     n = max([int(re.search(r"batch-(\d+)-", f).group(1)) for f in glob.glob(os.path.join(TAG, "batch-*.jsonl"))] or [0])

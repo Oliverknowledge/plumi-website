@@ -17,6 +17,8 @@ mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE, "..", ".work-gcse-trilogy")
 TAG = os.path.join(WORK, "tag")
 SIZE = 200
+sys.path.insert(0, os.path.join(HERE, ".."))
+from tag_batches import warn_blank, wording  # noqa: E402
 
 
 def topics():
@@ -52,8 +54,10 @@ def split():
     os.makedirs(TAG, exist_ok=True)
     nodes = topics()
     valid = {n["code"] for n in nodes if n["level"] == 2}
+    words = wording(nodes)
+    warn_blank(words)
     open(os.path.join(TAG, "topics.txt"), "w").write("\n".join(
-        f"{n['code']} {n['title']}" + (f" — {clip(n['text'], 220)}" if n["level"] == 2 else "") for n in nodes if n["level"] <= 2) + "\n")
+        f"{n['code']} {n['title']}" + (f" — {clip(words[n['code']], 1500)}" if n["level"] == 2 else "") for n in nodes if n["level"] <= 2) + "\n")
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp") and p["series"] != "SPEC"]
     refs = scheme_refs(parts, valid)
     json.dump(refs, open(os.path.join(TAG, "refs.json"), "w"), indent=0)

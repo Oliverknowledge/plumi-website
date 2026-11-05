@@ -74,7 +74,7 @@ def split():
         to_mine = {t["separate"]: t["code"] for t in mine}
         papers = lambda t: "Papers 1 and 2" if int(t["section"][1:]) == 1 else "Paper 1" if int(t["section"][1:]) in PAPER_1[letter] else "Paper 2"  # noqa: E731
         open(os.path.join(TAG, f"{science}-topics.txt"), "w").write("\n".join(
-            f"{t['code']} | {titles[t['section']]} | {t['title']} (statements {t['points']}) [{papers(t)}] — {tp.clip(t['text'], 420)}" for t in mine) + "\n")
+            f"{t['code']} | {titles[t['section']]} | {t['title']} (statements {t['points']}) [{papers(t)}] — {tp.clip(t['text'], 3000)}" for t in mine) + "\n")
         pools = separate(science)
         for p in parts:
             if p["component"][5] != letter:
