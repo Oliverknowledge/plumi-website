@@ -31,7 +31,7 @@ import { activateInk, registerInk, reportInk, setPenSeen } from "./inkBus";
  * has now (and the page zoom, so a pinch stays sharp), capped so no zone is more than a few million pixels.
  */
 
-export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void; /** Take away the newest stroke (marks on a question: "Undo mark", which also works on strokes from an earlier visit). */ dropLast(): void; /** Take up a stroke whose pen-down arrived before this canvas was mounted (the first stroke after a quick jump is never lost). */ begin(ev: PointerEvent, early?: PointerEvent[], ended?: PointerEvent | null): void }
+export interface InkCanvasHandle { undo(): void; redo(): void; clear(): void; focus(): void; /** Take away the newest stroke (writing on a question: "Undo", which also works on strokes from an earlier visit). */ dropLast(): void; /** Take up a stroke whose pen-down arrived before this canvas was mounted (the first stroke after a quick jump is never lost). */ begin(ev: PointerEvent, early?: PointerEvent[], ended?: PointerEvent | null): void }
 
 interface Props {
   inkKey: string;

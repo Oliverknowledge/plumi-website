@@ -71,8 +71,8 @@ export function Picker({ catalogue, q, mine, autoMix, onHome }: { catalogue: Cat
             return (
               <div className="qs-resume" data-testid="resume">
                 <Image src="/study/mascot/plumi-focused.svg" alt="" width={44} height={44} unoptimized />
-                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} parts marked</span></div>
-                <button type="button" className="btn" onClick={() => qa.open(resume.id)} data-testid="resume-btn">Pick up</button>
+                <div className="qs-resume-text"><b>{resume.name}</b><span>{p.done} of {p.of} questions marked</span></div>
+                <button type="button" className="btn" onClick={() => qa.open(resume.id)} data-testid="resume-btn">Continue</button>
               </div>
             );
           })()}

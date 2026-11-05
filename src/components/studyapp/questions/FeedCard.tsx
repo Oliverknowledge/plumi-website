@@ -145,7 +145,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
         <PartFiles files={files} />
         {part.au && <ListenPlayer part={part} transcript={lookup.trs[`${part.p}-${part.s}`] ?? null} checked={!!answer?.chk || answer?.got !== undefined} onWhole={() => onWhole(part)} />}
         {full && answer === undefined ? (
-          <p className="qf-full" role="status">Your feed already holds 1,200 questions with answers. Your sets can clear the whole feed to make room, or practise these questions in a set instead.</p>
+          <p className="qf-full" role="status">This list is full: it keeps answers for 1,200 questions. Open Your sets to clear room, or practise these questions as a set.</p>
         ) : (
           <>
             <div className="qs-answer qf-answer" onPointerDownCapture={copy ? takeCopy : undefined} onKeyDownCapture={copy ? takeCopyKey : undefined}>

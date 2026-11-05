@@ -27,7 +27,7 @@ export function PagePopover({ prefs }: { prefs: QPrefs }) {
   const close = () => { const d = dlg.current; if (d?.open) d.close(); else setOpen(false); };
   return (
     <div className="qs-pop-wrap">
-      <button type="button" className="btn qs-pop-btn" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(true)} data-testid="page-settings"><GridIcon /> Page</button>
+      <button type="button" className="btn qs-pop-btn" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(true)} data-testid="page-settings"><GridIcon /> Page settings</button>
       {open && (
         <dialog
           ref={dlg} className="qs-popd card" aria-labelledby="qs-popd-title" data-testid="page-popover"
@@ -36,7 +36,7 @@ export function PagePopover({ prefs }: { prefs: QPrefs }) {
         >
           <div className="qs-popd-in">
             <div className="qs-popd-head">
-              <h2 id="qs-popd-title">Page</h2>
+              <h2 id="qs-popd-title">Page settings</h2>
               <button type="button" className="btn ghost icon qs-popd-x" aria-label="Close" onClick={close}>&times;</button>
             </div>
             <p className="lbl" id="qs-bg-lbl">Paper</p>

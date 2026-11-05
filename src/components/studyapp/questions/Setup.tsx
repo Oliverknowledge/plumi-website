@@ -174,7 +174,7 @@ export function Setup({ catalogue, mine, tiers, first, want, onDone, onCancel }:
             <div className="qk-head-text">
               {!first && <button type="button" className="qs-homeback" onClick={onCancel} data-testid="setup-cancel"><BackIcon />Back</button>}
               <h1 id="qh-setup-h" ref={h1} tabIndex={-1}>What are you studying?</h1>
-              {want && ![...draft.keys()].some((k) => k.endsWith(`|${want}`)) && !choices.some((c) => c.base === want) && <p className="qk-want" data-testid="setup-want">No {want} book yet. Tick it to begin.</p>}
+              {want && ![...draft.keys()].some((k) => k.endsWith(`|${want}`)) && !choices.some((c) => c.base === want) && <p className="qk-want" data-testid="setup-want">{want} is not in your subjects yet. Tick it to begin.</p>}
             </div>
             <div className="qk-mascot" aria-hidden="true">
               <p className="qk-bubble">{SETUP_ART.bubble}</p>
