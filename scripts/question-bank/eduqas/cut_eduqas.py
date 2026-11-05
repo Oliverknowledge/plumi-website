@@ -206,7 +206,7 @@ def area(doc, i):
         right = min([l["x0"] for l in lines if l["text"].startswith("Examiner")] + [w - 52])
         r = pymupdf.Rect(46, (max(head) + 6) if head else 72, right - 2, h - 50)
     if foot:
-        r.y1 = min(r.y1, min(foot) - 4)
+        r.y1 = min(r.y1, min(foot) - 1)  # (a table's last rule can sit just over it)
     doc._area[i] = r
     return r
 

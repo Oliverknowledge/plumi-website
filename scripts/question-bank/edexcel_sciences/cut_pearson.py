@@ -165,7 +165,10 @@ class Doc:
             # OCR prints "© OCR 2024" at the foot of each page, inside the margin.
             foot = [l["y0"] for l in self.lines(i) if l["text"].startswith("©") and l["y0"] > f.y1 - 90]
             if foot:
-                f = pymupdf.Rect(f.x0, f.y0, f.x1, min(f.y1, min(foot) - 4))
+                # (Further down only for a last answer line that crosses that: it took the feet off its "[1]". Any lower on other pages shows the top of "Turn over".)
+                end = min(foot) - 4
+                last = [l["y1"] for l in self.lines(i) if l["y0"] < end < l["y1"] and not re.match(r"©|Turn over", l["text"], re.I)]
+                f = pymupdf.Rect(f.x0, f.y0, f.x1, min(f.y1, min(max(last), min(foot) - 0.5) if last else end))
             self._frame[i] = f
         return self._frame[i]
 

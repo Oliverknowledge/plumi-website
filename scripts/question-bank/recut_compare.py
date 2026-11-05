@@ -3,9 +3,10 @@
     python3 scripts/question-bank/upload_data.py --pull <slug> [...]
     <the bank's cutter> <work-dir>                                       # cuts into <work-dir>/img
     python3 scripts/question-bank/recut_compare.py compare <work-dir> <slug> [...]
-    python3 scripts/question-bank/upload_r2.py <work-dir>/changed --crops-only --checksum
     python3 scripts/question-bank/recut_compare.py apply <work-dir>
     python3 scripts/question-bank/upload_data.py <slug> [...]            # then commit the metas
+    python3 scripts/question-bank/upload_r2.py <work-dir>/changed --crops-only --checksum    # just before the merge, never days ahead and never after
+    python3 scripts/question-bank/recut_compare.py verify <work-dir>/changed                 # every crop's ETag, then merge
 
 `compare` reads each question and setup crop the bank has live (through the storage API: the public r2.dev address
 is rate limited, and students use it) and sets each against the new cut:
@@ -25,11 +26,12 @@ a bank cut with another PyMuPDF renders a pixel or two differently everywhere, a
 `apply` writes the new sizes, and marks where a row had none, into each changed bank's live rows (and nothing else: a work folder's other data can be
 older than what is live) and bumps the bank's cropVersion, so browsers fetch the new crops. Keys and bucket come from .env.local.
 """
-import io, json, os, re, shutil, sys
+import hashlib, io, json, os, re, shutil, sys
 from concurrent.futures import ThreadPoolExecutor
 
 import boto3
 import botocore.config
+import botocore.exceptions
 from PIL import Image, ImageChops
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -170,6 +172,23 @@ def apply(work):
         print(f"{slug}: {len(sizes)} sizes, cropVersion {meta['cropVersion']}", file=sys.stderr)
 
 
+def verify(folder):
+    """Every crop in <folder>/img is on the bucket, byte for byte: a background upload once died silently."""
+    s3, bucket = client()
+    img = os.path.join(folder, "img")
+
+    def one(name):
+        try:
+            return s3.head_object(Bucket=bucket, Key=f"bank/{name}")["ETag"].strip('"') == hashlib.md5(open(os.path.join(img, name), "rb").read()).hexdigest() or name
+        except botocore.exceptions.ClientError:
+            return name
+
+    with ThreadPoolExecutor(16) as ex:
+        bad = [r for r in ex.map(one, sorted(os.listdir(img))) if r is not True]
+    print(f"{len(os.listdir(img))} crops, {len(bad)} not as uploaded", bad[:20], file=sys.stderr)
+    sys.exit(1 if bad else 0)
+
+
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if args[:1] == ["compare"]:
@@ -177,5 +196,7 @@ if __name__ == "__main__":
         compare(os.path.abspath(args[1]), args[2:], "--accept-review" in sys.argv, base and os.path.abspath(base))
     elif args[:1] == ["apply"]:
         apply(os.path.abspath(args[1]))
+    elif args[:1] == ["verify"]:
+        verify(os.path.abspath(args[1]))
     else:
         sys.exit(__doc__)

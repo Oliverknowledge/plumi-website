@@ -116,7 +116,7 @@ def main():
         meta = {
             "slug": bank, "board": "WJEC", "level": "Level 3" if key == "criminology" else "A-Level", "subject": name,
             **({"fullName": "Applied Diploma in Criminology"} if key == "criminology" else {}), "specs": sorted({c[:4].upper() for c in comps}),
-            **({"cropVersion": 1} if name == "Maths" else {}),  # 1: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
+            "cropVersion": 2 if name == "Maths" else 1,  # lines reach the frame's border (5 November 2026); before that, for Maths: a question's crop starts above its label when a taller line (a column vector, a fraction) sits on it (28 October 2026)
             **({"options": {"label": "A2 option", "list": [{"id": "S", "name": "Further Statistics B (Unit 5)"}, {"id": "M", "name": "Further Mechanics B (Unit 6)"}]},
                 "note": "The AS units are here too, marked AS. At A2 you sit Unit 4 and either Unit 5 or Unit 6: pick yours to see only its papers and topics."} if key == "further" else {}),
             "sections": [{"code": s["code"], "title": s["title"], **({"option": s["option"]} if s.get("option") else {})} for s in tree["sections"]], "topics": topics, "papers": papers,
