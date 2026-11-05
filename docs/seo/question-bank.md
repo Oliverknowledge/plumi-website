@@ -283,7 +283,7 @@ key come from the re-cut, where it found the scheme. 176 parts gained a cropped 
 letter; no part lost a scheme. Parts the re-cut found that weren't in the banks (19,
 mostly from scanned OCR papers) were left out: they'd need tagging.
 
-## Year 12 and Year 13 (A-Level Maths and Further Maths)
+## Year 12 and Year 13 (A-Level Maths, Further Maths and Chemistry)
 
 A student asked for it (27 October 2026): "the maths questions are kinda annoying bc it
 includes yr13 stuff as a year 12". The sciences split by topic (each topic's `year`), but
@@ -309,6 +309,17 @@ need only the AS content) or Year 13 (questions that need second-year content).
   are Year 12, and each A-Level paper question was read against that board's AS Further
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
+- **A-Level Chemistry** (all seven banks, 5 November 2026) has the same switch, but chemistry topics
+  already belong to a year (each topic's `year`, set from the board's own specification), so
+  `chemistry_years.py` decides by rule rather than by reading every question: an AS paper's
+  questions are Year 12; any other question is Year 13 if any of its topics is a second-year
+  topic, else Year 12; a short `OVERRIDES` list holds the parts read by hand against the
+  specification (chromatography and high-resolution NMR are A-level only at Eduqas, for
+  example). That includes the A2-only units (WJEC 3-4, Cambridge 4-5, AQA's old CHEM4/CHEM5):
+  their first-year-topic parts stay Year 12, because a Year 12 student can do them. AQA's
+  2010-2016 papers take today's year for the topic they were sorted into (old CHEM1/CHEM2 are
+  AS units: Year 12). After a new series: build the bank, `upload_data.py --pull` the other
+  files, run `chemistry_years.py`, then `upload_data.py <slug>`.
 
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
