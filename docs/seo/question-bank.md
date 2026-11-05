@@ -21,7 +21,8 @@ serve our own copies of AQA's papers too, with AQA's examiner's reports.
 - **Source papers:** AQA's own site. `scripts/question-bank/fetch_aqa.py` reads
   each specification's assessment-resources page (which lists June 2024 and 2025)
   and AQA's file store for older series.
-- **Files we serve:** Cloudflare R2, at `NEXT_PUBLIC_PAPERS_URL`. Whole papers under
+- **Files we serve:** Cloudflare R2, at `NEXT_PUBLIC_PAPERS_URL` (moving its address:
+  `docs/question-bank-domain.md`). Whole papers under
   `aqa/`, question crops under `bank/`. In development they're served from
   `public/papers-local` (a symlink into the gitignored work folder).
 - **Data the site reads:** `src/content/questionBank/*.json` (topics, papers,
@@ -72,7 +73,7 @@ The old URLs, `/question-bank/<slug>/<file>.json`, redirect (307) to the bank's 
 
 Previewing a bank locally needs its data uploaded first, as its crops do, and
 `NEXT_PUBLIC_PAPERS_URL` set: the pages fetch from R2 in development too. R2's CORS
-allows tryplumi.app and localhost:3000 only.
+allows any origin for GET and HEAD (since 4 November 2026).
 
 ## Gaps, honestly
 

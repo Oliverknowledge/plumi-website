@@ -108,7 +108,7 @@ def get(url):
 def public_base(e):
     base = e.get("NEXT_PUBLIC_PAPERS_URL", "").rstrip("/")
     if not base.startswith("http"):
-        sys.exit("NEXT_PUBLIC_PAPERS_URL in .env.local must be R2's public URL")
+        sys.exit("NEXT_PUBLIC_PAPERS_URL in .env.local must be the bucket's public URL")
     return base
 
 
