@@ -323,8 +323,7 @@ body:has(.qf-ground) { background: transparent; }
 /* ── the toast never covers the paper's name bar ── */
 .pa:has(.qs-sheet-page) .toast { top: auto; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
 
-/* ── the pen tray: in the margin on a wide screen, away while a scheme is open ── */
-.pa .qf-feed:has(.qs-scheme) .qf-pen { display: none; }
+/* ── the pen tray: in the margin on a wide screen ── */
 @media (min-width: 981px) {
   .pa .qf-pen .qs-pen { left: 16px; transform: none; flex-direction: column; height: auto; padding: 6px 0; max-width: none; bottom: 120px; }
   .pa .qf-pen .qs-pen.is-away { transform: translateY(14px); }

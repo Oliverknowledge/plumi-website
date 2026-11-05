@@ -158,7 +158,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
               )}
               {answer?.got !== undefined && part.m != null && <span className={`qs-margin ${tone}`} data-testid="margin-score" aria-hidden="true">{answer.got}/{part.m}</span>}
             </div>
-            <Check set={view} part={part} answer={answer} reportOutside />
+            <Check set={view} part={part} answer={answer} reportOutside trayAside />
           </>
         )}
         <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
