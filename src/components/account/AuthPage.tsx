@@ -73,7 +73,7 @@ function AuthForm({ start }: { start: "sign-in" | "sign-up" }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [note, setNote] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(params.get("deleted") === "1" ? "Your account is deleted." : null);
   const ids = { email: useId(), password: useId(), code: useId() };
 
   useEffect(() => { track("signin_prompted", { reason, page: start }); }, [reason, start]);

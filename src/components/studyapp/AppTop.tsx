@@ -11,6 +11,7 @@ import { useLiveSummary } from "@/lib/studyapp/live";
 import { useRoomFull } from "@/lib/studyapp/library/roomOpen";
 import { useDueCount } from "@/lib/studyapp/store";
 import { TimerChip } from "./timer/TimerChip";
+import { Settings } from "./Settings";
 
 /**
  * The top bar: Plumi, then the four places (Desk, Study, Questions, Flashcards), then the student. Study is the Grand
@@ -66,6 +67,8 @@ export function AppTop() {
 function Account() {
   const { ready, user, email, name } = useAccount();
   const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const path = usePathname() ?? "/";
   useEffect(() => {
@@ -79,7 +82,7 @@ function Account() {
   const initial = ((name ?? email ?? "P").trim()[0] ?? "P").toUpperCase();
   return (
     <div className="acct" ref={box}>
-      <button type="button" className="btn icon avatar" aria-label={user ? "Your account" : "Sign in"} aria-expanded={open} onClick={() => setOpen((o) => !o)} data-testid="account-button">
+      <button ref={button} type="button" className="btn icon avatar" aria-label={user ? "Your account" : "Sign in"} aria-expanded={open} onClick={() => setOpen((o) => !o)} data-testid="account-button">
         {ready && user ? initial : "P"}
       </button>
       {open && (
@@ -88,18 +91,21 @@ function Account() {
             <>
               <span className="lbl">Signed in</span>
               <span className="acct-who">{name ?? email}</span>
+              <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); setSettings(true); }} data-testid="account-settings">Settings</button>
               <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); void signOut(); }}>Sign out</button>
             </>
           ) : (
             <>
               <span className="lbl">Not signed in</span>
               <span className="acct-who">Your tasks and cards are saved on this device. Sign in to join the Grand Library.</span>
+              <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); setSettings(true); }} data-testid="account-settings">Settings</button>
               <a className="mi" role="menuitem" href={signInHref("library", path)}>Sign in</a>
               <a className="mi" role="menuitem" href={signInHref("library", path, "sign-up")}>Make an account</a>
             </>
           )}
         </div>
       )}
+      {settings && <Settings onClose={() => { setSettings(false); button.current?.focus({ preventScroll: true }); }} />}
     </div>
   );
 }

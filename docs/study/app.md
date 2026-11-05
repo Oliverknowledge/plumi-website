@@ -16,7 +16,7 @@ The Subjects UI is going to change, so nothing was built for it.
 | `/study/design`, `/dashboards`, `/shells` | Design system and exploration pages (kept, in the `(system)` route group) | `src/app/study/(system)/` |
 
 Visual source: the founder's artifact (`#desk`), ported to `src/app/study/(app)/app.css`, every selector
-under `.pa`, light-only, mapped onto the site's fonts (Pixelify cut, Nunito, Caveat, VT323).
+under `.pa`, light by default (a dark mode is a choice in Settings: `dark-app.css` turns the page over and its pictures back), mapped onto the site's fonts (Pixelify cut, Nunito, Caveat, VT323).
 
 ## Hosts, log in and the sign-in gate
 

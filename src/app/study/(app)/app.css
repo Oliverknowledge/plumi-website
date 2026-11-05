@@ -129,7 +129,8 @@
 .pa .top .tm-chipbtn.is-idle { padding: 0; width: 44px; }
 .pa .top .tm-chipbtn.is-idle .tm-word { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pa .top .wrap { gap: 2px; }
-.pa .avatar { display: none; }
+.pa .avatar { width: 40px; min-height: 40px; flex: none; }
+.pa .top .tabs { min-width: 0; }
 /* the badge sits on the tab's corner, clear of its word (the bar scrolls, so the bar is given room above and to the side for it to hang in) */
 .pa .tabs { padding: 8px 4px 0; margin: -8px -4px 0; }
 .pa .tab .badge { top: -1px; right: -2px; min-width: 15px; height: 15px; padding: 0 3px; border-width: 1.5px; font-size: 9.5px; line-height: 12px; }
@@ -150,18 +151,18 @@
 .pa .brand img { width: 26px; height: 26px; }
 .pa .tab { font-size: 12px; padding: 0 3px; }
 }
-@media (max-width: 359px) {
+@media (max-width: 420px) {
 .pa .tab-long { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pa .tab-short { display: inline; }
 }
 /* ---------- DESK ---------- */
 .pa .desk { padding-block: 26px 130px; display: grid; gap: 22px; }
-.pa .scene { position: relative; height: calc(76px * var(--s)); overflow: hidden; background-color: #ebe2cf; background-repeat: repeat-x; background-size: calc(32px * var(--s)) calc(76px * var(--s)); image-rendering: pixelated; }
+.pa .scene { position: relative; min-height: calc(76px * var(--s)); overflow: hidden; background-color: #a87b5a; background-repeat: repeat-x; background-size: calc(32px * var(--s)) calc(76px * var(--s)); image-rendering: pixelated; }
 .pa .scene > img.art { position: absolute; top: 0; right: 0; width: calc(381px * var(--s)); height: calc(76px * var(--s)); max-width: none; image-rendering: pixelated; }
 @media (max-width: 1240px) {
 .pa .scene > img.art { right: auto; left: 0; }
 }
-.pa .greet { position: absolute; left: 28px; top: calc(9px * var(--s)); display: flex; flex-direction: column; gap: 6px; max-width: min(540px, calc(100% - 56px)); }
+.pa .greet { position: relative; margin: calc(9px * var(--s)) 28px 26px; display: flex; flex-direction: column; gap: 6px; max-width: min(540px, calc(100% - 56px)); }
 .pa .greet .lbl { color: #6b5a52; }
 .pa .greet h1 { margin: 0; font: 700 calc(15px * var(--s)) / 1 var(--f-px); color: var(--wood-text); }
 .pa .greet p { margin: 0; font: 600 calc(7.3px * var(--s)) / 1.1 var(--f-hand); color: #4a3a35; text-wrap: balance; }
@@ -174,15 +175,15 @@
 .pa .examchip b { font: 400 24px/1 var(--f-digit); color: var(--wood-text); }
 @media (max-width: 760px) {
 .pa { --s: 3; }
-.pa .greet { left: 14px; top: 14px; padding: 12px 14px; background: rgba(251,247,238,.94); border: 2px solid var(--wood-ink); border-radius: 12px; }
+.pa .greet { margin: 14px 14px 14px; padding: 12px 14px; background: rgba(251,247,238,.94); border: 2px solid var(--wood-ink); border-radius: 12px; }
 .pa .greet h1 { font-size: 32px; }
 .pa .greet p { font-size: 18px; }
 .pa .examchip { display: none; }
 }
 /* the narrowest phones: the card is as tall as what is in it, so "Studied today" and the streak are never cut off at the foot of the scene */
 @media (max-width: 380px) {
-.pa .scene { height: auto; min-height: calc(76px * var(--s)); padding: 14px; }
-.pa .greet { position: relative; left: auto; top: auto; max-width: none; }
+.pa .scene { padding: 14px; }
+.pa .greet { margin: 0; max-width: none; }
 }
 .pa .desk-grid { display: grid; gap: 22px; align-items: start; grid-template-columns: minmax(0, 1fr) 340px; }
 .pa .side { display: flex; flex-direction: column; gap: 18px; }

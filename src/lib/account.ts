@@ -201,6 +201,18 @@ export async function signInWithGoogle(reason: SignInReason, next: string) {
   await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: callbackUrl(reason, "google", next) } });
 }
 
+/** Delete the signed-in account: the server call the iPad app makes (`delete_own_account`), with this session's token (the client adds it). */
+export async function deleteOwnAccountCall(): Promise<{ error: { message?: string; code?: string; status?: number } | null }> {
+  const sb = supabase();
+  if (!sb) return { error: { message: "accounts are off" } };
+  const { error, status } = await sb.rpc("delete_own_account");
+  return { error: error ? { message: error.message, code: error.code, status } : null };
+}
+/** Forget the session in this browser only (the account is gone: there is nobody to tell the server about). */
+export async function signOutLocal() {
+  await supabase()?.auth.signOut({ scope: "local" });
+}
+
 export async function signOut() {
   await supabase()?.auth.signOut();
   track("signed_out", {});
