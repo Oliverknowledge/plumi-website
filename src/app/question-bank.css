@@ -694,4 +694,4 @@
   .qb-calculator-dock { right: max(24px, env(safe-area-inset-right)); bottom: calc(86px + env(safe-area-inset-bottom)); width: 74px; height: 129px; }
   .qb-calculator { bottom: calc(82px + env(safe-area-inset-bottom)); }
 }
-@media print { .qb-calculator, .qb-calculator-dock, .qb-calculator-restore { display: none; } }
+@media print { .qb-calculator, .qb-calculator-dock, .qb-calculator-restore { display: none !important; } }

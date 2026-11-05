@@ -66,6 +66,7 @@ export function useCalculatorDrag<T extends HTMLElement>(visible: boolean) {
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.defaultPrevented) return;
     const directions: Record<string, Point> = { ArrowLeft: { x: -1, y: 0 }, ArrowRight: { x: 1, y: 0 }, ArrowUp: { x: 0, y: -1 }, ArrowDown: { x: 0, y: 1 } };
     const direction = directions[event.key];
     if (!direction || !ref.current) return;
