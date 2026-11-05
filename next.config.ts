@@ -134,7 +134,8 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Content-Type", value: "text/plain" }],
       },
       /**
-       * No page may be framed, except the partner embed under /embed/. That one
+       * Pages may only be framed through the partner embed under /embed/ or the
+       * same-origin calculator under /calculator/. The partner embed
        * answers with a Content-Security-Policy `frame-ancestors` built from the
        * partner allowlist (src/proxy.ts, src/config/embedPartners.ts), so it is
        * left out of this rule rather than overridden: a DENY here would win in
@@ -142,8 +143,17 @@ const nextConfig: NextConfig = {
        * /embed.js and all of /question-bank, is still DENY.
        */
       {
-        source: "/((?!embed/).*)",
+        source: "/((?!embed/|calculator/).*)",
         headers: [{ key: "X-Frame-Options", value: "DENY" }],
+      },
+      {
+        // The calculator is framed only by Plumi itself. Other pages retain DENY.
+        source: "/calculator/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
       },
     ];
   },
