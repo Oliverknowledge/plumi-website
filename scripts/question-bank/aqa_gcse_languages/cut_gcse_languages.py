@@ -267,6 +267,15 @@ def render(page, rect):
     return img
 
 
+def label_start(doc, e):
+    """(page, top) of an entry's own label: a setup cut.regions carried over a notice page can sit above it, in the same crop."""
+    for pg, r in e[1]:
+        for y, q, p in left_labels(doc[pg], 75, True):
+            if (q, p) == e[0] and r.y0 - 2 <= y < r.y1:
+                return pg, max(r.y0, cut.label_top(doc[pg], y, cut.frame(doc[pg], True)))
+    return e[1][0][0], e[1][0][1].y0
+
+
 def tidy(doc, out):
     """What cut.py leaves on a Listening paper, whose parts sit close together (and see orphans, move_titles, LEADS):
       - a part's crop starts 6pt above its label, and a part's "[2 marks]" can print there, beside
@@ -279,7 +288,21 @@ def tidy(doc, out):
       - two crops meeting on a page part above any box between them (unsplit_boxes), and the last stops at
         "END OF QUESTIONS" (end_of_questions);
       - on a Writing paper, the next question's routing below a task's marks is dropped (drop_routing)."""
-    starts = {e[0]: (e[1][0][0], e[1][0][1].y0) for e in out if e[1]}
+    starts = {e[0]: label_start(doc, e) for e in out if e[1]}
+    # A question's title carried over a notice page (cut.regions) starts the whole question, not only its first part.
+    n = 0
+    while n < len(out) and not writing:
+        (q, p), pieces, _ = out[n]
+        start = starts.get((q, p))
+        if p and start and (q, None) not in starts and (not n or out[n - 1][0][0] != q):
+            lead = [(pg, pymupdf.Rect(r.x0, r.y0, r.x1, min(r.y1, start[1]) if pg == start[0] else r.y1)) for pg, r in pieces if (pg, r.y0) < (start[0], start[1] - 1)]
+            if lead:
+                own = [(pg, pymupdf.Rect(r.x0, max(r.y0, start[1]) if pg == start[0] else r.y0, r.x1, r.y1)) for pg, r in pieces if (pg, r.y1) > start]
+                words = lambda ps: "\n".join(doc[a].get_text("text", clip=c) for a, c in ps)  # noqa: E731
+                out[n] = [(q, p), own, words(own)]
+                out.insert(n, [(q, None), lead, words(lead)])
+                n += 1
+        n += 1
     if not writing:
         orphans(doc, out)
     if not writing:  # a Writing paper sets its tasks' "Either" / "or" and instructions at the page's edge on purpose
