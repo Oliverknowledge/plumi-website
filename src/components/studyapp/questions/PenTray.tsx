@@ -20,6 +20,14 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
   const open = wanted && here;
   const root = useRef<HTMLDivElement>(null);
   const pen = prefs.tool === "pen";
+  // Undo or Redo that uses up its history disables its own button, and the focus it had falls to the page: it goes back to the writing space instead.
+  const fromHistory = useRef(false);
+  useEffect(() => {
+    if (!fromHistory.current) return;
+    const a = document.activeElement;
+    if (!a || a === document.body || (a instanceof HTMLButtonElement && a.disabled)) { fromHistory.current = false; inkAct.focus(); }
+  }, [caps.canUndo, caps.canRedo]);
+  const history = (fn: () => unknown) => () => { fromHistory.current = true; fn(); setTimeout(() => { fromHistory.current = false; }, 600); };
   const size = (i: number) => 4 + INK_WIDTHS[i] * 2.4;
 
   // The flyout closes on a press anywhere else, on Escape (focus goes back to its button), and and is shut while the tray is away.
@@ -42,8 +50,8 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
           <i className="qs-nib" style={{ width: size(prefs.width), height: size(prefs.width), background: INK_COLOURS[prefs.colour] }} aria-hidden="true" />
         </button>
         <span className="qs-pen-sep" aria-hidden="true" />
-        <button type="button" className="qs-pb" onClick={inkAct.undo} disabled={!caps.canUndo} aria-label="Undo in the answer" title="Undo in the answer (Z)" data-testid="undo"><UndoIcon /></button>
-        <button type="button" className="qs-pb" onClick={inkAct.redo} disabled={!caps.canRedo} aria-label="Redo in the answer" title="Redo in the answer (Shift Z)" data-testid="redo"><RedoIcon /></button>
+        <button type="button" className="qs-pb" onClick={history(inkAct.undo)} disabled={!caps.canUndo} aria-label="Undo in the answer" title="Undo in the answer (Z)" data-testid="undo"><UndoIcon /></button>
+        <button type="button" className="qs-pb" onClick={history(inkAct.redo)} disabled={!caps.canRedo} aria-label="Redo in the answer" title="Redo in the answer (Shift Z)" data-testid="redo"><RedoIcon /></button>
         {/* always in the page, shown on demand */}
         {(
           <div className="qs-pen-fly" role="group" aria-label="Pen style" hidden={!open}>

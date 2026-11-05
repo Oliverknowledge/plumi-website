@@ -17,23 +17,55 @@ const Q23 = [
 ];
 const at = (l: string) => Q23.find((p) => p.l === l)!;
 
-describe("a figure cut into the first part's picture only", () => {
+describe("a figure cut into the first sub-part's picture only", () => {
   test("23(a)(ii), which asks for a magnification with no figure of its own, is offered 23(a)(i)'s picture", () => {
     const f = sharedFigure(at("23(a)(ii)"), Q23);
     assert.equal(f?.from.l, "23(a)(i)");
     assert.equal(f?.label, "(a)(i)");
   });
-  test("so are the later parts that go on about the diagram, from the same picture", () => {
-    for (const l of ["23(a)(iii)", "23(b)(i)", "23(b)(ii)"]) assert.equal(sharedFigure(at(l), Q23)?.label, "(a)(i)", l);
-  });
-  test("a part with a tall picture of its own has its figure; the parts after it use that one", () => {
+  test("23(a)(iii) too, from the same picture", () => assert.equal(sharedFigure(at("23(a)(iii)"), Q23)?.label, "(a)(i)"));
+  test("another letter group does not take (a)(i)'s figure: 23(b)(i) has a diagram of its own, 23(b)(ii) and 23(c)(ii) are about other things", () => {
+    assert.equal(sharedFigure(at("23(b)(i)"), Q23), null);
+    assert.equal(sharedFigure(at("23(b)(ii)"), Q23), null);
     assert.equal(sharedFigure(at("23(c)(i)"), Q23), null);
-    assert.equal(sharedFigure(at("23(c)(ii)"), Q23)?.label, "(c)(i)");
   });
+  test("23(c)(ii) uses 23(c)(i), the tall picture of its own letter group", () => assert.equal(sharedFigure(at("23(c)(ii)"), Q23)?.label, "(c)(i)"));
   test("the first part is never offered one", () => assert.equal(sharedFigure(at("23(a)(i)"), Q23), null));
   test("the order the parts are given in does not matter, and the part need not be among them", () => {
     assert.equal(sharedFigure(at("23(a)(ii)"), [...Q23].reverse())?.label, "(a)(i)");
     assert.equal(sharedFigure(at("23(a)(ii)"), Q23.filter((p) => p.l !== "23(a)(ii)"))?.label, "(a)(i)");
+  });
+});
+
+describe("where an earlier tall picture is not this part's figure (the tall rule stays inside a letter group)", () => {
+  test("a letter-only part after a tall letter-only part: 5(b), 2(d), 16(c)", () => {
+    const q5 = [part("5(a)", 1100, "Complete the graph."), part("5(b)", 300, "Why do multicellular organisms need an exchange surface?")];
+    assert.equal(sharedFigure(q5[1], q5), null);
+    const q2 = [part("2(a)", 900, "Describe."), part("2(b)", 300, "State."), part("2(c)", 300, "Name."), part("2(d)", 300, "Why is ATP needed for exocytosis?")];
+    assert.equal(sharedFigure(q2[3], q2), null);
+    const q16 = [part("16(a)(i)", 1000, "Calculate."), part("16(b)", 300, "Explain."), part("16(c)", 320, "Suggest why brown fat helps a newborn baby to keep warm.")];
+    assert.equal(sharedFigure(q16[2], q16), null);
+  });
+  test("a sub-part after a tall picture in ANOTHER letter group", () => {
+    const q = [part("3(a)(i)", 1000, "Calculate."), part("3(a)(ii)", 300, "State."), part("3(b)(i)", 300, "Name the organ.")];
+    assert.equal(sharedFigure(q[2], q)?.from.l ?? null, null);
+    assert.equal(sharedFigure(q[1], q)?.label, "(a)(i)");
+  });
+  test("a sub-part of more than a line or two is not offered the tall picture on that strength alone (it is its own question), a short one is", () => {
+    const q = [part("4(c)(i)", 1100, "Complete the diagram."), part("4(c)(ii)", 457, "A technique called quantitative PCR is used to check that the population is growing."), part("4(c)(iii)", 230, "State one use of the plasmid.")];
+    assert.equal(sharedFigure(q[1], q), null);
+    assert.equal(sharedFigure(q[2], q)?.label, "(c)(i)");
+  });
+  test("a part that asks for its own table or diagram is not offered another's", () => {
+    const q = [part("3(a)(i)", 900, "Describe the method."), part("3(a)(ii)", 400, "Complete the table below."), part("3(a)(iii)", 400, "Draw the diagram below.")];
+    assert.equal(sharedFigure(q[1], q), null);
+    assert.equal(sharedFigure(q[2], q), null);
+  });
+  test("a part with a tall picture of its own has its figure; only words that point back to a figure above count", () => {
+    const q = [part("4(a)", 300, "Look at Figure 4.1."), part("4(b)", 700, "Name the type of cell shown in the diagram."), part("4(c)", 700, "Figure 6 shows part of a coat. Explain why."), part("4(d)", 700, "Use the diagram above to calculate the rate.")];
+    assert.equal(sharedFigure(q[1], q), null);
+    assert.equal(sharedFigure(q[2], q), null);
+    assert.equal(sharedFigure(q[3], q)?.from.l, "4(a)");
   });
 });
 
@@ -48,34 +80,37 @@ describe("where a figure is not missing", () => {
     assert.equal(sharedFigure(q[1], q), null);
   });
   test("a question with one part has nothing to share", () => assert.equal(sharedFigure(part("5", 900), [part("5", 900)]), null));
-  test("small parts that mention nothing figure-like, after small parts, are left alone", () => {
-    const q = [part("2(a)", 300, "State one function of the nucleus."), part("2(b)", 280, "Name the organelle that makes ATP."), part("2(c)", 250, "Explain your answer to (b).")];
+  test("small parts that mention nothing figure-like are left alone", () => {
+    const q = [part("2(a)(i)", 300, "State one function of the nucleus."), part("2(a)(ii)", 280, "Name the organelle that makes ATP."), part("2(a)(iii)", 250, "Explain your answer to (a)(ii).")];
     for (const p of q) assert.equal(sharedFigure(p, q), null, p.l);
   });
-  test("words that mention a figure are enough when no earlier picture is tall: the first part's picture is offered", () => {
+  test("a sub-part after small sub-parts only is not offered a figure by the tall rule", () => {
+    const q = [part("6(a)(i)", 300, "Calculate."), part("6(a)(ii)", 300, "Calculate the gradient.")];
+    assert.equal(sharedFigure(q[1], q), null);
+  });
+  test("words that mention a figure are enough, even with no tall picture: the first part's picture is offered", () => {
     const q = [part("4(a)", 300, "Look at the table."), part("4(b)", 250, "Use the table to find the mean.")];
     assert.equal(sharedFigure(q[1], q)?.from.l, "4(a)");
   });
-  test("a tall earlier picture is enough with no words about a figure, but only for a small part", () => {
-    const q = [part("6(a)", 1000, "Calculate."), part("6(b)", 300, "Calculate the gradient."), part("6(c)", 900, "Sketch")];
-    assert.equal(sharedFigure(q[1], q)?.from.l, "6(a)");
-    assert.equal(sharedFigure(q[2], q), null);
+  test("the words rule takes the nearest earlier tall picture when there is one", () => {
+    const q = [part("8(a)", 900, "Describe."), part("8(b)", 300, "Describe."), part("8(c)", 300, "Use the graph to explain.")];
+    assert.equal(sharedFigure(q[2], q)?.from.l, "8(a)");
   });
   test("a picture's height counts at the bank's usual width, so a narrower crop is not taller than it is", () => {
-    const narrow = [part("7(a)", 560, "Calculate.", { w: 800 }), part("7(b)", 200, "Calculate.", { w: 800 })];
+    const narrow = [part("7(a)(i)", 560, "Calculate.", { w: 800 }), part("7(a)(ii)", 200, "Calculate.", { w: 800 })];
     assert.ok(560 * 1100 / 800 >= TALL);
-    assert.equal(sharedFigure(narrow[1], narrow)?.from.l, "7(a)");
-    const short = [part("8(a)", 500, "Calculate.", { w: 1086 }), part("8(b)", 200, "Calculate.", { w: 1086 })];
+    assert.equal(sharedFigure(narrow[1], narrow)?.from.l, "7(a)(i)");
+    const short = [part("8(a)(i)", 500, "Calculate.", { w: 1086 }), part("8(a)(ii)", 200, "Calculate.", { w: 1086 })];
     assert.equal(sharedFigure(short[1], short), null);
   });
 });
 
 describe("the words", () => {
-  test("a figure, a diagram, a graph, a table, a source, shown, above, the data", () => {
-    for (const w of ["the diagram", "Figure 3", "this graph", "the table", "Source B", "the process shown", "the equation above", "With reference to the data"]) assert.ok(mentionsFigure(w), w);
+  test("a figure, a diagram, a graph, a table, a source, shown, above, the data, a photomicrograph, labelled, compound X", () => {
+    for (const w of ["the diagram", "Figure 3", "this graph", "the table", "Source B", "the process shown", "the equation above", "With reference to the data", "the photomicrograph", "the parts labelled M and N", "Identify compound X"]) assert.ok(mentionsFigure(w), w);
   });
   test("ordinary questions do not", () => {
-    for (const w of ["State two uses of insulin.", "Calculate the mass of one mole", "", undefined]) assert.ok(!mentionsFigure(w), String(w));
+    for (const w of ["State two uses of insulin.", "Describe how to fight future infections.", "Calculate the mass of one mole", "Why is ATP needed for exocytosis?", "", undefined]) assert.ok(!mentionsFigure(w), String(w));
   });
   test("a label as the question prints it", () => {
     assert.equal(shortLabel("23(a)(i)"), "(a)(i)");

@@ -30,6 +30,8 @@ export const inkAct = {
   undo: () => caps.key && handles.get(caps.key)?.undo(),
   redo: () => caps.key && handles.get(caps.key)?.redo(),
   clear: () => caps.key && handles.get(caps.key)?.clear(),
+  /** The caret goes back to the writing space the tray is working on (after an Undo or Redo that left no button to stay on). */
+  focus: () => caps.key && handles.get(caps.key)?.focus(),
 };
 
 export function useInkCaps(): InkCaps {

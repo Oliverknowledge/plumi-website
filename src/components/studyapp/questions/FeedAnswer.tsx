@@ -114,7 +114,7 @@ export function FeedAnswer({ set, part, answer, shown, prefs, copy }: { set: QSe
       <button type="button" className="qf-ans-btn" aria-pressed={bare && modeNow === "type"} aria-label="Type your answer" onClick={() => press("type")} data-testid="answer-type">
         <TypeIcon /><span className="qf-ans-long" aria-hidden="true">Type your answer</span><span className="qf-ans-short" aria-hidden="true">Type</span>
       </button>
-      <button type="button" className="qf-ans-btn" aria-pressed={bare && modeNow === "ink"} aria-label="Draw your answer, with a pen or a finger. To use the keyboard, choose Type your answer" onClick={() => press("ink")} data-testid="answer-draw">
+      <button type="button" className="qf-ans-btn" aria-pressed={bare && modeNow === "ink"} aria-label="Draw your answer with your pen. To use the keyboard, choose Type your answer" onClick={() => press("ink")} data-testid="answer-draw">
         <Icon d={NIB} /><span className="qf-ans-long" aria-hidden="true">Draw your answer</span><span className="qf-ans-short" aria-hidden="true">Draw</span>
       </button>
     </div>

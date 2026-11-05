@@ -76,7 +76,7 @@ export function FeedPills({ meta, bands, f, onChange, onClear }: { meta: Subject
 }
 
 /** A count beside an option's name: "12". Nothing until the counts are made. */
-const N = ({ n }: { n: number | null | undefined }) => (n == null ? null : <><span className="qs-sr">, {n.toLocaleString("en-GB")} {n === 1 ? "question" : "questions"}</span><span className="qf-n" aria-hidden="true">{n.toLocaleString("en-GB")}</span></>);
+const N = ({ n }: { n: number | null | undefined }) => (n == null ? null : <><span className="qs-sr">({n.toLocaleString("en-GB")} {n === 1 ? "question" : "questions"})</span><span className="qf-n" aria-hidden="true">{n.toLocaleString("en-GB")}</span></>);
 
 /** School year, for the subjects that split by it (A-Level Maths and Further Maths): Both years, Year 12, Year 13. On a phone it sits above the folded filters, not inside them. */
 export function SchoolYear({ f, counts, onChange }: { f: FeedFilters; counts: FeedCounts | null; onChange(p: Partial<FeedFilters>): void }) {
