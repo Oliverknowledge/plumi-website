@@ -43,6 +43,9 @@ next-env.d.ts
 # conductor workspace scratch
 /.context
 
+# Claude Code's per-session worktrees
+/.claude/worktrees/
+
 # Reference material for the website refactor is committed, with one exception:
 # this screen recording is 205 MB and GitHub rejects any single file over 100 MB.
 # It stays local. If it needs to travel, it wants Git LFS, not the object store.
@@ -55,6 +58,8 @@ scripts/past-papers/.cache/
 scripts/question-bank/.work/
 # local copies of our papers and crops, served at /papers-local in development (R2 in production)
 public/papers-local
+# the list of banks, written from src/content/questionBank/*.json (scripts/question-bank/bank-registry.mjs)
+src/content/questionBank.generated.ts
 # the question bank's data, which the builders write here: the site reads it from R2 (scripts/question-bank/upload_data.py)
 public/question-bank/
 scripts/question-bank/.work-edexcel/

@@ -1,7 +1,14 @@
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { NextConfig } from "next";
+
+/**
+ * The list of banks the site imports, written from the metas so that adding a bank edits no shared file. A plain
+ * process rather than an import, because this file's module resolution differs by Node version (see papersUrl below).
+ */
+execFileSync(process.execPath, [join(process.cwd(), "scripts", "question-bank", "bank-registry.mjs")], { stdio: "inherit" });
 
 /**
  * A short fingerprint of everything in public/library (the Grand Library's art), taken whenever the config loads.

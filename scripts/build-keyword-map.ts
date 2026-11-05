@@ -5,14 +5,23 @@
  * those two drift apart the moment they are maintained separately. Generating
  * it means the registry is the only thing to edit: `npm run seo:map`.
  */
-import { writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 import { routeIntents } from "../src/config/routes";
 import { site } from "../src/config/site";
 
 const OUT = "docs/seo/keyword-map.md";
+
+/** A query for each bank in src/content/questionBank/ (the folder also holds lists with no slug), so a new bank needs no edit here. */
+const META = "src/content/questionBank";
+const bankQueries = readdirSync(META)
+  .map((name) => JSON.parse(readFileSync(join(META, name), "utf8")))
+  .filter((meta) => meta.slug)
+  .map((meta) => `${meta.board} ${meta.level} ${meta.subject} questions by topic`);
+const secondaryQueries = (route: (typeof routeIntents)[number]) =>
+  route.path === "/question-bank" ? [...new Set([...route.secondaryQueries, ...bankQueries])] : route.secondaryQueries;
 
 const lines: string[] = [
   "# Keyword and search-intent map",
@@ -36,7 +45,7 @@ for (const route of routeIntents) {
     `| | |`,
     `| --- | --- |`,
     `| **Primary query** | ${route.primaryQuery} |`,
-    `| **Secondary** | ${route.secondaryQueries.length ? route.secondaryQueries.join(" · ") : "—"} |`,
+    `| **Secondary** | ${secondaryQueries(route).length ? secondaryQueries(route).join(" · ") : "—"} |`,
     `| **User intent** | ${route.intent} |`,
     `| **Page objective** | ${route.objective} |`,
     `| **Title** (${route.title.length} chars) | ${route.title} |`,
