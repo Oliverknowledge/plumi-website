@@ -38,6 +38,7 @@
 .pa .qf-nres { margin: 0; font: 800 14px var(--f-body); color: var(--soft); white-space: nowrap; }
 .pa .qf-nres b { font: 700 22px/1 var(--f-px); color: var(--ink); }
 .pa .qf-note-l { font-weight: 700; color: var(--mute); white-space: nowrap; }
+.pa .qf-note-l.is-gone { visibility: hidden; }
 .pa .qf-prog { margin: 0; font: 700 12.5px var(--f-body); color: var(--mute); white-space: nowrap; }
 .pa .qf-acts { display: flex; gap: 8px; margin-left: auto; }
 .pa .qf-mixbtn, .pa .qf-practise { min-height: 44px; padding: 0 14px; font-size: 14px; }
@@ -712,6 +713,8 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 /* A new search waits for the papers' text: the old list stays, dimmed, never blank. A late change held while the student reads is offered by a chip. */
 .pa .qf-listwrap { transition: opacity .15s; }
 .pa .qf-listwrap.is-waiting { opacity: .5; }
-.pa .qf-more { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); width: max-content; min-height: 44px; max-width: calc(100vw - 24px); padding: 0 18px; border: 2px dashed var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 20px/1 var(--f-hand); color: var(--ink); cursor: pointer; }
+.pa .qf-more { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 24px); min-height: 44px; padding: 0 18px; border: 2px dashed var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 20px/1 var(--f-hand); color: var(--ink); cursor: pointer; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+@media (pointer: coarse) { .pa .qf-more { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } }
 .pa .qf-more:hover { background: #fff; }
+.pa .qf-listwrap.is-waiting { pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .pa .qf-listwrap { transition: none; } }

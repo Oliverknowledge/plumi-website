@@ -33,6 +33,13 @@ const NO_LIST: readonly BankRow[] = [];
  * keeps its own answer (not a set's), so there is nothing to start or finish: write, pull up the mark scheme, mark yourself, scroll on.
  */
 export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }) {
+  // The feed puts the student back where they were itself (savedPos). The browser's own restore after a reload waits for the page to be tall enough and then jumps there when late results arrive: off.
+  useEffect(() => {
+    if (!("scrollRestoration" in history)) return;
+    const was = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    return () => { history.scrollRestoration = was; };
+  }, []);
   const [attempt, setAttempt] = useState(0);
   const data = useSubject(entry.slug, attempt);
   const ex = useBankExtras(data.state === "ready" ? data.meta : null);
@@ -244,8 +251,14 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
   }, []);
   const tint = tabColour(baseSubject(entry.subject));
   const searching = search.trim().length > 0;
-  const searchNote = searching && !bank.text && !bank.failed ? <span className="qf-note-l"> {"·"} looking through the papers</span>
-    : searching && bank.failed ? <span className="qf-note-l"> {"·"} searching titles only <button type="button" className="qs-link" onClick={bank.retry}>Try again</button></span> : null;
+  const looking = searching && !bank.text && !bank.failed;
+  // The note must never change the strip's height when it goes (that would move the list under a student who is reading): once shown, what replaces it is the same words, unseen.
+  const [noted, setNoted] = useState(false);
+  if (looking && !noted) setNoted(true);
+  if (!searching && noted) setNoted(false);
+  const searchNote = looking ? <span className="qf-note-l"> {list.length > 0 && settled.list !== null ? "so far " : ""}{"\u00b7"} looking through the papers</span>
+    : searching && bank.failed ? <span className="qf-note-l"> {"\u00b7"} searching titles only <button type="button" className="qs-link" onClick={bank.retry}>Try again</button></span>
+    : noted ? <span className="qf-note-l is-gone" aria-hidden="true"> so far {"\u00b7"} looking through the papers</span> : null;
 
   // Once the student has scrolled or pressed something, the "tap for lofi" bubble has done its job and is put away (it would sit on the examiner's notes).
   useEffect(() => {
@@ -320,7 +333,7 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
     <div className="qf-feed" style={{ "--tint": tint } as React.CSSProperties} data-testid="feed" data-slug={slug}>
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
-        ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={settled.list === null ? -1 : list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
+        ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={settled.list === null || settled.waiting || (list.length === 0 && waitingForText) ? -1 : list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
         tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted} onSearchFocus={() => setWantText(true)}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
@@ -341,8 +354,8 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
       <h2 className="qs-sr" id="qf-results" tabIndex={-1}>Questions</h2>
       {rows.length === 0 ? (
         <div className="qs-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>No questions here yet</b></div>
-      ) : settled.list === null ? (
-        // a search remembered from last time: the list is made once the papers' text is here (at most 2.5 s), so it is never shown and then changed
+      ) : settled.list === null || (list.length === 0 && waitingForText) ? (
+        // a search remembered from last time (or one whose titles alone find nothing yet): no list and no "nothing matches" until the papers' text is here (a remembered one waits at most 2.5 s)
         <div className="qf-ghosts" role="status" aria-label="Searching" data-testid="feed-searching">{[0, 1].map((i) => <div key={i} className="qf-card qf-ghost"><div className="qf-left"><i /><i /><i /></div><div className="qf-sheet"><i /></div><div className="qf-right" /></div>)}</div>
       ) : list.length === 0 ? (
         <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>{searching ? "Nothing matches your search" : "Nothing matches"}</b>
@@ -350,12 +363,12 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
           {active > 0 && <button type="button" className="btn" onClick={clearAll}>Clear filters</button>}
         </div>
       ) : (
-        <div className={`qf-listwrap${settled.waiting ? " is-waiting" : ""}`} aria-busy={settled.waiting || undefined} data-testid="feed-listwrap">
+        <div className={`qf-listwrap${settled.waiting ? " is-waiting" : ""}`} aria-busy={settled.waiting || undefined} inert={settled.waiting} data-testid="feed-listwrap">
           <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
         </div>
       )}
       {settled.offer && (
-        <button type="button" className="qf-more" style={{ top: pillTop }} onClick={settled.show} data-testid="feed-more">{settled.offer}</button>
+        <button type="button" className="qf-more" onClick={settled.show} data-testid="feed-more">{settled.offer}</button>
       )}
       {deep && (
         <button type="button" className="qf-top" style={{ top: pillTop }} aria-label="Back to the top" onClick={() => {
