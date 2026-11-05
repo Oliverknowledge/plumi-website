@@ -8,6 +8,7 @@ import { site } from "@/config/site";
  *                        served from /study, /study/library, /study/questions and /study/flashcards; the sign-in pages and
  *                        Next's own files pass through; the marketing pages are not here, so they go to
  *                        tryplumi.app. The address bar never shows a /study/ prefix.
+ *                        A shared deck, /d/<code>, is served as it is (isSharePath).
  *   tryplumi.app         the marketing site. Its old /study, /study/library and /study/flashcards go to the
  *                        app's own host, so there is one home for the app.
  *   anything else        localhost, a preview deployment, 127.0.0.1: nothing changes, the app is under /study.
@@ -24,6 +25,13 @@ export const APP_PLACES = { "/": "/study", "/library": "/study/library", "/quest
 const CANONICAL_TO_VISIBLE: Record<string, string> = { "/study": "/", "/study/library": "/library", "/study/questions": "/questions", "/study/flashcards": "/flashcards" };
 /** Pages the app host serves as they are: signing in and out, and Supabase's return trip. */
 const AUTH_PATHS = ["/sign-in", "/sign-up", "/auth/callback"];
+
+/**
+ * A shared flashcard deck, `/d/<code>`: public, no sign-in, its own small page (src/app/d). It lives at the same address on the
+ * app's host (where a student's decks are kept, so "Add to my decks" lands where they will look) and is not rewritten. Opened on
+ * tryplumi.app it goes to the app's host for that reason: a copy added there would sit in another site's storage.
+ */
+export const isSharePath = (path: string) => /^\/d\/[A-Za-z0-9_-]+$/.test(path);
 
 /** `study.tryplumi.app`, or `study.localhost` to try it on a laptop. A port is ignored. */
 export function isStudyHostname(hostname: string) {
@@ -51,9 +59,11 @@ export function routeFor(host: string, rawPath: string, search = ""): Routing {
     if (place) return { kind: "rewrite", to: place + search };
     if (path.startsWith("/study/") || path.startsWith("/_next/") || path.startsWith("/api/")) return { kind: "pass" };
     if (AUTH_PATHS.includes(path)) return { kind: "pass" };
+    if (isSharePath(path)) return { kind: "pass" };
     // Everything else is the marketing site's (terms, privacy, the question bank, ...).
     return { kind: "redirect", to: `${site.domain}${rawPath}${search}` };
   }
+  if (isMainHostname(host) && isSharePath(path)) return { kind: "redirect", to: `${site.studyDomain}${rawPath}${search}` };
   if (isMainHostname(host) && CANONICAL_TO_VISIBLE[path] !== undefined) {
     return { kind: "redirect", to: `${site.studyDomain}${CANONICAL_TO_VISIBLE[path] === "/" ? "" : CANONICAL_TO_VISIBLE[path]}${search}` };
   }

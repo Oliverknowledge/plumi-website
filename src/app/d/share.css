@@ -1,0 +1,125 @@
+/* A shared flashcard deck (/d/<code>): the study app's look on its own small page. Light only; every rule is under .pa.sh.
+   Tokens, buttons and focus rings come from app.css. */
+.pa.sh { min-height: 100dvh; }
+.pa .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.pa .sh-main { max-width: 880px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); display: grid; gap: 18px; }
+.pa .sh-top { display: flex; align-items: center; min-height: 64px; padding-top: env(safe-area-inset-top, 0px); }
+.pa .sh-brand { display: inline-flex; align-items: center; gap: 8px; font: 700 26px var(--f-px); color: var(--ink); }
+.pa .sh-brand img { width: 34px; height: 34px; image-rendering: pixelated; }
+
+/* title, count, and the one thing to do */
+.pa .sh-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; }
+.pa .sh-titles { min-width: 0; flex: 1 1 320px; }
+.pa .sh-head h1 { margin: 0; font: 700 clamp(30px, 5vw, 42px)/1.08 var(--f-px); text-wrap: balance; overflow-wrap: anywhere; }
+.pa .sh-count { margin: 6px 0 0; font: 800 14.5px var(--f-body); color: var(--soft); }
+.pa .sh-add { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pa .sh-add .btn, .pa .sh-acts .btn, .pa .sh-controls .btn { min-height: 48px; font-size: 19px; }
+.pa .sh-addbtn { min-width: 220px; }
+.pa .sh-added { display: inline-flex; align-items: center; gap: 8px; margin: 0; font: 600 21px var(--f-px); color: var(--ink); }
+.pa .sh-added i { width: 22px; height: 22px; border: 2px solid var(--ink); border-radius: 6px; background: var(--good); position: relative; }
+.pa .sh-added i::after { content: ""; position: absolute; left: 6px; top: 1px; width: 5px; height: 10px; border: solid var(--ink); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.pa .sh-soft { margin: 0; font: 700 14.5px var(--f-body); color: var(--soft); }
+
+/* the card */
+.pa .sh-stage { display: grid; gap: 14px; justify-items: center; }
+.pa .sh-card {
+  width: 100%; height: clamp(300px, 52dvh, 480px); display: flex; flex-direction: column; overflow: hidden; cursor: pointer;
+  background: #fffdf6; border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4);
+  background-image: repeating-linear-gradient(transparent 0 41px, #e6edf6 41px 43px); background-position: 0 44px;
+}
+.pa .sh-card-h { flex: none; display: flex; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 2px solid var(--line); background: #fffdf6; font: 800 12.5px var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+.pa .sh-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 14px 28px 22px; overflow-y: auto; text-align: center; overscroll-behavior: contain; outline-offset: -6px; }
+.pa .sh-text { margin: auto 0; max-width: 100%; font: 700 36px/1.14 var(--f-hand); color: #23345e; white-space: pre-line; overflow-wrap: anywhere; }
+.pa .sh-card[data-side="back"] .sh-text { color: #1d4a9a; }
+.pa .sh-text[data-size="xl"] { font-size: 56px; }
+.pa .sh-text[data-size="l"] { font-size: 42px; }
+.pa .sh-text[data-size="m"] { font-size: 32px; }
+.pa .sh-text[data-size="s"] { font-size: 26px; line-height: 1.2; }
+.pa .sh-text[data-size="xs"] { font-size: 21px; line-height: 1.26; }
+@media (max-width: 520px) {
+  .pa .sh-card { height: clamp(300px, 54dvh, 440px); }
+  .pa .sh-body { padding: 12px 16px 18px; }
+  .pa .sh-text[data-size="xl"] { font-size: 42px; }
+  .pa .sh-text[data-size="l"] { font-size: 33px; }
+  .pa .sh-text[data-size="m"] { font-size: 27px; }
+  .pa .sh-text[data-size="s"] { font-size: 22px; }
+  .pa .sh-text[data-size="xs"] { font-size: 19px; }
+}
+
+/* turning over: the card narrows to its edge, the words change, it opens again. Without motion it fades instead. */
+.pa .sh-card { perspective: 900px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pa .sh-card[data-turn="out"] { animation: shOut 130ms ease-in forwards; }
+  .pa .sh-card[data-turn="in"] { animation: shIn 130ms ease-out; }
+  .pa .sh-text { animation: shText 160ms ease-out; }
+  @keyframes shOut { to { transform: rotateY(90deg); } }
+  @keyframes shIn { from { transform: rotateY(-90deg); } }
+  @keyframes shText { from { opacity: 0; transform: translateY(4px); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pa .sh-card[data-turn="out"] { animation: shFadeOut 130ms linear forwards; }
+  .pa .sh-card[data-turn="in"] { animation: shFadeIn 130ms linear; }
+  @keyframes shFadeOut { to { opacity: 0; } }
+  @keyframes shFadeIn { from { opacity: 0; } }
+}
+
+/* where you are: dots for a short deck, a pixel bar for a long one, and the count in words */
+.pa .sh-progress { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; min-height: 24px; }
+.pa .sh-dots { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.pa .sh-dots li { width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 3px; background: #fff; }
+.pa .sh-dots li.seen { background: var(--dev); }
+.pa .sh-dots li.now { width: 22px; background: var(--gold); }
+.pa .sh-bar { flex: 1; max-width: 420px; height: 16px; border: 2px solid var(--ink); border-radius: 4px; background: #fff; overflow: hidden; position: relative; }
+.pa .sh-bar i { display: block; height: 100%; background: var(--gold); border-right: 2px solid var(--ink); }
+.pa .sh-bar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 6px, rgba(34, 48, 77, .22) 6px 8px); pointer-events: none; }
+.pa .sh-pos { flex: none; margin: 0; min-width: 62px; font: 800 15px var(--f-body); font-variant-numeric: tabular-nums; color: var(--ink); text-align: center; }
+
+.pa .sh-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; width: 100%; max-width: 560px; }
+.pa .sh-controls .btn { width: 100%; padding: 0 10px; }
+.pa .sh-turn { font-size: 21px; }
+.pa .sh-keys { margin: 0; font: 800 12.5px var(--f-body); color: var(--soft); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.pa .sh-keys kbd { margin-left: 4px; }
+@media (hover: none), (max-width: 640px) { .pa .sh-keys { display: none; } }
+
+.pa .sh-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
+.pa .sh-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; border: 0; background: none; font: 800 14px var(--f-body); color: #2455b3; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pa .sh-link:disabled { color: var(--soft); text-decoration: none; cursor: default; }
+.pa .sh-plain { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.pa .sh-plain li { display: grid; gap: 2px; }
+.pa .sh-plain span { color: var(--soft); }
+
+/* report sheet */
+.pa .sh-sheet { margin: auto; width: min(440px, calc(100vw - 24px)); max-height: min(88dvh, 640px); padding: 0; border: 3px solid var(--ink); border-radius: 18px; background: var(--card); color: var(--ink); box-shadow: 0 6px 0 var(--ink); overflow: auto; }
+.pa .sh-sheet::backdrop { background: rgba(34, 48, 77, .5); }
+.pa .sh-sheet-in { display: grid; gap: 14px; padding: 18px 20px 20px; }
+.pa .sh-sheet-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.pa .sh-sheet-h h2 { margin: 0; font: 700 28px/1.1 var(--f-px); }
+.pa .sh-x { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; border: 0; border-radius: 10px; background: none; font: 400 30px/1 var(--f-body); color: var(--soft); cursor: pointer; }
+.pa .sh-x:hover { background: var(--card2); color: var(--ink); }
+.pa .sh-reasons { margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; }
+.pa .sh-reasons label { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 22px; background: #fff; font: 800 15px var(--f-body); cursor: pointer; }
+.pa .sh-reasons label:hover { background: #fff3cf; }
+.pa .sh-reasons label.on { background: var(--navy); color: #f5f9ff; }
+.pa .sh-reasons input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.pa .sh-reasons label:has(input:focus-visible) { outline: 3px solid var(--navy); outline-offset: 2px; box-shadow: 0 0 0 5px #fff; }
+.pa .sh-line { margin: 0; font: 800 17px/1.35 var(--f-body); }
+.pa .sh-acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* a deck that is not there */
+.pa .sh-gone { justify-items: center; text-align: center; padding-top: 6vh; gap: 16px; }
+.pa .sh-gone h1 { margin: 0; font: 700 clamp(28px, 5vw, 40px)/1.1 var(--f-px); text-wrap: balance; }
+.pa .sh-gone .sh-acts { justify-content: center; }
+.pa .sh-scene { position: relative; width: 260px; height: 190px; }
+.pa .sh-scene img { position: absolute; right: 0; bottom: 0; width: 132px; height: 132px; image-rendering: pixelated; }
+.pa .sh-empty-card { position: absolute; left: 6px; top: 8px; width: 170px; height: 128px; padding: 22px 16px; display: grid; align-content: start; gap: 14px; border: 3px dashed var(--ink); border-radius: 14px; background: #fffdf6; transform: rotate(-4deg); box-shadow: 0 5px 0 rgba(34, 48, 77, .25); }
+.pa .sh-empty-card i { display: block; height: 3px; border-radius: 2px; background: var(--line); }
+.pa .sh-empty-card i:nth-child(2) { width: 70%; }
+.pa .sh-empty-card i:nth-child(3) { width: 45%; }
+
+@media (max-width: 520px) {
+  .pa .sh-head { align-items: stretch; }
+  .pa .sh-add { width: 100%; }
+  .pa .sh-addbtn { width: 100%; }
+  .pa .sh-add .btn { flex: 1 1 auto; }
+  .pa .sh-controls .btn { font-size: 17px; }
+}
