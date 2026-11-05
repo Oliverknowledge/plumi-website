@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { signInHref, signOut, useAccount } from "@/lib/account";
+import { useRef, useState } from "react";
+import { useAccount } from "@/lib/account";
 import { canonicalPath, useAppHref } from "@/lib/studyapp/host";
 import { useNow } from "@/lib/studyapp/clock";
 import { useLiveSummary } from "@/lib/studyapp/live";
@@ -63,48 +63,17 @@ export function AppTop() {
   );
 }
 
-/** The student's button: who is signed in, and how to sign in or out. */
+/** The student's button: one tap opens Settings straight away (look, sign in or out, delete account). No menu in between. */
 function Account() {
   const { ready, user, email, name } = useAccount();
-  const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
-  const box = useRef<HTMLDivElement>(null);
-  const path = usePathname() ?? "/";
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("pointerdown", away);
-    document.addEventListener("keydown", esc);
-    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
-  }, [open]);
   const initial = ((name ?? email ?? "P").trim()[0] ?? "P").toUpperCase();
   return (
-    <div className="acct" ref={box}>
-      <button ref={button} type="button" className="btn icon avatar" aria-label={user ? "Your account" : "Sign in"} aria-expanded={open} onClick={() => setOpen((o) => !o)} data-testid="account-button">
+    <div className="acct">
+      <button ref={button} type="button" className="btn icon avatar" aria-label="Settings" aria-haspopup="dialog" onClick={() => setSettings(true)} data-testid="account-button">
         {ready && user ? initial : "P"}
       </button>
-      {open && (
-        <div className="ddp right acct-menu" role="menu">
-          {user ? (
-            <>
-              <span className="lbl">Signed in</span>
-              <span className="acct-who">{name ?? email}</span>
-              <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); setSettings(true); }} data-testid="account-settings">Settings</button>
-              <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); void signOut(); }}>Sign out</button>
-            </>
-          ) : (
-            <>
-              <span className="lbl">Not signed in</span>
-              <span className="acct-who">Your tasks and cards are saved on this device. Sign in to join the Grand Library.</span>
-              <button type="button" className="mi" role="menuitem" onClick={() => { setOpen(false); setSettings(true); }} data-testid="account-settings">Settings</button>
-              <a className="mi" role="menuitem" href={signInHref("library", path)}>Sign in</a>
-              <a className="mi" role="menuitem" href={signInHref("library", path, "sign-up")}>Make an account</a>
-            </>
-          )}
-        </div>
-      )}
       {settings && <Settings onClose={() => { setSettings(false); button.current?.focus({ preventScroll: true }); }} />}
     </div>
   );

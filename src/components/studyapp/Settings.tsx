@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { deleteOwnAccountCall, signInHref, signOut, signOutLocal, useAccount } from "@/lib/account";
 import { CONFIRM_WORD, clearPlumiKeys, confirmOk, deleteAccount } from "@/lib/studyapp/accountDelete";
@@ -42,6 +43,7 @@ function Page({ dark }: { dark: boolean }) {
 export function Settings({ onClose }: { onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const { user, email, name } = useAccount();
+  const path = usePathname() ?? "/";
   const dark = useSyncExternalStore(subscribeAppearance, readDark, () => false);
   const [step, setStep] = useState<"main" | "delete">("main");
   const [typed, setTyped] = useState("");
@@ -91,6 +93,17 @@ export function Settings({ onClose }: { onClose(): void }) {
               </button>
             </div>
           </section>
+
+          {!user && (
+            <section className="stg-sec" aria-labelledby={`${title}-acct`}>
+              <h3 id={`${title}-acct`}>Account</h3>
+              <p className="stg-who">Your tasks and cards are saved on this device.</p>
+              <div className="stg-row">
+                <a className="btn" href={signInHref("library", path)} data-testid="settings-signin">Sign in</a>
+                <a className="btn" href={signInHref("library", path, "sign-up")} data-testid="settings-signup">Make an account</a>
+              </div>
+            </section>
+          )}
 
           {user && (
             <section className="stg-sec" aria-labelledby={`${title}-acct`}>
