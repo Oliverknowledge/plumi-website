@@ -39,6 +39,7 @@ cp.STOP = re.compile(cp.STOP.pattern.replace(r"|END\s*$", ""), cp.STOP.flags)
 LEFT_OUT = {"h44601-nov21": {"7(c)(ii)"}}
 MARK = re.compile(r"\[(\d{1,2})\]$")
 SUBS = set(cp.LETTERS) | set(cp.ROMANS)
+GRID = re.compile(r"Assessment\s+Objectives?\s+(?:Question\s+)?Total|Question\s+Assessment\s+Objectives?|Question\s+AO1\.1\s+AO1\.2")
 LABEL = re.compile(r"^(\d{1,2})(?:\(([a-z])\))?(?:\(([ivx]{1,4})\))?$")
 
 _frame = cp.frame
@@ -93,10 +94,22 @@ def lines(self, i):
     got = _lines(self, i)
     if not fresh or "-ms-" not in os.path.basename(self.doc.name):
         return got
+    # The assessment objectives grid at a scheme's back has a row per part, "1a 2 2 4", set like its
+    # labels: read as the scheme, it takes the place of the part's real answer.
+    if not hasattr(self, "_cs_grid"):
+        self._cs_grid = next((n for n, p in enumerate(self.doc) if GRID.search(p.get_text())), len(self.doc))
+    if i >= self._cs_grid:
+        self._lines[i] = []
+        return []
     out, used = [], set()
     for k, l in enumerate(got):
         if k in used:
             continue
+        # H446/01 June 2019 runs its header together, "Question Answer", and sets a row's label bare: "c i", "ii -P going…".
+        if l["text"].strip().startswith("Question Answer"):
+            l = {**l, "text": "Question", "x1": l["x0"] + 50}
+        elif l["x0"] < 110 and (m := re.match(r"^([a-n]\s+)?([ivx]{1,4})(?:\s+(\S.*))?$", l["text"].strip())) and (m.group(1) or m.group(3)):
+            l = {**l, "text": (f"({m.group(1).strip()}) " if m.group(1) else "") + f"({m.group(2)})" + (f" {m.group(3)}" if m.group(3) else "")}
         bits_of = lambda o: re.sub(r"[()]", " ", o["text"]).split()  # noqa: E731
         fits = lambda o: 0 < len(bits_of(o)) <= 2 and all(b in SUBS for b in bits_of(o))  # noqa: E731
         if l["x0"] < 120 and (re.fullmatch(r"\d{1,2}", l["text"].strip()) or re.fullmatch(r"\([a-n]\)", l["text"].strip())):
@@ -125,6 +138,11 @@ def lines(self, i):
         elif l["x0"] < 100 and l["text"].strip().lower() in SUBS:
             # A row's letter alone in plain type, or a numeral set "Iv": "(f)", "(iv)".
             l = {**l, "text": f"({l['text'].strip().lower()})"}
+        elif l["x0"] < 150 and re.fullmatch(r"[iIl]?i{1,2}|iv|vi{0,3}", l["text"].strip()) \
+                and not any(o is not l and abs(o["y0"] - l["y0"]) < 30 and re.search(r"\(%s\)" % l["text"].strip().lower().replace("l", "i"), o["text"]) for o in got):
+            # A numeral alone in a column of its own, right of the "Question" header ("Ii" for "ii" in one
+            # paper): read it as under the header, unless the row prints its label again as "(b) (ii)".
+            l = {**l, "text": "(%s)" % l["text"].strip().lower().replace("l", "i"), "x0": 100}
         elif l["x0"] < 150 and re.fullmatch(r"I[ivx]{0,3}|[ivx]{1,4}", l["text"].strip()) and cp.bold(l["spans"][0]):
             l = {**l, "text": l["text"].strip().lower()}
         out.append(l)
