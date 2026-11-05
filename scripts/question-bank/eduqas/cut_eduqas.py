@@ -199,12 +199,20 @@ def area(doc, i):
             box = r
     lines = doc.lines(i)
     foot = [l["y0"] for l in lines if l["y0"] > h - 90 and re.search(r"©\s*WJEC|Turn over|^\([AB]\d{3}U", l["text"])]
+    furniture = re.compile(r"©|Turn over|\([AB]\d{3}U", re.I)
     if box is not None:
         r = pymupdf.Rect(box.x0 + 1, box.y0 + 1, box.x1 - 1, box.y1 - 1)
+        below = [l["y1"] for l in lines if l["y0"] < r.y1 < l["y1"] and not furniture.search(l["text"])]  # (a graph's axis label can cross the frame's foot)
     else:
         head = [l["y1"] for l in lines if l["y0"] < 75 and re.fullmatch(r"\d{1,2}", l["text"])]
         right = min([l["x0"] for l in lines if l["text"].startswith("Examiner")] + [w - 52])
         r = pymupdf.Rect(46, (max(head) + 6) if head else 72, right - 2, h - 50)
+        # (No frame, so nothing marks the page's end. A line the margin cuts through runs on: "Volume =" lost its foot. So does a graph's axis label below the margin, "Time / s".
+        # An answer's "n =" further down is left off, or it brings a page of white with it.)
+        below = [l["y1"] for l in lines if l["y1"] > r.y1 and not (foot and l["y0"] >= min(foot) - 1) and not furniture.search(l["text"]) and re.search(r"[A-Za-z]", l["text"])
+                 and ((l["y0"] + l["y1"]) / 2 <= r.y1 or "=" not in l["text"])]
+    if below:
+        r.y1 = max(below)
     if foot:
         r.y1 = min(r.y1, min(foot) - 1)  # (a table's last rule can sit just over it)
     doc._area[i] = r
@@ -228,8 +236,16 @@ def content_bottom(doc, i, rect):
             continue
         if r.width > rect.width * 0.9 and r.height > rect.height * 0.6:
             continue  # the frame
-        if r.intersects(rect) and rect.contains(pymupdf.Point(r.x0 + r.width / 2, min(r.y1, rect.y1 - 0.1))):
+        # (A rule's rect is empty, and Rect.intersects says no to it: a table lost its last rule.)
+        if r.x0 <= rect.x1 and r.x1 >= rect.x0 and r.y0 <= rect.y1 and r.y1 >= rect.y0 and rect.contains(pymupdf.Point(r.x0 + r.width / 2, min(r.y1, rect.y1 - 0.1))):
             ys.append(min(r.y1, rect.y1))
+    # A photograph is neither text nor a drawing, and one below the last words was cut through.
+    # (Not get_text's clip: that also hands back a picture below the rect, with its box upside down.)
+    for b in doc.doc[i].get_text("dict")["blocks"]:
+        if b.get("type") == 1:
+            r = pymupdf.Rect(b["bbox"]) * doc.doc[i].rotation_matrix
+            if r.y0 < rect.y1 and r.y1 > rect.y0 and r.x0 < rect.x1 and r.x1 > rect.x0:
+                ys.append(min(r.y1, rect.y1))
     return max(ys) if ys else None
 
 
@@ -313,7 +329,7 @@ def label_top(doc, pg, y):
     else:  # what the cut would go through and ends within reach of the label goes with the part above, whole: its "[4]", a table's last rule, not a sliver of a question's number over "(a)" here
         # (Only a number or marks in the margins, a long line or a table's rule: a short piece mid-line can be a fraction's top or a drawn arrow's tip, part of this line.)
         foot = [y1 + (1 if n >= len(lines) else 0) for n, (x0, y0, x1, y1) in enumerate(pieces)
-                if y0 < top < y1 <= y + 2 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2 and (x1 - x0 >= 160 and (n < len(lines) or y1 - y0 < 3) or n < len(lines) and (x0 <= f.x0 + 50 or x1 >= f.x1 - 40))
+                if y0 < top < y1 <= y + 2 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2 and (x1 - x0 >= 160 and (n < len(lines) or y1 - y0 < 3) or n < len(lines) and (x0 <= f.x0 + 50 or x1 >= f.x1 - 40 or y1 <= y + 0.5 or re.search(r"[A-Za-z]{4,}", lines[n]["text"])))
                 and ink_row(page, x0, x1, top)]
         if foot:
             top = min(max(foot), y)

@@ -231,7 +231,9 @@ Each fault was read by eye before anything changed. What was wrong, by cutter:
 `recut_compare.py --base=<work-dir>` compares with the same cutter's run from before the fix: a crop it left byte for byte as it was is "same". Without it A-Level Maths showed 317 changes for 54 questions, because a bank cut with another
 PyMuPDF renders a pixel or two differently everywhere. A second run's baseline for banks last cut before 4 November needs `cut.py` from before that day.
 
-6,284 crops change in 33 banks; 66 are held back, listed by state in the PR. Left alone: AQA legacy Physics (its `clear_cut` already handles this; the flags read were the frame's lines), Eduqas Religious Studies (a sliver of a box over 24 crops in October 2020, no words lost, and clearing it only half worked), Edexcel IAL Maths and AQA Law (page borders only).
+- **Eduqas sciences** (`cut_eduqas.content_bottom`): this trims a part's empty answer space by finding where its content ends, and it missed two things. Pictures, so a micrograph was cut in half. And zero-area rules, which `Rect.intersects` says no to, so a table lost its last rule and a "plot a graph" part lost its whole grid (83px live, 1,546 now). A page's foot now keeps a line the margin cuts through and a graph's axis label below it, but not an answer's "n =". `get_text`'s clip also hands back pictures below the rect, with their box upside down: test the overlap. The `cut_wjec` banks don't share this code.
+
+6,668 crops change in 33 banks; 66 are held back, listed by state in the PR. Left alone: AQA legacy Physics (its `clear_cut` already handles this; the flags read were the frame's lines), Eduqas Religious Studies (a sliver of a box over 24 crops in October 2020, no words lost, and clearing it only half worked), Edexcel IAL Maths and AQA Law (page borders only).
 
 **Still to do:** `cut_pearson.py`'s footer and sliver rules will change other banks on their next re-cut (OCR Computer Science, Geography and others that it cuts weren't re-cut). Scheme crops were measured, not read: their table rules set the measure off.
 
