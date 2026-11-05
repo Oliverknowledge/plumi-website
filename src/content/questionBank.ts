@@ -164,7 +164,9 @@ export const bankSolutionUrl = (s: Pick<BankSubject, "slug" | "data">, id: strin
  * ones they can already do; maths topics span both years, so the split is by question, not by topic.
  */
 export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
-  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE"));
+  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE")
+    // English Literature (not Eduqas: no AS papers) and AQA French, German, Spanish: scripts/question-bank/english_languages_years.py
+    || (/^English Literature\b/.test(s.subject) && s.board !== "Eduqas") || (s.board === "AQA" && /^(French|German|Spanish)$/.test(s.subject)));
 /**
  * A GCSE (or International GCSE) bank with Higher and Foundation papers (by name, "Paper 1 Higher", as the tier links read them) has a
  * tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too.

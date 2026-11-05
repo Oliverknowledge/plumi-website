@@ -315,6 +315,34 @@ now, not a single choice: every sitting starts ticked, untick the ones to keep b
 "Leave out the latest two"), and the list, the counts and "Download PDF" follow. The URL
 keeps it as `?year=JUN23,JUN22,…`, which the page already read.
 
+## Year 12 and Year 13 (English Literature, AQA French, German and Spanish)
+
+5 November 2026, the same switch for the other A-Level subjects with AS papers in the bank. No
+question was read one by one: both families have a rule the papers and tags already carry
+(`scripts/question-bank/english_languages_years.py`, which writes each bank's `year13.json`;
+`sample` prints a few ids per rule). Every AS-paper question is Year 12.
+
+- **AQA French, German, Spanish:** AQA's subject content says the course is designed for two
+  years, themes 1 and 2 in the first and 3 and 4 in the second, and the AS papers test only
+  themes 1 and 2. A listening or reading question on an A-Level paper is tagged with its
+  theme: themes 3 and 4 are Year 13 (French 139, German 132, Spanish 130), the rest Year 12.
+  The set-text and film essays (Paper 2) use the AS's own lists of works, and the
+  literary-extract reading questions exist at AS too, so they are Year 12.
+- **English Literature:** which texts are first year is the board's and the school's choice,
+  so the AS papers decide. What an AS paper of that board sets, text or task, is Year 12 on the
+  A-Level paper as well; what only the A-Level sets is Year 13. Pearson says it directly: AS and
+  the first year of the A-Level "can be taught at the same time, with students in the same
+  class covering the same content". AQA A: Paper 1 Year 12, Paper 2A/2B (texts in shared
+  contexts) Year 13. AQA B: Paper 1 Section A Year 12; Section C across two texts and Paper 2A/2B
+  (crime, protest writing) Year 13. Edexcel: prose (Paper 2), other drama and Poems of the Decade
+  Year 12; Shakespeare (Section A) and period poetry (Paper 3 Section B) Year 13. OCR:
+  Shakespeare Year 12; the drama-and-poetry comparison and all of Component 2 Year 13.
+  If a school teaches Shakespeare in Year 12 on a board whose AS has none (Edexcel), the
+  topic filter still finds it: only the switch hides it.
+- **Not split:** Eduqas (the bank has no AS papers; the AS is B720, left out of the bank) and
+  AQA English Language (no AS, 44 questions).
+- `bankHasYears` lists these subjects; `?yr=12|13` as for maths.
+
 ## Practicals and whole questions
 
 Added 25 October 2026, from a student's feedback ("a filter for questions based on
