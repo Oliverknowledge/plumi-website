@@ -342,7 +342,7 @@ question was read one by one: both families have a rule the papers and tags alre
   topic filter still finds it: only the switch hides it.
 - **Not split:** Eduqas (the bank has no AS papers; the AS is B720, left out of the bank) and
   AQA English Language (no AS, 44 questions).
-- `bankHasYears` lists these subjects; `?yr=12|13` as for maths.
+- The switch shows for any bank whose meta has a `year13` hash (`bankHasYears`); `?yr=12|13` as for maths.
 
 ## Practicals and whole questions
 
