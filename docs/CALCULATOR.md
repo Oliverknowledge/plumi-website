@@ -12,11 +12,26 @@ Digit/operator shortcuts apply only when the iframe has focus. Tab traverses
 the labelled keys; Escape minimises the panel and restores focus to its launcher.
 The calculator display is a canvas and does not provide spoken mathematical output.
 
-The launcher is a lightweight, illustrated miniature ClassWiz, tilted slightly
+The launcher is a lightweight, illustrated miniature ClassWiz, tilted to the right
 with a gentle bob and occasional wiggle. Its small minus control hides it for
 the current bank page; a quiet calculator tab at the screen edge restores it.
-These controls do not load the emulator. Hover and keyboard focus pause the
-motion; `prefers-reduced-motion` disables it. The SVG thumbnail has no script.
+These controls do not load the emulator. Hover triggers a wiggle, keyboard focus
+pauses motion, and `prefers-reduced-motion` disables animations. The SVG thumbnail
+has no script.
+
+Drag the miniature itself, or the grip above the open calculator, to reposition
+it. Positions are kept for the mounted bank page and clamped inside the viewport,
+including after resizing. A six-pixel movement threshold distinguishes dragging
+from clicking the launcher. Arrow keys move a focused launcher/grip, with Shift
+for larger steps. Pointer capture supports mouse, pen and touch; calculator keys
+remain separate from the drag grip.
+
+The expand control switches to an optional full-viewport mode on phones and
+desktop. A native modal dialog covers the page and contains keyboard focus;
+page scrolling is locked until it closes. The floating mode uses the same dialog
+nonmodally. The iframe remains mounted through mode switches, preserving its
+RAM and result. This mode fills the website viewport, rather than relying on
+browser-specific device-fullscreen support.
 
 Eligibility includes maths, sciences, psychology, economics, business,
 geography, computer science, engineering, physical education, food/nutrition,
