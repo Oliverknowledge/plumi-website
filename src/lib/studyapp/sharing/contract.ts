@@ -53,3 +53,10 @@ export type ReportReason = (typeof REPORT_REASONS)[number]["id"];
 export interface SharedDeck { title: string; subjectHint: string | null; cardCount: number; cards: { front: string; back: string }[] }
 /** One row of `my_shared_decks`. */
 export interface SharedRow { code: string; title: string; cardCount: number; createdAt: string }
+
+/**
+ * The kill switch: set NEXT_PUBLIC_SHARED_DECKS=off in the environment (and redeploy) and the app draws no Share, no Shared tag
+ * and no list, and every /d/<code> link shows "This deck is not shared any more." without asking the database. Decks already shared
+ * stay in the database untouched; turning the switch off again brings the links back.
+ */
+export const sharingSwitchedOff = (): boolean => process.env.NEXT_PUBLIC_SHARED_DECKS === "off";

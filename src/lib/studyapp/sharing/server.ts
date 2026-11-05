@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { sharingSwitchedOff } from "./contract";
 import { createSharing } from "./service";
 import { restApi, siteRestConfig } from "./rest";
 import type { SharedDeck } from "./contract";
@@ -13,6 +14,7 @@ export type Loaded = { kind: "deck"; deck: SharedDeck } | { kind: "gone" } | { k
 
 /** Once per request: the page and its metadata both ask. */
 export const loadSharedDeck = cache(async (code: string): Promise<Loaded> => {
+  if (sharingSwitchedOff()) return { kind: "gone" };
   const r = await createSharing(restApi(siteRestConfig())).get(code);
   if (r.ok) return { kind: "deck", deck: r.value };
   return r.reason === "offline" || r.reason === "busy" || r.reason === "other" ? { kind: "busy" } : { kind: "gone" };

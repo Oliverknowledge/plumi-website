@@ -1,5 +1,5 @@
 import { isMissingFunction } from "@/lib/social/failure";
-import { SHARE_RPC } from "./contract";
+import { SHARE_RPC, sharingSwitchedOff } from "./contract";
 import { codeIn } from "./lines";
 import type { ShareApi } from "./service";
 
@@ -20,7 +20,7 @@ export type Availability = "on" | "off" | "unknown";
 export const PROBE_CODE = "zzzzzzzzzzzzzzzz";
 
 export async function probeSharing(api: ShareApi, kind: "get" | "mine" = "get"): Promise<Availability> {
-  if (!api.configured) return "off";
+  if (!api.configured || sharingSwitchedOff()) return "off";
   try {
     // A signed-in student asks `my_shared_decks`, which answers 200 and is read anyway; anyone else asks `get_shared_deck`, whose
     // "not_found" for the made-up code is an HTTP 400 that the browser notes in its console (nothing a student sees).
