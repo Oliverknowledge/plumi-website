@@ -19,12 +19,16 @@ export type Availability = "on" | "off" | "unknown";
 /** A well-formed code nobody holds: 16 characters of one letter. */
 export const PROBE_CODE = "zzzzzzzzzzzzzzzz";
 
-export async function probeSharing(api: ShareApi): Promise<Availability> {
+export async function probeSharing(api: ShareApi, kind: "get" | "mine" = "get"): Promise<Availability> {
   if (!api.configured) return "off";
   try {
-    const { error } = await api.rpc(SHARE_RPC.get.name, { p_code: PROBE_CODE });
+    // A signed-in student asks `my_shared_decks`, which answers 200 and is read anyway; anyone else asks `get_shared_deck`, whose
+    // "not_found" for the made-up code is an HTTP 400 that the browser notes in its console (nothing a student sees).
+    const { error } = kind === "mine" ? await api.rpc(SHARE_RPC.mine.name, {}) : await api.rpc(SHARE_RPC.get.name, { p_code: PROBE_CODE });
     if (!error) return "on";
     if (isMissingFunction(error)) return "off";
+    // The function is there and said no: for `mine` that is a session it does not accept, which tells us nothing about the project.
+    if (kind === "mine") return error.code === "42501" || codeIn(error.message) === "not_signed_in" ? "unknown" : codeIn(error.message) ? "on" : "unknown";
     if (codeIn(error.message)) return "on";
     return "unknown";
   } catch {
@@ -35,7 +39,7 @@ export async function probeSharing(api: ShareApi): Promise<Availability> {
 const KEY = "plumi-share-probe";
 
 /** The probe's answer for this visit: asked once, shared by every caller, remembered for the session (tab) when it was definite. */
-export function makeProbe(api: ShareApi, storage: Pick<Storage, "getItem" | "setItem"> | null) {
+export function makeProbe(api: ShareApi, storage: Pick<Storage, "getItem" | "setItem"> | null, kind: "get" | "mine" = "get") {
   let settled: Availability | null = null;
   let inflight: Promise<Availability> | null = null;
   const read = (): Availability | null => {
@@ -47,7 +51,7 @@ export function makeProbe(api: ShareApi, storage: Pick<Storage, "getItem" | "set
     async ask(): Promise<Availability> {
       const known = this.peek();
       if (known) return known;
-      inflight ??= probeSharing(api).then((a) => {
+      inflight ??= probeSharing(api, kind).then((a) => {
         if (a !== "unknown") {
           settled = a;
           try { storage?.setItem(KEY, a); } catch { /* fine without */ }

@@ -55,9 +55,11 @@
   @keyframes shIn { from { transform: rotateY(-90deg); } }
   @keyframes shText { from { opacity: 0; transform: translateY(4px); } }
 }
+/* The app and the site both switch every animation off under reduced motion (!important). A fade is not movement, so this one
+   rule says so, with the specificity and the !important to win over them. */
 @media (prefers-reduced-motion: reduce) {
-  .pa .sh-card[data-turn="out"] { animation: shFadeOut 130ms linear forwards; }
-  .pa .sh-card[data-turn="in"] { animation: shFadeIn 130ms linear; }
+  .pa.sh .sh-card[data-turn="out"] { animation: shFadeOut 130ms linear forwards !important; }
+  .pa.sh .sh-card[data-turn="in"] { animation: shFadeIn 130ms linear !important; }
   @keyframes shFadeOut { to { opacity: 0; } }
   @keyframes shFadeIn { from { opacity: 0; } }
 }
@@ -122,3 +124,5 @@
   .pa .sh-add .btn { flex: 1 1 auto; }
   .pa .sh-controls .btn { font-size: 17px; }
 }
+/* the ruled paper's red margin line sits at 30px: keep the words off it */
+@media (min-width: 761px) { .pa .sh-main { padding-left: max(48px, env(safe-area-inset-left)); padding-right: max(48px, env(safe-area-inset-right)); } }
