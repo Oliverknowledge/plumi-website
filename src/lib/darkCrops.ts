@@ -79,13 +79,33 @@ function theWorker(): Worker | null {
   return worker;
 }
 
+/** The longest one crop may take (fetch, cut up, turn over). Past it the crop stays paper and the next one goes: a stuck one must never hold the queue. */
+const TAKES_AT_MOST = 12_000;
+
 /** One crop turned to its dark copy: a blob URL; null if it should stay paper; undefined if it could not be fetched (try again later). */
 async function make(src: string): Promise<string | null | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), TAKES_AT_MOST); });
+  try { return await Promise.race([makeOne(src), late]); } finally { clearTimeout(timer); }
+}
+
+async function makeOne(src: string): Promise<string | null | undefined> {
   const url = readable(src);
   if (!url) return null;
   const w = theWorker();
   if (!w) return makeHere(url);
-  const reply = await new Promise<DarkReply>(resolve => { const id = nextId++; waiting.set(id, resolve); w.postMessage({ id, url } satisfies DarkRequest); });
+  const reply = await new Promise<DarkReply>(resolve => {
+    const id = nextId++;
+    waiting.set(id, resolve);
+    w.postMessage({ id, url } satisfies DarkRequest);
+    // a worker that has gone quiet (it never answers) is dropped, and what it held goes the other way
+    setTimeout(() => {
+      if (!waiting.has(id)) return;
+      if (worker === w) { worker = undefined; w.terminate(); }
+      waiting.forEach((resolveOther, other) => resolveOther({ id: other, status: "retry" }));
+      waiting.clear();
+    }, TAKES_AT_MOST - 2000);
+  });
   if (reply.status === "retry") return makeHere(url);
   if (reply.status === "fetch") { failures++; return undefined; }
   if (reply.status === "ok") { successes++; return URL.createObjectURL(reply.blob); }
@@ -143,6 +163,7 @@ function remember(src: string, blob: string | null) {
   registry.forEach(img => { const b = states.get(img)?.blob; if (b) inUse.add(b); });
   for (const [key, value] of done) {
     if (done.size <= CACHE) break;
+    if (key === src) continue; // the copy just made is about to be put on its picture: never the one to go
     if (value && inUse.has(value)) continue;
     if (value) URL.revokeObjectURL(value);
     done.delete(key);
@@ -212,10 +233,50 @@ function onLoad(e: Event) {
   settle(img);
 }
 
+/**
+ * A crop is hidden while its dark copy is made, never for good (4 November: on a student's tablet some crops stayed invisible in dark).
+ * Whatever goes wrong, a hidden crop is put back as plain paper after this long: a white card, always readable.
+ */
+const HIDDEN_AT_MOST = 7000;
+const hiddenSince = new WeakMap<HTMLImageElement, number>();
+
+/** Give up on a crop's dark copy and show it as printed. */
+function rescue(img: HTMLImageElement) {
+  const st = states.get(img);
+  if (!st) return;
+  const q = queue.indexOf(img);
+  if (q >= 0) queue.splice(q, 1);
+  if (st.blob) {
+    done.set(st.orig, null); // this copy did not work: later pictures of it stay paper too
+    delete st.blob;
+    if ((img.getAttribute("src") || img.src) !== st.orig) { img.dataset.dq = "restore"; img.src = st.orig; hiddenSince.set(img, Date.now()); return; }
+  }
+  img.dataset.dq = "paper";
+  hiddenSince.delete(img);
+}
+
+function watch() {
+  const now = Date.now();
+  registry.forEach(img => {
+    const dq = img.dataset.dq;
+    if (dq !== "pending" && dq !== "swap" && dq !== "restore") { hiddenSince.delete(img); return; }
+    const since = hiddenSince.get(img);
+    if (since === undefined) { hiddenSince.set(img, now); return; }
+    if (now - since < HIDDEN_AT_MOST) return;
+    if (dq === "restore") { img.dataset.dq = "paper"; hiddenSince.delete(img); } else rescue(img);
+  });
+}
+
+function onError(e: Event) {
+  const img = e.currentTarget as HTMLImageElement;
+  if (img.dataset.dq === "swap") rescue(img); // the dark copy would not load
+}
+
 function start() {
   if (started) return;
   started = true;
   new MutationObserver(() => registry.forEach(settle)).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  setInterval(watch, 1500);
 }
 
 /** The <img>'s ref: joins it to the dark treatment for as long as it is on the page. */
@@ -225,9 +286,11 @@ function attach(img: HTMLImageElement | null) {
   registry.add(img);
   states.set(img, { orig: img.currentSrc || img.src });
   img.addEventListener("load", onLoad);
+  img.addEventListener("error", onError);
   settle(img);
   return () => {
     img.removeEventListener("load", onLoad);
+    img.removeEventListener("error", onError);
     registry.delete(img);
     states.delete(img);
     const i = queue.indexOf(img);
