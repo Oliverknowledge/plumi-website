@@ -2,8 +2,6 @@
 export const calculator = {
   label: "Calculator",
   open: "Open ClassWiz calculator",
-  hide: "Hide little calculator",
-  show: "Show little calculator",
   move: "Move calculator",
   dragHint: "Drag to move. You can also use the arrow keys when focused.",
   fullscreen: "Full screen calculator",

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { calculator as copy } from "@/content/calculator";
 import { useCalculatorDrag } from "./useCalculatorDrag";
 
@@ -10,16 +9,13 @@ type Status = "loading" | "ready" | "error";
 /** The runtime is fetched only on first open. Hiding the panel preserves its RAM. */
 export function Calculator() {
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [started, setStarted] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [status, setStatus] = useState<Status>("loading");
   const trigger = useRef<HTMLButtonElement>(null);
-  const restore = useRef<HTMLButtonElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
-  const { ref: miniRef, handlers: miniHandlers, consumeDragClick } = useCalculatorDrag<HTMLDivElement>(!open && !dismissed);
   const { ref: panelRef, handlers: panelHandlers, clamp: clampPanel } = useCalculatorDrag<HTMLDialogElement>(open && !fullscreen);
   const modal = useRef(false);
   const minimise = useCallback(() => {
@@ -68,32 +64,11 @@ export function Calculator() {
 
   return (
     <>
-      <div ref={miniRef} className="qb-calculator-dock" hidden={open || dismissed}>
-        <div className="qb-calculator-bob">
-          <button ref={trigger} type="button" className="qb-calculator-trigger" aria-label={copy.label} title={copy.open} aria-describedby="qb-calculator-drag-hint" aria-expanded={open} aria-controls={started ? "qb-calculator" : undefined} {...miniHandlers} onClick={event => {
-            if (event.detail !== 0 && consumeDragClick()) return;
-            setStarted(true);
-            setOpen(true);
-          }}>
-            <span className="qb-calculator-mini">
-              <Image src="/calculator/mini-classwiz.svg" alt="" width={100} height={174} unoptimized draggable={false} />
-            </span>
-          </button>
-          <button type="button" className="qb-calculator-hide" aria-label={copy.hide} title={copy.hide} onClick={() => {
-            setDismissed(true);
-            requestAnimationFrame(() => restore.current?.focus());
-          }}>−</button>
-        </div>
-      </div>
-      <span id="qb-calculator-drag-hint" className="sr-only">{copy.dragHint}</span>
-      {dismissed && <button ref={restore} type="button" className="qb-calculator-restore" aria-label={copy.show} title={copy.show} onClick={() => {
-        setDismissed(false);
-        requestAnimationFrame(() => trigger.current?.focus());
-      }}>
+      <button ref={trigger} type="button" className="qb-calculator-restore" hidden={open} aria-label={copy.label} title={copy.open} aria-expanded={open} aria-controls={started ? "qb-calculator" : undefined} onClick={() => { setStarted(true); setOpen(true); }}>
         <svg width="16" height="22" viewBox="0 0 16 22" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
           <rect x="1" y="1" width="14" height="20" rx="3" /><path d="M4 5h8v4H4zM4 13h2m3 0h3M4 17h2m3 0h3" />
         </svg>
-      </button>}
+      </button>
       {started && (
         <dialog ref={panelRef} id="qb-calculator" className="qb-calculator" data-fullscreen={fullscreen} aria-label={copy.title} aria-describedby="qb-calculator-hint" onCancel={event => { event.preventDefault(); minimise(); }} onKeyDown={event => {
           if (event.key === "Escape") { event.stopPropagation(); minimise(); }
