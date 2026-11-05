@@ -24,12 +24,17 @@ export const SHARE_LIMITS = {
   maxSubjectChars: 40,
   liveDecksPerStudent: 20,
   sharesPerDay: 10,
+  /** The database refuses a cards payload over this many bytes (too_many_cards). */
+  maxJsonBytes: 2_000_000,
 } as const;
 
-/** What a share code looks like. Wide on purpose: the server mints them, so this only keeps junk out of a URL and a query. */
-export const CODE_PATTERN = /^[A-Za-z0-9_-]{12,64}$/;
+/**
+ * What a share code looks like: the server mints 16 characters of 0123456789abcdefghjkmnpqrstvwxyz and accepts 12 to 64 of
+ * [0-9a-z], ignoring case and surrounding spaces on lookup. This is checked on the code as `normaliseCode` leaves it.
+ */
+export const CODE_PATTERN = /^[0-9a-z]{12,64}$/;
 
-/** Every word the database raises as the exception message. */
+/** Every word the database raises, as the exception message `social:<code>` (SQLSTATE P0001, HTTP 400). */
 export const ERROR_CODES = [
   "not_signed_in", "empty_deck", "too_many_cards", "card_too_long", "title_too_long",
   "too_many_decks", "too_many_today", "not_found", "rate_limited", "bad_request",

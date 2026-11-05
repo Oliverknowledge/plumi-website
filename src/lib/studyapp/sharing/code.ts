@@ -1,7 +1,10 @@
 import { site } from "@/config/site";
 import { CODE_PATTERN } from "./contract";
 
-/** True for a string that can be a share code. It says nothing about whether the deck exists: only the server knows. */
+/** A code as the server compares it: spaces off the ends, lower case. */
+export const normaliseCode = (s: string): string => s.trim().toLowerCase();
+
+/** True for a code in its normal form. It says nothing about whether the deck exists: only the server knows. */
 export const isShareCode = (s: unknown): s is string => typeof s === "string" && CODE_PATTERN.test(s);
 
 /**
@@ -11,7 +14,7 @@ export const isShareCode = (s: unknown): s is string => typeof s === "string" &&
  */
 export function shareLink(code: string, origin?: string | null): string {
   const base = origin && !isProductionOrigin(origin) ? origin.replace(/\/+$/, "") : site.studyDomain;
-  return `${base}/d/${encodeURIComponent(code)}`;
+  return `${base}/d/${encodeURIComponent(normaliseCode(code))}`;
 }
 
 /** The app's host, the marketing host or its www: a link made from any of them is written on the app's host. */
@@ -28,8 +31,8 @@ function isProductionOrigin(origin: string): boolean {
 
 /** A code from what was pasted: the code itself, or a link that ends `/d/<code>`. Anything else is null. */
 export function parseShareCode(input: string): string | null {
-  const text = input.trim();
+  const text = normaliseCode(input);
   if (isShareCode(text)) return text;
-  const m = /\/d\/([A-Za-z0-9_-]+)\/?(?:[?#].*)?$/.exec(text);
+  const m = /\/d\/([a-z0-9_-]+)\/?(?:[?#].*)?$/.exec(text);
   return m && isShareCode(m[1]) ? m[1] : null;
 }

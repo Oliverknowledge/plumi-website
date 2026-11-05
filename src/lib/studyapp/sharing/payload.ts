@@ -63,6 +63,16 @@ export function sharePayload(data: Pick<AppData, "decks" | "cards">, deckId: str
     else kept.push({ front, back });
   }
   const cards = kept.slice(0, SHARE_LIMITS.maxCards);
+  // The database also refuses a payload over 2,000,000 bytes (UTF-8 JSON): keep the first cards that fit, with room to spare.
+  const enc = new TextEncoder();
+  let bytes = 2;
+  let fit = 0;
+  for (const c of cards) {
+    bytes += enc.encode(JSON.stringify(c)).length + 1;
+    if (bytes > SHARE_LIMITS.maxJsonBytes - 10_000) break;
+    fit++;
+  }
+  cards.length = fit;
   const subject = cleanText(deck.subject ?? "").replace(/\s+/g, " ");
   return {
     title: clipChars(cleanText(deck.title).replace(/\s+/g, " "), SHARE_LIMITS.maxTitleChars),

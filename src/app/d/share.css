@@ -25,7 +25,6 @@
 .pa .sh-card {
   width: 100%; height: clamp(300px, 52dvh, 480px); display: flex; flex-direction: column; overflow: hidden; cursor: pointer;
   background: #fffdf6; border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4);
-  background-image: repeating-linear-gradient(transparent 0 41px, #e6edf6 41px 43px); background-position: 0 44px;
 }
 .pa .sh-card-h { flex: none; display: flex; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 2px solid var(--line); background: #fffdf6; font: 800 12.5px var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
 .pa .sh-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 14px 28px 22px; overflow-y: auto; text-align: center; overscroll-behavior: contain; outline-offset: -6px; }
