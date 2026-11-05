@@ -1,6 +1,9 @@
 /** Copy and model selection for the question-bank calculator. */
 export const calculator = {
   label: "Calculator",
+  open: "Open ClassWiz calculator",
+  hide: "Hide little calculator",
+  show: "Show little calculator",
   title: "Casio fx-570/991EX",
   subtitle: "Your calculator, beside your questions.",
   frameTitle: "Casio fx-570/991EX scientific calculator",
@@ -15,5 +18,7 @@ export const calculator = {
 } as const;
 
 export function offersCalculator(subject: string) {
-  return /^(Maths|Further Maths|Additional Maths|Physics|Chemistry|Biology|Combined Science)( [AB])?$/.test(subject);
+  // Quantitative revision subjects, including statistics and applied calculations.
+  // This is a revision aid, not a statement of each paper's exam-room rules.
+  return /^(Maths|Further Maths|Additional Maths|Physics|Chemistry|Biology|Combined Science|Psychology|Economics|Business|Geography|Computer Science|Engineering Manufacture|Physical Education|Food Preparation and Nutrition|Design and Technology|Sociology)( [AB])?$/.test(subject);
 }

@@ -1,6 +1,6 @@
 # Question-bank calculator
 
-The maths and science question banks expose a Casio fx-570/991EX panel. The real
+The quantitative question banks expose a Casio fx-570/991EX panel. The real
 CY234 calculator model runs in a WebAssembly worker; there is no substitute
 expression evaluator. All runtime requests are same-origin under
 `public/calculator/`. No Casio login or remote iframe is involved.
@@ -11,6 +11,17 @@ minimising within a page, but is not promised across navigation or refresh.
 Digit/operator shortcuts apply only when the iframe has focus. Tab traverses
 the labelled keys; Escape minimises the panel and restores focus to its launcher.
 The calculator display is a canvas and does not provide spoken mathematical output.
+
+The launcher is a lightweight, illustrated miniature ClassWiz, tilted slightly
+with a gentle bob and occasional wiggle. Its small minus control hides it for
+the current bank page; a quiet calculator tab at the screen edge restores it.
+These controls do not load the emulator. Hover and keyboard focus pause the
+motion; `prefers-reduced-motion` disables it. The SVG thumbnail has no script.
+
+Eligibility includes maths, sciences, psychology, economics, business,
+geography, computer science, engineering, physical education, food/nutrition,
+design/technology and sociology, including the available A/B variants. This
+is access to a revision aid, not a statement of exam-room calculator rules.
 
 The floating panel follows the custom EX shell's 375:705 proportions, with rounded
 silver body edges, a textured black face, stacked branding and a solar-panel detail.

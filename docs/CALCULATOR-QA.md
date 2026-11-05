@@ -76,6 +76,20 @@ These are manually observed LCD results, not automated numerical assertions.
 
 ## Key mapping and layout
 
+### Miniature launcher update
+
+- Replaced the gold launcher with a tilted, illustrated miniature ClassWiz.
+- Checked hide → edge tab → restore, opening the emulator, `8 × 7 = 56`,
+  Escape focus return, and mobile hide/restore in the in-app browser.
+- At 390 × 844, the 74 × 129 launcher and its separate 36 × 36 hide target
+  were within the viewport, and each target centre hit the intended button.
+- Motion uses CSS transforms, pauses on hover/focus and is disabled by the
+  reduced-motion media rule. No firmware or mathematical behaviour changed.
+- Eligibility covers 96 current banks. Every bank with a calculation-tagged
+  sample is included; additional quantitative subjects are included explicitly
+  because their newest samples need not contain a calculation.
+- TypeScript, targeted ESLint and the existing runtime regression checks passed.
+
 - All **50** key regions have unique firmware mappings; no mapping is missing.
 - All **50** rendered key centres hit their intended key element in the
   integrated panel, with no overlapping element intercepting those centres.
