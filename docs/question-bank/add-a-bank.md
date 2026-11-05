@@ -20,6 +20,10 @@ tag and build scripts. Reuse the board's existing fetcher, cutter and scheme rea
 you must change a shared script (`cut.py`, `cut_pearson.py`, `setups.py`, ...), say so in the PR, because the
 change reaches every bank that uses it.
 
+Taggers can only use the wording they're shown, so read your topics file before tagging. Every topic should show its
+statements, clipped at 3,000 characters at most. Never take `split(phrase)[-1]`: a heading that prints twice or ends
+a topic loses statements or blanks the topic. Include sub-topics' wording when only the parent code is on offer.
+
 Each part needs:
 
 - marks, topics from the specification, and a scheme crop (`ms`) or key (`k`)

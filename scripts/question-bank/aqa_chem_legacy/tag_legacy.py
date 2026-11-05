@@ -41,7 +41,7 @@ def split():
         elif n["level"] == 2:
             lines.append(f"{n['code']} {n['title']}" + (" [A-level only]" if n.get("alevelOnly") else ""))
         else:
-            lines.append(f"    {n['code']} {n['title']}: {clip(n['text'], 420)}")
+            lines.append(f"    {n['code']} {n['title']}: {clip(n['text'], 3000)}")
     open(os.path.join(TAG, "chemistry-topics.txt"), "w").write("\n".join(lines).strip() + "\n")
     parts = json.load(open(os.path.join(WORK, "parts.json")))
     n = 0

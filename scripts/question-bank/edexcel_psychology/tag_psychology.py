@@ -64,7 +64,7 @@ def split():
     spec = json.load(open(os.path.join(WORK, "spec.json")))["9PS0"]
     secs = {s["code"]: s["short"] for s in spec["sections"]}
     open(os.path.join(TAG, "topics.txt"), "w").write("\n".join(
-        f"{t['code']} | {secs[t['section']]} | {t['title']} — {clip(t['text'], 300)}" for t in spec["topics"]) + "\n")
+        f"{t['code']} | {secs[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in spec["topics"]) + "\n")
     options = paper2_options()
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp")]
     for old in glob.glob(os.path.join(TAG, "batch-*.jsonl")):

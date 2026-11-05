@@ -40,7 +40,7 @@ def split():
     t = tree()
     sections = {s["code"]: s for s in t["sections"]}
     lines = [f"{x['code']} | {sections[x['section']]['title']}" + (f" [option: {sections[x['section']]['option']}]" if sections[x['section']].get("option") else "")
-             + f" | {x['title']} — {clip(x['text'], 400)}" for x in t["topics"]]
+             + f" | {x['title']} — {clip(x['text'], 3000)}" for x in t["topics"]]
     open(os.path.join(TAG, f"{NAME}-topics.txt"), "w").write("\n".join(lines) + "\n")
     done = json.load(open(os.path.join(WORK, "tags.json"))) if os.path.exists(os.path.join(WORK, "tags.json")) else {}
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp") and p["id"] not in done]

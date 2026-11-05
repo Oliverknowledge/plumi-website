@@ -42,7 +42,7 @@ def split():
     by_q = {(p["set"], p["question"]): p for p in parts if p["part"] == "a"}
     for code, name in names.items():
         topics = [t for t in tree["topics"] if t["section"] == code]
-        lines = [f"{t['code']} | Theme {t['theme']}: {t['themeTitle']} | {t['title']} {'[AS]' if t['year'] == 1 else '[A-Level only]'} — {clip(t['text'], 500)}"
+        lines = [f"{t['code']} | Theme {t['theme']}: {t['themeTitle']} | {t['title']} {'[AS]' if t['year'] == 1 else '[A-Level only]'} — {clip(t['text'], 3000)}"
                  for t in topics]
         open(os.path.join(TAG, f"rs-{code}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if area(p["component"]) == code]

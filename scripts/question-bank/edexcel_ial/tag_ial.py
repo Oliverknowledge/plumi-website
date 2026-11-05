@@ -35,7 +35,7 @@ def split():
         titles = {s["code"]: s["title"] for s in tree["sections"]}
         lines = [f"{t['code']} | {titles[t['section']]} | {(t['ref'] + ' ') if t['ref'] else ''}{t['title']}"
                  + (f" (statements {t['points']})" if t.get("points") else "")
-                 + (" [AS]" if t["year"] == 1 else " [A-Level only]") + f" — {tp.clip(t['text'], 420)}"
+                 + (" [AS]" if t["year"] == 1 else " [A-Level only]") + f" — {tp.clip(t['text'], 3000)}"
                  for t in tree["topics"]]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if p["component"][:3].upper() == code and p.get("qp")]

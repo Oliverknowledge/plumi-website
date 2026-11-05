@@ -73,7 +73,7 @@ def split():
     for subj, tree in spec.items():
         names = {s["code"]: s["title"] for s in tree["sections"]}
         lines = [f"{t['code']} | {names[t['section']]} | {t['title']}"
-                 + ({1: " [AS]", 2: " [A2]", 3: " [A2 option]"}.get(t.get("year"), "")) + f" — {clip(t['text'], 420)}"
+                 + ({1: " [AS]", 2: " [A2]", 3: " [A2 option]"}.get(t.get("year"), "")) + f" — {clip(t['text'], 3000)}"
                  for t in tree["topics"]]
         open(os.path.join(TAG, f"{subj}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in everything if subject(p) == subj and not option(p)]

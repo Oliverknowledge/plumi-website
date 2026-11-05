@@ -44,7 +44,7 @@ def split():
     os.makedirs(TAG, exist_ok=True)
     tree = json.load(open(os.path.join(WORK, "spec.json")))["H505"]
     units = {s["code"]: s["title"] for s in tree["sections"]}
-    lines = [f"{t['code']} | {t['section']} {units[t['section']]} | [{t['kind']}] {t['title']} — {clip(t['text'], 500)}" for t in tree["topics"]]
+    lines = [f"{t['code']} | {t['section']} {units[t['section']]} | [{t['kind']}] {t['title']} — {clip(t['text'], 3000)}" for t in tree["topics"]]
     open(os.path.join(TAG, "history-topics.txt"), "w").write("\n".join(lines) + "\n")
     done = json.load(open(os.path.join(WORK, "tags.json"))) if os.path.exists(os.path.join(WORK, "tags.json")) else {}
     parts = [p for p in json.load(open(os.path.join(WORK, "parts.json"))) if p.get("qp") and p["id"] not in done]

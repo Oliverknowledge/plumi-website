@@ -36,7 +36,7 @@ def split():
     os.makedirs(TAG, exist_ok=True)
     spec = json.load(open(os.path.join(WORK, "spec.json")))
     names = {s["code"]: s["title"] for s in spec["sections"]}
-    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 700)}" for t in spec["topics"]]
+    lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in spec["topics"]]
     open(os.path.join(TAG, "igcse-maths-topics.txt"), "w").write("\n".join(lines) + "\n")
     rows, twin = [], twins()
     for p in json.load(open(os.path.join(WORK, "parts.json"))):

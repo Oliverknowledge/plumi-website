@@ -19,11 +19,31 @@ WORK = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else os.path.join(HERE,
 SIZE = int(sys.argv[3]) if len(sys.argv) > 3 else 260
 TAG = os.path.join(WORK, "tag")
 SUBJECTS = {"biology-a": ("8BN0", "9BN0"), "biology-b": ("8BI0", "9BI0"), "chemistry": ("8CH0", "9CH0"), "physics": ("8PH0", "9PH0")}
+STATEMENTS = "Students should:"
+OVERVIEW = re.compile(r"(?:^In order to develop|\bTopic \d+: |\b[A-Z][\w,’'?-]*(?: (?:[A-Z][\w,’'?-]*|of|the|on|in|is|up|for|and|or|to))* \([A-Z]{3}\) (?=[A-Z]))"
+                      r".*?(?:" + STATEMENTS + "|$)")
 
 
 def clip(s, n):
     s = re.sub(r"\s+", " ", s or "").strip()
     return s if len(s) <= n else s[:n].rsplit(" ", 1)[0] + "…"
+
+
+def wording(text):
+    """A sub-topic's statements, without what the specification's layout leaves among them: overviews (a
+    topic's at the head of Chemistry's first sub-topic, the next topic's after Biology's last, "Topic 2: ...",
+    and Physics's context boxes, "The Sound of Music (MUS) A study of ...", between its statements), each
+    running up to the next "Students should:", which heads every table and can close a sub-topic."""
+    if STATEMENTS not in text:
+        return text
+    return OVERVIEW.sub(" ", re.sub(r"\s+", " ", text).strip()).replace(STATEMENTS, " ")
+
+
+def warn_blank(topics, lines):
+    """A topic with no wording in the topics file leaves its reader only the title."""
+    blank = [t["code"] for t, line in zip(topics, lines) if line.rstrip().endswith("—")]
+    if blank:
+        print(f"no wording shown for {blank}", file=sys.stderr)
 
 
 def own(text, label):
@@ -45,8 +65,9 @@ def split():
         titles = {s["code"]: s["title"] for s in tree["sections"]}
         lines = [f"{t['code']} | {titles[t['section']]} | {(t['ref'] + ' ') if t['ref'] else ''}{t['title']}"
                  + (f" (statements {t['points']})" if t.get("points") else "")
-                 + (" [AS]" if t["year"] == 1 else " [A-Level only]") + f" — {clip(t['text'].split('Students should:')[-1], 420)}"
+                 + (" [AS]" if t["year"] == 1 else " [A-Level only]") + f" — {clip(wording(t['text']), 3000)}"
                  for t in tree["topics"]]
+        warn_blank(tree["topics"], lines)
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if p["spec"] in specs and p.get("qp")]
         for i in range(0, len(mine), SIZE):

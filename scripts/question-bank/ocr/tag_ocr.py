@@ -22,7 +22,9 @@ SUBJECTS = {"biology": ("H022", "H422"), "chemistry": ("H033", "H433"), "physics
     {"biology": ("H020", "H420"), "chemistry": ("H032", "H432"), "physics": ("H156", "H556")}
 AS = {specs[0] for specs in SUBJECTS.values()}
 sys.path.insert(0, os.path.join(HERE, "..", "edexcel_sciences"))
-from tag_pearson import clip, own  # noqa: E402
+from tag_pearson import clip, own, warn_blank  # noqa: E402
+
+LEARNERS = "Learners should be able to demonstrate and apply their knowledge and understanding of:"
 
 
 def split():
@@ -35,8 +37,9 @@ def split():
         sections = {s["code"]: s["title"] for s in tree["sections"]}
         lines = [f"{t['code']} | {t['section']} {sections[t['section']]} | {t['title']}" + (f" ({t['points']})" if t.get("points") else "")
                  + (" [AS]" if t["year"] == 1 else " [A-Level only]")
-                 + f" — {clip(t['text'].split('Learners should be able to demonstrate and apply their knowledge and understanding of:')[-1], 420)}"
+                 + f" — {clip(t['text'].split(LEARNERS, 1)[-1].replace(LEARNERS, ' '), 3000)}"
                  for t in tree["topics"]]
+        warn_blank(tree["topics"], lines)
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
         mine = [p for p in parts if p["spec"] in specs and p.get("qp")]
         for i in range(0, len(mine), SIZE):

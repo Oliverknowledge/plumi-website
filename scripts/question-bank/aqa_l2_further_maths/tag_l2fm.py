@@ -29,7 +29,7 @@ def split():
     os.makedirs(TAG, exist_ok=True)
     spec = json.load(open(os.path.join(WORK, "spec.json")))
     names = {s["code"]: s["title"] for s in spec["sections"]}
-    lines = [f"{t['code']} | {names[t['section']]} | {t['title']}: {clip(t['text'], 600)}" for t in spec["topics"]]
+    lines = [f"{t['code']} | {names[t['section']]} | {t['title']}: {clip(t['text'], 3000)}" for t in spec["topics"]]
     open(os.path.join(TAG, "l2fm-topics.txt"), "w").write("\n".join(lines) + "\n")
     rows = [{"id": p["id"], "paper": PAPER[p["component"]], "marks": p["marks"], "question": clip(p["text"], 1200),
              "scheme": clip(p.get("msText", ""), 500), "image": os.path.join(WORK, "img", p["qp"])}

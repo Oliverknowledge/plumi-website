@@ -46,7 +46,7 @@ def split():
     for p in parts:
         batches.setdefault(area_of(p), []).append(p)
     for area, ps in sorted(batches.items()):
-        lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 600)}" for t in choices(tree, area)]
+        lines = [f"{t['code']} | {names[t['section']]} | {t['title']} — {clip(t['text'], 3000)}" for t in choices(tree, area)]
         open(os.path.join(TAG, f"rs-{area}-topics.txt"), "w").write("\n".join(lines) + "\n")
         with open(os.path.join(TAG, f"batch-{area}.jsonl"), "w") as f:
             for p in ps:

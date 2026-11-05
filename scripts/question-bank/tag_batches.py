@@ -31,6 +31,10 @@ if EDEXCEL:
 GCSE = "gcse" in os.path.basename(WORK)
 if GCSE:
     SUBJECT = {"8461": "biology", "8462": "chemistry", "8463": "physics"}
+# A reader holds the whole topics file: GCSE's words run longest, and its schemes tag many parts anyway.
+LIMIT = 1500 if GCSE else 3000
+FURNITURE = re.compile(r"Content (?:Key )?[Oo]pportunities for skills development"
+                       r"|(?:AQA (?:AS and A-level|GCSE)\b.{0,120}?)?Visit (?:aqa\.org\.uk/\d+ )?for the most up-to-date specification, resources, support and administration(?: \d+)?", re.S)
 
 
 def topics_for(subject):
@@ -72,13 +76,36 @@ def clip(s, n):
     return s if len(s) <= n else s[:n].rsplit(" ", 1)[0] + "…"
 
 
+def wording(nodes):
+    """{level-2 code: what the specification says under it}. A reader chooses from level-2 codes, but many
+    topics keep all their words in level-3 sub-topics, so those come along, without the tables' heading
+    and the page footers."""
+    words = {}
+    for n in nodes:
+        if n["level"] == 2:
+            code = n["code"]
+            words[code] = n.get("text", "")
+        elif n["level"] > 2:
+            words[code] += f" {n['code']} {n['title']}: {n.get('text', '')}"
+    return {c: FURNITURE.sub(" ", w) for c, w in words.items()}
+
+
+def warn_blank(words):
+    blank = [c for c, w in words.items() if not w.strip()]
+    if blank:
+        print(f"no wording shown for {blank}", file=sys.stderr)
+
+
 def split():
     os.makedirs(TAG, exist_ok=True)
     parts = json.load(open(os.path.join(WORK, "parts.json")))
     subjects = sorted(set(SUBJECT.values()))
     for subject in subjects:
-        lines = [f"{n['code']} {n['title']}" + (f" — {clip(n['text'], 220)}" if n["level"] == 2 else "")
-                 for n in topics_for(subject) if n["level"] <= 2]
+        nodes = topics_for(subject)
+        words = wording(nodes)
+        warn_blank(words)
+        lines = [f"{n['code']} {n['title']}" + (f" — {clip(words[n['code']], LIMIT)}" if n["level"] == 2 else "")
+                 for n in nodes if n["level"] <= 2]
         open(os.path.join(TAG, f"{subject}-topics.txt"), "w").write("\n".join(lines) + "\n")
     n = 0
     refs = {}
