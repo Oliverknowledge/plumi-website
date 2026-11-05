@@ -81,8 +81,25 @@ const removedPages: readonly (readonly [string, string])[] = [
   ["/gcse-maths", "/question-bank"],
 ];
 
+// Every relative emulator URL stays inside this content-addressed namespace.
+// Only the current fingerprint is rewritten, so stale URLs cannot serve new bytes
+// with an immutable cache policy.
+function calculatorVersion(): string {
+  const hash = createHash("sha256");
+  const walk = (directory: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else { hash.update(path.slice(join(process.cwd(), "public", "calculator").length)); hash.update(readFileSync(path)); }
+    }
+  };
+  walk(join(process.cwd(), "public", "calculator"));
+  return hash.digest("hex").slice(0, 16);
+}
+const calculatorPrefix = `/calculator/v${calculatorVersion()}`;
+
 const nextConfig: NextConfig = {
-  env: { NEXT_PUBLIC_LIBRARY_ART: libraryArtVersion(), ...(papersUrl ? { NEXT_PUBLIC_PAPERS_URL: papersUrl } : {}) },
+  env: { NEXT_PUBLIC_CALCULATOR_PREFIX: calculatorPrefix, NEXT_PUBLIC_LIBRARY_ART: libraryArtVersion(), ...(papersUrl ? { NEXT_PUBLIC_PAPERS_URL: papersUrl } : {}) },
   /**
    * Security headers.
    *
@@ -94,8 +111,15 @@ const nextConfig: NextConfig = {
    * the dev server, for trying /sign-in without signing out (development only).
    */
   allowedDevOrigins: ["*.preview.emergentagent.com", "*.cluster-5.preview.emergentcf.cloud", "127.0.0.1", "study.localhost"],
+  async rewrites() {
+    return { beforeFiles: [{ source: `${calculatorPrefix}/:path*`, destination: "/calculator/:path*" }] };
+  },
   async headers() {
     return [
+      {
+        source: `${calculatorPrefix}/:path*`,
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
       {
         source: "/:path*",
         headers: [

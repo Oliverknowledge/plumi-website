@@ -6,6 +6,18 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <title>Calculator Emulator</title>
+<script>
+// Start the three independent large/visible assets together, rather than waiting
+// for the worker/WASM/ROM waterfall. All URLs inherit the versioned directory.
+if (new URLSearchParams(location.search).get('model') === 'CY234') {
+  for (const [href, as] of [['data/CY234/core.dat', 'fetch'], ['lib/simlib.wasm', 'fetch'], ['data/CY234/face-plumi.svg', 'image']]) {
+    const link = document.createElement('link');
+    link.rel = 'preload'; link.href = href; link.as = as;
+    if (as === 'fetch') link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+  }
+}
+</script>
 <style>
     @font-face {
         font-family: "CASIO ClassWiz";
@@ -588,6 +600,8 @@ html[data-plumi-embed] #hud { display: none !important; }
 html[data-plumi-embed], html[data-plumi-embed] body { background: transparent !important; }
 html[data-plumi-embed] { overflow: hidden; }
 /* The EX shell adds room above the original LCD/key artwork for its solar panel. */
+html[data-plumi-skin="ex"] #keypad > :not(#keypadCY) { display: none !important; }
+html[data-plumi-skin="ex"] #keypadCY { display: block !important; }
 html[data-plumi-skin="ex"] #status.CY { top: 116px; }
 html[data-plumi-skin="ex"] #screen.CY { top: 130px; }
 html[data-plumi-skin="ex"] #keypadCY { position: absolute; top: 70px; left: 0; width: 375px; height: 635px; }
@@ -2751,6 +2765,8 @@ html[data-plumi-skin="ex"] #keypadCY > :nth-child(n+9) { border-radius: 5px; box
   // pointerdown also sends keys for fingers starting a zoom gesture. Native
   // click activation is cancelled by the browser for those gestures and keeps
   // hit testing in browser coordinates after pinch zoom.
+  globalThis.plumiCalculatorKeyMap = keyboardMap;
+
   keypad.onclick = (event) => {
     const key = event.target.closest?.('[data-ki]')
     if (!key || !keypadEl.contains(key)) return
@@ -2763,7 +2779,7 @@ html[data-plumi-skin="ex"] #keypadCY > :nth-child(n+9) { border-radius: 5px; box
     if (isEditing || event.ctrlKey || event.metaKey || event.altKey) {
       return;
     }
-    for (const logKey of keyboardMap[event.key] || []) if (logKeyToKiKo[logKey]) {
+    for (const logKey of keyboardMap[event.key] || []) if (logKeyToKiKo?.[logKey]) {
       event.preventDefault()
       const [ki, ko] = logKeyToKiKo[logKey]
       if (event.type === 'keydown') {

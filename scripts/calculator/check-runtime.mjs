@@ -97,3 +97,48 @@ wake.GetDisplayImageData=()=>({data:new Uint8Array([0,0,0,255])});
 assert.deepEqual(wake._GetKey(),[1,1,0],'Restored display must release queued input');
 assert.equal(wake._wakePending,false);
 console.log(`Passed: all ${regions.length} EX key regions mapped; keyboard, browser shortcuts, ON wake buffering and busy-input cancellation regressions.`);
+
+// The shipped integration must retain clicks/typing made before the simulator
+// exists, ignore browser shortcuts/editing, and preserve input arriving while
+// the asynchronous worker queue is being flushed.
+const startupListeners = {};
+const startupMessages = [];
+const startupPressed = [];
+const classList = { add() {} };
+const startupWindow = {
+  addEventListener(type, fn) { (startupListeners[type] ??= []).push(fn); },
+};
+const startupContext = {
+  window: startupWindow, URLSearchParams, location: { search: '?model=CY234&embed=1', origin: 'https://tryplumi.app' },
+  parent: { postMessage: message => startupMessages.push(message.type) },
+  document: {
+    documentElement: { dataset: {}, clientWidth: 375, clientHeight: 729 },
+    getElementById: () => ({ classList, style: {} }), querySelectorAll: () => [],
+  },
+  fetch: async () => ({ ok: true, json: async () => keys }),
+};
+vm.runInNewContext(fs.readFileSync(`${root}public/calculator/plumi-bridge.js`, 'utf8'), startupContext);
+const earlyEvent = (type, extra) => {
+  let prevented = false;
+  const event = { target: { tagName: 'BODY' }, preventDefault() { prevented = true; }, stopImmediatePropagation() {}, ...extra };
+  for (const listener of startupListeners[type] || []) listener(event);
+  return prevented;
+};
+assert.equal(earlyEvent('keydown', { key: '8' }), true);
+assert.equal(earlyEvent('keydown', { key: 'r', ctrlKey: true }), false);
+assert.equal(earlyEvent('keydown', { key: '9', target: { tagName: 'INPUT' } }), false);
+const seven = Object.entries(keys).find(([, value]) => value[2] === '[7]')[0].split(',');
+earlyEvent('click', { target: { closest: () => ({ dataset: { ki: seven[0], ko: seven[1] } }) } });
+assert.equal(earlyEvent('keydown', { key: 'Escape' }), true);
+assert.deepEqual(startupMessages, ['close']);
+startupWindow.plumiCalculatorKeyMap = { '8': ['[8]'], '+': ['[+]'] };
+startupWindow.sim = { SimulatorIsRunning: async () => true, SetKey: async (ki, ko) => {
+  startupPressed.push(`${ki},${ko}`);
+  if (startupPressed.length === 1) earlyEvent('keydown', { key: '+' });
+} };
+await startupWindow.plumiCalculatorReady();
+const keyPair = label => Object.entries(keys).find(([, value]) => value[2] === label)[0];
+assert.deepEqual(startupPressed, [keyPair('[8]'), keyPair('[7]'), keyPair('[+]')]);
+assert.deepEqual(startupMessages, ['close', 'ready']);
+assert.equal(earlyEvent('keydown', { key: '8' }), false, 'Ready keys use the normal emulator handler');
+console.log('Passed: pre-ready click/keyboard queue, edit/shortcut isolation and input arriving during queue flush.');

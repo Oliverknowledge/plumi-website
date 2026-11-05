@@ -1,9 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { calculator as copy } from "@/content/calculator";
+import { calculator as copy, calculatorPrefix } from "@/content/calculator";
 import { useCalculatorDrag } from "./useCalculatorDrag";
 import "@/app/calculator.css";
+
+// Fill the HTTP cache without starting an extra emulator/worker. Relative iframe
+// and worker imports use these exact versioned URLs when the panel opens.
+let warming: Promise<void> | undefined;
+export function preloadCalculatorAssets() {
+  return warming ??= Promise.all([
+    "index.html?model=CY234&embed=1", "plumi-bridge.js", "lib/localforage.min.js",
+    "lib/comlink.min.m.js", "lib/comlink.min.js", "lib/simwrapper.js?1687185326516",
+    "lib/simlib.js?1687185326516", "lib/simlib.wasm", "data/CY234/core.dat",
+    "data/CY234/keylog.json", "data/CY234/keylog.json?1691908133975",
+    "data/CY234/face-plumi.svg", "font/CASIOClassWiz.woff2",
+  ].map(async file => {
+    const response = await fetch(`${calculatorPrefix}/${file}`);
+    if (!response.ok) throw new Error("Calculator warmup failed");
+    await response.arrayBuffer();
+  })).then(() => {}).catch(error => { warming = undefined; throw error; });
+}
 
 type Status = "loading" | "ready" | "error";
 
@@ -83,7 +100,7 @@ export function Calculator() {
           </button>
           <div className="qb-calculator-screen">
             {status !== "error" && <iframe key={attempt} ref={frame} title={copy.frameTitle} src={copy.src} className="qb-calculator-frame" />}
-            {status !== "ready" && <div className="qb-calculator-status" role="status">
+            {status !== "ready" && <div className="qb-calculator-status" data-status={status} role="status">
               <p>{status === "error" ? copy.error : copy.loading}</p>
               {status === "error" && <button type="button" className="qb-calculator-retry" onClick={() => { setStatus("loading"); setAttempt(value => value + 1); }}>{copy.retry}</button>}
             </div>}
