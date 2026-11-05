@@ -76,6 +76,23 @@ These are manually observed LCD results, not automated numerical assertions.
 
 ## Key mapping and layout
 
+### Drag and full-screen update
+
+- Confirmed right tilt and the running hover-wiggle animation in the browser.
+- Native pointer drags moved the miniature and open panel; dropping the
+  miniature did not launch the emulator. The panel grip keeps key presses
+  independent of dragging. Arrow-key movement was also checked.
+- Dragging toward the upper-left stopped at the 24px margin, with the hide
+  control still reachable. Shrinking from 390 × 844 to 320 × 568 clamped the
+  miniature back inside the smaller viewport.
+- Full-screen mode was a native modal covering exactly 390 × 844. The
+  calculator body measured 366 × 688; all 50 key centres hit their intended key.
+  Full-screen mode also fitted 320 × 568.
+- `8 × 7 = 56` remained displayed through dragging, entering/exiting full screen,
+  repeated mode switches, minimising and reopening. Closing returned launcher
+  focus and restored the body's original scroll setting.
+- These are in-app browser checks at phone dimensions, not physical-device tests.
+
 ### Miniature launcher update
 
 - Replaced the gold launcher with a tilted, illustrated miniature ClassWiz.
