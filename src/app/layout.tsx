@@ -6,11 +6,13 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { GoogleAds } from "@/components/GoogleAds";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { Calculator } from "@/components/questionBank/Calculator";
 import { SiteOnly } from "@/components/SiteOnly";
 import { SiteStructuredData } from "@/components/StructuredData";
 import { cosyFonts } from "@/components/cosy/fonts";
 import { THEME_COLOR, themeScript } from "@/lib/theme";
 import "./globals.css";
+import "./calculator.css";
 import "./cosy.css";
 import "./dark.css";
 import "./dark-surfaces.css";
@@ -56,5 +58,5 @@ export const metadata: Metadata = {
 };
 export const viewport: Viewport = { themeColor: THEME_COLOR.light, colorScheme: "light", width: "device-width", initialScale: 1, maximumScale: 5 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en-GB" className={cosyFonts} data-scroll-behavior="smooth" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body className="antialiased"><SiteOnly><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/></SiteOnly>{children}<SiteOnly><ConsentBanner/><Analytics/><SpeedInsights/></SiteOnly></body></html>;
+  return <html lang="en-GB" className={cosyFonts} data-scroll-behavior="smooth" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body className="antialiased"><SiteOnly><a href="#main" className="sr-only-focusable skip-content" data-testid="skip-to-content">Skip to content</a><SiteStructuredData/><AnalyticsProvider/><GoogleAds/></SiteOnly>{children}<Calculator/><SiteOnly><ConsentBanner/><Analytics/><SpeedInsights/></SiteOnly></body></html>;
 }

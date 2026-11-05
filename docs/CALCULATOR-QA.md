@@ -167,8 +167,21 @@ checks selected results, not every pixel/state or equivalence to physical hardwa
   model package for the entire test set.
 - No Safari, Firefox, real iPhone/Android, long-session, or performance audit.
 - The LCD remains a canvas without spoken mathematical output.
-- Calculator RAM persists within the mounted bank page, not across refresh or
-  navigation. This behaviour is documented rather than treated as saved progress.
+- Calculator RAM persists across client-side navigation through the shared root
+  layout, but not across refreshes or full-page navigation.
 
 The engine licensing clarification already recorded in `CALCULATOR.md` and
 `docs/CALCULATOR-NOTICE.md` remains separate from this functional audit.
+
+## Site-wide launcher update
+
+- Moved the existing edge-tab calculator into the root layout and its styles
+  into a dedicated global stylesheet. Removed the bank-only instance and
+  subject eligibility restriction.
+- Browser checks covered the homepage, question-bank index, AQA GCSE Maths
+  bank and past-paper index. Each page had one launcher; `8 × 7 = 56` survived
+  client-side navigation and minimising/reopening.
+- At 390 × 844, the past-paper launcher and open calculator fitted the viewport.
+- Lint, TypeScript, calculator runtime/56 firmware checks and bank consistency
+  checks passed. Browser checks used webpack because the local Turbopack dev
+  server failed to resolve its internal Google font loader.
