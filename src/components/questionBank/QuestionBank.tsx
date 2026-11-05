@@ -1,5 +1,7 @@
 "use client";
 
+import { offersCalculator } from "@/content/calculator";
+import { warmCalculator, saveCalculatorData } from "@/lib/calculatorWarmup";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
@@ -156,6 +158,17 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   /** What the revision board needs of the subject: its topics, colour and past papers (boardData.ts). */
   board?: BoardSubject;
 }) {
+  useEffect(() => {
+    if (!offersCalculator(subject.subject) || saveCalculatorData()) return;
+    // Only question-bank subjects warm at idle; the homepage has no idle work.
+    if ("requestIdleCallback" in window) {
+      const idle = window.requestIdleCallback(warmCalculator, { timeout: 5000 });
+      return () => window.cancelIdleCallback(idle);
+    }
+    const timer = setTimeout(warmCalculator, 2000);
+    return () => clearTimeout(timer);
+  }, [subject.subject]);
+
   const search = useSyncExternalStore(subscribeUrl, () => window.location.search, () => "");
   const urlFilters = useMemo(() => parse(search), [search]);
   const f: Filters = lockedTopic ? { ...urlFilters, topics: [lockedTopic] } : urlFilters;
