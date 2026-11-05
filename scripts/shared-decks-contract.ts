@@ -34,7 +34,7 @@ for (const [key, call] of Object.entries(SHARE_RPC)) {
   for (const a of call.args) if (!theirs.includes(a)) bad(`${call.name}: the web sends ${a}, which the contract does not have (it has: ${theirs.join(", ") || "none"})`);
   for (const a of rpc.args) if (a.required && !(call.args as readonly string[]).includes(a.name)) bad(`${call.name}: the contract requires ${a.name}, which the web does not send`);
 }
-const known = new Set(Object.values(SHARE_RPC).map((r) => r.name));
+const known = new Set<string>(Object.values(SHARE_RPC).map((r) => r.name));
 for (const r of c.rpcs) if (!known.has(r.name)) bad(`the contract has ${r.name}, which the web does not use (fine if intended, but check it)`);
 
 // 2. the error words

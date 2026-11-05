@@ -294,3 +294,25 @@
 
 /* Every placeholder in the app meets 4.5:1 on its field */
 .pa ::placeholder { color: var(--mute); opacity: 1; }
+
+/* ── sharing a deck by link ───────────────────────────────────────────── */
+.pa .dbox-sub { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pa .dbox-sub > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pa .shared-tag { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px 0 6px; border: 2px solid var(--ink); border-radius: 6px; background: var(--t-bio); color: var(--ink); font: 800 11px var(--f-body); font-style: normal; letter-spacing: .02em; transform: rotate(-2deg); }
+.pa .shared-tag::before { content: ""; width: 8px; height: 5px; border: 2px solid var(--ink); border-radius: 3px; margin-right: 1px; }
+.pa .shr-link { display: grid; gap: 10px; }
+.pa .shr-pill { width: 100%; height: 48px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 24px; background: #fff; font: 800 14.5px var(--f-body); color: var(--ink); text-overflow: ellipsis; }
+.pa .shr-pill:focus { outline: 3px solid var(--gold); outline-offset: 1px; }
+.pa .shr-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.pa .shr-btns .btn { min-height: 48px; min-width: 110px; font-size: 18px; }
+.pa .fcl-sheet .sheet-acts .btn { min-height: 48px; }
+.pa .shr-problem { margin: 0; display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; font: 800 14.5px/1.4 var(--f-body); color: var(--ink); padding: 10px 12px; border: 2px dashed #7487ad; border-radius: 12px; background: #f6f9fe; }
+.pa .shr-retry { min-height: 44px; padding: 0 6px; border: 0; background: none; font: 800 14.5px var(--f-body); color: #2455b3; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.pa .shr-list { justify-self: start; }
+.pa .shr-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.pa .shr-rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 8px 10px; border: 2px solid var(--line); border-radius: 12px; background: #fff; }
+.pa .shr-row-t { display: grid; min-width: 0; }
+.pa .shr-row-t b { font: 600 18px/1.15 var(--f-px); overflow-wrap: anywhere; }
+.pa .shr-row-t small { font: 700 12.5px var(--f-body); color: var(--soft); }
+.pa .shr-small { min-height: 44px; padding: 0 12px; font-size: 15px; }
+@media (max-width: 520px) { .pa .shr-rows li { grid-template-columns: minmax(0, 1fr); } .pa .shr-small { justify-self: start; } }

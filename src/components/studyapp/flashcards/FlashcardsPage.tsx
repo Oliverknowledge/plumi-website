@@ -9,6 +9,7 @@ import { DeckEditor } from "./DeckEditor";
 import { AddCardSheet, NewDeckSheet, StartersSheet } from "./DeckSheets";
 import { FlashDesk } from "./FlashDesk";
 import { ImportSheet } from "./ImportSheet";
+import { ShareSheet, SharedDecksSheet } from "./ShareSheet";
 import { ALL, decksInScope, NONE, SidePanel, subjectOf, type Source } from "./SidePanel";
 
 /**
@@ -20,7 +21,7 @@ import { ALL, decksInScope, NONE, SidePanel, subjectOf, type Source } from "./Si
  * What is on the desk follows one rule: decks ticked in the list win (a mix); otherwise the deck or session
  * that was clicked; otherwise everything due in the chosen subject.
  */
-type Sheet = { kind: "import"; deckId?: string } | { kind: "starters" } | { kind: "newdeck" } | { kind: "card"; current: string | null };
+type Sheet = { kind: "share"; deckId: string } | { kind: "shared" } | { kind: "import"; deckId?: string } | { kind: "starters" } | { kind: "newdeck" } | { kind: "card"; current: string | null };
 
 /** While the desk fills the screen: the page behind cannot scroll or be reached, and Escape leaves. Undone however the page goes away. */
 function useFocusMode(active: boolean, exit: () => void) {
@@ -118,7 +119,7 @@ export function FlashcardsPage() {
             scope={scope} onScope={(s, pointer) => { setScopeRaw(s); reset(); if (pointer) showPane("fc-desk", false); }} source={source} ticked={ticked}
             onTick={tick} onClearTicks={() => setTicked([])} onReviewTicked={() => showPane("fc-desk")}
             onPickDeck={pickDeck} onPickSession={pickSession} onEdit={edit}
-            onImport={() => setSheet({ kind: "import" })} onNewDeck={() => setSheet({ kind: "newdeck" })} onStarters={() => setSheet({ kind: "starters" })}
+            onImport={() => setSheet({ kind: "import" })} onNewDeck={() => setSheet({ kind: "newdeck" })} onStarters={() => setSheet({ kind: "starters" })} onShared={() => setSheet({ kind: "shared" })}
           />
         </div>
 
@@ -132,12 +133,14 @@ export function FlashcardsPage() {
           />
           {editingDeck && (
             <div id="fc-editor" tabIndex={-1} className="fcl-editor">
-              <DeckEditor deckId={editingDeck} onBack={() => setEditing(null)} onReview={pickDeck} onImport={(id) => setSheet({ kind: "import", deckId: id })} />
+              <DeckEditor deckId={editingDeck} onBack={() => setEditing(null)} onReview={pickDeck} onImport={(id) => setSheet({ kind: "import", deckId: id })} onShare={(id) => setSheet({ kind: "share", deckId: id })} />
             </div>
           )}
         </div>
       </div>
 
+      {sheet?.kind === "share" && <ShareSheet deckId={sheet.deckId} onClose={() => setSheet(null)} onList={() => setSheet({ kind: "shared" })} />}
+      {sheet?.kind === "shared" && <SharedDecksSheet onClose={() => setSheet(null)} />}
       {sheet?.kind === "import" && <ImportSheet deckId={sheet.deckId} onClose={() => setSheet(null)} onDone={importDone} />}
       {sheet?.kind === "starters" && <StartersSheet onClose={() => setSheet(null)} />}
       {sheet?.kind === "newdeck" && <NewDeckSheet onClose={() => setSheet(null)} onMade={(id) => { setSheet(null); edit(id); }} />}

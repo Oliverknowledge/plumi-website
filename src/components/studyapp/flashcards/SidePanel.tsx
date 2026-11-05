@@ -5,6 +5,7 @@ import { useNow } from "@/lib/studyapp/clock";
 import {
   deckStats, dueNow, SESSION_NAME_MAX, subjectColour, subjectsInUse, suggestSessionName, type AppData, type Deck, type Session,
 } from "@/lib/studyapp/model";
+import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
 
 /** What the desk is showing, so its row in the list can say so. */
@@ -43,14 +44,15 @@ function NameForm({ initial, label, submit, onSubmit, onCancel, onDelete }: { in
 }
 
 export function SidePanel({
-  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onImport, onNewDeck, onStarters,
+  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onImport, onNewDeck, onStarters, onShared,
 }: {
   scope: string; onScope: (s: string, pointer: boolean) => void; source: Source; ticked: string[];
   onTick: (id: string, on: boolean) => void; onClearTicks: () => void; onReviewTicked: () => void;
   onPickDeck: (id: string) => void; onPickSession: (id: string) => void; onEdit: (id: string) => void;
-  onImport: () => void; onNewDeck: () => void; onStarters: () => void;
+  onImport: () => void; onNewDeck: () => void; onStarters: () => void; onShared: () => void;
 }) {
   const { data } = useApp();
+  const sharing = useSharing();
   const now = useNow(1000);
   const [naming, setNaming] = useState<"new" | string | null>(null);
 
@@ -102,7 +104,7 @@ export function SidePanel({
         </label>
         <button type="button" className="dbox-main" onClick={() => onPickDeck(d.id)} aria-current={on ? "true" : undefined} data-testid="deck-open" title={d.title}>
           <b>{d.title}</b>
-          <small>{statLine(st)}</small>
+          <small className="dbox-sub"><span>{statLine(st)}</span>{sharing.codeFor(d.id) && <i className="shared-tag" data-testid="shared-tag">Shared</i>}</small>
           <span className="known" aria-hidden="true"><i style={{ width: `${st.total ? Math.round((st.mature / st.total) * 100) : 0}%` }} /></span>
         </button>
         {st.due > 0 ? <span className="due-n" role="img" aria-label={`${st.due} due`}>{st.due}</span> : <span aria-hidden="true" />}
@@ -171,6 +173,9 @@ export function SidePanel({
       )}
 
       <button type="button" className="side-link" onClick={onStarters} data-testid="starters-open">Ready-made decks</button>
+      {sharing.available && sharing.signedIn === "real" && (sharing.live?.length ?? 0) > 0 && (
+        <button type="button" className="side-link" onClick={onShared} data-testid="shared-open">Shared decks ({sharing.live!.length})</button>
+      )}
 
       <div className="side-dock">
         <button type="button" className="dock wide" onClick={onImport} data-testid="import-open"><span aria-hidden="true">&darr;</span> Import</button>
