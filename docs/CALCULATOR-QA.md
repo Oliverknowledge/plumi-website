@@ -161,4 +161,4 @@ checks selected results, not every pixel/state or equivalence to physical hardwa
   navigation. This behaviour is documented rather than treated as saved progress.
 
 The engine licensing clarification already recorded in `CALCULATOR.md` and
-`public/calculator/NOTICE.md` remains separate from this functional audit.
+`docs/CALCULATOR-NOTICE.md` remains separate from this functional audit.

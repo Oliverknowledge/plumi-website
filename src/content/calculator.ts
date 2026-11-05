@@ -17,8 +17,6 @@ export const calculator = {
   retry: "Try again",
   minimise: "Minimise calculator",
   hint: "Tap the keys or click the calculator and use your keyboard. Esc minimises it. Your work stays here while you browse these questions.",
-  credits: "Emulator source and credits",
-  creditsHref: "/calculator/NOTICE.md",
 } as const;
 
 export function offersCalculator(subject: string) {

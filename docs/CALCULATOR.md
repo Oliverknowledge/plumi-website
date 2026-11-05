@@ -41,8 +41,8 @@ is access to a revision aid, not a statement of exam-room calculator rules.
 The floating panel follows the custom EX shell's 375:705 proportions, with rounded
 silver body edges, a textured black face, stacked branding and a solar-panel detail.
 The original CY234 key functions and labels are preserved. There is no surrounding
-header, footer or side gutter. The two small
-corner controls provide minimise and source credits; keyboard instructions
+header, footer or side gutter. The small
+controls provide minimise, movement and full screen; keyboard instructions
 remain available to screen readers.
 
 `python3 scripts/calculator/build-skin.py` regenerates `face-plumi.svg` from the
@@ -60,7 +60,7 @@ worker is installed by the calculator.
 
 ## Assets and source
 
-See `public/calculator/NOTICE.md`, the preserved upstream README, and LICENSE for
+See `docs/CALCULATOR-NOTICE.md`, the preserved upstream README, and LICENSE for
 the engine version, modifications and separate model-file provenance. The
 upstream engine's AGPL licence and README non-commercial statement conflict;
 clarify this with the engine maintainer before public release. The founders
