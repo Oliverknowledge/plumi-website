@@ -27,7 +27,7 @@ OPTIONS = {"A": "Section A", "BA": "Astrophysics", "BB": "Medical physics", "BC"
 # A bank re-cut under the same crop names gets a new version, so browsers fetch the new crops:
 # Biology for AS June 2016, whose crops had lost the end of every "[n marks]" (28 October 2026).
 # Then every crop whose answer boxes, tick-box options or "[n marks]" were cut (recut_compare.py, 4 November 2026).
-CROP_VERSION = {"aqa-a-level-biology": 2, "aqa-a-level-chemistry": 1, "aqa-a-level-physics": 1}
+CROP_VERSION = {"aqa-a-level-biology": 2, "aqa-a-level-chemistry": 2, "aqa-a-level-physics": 1}
 CALC = re.compile(r"\bcalculate\b|\bshow your working\b|\bgive your answer to \d|\bsignificant figures\b|\bdetermine the value\b", re.I)
 
 

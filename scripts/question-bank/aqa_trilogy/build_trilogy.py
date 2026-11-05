@@ -98,7 +98,7 @@ def main():
     series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
     years = [int("20" + s[3:]) for s in series]
     meta = {
-        "slug": SLUG, "board": "AQA", "level": "GCSE", "subject": "Combined Science", "fullName": "Combined Science: Trilogy", "specs": ["8464"],
+        "slug": SLUG, "board": "AQA", "level": "GCSE", "subject": "Combined Science", "fullName": "Combined Science: Trilogy", "specs": ["8464"], "cropVersion": 2,
         "sections": sections, "topics": topics,
         "papers": [paper_for(c) for c in comps],
         "series": [{"id": s, "label": series_label(s)} for s in series],

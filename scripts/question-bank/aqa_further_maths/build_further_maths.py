@@ -80,7 +80,7 @@ def main():
     papers = [{"id": c, "name": name, "title": title, "as": as_, **({"option": c[-1]} if c[-1] in OPTION else {})}
               for c, name, title, as_ in PAPERS if c in comps]
     meta = {
-        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Further Maths", "specs": ["7367", "7366"],
+        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Further Maths", "specs": ["7367", "7366"], "cropVersion": 1,
         "sections": spec["sections"], "topics": topics, "papers": papers,
         "series": [{"id": s, "label": series_label(s)} for s in series],
         "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in comps},

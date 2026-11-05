@@ -135,14 +135,16 @@ def answer_stop(page, top, bottom):
 def qp_regions(doc):
     """[[key, (q, a, r), pieces, full text]]: each label's crop, and the text down to the next label (for its marks)."""
     labels = qp_labels(doc)
+    # A tall power, fraction or vector on a label's line starts above the label: the label's crop starts there, and the one before ends there.
+    tops = [cut.label_top(doc[pg], y, qp_frame(doc[pg])) for pg, y, *_ in labels]
     out = []
     for n, (pg0, y0, q, a, r) in enumerate(labels):
         nxt = labels[n + 1] if n + 1 < len(labels) else None
-        pieces, full, pg, top, stopped = [], [], pg0, y0 - 6, False
+        pieces, full, pg, top, stopped = [], [], pg0, tops[n], False
         while pg < len(doc):
             page = doc[pg]
             f = qp_frame(page)
-            end = nxt[1] - 6 if nxt and nxt[0] == pg else f.y1
+            end = tops[n + 1] if nxt and nxt[0] == pg else f.y1
             full.append(clip_text(page, pymupdf.Rect(f.x0, max(top, f.y0), f.x1, end)))
             if not stopped:
                 stop = answer_stop(page, top, end)

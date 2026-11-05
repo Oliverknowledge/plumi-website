@@ -210,11 +210,32 @@ one that came out narrower (`cut_aqa_bio_pmt.py`'s AS June 2016 sets need their 
 Every re-cut's largest changes were read by eye. Banks re-cut: AQA A-Level French, Spanish and German, GCSE French, Spanish, Bengali
 and German, and A-Level Biology, Chemistry and Physics (their 2017-on papers).
 
-**Not re-cut:** other cutters still start a crop at `y - 6`, and their pages can have the same fault. `aqa_maths/cut_maths.py` (A-Level and
-GCSE Maths: a tall power on a question's line; the note above that AQA's maths weren't affected is wrong), `computer_science/cut_aqa_cs.py`
-("[12 marks]" at the right edge), the legacy Chemistry and Physics units, OCR's sciences and the WJEC banks are the next to read. The
-measure flags 1,154 tops and 1,505 bottoms outside the crops re-cut here, but counts a page's own border as a cut edge (the Edexcel IAL
-Maths and AQA Law samples read were only that), so read a sample before re-cutting any of them. Scheme crops were measured, not read: their table rules set the measure off.
+**Not re-cut then:** the banks below, re-cut on 5 November.
+
+## The rest of the audit's banks (AQA, Edexcel and OCR GCSE Maths, OCR sciences, WJEC, Eduqas), fixed 5 November 2026
+
+Each fault was read by eye before anything changed. What was wrong, by cutter:
+
+- **Maths** (`cut_maths.py`, `cut_pearson.py --whole`): a question's top was cut through a tall power, a fraction or a matrix. A numerator or a matrix's top rows end above the
+  label, so `label_top`, which only counted what runs past the label, missed them, and Edexcel's November 2019 papers draw theirs as shapes. A short piece mid-line that the cut goes
+  through now counts, then the row just over it. `cut.label_top` rises only as far as there is ink: some fonts' boxes reach 20pt above their glyphs, which left a band of white. In `cut_pearson.py`
+  this is for whole questions only: over a part's "(a)", the same rule climbed past the question's number into "Section B" and lost the part its opening words.
+- **AQA specimens** (`cut.frame`): they draw no frame and print no margin note, and their lines run to 554pt, so "[1 mark" and half a sentence were cut at 537pt. 173 of the 606 GCSE science specimen rows had
+  no marks at all; `apply` now fills marks only where a row had none. With the marks readable, `setups.py` moved their setups to the right part, the biggest changes here. Their page number and the rule under it stay out.
+- **WJEC** (`cut_wjec.py`): a line runs to the frame's border (541pt) and the crop stopped 3pt short, which took the end off its last letter or comma on 2,900 lines across all the sciences, maths, business and criminology.
+- **OCR** (`Doc.frame`): the crop stopped 4pt above "© OCR", and an answer line printed just above it lost the feet of its "[1]". It reaches further only on a page where such a line crosses that cut: any lower everywhere shows the top of "Turn over" (1,300 crops on the first try, stopped by the "sliced" gate).
+- **OCR, Eduqas** (`label_top`): what the cut goes through and ends at the label stays whole on the part above: a "[4]", a table's last rule, not a sliver of "20" over "(a)". Only in the margins or for a long line or rule: mid-line, that took the tip off a drawn arrow.
+- **Legacy Chemistry** (`aqa_chem_legacy/cut_legacy.py`): a power on the label's line ("mol dm⁻³") counted as a line of the part above, so the crop started below it.
+- **AQA A-Level Religious Studies, GCSE sciences, Combined Science, Computer Science:** `cut.frame`'s fix for "[25 marks]" (4 November), which these hadn't been cut with.
+
+`recut_compare.py --base=<work-dir>` compares with the same cutter's run from before the fix: a crop it left byte for byte as it was is "same". Without it A-Level Maths showed 317 changes for 54 questions, because a bank cut with another
+PyMuPDF renders a pixel or two differently everywhere. A second run's baseline for banks last cut before 4 November needs `cut.py` from before that day.
+
+- **Eduqas sciences** (`cut_eduqas.content_bottom`): this trims a part's empty answer space by finding where its content ends, and it missed two things. Pictures, so a micrograph was cut in half. And zero-area rules, which `Rect.intersects` says no to, so a table lost its last rule and a "plot a graph" part lost its whole grid (83px live, 1,546 now). A page's foot now keeps a line the margin cuts through and a graph's axis label below it, but not an answer's "n =". `get_text`'s clip also hands back pictures below the rect, with their box upside down: test the overlap. The `cut_wjec` banks don't share this code.
+
+6,668 crops change in 33 banks; 66 are held back, listed by state in the PR. Left alone: AQA legacy Physics (its `clear_cut` already handles this; the flags read were the frame's lines), Eduqas Religious Studies (a sliver of a box over 24 crops in October 2020, no words lost, and clearing it only half worked), Edexcel IAL Maths and AQA Law (page borders only).
+
+**Still to do:** `cut_pearson.py`'s footer and sliver rules will change other banks on their next re-cut (OCR Computer Science, Geography and others that it cuts weren't re-cut). Scheme crops were measured, not read: their table rules set the measure off.
 
 ## Mark scheme crops (every board), fixed 25 October 2026
 

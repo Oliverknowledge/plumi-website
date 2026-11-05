@@ -82,7 +82,7 @@ def main():
     series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
     years = [int("20" + s[3:]) for s in series]
     meta = {
-        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Religious Studies", "specs": ["7062"],
+        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Religious Studies", "specs": ["7062"], "cropVersion": 1,
         "sections": tree["sections"], "topics": topics,
         "papers": [paper_for(c, names) for c in comps],
         "options": {"label": "Religion", "list": [{"id": s["code"], "name": s["title"]} for s in tree["sections"] if s.get("option")]},

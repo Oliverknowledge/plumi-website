@@ -149,10 +149,11 @@ def qp_frame(page):
 
 def label_top(page, y):
     """Where a part starts: 5pt above its label, or just below a line of the part above that reaches
-    that far down (its "(1 mark)" sat close enough to show at the top of this crop and count here)."""
-    top = y - 5
-    reach = [l["bbox"][3] for b in page.get_text("dict")["blocks"] for l in b.get("lines", [])
-             if l["bbox"][1] < y - 2 and l["bbox"][3] > top and "".join(sp["text"] for sp in l["spans"]).strip()]
+    that far down (its "(1 mark)" sat close enough to show at the top of this crop and count here);
+    or higher, for a power on the label's own line, which starts above the label and runs past it ("mol dm⁻³" lost its top)."""
+    lines = [l["bbox"] for b in page.get_text("dict")["blocks"] for l in b.get("lines", []) if "".join(sp["text"] for sp in l["spans"]).strip()]
+    top = min([y - 5] + [b[1] - 1 for b in lines if b[1] < y - 2 and b[3] > y + 2 and y - b[1] < 32 and b[2] < 540])
+    reach = [b[3] for b in lines if b[1] < y - 2 and top < b[3] <= y + 2]
     return min(max(reach) + 0.5, y - 1) if reach else top
 
 

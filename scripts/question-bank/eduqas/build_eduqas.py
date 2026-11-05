@@ -107,7 +107,7 @@ def main():
         series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
         years = [int("20" + s[3:]) for s in series]
         meta = {
-            "slug": subj_slug, "board": "Eduqas", "level": "A-Level", "subject": name, "specs": sorted({c[:4].upper() for c in comps}),
+            "slug": subj_slug, "board": "Eduqas", "level": "A-Level", "subject": name, "specs": sorted({c[:4].upper() for c in comps}), "cropVersion": 1,
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics,
             "papers": [paper_for(c, titles.get(c, "")) for c in comps],
             "series": [{"id": s, "label": series_label(s)} for s in series],

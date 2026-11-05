@@ -165,7 +165,10 @@ class Doc:
             # OCR prints "© OCR 2024" at the foot of each page, inside the margin.
             foot = [l["y0"] for l in self.lines(i) if l["text"].startswith("©") and l["y0"] > f.y1 - 90]
             if foot:
-                f = pymupdf.Rect(f.x0, f.y0, f.x1, min(f.y1, min(foot) - 4))
+                # (Further down only for a last answer line that crosses that: it took the feet off its "[1]". Any lower on other pages shows the top of "Turn over".)
+                end = min(foot) - 4
+                last = [l["y1"] for l in self.lines(i) if l["y0"] < end < l["y1"] and not re.match(r"©|Turn over", l["text"], re.I)]
+                f = pymupdf.Rect(f.x0, f.y0, f.x1, min(f.y1, min(max(last), min(foot) - 0.5) if last else end))
             self._frame[i] = f
         return self._frame[i]
 
@@ -370,6 +373,12 @@ def qp_labels(doc):
     return out, end_page
 
 
+def ink_row(page, x0, x1, y):
+    """Is there ink on the line y across x0 to x1?"""
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=pymupdf.Rect(x0, y, x1, y + 0.5), colorspace=pymupdf.csGRAY, alpha=False)
+    return bool(pix.samples) and min(pix.samples) < 200
+
+
 def label_top(doc, pg, y):
     """Where the line a label sits on really begins on the page.
 
@@ -382,11 +391,34 @@ def label_top(doc, pg, y):
     slightly larger size than the label starts 1-4pt above it, and taking that pulled a page's rule into the
     crop (WJEC, OCR GCSE). And only lines inside the frame count: WJEC's "Examiner only" margin column sits
     beside every label."""
-    f = doc.frame(pg)
-    top = y - 5
-    for l in doc.lines(pg):
+    f, page = doc.frame(pg), doc.doc[pg]
+    top, high = y - 5, y
+    lines = doc.lines(pg)
+    for l in lines:
         if f.y0 - 4 <= l["y0"] < y - 5 and l["y1"] > y + 2 and y - l["y0"] < 32 and l["x0"] >= f.x0 - 2 and l["x1"] <= f.x1 + 2:
-            top = min(top, l["y0"] - 9)
+            top, high = min(top, l["y0"] - 9), min(high, l["y0"])
+    # Some papers (Edexcel GCSE Maths, November 2019) draw a fraction's top as shapes, and a numerator or a matrix's top rows stop short of the label:
+    # in the maths banks, cut a whole question at a time, a short piece, away from the label and the marks, that the cut would go through counts too, and so does a
+    # row just over it. Not for a part: over "(a)" that is the question's number, and a row over that its section's heading ("Section B").
+    drawn = [d["rect"] for d in drawings(page)]
+    pieces = [(l["x0"], l["y0"], l["x1"], l["y1"]) for l in lines] + [tuple(r) for r in drawn]
+    moved = WHOLE
+    while moved:
+        moved = False
+        for x0, y0, x1, y1 in [(l["x0"], l["y0"], l["x1"], l["y1"]) for l in lines if not re.search(r"[A-Za-z]{4,}", l["text"])] + [tuple(r) for r in drawn]:
+            if max(f.y0 - 4, 62) <= y0 < high and (y1 > high - 3 if high < y else y0 < top < y1 and ink_row(page, x0, x1, top)) and y - y0 < 45 and y1 - y0 < 70 \
+                    and x1 - x0 < 160 and x0 > f.x0 + 50 and x1 < f.x1 - 40:
+                top, high, moved = min(top, y0 - 3), y0, True
+    if top < y - 5:  # rising, stop short of what is above: the foot of the line before ("Write 7/100" took in the tails of the instructions over it), a question's closing rule
+        over = [l["y1"] - 1 for l in lines if l["y1"] <= high + 2 and l["x0"] < f.x1 and l["x1"] > f.x0] + [e + 1 for r in drawn if r.width > 300 for e in (r.y0, r.y1) if e <= high]
+        top = max([top] + over)
+    else:  # what the cut would go through and ends within reach of the label goes with the part above, whole: its "[4]", a table's last rule, not a sliver of a question's number over "(a)" here
+        # (Only a number or marks in the margins, a long line or a table's rule: a short piece mid-line can be a fraction's top or a drawn arrow's tip, part of this line.)
+        foot = [y1 + (1 if n >= len(lines) else 0) for n, (x0, y0, x1, y1) in enumerate(pieces)
+                if y0 < top < y1 <= y + 2 and x0 >= f.x0 - 2 and x1 <= f.x1 + 2 and (x1 - x0 >= 160 and (n < len(lines) or y1 - y0 < 3) or n < len(lines) and (x0 <= f.x0 + 50 or x1 >= f.x1 - 40))
+                and ink_row(page, x0, x1, top)]
+        if foot:
+            top = min(max(foot), y)
     return max(top, f.y0 - 4)
 
 

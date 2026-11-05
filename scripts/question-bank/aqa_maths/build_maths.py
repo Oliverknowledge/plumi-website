@@ -70,7 +70,7 @@ def main():
     series = sorted({r["s"] for r in rows}, key=series_rank, reverse=True)
     years = [int("20" + s[3:]) for s in series]
     meta = {
-        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Maths", "specs": ["7357"],
+        "slug": SLUG, "board": "AQA", "level": "A-Level", "subject": "Maths", "specs": ["7357"], "cropVersion": 1,
         "sections": spec["sections"], "topics": topics,
         "papers": [{"id": c, "name": f"Paper {c[-1]}", "title": PAPERS[c], "as": False} for c in comps],
         "series": [{"id": s, "label": series_label(s)} for s in series],

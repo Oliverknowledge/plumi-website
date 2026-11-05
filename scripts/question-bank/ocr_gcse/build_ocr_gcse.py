@@ -28,7 +28,7 @@ SUBJECTS = [("ocr-gcse-biology-a", "Biology A", "J247", "Biology A (Gateway Scie
             ("ocr-gcse-combined-science-a", "Combined Science A", "J250", "Combined Science A (Gateway Science)")]
 TIER = {"f": "Foundation", "h": "Higher"}
 SCIENCE = {"b": "Biology", "c": "Chemistry", "p": "Physics"}
-CROP_VERSION = None  # set when the banks are cut again under the same names (questionBank.ts partImage)
+CROP_VERSION = 1  # bump when the banks are cut again under the same names (questionBank.ts partImage)
 
 
 def number(comp):
