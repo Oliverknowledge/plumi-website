@@ -38,7 +38,9 @@ Daniel, Oliver, Claude Code and Codex all work here at once, often on several ta
 
 - Everything reaches `main` through a PR. Don't push to `main`.
 - Don't merge unless a person asks you to, and then use "Create a merge commit".
-- Every merge to `main` is a production build of 5 to 9 minutes, one at a time, on a shared bill. Group PRs and merge in batches rather than one by one. Say roughly how many builds a merge plan costs.
+- Merging to `main` doesn't deploy, so it costs nothing. The live site follows the `production` branch.
+- `npm run deploy` is a production build of 5 to 9 minutes on a shared bill, so don't run it unless a person asks. `npm run deploy:pending` shows what would go out. See `docs/DEPLOY.md`.
+- Merged isn't live: check a change on the live site only after it has deployed.
 - `claude/**` branches get no Vercel previews, so test them with `next build` locally. Pushing to them costs no build.
 
 ## Checks

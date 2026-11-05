@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "deploy:pending": "git fetch -q origin main production && git log --oneline origin/production..origin/main",
+    "deploy": "git fetch -q origin main production && git log --oneline origin/production..origin/main && git push origin origin/main:production",
     "lint": "eslint src",
     "pretypecheck": "npm run -s bank:registry",
     "typecheck": "tsc --noEmit",

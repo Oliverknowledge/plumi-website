@@ -105,9 +105,10 @@ A re-cut is judged by what it does to live crops, so follow the steps at the top
 
 - Crops are cached for a year as immutable. A changed image needs a new `cropVersion`, which
   `recut_compare.py apply` sets.
-- Upload just before the merge, never days ahead and never after. A `cropVersion` that goes live before its crops
-  caches the old crop under the new address for a year, and new crops with old rows are drawn squashed in the
-  study feed.
+- Time the upload to the deploy, not just the merge, because merging no longer deploys. Ask a person to deploy
+  next, then upload, verify, merge and run `npm run deploy` together, never hours apart. A `cropVersion` that goes
+  live before its crops caches the old crop under the new address for a year, and new crops with old rows are
+  drawn squashed in the study feed.
 - Read uploads back by ETag before merging. A background upload has died silently before.
 - Compare against a baseline from the same cutter (`recut_compare.py --base`). Another PyMuPDF version alone can
   make hundreds of crops look changed.

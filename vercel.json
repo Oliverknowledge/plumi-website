@@ -3,7 +3,8 @@
   "framework": "nextjs",
   "git": {
     "deploymentEnabled": {
-      "claude/**": false
+      "claude/**": false,
+      "main": false
     }
   }
 }
