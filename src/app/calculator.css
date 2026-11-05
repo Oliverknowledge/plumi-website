@@ -1,7 +1,4 @@
 /* A compact side tab opens the calculator directly. */
-.qb-calculator-restore { position: fixed; z-index: 75; right: 0; bottom: calc(100px + env(safe-area-inset-bottom)); display: grid; place-items: center; width: 40px; height: 44px; padding: 0; border: 1px solid #c4c9c4; border-right: 0; border-radius: 11px 0 0 11px; background: #272e33; color: #f6f3e9; cursor: pointer; box-shadow: 0 2px 5px #171a1c25; }
-.qb-calculator-restore[hidden] { display: none; }
-.qb-calculator-restore:focus-visible { outline: 3px solid var(--lp-orange, #a8521c); outline-offset: 3px; }
 .qb-calculator { --qb-calculator-body: #171a1c; --qb-calculator-control: #efefef; position: fixed; z-index: 76; right: max(24px, env(safe-area-inset-right)); bottom: calc(88px + env(safe-area-inset-bottom)); width: min(340px, calc(100vw - 48px), calc(51.4403vh - 69.9589px - env(safe-area-inset-bottom))); width: min(340px, calc(100vw - 48px), calc(51.4403dvh - 69.9589px - env(safe-area-inset-bottom))); height: min(660.96px, calc(194.4vw - 93.312px), calc(100vh - 136px - env(safe-area-inset-bottom) - env(safe-area-inset-bottom))); height: min(660.96px, calc(194.4vw - 93.312px), calc(100dvh - 136px - env(safe-area-inset-bottom) - env(safe-area-inset-bottom))); aspect-ratio: 375 / 729; left: auto; top: auto; margin: 0; padding: 0; border: 0; max-width: none; max-height: none; overflow: visible; background: transparent; color: var(--qb-calculator-control); filter: none; }
 .qb-calculator:not([open]) { display: none; }
 .qb-calculator-close, .qb-calculator-fullscreen, .qb-calculator-drag-handle { position: absolute; z-index: 2; top: -12px; display: grid; place-items: center; width: 36px; height: 36px; border: 2px solid var(--qb-calculator-control); border-radius: 50%; background: var(--qb-calculator-body); color: var(--qb-calculator-control); text-decoration: none; cursor: pointer; }
@@ -26,6 +23,5 @@
 @media (max-width: 600px) {
   .qb-calculator { bottom: calc(82px + env(safe-area-inset-bottom)); }
 }
-@media print { .qb-calculator, .qb-calculator-restore { display: none !important; } }
 
 .qb-calculator-retry { padding: 10px 18px; border: 1px solid currentColor; border-radius: 8px; background: transparent; color: inherit; font: inherit; cursor: pointer; }

@@ -1,0 +1,5 @@
+/* The only calculator styles needed before first open. */
+.qb-calculator-restore { position: fixed; z-index: 75; right: 0; bottom: calc(100px + env(safe-area-inset-bottom)); display: grid; place-items: center; width: 40px; height: 44px; padding: 0; border: 1px solid #c4c9c4; border-right: 0; border-radius: 11px 0 0 11px; background: #272e33; color: #f6f3e9; cursor: pointer; box-shadow: 0 2px 5px #171a1c25; }
+.qb-calculator-restore[hidden] { display: none; }
+.qb-calculator-restore:focus-visible { outline: 3px solid var(--lp-orange, #a8521c); outline-offset: 3px; }
+@media print { .qb-calculator, .qb-calculator-restore { display: none !important; } }
