@@ -118,4 +118,7 @@ A re-cut is judged by what it does to live crops, so follow the steps at the top
   make hundreds of crops look changed.
 - Do bulk reads through the S3 API with `.env.local`'s keys. The public `r2.dev` address returns 429 at about 45
   requests a second, and students use it.
+- `apply` sets sizes, marks and `cropVersion` only, so write each changed row's preview and search text from its builder's
+  formula. `parts.json`'s text stops at 1,500 characters: where a setup grew by a page, keep the row's own words instead.
+- A word count per question can't see words on the wrong part of that question, so read every before-and-after as well.
 - List the words that move before cutting images, and read samples of the biggest changes by eye.
