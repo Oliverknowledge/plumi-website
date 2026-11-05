@@ -1,0 +1,21 @@
+/*
+ * The study app's dark mode (the account menu's Settings). The app was drawn once, in light, with its own hand-picked colours in 17 stylesheets, so dark is made the way a night page is made
+ * from a light one: the whole page is turned over (every colour inverted and the hue brought back round, so blue stays blue and the gold stays warm), and everything that is a PICTURE is
+ * turned back so it looks as it was drawn: the question papers (white paper stays readable paper, with the student's marks and the ruler on it as they are), mascots and art, the library
+ * room and the entry scene. Nothing is a second set of colours to keep in step. Switched on by <html data-theme="dark">, which Settings writes (components/study/appearance.ts).
+ */
+html[data-theme="dark"]:has(.pa) { filter: invert(1) hue-rotate(180deg); background-color: #f2f7fd; }
+/* what is turned back: a picture, and a surface whose words were written for its picture (the desk scene, the library room, the entry scene, the question papers with the student's marks and the ruler on them) */
+html[data-theme="dark"]:has(.pa) :is(
+  img, video, picture,
+  .qs-cropbox, .qs-zoomd-pic, .qs-ruler-layer,
+  .scene, .en, .lb-room canvas, canvas.lb-fig,
+  .stg-page
+):not(:is(.qs-cropbox, .qs-zoomd-pic, .qs-ruler-layer, .scene, .en, .stg-page) *) { filter: invert(1) hue-rotate(180deg); }
+
+/* Before the page is turned over, cards are given a slightly darker fill than the paper, so after it they sit a little LIGHTER than the page (the way a night page's cards do). */
+html[data-theme="dark"] .pa { --card: #d4deee; --card2: #c4d2e8; }
+
+/* A dialog is drawn in the browser's top layer, which the page's filter does not reach: it is turned over itself (its pictures are turned back by the rule above), and its curtain is a dark one. */
+html[data-theme="dark"]:has(.pa) dialog { filter: invert(1) hue-rotate(180deg); }
+html[data-theme="dark"]:has(.pa) dialog::backdrop { background: rgba(8, 12, 22, .72); }

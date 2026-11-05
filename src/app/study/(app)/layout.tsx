@@ -8,10 +8,12 @@ import { Vinyl } from "@/components/studyapp/Vinyl";
 import "./app.css";
 import "./timer.css";
 import "./vinyl.css";
+import "./settings.css";
+import "./dark-app.css";
 
 /**
  * The study app: Desk, Study (the Grand Library) and Flashcards, at study.tryplumi.app. One deliberate light
- * look, the iPad's blue on the website's notebook paper (docs/study/app.md). Everything is scoped under
+ * look, the iPad's blue on the website's notebook paper (docs/study/app.md), and a dark one a student can choose in Settings (dark-app.css turns the page over and its pictures back). Everything is scoped under
  * `.pa`, so this stylesheet and the marketing site's never meet.
  *
  * The record player (lofi) lives here, beside the pages rather than in them, so the music carries on from page to page.
