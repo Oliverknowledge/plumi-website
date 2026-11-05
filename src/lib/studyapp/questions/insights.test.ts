@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { cleanInsights, examsText, formMap, formMix, marksText, sortedTopics, stripMax, topicStat, type Insights } from "./insights";
+import { cleanInsights, columnMax, examsText, formMap, formMix, marksText, sortedTopics, stripMax, topicStat, type Insights } from "./insights";
 import { hasInsights } from "./insightsLoad";
 import { FORMS } from "./questionForm";
 import real from "@/content/questionBankInsights/ocr-a-level-biology-a.json";
@@ -55,6 +55,8 @@ describe("what a topic shows", () => {
     assert.deepEqual(formMix(ins, "1.1"), [{ form: "recall", parts: 2, marks: 3, avg: 1.5 }, { form: "explain", parts: 1, marks: 2, avg: 2 }]);
     assert.deepEqual(formMix(ins, "nope"), []);
     assert.equal(stripMax(topicStat(ins, "1.1")!), 2);
+    assert.equal(columnMax(sortedTopics(ins, "spec", ["1.1", "1.10", "1.2"])), 2, "the tallest column in any row is what all the columns are drawn against");
+    assert.equal(columnMax([]), 1);
     assert.equal(marksText(2), "2"); assert.equal(marksText(1.5), "1.5");
   });
 });

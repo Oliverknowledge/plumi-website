@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
-import { examsText, formMix, marksText, seriesYear, sortedTopics, stripMax, topicStat, TOPIC_ORDERS, type Insights, type StripCell, type TopicOrder, type TopicStat } from "@/lib/studyapp/questions/insights";
+import { columnMax, examsText, formMix, marksText, seriesYear, sortedTopics, stripMax, topicStat, TOPIC_ORDERS, type Insights, type StripCell, type TopicOrder, type TopicStat } from "@/lib/studyapp/questions/insights";
 import { FORM_NAMES, type Form } from "@/lib/studyapp/questions/questionForm";
 import type { SubjectMeta } from "@/lib/studyapp/questions/subject";
 import type { InsightsState } from "./useInsights";
@@ -90,11 +90,14 @@ export function TopicAnalysis({ meta, insights, onClose, onPractise }: {
   );
 }
 
-/** One dot per exam, oldest first: filled where the topic has parts in it, a ring where the papers in Plumi have none, a dash where Plumi holds no paper of the topic's year for that exam. */
-function Dots({ strip, labels }: { strip: StripCell[]; labels: ReadonlyMap<string, string> }) {
+/**
+ * One small column per exam, oldest first, as tall as the number of questions the topic has in that exam (all rows on one scale, so a tall column is a heavy exam in any row).
+ * A dashed stub is an exam whose papers in Plumi have none of the topic; a hatched stub is an exam with no paper of the topic's year in Plumi.
+ */
+function Columns({ strip, labels, max }: { strip: StripCell[]; labels: ReadonlyMap<string, string>; max: number }) {
   return (
-    <span className="qa-dots" style={{ "--n": strip.length } as React.CSSProperties} aria-hidden="true">
-      {strip.map((c) => <i key={c.id} className={`qa-dot is-${c.state}`} title={`${seriesName(c.id, labels)}: ${c.state === "in" ? `${c.n} ${c.n === 1 ? "question" : "questions"}` : c.state === "gap" ? "not in the papers in Plumi" : "no paper in Plumi"}`} />)}
+    <span className="qa-cols" style={{ "--n": strip.length } as React.CSSProperties} aria-hidden="true">
+      {strip.map((c) => <i key={c.id} className={`qa-c is-${c.state}`} style={c.state === "in" ? { height: `${Math.max(12, Math.round((c.n / max) * 100))}%` } : undefined} title={`${seriesName(c.id, labels)}: ${c.state === "in" ? `${c.n} ${c.n === 1 ? "question" : "questions"}` : c.state === "gap" ? "not in the papers in Plumi" : "no paper in Plumi"}`} />)}
     </span>
   );
 }
@@ -107,6 +110,7 @@ function TopicList({ meta, data, codes, order, onOrder, titleId, onOpen, openRef
   const labels = useMemo(() => new Map(meta.series.map((s) => [s.id, s.label])), [meta.series]);
   const names = useMemo(() => new Map(meta.topics.map((t) => [t.code, t])), [meta.topics]);
   const max = Math.max(1, ...rows.map((r) => r.parts));
+  const colMax = useMemo(() => columnMax(rows), [rows]);
   const exams = data.series.length;
   return (
     <>
@@ -116,7 +120,7 @@ function TopicList({ meta, data, codes, order, onOrder, titleId, onOpen, openRef
         className="qf-seg qa-sort" label="Order the topics" value={order} onPick={(v) => onOrder(v as TopicOrder)} testid="analysis-order"
         options={TOPIC_ORDERS.map((o) => [o.id, o.label] as [string, string])}
       />
-      <div className="qa-axis" aria-hidden="true"><span>Questions</span><span className="qa-dots" style={{ "--n": exams } as React.CSSProperties}>{data.series.map((s) => <b key={s}>{seriesYear(s)}</b>)}</span></div>
+      <div className="qa-axis" aria-hidden="true"><span>Questions in each exam</span><span className="qa-cols" style={{ "--n": exams } as React.CSSProperties}>{data.series.map((s) => <b key={s}>{seriesYear(s)}</b>)}</span></div>
       <ul className="qa-list" data-testid="analysis-list">
         {rows.map((r) => {
           const t = names.get(r.code)!;
@@ -128,7 +132,7 @@ function TopicList({ meta, data, codes, order, onOrder, titleId, onOpen, openRef
                 <span className="qa-name">{topicName(t)}</span>
                 <span className="qa-n">{n(r.parts)}</span>
                 <span className="qa-barwrap"><span className="qa-bar" style={{ width: `${Math.max(3, Math.round((r.parts / max) * 100))}%` }} /></span>
-                <Dots strip={r.strip} labels={labels} />
+                <Columns strip={r.strip} labels={labels} max={colMax} />
               </button>
             </li>
           );
@@ -139,13 +143,13 @@ function TopicList({ meta, data, codes, order, onOrder, titleId, onOpen, openRef
   );
 }
 
-/** What the dots mean, drawn: the three marks and a few words each. */
+/** What the columns mean, drawn: the three marks and a few words each. */
 function Key({ anyNone }: { anyNone: boolean }) {
   return (
     <p className="qa-key">
-      <span><i className="qa-dot is-in" />in the papers in Plumi</span>
-      <span><i className="qa-dot is-gap" />not in the papers in Plumi</span>
-      {anyNone && <span><i className="qa-dot is-none" />no paper in Plumi</span>}
+      <span><i className="qa-sw is-in" />questions in that exam</span>
+      <span><i className="qa-sw is-gap" />not in the papers in Plumi</span>
+      {anyNone && <span><i className="qa-sw is-none" />no paper in Plumi</span>}
     </p>
   );
 }

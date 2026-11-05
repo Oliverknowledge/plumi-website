@@ -1,13 +1,21 @@
 /* Topic analysis: a sheet over the feed. Drawn, not written: a list of topics each with a bar and a row of dots (one per exam), and a page per topic with bars for how it is asked and a strip of the exams.
    On the tokens of app.css and questions.css; 44px is the smallest thing you press; no em dashes in anything a student reads. The sheet has a fixed size, so going from the list to a topic and back never moves it. */
 
-/* the button in the feed's strip, beside Filters */
+/* the button in the feed's strip, beside Filters: its name in full on a laptop or tablet, the short name under the icon on a phone */
 .pa .qf-abtn { min-height: 48px; }
+.pa .qf-abtn-s { display: none; }
 @media (max-width: 640px) {
   .pa .qf-head:has(.qf-abtn) { grid-template-columns: minmax(0, 1fr) auto auto auto; }
-  .pa .qf-abtn { grid-column: 3; grid-row: 1; min-height: 44px; width: 44px; padding: 0; gap: 0; }
-  .pa .qf-abtn span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pa .qf-abtn { grid-column: 3; grid-row: 1; flex-direction: column; gap: 1px; min-height: 44px; min-width: 58px; padding: 3px 4px 2px; }
+  .pa .qf-abtn svg { width: 17px; height: 17px; }
+  .pa .qf-abtn-l { display: none; }
+  .pa .qf-abtn-s { display: block; font: 800 11.5px/1.05 var(--f-body); }
   .pa .qf-head:has(.qf-abtn) .qf-count { grid-column: 4; }
+  .pa .qf-head:has(.qf-abtn) .qf-search { min-width: 0; }
+  .pa .qf-head:has(.qf-abtn) .qf-search input { min-width: 0; width: 100%; }
+  .pa .qf-head:has(.qf-abtn) .qf-fbtn { padding: 0 9px; }
+  .pa .qf-head:has(.qf-abtn) .qf-nres, .pa .qf-head:has(.qf-abtn) .qf-here { max-width: 72px; white-space: normal; overflow: visible; text-overflow: clip; }
+  .pa .qf-head:has(.qf-abtn) .qf-nres b { display: block; }
 }
 @media (max-width: 379px) {
   .pa .qf-head:has(.qf-abtn) { grid-template-columns: auto auto minmax(0, 1fr); }
@@ -15,6 +23,7 @@
   .pa .qf-head:has(.qf-abtn) .qf-fbtn { grid-column: 1; grid-row: 2; }
   .pa .qf-head:has(.qf-abtn) .qf-abtn { grid-column: 2; grid-row: 2; }
   .pa .qf-head:has(.qf-abtn) .qf-count { grid-column: 3; grid-row: 2; }
+  .pa .qf-head:has(.qf-abtn) .qf-nres, .pa .qf-head:has(.qf-abtn) .qf-here { max-width: none; }
 }
 
 /* the sheet */
@@ -34,32 +43,36 @@
 .pa .qa-sort button { min-width: 0; }
 
 /* the list: code and name, the count, a bar; the dots at the end */
-.pa .qa-axis { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 4px 4px 2px; font: 800 11.5px var(--f-body); color: var(--mute); }
-.pa .qa-dots { display: grid; grid-template-columns: repeat(var(--n, 10), 14px); gap: 2px; align-items: center; flex: none; }
-.pa .qa-axis .qa-dots b { font: 800 11px/1 var(--f-body); text-align: center; color: var(--mute); }
+.pa .qa-axis { display: flex; align-items: flex-end; justify-content: flex-end; gap: 10px; padding: 4px 4px 2px; font: 800 11.5px var(--f-body); color: var(--mute); }
+.pa .qa-cols { display: grid; grid-template-columns: repeat(var(--n, 10), 14px); gap: 2px; align-items: end; height: 30px; flex: none; }
+.pa .qa-axis .qa-cols { height: auto; align-items: center; }
+.pa .qa-axis .qa-cols b { font: 800 11px/1 var(--f-body); text-align: center; color: var(--mute); }
 .pa .qa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
 .pa .qa-list li + li { border-top: 2px dashed rgba(91, 71, 65, .14); }
-.pa .qa-row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "code name n" "bar bar dots"; align-items: center; gap: 2px 10px; min-height: 64px; padding: 8px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; transition: background .12s; }
+.pa .qa-row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "code name n" "bar bar dots"; align-items: end; gap: 4px 10px; min-height: 64px; padding: 8px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; transition: background .12s; }
 .pa .qa-row:hover { background: color-mix(in srgb, var(--tint, #f2c96b) 28%, #fffaf0); }
 .pa .qa-row:active { background: color-mix(in srgb, var(--tint, #f2c96b) 45%, #fffaf0); }
 .pa .qa-row .qa-code { grid-area: code; min-width: 40px; }
 .pa .qa-name { grid-area: name; font: 700 17px/1.2 var(--f-px); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .pa .qa-n { grid-area: n; font: 800 15px var(--f-body); font-variant-numeric: tabular-nums; }
 .pa .qa-row .qa-barwrap { grid-area: bar; }
-.pa .qa-row .qa-dots { grid-area: dots; }
-.pa .qa-barwrap { display: block; height: 12px; border-radius: 6px; background: rgba(34, 48, 77, .07); overflow: hidden; }
+.pa .qa-row .qa-cols { grid-area: dots; }
+.pa .qa-barwrap { display: block; height: 12px; align-self: center; border-radius: 6px; background: rgba(34, 48, 77, .07); overflow: hidden; }
 .pa .qa-bar { display: block; height: 100%; border-radius: 6px; background: var(--tint, #f2c96b); box-shadow: inset 0 0 0 2px var(--ink); }
 @media (min-width: 641px) {
-  .pa .qa-row { grid-template-columns: 48px minmax(120px, 1.2fr) 44px minmax(80px, 1fr) auto; grid-template-areas: "code name n bar dots"; gap: 4px 12px; min-height: 52px; }
+  .pa .qa-row { grid-template-columns: 48px minmax(120px, 1.2fr) 44px minmax(80px, 1fr) auto; grid-template-areas: "code name n bar dots"; gap: 4px 12px; min-height: 52px; align-items: center; }
   .pa .qa-axis { padding-right: 6px; }
-  .pa .qa-axis > span:first-child { visibility: hidden; }
 }
 
-/* a dot: filled where the topic is in the exam, a ring where the papers in Plumi have none of it, a short dash where Plumi holds no paper of that year */
-.pa .qa-dot { display: block; justify-self: center; width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; }
-.pa .qa-dot.is-in { background: var(--navy); }
-.pa .qa-dot.is-gap { border: 2px solid var(--navy); background: transparent; }
-.pa .qa-dot.is-none { width: 8px; height: 2px; border-radius: 1px; background: var(--mute); opacity: .7; }
+/* a small column per exam: as tall as the questions the topic has in that exam; a dashed stub where the papers in Plumi have none of it, a hatched stub where Plumi holds no paper of that year */
+.pa .qa-c { display: block; width: 100%; box-sizing: border-box; min-height: 4px; border-radius: 3px 3px 1px 1px; }
+.pa .qa-c.is-in { background: var(--tint, #f2c96b); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.pa .qa-c.is-gap { height: 5px; border: 1.5px dashed var(--navy); opacity: .8; }
+.pa .qa-c.is-none { height: 4px; border-radius: 1px; background: repeating-linear-gradient(135deg, rgba(34, 48, 77, .45) 0 2px, transparent 2px 4px); opacity: .85; }
+.pa .qa-sw { display: inline-block; flex: none; width: 14px; height: 12px; box-sizing: border-box; border-radius: 3px 3px 1px 1px; }
+.pa .qa-sw.is-in { background: var(--tint, #f2c96b); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.pa .qa-sw.is-gap { height: 6px; border: 1.5px dashed var(--navy); align-self: flex-end; margin-bottom: 3px; }
+.pa .qa-sw.is-none { height: 5px; background: repeating-linear-gradient(135deg, rgba(34, 48, 77, .45) 0 2px, transparent 2px 4px); }
 .pa .qa-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 0; font: 800 12.5px var(--f-body); color: var(--soft); }
 .pa .qa-key span { display: inline-flex; align-items: center; gap: 6px; }
 
@@ -120,5 +133,8 @@
   .pa .qa-sort button { padding: 0 4px; font-size: 13px; }
 }
 @media (max-width: 380px) {
-  .pa .qa-dots { grid-template-columns: repeat(var(--n, 10), 12px); gap: 1px; }
+  .pa .qa-cols { grid-template-columns: repeat(var(--n, 10), 12px); gap: 1px; }
+}
+@media (max-width: 380px) {
+  .pa .qa-axis .qa-cols b { font-size: 8.5px; letter-spacing: -.02em; }
 }

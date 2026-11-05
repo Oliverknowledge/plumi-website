@@ -26,3 +26,4 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run bank:status -- --check
+      - run: npm run bank:insights -- --check

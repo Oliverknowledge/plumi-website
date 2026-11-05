@@ -14,6 +14,11 @@ import { ChartIcon, ChevronIcon, FilterIcon, ShuffleIcon } from "./pickerIcons";
 import { FORM_NAMES, FORMS } from "@/lib/studyapp/questions/questionForm";
 
 const n = (x: number) => x.toLocaleString("en-GB");
+/**
+ * The forms offered as chips in "How it is asked": not "Multiple choice" (Question type has it already, as a chip of its own) and not "Other" (the parts that say no clear ask: a raw "Other"
+ * means nothing to a student). A form filter that holds either, from an older visit or from the analysis, still works and still shows as a chip to take off.
+ */
+const hiddenForm = (id: string): boolean => id !== "choice" && id !== "other";
 
 /**
  * The strip at the top of the feed, which sticks under the app's own bar: the search, how many questions there are (and, quietly, how many the student has
@@ -44,7 +49,7 @@ export const FeedHead = forwardRef<HTMLDivElement, {
         <FilterIcon /><span>Filters</span>{active > 0 && <span className="qs-badge" aria-label={`${active} on`}>{active}</span>}
       </button>
       {onAnalysis && (
-        <button type="button" className="qs-tbtn qf-abtn" onClick={onAnalysis} aria-haspopup="dialog" data-testid="feed-analysis"><ChartIcon /><span>Topic analysis</span></button>
+        <button type="button" className="qs-tbtn qf-abtn" onClick={onAnalysis} aria-haspopup="dialog" aria-label="Topic analysis" data-testid="feed-analysis"><ChartIcon /><span className="qf-abtn-l">Topic analysis</span><span className="qf-abtn-s" aria-hidden="true">Analysis</span></button>
       )}
       <div className="qf-count">
         <p className="qf-nres" role="status" aria-live="polite">{count < 0 ? <b data-testid="feed-count">Searching</b> : <><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}</>}{tier && !phone ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
@@ -222,7 +227,7 @@ export function FeedFilterBody({ meta, bands, f, onChange, hasCalc, hasScheme, h
         <div className="qf-row" role="group" aria-labelledby="qf-forms">
           <span className="qf-rowlab" id="qf-forms">How it is asked</span>
           <div className="qf-chips">
-            {FORMS.map((id) => <button key={id} type="button" className={`qs-chip${f.forms.includes(id) ? " on" : ""}`} aria-pressed={f.forms.includes(id)} onClick={() => onChange({ forms: toggleIn(f.forms, id) })} data-testid="feed-form" data-form={id}>{FORM_NAMES[id]}<N n={nOf(counts?.forms, id)} /></button>)}
+            {FORMS.filter(hiddenForm).map((id) => <button key={id} type="button" className={`qs-chip${f.forms.includes(id) ? " on" : ""}`} aria-pressed={f.forms.includes(id)} onClick={() => onChange({ forms: toggleIn(f.forms, id) })} data-testid="feed-form" data-form={id}>{FORM_NAMES[id]}<N n={nOf(counts?.forms, id)} /></button>)}
           </div>
         </div>
       )}

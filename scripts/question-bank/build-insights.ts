@@ -3,6 +3,7 @@
  *
  *     npm run bank:insights -- ocr-a-level-biology-a            # read the bank's data from R2 (public read), write the file
  *     npm run bank:insights -- ocr-a-level-biology-a --check    # build in memory, say whether the committed file is out of date (writes nothing)
+ *     npm run bank:insights -- --check                          # every bank that has insights: are they built from the bank's current data? (no network; this is what CI runs)
  *     npm run bank:insights -- ocr-a-level-biology-a --dir /tmp/x   # read parts.json and text.json from a folder instead (for offline runs)
  *
  * It reads the bank's `parts` and `text` data files by the hashes in the bank's meta (src/content/questionBank/<slug>.json), cuts each part's question out of its page text
@@ -117,9 +118,37 @@ export function build(meta: Meta, parts: Part[], text: Record<string, string>): 
   };
 }
 
+/**
+ * `--check` with no bank: for each bank in insights/index.json, is the file built from the data hashes in the bank's meta now? A bank cut again gets new hashes, so its insights are
+ * stale and the app would stop offering Topic analysis; this makes that fail loudly (in CI) instead. Reads only files in the checkout, so it needs no network.
+ */
+function checkAll(): never {
+  const dir = join(ROOT, "src", "content", "questionBankInsights");
+  const index = JSON.parse(readFileSync(join(dir, "index.json"), "utf8")) as Record<string, string>;
+  const problems: string[] = [];
+  for (const [slug, parts] of Object.entries(index)) {
+    const metaFile = join(ROOT, "src", "content", "questionBank", `${slug}.json`);
+    if (!existsSync(metaFile)) { problems.push(`${slug}: has insights but no bank meta`); continue; }
+    const meta = JSON.parse(readFileSync(metaFile, "utf8")) as Meta;
+    const file = join(dir, `${slug}.json`);
+    if (!existsSync(file)) { problems.push(`${slug}: listed in index.json but ${slug}.json is missing`); continue; }
+    const built = (JSON.parse(readFileSync(file, "utf8")) as { built?: Record<string, string> }).built ?? {};
+    if (parts !== meta.data?.parts) problems.push(`${slug}: index.json says parts ${parts}, the bank's meta now says ${meta.data?.parts}`);
+    for (const f of ["parts", "text"]) if (built[f] !== meta.data?.[f]) problems.push(`${slug}: insights were built from ${f} ${built[f]}, the bank's meta now says ${meta.data?.[f]}`);
+  }
+  if (problems.length) {
+    console.error(problems.join("\n"));
+    console.error("The bank was cut again, so its Topic analysis is out of date and the app has stopped offering it. Run: npm run bank:insights -- <slug>");
+    process.exit(1);
+  }
+  console.log(`insights: ${Object.keys(index).length} bank(s) up to date with their data`);
+  process.exit(0);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const slug = args.find((a) => !a.startsWith("--"));
+  if (!slug && args.includes("--check")) checkAll();
   if (!slug) throw new Error("usage: npm run bank:insights -- <slug> [--check] [--dir <folder>]");
   const check = args.includes("--check");
   const dirAt = args.indexOf("--dir");

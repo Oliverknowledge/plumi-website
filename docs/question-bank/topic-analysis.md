@@ -20,7 +20,7 @@ It is a sibling of `src/content/questionBank/`, not inside it: `next.config.ts` 
 
 1. The bank needs `parts` and `text` data files (`data.parts`, `data.text` in its meta) and topics.
 2. `npm run bank:insights -- <slug>`, then read the "other" share and spot-check some parts before trusting it. The rules were written for OCR A-level Biology A; another board's wording may need a rule or two and a new labelled fixture.
-3. Commit both files. After any re-cut of the bank, run it again.
+3. Commit both files. After any re-cut of the bank, run it again: CI runs `npm run bank:insights -- --check` (in `.github/workflows/checks.yml`, beside `bank:status -- --check`), which fails when a bank's insights were built from older data than its meta names. It reads only the checkout, so it needs no network. `npm run bank:insights -- <slug> --check` goes further and rebuilds from R2 to compare the bytes.
 
 ## What is counted
 

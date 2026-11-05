@@ -138,6 +138,9 @@ export function formMix(ins: Insights, code: string): FormRow[] {
   return rows.sort((a, b) => (a.form === "other" ? 1 : b.form === "other" ? -1 : 0) || b.parts - a.parts || rank(a.form) - rank(b.form));
 }
 
+/** The most parts any one exam has of any of the topics: what the list's small columns are all drawn against, so a column means the same height in every row. */
+export const columnMax = (stats: readonly TopicStat[]): number => Math.max(1, ...stats.flatMap((s) => s.strip.map((c) => c.n)));
+
 /** The most parts any one exam has of the topic: what the strip's bars are drawn against. */
 export const stripMax = (s: TopicStat): number => Math.max(1, ...s.strip.map((c) => c.n));
 
