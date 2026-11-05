@@ -26,6 +26,9 @@ resources page. Whole papers are on R2 under AQA's names (`aqa/AQA-85251B-QP-JUN
   "Question | Part" columns and keeps each language's own examples), `tag_gcse_cs.py` (tag.md's
   AQA GCSE Computer Science section; only the Python paper is tagged, its tags copied to C#
   and VB.NET) and `build_gcse_cs.py`.
+- **Notice pages (November 2026):** 10 question crops held a whole "do not write" page, and two specimen crops AQA's
+  copyright notice too (`cut.py`'s fix, re-cut with `cut_gcse_cs.py`). Marks and every other word stayed. `85252-jun25-20-3`
+  differed only in spacing and was left alone.
 - **Left out:** AQA's second Paper 2 specimen, for exams from 2027 (37 of its 40 parts are the
   2020 specimen's word for word); the modified (enlarged) papers; and the old specification
   (8520), of which AQA still hosts only November 2021's two papers.

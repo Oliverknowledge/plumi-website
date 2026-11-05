@@ -293,7 +293,8 @@ need only the AS content) or Year 13 (questions that need second-year content).
 
 - **Data:** `public/question-bank/<slug>/year13.json`, the ids of the Year 13 questions,
   beside the bank's data so a rebuild leaves it alone. `bankHasYears` turns the filter
-  on for A-Level Maths and Further Maths; the URL keeps it as `?yr=12` or `?yr=13`.
+  on for any bank with that file's hash in its meta's `data`, so a bank needs no code to
+  get it; the URL keeps it as `?yr=12` or `?yr=13`.
 - **Where it shows:** a "School year" switch (Both years · Year 12 · Year 13, with
   counts) at the top of the filters, above the topics, and on a single topic's page too.
   It started as two checkboxes near the bottom, and a student on Edexcel Maths didn't

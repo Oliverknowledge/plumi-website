@@ -216,7 +216,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     if (bankHasPracticals(subject)) {
       fetchBankData<string[]>(subject, "practicals").then(ids => setPracticals(new Set(ids ?? []))).catch(() => setPracticals(new Set()));
     }
-    // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
+    // The questions that need second-year content: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
       fetchBankData<string[]>(subject, "year13").then(ids => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
