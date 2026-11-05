@@ -684,3 +684,26 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 @media (pointer: coarse) { .pa .qf-pills .qs-chip, .pa .qf-clear { min-height: 44px; } }
 .pa .qf-yearphone { margin: 4px 0 22px; }
 .pa .qf-lost { margin: 2px 0 8px; font: 800 13px/1.35 var(--f-body); color: #8a2f2f; }
+
+/* The virtual ruler (Ruler.tsx): a clear cream plastic ruler laid on the picture of the printed paper, at the paper's own size. */
+.pa .qs-rulerchip { margin: 0 0 10px; }
+.pa .qs-rulerchip .qf-startbtn[aria-pressed="true"] { border-style: solid; border-color: var(--ink); background: #fff; color: var(--ink); }
+.pa .qs-ruler-layer { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
+.pa .qs-ruler { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; pointer-events: none; }
+.pa .qs-ruler-body { position: absolute; top: 0; box-sizing: border-box; border: 1.5px solid #8b6c3a; border-radius: 3px; background: rgba(248, 235, 196, .64); box-shadow: 2px 3px 0 rgba(34, 48, 77, .2); color: var(--ink); cursor: grab; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.pa .qs-ruler-body:active { cursor: grabbing; }
+.pa .qs-ruler-body:focus-visible { outline: 2.5px solid var(--navy); outline-offset: 3px; }
+.pa .qs-ruler-body > svg { position: absolute; left: -1.5px; top: -1.5px; overflow: visible; pointer-events: none; }
+.pa .qs-ruler-body path { fill: none; stroke: #2a2418; vector-effect: non-scaling-stroke; }
+.pa .qs-ruler-t1 { stroke-width: 1px; }
+.pa .qs-ruler-t5 { stroke-width: 1.2px; }
+.pa .qs-ruler-t10 { stroke-width: 1.5px; }
+.pa .qs-ruler-n { font-family: var(--f-px); font-weight: 600; fill: #2a2418; }
+.pa .qs-ruler-pr { font-family: var(--f-hand); font-weight: 700; fill: #6b5530; }
+.pa .qs-ruler-x { position: absolute; left: -3px; bottom: -3px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; pointer-events: auto; touch-action: none; }
+.pa .qs-ruler-x svg { box-sizing: content-box; width: 14px; height: 14px; padding: 5px; border: 1.5px solid #8b6c3a; border-radius: 50%; background: rgba(255, 250, 240, .92); }
+.pa .qs-ruler-x:focus-visible { outline: 2.5px solid var(--navy); outline-offset: -4px; border-radius: 50%; }
+.pa .qs-ruler-knob { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 44px; height: 44px; cursor: grab; pointer-events: auto; touch-action: none; }
+.pa .qs-ruler-knob span { display: block; width: 24px; height: 24px; border: 1.5px solid #6b5530; border-radius: 50%; background: #d9b46a; box-shadow: 0 2px 0 rgba(34, 48, 77, .28), inset 0 0 0 5px #e8c987; }
+@media (pointer: fine) { .pa .qs-ruler-x { width: 32px; height: 32px; left: 0; bottom: 0; } }
+@media (forced-colors: active) { .pa .qs-ruler-body { border-color: CanvasText; background: Canvas; } .pa .qs-ruler-body path { stroke: CanvasText; } .pa .qs-ruler-n { fill: CanvasText; } }

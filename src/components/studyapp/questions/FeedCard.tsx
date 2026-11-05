@@ -17,6 +17,7 @@ import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
 import { AnnotCrop } from "./AnnotCrop";
 import { SharedFigureChip } from "./SharedFigure";
+import { RulerChip, usePartRuler } from "./RulerChip";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { useMatch } from "./useMatch";
@@ -68,6 +69,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
   const startId = useId();
+  const rl = usePartRuler(part, siblings);
   // The paper's booklet or code files, where this question needs them (the transcript has its place under the player).
   const files = useMemo(() => specialsFor(lookup, part).filter((f) => f.kind !== "tr"), [lookup, part]);
   // The card tells the store what this question is; the question joins the feed set at the first real write on it (see `registerFeedPart`), never on a touch or a look.
@@ -129,9 +131,10 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
             )}
           </div>
         )}
-        <SharedFigureChip part={part} siblings={siblings} cv={view.cv} />
+        <SharedFigureChip fig={rl.fig} partId={part.id} cv={view.cv} ruler={rl.onFigure} />
+        {rl.offered && <RulerChip partId={part.id} open={rl.open} />}
         <div className="qf-pic">
-          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom>
+          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom ruler={rl.onOwn ? part.id : undefined}>
             <ReadAsText set={view} part={part} />
           </AnnotCrop>
         </div>

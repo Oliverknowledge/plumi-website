@@ -3,6 +3,7 @@
 import { AnnotView } from "./AnnotView";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, SearchIcon } from "./icons";
+import { Ruler } from "./Ruler";
 
 /**
  * One picture from the paper (a question, its setup, its mark scheme). Three jobs the bare <img> did not do:
@@ -63,17 +64,21 @@ export interface CropProps {
   overlay?: React.ReactNode;
   /** The ink key of marks to show, read-only, on the enlarged picture. */
   marksKey?: string;
+  /** The part id the virtual ruler is open for, when it lies on this picture: drawn over the picture and over the enlarged one, at the printed paper's own size (Ruler.tsx). */
+  ruler?: string;
   /** Told when the picture loads or gives up, for a mark scheme that must be seen before marking. */
   onState?(s: "ok" | "fail"): void;
 }
 
 export function Crop(props: CropProps) { return <CropInner key={props.src} {...props} />; }
 
-function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, zoom, onState, overlay, marksKey }: CropProps) {
+function CropInner({ src, alt, w, h, className, what = "this question picture", pdf, words, guess = 3.2, eager, zoom, onState, overlay, marksKey, ruler }: CropProps) {
   readDims();
   const [big, setBig] = useState(false);
   const [st, setSt] = useState<"loading" | "ok" | "fail">("loading");
   const [n, setN] = useState(0);
+  // The picture's true width in its own pixels (the ruler's scale): the file's, else the data's.
+  const [nat, setNat] = useState(0);
   const [near, setNear] = useState(!!eager);
   const box = useRef<HTMLDivElement>(null);
   const img = useRef<HTMLImageElement>(null);
@@ -88,6 +93,7 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
   const loaded = (el: HTMLImageElement) => {
     if (!el.naturalWidth) { failed(); return; }
     rememberRatio(src, el.naturalWidth / el.naturalHeight);
+    setNat(el.naturalWidth);
     setSt("ok"); tell.current?.("ok");
   };
 
@@ -131,6 +137,7 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
         />
       )}
       {st !== "fail" && overlay}
+      {st === "ok" && ruler && <Ruler partId={ruler} naturalW={nat || w || 0} />}
       {st === "loading" && <span className="qs-cropwait" aria-hidden="true" />}
       {st === "fail" && (
         <div className="qs-cropfail" role="status">
@@ -146,14 +153,14 @@ function CropInner({ src, alt, w, h, className, what = "this question picture", 
         <button type="button" className="qs-zoom" aria-label={`Zoom in on ${what}`} onClick={(e) => { e.stopPropagation(); setBig(true); }} data-testid="crop-zoom"><SearchIcon /><span className="qs-zoom-t" aria-hidden="true">Zoom</span></button>
       )}
     </div>
-    {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} marksKey={marksKey} onClose={() => setBig(false)} />}
+    {big && <ZoomDialog src={withTry(src, n)} alt={alt} fit={/mark scheme/.test(what)} marksKey={marksKey} ruler={ruler ? { partId: ruler, naturalW: nat || w || 0 } : undefined} onClose={() => setBig(false)} />}
     </>
   );
 }
 
 /** The picture large: a native modal dialog, scrollable both ways (and pinchable), closed by its button, Escape or a tap outside. */
 /** `fit`: a mark scheme's table opens fitted to the width (its columns are read across), a question opens large and pans. */
-function ZoomDialog({ src, alt, fit, marksKey, onClose }: { src: string; alt: string; fit?: boolean; marksKey?: string; onClose(): void }) {
+function ZoomDialog({ src, alt, fit, marksKey, ruler, onClose }: { src: string; alt: string; fit?: boolean; marksKey?: string; ruler?: { partId: string; naturalW: number }; onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { const d = ref.current; if (d && !d.open) d.showModal(); }, []);
   const close = () => { const d = ref.current; if (d?.open) d.close(); else onClose(); };
@@ -176,6 +183,7 @@ function ZoomDialog({ src, alt, fit, marksKey, onClose }: { src: string; alt: st
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="qs-zoomd-img" src={src} alt={alt} />
           {marksKey && <AnnotView inkKey={marksKey} />}
+          {ruler && <Ruler partId={ruler.partId} naturalW={ruler.naturalW} />}
         </div>
       </div>
     </dialog>
