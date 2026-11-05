@@ -157,6 +157,8 @@ def merge():
     if os.path.exists(overrides):
         for pid, codes in json.load(open(overrides)).items():
             tags[pid] = codes
+    # Tags put right after a bank went live, kept in git so a rebuild doesn't undo them.
+    tags.update({k: v for k, v in json.load(open(os.path.join(HERE, "tag", "aqa-a-level-sciences-corrections.json"))).items() if k in tags})
     json.dump(tags, open(os.path.join(WORK, "tags.json"), "w"), indent=0)
     print(f"{len(tags)} parts tagged, {missing} without a valid topic", file=sys.stderr)
 
