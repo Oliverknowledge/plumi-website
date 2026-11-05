@@ -13,6 +13,8 @@ import { SchemeText } from "./ReadAsText";
 import { ChevronIcon } from "./pickerIcons";
 import { getMeta } from "./bankData";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
+import { holdTray } from "./inkBus";
+import { useMatch } from "./useMatch";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
 const reports = new Map<string, Promise<Record<string, string>>>();
@@ -45,7 +47,7 @@ function reportsFor(slug: string): Promise<Record<string, string>> {
 /** Mark schemes the student has closed (kept while the page lives, so a card that is drawn again after scrolling away does not reopen what was shut). */
 const shutSchemes = new Set<string>();
 
-export function Check({ set, part, answer, reportOutside }: { set: QSet; part: QPart; answer: QAnswer | undefined; /** The examiner's report has a place of its own beside the question (the feed): no button for it in the scheme card. */ reportOutside?: boolean }) {
+export function Check({ set, part, answer, reportOutside, trayAside }: { set: QSet; part: QPart; answer: QAnswer | undefined; /** The examiner's report has a place of its own beside the question (the feed): no button for it in the scheme card. */ reportOutside?: boolean; /** The pen tray stands aside while this scheme is on a screen where the tray lies along the foot (the feed). */ trayAside?: boolean }) {
   const [, redraw] = useState(0);
   const mark = `${set.id}/${part.id}`;
   const open = !!answer?.chk && !shutSchemes.has(mark);
@@ -64,7 +66,7 @@ export function Check({ set, part, answer, reportOutside }: { set: QSet; part: Q
           Mark scheme<ChevronIcon />
         </button>
       </div>
-      {open && <Scheme id={id} set={set} part={part} answer={answer} reportOutside={reportOutside} />}
+      {open && <Scheme id={id} set={set} part={part} answer={answer} reportOutside={reportOutside} trayAside={trayAside} />}
     </div>
   );
 }
@@ -116,7 +118,7 @@ export function ReportBody({ part, state, subject }: { part: QPart; state: Retur
   );
 }
 
-function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSet; part: QPart; answer: QAnswer | undefined; reportOutside?: boolean }) {
+function Scheme({ id, set, part, answer, reportOutside, trayAside }: { id: string; set: QSet; part: QPart; answer: QAnswer | undefined; reportOutside?: boolean; trayAside?: boolean }) {
   const [er, setEr] = useState(false);
   const reportState = useReport(set, part, er);
   const [pic, setPic] = useState<"wait" | "ok" | "fail">("wait");
@@ -124,7 +126,22 @@ function Scheme({ id, set, part, answer, reportOutside }: { id: string; set: QSe
   // Opened under a question that is near the foot of the screen: it comes into view, not out of sight below.
   const card = useRef<HTMLDivElement>(null);
   useEffect(() => { card.current?.scrollIntoView({ block: "nearest" }); }, []);
-  const label = `${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
+  // Where the tray lies along the foot of the screen (980 px and under) it would cover this scheme, so it stands aside only while the scheme is on the screen. A scheme left open above or below
+  // must not take the tray away from the question being read; on a wider screen the tray is in the margin and stays.
+  const trayAtFoot = useMatch("(max-width: 980px)");
+  useEffect(() => {
+    const el = card.current;
+    if (!el || !trayAside || !trayAtFoot) return;
+    let release: (() => void) | null = null;
+    const io = new IntersectionObserver((es) => {
+      const seen = es[es.length - 1]?.isIntersecting;
+      if (seen && !release) release = holdTray();
+      else if (!seen && release) { release(); release = null; }
+    });
+    io.observe(el);
+    return () => { io.disconnect(); release?.(); };
+  }, [trayAside, trayAtFoot]);
+  const label =`${nameOf(set.names, part.s) ?? part.s} ${nameOf(set.names, part.p.toUpperCase()) ?? nameOf(set.names, part.p) ?? part.p}, question ${part.l}`;
   const pdf = part.msf ? `${papersBase}/${part.msf}` : undefined;
   // A mark scheme that would not load: marking waits until the student has it some other way, so nobody marks blind by accident.
   const blind = !!part.ms && pic === "fail" && !onPaper;
