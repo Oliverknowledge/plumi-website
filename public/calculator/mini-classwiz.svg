@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="174" viewBox="0 0 100 174" fill="none">
+  <defs>
+    <linearGradient id="rim" x1="8" y1="0" x2="92" y2="174" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffef7"/><stop offset=".48" stop-color="#d9ddda"/><stop offset="1" stop-color="#a9b0b3"/>
+    </linearGradient>
+    <linearGradient id="body" x1="15" y1="10" x2="85" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#363d43"/><stop offset="1" stop-color="#1b2026"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="2" width="90" height="170" rx="15" fill="url(#rim)" stroke="#171b20" stroke-width="2.5"/>
+  <rect x="9" y="5" width="82" height="162" rx="11" fill="url(#body)"/>
+  <path d="M14 25V17a7 7 0 0 1 7-7h12" stroke="#697178" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="700">
+    <text x="16" y="21" font-size="8.5" fill="#f9f7ed">CASIO</text>
+    <text x="16" y="30" font-size="5.1" letter-spacing=".8" fill="#f39bc7">CLASSWIZ</text>
+    <rect x="57" y="13" width="26" height="13" rx="2" fill="#644a41" stroke="#11161b" stroke-width="2"/>
+    <path d="M65 14v11m9-11v11" stroke="#99756a" stroke-width=".7"/>
+    <rect x="14" y="36" width="72" height="39" rx="6" fill="#13191d"/>
+    <rect x="18" y="40" width="64" height="31" rx="3" fill="#d2dec7"/>
+    <path d="M21 44h58" stroke="#f3f5db" stroke-width="1.2" stroke-linecap="round"/>
+    <g font-family="monospace" fill="#344237">
+      <text x="22" y="55" font-size="9.5">2+2</text>
+      <text x="74" y="67" text-anchor="end" font-size="11">4</text>
+    </g>
+    <text x="16" y="82" font-size="3.2" fill="#f5d56b">SHIFT</text>
+    <text x="30" y="82" font-size="3.2" fill="#f39bc7">ALPHA</text>
+    <text x="66" y="82" font-size="3.2" fill="#f5f1df">MENU</text>
+    <text x="80" y="82" font-size="3.2" fill="#f5f1df">ON</text>
+    <g fill="#d9dcd7" stroke="#11161a" stroke-width="1.3">
+      <circle cx="21" cy="88" r="4.5"/><circle cx="35" cy="88" r="4.5"/>
+      <circle cx="71" cy="88" r="4.5"/><circle cx="83" cy="88" r="4.5"/>
+      <path d="M42 87q10-15 21 0-10 15-21 0Z"/>
+    </g>
+    <path d="m49 82 3 3 4-3m-7 10 3-3 4 3m-10-8 3 3-3 3m13-6-3 3 3 3" stroke="#31383d" stroke-width="1.6" stroke-linecap="round"/>
+    <g fill="#0e1318" stroke="#626971" stroke-width=".5">
+      <rect x="15" y="98" width="10" height="8" rx="2"/><rect x="27" y="98" width="10" height="8" rx="2"/><rect x="39" y="98" width="10" height="8" rx="2"/><rect x="51" y="98" width="10" height="8" rx="2"/><rect x="63" y="98" width="10" height="8" rx="2"/><rect x="75" y="98" width="10" height="8" rx="2"/>
+      <rect x="15" y="108" width="10" height="8" rx="2"/><rect x="27" y="108" width="10" height="8" rx="2"/><rect x="39" y="108" width="10" height="8" rx="2"/><rect x="51" y="108" width="10" height="8" rx="2"/><rect x="63" y="108" width="10" height="8" rx="2"/><rect x="75" y="108" width="10" height="8" rx="2"/>
+      <rect x="15" y="118" width="10" height="8" rx="2"/><rect x="27" y="118" width="10" height="8" rx="2"/><rect x="39" y="118" width="10" height="8" rx="2"/><rect x="51" y="118" width="10" height="8" rx="2"/><rect x="63" y="118" width="10" height="8" rx="2"/><rect x="75" y="118" width="10" height="8" rx="2"/>
+    </g>
+    <g fill="#f2eddf" font-size="4.1" text-anchor="middle">
+      <text x="20" y="104">□</text><text x="32" y="104">√</text><text x="44" y="104">x²</text><text x="56" y="104">xⁿ</text><text x="68" y="104">log</text><text x="80" y="104">ln</text>
+      <text x="20" y="114">(−)</text><text x="32" y="114">°</text><text x="44" y="114">x⁻¹</text><text x="56" y="114">sin</text><text x="68" y="114">cos</text><text x="80" y="114">tan</text>
+      <text x="20" y="124">STO</text><text x="32" y="124">ENG</text><text x="44" y="124">(</text><text x="56" y="124">)</text><text x="68" y="124">S⇔D</text><text x="80" y="124">M+</text>
+    </g>
+    <g fill="#f6f3e9" stroke="#11161b" stroke-width=".8">
+      <rect x="15" y="130" width="12" height="8" rx="2"/><rect x="29.5" y="130" width="12" height="8" rx="2"/><rect x="44" y="130" width="12" height="8" rx="2"/>
+      <rect x="15" y="140" width="12" height="8" rx="2"/><rect x="29.5" y="140" width="12" height="8" rx="2"/><rect x="44" y="140" width="12" height="8" rx="2"/><rect x="58.5" y="140" width="12" height="8" rx="2"/><rect x="73" y="140" width="12" height="8" rx="2"/>
+      <rect x="15" y="150" width="12" height="8" rx="2"/><rect x="29.5" y="150" width="12" height="8" rx="2"/><rect x="44" y="150" width="12" height="8" rx="2"/><rect x="58.5" y="150" width="12" height="8" rx="2"/><rect x="73" y="150" width="12" height="8" rx="2"/>
+      <rect x="15" y="160" width="12" height="6" rx="2"/><rect x="29.5" y="160" width="12" height="6" rx="2"/><rect x="44" y="160" width="12" height="6" rx="2"/><rect x="58.5" y="160" width="12" height="6" rx="2"/><rect x="73" y="160" width="12" height="6" rx="2"/>
+    </g>
+    <g fill="#4c7df3" stroke="#11161b" stroke-width=".8">
+      <rect x="58.5" y="130" width="12" height="8" rx="2"/><rect x="73" y="130" width="12" height="8" rx="2"/>
+    </g>
+    <g fill="#20272c" font-size="6.1" text-anchor="middle">
+      <text x="21" y="136.5">7</text><text x="35.5" y="136.5">8</text><text x="50" y="136.5">9</text>
+      <text x="21" y="146.5">4</text><text x="35.5" y="146.5">5</text><text x="50" y="146.5">6</text><text x="64.5" y="146.5">×</text><text x="79" y="146.5">÷</text>
+      <text x="21" y="156.5">1</text><text x="35.5" y="156.5">2</text><text x="50" y="156.5">3</text><text x="64.5" y="156.5">+</text><text x="79" y="156.5">−</text>
+      <text x="21" y="165" font-size="4.5">0</text><text x="35.5" y="165" font-size="4.5">•</text><text x="50" y="165" font-size="3.8">×10ˣ</text><text x="64.5" y="165" font-size="4">Ans</text><text x="79" y="165" font-size="5">=</text>
+    </g>
+    <g fill="#fff" font-size="3.8" text-anchor="middle"><text x="64.5" y="136">DEL</text><text x="79" y="136">AC</text></g>
+  </g>
+</svg>
