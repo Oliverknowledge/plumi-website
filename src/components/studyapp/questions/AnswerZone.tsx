@@ -23,9 +23,17 @@ const INK_ROOM = 24;
  * Memoised on what it draws (set, part, answer, prefs): a stroke or a keystroke in another part does not draw this
  * one again. The device-wide ink room is read when a stroke ends, not passed down (so it is not a prop that changes on every stroke).
  */
-export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark);
+export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark && a.bare === b.bare && a.headSlot === b.headSlot && a.onReset === b.onReset && a.onMode === b.onMode);
 
-function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; part: QPart; answer: QAnswer | undefined; prefs: QPrefs; showMark: boolean; inkTotal?: number }) {
+function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, headSlot, onReset, onMode }: {
+  set: QSet; part: QPart; answer: QAnswer | undefined; prefs: QPrefs; showMark: boolean; inkTotal?: number;
+  /** The feed's card opened this space from its Type or Draw button and it holds nothing: the head is those two buttons (`headSlot`) in the place where the Draw | Type toggle and Reset go once there is something, so nothing moves when the first mark or key arrives. */
+  bare?: boolean; headSlot?: React.ReactNode;
+  /** Told when the student has cleared the answer on purpose (Reset, then Clear). */
+  onReset?: () => void;
+  /** Told when the student switches the way (Draw | Type) so the card's own record of it follows. */
+  onMode?: (m: "ink" | "type") => void;
+}) {
   const phone = useMatch("(max-width: 640px)");
   const coarse = useMatch("(pointer: coarse)");
   const penSeen = usePenSeen();
@@ -89,7 +97,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   const lowRef = useRef(low);
   useEffect(() => { lowRef.current = low; });
 
-  const setMode = (m: "ink" | "type") => { if (answer?.mode !== m) qa.mode(set.id, part.id, m); };
+  const setMode = (m: "ink" | "type") => { onMode?.(m); if (answer?.mode !== m) qa.mode(set.id, part.id, m); };
   const more = () => qa.height(set.id, part.id, Math.min(ZONE_MAX_H, base + 120));
   const keep = () => { back.current = "reset"; setAsking(false); };
   const reset = () => {
@@ -98,6 +106,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
     ink.current?.clear();
     qa.reset(set.id, part.id);
     if (mode === "type") qa.dropInk(set.id, part.id);
+    onReset?.();
   };
 
   const startGrip = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -125,10 +134,10 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
   return (
     <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}${has ? " is-has" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
       <div className="qs-zone-body">
-        <div className="qs-zone-head">
+        {bare ? (headSlot ? <div className="qs-zone-head qs-zone-head-bare">{headSlot}</div> : null) : <div className="qs-zone-head">
           <div className="qs-mode" role="group" aria-label="How to answer">
-            <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Write by hand${written ? ", has writing" : ""}`}>
-              <PenSmallIcon /> Write{written && <i aria-hidden="true" />}
+            <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Draw by hand${written ? ", has drawing" : ""}`}>
+              <PenSmallIcon /> Draw{written && <i aria-hidden="true" />}
             </button>
             <button ref={mode === "type" ? modeBtn : undefined} type="button" aria-pressed={mode === "type"} onClick={() => setMode("type")} aria-label={`Type${typed ? ", has typing" : ""}`}>
               <TypeIcon /> Type{typed && <i aria-hidden="true" />}
@@ -150,7 +159,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
               {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Reset</button>}
             </span>
           )}
-        </div>
+        </div>}
         {mode === "ink" ? (
           near ? (
             <InkCanvas
@@ -171,7 +180,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark }: { set: QSet; par
         {mode === "ink" && (full || almost) && <p className="qs-note" role="status">{full ? "This answer space is full. Clear some ink, or switch to Type." : "This answer space is nearly full. Type the rest if you need more room."}</p>}
         {hint && showFinger && (
           <div className="qs-hint" role="status">
-            <span>Fingers scroll the page. Write with a pen.</span>
+            <span>Fingers scroll the page. Draw with a pen.</span>
             <button type="button" className="qs-mini" onClick={() => { qa.prefs({ fingerScrolls: false }); setHint(false); }}>Draw with my finger</button>
             <button type="button" className="qs-mini qs-hint-x" onClick={() => setHint(false)} aria-label="Dismiss"><CloseIcon /></button>
           </div>

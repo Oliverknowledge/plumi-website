@@ -7,7 +7,7 @@ import { cutWords, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs
 import { toQPart, type BankRow } from "@/lib/studyapp/questions/picker";
 import { startOpens } from "@/lib/questionStart";
 import { qa, registerFeedPart } from "@/lib/studyapp/questions/store";
-import { AnswerZone } from "./AnswerZone";
+import { FeedAnswer } from "./FeedAnswer";
 import { Check, ReportBody, useReport } from "./Check";
 import { Crop } from "./Crop";
 import { ChevronIcon } from "./pickerIcons";
@@ -17,6 +17,8 @@ import { specialsFor } from "@/lib/studyapp/questions/specials";
 import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
 import { AnnotCrop } from "./AnnotCrop";
+import { SharedFigureChip } from "./SharedFigure";
+import { RulerChip, usePartRuler } from "./RulerChip";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { useMatch } from "./useMatch";
@@ -41,10 +43,6 @@ export interface FeedCardProps {
   eager: boolean;
   /** The feed is full of answers and this question has none: it says so instead of offering a writing space that would not be kept. */
   full: boolean;
-  /** Show the "write in the box below" cue (until the student has written in the feed). */
-  cue: boolean;
-  /** The student has written in the feed (on this card or any other): the cue fades. */
-  wrote: boolean;
   onTopic(code: string): void;
   onWhole(part: BankRow): void;
   /** Open the paper or set where this question was also answered, at this question. */
@@ -57,7 +55,7 @@ export interface FeedCardProps {
  * screen the margins fold above and below. An answer belongs to its question: it is kept under the subject's feed set, which a question joins the first time
  * the student writes on it, opens its scheme or marks it.
  */
-export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, answer, other, prefs, siblings, eager, full, cue, wrote, onTopic, onWhole, onSee }: FeedCardProps) {
+export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, answer, other, prefs, siblings, eager, full, onTopic, onWhole, onSee }: FeedCardProps) {
   const series = lookup.series.get(part.s) ?? part.s;
   const paper = lookup.papers.get(part.p.toLowerCase()) ?? part.p;
   const q = questionOf(part.l);
@@ -75,6 +73,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
   const startId = useId();
+  const rl = usePartRuler(part, siblings, info.subject);
   // The paper's booklet or code files, where this question needs them (the transcript has its place under the player).
   const files = useMemo(() => specialsFor(lookup, part).filter((f) => f.kind !== "tr"), [lookup, part]);
   // The card tells the store what this question is; the question joins the feed set at the first real write on it (see `registerFeedPart`), never on a touch or a look.
@@ -136,8 +135,10 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
             )}
           </div>
         )}
+        <SharedFigureChip fig={rl.fig} partId={part.id} cv={view.cv} ruler={rl.onFigure} />
+        {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
         <div className="qf-pic">
-          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom>
+          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom ruler={rl.onOwn ? part.id : undefined}>
             <ReadAsText set={view} part={part} />
           </AnnotCrop>
         </div>
@@ -147,9 +148,8 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           <p className="qf-full" role="status">Your feed already holds 1,200 questions with answers. Your sets can clear the whole feed to make room, or practise these questions in a set instead.</p>
         ) : (
           <>
-            {cue && <p className={`qf-cue${wrote ? " is-gone" : ""}`} aria-hidden="true">write in the box below<svg viewBox="0 0 40 28" width="34" height="24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4c4 12 12 16 24 17" /><path d="M24 14l7 7-9 4" /></svg></p>}
             <div className="qs-answer qf-answer" onPointerDownCapture={copy ? takeCopy : undefined} onKeyDownCapture={copy ? takeCopyKey : undefined}>
-              <AnswerZone set={view} part={part} answer={shown} prefs={prefs} showMark />
+              <FeedAnswer set={view} part={part} answer={answer} shown={shown} prefs={prefs} copy={!!copy} />
               {copy && (
                 <OtherCopy
                   code={symbolsFor(view.subject).code} partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
@@ -169,7 +169,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   );
 }, (a, b) =>
   a.n === b.n && a.part === b.part && a.view === b.view && a.info === b.info && a.lookup === b.lookup && a.answer === b.answer && a.prefs === b.prefs && a.siblings === b.siblings
-  && a.eager === b.eager && a.full === b.full && a.cue === b.cue && a.wrote === b.wrote && a.onTopic === b.onTopic && a.onWhole === b.onWhole && a.onSee === b.onSee
+  && a.eager === b.eager && a.full === b.full && a.onTopic === b.onTopic && a.onWhole === b.onWhole && a.onSee === b.onSee
   && a.other?.state === b.other?.state && a.other?.got === b.other?.got && a.other?.where === b.other?.where && a.other?.setId === b.other?.setId && a.other?.answer === b.other?.answer);
 
 /** The examiner's report, a taped note in the right margin (below the card on a narrow screen): opened by the student, fetched when it is. */

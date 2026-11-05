@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { bankFile, subjectFile } from "@/lib/studyapp/questions/cropUrls";
+import { bankFile, subjectFile, type BankFileName } from "@/lib/studyapp/questions/cropUrls";
 import { cleanRows, cleanText, fold, type BankRow } from "@/lib/studyapp/questions/picker";
 import { FEED_KEY } from "@/lib/studyapp/questions/feedView";
 import { QUESTIONS_KEY } from "@/lib/studyapp/questions/persist";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
+import { NO_EXTRAS, type FeedExtras } from "@/lib/studyapp/questions/feed";
 import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/lib/studyapp/questions/subject";
 
 /**
@@ -17,6 +18,9 @@ import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/li
 const metas = new Map<string, Promise<SubjectMeta>>();
 const parts = new Map<string, Promise<BankRow[]>>();
 const texts = new Map<string, Promise<Record<string, string>>>();
+/** A subject's folded text once it has arrived this visit (read without asking for it: nothing is fetched by reading this). */
+const arrived = new Map<string, Record<string, string>>();
+export const loadedText = (slug: string | null | undefined): Record<string, string> | null => (slug ? arrived.get(slug) ?? null : null);
 
 /** At most this many files in flight at once: four shelves asking together must not starve the one the student is looking at. */
 const MAX_FLIGHT = 4;
@@ -74,7 +78,7 @@ const json = (url: string, key = url): Promise<unknown> => {
 /** A subject's meta, once per visit (a failure is forgotten, so a retry asks again). */
 export const getMeta = (slug: string): Promise<SubjectMeta> => once(metas, slug, () => json(subjectFile(slug)).then(cleanMeta));
 /** A subject's data file (`parts`, `text`, `reports`) from R2 by its hash, or null where the subject has none (the caller degrades calmly). */
-export const getData = (slug: string, file: "parts" | "text" | "reports"): Promise<unknown | null> =>
+export const getData = (slug: string, file: BankFileName): Promise<unknown | null> =>
   getMeta(slug).then((m) => { const url = bankFile(slug, m.data, file); return url ? json(url, file === "parts" ? `parts:${slug}` : url) : null; });
 const fetched = (url: string): Promise<unknown> =>
   slot().then(() => {
@@ -144,6 +148,50 @@ export function narrowToTier(meta: SubjectMeta, rows: BankRow[], chosen: readonl
   return { meta: { ...meta, papers: meta.papers.filter((p) => paperKeeps(p, chosen)) }, rows: kept, tier };
 }
 
+interface ExtrasLoad { extras: FeedExtras; /** One of the files the subject has did not arrive (as opposed to a subject that has none): its filter cannot be offered or kept, and the student is told. */ failed: boolean }
+const extras = new Map<string, Promise<ExtrasLoad>>();
+/** The ids in a data file, or null where it is not a list of strings (or not there). */
+const idSet = (raw: unknown): Set<string> | null => (Array.isArray(raw) ? new Set(raw.filter((x): x is string => typeof x === "string")) : null);
+/** The bank's extra files for a subject: the practicals, the questions that need second-year content, and the Foundation parts a Higher paper prints too. A file the subject has none of is null; one that did not arrive is null and says so. */
+const loadExtras = (meta: SubjectMeta): Promise<ExtrasLoad> => {
+  const d = meta.data ?? {};
+  let failed = false;
+  const get = (file: "practicals" | "year13" | "tiers") => (d[file] ? getData(meta.slug, file).catch(() => { failed = true; return null; }) : Promise.resolve(null));
+  return Promise.all([get("practicals"), get("year13"), get("tiers")]).then(([prac, y13, tiers]) => {
+    const map = tiers && typeof tiers === "object" && !Array.isArray(tiers) ? new Map(Object.entries(tiers as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string")) : null;
+    const pr = idSet(prac);
+    return { extras: { practicals: pr && pr.size ? pr : null, year13: idSet(y13), twins: map && map.size ? map : null }, failed };
+  });
+};
+
+/**
+ * What the subject's filters need beyond its parts: `ready` is false until the files have been asked for (a subject with none is ready at once). A file that does not arrive is asked for
+ * again once after two seconds and whenever the window is focused again, and `failed` says so meanwhile (the page tells the student; a remembered filter is kept, not dropped).
+ */
+export function useBankExtras(meta: SubjectMeta | null): { ready: boolean; extras: FeedExtras; failed: boolean; retry(): void } {
+  const slug = meta?.slug ?? null;
+  const [got, setGot] = useState<{ slug: string; load: ExtrasLoad } | null>(null);
+  const [tries, setTries] = useState(0);
+  const needs = !!meta && !!(meta.data?.practicals || meta.data?.year13 || meta.data?.tiers);
+  const failed = !!got && got.slug === slug && got.load.failed;
+  useEffect(() => {
+    if (!meta || !needs) return;
+    let live = true;
+    once(extras, meta.slug, () => loadExtras(meta)).then((x) => { if (live) setGot({ slug: meta.slug, load: x }); }).catch(() => { if (live) setGot({ slug: meta.slug, load: { extras: NO_EXTRAS, failed: true } }); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- by subject, and again on a retry
+  }, [slug, needs, tries]);
+  const retry = useCallback(() => { if (slug) extras.delete(slug); setTries((t) => t + 1); }, [slug]);
+  useEffect(() => {
+    if (!failed) return;
+    const t = tries === 0 ? setTimeout(retry, 2000) : null;
+    window.addEventListener("focus", retry);
+    return () => { if (t) clearTimeout(t); window.removeEventListener("focus", retry); };
+  }, [failed, tries, retry]);
+  if (!needs) return { ready: true, extras: NO_EXTRAS, failed: false, retry };
+  return got && got.slug === slug ? { ready: true, extras: got.load.extras, failed: got.load.failed, retry } : { ready: false, extras: NO_EXTRAS, failed: false, retry };
+}
+
 export interface BankText {
   /** The papers' text, folded for searching; null until it has arrived. */
   text: Record<string, string> | null;
@@ -171,6 +219,7 @@ export function useBankText(slug: string | null, wanted: boolean): BankText {
         for (const k of keys.slice(i, i + 400)) out[k] = fold(raw[k]);
         await new Promise((r) => setTimeout(r, 0));
       }
+      arrived.set(slug, out);
       return out;
     })
       .then((text) => { if (live) setGot({ slug, text }); })

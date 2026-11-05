@@ -20,6 +20,8 @@ import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
 import { ListenPlayer } from "./ListenPlayer";
 import { PartFiles } from "./PartFiles";
+import { SharedFigureChip } from "./SharedFigure";
+import { RulerChip, usePartRuler } from "./RulerChip";
 import { AnnotCrop } from "./AnnotCrop";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
@@ -348,6 +350,7 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
   const typing = !!prefs.alwaysType;
   const shown = useMemo<QAnswer | undefined>(() => (typing && answer?.mode === undefined ? { ...answer, at: answer?.at ?? 0, mode: "type" } : answer), [typing, answer]);
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
+  const rl = usePartRuler(part, block.parts, set.subject);
   // Drawn only while near the screen (useWindowed.ts): the rest is an empty box of the height the part has.
   const { ref: wrap, near, pin, ratio, overhead } = useWindowed(part.id, startNear, (w) => w * (part.h / Math.max(1, part.w)) + w * (zoneHeight(part, answer) / REF_W));
   return (
@@ -367,7 +370,9 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
       ) : (
         <>
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
-          <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom>
+          <SharedFigureChip fig={rl.fig} partId={part.id} cv={set.cv} ruler={rl.onFigure} />
+          {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
+          <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom ruler={rl.onOwn ? part.id : undefined}>
             <ReadAsText set={set} part={part} />
           </AnnotCrop>
           {files && <PartFiles files={specialsFor(files, part).filter((f) => f.kind !== "tr")} />}

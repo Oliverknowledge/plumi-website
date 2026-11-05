@@ -101,6 +101,19 @@ const nextConfig: NextConfig = {
         ],
       },
       /**
+       * A shared flashcard deck (/d/<code>, src/app/d): the code is in the address and the page is read from the database on every
+       * visit, so the address is never passed on as a referrer, nothing keeps a copy of the page, and crawlers are told at the
+       * header as well as in the HTML.
+       */
+      {
+        source: "/d/:code",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "private, no-store, max-age=0" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      /**
        * The Grand Library's art, asked for with its fingerprint (`?v=`): the same URL is always the same bytes, so
        * it is kept for a year and a repeat visit fetches none of it. Without `?v=` (the homepage's own copy of the
        * room, the sign-in page's door) the files keep the default and are revalidated each time.

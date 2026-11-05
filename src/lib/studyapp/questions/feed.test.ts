@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { deadListening, wholeRecordingNote, hasFeedAnswer, otherCopy, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
+import { CLEARED, feedCounts, feedPills, forOption, leaveOutLatestTwo, NO_EXTRAS, optionCount, pickOption, specSorted, takesOf, tierPaperIds, twinPapers, validOption, type FeedContext, type FeedExtras, deadListening, wholeRecordingNote, hasFeedAnswer, otherCopy, bestState, bandsFor, labelKey, calcWords, cleanFeedFilters, elsewhere, feedActive, feedFilter, feedList, feedMatches, feedOrders, feedProgress, hasCalcChoice, hashSeed, markedIds, mixRows, NO_FEED, practiseRows, progressLine, qStateLine, stateOf, toggleIn, toggleYear, yearGroups, yearState, type FeedFilters, type QState } from "./feed";
 import { compareLabels, EMPTY_QUESTIONS, feedId, feedTouch, markPart, MAX_SET_PARTS, setText, type QPart, type QuestionsData } from "./model";
 import { sortRows, type BankRow } from "./picker";
 
@@ -280,4 +280,183 @@ describe("practise these", () => {
     assert.deepEqual(r.rows.slice(0, 3), [0, 1, 2]);
     assert.deepEqual(practiseRows([1, 2]), { rows: [1, 2], left: 0 });
   });
+});
+
+
+/* ── the public bank's other filters ─────────────────────────────────── */
+
+describe("school year", () => {
+  const y13 = new Set(["a-01-3", "a-02-1", "c-02-1"]);
+  const ex: FeedExtras = { ...NO_EXTRAS, year13: y13 };
+  const c = { ...ctx, extras: ex };
+  test("Year 13 is the questions that need second-year content, Year 12 the rest, Both is all", () => {
+    assert.deepEqual(ids(feedFilter(FIX, f({ yr: "13" }), c)), ["a-01-3", "a-02-1", "c-02-1"]);
+    assert.equal(feedFilter(FIX, f({ yr: "12" }), c).length, FIX.length - 3);
+    assert.equal(feedFilter(FIX, f({ yr: "" }), c).length, FIX.length);
+  });
+  test("a subject with no year file has no year filter: a remembered one does nothing, and the cleaner drops it", () => {
+    assert.equal(feedFilter(FIX, f({ yr: "13" }), ctx).length, FIX.length);
+    const meta = { topics: [], papers: [], series: [], options: undefined, data: {} };
+    assert.equal(cleanFeedFilters(f({ yr: "13" }), meta, [], undefined).yr, "");
+    assert.equal(cleanFeedFilters(f({ yr: "13" }), { ...meta, data: { year13: "abc123" } }, [], undefined).yr, "13");
+    assert.equal(cleanFeedFilters(f({ yr: "13" }), { ...meta, data: { year13: "abc123" } }, [], NO_EXTRAS).yr, "", "the file did not arrive");
+  });
+});
+
+describe("practicals", () => {
+  const c = { ...ctx, extras: { ...NO_EXTRAS, practicals: new Set(["a-01-2", "b-01-1"]) } };
+  test("only these, or leave them out", () => {
+    assert.deepEqual(ids(feedFilter(FIX, f({ prac: "only" }), c)), ["a-01-2", "b-01-1"]);
+    assert.equal(feedFilter(FIX, f({ prac: "none" }), c).length, FIX.length - 2);
+  });
+  test("a subject with no practicals file is not filtered", () => assert.equal(feedFilter(FIX, f({ prac: "only" }), ctx).length, FIX.length));
+});
+
+describe("both tiers, shown once", () => {
+  const rows = [row("f1", { p: "84632F", l: "01.1" }), row("f2", { p: "84632F", l: "01.2" }), row("h1", { p: "84631H", l: "01.1" }), row("h2", { p: "84631H", l: "01.2" }), row("solo", { p: "84632F", l: "02.1" })];
+  const twins = new Map([["f1", "h1"], ["f2", "h2"]]);
+  const mk = (rs: readonly BankRow[]): FeedContext => ({ ...ctx, extras: { ...NO_EXTRAS, twins }, twinPaper: twinPapers(rs, twins) });
+  test("a Foundation part whose Higher twin is in view goes", () => {
+    assert.deepEqual(ids(feedFilter(rows, f({ once: true }), mk(rows))), ["h1", "h2", "solo"]);
+    assert.equal(feedFilter(rows, f({ once: false }), mk(rows)).length, 5);
+  });
+  test("it stays when the papers picked leave the Higher paper out", () => {
+    assert.deepEqual(ids(feedFilter(rows, f({ once: true, papers: ["84632F"] }), mk(rows))), ["f1", "f2", "solo"]);
+    assert.deepEqual(ids(feedFilter(rows, f({ once: true, papers: ["84632F", "84631H"] }), mk(rows))), ["h1", "h2", "solo"]);
+  });
+  test("it stays when the Higher tier is not among the rows (the student sits Foundation)", () => {
+    const fo = rows.filter((r) => r.p === "84632F");
+    assert.deepEqual(ids(feedFilter(fo, f({ once: true }), mk(fo))), ["f1", "f2", "solo"]);
+  });
+  test("twinPapers reads the twin's own paper", () => assert.deepEqual([...twinPapers(rows, twins)], [["f1", "84631h"], ["f2", "84631h"]]));
+});
+
+describe("options", () => {
+  const options = { label: "Religion", list: [{ id: "a", name: "Christianity" }, { id: "b", name: "Islam" }, { id: "ms", name: "Mechanics and Statistics", takes: ["m", "s"] }] };
+  const meta = { options, papers: [{ id: "P1", name: "One", option: "a" }, { id: "P2", name: "Two", option: "b" }, { id: "P3", name: "Three" }, { id: "PM", name: "Mech", option: "m" }, { id: "PS", name: "Stats", option: "s" }] };
+  const rows = [row("r1", { p: "P1" }), row("r2", { p: "P2" }), row("r3", { p: "P3" }), row("r4", { p: "PM" }), row("r5", { p: "PS" })];
+  const c = { ...ctx, meta };
+  test("an option keeps its papers and the ones everyone sits", () => {
+    assert.deepEqual(ids(feedFilter(rows, f({ opt: "a" }), c)), ["r1", "r3"]);
+    assert.deepEqual(ids(feedFilter(rows, f({ opt: "b" }), c)), ["r2", "r3"]);
+    assert.equal(feedFilter(rows, f({ opt: "" }), c).length, 5);
+  });
+  test("a pair the student takes keeps both", () => {
+    assert.deepEqual(ids(feedFilter(rows, f({ opt: "ms" }), c)), ["r3", "r4", "r5"]);
+    assert.deepEqual(takesOf(options, "ms"), ["m", "s"]);
+    assert.deepEqual(takesOf(options, "a"), ["a"]);
+  });
+  test("an option the subject does not have is no option", () => {
+    assert.equal(validOption(options, "zzz"), "");
+    assert.equal(feedFilter(rows, f({ opt: "zzz" }), c).length, 5);
+    assert.equal(cleanFeedFilters(f({ opt: "zzz" }), { ...meta, topics: [], series: [], data: {} }, [], undefined).opt, "");
+  });
+  test("choosing an option drops the papers picked that belong to another", () => {
+    assert.deepEqual(pickOption(meta, f({ papers: ["P1", "P2", "P3"] }), "a"), { opt: "a", papers: ["P1", "P3"] });
+    assert.deepEqual(pickOption(meta, f({ papers: ["P2"] }), ""), { opt: "", papers: ["P2"] });
+  });
+  test("a section or a paper with no option is for everyone", () => {
+    assert.equal(forOption(options, "a", undefined), true);
+    assert.equal(forOption(options, "a", "b"), false);
+    assert.equal(forOption(options, "", "b"), true);
+  });
+});
+
+describe("spec order", () => {
+  test("by the first topic as the specification numbers it, a part with no topic last, ties as they were", () => {
+    const rs = [row("z", { t: ["4.1.10"] }), row("y", { t: ["4.1.2"] }), row("n", { t: [] }), row("x", { t: ["4.1.2"] }), row("w", { t: ["3.9"] })];
+    assert.deepEqual(ids(specSorted(rs)), ["w", "y", "x", "z", "n"]);
+  });
+  test("by the topic's place in the subject's list, not its code as text: GCSE Maths' Number before Algebra, Edexcel's Pure before Mechanics", () => {
+    const gcse = [{ code: "N1" }, { code: "N2" }, { code: "A1" }, { code: "A2" }, { code: "R1" }, { code: "G1" }];
+    const rs = [row("a1", { t: ["A1"] }), row("g1", { t: ["G1"] }), row("n2", { t: ["N2"] }), row("a2", { t: ["A2"] }), row("n1", { t: ["N1"] }), row("none", { t: [] }), row("r1", { t: ["R1"] })];
+    assert.deepEqual(ids(specSorted(rs, gcse)), ["n1", "n2", "a1", "a2", "r1", "g1", "none"]);
+    assert.deepEqual(ids(specSorted(rs)).slice(0, 2), ["a1", "a2"], "(as text, A would come first: that was the fault)");
+    const edx = [{ code: "P.1" }, { code: "P.2" }, { code: "S.1" }, { code: "M.1" }, { code: "M.7" }];
+    const ed = [row("m7", { t: ["M.7"] }), row("p1", { t: ["P.1"] }), row("m1", { t: ["M.1"] }), row("s1", { t: ["S.1"] }), row("p2", { t: ["P.2"] })];
+    assert.deepEqual(ids(specSorted(ed, edx)), ["p1", "p2", "s1", "m1", "m7"]);
+  });
+  test("ties keep the order given (newest first stays newest first); a topic the list lacks comes after those it has", () => {
+    const tl = [{ code: "T1" }, { code: "T2" }];
+    const rs = [row("x", { t: ["T2"] }), row("y", { t: ["T1"] }), row("z", { t: ["T2"] }), row("odd", { t: ["ZZ"] }), row("w", { t: ["T1"] })];
+    assert.deepEqual(ids(specSorted(rs, tl)), ["y", "w", "x", "z", "odd"]);
+  });
+  test("feedList sorts by it, after the filter", () => {
+    const orders = feedOrders(FIX, SERIES);
+    const out = feedList(orders, f({ sort: "spec", calc: "none" }), { ...ctx, meta: { papers: [], topics: [{ code: "4.3.1" }, { code: "4.1.1" }, { code: "4.1.2" }, { code: "4.2.1" }] as never } });
+    assert.deepEqual(out.map((r) => r.t[0] ?? ""), out.map((r) => r.t[0] ?? "").slice().sort((a, b) => (a === "" ? 1 : b === "" ? -1 : ["4.3.1", "4.1.1", "4.1.2", "4.2.1"].indexOf(a) - ["4.3.1", "4.1.1", "4.1.2", "4.2.1"].indexOf(b))));
+    assert.ok(out.every((r) => !r.calc));
+  });
+});
+
+describe("quick picks", () => {
+  test("Higher only and Foundation only are the papers named so", () => {
+    const ps = [{ id: "a", name: "Paper 1 Higher" }, { id: "b", name: "Paper 2 Higher" }, { id: "c", name: "Paper 1 Foundation" }];
+    assert.deepEqual(tierPaperIds(ps, "Higher"), ["a", "b"]);
+    assert.deepEqual(tierPaperIds(ps, "Foundation"), ["c"]);
+  });
+  test("leaving out the latest two keeps the older sittings, and is not offered for two or fewer", () => {
+    assert.deepEqual(leaveOutLatestTwo(SERIES), ["NOV21"]);
+    assert.deepEqual(leaveOutLatestTwo(SERIES.slice(0, 2)), []);
+    assert.equal(feedFilter(FIX, f({ series: leaveOutLatestTwo(SERIES) }), ctx).every((r) => r.s === "NOV21"), true);
+  });
+});
+
+describe("counts", () => {
+  const rows = [
+    row("a", { p: "P1", s: "JUN25", t: ["t1"], m: 1, calc: 1 }), row("b", { p: "P1", s: "JUN24", t: ["t1", "t2"], m: 4 }),
+    row("c", { p: "P2", s: "JUN25", t: ["t2"], m: 4, calc: 1 }), row("d", { p: "P2", s: "JUN24", t: ["t3"], m: 6 }),
+  ];
+  const bands = bandsFor("Physics", rows);
+  const ex: FeedExtras = { practicals: new Set(["a", "c"]), year13: new Set(["d"]), twins: null };
+  const meta = { papers: [{ id: "P1", name: "1", option: "x" }, { id: "P2", name: "2", option: "y" }, { id: "P3", name: "3" }], options: { label: "O", list: [{ id: "x", name: "X" }, { id: "y", name: "Y" }] } };
+  const c: FeedContext = { bands, extras: ex, meta };
+  test("each option counts with every other filter kept and its own left out", () => {
+    const n = feedCounts(rows, f({ papers: ["P1"], topics: ["t2"] }), c, bands);
+    // topics: the paper filter is kept (a, b), the topics filter is not
+    assert.equal(n.topics.get("t1"), 2); assert.equal(n.topics.get("t2"), 1); assert.equal(n.topics.get("t3"), undefined);
+    // papers: the topic filter is kept (b, c), the paper filter is not
+    assert.equal(n.papers.get("p1"), 1); assert.equal(n.papers.get("p2"), 1);
+    assert.equal(n.series.get("JUN24"), 1); assert.equal(n.series.get("JUN25") ?? 0, 0);
+  });
+  test("calculator, practicals and school year count their own two sides", () => {
+    const n = feedCounts(rows, f({}), c, bands);
+    assert.deepEqual(n.calc, { only: 2, none: 2 });
+    assert.deepEqual(n.prac, { only: 2, none: 2 });
+    assert.deepEqual(n.yr, { "12": 3, "13": 1 });
+    const t = feedCounts(rows, f({ calc: "only" }), c, bands);
+    assert.deepEqual(t.calc, { only: 2, none: 2 }, "the calculator filter is left out of its own count");
+    assert.deepEqual(t.prac, { only: 2, none: 0 });
+  });
+  test("an option counts its papers, and the papers everyone sits count under none", () => {
+    const n = feedCounts(rows, f({}), { ...c, meta: { ...meta, papers: [...meta.papers] } }, bands);
+    assert.equal(n.opt.get("x"), 2); assert.equal(n.opt.get("y"), 2);
+    assert.equal(optionCount(n, meta.options, "x"), 2);
+    assert.equal(optionCount(null, meta.options, "x"), null);
+  });
+  test("a thousand rows are counted in a few milliseconds, not seconds", () => {
+    const big = Array.from({ length: 3000 }, (_, i) => row(`r${i}`, { p: `P${i % 4}`, s: i % 2 ? "JUN25" : "JUN24", t: [`t${i % 30}`, `t${(i + 7) % 30}`], m: 1 + (i % 9), calc: i % 3 === 0 ? 1 : undefined }));
+    const t0 = performance.now();
+    feedCounts(big, f({ topics: ["t3"], calc: "only" }), { bands: bandsFor("Physics", big), extras: { practicals: new Set(big.slice(0, 500).map((r) => r.id)), year13: new Set(big.slice(0, 900).map((r) => r.id)), twins: null } }, bandsFor("Physics", big));
+    assert.ok(performance.now() - t0 < 400, `took ${Math.round(performance.now() - t0)} ms`);
+  });
+});
+
+describe("pills and clear all", () => {
+  const meta = { topics: [], papers: [{ id: "P1", name: "Paper 1" }], series: [{ id: "JUN25", label: "June 2025" }], options: { label: "Religion", list: [{ id: "b", name: "Islam" }] }, calcPapers: undefined };
+  const all = f({ opt: "b", yr: "13", prac: "none", once: true, calc: "only", papers: ["P1"], series: ["JUN25"], scheme: true, hideDone: true });
+  test("each filter that is on is a pill that says what it is and takes only itself off", () => {
+    const ps = feedPills(meta, [], all);
+    assert.deepEqual(ps.map((p) => p.label), ["Islam", "Paper 1", "June 2025", "Year 13 content", "Calculation questions only", "No practicals", "Both-tier questions once", "Has a mark scheme", "Marked ones hidden"]);
+    const off = (key: string) => ({ ...all, ...ps.find((p) => p.key === key)!.off });
+    assert.equal(off("yr").yr, ""); assert.equal(off("opt").opt, ""); assert.equal(off("prac").prac, ""); assert.equal(off("once").once, false);
+    assert.equal(off("yr").prac, "none", "the others stay");
+  });
+  test("clear all turns every filter off and keeps the sort and the seed", () => {
+    const cleared = { ...f({ sort: "spec", seed: "ab" }), ...all, ...CLEARED, sort: "spec" as const, seed: "ab" };
+    assert.equal(feedActive(cleared), 0);
+    assert.equal(feedPills(meta, [], cleared).length, 0);
+    assert.equal(cleared.sort, "spec");
+  });
+  test("the count on the Filters button counts the new filters too", () => assert.equal(feedActive(f({ yr: "12", opt: "b", prac: "only", once: true })), 4));
 });

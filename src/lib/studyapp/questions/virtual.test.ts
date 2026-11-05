@@ -56,11 +56,21 @@ describe("an item with the keyboard stays drawn", () => {
 
 describe("a card's height before it has been drawn", () => {
   const p = { w: 1086, h: 400, m: 3, k: undefined, er: undefined };
-  test("taller for a taller picture and for more marks", () => {
+  test("taller for a taller picture, and for a mouse's Write on the question button", () => {
     assert.ok(cardEstimate({ ...p, h: 800 }, 1180) > cardEstimate(p, 1180));
-    assert.ok(cardEstimate({ ...p, m: 8 }, 1180) > cardEstimate(p, 1180));
+    assert.equal(cardEstimate(p, 1180, false, true) - cardEstimate(p, 1180, false, false), 54);
   });
-  test("a one-letter multiple-choice answer is shorter", () => assert.ok(cardEstimate({ ...p, k: "B" }, 1180) < cardEstimate(p, 1180)));
+  test("a closed card shows two buttons, not a space sized to the marks: the marks do not change it", () => {
+    assert.equal(cardEstimate({ ...p, m: 8 }, 1180), cardEstimate(p, 1180));
+    assert.equal(cardEstimate({ ...p, k: "B" }, 1180), cardEstimate(p, 1180));
+  });
+  test("the layouts add up as they were measured on drawn cards (AQA GCSE Maths: the card is the picture plus 266 wide with a mouse, plus 212 + 206 + 52 upright, plus 212 + 229 + 52 on a phone)", () => {
+    const m = { w: 1000, h: 400, m: 1, er: 1 as const };
+    const pic = (listW: number) => (listW - 38) * 0.4;
+    assert.equal(cardEstimate(m, 820), Math.round(pic(820) + 212 + 206 + 52));
+    assert.equal(cardEstimate(m, 390), Math.round(pic(390) + 212 + 229 + 52));
+    assert.equal(cardEstimate(m, 1184, false, true), Math.round(Math.max(330, (1184 - 468 - 38) * 0.4 + 266)));
+  });
   test("a narrow list folds the meta above the picture, so it is taller than the same card wide", () => {
     assert.ok(cardEstimate(p, FEED_WIDE - 1) > cardEstimate(p, FEED_WIDE + 200));
   });
@@ -77,6 +87,6 @@ describe("a question's setup, open before anyone asks", () => {
   test("not on a part with no size", () => assert.equal(startOpens(1, { w: 0, h: 0 }), false));
   test("counted in the card's guessed height", () => {
     const p = { w: 1086, h: 66, m: 2, k: undefined, er: undefined };
-    assert.ok(cardEstimate(p, 1180, true, true) > cardEstimate(p, 1180, true));
+    assert.ok(cardEstimate(p, 1180, true, false, true) > cardEstimate(p, 1180, true));
   });
 });

@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useNow } from "@/lib/studyapp/clock";
 import { reviewStreak } from "@/lib/studyapp/model";
 import { GRADES } from "@/lib/studyapp/srs";
+import { canShare } from "@/lib/studyapp/sharing";
+import { useSharing } from "@/lib/studyapp/sharing/client";
 import { useApp } from "@/lib/studyapp/store";
 import { dayOf } from "@/lib/studyapp/time";
 import { useReview, useReviewKeys, waitLine } from "./review";
@@ -23,14 +25,18 @@ const COUNTER_COLOURS = ["c1", "c2", "c3", "c4"] as const;
  * card over; 1 to 4 grade it. Mounted afresh whenever what is being reviewed changes, so its counters start at zero.
  */
 export function FlashDesk({
-  label, deckIds, expanded, hidden, keysOn, onToggleExpand, onAddCard, onStarters, onBackToToday,
+  label, deckIds, expanded, hidden, keysOn, onToggleExpand, onAddCard, onShare, onStarters, onBackToToday,
 }: {
   label: string; deckIds: string[] | undefined; expanded: boolean; hidden: boolean; keysOn: boolean;
-  onToggleExpand: () => void; onAddCard: (currentDeckId: string | null) => void; onStarters: () => void; onBackToToday?: () => void;
+  onToggleExpand: () => void; onAddCard: (currentDeckId: string | null) => void; onShare?: (deckId: string) => void; onStarters: () => void; onBackToToday?: () => void;
 }) {
   const { ready, data } = useApp();
   const now = useNow(1000);
   const review = useReview(deckIds);
+  const sharing = useSharing();
+  // Share is offered when exactly one deck is on the desk (a mix of decks has no single deck to share).
+  const oneDeck = deckIds?.length === 1 ? data.decks.find((d) => d.id === deckIds[0]) : undefined;
+  const shareDeck = onShare && sharing.available && oneDeck && canShare(oneDeck) ? oneDeck : null;
   useReviewKeys(review, keysOn && !hidden);
   const { card, shown, done, remaining, counts, previews } = review;
   const cardRef = useRef<HTMLElement>(null);
@@ -90,6 +96,13 @@ export function FlashDesk({
           <b>{label}</b>
           <span>{remaining > 0 ? `${remaining} due` : "Done"}</span>
         </div>
+        <div className="dsk-right">
+        {shareDeck && (
+          <button type="button" className="dsk-btn dsk-share" onClick={() => onShare?.(shareDeck.id)} aria-label={sharing.codeFor(shareDeck.id) ? `Shared: manage the link for ${shareDeck.title}` : `Share ${shareDeck.title}`} data-testid="desk-share">
+            <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square"><path d="M8 10V1.5M4.5 5L8 1.5 11.5 5M2.5 8.5v6h11v-6" /></svg>
+            <span>{sharing.codeFor(shareDeck.id) ? "Shared" : "Share"}</span>
+          </button>
+        )}
         <button type="button" className="dsk-btn icon" onClick={onToggleExpand} aria-pressed={expanded} aria-label={expanded ? "Leave full screen" : "Fill the screen"} data-testid="expand">
           <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
             {expanded
@@ -97,6 +110,7 @@ export function FlashDesk({
               : <path d="M10 1h5v5M6 15H1v-5M15 1l-5 5M1 15l5-5" />}
           </svg>
         </button>
+        </div>
       </div>
 
       <div className="dsk-stage">

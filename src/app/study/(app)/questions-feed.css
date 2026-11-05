@@ -37,7 +37,8 @@
 .pa .qf-count { flex: 0 1 auto; display: grid; gap: 0; min-width: 0; }
 .pa .qf-nres { margin: 0; font: 800 14px var(--f-body); color: var(--soft); white-space: nowrap; }
 .pa .qf-nres b { font: 700 22px/1 var(--f-px); color: var(--ink); }
-.pa .qf-note-l { font-weight: 700; color: var(--mute); white-space: normal; }
+.pa .qf-note-l { font-weight: 700; color: var(--mute); white-space: nowrap; }
+.pa .qf-note-l.is-gone { visibility: hidden; }
 .pa .qf-prog { margin: 0; font: 700 12.5px var(--f-body); color: var(--mute); white-space: nowrap; }
 .pa .qf-acts { display: flex; gap: 8px; margin-left: auto; }
 .pa .qf-mixbtn, .pa .qf-practise { min-height: 44px; padding: 0 14px; font-size: 14px; }
@@ -645,3 +646,75 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qs-annot-note { flex: 1 1 100%; margin: 0; font: 800 13px/1.3 var(--f-body); color: #8a2f2f; }
 .pa .qs-annot-cue { margin: 0; font: 700 21px/1.2 var(--f-hand); color: #3b4768; }
 .pa .qs-annot-host.is-hidden { pointer-events: auto; }
+
+/* ── the public bank's other filters: school year, option, practicals, both tiers, counts, quick picks ── */
+.pa .qf-n { margin-left: 6px; font: 800 12px var(--f-body); font-variant-numeric: tabular-nums; color: var(--soft); }
+.pa .qs-chip.on .qf-n, .pa .qf-seg button.is-on .qf-n { color: inherit; opacity: .85; }
+.pa .qf-multi-list label .qf-n { margin-left: auto; padding-left: 10px; }
+.pa .qf-quick { display: flex; flex-wrap: wrap; gap: 0 14px; margin: 0 4px 4px; }
+.pa .qf-quick .qs-link { min-height: 36px; }
+@media (pointer: coarse) { .pa .qf-quick .qs-link { min-height: 44px; } }
+.pa .qf-yearrow { padding-top: 2px; }
+.pa .qf-yearswitch { grid-template-columns: repeat(3, auto); }
+/* the phone's school year sits above the folded filters, in the flow, one full-width segmented control */
+.pa .qf-yearphone { margin: 4px 0 6px; }
+.pa .qf-yearphone .qf-seg { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* ── under a question's picture: two small dashed buttons, not an empty space to write on ── */
+.pa .qf-ans-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 58px; margin: 0; }
+.pa .qf-ans-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px dashed #7b869d; border-radius: 12px; background: #fffaf0; color: var(--ink); font: 600 15px var(--f-px); cursor: pointer; transition: background .15s, border-color .15s; }
+.pa .qf-ans-btn:hover { background: #fff3cf; border-style: solid; border-color: var(--ink); }
+.pa .qf-ans-btn[aria-pressed="true"] { background: #fff3cf; border-style: solid; border-color: var(--ink); box-shadow: 0 2px 0 var(--ink); }
+.pa .qf-ans-btn:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
+.pa .qf-ans-btn svg { flex: none; }
+.pa .qf-ans-short { display: none; }
+@media (max-width: 400px) { .pa .qf-ans-btn { flex: 1 1 0; padding: 0 10px; } .pa .qf-ans-long { display: none; } .pa .qf-ans-short { display: inline; } }
+/* an opened space has the buttons for its head, in the place of the Draw | Type toggle and Reset: the same height in every mode and every pointer, never over the writing, so nothing moves when
+   the first stroke or key arrives (or when the student empties it again) */
+.pa .qf-ans .qs-zone[data-mode] .qs-zone-head { position: static; opacity: 1; min-height: 58px; height: 58px; box-sizing: border-box; padding: 4px 6px 4px 4px; transition: none; }
+.pa .qf-ans .qs-zone[data-mode] .qs-zone-head-bare { justify-content: flex-start; }
+.pa .qf-ans .qs-zone-head-bare .qf-ans-btns { min-height: 0; }
+.pa .qf-answer .qs-zone[data-mode="ink"] .qs-zone-head { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .pa .qf-ans-btn { transition: none; } }
+
+/* "See the figure": the chip names where the figure is from, quietly */
+.pa .qs-fig-from { font-weight: 700; color: var(--soft); }
+.pa .qs-fig { margin: 0 0 10px; }
+
+/* the filters' pills and Clear all are 44px on a touch screen; the phone's school year has room above the folded card */
+@media (pointer: coarse) { .pa .qf-pills .qs-chip, .pa .qf-clear { min-height: 44px; } }
+.pa .qf-yearphone { margin: 4px 0 22px; }
+.pa .qf-lost { margin: 2px 0 8px; font: 800 13px/1.35 var(--f-body); color: #8a2f2f; }
+
+/* The virtual ruler (Ruler.tsx): a clear cream plastic ruler laid on the picture of the printed paper, at the paper's own size. */
+.pa .qs-rulerchip { margin: 0 0 10px; }
+.pa .qs-rulerchip .qf-startbtn[aria-pressed="true"] { border-style: solid; border-color: var(--ink); background: #fff; color: var(--ink); }
+.pa .qs-ruler-layer { position: absolute; inset: 0; z-index: 2; overflow: visible; pointer-events: none; }
+.pa .qs-ruler-layer.is-clip { overflow: hidden; }
+.pa .qs-ruler { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; pointer-events: none; }
+.pa .qs-ruler-body { position: absolute; top: 0; box-sizing: border-box; border: 1.5px solid #8b6c3a; border-radius: 3px; background: rgba(248, 235, 196, .64); box-shadow: 2px 3px 0 rgba(34, 48, 77, .2); color: var(--ink); cursor: grab; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.pa .qs-ruler-body:active { cursor: grabbing; }
+.pa .qs-ruler-body:focus-visible { outline: 2.5px solid var(--navy); outline-offset: 3px; }
+.pa .qs-ruler-body > svg { position: absolute; left: -1.5px; top: -1.5px; overflow: visible; pointer-events: none; }
+.pa .qs-ruler-body path { fill: none; stroke: #2a2418; vector-effect: non-scaling-stroke; }
+.pa .qs-ruler-t1 { stroke-width: 1px; }
+.pa .qs-ruler-t5 { stroke-width: 1.2px; }
+.pa .qs-ruler-t10 { stroke-width: 1.5px; }
+.pa .qs-ruler-n { font-family: var(--f-px); font-weight: 600; fill: #2a2418; }
+.pa .qs-ruler-pr { font-family: var(--f-hand); font-weight: 700; fill: #6b5530; pointer-events: none; }
+.pa .qs-ruler-x { position: absolute; left: -3px; bottom: -3px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; pointer-events: auto; touch-action: none; }
+.pa .qs-ruler-x svg { box-sizing: content-box; width: 14px; height: 14px; padding: 5px; border: 1.5px solid #8b6c3a; border-radius: 50%; background: rgba(255, 250, 240, .92); }
+.pa .qs-ruler-x:focus-visible { outline: 2.5px solid var(--navy); outline-offset: -4px; border-radius: 50%; }
+.pa .qs-ruler-knob { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 44px; height: 44px; cursor: grab; pointer-events: auto; touch-action: none; }
+.pa .qs-ruler-knob span { display: block; width: 24px; height: 24px; border: 1.5px solid #6b5530; border-radius: 50%; background: #d9b46a; box-shadow: 0 2px 0 rgba(34, 48, 77, .28), inset 0 0 0 5px #e8c987; }
+@media (pointer: fine) { .pa .qs-ruler-x { width: 32px; height: 32px; left: 0; bottom: 0; } }
+@media (forced-colors: active) { .pa .qs-ruler-body { border-color: CanvasText; background: Canvas; } .pa .qs-ruler-body path { stroke: CanvasText; } .pa .qs-ruler-n { fill: CanvasText; } }
+
+/* A new search waits for the papers' text: the old list stays, dimmed, never blank. A late change held while the student reads is offered by a chip. */
+.pa .qf-listwrap { transition: opacity .15s; }
+.pa .qf-listwrap.is-waiting { opacity: .5; }
+.pa .qf-more { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 24px); min-height: 44px; padding: 0 18px; border: 2px dashed var(--ink); border-radius: 22px; background: #fffaf0; box-shadow: 0 3px 0 var(--ink); font: 700 20px/1 var(--f-hand); color: var(--ink); cursor: pointer; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+@media (pointer: coarse) { .pa .qf-more { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); } }
+.pa .qf-more:hover { background: #fff; }
+.pa .qf-listwrap.is-waiting { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .pa .qf-listwrap { transition: none; } }

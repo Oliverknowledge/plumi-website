@@ -50,6 +50,8 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   const pinned = useRef<number | null>(null);
   /** While the list is being put back where it was left: the question it opens at stays drawn (its open scheme loads and is measured) and the page is aligned again each time a height settles. */
   const restoring = useRef<{ at: number; go(): void } | null>(null);
+  /** Set when the list is no longer the one that was opened: no more putting the page back. */
+  const restoreOff = useRef(false);
   const ahead = useRef(AHEAD_AT_FIRST);
   const latest = useRef({ items, gap, onPos, onHere, estimate, width });
   useLayoutEffect(() => { latest.current = { items, gap, onPos, onHere, estimate, width }; });
@@ -239,7 +241,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     const evs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
     evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
     const go = () => {
-      if (touched) return;
+      if (touched || restoreOff.current) return;
       const want = i === 0 && start.off === 0 ? 0 : boxTop() + offsRef.current[i] + start.off - latest.current.gap();
       if (Math.abs(window.scrollY - want) > 3) { jump(want); capture(); }
     };
@@ -253,6 +255,25 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     // only on opening
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Being put back where it was left belongs to the list that was opened: a different list (another epoch, or the same list given more or fewer questions when late results are taken in at
+  // the top) ends it for good, so nothing is re-aligned to a place in a list that is no longer there.
+  const sig = `${items.length}|${items[0]?.id ?? ""}|${items[items.length - 1]?.id ?? ""}`;
+  const openedWith = useRef(sig);
+  const openedKey = useRef(listKey);
+  const lastSig = useRef(sig);
+  useLayoutEffect(() => {
+    if (lastSig.current !== sig) {
+      // A different set of questions (late results taken in at the top): the card that was at the reading line is not held in place by scrolling the page (that is what carried the page down
+      // by the height of the new cards above it); the reading line is read afresh from the new list.
+      lastSig.current = sig;
+      anchor.current = null;
+      capture();
+    }
+    if (sig === openedWith.current && listKey === openedKey.current) return;
+    restoreOff.current = true;
+    restoring.current = null;
+  }, [sig, listKey, capture]);
 
   // another list: back to its top (when the page has been scrolled past it)
   const seen = useRef(listKey);
