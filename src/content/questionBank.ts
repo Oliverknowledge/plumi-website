@@ -162,9 +162,12 @@ export const bankSolutionUrl = (s: Pick<BankSubject, "slug" | "data">, id: strin
  * A-Level Maths and Further Maths have a year13.json beside their data (Cambridge's Further Maths, with no AS, has none, and no filter): the ids of the questions that need second-year
  * content (scripts/question-bank/maths_years.py), for the "Year" filter. A Year 12 student wants the
  * ones they can already do; maths topics span both years, so the split is by question, not by topic.
+ * AQA, OCR and Eduqas A-Level Computer Science have one too (computer_science_years.py): their topics mix the years less,
+ * but a topic both specifications teach (OCR's algorithms, Eduqas's data structures) still holds second-year questions.
  */
 export const bankHasYears = (s: Pick<BankSubject, "level" | "subject" | "board">) =>
-  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE"));
+  s.level === "A-Level" && (s.subject === "Maths" || (s.subject === "Further Maths" && s.board !== "CAIE")
+    || (s.subject === "Computer Science" && (s.board === "AQA" || s.board === "OCR" || s.board === "Eduqas")));
 /**
  * A GCSE (or International GCSE) bank with Higher and Foundation papers (by name, "Paper 1 Higher", as the tier links read them) has a
  * tiers.json beside its data (tiers.py): the Foundation parts its Higher paper prints too.
