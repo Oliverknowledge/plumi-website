@@ -99,7 +99,6 @@ export function Calculator() {
           if (event.key === "Escape") { event.stopPropagation(); minimise(); }
         }}>
           <button ref={closeButton} type="button" className="qb-calculator-close" aria-label={copy.minimise} title={copy.minimise} onClick={minimise}>−</button>
-          <a className="qb-calculator-info" href={copy.creditsHref} target="_blank" rel="noopener noreferrer" aria-label={copy.credits} title={copy.credits}>i</a>
           <button type="button" className="qb-calculator-drag-handle" aria-label={copy.move} title={copy.dragHint} {...panelHandlers}>
             <svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor" aria-hidden="true"><circle cx="3" cy="2" r="1.5"/><circle cx="8" cy="2" r="1.5"/><circle cx="13" cy="2" r="1.5"/><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
           </button>

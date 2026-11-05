@@ -1,4 +1,4 @@
-// Plumi integration for CalcWorld/Web-Calc-Emulator (see NOTICE.md and LICENSE).
+// Plumi integration for CalcWorld/Web-Calc-Emulator (see LICENSE; source records are in docs/CALCULATOR-NOTICE.md in the repository).
 // This script runs before the module's async initialization finishes.
 (() => {
   const embedded = new URLSearchParams(location.search).get('embed') === '1';

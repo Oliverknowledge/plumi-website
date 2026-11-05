@@ -76,6 +76,16 @@ These are manually observed LCD results, not automated numerical assertions.
 
 ## Key mapping and layout
 
+### Lower casing and notice update
+
+- Extended only the skin’s lower casing by 24px, from 375 × 705 to 375 × 729.
+  Key artwork, LCD and hit-region coordinates are unchanged. Updated iframe
+  sizing and floating/full-screen aspect ratios together.
+- All 50 rendered key centres still hit their intended controls; `8 × 7 = 56`
+  was checked again in the updated panel.
+- Removed the floating info button and moved its public notice file into the
+  repository’s documentation, preserving the source/licence records.
+
 ### Drag and full-screen update
 
 - Confirmed right tilt and the running hover-wiggle animation in the browser.
@@ -86,7 +96,7 @@ These are manually observed LCD results, not automated numerical assertions.
   control still reachable. Shrinking from 390 × 844 to 320 × 568 clamped the
   miniature back inside the smaller viewport.
 - Full-screen mode was a native modal covering exactly 390 × 844. The
-  calculator body measured 366 × 688; all 50 key centres hit their intended key.
+  calculator body measured 366 × 688 before the lower-casing extension; all 50 key centres hit their intended key.
   Full-screen mode also fitted 320 × 568.
 - `8 × 7 = 56` remained displayed through dragging, entering/exiting full screen,
   repeated mode switches, minimising and reopening. Closing returned launcher
@@ -161,4 +171,4 @@ checks selected results, not every pixel/state or equivalence to physical hardwa
   navigation. This behaviour is documented rather than treated as saved progress.
 
 The engine licensing clarification already recorded in `CALCULATOR.md` and
-`public/calculator/NOTICE.md` remains separate from this functional audit.
+`docs/CALCULATOR-NOTICE.md` remains separate from this functional audit.
