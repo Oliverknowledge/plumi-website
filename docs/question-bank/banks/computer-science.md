@@ -49,10 +49,15 @@ naming) and `aqa/AQA-75171-QP-JUN24.pdf`, the crops under `bank/h446*`, `bank/h0
   2016 (Q7's four one-line parts share one "[4]"; each gets 1 mark and the scheme's Q7
   block) and 2017 (a numbered answer list read as Questions 1-3), A-Level Paper 1 November
   2020 (Q4's "(a) (i)" on one line; Q6 and Q8 the scheme files as "(a)") and Paper 2 June
-  2017 (parts printed "(c*)"). Ten parts link to the whole scheme (Paper 1 June 2019 Q10,
-  AS Paper 2 November 2020 Q2(b)-(d) and June 2019 Q4(b)), whose rows the cutter can't
-  find. PMT has examiners' reports for only two of these papers, so they have none here.
+  2017 (parts printed "(c*)"). PMT has examiners' reports for only two of these papers, so they have none here.
   `tag_cs.py split` now batches only the parts not yet tagged.
+- **Assessment objective grids (November 2026).** A student found schemes missing. Several older schemes end in a grid
+  with a row per part, "1d 2 2", set like the scheme's labels, and the cutter took those rows for the answers: 131 parts,
+  nearly all of A-Level Paper 1 June 2017-2019 and AS June 2017-2019. `cut_ocr_cs.py` now stops reading a scheme at its
+  grid, and reads what the grid was hiding: Paper 1 June 2019's "Question Answer" header and bare "c i" labels, and
+  numerals alone in a column of their own. Three parts still link to the whole scheme (AS Paper 2 June 2019 Q4(b) and
+  Paper 1 June 2017 Q10(d)(i) and (ii)). `h04601-jun25-08-bi` kept its earlier crop, as this cut runs (b)(ii) into it,
+  so re-cutting that set needs a look. Question crops and marks didn't change.
 - **Gaps:** there are no OCR series before June 2016 (AS) or June 2017 (A-Level). OCR's November 2021 reports comment on the paper as a whole, not
   question by question (OCR says so), and its H446/01 November 2021 question 7(c)(ii)
   had an error (a corrected paper went to centres only), so that part is left out. AQA
