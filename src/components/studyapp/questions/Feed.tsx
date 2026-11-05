@@ -422,7 +422,7 @@ function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, e
         </button>
       )}
       {analysis && hasAnalysis && <TopicAnalysis meta={meta} insights={insights} onClose={() => setAnalysis(false)} onPractise={practiseTopic} />}
-      <FeedPen prefs={q.prefs} />
+      <FeedPen prefs={q.prefs} subject={meta.subject} />
     </div>
   );
 }
