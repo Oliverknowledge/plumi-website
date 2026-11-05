@@ -17,11 +17,13 @@ in <work-dir>/report.json. `apply` bumps each changed bank's cropVersion, so bro
 """
 import io, json, os, re, sys, urllib.request
 
+from papers_url import papers_url
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 PUB = os.path.join(ROOT, "public", "question-bank")
 META = os.path.join(ROOT, "src", "content", "questionBank")
-R2 = "https://pub-e8a9dbab8e2a4d089f52b2a45e0d0b50.r2.dev/"
+R2 = papers_url() + "/"
 MODE = sys.argv[1] if len(sys.argv) > 1 else ""
 ARGS = [a for a in sys.argv[2:] if not a.startswith("--")]
 BANKS = [a.split("=", 1)[1] for a in sys.argv if a.startswith("--bank=")]
