@@ -264,7 +264,7 @@ def move_setups(doc, out):
                 paras.append((y, [t]))
             last_y = y
         split = next((y for y, ts in paras if " ".join(ts).endswith(".") and len(" ".join(ts).split()) >= 6
-                      and ts[0][:1].isupper() and not re.match(r"(Answer|Extra space|Show your working)", ts[0])), None)
+                      and ts[0][:1].isupper() and not re.match(r"(Answer|Extra space|Show your working|Each \w+ may be|The first box)", ts[0])), None)
         if split is None:
             continue
         cut_y = split - 6
@@ -313,6 +313,8 @@ def regions(doc, max_x, bold_only, portrait):
             page = doc[pg]
             f = frame(page, portrait) if portrait else ms_frame(page)
             top = y - 6 if pg == i else f.y0
+            if pg == i and pieces and pieces[-1][0] == pg:
+                top = pieces.pop()[1].y0  # a setup carried to its own label's page: one crop, as move_setups makes it
             end = nxt[1] - 6 if nxt and nxt[0] == pg else f.y1
             if end > top + 24 or (end > top + 8 and page.get_text("text", clip=pymupdf.Rect(f.x0, top, f.x1, end)).strip()):
                 pieces.append((pg, pymupdf.Rect(f.x0, top, f.x1, end)))
@@ -328,7 +330,9 @@ def regions(doc, max_x, bold_only, portrait):
                         if skip_page(doc[after], max_x, bold_only):
                             continue
                         f = frame(doc[after], portrait)
-                        end = nxt[1] - 6 if after == nxt[0] else f.y1
+                        # A full page of reference (AQA's assembly language table) prints its last line across the frame's foot: keep that line whole.
+                        crossing = [l["bbox"][3] for b in doc[after].get_text("dict")["blocks"] for l in b.get("lines", []) if l["bbox"][1] < f.y1 < l["bbox"][3] and l["bbox"][0] < f.x1 and "".join(s["text"] for s in l["spans"]).strip()]
+                        end = nxt[1] - 6 if after == nxt[0] else max([f.y1] + crossing)
                         if end > f.y0 + 8 and doc[after].get_text("text", clip=pymupdf.Rect(f.x0, f.y0, f.x1, end)).strip():
                             carried.append((after, pymupdf.Rect(f.x0, f.y0, f.x1, end)))
                 break

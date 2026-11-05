@@ -58,6 +58,11 @@ naming) and `aqa/AQA-75171-QP-JUN24.pdf`, the crops under `bank/h446*`, `bank/h0
   numerals alone in a column of their own. Three parts still link to the whole scheme (AS Paper 2 June 2019 Q4(b) and
   Paper 1 June 2017 Q10(d)(i) and (ii)). `h04601-jun25-08-bi` kept its earlier crop, as this cut runs (b)(ii) into it,
   so re-cutting that set needs a look. Question crops and marks didn't change.
+- **Notice pages and the assembly language table (AQA, November 2026).** `75172-nov20-06-1` held a whole "do not write" page,
+  with 06.2's setup under it, which moves to 06.2. `75172-jun24-10` and `75172-nov21-06` regain Table 1, AQA's instruction
+  set, which the old cut lost after a notice page though the question refers to it: 470 words, now in those questions' setups.
+  Those parts' search text is unchanged, as the table would push their own words past the 1,500-character cap. Four crops
+  changed; three AS crops differed only in spacing and were left alone.
 - **Gaps:** there are no OCR series before June 2016 (AS) or June 2017 (A-Level). OCR's November 2021 reports comment on the paper as a whole, not
   question by question (OCR says so), and its H446/01 November 2021 question 7(c)(ii)
   had an error (a corrected paper went to centres only), so that part is left out. AQA
