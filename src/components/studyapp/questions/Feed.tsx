@@ -20,6 +20,7 @@ import { FeedCard, type FeedLookup } from "./FeedCard";
 import { FeedActs, FeedFilterBody, FeedHead, FeedPills, SchoolYear } from "./FeedBar";
 import { FeedList } from "./FeedList";
 import { FeedPen } from "./FeedPen";
+import { ruler } from "@/lib/studyapp/questions/rulerStore";
 import { useMatch } from "./useMatch";
 
 const NO_IDS: ReadonlySet<string> = new Set();
@@ -101,6 +102,8 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
   const twinPaper = useMemo(() => twinPapers(rows, extras.twins), [rows, extras.twins]);
   const ctx = useMemo(() => ({ text: bank.text, bands, done, extras, meta, twinPaper }), [bank.text, bands, done, extras, meta, twinPaper]);
   const list = useMemo(() => feedList(orders, filters, ctx), [orders, filters, ctx]);
+  // A ruler left open on a question that has left the list (a filter, a search) is put away.
+  useEffect(() => { const id = ruler.get().partId; if (id && !list.some((r) => r.id === id)) ruler.close(); }, [list]);
   const byQuestion = useMemo(() => partsByQuestion(orders.new), [orders]);
   const listKey = useMemo(() => JSON.stringify([filters, tier]), [filters, tier]);
   /** The questions that show a "How question 3 starts" / "so far" button (a setup picture, or a part after the first), so their height is guessed right. */

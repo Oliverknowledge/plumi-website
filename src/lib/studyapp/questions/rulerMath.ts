@@ -68,32 +68,53 @@ export function knobPoint(p: RulerPose, k: KnobAt): Pt {
   return { x: p.x + k.along * c - k.across * s, y: p.y + k.along * s + k.across * c };
 }
 
-/**
- * Keeps the ruler where it can be used. Its middle may not go nearer an edge than `inset` pixels, so at least `inset` pixels of it lie on the picture on each side of its middle in any
- * direction (`inset` is 60 natural pixels, 10 mm of paper, and never more than half the picture). And with `reach` (a finger's room, in natural pixels) the turning knob, at `knob` on the
- * ruler, is kept that far inside the picture too: a ruler turned upright on a wide, short picture is longer than the picture is high, and its knob must not go where a finger cannot
- * follow. (The knob wins where the two cannot both hold.)
- */
-export function constrain(p: RulerPose, box: { w: number; h: number }, inset = 60, reach = 0, knob: KnobAt = { along: lengthPx(), across: 0 }): RulerPose {
-  const i = Math.min(inset, box.w / 2, box.h / 2);
-  const m = middle(p);
-  const cx = Math.min(Math.max(m.x, i), Math.max(i, box.w - i));
-  const cy = Math.min(Math.max(m.y, i), Math.max(i, box.h - i));
-  let q = cx === m.x && cy === m.y ? p : { ...p, x: p.x + (cx - m.x), y: p.y + (cy - m.y) };
-  if (reach > 0) {
-    const r = Math.min(reach, box.w / 2, box.h / 2);
-    const f = knobPoint(q, knob);
-    const fx = Math.min(Math.max(f.x, r), Math.max(r, box.w - r));
-    const fy = Math.min(Math.max(f.y, r), Math.max(r, box.h - r));
-    if (fx !== f.x || fy !== f.y) q = { ...q, x: q.x + (fx - f.x), y: q.y + (fy - f.y) };
-  }
-  return q;
+/** How far past the picture's edge a ruler's end may go: 3 mm of paper, so its 0 can lie on the very edge of the figure and a little beyond. */
+export const MARGIN_PX = 3 * PX_PER_MM;
+/** How much of the ruler must stay on the picture, one end included: 25 mm of paper. */
+export const KEEP_PX = 25 * PX_PER_MM;
+
+const inBox = (q: Pt, box: { w: number; h: number }, m: number) => q.x >= -m - 1e-6 && q.x <= box.w + m + 1e-6 && q.y >= -m - 1e-6 && q.y <= box.h + m + 1e-6;
+/** The smallest shift that brings all of `pts` into the picture (widened by `m`); where they cannot all fit, the middle of what would. */
+function shiftInto(pts: Pt[], box: { w: number; h: number }, m: number): Pt {
+  const ax = (vs: number[], size: number) => {
+    const lo = -m - Math.min(...vs), hi = size + m - Math.max(...vs);
+    return lo <= hi ? Math.min(Math.max(0, lo), hi) : (lo + hi) / 2;
+  };
+  return { x: ax(pts.map((q) => q.x), box.w), y: ax(pts.map((q) => q.y), box.h) };
 }
 
-/** Where the ruler first lies: across the picture's lower part, a little in from the left, level. */
+/**
+ * Where a ruler may lie: EITHER end (the 0 or the 15) can be put on any point of the picture, its edges and corners included and up to 3 mm past them, and the ruler can never be lost, since
+ * 25 mm of it, from one end, always lies on the picture. (So the 0 can be put on the very left of a figure with the ruler running right over it, and the rest hangs off the picture's right
+ * edge, drawn over the sheet.) A pose that does not meet this is moved the least that makes it.
+ */
+export function fit(p: RulerPose, box: { w: number; h: number }): RulerPose {
+  const c = Math.cos(rad(p.angle)), s = Math.sin(rad(p.angle));
+  const L = lengthPx(), K = Math.min(KEEP_PX, L);
+  const o = { x: p.x, y: p.y }, a0 = { x: p.x + K * c, y: p.y + K * s };
+  const f = { x: p.x + L * c, y: p.y + L * s }, a1 = { x: p.x + (L - K) * c, y: p.y + (L - K) * s };
+  if ((inBox(o, box, MARGIN_PX) && inBox(a0, box, MARGIN_PX)) || (inBox(f, box, MARGIN_PX) && inBox(a1, box, MARGIN_PX))) return p;
+  const A = shiftInto([o, a0], box, MARGIN_PX), B = shiftInto([f, a1], box, MARGIN_PX);
+  const d = Math.hypot(A.x, A.y) <= Math.hypot(B.x, B.y) ? A : B;
+  return { ...p, x: p.x + d.x, y: p.y + d.y };
+}
+
+/** After a TURN: the knob, which the student's finger follows, is kept `reach` natural pixels inside the picture (a ruler turned upright on a short picture would take it away). Then `fit`. */
+export function keepKnob(p: RulerPose, box: { w: number; h: number }, reach: number, knob: KnobAt): RulerPose {
+  const r = Math.min(reach, box.w / 2, box.h / 2);
+  const f = knobPoint(p, knob);
+  const fx = Math.min(Math.max(f.x, r), Math.max(r, box.w - r));
+  const fy = Math.min(Math.max(f.y, r), Math.max(r, box.h - r));
+  return fit(fx !== f.x || fy !== f.y ? { ...p, x: p.x + (fx - f.x), y: p.y + (fy - f.y) } : p, box);
+}
+
+/** A level ruler laid across the picture with its middle at `c` (the centre of what the student can see of the picture). */
+export function poseAround(c: Pt, box: { w: number; h: number }): RulerPose {
+  return fit({ x: c.x - lengthPx() / 2, y: c.y, angle: 0 }, box);
+}
+/** Where the ruler first lies when nothing else is known: level, across the middle of the picture. */
 export function startPose(box: { w: number; h: number }): RulerPose {
-  const L = lengthPx();
-  return constrain({ x: Math.max(0, (box.w - L) / 2), y: box.h * 0.72, angle: 0 }, box);
+  return poseAround({ x: box.w / 2, y: box.h / 2 }, box);
 }
 
 /** A move by screen pixels (a drag, an arrow key) as a move in natural pixels. */

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { angleTo, constrain, CROP_SCALE, edgeDistance, farEnd, lengthPx, middle, moved, PX_PER_MM, pxPerMm, RULER_MM, knobPoint, snap, startPose, turn, wrap } from "./rulerMath";
+import { angleTo, fit, keepKnob, poseAround, MARGIN_PX, KEEP_PX, CROP_SCALE, edgeDistance, farEnd, lengthPx, middle, moved, PX_PER_MM, pxPerMm, RULER_MM, knobPoint, snap, startPose, turn, wrap } from "./rulerMath";
 
 const near = (a: number, b: number, e = 1e-6) => assert.ok(Math.abs(a - b) <= e, `${a} vs ${b}`);
 
@@ -55,34 +55,55 @@ describe("turning and snapping", () => {
   });
 });
 
-describe("the ruler stays on the picture", () => {
-  const box = { w: 1134, h: 800 };
+describe("the ruler stays where it can be used", () => {
+  const box = { w: 1134, h: 560 };
+  const M = MARGIN_PX, K = KEEP_PX;
   test("a ruler on the picture is left where it is", () => {
-    const p = { x: 100, y: 300, angle: 20 };
-    assert.deepEqual(constrain(p, box), p);
+    const p = { x: 100, y: 200, angle: 10 };
+    assert.deepEqual(fit(p, box), p);
   });
-  test("dragged off the left, the right, the top or the bottom, its middle comes back to 60 px (10 mm) inside", () => {
-    for (const to of [{ x: -2000, y: 300, angle: 0 }, { x: 5000, y: 300, angle: 0 }, { x: 100, y: -900, angle: 0 }, { x: 100, y: 9000, angle: 0 }, { x: -50, y: -50, angle: 130 }]) {
-      const c = constrain(to, box); const m = middle(c);
-      assert.ok(m.x >= 60 - 1e-9 && m.x <= box.w - 60 + 1e-9 && m.y >= 60 - 1e-9 && m.y <= box.h - 60 + 1e-9, JSON.stringify([to, m]));
-      near(c.angle, to.angle);
+  test("the 0 end can lie on any point of the picture, edges and corners included, and 3 mm past them, with the ruler running inwards", () => {
+    for (const [x, y] of [[0, 0], [0, 560], [1134 - K, 0], [300, 280], [-M, 100], [100, -M], [0, 280], [500, 560 + M]]) {
+      const p = { x, y, angle: 0 };
+      assert.deepEqual(fit(p, box), p, `0 at ${x},${y}`);
+    }
+    const down = { x: 400, y: -M, angle: 90 }; assert.deepEqual(fit(down, box), down);
+  });
+  test("the 15 end can lie on the right and bottom edges, with the ruler running inwards", () => {
+    const right = { x: 1134 - lengthPx(), y: 300, angle: 0 };
+    assert.deepEqual(fit(right, box), right);
+    const f = farEnd({ x: 700, y: 560 - lengthPx() + 0, angle: 0 });
+    assert.ok(f.x > 0);
+    const up = { x: 600, y: 560 + M, angle: -90 }; assert.deepEqual(fit(up, box), up);
+    const edge = { x: 1134 + M - lengthPx(), y: 560 + M, angle: 0 }; assert.deepEqual(fit(edge, box), edge);
+  });
+  test("past 3 mm it is brought back; the 0 can be put 'on the left end' of a bar in the figure to within a hair", () => {
+    // the far end is on the picture, so the ruler may hang off the left: either end will do
+    const hang = { x: -M - 30, y: 100, angle: 0 }; assert.deepEqual(fit(hang, box), hang);
+    // both ends past it: brought back by the least that puts 25 mm of it, from the nearer end, on the picture
+    const gone = fit({ x: -2000, y: 100, angle: 0 }, { w: 1134, h: 560 });
+    assert.ok(farEnd(gone).x >= KEEP_PX - MARGIN_PX - 1e-6, 'the far end is back with 25 mm on the picture');
+    // the 8 micrometre bar of Q23(a)(i) starts about here, well inside: any such point is reachable exactly
+    for (const [x, y] of [[150.3, 212.7], [902.25, 88.6]]) { const q = { x, y, angle: 0 }; assert.deepEqual(fit(q, box), q); }
+  });
+  test("it can never be lost: at any angle and place, 25 mm of it from one end lie on the picture, and a second pass changes nothing", () => {
+    const L = lengthPx();
+    for (const bx of [box, { w: 1134, h: 150 }, { w: 400, h: 400 }]) for (let a = -180; a <= 180; a += 15) for (const [x, y] of [[-5000, -5000], [5000, 5000], [-2000, 300], [600, 9000], [0, 0], [1134, 560]]) {
+      const q = fit({ x, y, angle: a }, bx);
+      const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
+      const pts = [[0, 0], [K, K], [L, L - K]].map(([u]) => ({ x: q.x + u * c, y: q.y + u * s }));
+      const near0 = [pts[0], { x: q.x + K * c, y: q.y + K * s }], near1 = [{ x: q.x + L * c, y: q.y + L * s }, { x: q.x + (L - K) * c, y: q.y + (L - K) * s }];
+      const okIn = (list: { x: number; y: number }[]) => list.every((r) => r.x >= -M - 1e-6 && r.x <= bx.w + M + 1e-6 && r.y >= -M - 1e-6 && r.y <= bx.h + M + 1e-6);
+      if (bx.w >= K * 2 && bx.h >= K * 2) assert.ok(okIn(near0) || okIn(near1), `${a} ${x} ${y}`);
+      const again = fit(q, bx); near(again.x, q.x, 1e-6); near(again.y, q.y, 1e-6);
     }
   });
-  test("whatever the angle, at least 120 px of the ruler lie on the picture once constrained", () => {
-    const clipLen = (p: { x: number; y: number; angle: number }) => {
-      let n = 0; const L = lengthPx();
-      for (let t = 0; t <= L; t += 1) { const x = p.x + t * Math.cos((p.angle * Math.PI) / 180), y = p.y + t * Math.sin((p.angle * Math.PI) / 180); if (x >= 0 && x <= box.w && y >= 0 && y <= box.h) n++; }
-      return n;
-    };
-    for (const a of [0, 30, 45, 90, 135, 180, -90]) for (const [x, y] of [[-5000, -5000], [5000, 5000], [-5000, 5000], [0, 400]]) assert.ok(clipLen(constrain({ x, y, angle: a }, box)) >= 120, `${a} ${x} ${y}`);
-  });
-  test("a tiny picture still holds the ruler's middle (inset by half its smaller side)", () => {
-    const c = constrain({ x: 900, y: 900, angle: 0 }, { w: 80, h: 50 }); const m = middle(c);
-    assert.ok(m.x >= 25 - 1e-9 && m.x <= 55 + 1e-9 && Math.abs(m.y - 25) < 1e-9, JSON.stringify(m));
-  });
-  test("it starts level, in from the left, in the lower part", () => {
+  test("it starts level, across the middle of the picture", () => {
     const s = startPose(box);
-    assert.equal(s.angle, 0); assert.ok(s.x >= 0 && s.y > box.h / 2 && s.y < box.h);
+    assert.equal(s.angle, 0); near(middle(s).x, 567, 1e-6); near(middle(s).y, 280, 1e-6);
+  });
+  test("and around any point: level, with its middle there where the picture allows", () => {
+    const s = poseAround({ x: 300, y: 400 }, box); assert.equal(s.angle, 0); near(middle(s).x, 300, 1e-6); near(middle(s).y, 400, 1e-6);
   });
 });
 
@@ -126,25 +147,12 @@ describe("turning about the middle", () => {
 describe("keeping the turning knob within reach", () => {
   const box = { w: 1134, h: 560 };
   const KNOB = { along: lengthPx() - 40, across: 90 };
-  test("an upright ruler on a short picture has its far end on the picture, whatever the middle", () => {
-    for (const my of [0, 100, 280, 560, 900]) {
-      const c = constrain(turn({ x: 0, y: 0, angle: 0 }, 90), box, 60, 80, KNOB);
-      const q = constrain({ ...c, y: my }, box, 60, 80, KNOB);
-      const f = knobPoint(q, KNOB);
-      assert.ok(f.x >= 80 - 1e-6 && f.x <= box.w - 80 + 1e-6 && f.y >= 80 - 1e-6 && f.y <= box.h - 80 + 1e-6, `far end ${f.x.toFixed(0)},${f.y.toFixed(0)}`);
-    }
-  });
-  test("any angle and place: the far end is inside, and a second pass changes nothing", () => {
+  test("after a turn the knob is on the picture at any angle and place, and a second pass changes nothing", () => {
     for (let a = -180; a <= 180; a += 15) for (const [x, y] of [[-500, -500], [0, 0], [600, 300], [2000, 1500], [100, 900]]) {
-      const q = constrain({ x, y, angle: a }, box, 60, 80, KNOB);
+      const q = keepKnob(turn({ x, y, angle: 0 }, a), box, 80, KNOB);
       const f = knobPoint(q, KNOB);
-      assert.ok(f.x >= 80 - 1e-6 && f.x <= box.w - 80 + 1e-6 && f.y >= 80 - 1e-6 && f.y <= box.h - 80 + 1e-6, `${a}: far end ${f.x.toFixed(0)},${f.y.toFixed(0)}`);
-      const again = constrain(q, box, 60, 80, KNOB);
-      near(again.x, q.x, 1e-6); near(again.y, q.y, 1e-6);
+      assert.ok(f.x >= 80 - 1e-6 && f.x <= box.w - 80 + 1e-6 && f.y >= 80 - 1e-6 && f.y <= box.h - 80 + 1e-6, `${a}: knob ${f.x.toFixed(0)},${f.y.toFixed(0)}`);
+      const again = keepKnob(q, box, 80, KNOB); near(again.x, q.x, 1e-6); near(again.y, q.y, 1e-6);
     }
-  });
-  test("with no reach it is as before", () => {
-    const p = { x: 100, y: 100, angle: 30 };
-    assert.deepEqual(constrain(p, box, 60, 0), constrain(p, box));
   });
 });

@@ -183,7 +183,7 @@ function ZoomDialog({ src, alt, fit, marksKey, ruler, onClose }: { src: string; 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="qs-zoomd-img" src={src} alt={alt} />
           {marksKey && <AnnotView inkKey={marksKey} />}
-          {ruler && <Ruler partId={ruler.partId} naturalW={ruler.naturalW} />}
+          {ruler && <Ruler partId={ruler.partId} naturalW={ruler.naturalW} clip />}
         </div>
       </div>
     </dialog>

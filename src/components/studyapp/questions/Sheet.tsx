@@ -371,7 +371,7 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
         <>
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
           <SharedFigureChip fig={rl.fig} partId={part.id} cv={set.cv} ruler={rl.onFigure} />
-          {rl.offered && <RulerChip partId={part.id} open={rl.open} />}
+          {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
           <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom ruler={rl.onOwn ? part.id : undefined}>
             <ReadAsText set={set} part={part} />
           </AnnotCrop>
