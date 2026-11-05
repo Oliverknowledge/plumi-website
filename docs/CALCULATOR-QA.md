@@ -242,3 +242,95 @@ changes are committed. Fixtures affect font/CSS output, not calculator code.
   constructs pages from question crops and data, independently of page DOM.
 - Full lint, typecheck, 16 PDF tests, calculator runtime checks, all 56 firmware
   checks, and `bank:status -- --check` (137 banks, zero problems) passed.
+
+## PR #191 startup performance — 5 November 2026
+
+Separate worktree/branch `codex/calculator-speed`, based on #189's
+`codex/global-calculator` at `3cc0303`. #189 is unchanged and unmerged.
+
+### Production build and measurements
+
+Plain `npm run build` passed on #189, without webpack flags or font fixtures:
+Turbopack compilation, TypeScript and all 7,654 generated pages completed.
+The final speed branch also passed the same plain build.
+
+Median click-to-ready times from three isolated headless Chrome 157 runs:
+
+| Case | #189 baseline | Speed branch |
+| --- | ---: | ---: |
+| Cold cache, no hover/focus head start | 11,072.8 ms | 7,986.5 ms |
+| Reload and open, HTTP cache retained | 5,173.0 ms | 158.4 ms |
+
+Raw samples (ms): baseline cold 11,079.3 / 11,052.6 / 11,072.8; baseline
+repeat 5,167.0 / 5,173.0 / 5,183.9; after cold 7,986.5 / 7,965.4 / 8,002.3;
+after repeat 150.2 / 158.4 / 167.0. Cold ROM transfer was 783,180 bytes
+including timing-reported header overhead in each run; baseline repeats
+revalidated it (300 bytes), while updated repeats transferred **zero bytes**.
+A separate maths-bank idle-prefetch probe opened in **897.6 ms** on its first
+opening and **149.9 ms** after reload, with an eight-second idle lead. These
+two bank figures are single samples, not the three-run medians above.
+The ROM itself remains 782,880 bytes: caching and overlapping downloads
+improve startup without changing the firmware.
+
+Both servers used plain production builds with `next start`. Each cold sample
+used a fresh browser context at 1280 × 900. The repeat retained the same HTTP
+cache but reloaded the page, so it booted a new emulator rather than reusing RAM.
+Click timing starts in capture phase and ends on the real iframe's validated
+`ready` message. Cold activation uses a DOM click to avoid accidentally granting
+one version a hover/focus preload head start.
+
+CPU slowdown was set to 4× through CDP. Network settings match Chrome DevTools'
+adjusted Slow 4G profile: 180,000 bytes/s down, 84,375 bytes/s up, 562.5 ms
+request latency ([preset source](https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/core/sdk/NetworkManager.ts)).
+A shared-bandwidth loopback proxy shapes calculator responses, including
+worker requests; CDP shapes the rest of the page and exempts calculator URLs
+from a second throttle. These are GET-only calculator downloads, with no
+upload body to shape. A probe with only page-level emulation was discarded
+because its worker downloaded the ROM without throttling. The final harness
+rejects a cold sample unless a ROM download takes at least four seconds.
+The proxy preserves conditional HTTP requests and normal 304 responses.
+These are controlled local measurements, not a claim about Vercel edge latency
+or a physical phone's CPU.
+
+Reproduce with an existing Playwright installation (no dependency was added):
+
+```sh
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node scripts/calculator/measure-startup.mjs http://localhost:3026 http://localhost:3027
+```
+
+`SAMPLES`, `ONLY_LABEL`, `WARM_BANK` and `OUTPUT` can restrict or save a run.
+`WARM_BANK=1` measures the AQA GCSE Maths bank with eight seconds of idle lead
+after network idle. Detailed resource timings are written to the output JSON.
+
+### Caching and loading checks
+
+- A hash of every file under `public/calculator` supplies the current
+  `/calculator/v<hash>/` prefix. Relative HTML, worker, WASM, ROM, font and face
+  URLs all remain in that namespace. Only the current hash is rewritten;
+  unknown/old uncached hashes return 404 instead of new bytes with an old cache key.
+- Verified real production responses for versioned HTML, ROM and WASM:
+  `Cache-Control: public, max-age=31536000, immutable`. Unversioned paths keep
+  their existing revalidation policy. Framing headers remain `SAMEORIGIN`
+  and `frame-ancestors 'self'`; their existing rules were not edited.
+- Hover, focus and touch start share one panel import and one asset warmup.
+  Eligible subject banks use `requestIdleCallback`, with cancellation on
+  navigation and a timeout fallback. `navigator.connection.saveData` skips
+  speculative imports and fetches; explicit opening still works.
+- Browser fixtures observed zero calculator requests on an idle homepage,
+  zero on a Save-Data bank visit/focus, 13 warmup requests on GCSE Maths,
+  and zero on GCSE English Language. Opening the warmed bank reused ROM and
+  WASM: each was requested only once across warmup and opening.
+- Plain-build homepage initial JS: 905,119 raw / 270,757 gzip bytes before,
+  905,044 raw / 270,663 gzip bytes after (11 initial route scripts each).
+  Panel-only copy was split from launcher copy to avoid adding initial weight.
+  No calculator files are fetched on the homepage before user intent.
+- The face stays visible while firmware boots, with an unobtrusive status at
+  the bottom. An eight-second ROM-delay fixture showed the face and accepted
+  `8 × 7 =` before readiness; the final screen displayed 56 with no errors.
+  Source-method regressions also verify ordered early input, browser shortcut
+  and editing isolation, and input arriving during asynchronous queue flush.
+
+Final validation: full lint, typecheck, calculator runtime/startup-queue checks,
+all 56 actual-firmware checks, bank consistency (137 banks, zero problems),
+JavaScript syntax and diff checks passed. Both task worktrees' `.next`
+directories were deleted after validation. No merge or deployment was performed.

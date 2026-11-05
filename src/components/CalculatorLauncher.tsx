@@ -2,7 +2,7 @@
 
 import { useState, type ComponentType } from "react";
 import { loadCalculatorPanel, warmCalculator } from "@/lib/calculatorWarmup";
-import { calculator as copy } from "@/content/calculator";
+import { calculatorLauncher as copy } from "@/content/calculatorLauncher";
 
 /** Keep panel controls, drag handlers and the emulator off the initial page load. */
 export function CalculatorLauncher() {
