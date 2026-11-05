@@ -472,6 +472,15 @@ describe("is sharing on in this project", () => {
     assert.deepEqual(calls[0].args, { p_code: PROBE_CODE });
     assert.ok(isShareCode(PROBE_CODE));
   });
+  it("for a signed-in student asks my_shared_decks instead (it answers 200, so nothing is logged as a failure)", async () => {
+    const { api, calls } = fakeApi(() => ({ data: [] }));
+    assert.equal(await probeSharing(api, "mine"), "on");
+    assert.equal(calls[0].name, SHARE_RPC.mine.name);
+    assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "Could not find the function", code: "PGRST202", status: 404 } })).api, "mine"), "off");
+    assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "permission denied", code: "42501", status: 403 } })).api, "mine"), "unknown");
+    assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "social:not_signed_in", status: 400 } })).api, "mine"), "unknown", "a session it does not accept says nothing about the project");
+    assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "Failed to fetch" } })).api, "mine"), "unknown");
+  });
   it("is off while the migration is not applied: a 404 PGRST202, or no project", async () => {
     assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "Could not find the function public.get_shared_deck(p_code) in the schema cache", code: "PGRST202", status: 404 } })).api), "off");
     assert.equal(await probeSharing(fakeApi(() => ({ error: { message: "x", status: 404 } })).api), "off");

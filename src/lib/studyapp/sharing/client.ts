@@ -35,23 +35,23 @@ const set = (next: Partial<State>) => { state = { ...state, ...next }; emit(); }
 const sharing = createSharing(browserApi);
 const store = (): Storage | null => { try { return window.localStorage; } catch { return null; } };
 const session = (): Storage | null => { try { return window.sessionStorage; } catch { return null; } };
-let probe: ReturnType<typeof makeProbe> | null = null;
+let probes: { get: ReturnType<typeof makeProbe>; mine: ReturnType<typeof makeProbe> } | null = null;
 
 function start() {
   if (started || typeof window === "undefined") return;
   started = true;
-  probe = makeProbe(browserApi, session());
-  state = { availability: probe.peek(), live: null, out: readCodes(store(), OUT_KEY) };
+  probes = { get: makeProbe(browserApi, session(), "get"), mine: makeProbe(browserApi, session(), "mine") };
+  state = { availability: probes.get.peek(), live: null, out: readCodes(store(), OUT_KEY) };
   window.addEventListener("storage", (e) => { if (e.key === OUT_KEY) set({ out: readCodes(store(), OUT_KEY) }); });
 }
 
 const subscribe = (cb: () => void) => { start(); listeners.add(cb); return () => { listeners.delete(cb); }; };
 const snapshot = () => { start(); return state; };
 
-async function ensureProbe() {
+async function ensureProbe(real: boolean) {
   start();
   if (state.availability) return;
-  const a = await probe!.ask();
+  const a = await (real ? probes!.mine : probes!.get).ask();
   if (a !== "unknown") set({ availability: a });
 }
 
@@ -74,7 +74,8 @@ export function useSharing() {
   const signedIn: SignedIn = !ready || !user ? "out" : user.is_anonymous ? "anonymous" : "real";
   const userId = user?.id ?? null;
 
-  useEffect(() => { void ensureProbe(); }, []);
+  const real = signedIn === "real";
+  useEffect(() => { if (ready) void ensureProbe(real); }, [ready, real]);
   useEffect(() => {
     if (s.availability === "on" && signedIn === "real") void refreshLive();
     else if (s.live) set({ live: null });
