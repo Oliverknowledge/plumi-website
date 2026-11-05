@@ -347,9 +347,29 @@ specification's 86 numbered topics (4.1.1 Cell structure), with no year split.
 
 - **Pipeline:** `scripts/question-bank/aqa_gcse/` runs the A-Level scripts over
   the GCSE specifications: `fetch_gcse.py` (fetch_aqa.py with GCSE pages and
-  components), `spec_gcse.py` (spec.py for the `4.x` numbering), `cut.py` itself,
-  and `build_gcse.py`, which also holds the short topic names used in page titles
+  components), `spec_gcse.py` (spec.py for the `4.x` numbering), `cut_gcse.py` (`cut.py`
+  with `setups.py`'s rule), and `build_gcse.py`, which also holds the short topic names used in page titles
   and addresses (`short` in the JSON) so every `<title>` stays under 60 characters.
+- **Setups (re-cut 4 November 2026, `cropVersion` 1):** the fault a student reported on Combined
+  Science, below: a setup printed above a part's label stayed on the part before, so a PDF of the next
+  part went without it. `cut_gcse.py` takes the same rule as `cut_trilogy.py`, now in `setups.py`, and
+  only these banks and Combined Science use it. 875 crops changed of 4,902 (332 Biology, 274 Chemistry,
+  269 Physics): 166 parts gave a setup to the next part (77, 57, 32), 181 took one in, and the rest lost
+  only AQA's "Question 3 continues on the next page" or a crossed-out "DO NOT WRITE ON THIS PAGE" page.
+  Ids, marks and every paper's total stayed the same. Only those crops and their rows (size, preview,
+  search text) were updated, not a whole rebuild. Reading every moved setup's text and before-and-after
+  sheets caught eight wrong moves the totals passed, so the rule now also leaves a sentence with lines
+  to write on under it ("A thin layer of onion epidermis is used."), a row with something beside it
+  ("Conclusion 1:" and its words), a specimen paper's tick-box options, and "Convert...", "Each organism
+  may be..." and "The first box has been completed...". Combined Science's 86 papers cut the same with
+  those changes. As there, a later part can still lean on an earlier part's own words. Some specimen
+  crops still lose the end of "[1 mark]" at the right edge: `cut.frame`'s fix on
+  `claude/question-crops-audit` wasn't applied here.
+- **Crops and rows go live together:** the study feed (`Crop.tsx`) draws a crop at its row's `w`/`h`, so
+  a new crop with an old row is squashed (one grown from 601 to 2,174 tall drew at 28% of its height);
+  the bank pages use the picture's own shape. And a `cropVersion` that goes live before its crops are up
+  caches the old crop under the new address for a year. So upload the crops as close before the merge
+  as you can, never after it.
 - **Tags:** GCSE mark schemes print each row's specification reference, so 91% of
   parts are tagged from AQA's own references (`tag_batches.py split` writes them
   to `.work-gcse/tag/refs.json`); the other 444 were tagged by Claude following
@@ -395,7 +415,7 @@ specification's 61 numbered topics, by science: Biology 4.x, Chemistry 5.x, Phys
 - **Setups (re-cut 4 November 2026, `cropVersion` 1):** a student reported Chemistry 1H June
   2025's "Particle X consists of:" sitting on 03.1, so a PDF of 03.2 went without it. A part ends at the next
   label, and cut.py only moves a sentence of six or more words on a part with no tick boxes.
-  `cut_trilogy.py`'s `move_setups` also moves shorter sentences ("Figure 2 shows the results."),
+  `setups.py`'s `move_setups` (written for this bank, now shared with `cut_gcse.py`) also moves shorter sentences ("Figure 2 shows the results."),
   lead-ins ending in a colon, and setups below tick boxes; it drops AQA's "Question 3 continues on
   the next page" and any crossed-out "DO NOT WRITE ON THIS PAGE" page that came along with it. It
   leaves a tick box's or table's row, a part's own instructions ("Use the equation:") and, on a
