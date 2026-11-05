@@ -24,9 +24,18 @@ export function preloadCalculatorAssets() {
 
 type Status = "loading" | "ready" | "error";
 
+/**
+ * Open state held by the host instead of the panel (the study app's pen tray button opens and minimises it, and there is no edge launcher). The panel is the same either way.
+ * `restoreFocus` is where focus goes when it is minimised (the tray button), in place of the edge launcher.
+ */
+export interface CalculatorControl { open: boolean; onOpenChange(open: boolean): void; restoreFocus?(): void }
+
 /** The runtime is fetched only on first open. Hiding the panel preserves its RAM. */
-export function Calculator() {
-  const [open, setOpen] = useState(true);
+export function Calculator({ control }: { control?: CalculatorControl } = {}) {
+  const [innerOpen, setInnerOpen] = useState(true);
+  const open = control ? control.open : innerOpen;
+  const setOpen = control ? control.onOpenChange : setInnerOpen;
+  const restoreFocus = control?.restoreFocus;
   const [fullscreen, setFullscreen] = useState(false);
   const [started, setStarted] = useState(true);
   const [attempt, setAttempt] = useState(0);
@@ -39,8 +48,8 @@ export function Calculator() {
   const minimise = useCallback(() => {
     setOpen(false);
     setFullscreen(false);
-    requestAnimationFrame(() => trigger.current?.focus());
-  }, []);
+    requestAnimationFrame(() => (restoreFocus ?? (() => trigger.current?.focus()))());
+  }, [setOpen, restoreFocus]);
 
   useEffect(() => {
     if (!started) return;
@@ -82,11 +91,11 @@ export function Calculator() {
 
   return (
     <>
-      <button ref={trigger} type="button" className="qb-calculator-restore" hidden={open} aria-label={copy.label} title={copy.open} aria-expanded={open} aria-controls={started ? "qb-calculator" : undefined} onClick={() => { setStarted(true); setOpen(true); }}>
+      {!control && <button ref={trigger} type="button" className="qb-calculator-restore" hidden={open} aria-label={copy.label} title={copy.open} aria-expanded={open} aria-controls={started ? "qb-calculator" : undefined} onClick={() => { setStarted(true); setOpen(true); }}>
         <svg width="16" height="22" viewBox="0 0 16 22" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
           <rect x="1" y="1" width="14" height="20" rx="3" /><path d="M4 5h8v4H4zM4 13h2m3 0h3M4 17h2m3 0h3" />
         </svg>
-      </button>
+      </button>}
       {started && (
         <dialog ref={panelRef} id="qb-calculator" className="qb-calculator" data-fullscreen={fullscreen} aria-label={copy.title} aria-describedby="qb-calculator-hint" onCancel={event => { event.preventDefault(); minimise(); }} onKeyDown={event => {
           if (event.key === "Escape") { event.stopPropagation(); minimise(); }

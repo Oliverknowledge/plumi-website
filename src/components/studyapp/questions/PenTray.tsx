@@ -5,16 +5,19 @@ import { INK_COLOURS, INK_COLOUR_NAMES, INK_WIDTH_NAMES, INK_WIDTHS } from "@/li
 import type { QPrefs } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
 import { inkAct, useInkCaps, useInkSaving, useInkZoneVisible } from "./inkBus";
-import { EraserIcon, PenIcon, RedoIcon, RulerIcon, TrashIcon, UndoIcon } from "./icons";
+import { CalculatorIcon, EraserIcon, PenIcon, RedoIcon, RulerIcon, TrashIcon, UndoIcon } from "./icons";
+import { offersCalculator } from "@/content/calculator";
+import { warmCalculator } from "@/lib/calculatorWarmup";
+import { calculatorStore, useCalculatorState } from "@/lib/studyapp/questions/calculatorStore";
 import { useRulerState } from "@/lib/studyapp/questions/rulerStore";
 import { toggleToolbarRuler } from "./rulerBand";
 
 /**
  * The pen tray: one small pill with the pen, the eraser, the pen's look (thickness and colour in one flyout), undo and
- * redo. It floats at the bottom of the sheet, works on the answer zone the student last touched, and is only there while
+ * redo, and, for the subjects that have calculator work, the calculator. It floats at the bottom of the sheet, works on the answer zone the student last touched, and is only there while
  * a writing zone is on the screen. Every button is 44 px. If handwriting cannot be kept on this device it says so, once.
  */
-export function PenTray({ prefs }: { prefs: QPrefs }) {
+export function PenTray({ prefs, subject }: { prefs: QPrefs; /** The subject's name ("Maths", "Biology A"): the Calculator button is only there for the subjects the calculator is offered to (content/calculator.ts). */ subject?: string | null }) {
   const caps = useInkCaps();
   const here = useInkZoneVisible();
   const saving = useInkSaving();
@@ -23,6 +26,10 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
   const root = useRef<HTMLDivElement>(null);
   const pen = prefs.tool === "pen";
   const rulerOn = useRulerState().partId !== null;
+  const calc = useCalculatorState();
+  const hasCalc = !!subject && offersCalculator(subject);
+  // Gone from a subject that has no calculator (the student changed subject): a calculator left open there is put away, not left floating with no button.
+  useEffect(() => { if (subject && !hasCalc) calculatorStore.minimise(); }, [subject, hasCalc]);
   // Undo or Redo that uses up its history disables its own button, and the focus it had falls to the page: it goes back to the writing space instead.
   const fromHistory = useRef(false);
   useEffect(() => {
@@ -53,6 +60,10 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
           <i className="qs-nib" style={{ width: size(prefs.width), height: size(prefs.width), background: INK_COLOURS[prefs.colour] }} aria-hidden="true" />
         </button>
         <button type="button" className="qs-pb" aria-pressed={rulerOn} aria-label="Ruler" title="Ruler" onClick={toggleToolbarRuler} data-testid="toolbar-ruler"><RulerIcon /></button>
+        {hasCalc && (
+          <button type="button" className="qs-pb" aria-pressed={calc.open} aria-label="Calculator" title="Calculator" data-calculator-button="" data-testid="toolbar-calculator"
+            onPointerEnter={warmCalculator} onFocus={warmCalculator} onTouchStart={warmCalculator} onClick={calculatorStore.toggle}><CalculatorIcon /></button>
+        )}
         <span className="qs-pen-sep" aria-hidden="true" />
         <button type="button" className="qs-pb" onClick={history(inkAct.undo)} disabled={!caps.canUndo} aria-label="Undo in the answer" title="Undo in the answer (Z)" data-testid="undo"><UndoIcon /></button>
         <button type="button" className="qs-pb" onClick={history(inkAct.redo)} disabled={!caps.canRedo} aria-label="Redo in the answer" title="Redo in the answer (Shift Z)" data-testid="redo"><RedoIcon /></button>

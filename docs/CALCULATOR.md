@@ -51,6 +51,18 @@ retry creates a fresh worker. An iframe load event alone is not treated as ready
 non-partner pages retain their existing framing protection. No root service
 worker is installed by the calculator.
 
+## In the study app
+
+The study app (study.tryplumi.app, the Questions tab) has the same calculator, opened from a Calculator button in the
+pen tray (`PenTray.tsx`, after the ruler) instead of the edge icon, only for subjects `offersCalculator` accepts.
+`calculatorStore.ts` holds started/open for the tab and `StudyCalculator.tsx`, mounted once in the Questions page,
+loads `Calculator` through `loadCalculatorPanel` on the first tap (the button warms it on hover, focus and touch),
+so the same panel, with its display, goes from the feed to a sheet and back and ends when the tab is left.
+`Calculator` takes an optional `control` (open state and where focus returns on minimise) for this; without it
+nothing changes on the website. The panel is a non-modal dialog, so the study app's dark mode (`dark-app.css` turns
+every dialog over once more) leaves it in its real colours; its full-screen (modal) mode is not turned. On the study
+host `/calculator/*` has a file extension, so the proxy (`src/proxy.ts`) never sees it and it is served as on the main host.
+
 ## Assets and source
 
 See `docs/CALCULATOR-NOTICE.md`, the preserved upstream README, and LICENSE for

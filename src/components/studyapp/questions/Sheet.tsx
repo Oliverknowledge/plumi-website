@@ -259,7 +259,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
           </section>
         </article>
       </div>
-      {anyInk && <PenTray prefs={prefs} />}
+      {anyInk && <PenTray prefs={prefs} subject={meta?.subject} />}
       {sets && <SetsSheet q={q} onClose={() => setSets(false)} />}
       {confirm && <FinishConfirm unmarked={check.unmarked} blank={check.blank} onKeep={() => setConfirm(false)} onFinish={finish} />}
     </main>
