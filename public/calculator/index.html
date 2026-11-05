@@ -2747,10 +2747,16 @@ html[data-plumi-skin="ex"] #keypadCY > :nth-child(n+9) { border-radius: 5px; box
   keyboardMap['x'] = keyboardMap['X'] = ['[x]']
   keyboardMap['y'] = keyboardMap['Y'] = ['[y]']
 
-  keypad.onpointerdown = async (event) => {
-    if (event.target.hasAttribute('data-ki') && await sim.SimulatorIsRunning()) {
-      await sim.SetKey(+event.target.dataset.ki, +event.target.dataset.ko)
-    }
+  // Let the browser distinguish a completed tap from a pan/pinch. Pressing on
+  // pointerdown also sends keys for fingers starting a zoom gesture. Native
+  // click activation is cancelled by the browser for those gestures and keeps
+  // hit testing in browser coordinates after pinch zoom.
+  keypad.onclick = (event) => {
+    const key = event.target.closest?.('[data-ki]')
+    if (!key || !keypadEl.contains(key)) return
+    // SetKey already queues input in the worker. Avoid a running-state round
+    // trip for every tap: rapid input should reach that queue immediately.
+    sim.SetKey(+key.dataset.ki, +key.dataset.ko)
   }
 
   onkeydown = onkeyup = (event) => {
