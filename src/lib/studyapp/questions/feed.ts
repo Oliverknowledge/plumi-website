@@ -88,7 +88,7 @@ export interface FeedContext {
   /** The subject's extra files and options, once known (each rule that needs one is left out until it is). */
   extras?: FeedExtras;
   /** The subject, for its options: a paper's `option` is read off `meta.papers`. */
-  meta?: Pick<SubjectMeta, "papers" | "options">;
+  meta?: Pick<SubjectMeta, "papers" | "options"> & Partial<Pick<SubjectMeta, "topics">>;
   /** Each part's paper (lower case) where it is the Higher twin of a Foundation part: made once by `twinPapers`. */
   twinPaper?: ReadonlyMap<string, string>;
 }
@@ -241,19 +241,24 @@ export function mixRows<T extends BankRow>(rows: readonly T[], seed: string, top
   return out;
 }
 
-/** A topic code as a sort key: "3.1.2" before "3.1.10" ("3.10" last), as the specification runs. */
+/** A topic code as a string key, "3.1.2" before "3.1.10": only for a subject whose topic list is not to hand (the lists are in the specification's order, which codes as text are not: GCSE Maths' "A1" sorts before its "N1", Edexcel's "M.7" before "P.1"). */
 export const specRank = (code: string): string => code.split(".").map((n) => n.padStart(3, "0")).join(".");
-/** "Spec order": by the first topic of each part as the specification numbers it (a part with no topic last), the order given kept within a topic (stable). */
-export function specSorted<T extends BankRow>(rows: readonly T[]): T[] {
-  const key = new Map<string, string>();
-  for (const r of rows) key.set(r.id, r.t[0] ? specRank(r.t[0]) : "\uffff");
-  return rows.slice().sort((a, b) => { const x = key.get(a.id)!, y = key.get(b.id)!; return x < y ? -1 : x > y ? 1 : 0; });
+/**
+ * "Spec order": by the first topic of each part where the specification lists it (`topics` is the subject's topic list, which comes in the specification's own order), a part with no topic
+ * last, the order given kept within a topic (stable, so newest first stays newest first).
+ */
+export function specSorted<T extends BankRow>(rows: readonly T[], topics?: readonly { code: string }[]): T[] {
+  const place = new Map<string, number>((topics ?? []).map((t, i) => [t.code, i]));
+  const key = new Map<string, number | string>();
+  for (const r of rows) { const t = r.t[0]; key.set(r.id, !t ? Infinity : place.has(t) ? place.get(t)! : topics ? 1e6 : specRank(t) as never); }
+  if (topics) return rows.slice().sort((a, b) => (key.get(a.id) as number) - (key.get(b.id) as number) || 0);
+  return rows.slice().sort((a, b) => { const x = key.get(a.id)!, y = key.get(b.id)!; const xs = x === Infinity ? "\uffff" : String(x), ys = y === Infinity ? "\uffff" : String(y); return xs < ys ? -1 : xs > ys ? 1 : 0; });
 }
 
 /** The rows the filter leaves, in the order asked for. `orders` is `feedOrders` of the subject (the filter keeps the order it is given). */
 export function feedList(orders: FeedOrders, f: FeedFilters, c: FeedContext): BankRow[] {
   const base = feedFilter(f.sort === "old" ? orders.old : orders.new, f, c);
-  if (f.sort === "spec") return specSorted(base);
+  if (f.sort === "spec") return specSorted(base, c.meta?.topics);
   if (f.sort === "most") return base.slice().sort((a, b) => (b.m ?? -1) - (a.m ?? -1));
   if (f.sort === "least") return base.slice().sort((a, b) => (a.m == null ? 1e6 : a.m) - (b.m == null ? 1e6 : b.m));
   if (f.sort === "mix") return mixRows(base, f.seed, f.topics);

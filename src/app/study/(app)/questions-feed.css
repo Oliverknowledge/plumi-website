@@ -660,15 +660,27 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qf-yearphone .qf-seg { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* ── under a question's picture: two small dashed buttons, not an empty space to write on ── */
-.pa .qf-ans-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
-.pa .qf-ans-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px dashed rgba(34, 48, 77, .5); border-radius: 12px; background: #fffaf0; color: var(--ink); font: 600 15px var(--f-px); cursor: pointer; transition: background .15s, border-color .15s; }
+.pa .qf-ans-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 58px; margin: 0; }
+.pa .qf-ans-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 2px dashed #7b869d; border-radius: 12px; background: #fffaf0; color: var(--ink); font: 600 15px var(--f-px); cursor: pointer; transition: background .15s, border-color .15s; }
 .pa .qf-ans-btn:hover { background: #fff3cf; border-style: solid; border-color: var(--ink); }
 .pa .qf-ans-btn[aria-pressed="true"] { background: #fff3cf; border-style: solid; border-color: var(--ink); box-shadow: 0 2px 0 var(--ink); }
 .pa .qf-ans-btn:focus-visible { outline: 3px solid var(--navy); outline-offset: 2px; }
 .pa .qf-ans-btn svg { flex: none; }
 .pa .qf-ans-short { display: none; }
 @media (max-width: 400px) { .pa .qf-ans-btn { flex: 1 1 0; padding: 0 10px; } .pa .qf-ans-long { display: none; } .pa .qf-ans-short { display: inline; } }
-/* an opened space sits right under the buttons */
-.pa .qf-ans.is-open > .qf-ans-btns { margin-bottom: 8px; }
-.pa .qf-ans .qs-zone-head { min-height: 32px; }
+/* an opened space has the buttons for its head, in the place of the Draw | Type toggle and Reset: the same height in every mode and every pointer, never over the writing, so nothing moves when
+   the first stroke or key arrives (or when the student empties it again) */
+.pa .qf-ans .qs-zone[data-mode] .qs-zone-head { position: static; opacity: 1; min-height: 58px; height: 58px; box-sizing: border-box; padding: 4px 6px 4px 4px; transition: none; }
+.pa .qf-ans .qs-zone[data-mode] .qs-zone-head-bare { justify-content: flex-start; }
+.pa .qf-ans .qs-zone-head-bare .qf-ans-btns { min-height: 0; }
+.pa .qf-answer .qs-zone[data-mode="ink"] .qs-zone-head { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .pa .qf-ans-btn { transition: none; } }
+
+/* "See the figure": the chip names where the figure is from, quietly */
+.pa .qs-fig-from { font-weight: 700; color: var(--soft); }
+.pa .qs-fig { margin: 0 0 10px; }
+
+/* the filters' pills and Clear all are 44px on a touch screen; the phone's school year has room above the folded card */
+@media (pointer: coarse) { .pa .qf-pills .qs-chip, .pa .qf-clear { min-height: 44px; } }
+.pa .qf-yearphone { margin: 4px 0 22px; }
+.pa .qf-lost { margin: 2px 0 8px; font: 800 13px/1.35 var(--f-body); color: #8a2f2f; }

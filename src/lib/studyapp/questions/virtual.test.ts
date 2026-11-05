@@ -63,12 +63,12 @@ describe("a card's height before it has been drawn", () => {
     assert.equal(cardEstimate({ ...p, m: 8 }, 1180), cardEstimate(p, 1180));
     assert.equal(cardEstimate({ ...p, k: "B" }, 1180), cardEstimate(p, 1180));
   });
-  test("the layouts add up as they were measured on drawn cards (AQA GCSE Maths: the card is the picture plus 260 wide with a mouse, plus 206 + 206 + 52 upright, plus 206 + 229 + 52 on a phone)", () => {
+  test("the layouts add up as they were measured on drawn cards (AQA GCSE Maths: the card is the picture plus 266 wide with a mouse, plus 212 + 206 + 52 upright, plus 212 + 229 + 52 on a phone)", () => {
     const m = { w: 1000, h: 400, m: 1, er: 1 as const };
     const pic = (listW: number) => (listW - 38) * 0.4;
-    assert.equal(cardEstimate(m, 820), Math.round(pic(820) + 206 + 206 + 52));
-    assert.equal(cardEstimate(m, 390), Math.round(pic(390) + 206 + 229 + 52));
-    assert.equal(cardEstimate(m, 1184, false, true), Math.round(Math.max(330, (1184 - 468 - 38) * 0.4 + 260)));
+    assert.equal(cardEstimate(m, 820), Math.round(pic(820) + 212 + 206 + 52));
+    assert.equal(cardEstimate(m, 390), Math.round(pic(390) + 212 + 229 + 52));
+    assert.equal(cardEstimate(m, 1184, false, true), Math.round(Math.max(330, (1184 - 468 - 38) * 0.4 + 266)));
   });
   test("a narrow list folds the meta above the picture, so it is taller than the same card wide", () => {
     assert.ok(cardEstimate(p, FEED_WIDE - 1) > cardEstimate(p, FEED_WIDE + 200));

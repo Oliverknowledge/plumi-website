@@ -64,10 +64,10 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
       </div>
     );
   }
-  return <FeedReady key={entry.slug} entry={entry} meta={data.meta} rows={data.rows} tier={data.tier} q={q} extras={ex.extras} extrasReady={ex.ready} />;
+  return <FeedReady key={entry.slug} entry={entry} meta={data.meta} rows={data.rows} tier={data.tier} q={q} extras={ex.extras} extrasReady={ex.ready} extrasFailed={ex.failed} retryExtras={ex.retry} />;
 }
 
-function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData; extras: FeedExtras; extrasReady: boolean }) {
+function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFailed, retryExtras }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData; extras: FeedExtras; extrasReady: boolean; extrasFailed: boolean; retryExtras(): void }) {
   const { persisted } = useQuestions();
   const slug = entry.slug;
   const phone = useMatch("(max-width: 640px)");
@@ -80,7 +80,10 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady }: { entry:
   /* ── the filters ───────────────────────────────────────────────── */
   const bands = useMemo(() => bandsFor(meta.subject, rows), [meta.subject, rows]);
   const stored = prefs.filters[slug] ?? NO_FEED;
-  const filters = useMemo(() => cleanFeedFilters(stored, meta, bands, extrasReady ? extras : undefined), [stored, meta, bands, extras, extrasReady]);
+  // (both-tier questions shown once is only a choice while both tiers are: it neither filters nor shows a pill for a student who sits one)
+  const filters = useMemo(() => { const c = cleanFeedFilters(stored, meta, bands, extrasReady ? extras : undefined); return tier !== null && c.once ? { ...c, once: false } : c; }, [stored, meta, bands, extras, extrasReady, tier]);
+  // A remembered school year, practicals or both-tiers choice whose file did not arrive is not dropped: the student is told the list is not filtered by it, and it is asked for again.
+  const lost = extrasFailed ? [stored.yr && meta.data?.year13 ? "school year" : "", stored.prac && meta.data?.practicals ? "practicals" : "", stored.once && meta.data?.tiers && tier === null ? "both tiers" : ""].filter(Boolean) : [];
   const change = useCallback((patch: Partial<FeedFilters>) => {
     updateFeedPrefs((p) => ({ ...p, filters: { ...p.filters, [slug]: { ...(p.filters[slug] ?? NO_FEED), ...patch } } }));
   }, [slug]);
@@ -199,7 +202,8 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady }: { entry:
   };
 
   // How many each option would give: made when the filters are on screen (or the phone's school year is), for the filters as they were a moment ago, so a tap shows the list first and the counts after.
-  const showCounts = bodyOpen || (phone && !!extras.year13);
+  const narrow = useMatch("(max-width: 980px)");
+  const showCounts = bodyOpen || (narrow && !!extras.year13);
   const countFilters = useDeferredValue(filters);
   const counts = useMemo(() => (showCounts ? feedCounts(rows, countFilters, ctx, bands) : null), [showCounts, rows, countFilters, ctx, bands]);
   const hasSchemeFilter = useMemo(() => rows.some(hasScheme) && rows.some((r) => !hasScheme(r)), [rows]);
@@ -307,9 +311,12 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady }: { entry:
         tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
-      {phone && extras.year13 && <div className="qf-yearphone"><SchoolYear f={filters} counts={counts} onChange={change} /></div>}
+      {lost.length > 0 && (
+        <p className="qf-lost" role="status" data-testid="feed-lost">The {lost.join(" and ")} {lost.length > 1 ? "filters" : "filter"} you chose did not load, so it is not applied. <button type="button" className="qs-link" onClick={retryExtras}>Try again</button></p>
+      )}
+      {narrow && extras.year13 && <div className="qf-yearphone"><SchoolYear f={filters} counts={counts} onChange={change} /></div>}
       <FeedFilterBody
-        extras={extras} counts={counts} phone={phone}
+        extras={extras} counts={counts} phone={narrow}
         meta={meta} bands={bands} f={filters} onChange={change} hasCalc={hasCalc} hasScheme={hasSchemeFilter} hasDone={hasDone} sort={filters.sort} onSort={setSort} hidden={!bodyOpen}
         acts={phone ? acts : undefined} tiers={allTiers} tierNow={tier} onTier={(t) => qa.tiers(slug, t ? [t] : [], allTiers)}
       />

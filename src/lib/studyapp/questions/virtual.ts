@@ -49,8 +49,8 @@ export function withPinned(r: { from: number; to: number }, pinned: number | nul
 export const FEED_WIDE = 981;
 const SIDE = 188 + 232 + 2 * 24;   // the meta column, the examiner's column and their gaps (wide layout)
 const PAD_X = 38;                    // the sheet's padding and edges
-const CHROME = 206;                  // what a closed card holds besides its picture: the zoom and Read as text line, the Type and Draw buttons, the Mark scheme button, the sheet's padding, the gap to the next card
-const TOGGLE = 54;                   // the "Write on the question" button under the picture (a mouse; a touch screen has none)
+const CHROME = 212;                  // what a closed card holds besides its picture: the zoom and Read as text line, the Type and Draw buttons, the Mark scheme button, the sheet's padding, the gap to the next card
+const TOGGLE = 54;                   // the "Mark up the question" button under the picture (a mouse; a touch screen has none)
 const MIN_WIDE = 330;                // the meta column is taller than a one-line question
 const META_NARROW = 206;             // the meta folded above the picture on a narrow screen (an iPad upright)
 const META_PHONE = 229;              // ... and on a phone, where its lines wrap (a list narrower than PHONE_W)
@@ -62,7 +62,7 @@ const START = 48;                    // the button that opens how the question s
  * A card's height at the list's width, from the picture's size: a card shows two buttons under its picture, not a space to write on, so the marks do not change it (an answer
  * that has been written makes it taller once it has been drawn, and the measured height then replaces this). Only a guess for a card that has not been drawn; a wrong guess costs a
  * small correction as the card first appears, never a wrong list. (The constants were fitted to the heights measured on AQA GCSE Maths and Physics at 1184, 820 and 390 px: within a
- * few pixels for nine cards in ten.) `mouse`: the pointer is a mouse, which has the "Write on the question" button.
+ * few pixels for nine cards in ten.) `mouse`: the pointer is a mouse, which has the "Mark up the question" button.
  */
 export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, mouse = false): number {
   const wide = listWidth >= FEED_WIDE;

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { INK_PART_CAP, INK_TOTAL_CAP } from "@/lib/studyapp/questions/ink";
 import { inkTotal, keyOf, type QAnswer, type QPart, type QPrefs } from "@/lib/studyapp/questions/model";
 import { currentQuestions, qa } from "@/lib/studyapp/questions/store";
-import { annotOff, setAnnotCueSeen, setAnnotMouse, useAnnotCueSeen, useAnnotMouse } from "@/lib/studyapp/questions/annotMode";
+import { annotOff, setAnnotCueSeen, setAnnotMouse, useAnnotMouse } from "@/lib/studyapp/questions/annotMode";
 import { Crop, type CropProps } from "./Crop";
 import { InkCanvas, type InkCanvasHandle } from "./InkCanvas";
 import { setZoneVisible, useInkSaving, usePenSeen } from "./inkBus";
@@ -36,7 +36,7 @@ type Props = CropProps & {
 /**
  * The question's picture with a layer of the student's own marks ON it (underline, circle, a sum in the margin, a tick): the strokes are kept in the picture's own units (800 across,
  * the same as an answer, so they follow the picture when it resizes or turns), under their own key, and never touch the answer, its status or its marks. A pen always writes on it; a finger scrolls
- * (or writes, with "Draw with my finger"); a mouse writes only once "Write on the question" is on. The canvas is made only where it is needed: for a picture with marks, once a pen is put down
+ * (or writes, with "Draw with my finger"); a mouse marks only once "Mark up the question" is on. The canvas is made only where it is needed: for a picture with marks, once a pen is put down
  * on it (the stroke is taken up where it began), while the mouse switch is on, or, on a touch screen where a pen has been seen, for the pictures near the screen. It is shown read-only on the enlarged picture.
  */
 export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }: Props) {
@@ -46,7 +46,6 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
   const penSeen = usePenSeen();
   const saving = useInkSaving();
   const mouse = useAnnotMouse();
-  const cueSeen = useAnnotCueSeen();
   const fingerScrolls = prefs.fingerScrolls ?? coarse;
   const ink = useRef<InkCanvasHandle>(null);
   const host = useRef<HTMLDivElement>(null);
@@ -175,13 +174,14 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
     </div>
   );
 
-  const cue = count === 0 && !cueSeen && !asking && (penSeen || coarse);
+  // (no cue: an invitation to write on the question draws on the printed Answer line, and marks alone are not an answer)
+  const cue = false;
   const bare = !mouseAble && count === 0 && !asking && !cue && !full;
   const toolsRow = (
     <div ref={tools} className={`qs-annot-tools${bare ? " is-bare" : ""}`} role="group" aria-label="Marks on the question" data-testid="annot-tools">
       {mouseAble && (
-        <button type="button" className={`qs-annot-btn qs-annot-btn-t${mouse ? " on" : ""}`} aria-pressed={mouse} onClick={() => { const next = !mouse; setAnnotMouse(next); if (next) setHidden(false); }} title="Write on the question with the mouse" data-testid="annot-toggle">
-          <Icon d={PENCIL} /><span className="qs-annot-t">Write on the question</span><span className="qs-sr">{mouse ? ", on" : ", off"}</span>
+        <button type="button" className={`qs-annot-btn qs-annot-btn-t${mouse ? " on" : ""}`} aria-pressed={mouse} onClick={() => { const next = !mouse; setAnnotMouse(next); if (next) setHidden(false); }} title="Mark up the question with the mouse" data-testid="annot-toggle">
+          <Icon d={PENCIL} /><span className="qs-annot-t">Mark up the question</span><span className="qs-sr">{mouse ? ", on" : ", off"}</span>
         </button>
       )}
       {cue && <p className="qs-annot-cue" data-testid="annot-cue">write on the question with your pencil</p>}

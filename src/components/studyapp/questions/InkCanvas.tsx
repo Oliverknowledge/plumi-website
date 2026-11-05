@@ -532,7 +532,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
   return (
     <div ref={wrap} className={annot ? `qs-ink qs-annot${mouseDraws ? " is-mouse" : ""}${tool === "eraser" ? " is-eraser" : ""}` : `qs-ink bg-${bg}${tool === "eraser" ? " is-eraser" : ""}`} style={annot ? { touchAction } : { aspectRatio: `${REF_W} / ${units}`, touchAction }} data-testid={annot ? "annot-ink" : "ink"}>
       <canvas
-        ref={canvas} className="qs-canvas" {...(annot ? { "aria-hidden": true, tabIndex: -1 } : { role: "img", tabIndex: 0, "aria-label": `${label}. Write with a pen, mouse or finger. To use the keyboard instead, choose Type.` })}
+        ref={canvas} className="qs-canvas" {...(annot ? { "aria-hidden": true, tabIndex: -1 } : { role: "img", tabIndex: 0, "aria-label": `${label}. Draw with a pen, mouse or finger. To use the keyboard instead, choose Type.` })}
         style={{ touchAction }}
         onClick={annot ? (e) => { const t = (e.nativeEvent as PointerEvent).pointerType; if (t === "pen" || (t === "touch" && !fingerScrolls) || (t === "mouse" && mouseDraws)) e.stopPropagation(); } : undefined}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onCancel}

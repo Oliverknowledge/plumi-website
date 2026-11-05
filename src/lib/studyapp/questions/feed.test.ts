@@ -367,10 +367,24 @@ describe("spec order", () => {
     const rs = [row("z", { t: ["4.1.10"] }), row("y", { t: ["4.1.2"] }), row("n", { t: [] }), row("x", { t: ["4.1.2"] }), row("w", { t: ["3.9"] })];
     assert.deepEqual(ids(specSorted(rs)), ["w", "y", "x", "z", "n"]);
   });
+  test("by the topic's place in the subject's list, not its code as text: GCSE Maths' Number before Algebra, Edexcel's Pure before Mechanics", () => {
+    const gcse = [{ code: "N1" }, { code: "N2" }, { code: "A1" }, { code: "A2" }, { code: "R1" }, { code: "G1" }];
+    const rs = [row("a1", { t: ["A1"] }), row("g1", { t: ["G1"] }), row("n2", { t: ["N2"] }), row("a2", { t: ["A2"] }), row("n1", { t: ["N1"] }), row("none", { t: [] }), row("r1", { t: ["R1"] })];
+    assert.deepEqual(ids(specSorted(rs, gcse)), ["n1", "n2", "a1", "a2", "r1", "g1", "none"]);
+    assert.deepEqual(ids(specSorted(rs)).slice(0, 2), ["a1", "a2"], "(as text, A would come first: that was the fault)");
+    const edx = [{ code: "P.1" }, { code: "P.2" }, { code: "S.1" }, { code: "M.1" }, { code: "M.7" }];
+    const ed = [row("m7", { t: ["M.7"] }), row("p1", { t: ["P.1"] }), row("m1", { t: ["M.1"] }), row("s1", { t: ["S.1"] }), row("p2", { t: ["P.2"] })];
+    assert.deepEqual(ids(specSorted(ed, edx)), ["p1", "p2", "s1", "m1", "m7"]);
+  });
+  test("ties keep the order given (newest first stays newest first); a topic the list lacks comes after those it has", () => {
+    const tl = [{ code: "T1" }, { code: "T2" }];
+    const rs = [row("x", { t: ["T2"] }), row("y", { t: ["T1"] }), row("z", { t: ["T2"] }), row("odd", { t: ["ZZ"] }), row("w", { t: ["T1"] })];
+    assert.deepEqual(ids(specSorted(rs, tl)), ["y", "w", "x", "z", "odd"]);
+  });
   test("feedList sorts by it, after the filter", () => {
     const orders = feedOrders(FIX, SERIES);
-    const out = feedList(orders, f({ sort: "spec", calc: "none" }), ctx);
-    assert.deepEqual(out.map((r) => r.t[0] ?? ""), out.map((r) => r.t[0] ?? "").slice().sort((a, b) => (a === "" ? 1 : b === "" ? -1 : 0) || a.localeCompare(b)));
+    const out = feedList(orders, f({ sort: "spec", calc: "none" }), { ...ctx, meta: { papers: [], topics: [{ code: "4.3.1" }, { code: "4.1.1" }, { code: "4.1.2" }, { code: "4.2.1" }] as never } });
+    assert.deepEqual(out.map((r) => r.t[0] ?? ""), out.map((r) => r.t[0] ?? "").slice().sort((a, b) => (a === "" ? 1 : b === "" ? -1 : ["4.3.1", "4.1.1", "4.1.2", "4.2.1"].indexOf(a) - ["4.3.1", "4.1.1", "4.1.2", "4.2.1"].indexOf(b))));
     assert.ok(out.every((r) => !r.calc));
   });
 });

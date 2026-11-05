@@ -16,6 +16,7 @@ import { specialsFor } from "@/lib/studyapp/questions/specials";
 import { OtherCopy } from "./OtherCopy";
 import { ReadAsText } from "./ReadAsText";
 import { AnnotCrop } from "./AnnotCrop";
+import { SharedFigureChip } from "./SharedFigure";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { useMatch } from "./useMatch";
@@ -128,6 +129,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
             )}
           </div>
         )}
+        <SharedFigureChip part={part} siblings={siblings} cv={view.cv} />
         <div className="qf-pic">
           <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom>
             <ReadAsText set={view} part={part} />

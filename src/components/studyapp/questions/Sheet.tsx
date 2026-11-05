@@ -20,6 +20,7 @@ import { BackIcon } from "./icons";
 import { inkAct, setPenSeen, usePenSeen } from "./inkBus";
 import { ListenPlayer } from "./ListenPlayer";
 import { PartFiles } from "./PartFiles";
+import { SharedFigureChip } from "./SharedFigure";
 import { AnnotCrop } from "./AnnotCrop";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
@@ -367,6 +368,7 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
       ) : (
         <>
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
+          <SharedFigureChip part={part} siblings={block.parts} cv={set.cv} />
           <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom>
             <ReadAsText set={set} part={part} />
           </AnnotCrop>

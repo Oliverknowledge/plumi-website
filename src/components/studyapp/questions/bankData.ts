@@ -145,34 +145,48 @@ export function narrowToTier(meta: SubjectMeta, rows: BankRow[], chosen: readonl
   return { meta: { ...meta, papers: meta.papers.filter((p) => paperKeeps(p, chosen)) }, rows: kept, tier };
 }
 
-const extras = new Map<string, Promise<FeedExtras>>();
+interface ExtrasLoad { extras: FeedExtras; /** One of the files the subject has did not arrive (as opposed to a subject that has none): its filter cannot be offered or kept, and the student is told. */ failed: boolean }
+const extras = new Map<string, Promise<ExtrasLoad>>();
 /** The ids in a data file, or null where it is not a list of strings (or not there). */
 const idSet = (raw: unknown): Set<string> | null => (Array.isArray(raw) ? new Set(raw.filter((x): x is string => typeof x === "string")) : null);
-/** The bank's extra files for a subject: the practicals, the questions that need second-year content, and the Foundation parts a Higher paper prints too. A file the subject has none of (or that did not arrive) is null. */
-const loadExtras = (meta: SubjectMeta): Promise<FeedExtras> => {
+/** The bank's extra files for a subject: the practicals, the questions that need second-year content, and the Foundation parts a Higher paper prints too. A file the subject has none of is null; one that did not arrive is null and says so. */
+const loadExtras = (meta: SubjectMeta): Promise<ExtrasLoad> => {
   const d = meta.data ?? {};
-  const get = (file: "practicals" | "year13" | "tiers") => (d[file] ? getData(meta.slug, file).catch(() => null) : Promise.resolve(null));
+  let failed = false;
+  const get = (file: "practicals" | "year13" | "tiers") => (d[file] ? getData(meta.slug, file).catch(() => { failed = true; return null; }) : Promise.resolve(null));
   return Promise.all([get("practicals"), get("year13"), get("tiers")]).then(([prac, y13, tiers]) => {
     const map = tiers && typeof tiers === "object" && !Array.isArray(tiers) ? new Map(Object.entries(tiers as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string")) : null;
     const pr = idSet(prac);
-    return { practicals: pr && pr.size ? pr : null, year13: idSet(y13), twins: map && map.size ? map : null };
+    return { extras: { practicals: pr && pr.size ? pr : null, year13: idSet(y13), twins: map && map.size ? map : null }, failed };
   });
 };
 
-/** What the subject's filters need beyond its parts: `ready` is false until the files have been asked for (a subject with none is ready at once). */
-export function useBankExtras(meta: SubjectMeta | null): { ready: boolean; extras: FeedExtras } {
+/**
+ * What the subject's filters need beyond its parts: `ready` is false until the files have been asked for (a subject with none is ready at once). A file that does not arrive is asked for
+ * again once after two seconds and whenever the window is focused again, and `failed` says so meanwhile (the page tells the student; a remembered filter is kept, not dropped).
+ */
+export function useBankExtras(meta: SubjectMeta | null): { ready: boolean; extras: FeedExtras; failed: boolean; retry(): void } {
   const slug = meta?.slug ?? null;
-  const [got, setGot] = useState<{ slug: string; extras: FeedExtras } | null>(null);
+  const [got, setGot] = useState<{ slug: string; load: ExtrasLoad } | null>(null);
+  const [tries, setTries] = useState(0);
   const needs = !!meta && !!(meta.data?.practicals || meta.data?.year13 || meta.data?.tiers);
+  const failed = !!got && got.slug === slug && got.load.failed;
   useEffect(() => {
     if (!meta || !needs) return;
     let live = true;
-    once(extras, meta.slug, () => loadExtras(meta)).then((x) => { if (live) setGot({ slug: meta.slug, extras: x }); }).catch(() => { if (live) setGot({ slug: meta.slug, extras: NO_EXTRAS }); });
+    once(extras, meta.slug, () => loadExtras(meta)).then((x) => { if (live) setGot({ slug: meta.slug, load: x }); }).catch(() => { if (live) setGot({ slug: meta.slug, load: { extras: NO_EXTRAS, failed: true } }); });
     return () => { live = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- by subject
-  }, [slug, needs]);
-  if (!needs) return { ready: true, extras: NO_EXTRAS };
-  return got && got.slug === slug ? { ready: true, extras: got.extras } : { ready: false, extras: NO_EXTRAS };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- by subject, and again on a retry
+  }, [slug, needs, tries]);
+  const retry = useCallback(() => { if (slug) extras.delete(slug); setTries((t) => t + 1); }, [slug]);
+  useEffect(() => {
+    if (!failed) return;
+    const t = tries === 0 ? setTimeout(retry, 2000) : null;
+    window.addEventListener("focus", retry);
+    return () => { if (t) clearTimeout(t); window.removeEventListener("focus", retry); };
+  }, [failed, tries, retry]);
+  if (!needs) return { ready: true, extras: NO_EXTRAS, failed: false, retry };
+  return got && got.slug === slug ? { ready: true, extras: got.load.extras, failed: got.load.failed, retry } : { ready: false, extras: NO_EXTRAS, failed: false, retry };
 }
 
 export interface BankText {
