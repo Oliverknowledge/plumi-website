@@ -111,7 +111,7 @@ export function SidePanel({
         </button>
         {st.due > 0 ? <span className="due-n" role="img" aria-label={`${st.due} due`}>{st.due}</span> : <span aria-hidden="true" />}
         {canShareIt(d) && (
-          <button type="button" className="row-more share" onClick={() => onShare(d.id)} aria-label={`${sharing.codeFor(d.id) ? "Shared: manage" : "Share"} ${d.title}`} title={sharing.codeFor(d.id) ? "Shared" : "Share this deck"} data-testid="deck-share">
+          <button type="button" className="row-more share" onClick={() => onShare(d.id)} aria-label={`Share ${d.title}`} title="Share this deck" data-testid="deck-share">
             <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square"><path d="M8 10V1.5M4.5 5L8 1.5 11.5 5M2.5 8.5v6h11v-6" /></svg>
           </button>
         )}

@@ -98,9 +98,9 @@ export function FlashDesk({
         </div>
         <div className="dsk-right">
         {shareDeck && (
-          <button type="button" className="dsk-btn dsk-share" onClick={() => onShare?.(shareDeck.id)} aria-label={sharing.codeFor(shareDeck.id) ? `Shared: manage the link for ${shareDeck.title}` : `Share ${shareDeck.title}`} data-testid="desk-share">
+          <button type="button" className="dsk-btn dsk-share" onClick={() => onShare?.(shareDeck.id)} aria-label={sharing.codeFor(shareDeck.id) ? `Share ${shareDeck.title}: manage its link` : `Share ${shareDeck.title}`} data-testid="desk-share">
             <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square"><path d="M8 10V1.5M4.5 5L8 1.5 11.5 5M2.5 8.5v6h11v-6" /></svg>
-            <span>{sharing.codeFor(shareDeck.id) ? "Shared" : "Share"}</span>
+            <span>Share</span>
           </button>
         )}
         <button type="button" className="dsk-btn icon" onClick={onToggleExpand} aria-pressed={expanded} aria-label={expanded ? "Leave full screen" : "Fill the screen"} data-testid="expand">

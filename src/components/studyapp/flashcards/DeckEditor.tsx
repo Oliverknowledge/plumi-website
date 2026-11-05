@@ -35,7 +35,7 @@ export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { de
         <input key={deck.id} className="fcp-title" defaultValue={deck.title} maxLength={50} aria-label="Deck name" onBlur={(e) => { actions.renameDeck(deckId, e.target.value); }} onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} />
         <span className="grow" />
         {sharing.available && canShare(deck) && (
-          <button type="button" className="btn" onClick={() => onShare(deckId)} data-testid="share-open">{sharing.codeFor(deckId) ? "Shared" : "Share"}</button>
+          <button type="button" className="btn" onClick={() => onShare(deckId)} data-testid="share-open">Share</button>
         )}
         <button type="button" className="btn gold" disabled={st.due === 0} onClick={() => onReview(deckId)} data-testid="review-deck">{st.due === 0 ? "Nothing due" : `Review ${st.due} due`}</button>
       </div>
