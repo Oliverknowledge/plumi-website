@@ -43,6 +43,9 @@ next-env.d.ts
 # conductor workspace scratch
 /.context
 
+# Claude Code's per-session worktrees
+/.claude/worktrees/
+
 # Reference material for the website refactor is committed, with one exception:
 # this screen recording is 205 MB and GitHub rejects any single file over 100 MB.
 # It stays local. If it needs to travel, it wants Git LFS, not the object store.
