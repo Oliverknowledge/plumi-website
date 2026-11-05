@@ -1,7 +1,7 @@
 """Write the CAIE banks' data files from the cut parts and their topic tags.
 
     python3 scripts/question-bank/caie/build_caie.py [work-dir]
-    # work-dir: .work/caie-sciences (default), .work/caie-maths, .work/caie-igcse-sciences or .work/caie-igcse-maths
+    # work-dir: .work/caie-sciences (default), .work/caie-maths, .work/caie-igcse-sciences, .work/caie-igcse-maths or .work/caie-cs
 
 build_ocr.py's sibling, in the same shapes, for both work folders: the sciences are
 cut part by part, maths a whole question at a time (its reports are by question).
@@ -24,6 +24,10 @@ The IGCSE banks are built the same way, level "IGCSE". Mathematics 0580 also hol
 Their 9-1 syllabuses' codes go in `specs` and `fullName` ("Biology (0610 and 9–1
 0970)"), since 0970, 0971 and 0972 sit the very same papers. A question Cambridge's
 scheme marks "Question Discounted" is left out.
+
+Computer Science 9618 is cut part by part, as the sciences are. Its sittings' whole-paper
+links add Paper 4's support files (a zip, `code`); its `note` says what Paper 4 asks of
+a student.
 """
 import json, os, re, sys
 
@@ -46,6 +50,11 @@ BANKS = {  # slug: (syllabus, subject, the syllabus's own name, level, any 9-1 s
     "caie-igcse-physics": ("0625", "Physics", "Physics (0625 and 9–1 0972)", "IGCSE", "0972"),
     "caie-igcse-maths": ("0580", "Maths", "Mathematics (0580 and 9–1 0980)", "IGCSE", "0980"),
     "caie-igcse-additional-maths": ("0606", "Additional Maths", "Additional Mathematics (0606)", "IGCSE", None),
+    "caie-a-level-computer-science": ("9618", "Computer Science", "Computer Science (9618)", "A-Level", None),
+}
+NOTES = {
+    "9618": "Paper 4 is sat at a computer, in Java, Python or VB.NET: its questions build one program over several parts, "
+            "and its mark schemes give an answer in each language. Each sitting’s support files (a zip) are linked with its whole paper.",
 }
 SERIES = {"JUN24": "June 2024", "JUN24V2": "June 2024 (0980)", "SPEC": "Specimen"}
 # A part Cambridge struck out of the marking.
@@ -136,6 +145,7 @@ def main():
             "series": [{"id": s, "label": SERIES[s]} for s in series],
             "wholes": {k: v for k, v in wholes.items() if k.split("-")[0] in {p["id"] for p in papers}},
             **({"noCalc": True, "reportsBy": "question"} if maths else {}),
+            **({"note": NOTES[code]} if code in NOTES else {}),
             "scope": SCOPE, "count": len(rows), "firstYear": 2024, "lastYear": 2024, "sample": rows[:20],
         }
         json.dump(meta, open(os.path.join(out_dir, f"{bank}.json"), "w"), ensure_ascii=False, separators=(",", ":"))

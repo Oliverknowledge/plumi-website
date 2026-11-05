@@ -431,7 +431,9 @@ def region(doc, start, end, end_page):
         top = label_top(doc, pg, y) if (pg, y) == start else f.y0
         bottom = label_top(doc, nxt[0], nxt[1]) if nxt and nxt[0] == pg else f.y1
         for l in doc.lines(pg):
-            if l["y0"] > top + 2 and l["y0"] < bottom and (STOP.match(l["text"]) or doc.cambridge and CAMBRIDGE_END.match(l["text"])):
+            # (Cambridge never prints Pearson's closing "END": on its page that's a flowchart's terminator.)
+            stop = STOP.match(l["text"]) and not (doc.cambridge and re.fullmatch(r"END\s*", l["text"], re.I))
+            if l["y0"] > top + 2 and l["y0"] < bottom and (stop or doc.cambridge and CAMBRIDGE_END.match(l["text"])):
                 bottom = l["y0"] - 4
                 break
         if bottom > top + 10:
@@ -572,7 +574,8 @@ def marks_in(doc, pieces):
             m = re.fullmatch(r"\((\d{1,2})\)", l["text"])
             if m and (l["x0"] <= rect.x1 - 140 or doc.cambridge):  # Cambridge's "(n)" are only ever in tables and diagrams
                 m = None
-            m = m or re.search(r"\[(\d{1,2})\]$", l["text"])  # OCR: "........ [2]" at the end of the answer line
+            # OCR: "........ [2]" at the end of the answer line (or right after a unit, "mol –1[3]"); not Cambridge's array "Data[3]"
+            m = m or re.search(r"(?<![A-Za-z_])\[(\d{1,2})\]$" if doc.cambridge else r"\[(\d{1,2})\]$", l["text"])
             if not m and pg in doc.pictures:
                 m = re.search(r"(?:^|\s)[1l|(]?(\d)\]$", l["text"])  # read off a picture, "[2]" can come out "12]"
             # (a "[3]" beside a tall fraction's bracket starts above its line: Cambridge's are read by their middle)
@@ -663,7 +666,9 @@ def carried(found, doc):
         return len(l["text"].strip()) <= 16 and MS_LABEL.match(l["text"].strip())
 
     def printed(pg, y):
-        return "".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: l["x0"]) if abs(l["y0"] - y) < 3 and l["x0"] < 160 and short(l)).replace(" ", "")
+        # (Cambridge prints a label in one piece, "1(b)": its answer's "1 mark each" beside it is no part of it)
+        pieces = [l["text"] for l in sorted(doc.lines(pg), key=lambda l: l["x0"]) if abs(l["y0"] - y) < 3 and l["x0"] < 160 and short(l)]
+        return "".join(pieces[:1] if doc.cambridge else pieces).replace(" ", "")
 
     def opening(pg, y, depth=25):
         words = " ".join(l["text"] for l in sorted(doc.lines(pg), key=lambda l: (round(l["y0"]), l["x0"]))
@@ -792,11 +797,20 @@ def ms_tables(doc):
             # (a rule can run up to 2pt into the top of its label's text box, which reserves room for accents;
             # a label centred in a tall cell sits well below its rule, so look up to 60pt above it, at row
             # borders only: wide, and with no line of text running through them, as an underline would)
+            # (nor, in Cambridge's schemes, a short rule hugging a line's foot with nothing just under it: an answer's
+            # underlined words, not half its table's width; a fraction's bar has its denominator right below)
+            full = max(rules[i].values(), default=0) * 0.5 if doc.cambridge else 0
             edge = [y for y, wide in rules[i].items() if ref - 60 <= y <= ref + 3
-                    and (wide > 120 or y >= ref - 12) and not any(m["y0"] + 2 < y < m["y1"] - 2 for m in lines)]
+                    and (wide > 120 or y >= ref - 12) and not any(m["y0"] + 2 < y < m["y1"] - 2 for m in lines)
+                    and not (wide < full and any(m["y1"] - 2 <= y <= m["y1"] + 1 for m in lines)
+                             and not any(y - 2 <= m["y0"] <= y + 4 for m in lines))]
             # (a row with no rule of its own, a "(ii)" sharing its "(i)"'s cell, would find the rule above the row
-            # before; OCR's pieces of one label, "21 (a)" then "(ii)", are one row and share its rule)
-            if edge and found and found[-1][0] == i and found[-1][3] < l["y0"] - 2 and edge[-1] - 0.5 <= found[-1][1] + 4:
+            # before; OCR's pieces of one label, "21 (a)" then "(ii)", are one row and share its rule; nor, in Cambridge's, is a
+            # rule above the row before's label this row's, where a scheme draws only some of its rules: the 9618/03 specimen)
+            guarded = False
+            if edge and found and found[-1][0] == i and found[-1][3] < l["y0"] - 2 \
+                    and edge[-1] - 0.5 <= max(found[-1][1] + 4, found[-1][3] if doc.cambridge else 0):
+                guarded = doc.cambridge and edge[-1] - 0.5 > found[-1][1] + 4
                 edge = []
             if edge:
                 top = edge[-1] - 0.5
@@ -810,6 +824,21 @@ def ms_tables(doc):
                 row = min([m["y0"] for m in flat if m["y0"] < mid < m["y1"]] + [l["y0"]])
                 over = [m["y1"] for m in flat if m["y1"] <= row + 2 and m["y0"] < row - 2]
                 top = max(min(top, row - 1), max(over) - 1.5 if over else top)
+            if guarded:
+                # (and the row before keeps its label's line whole: this row starts at that line's foot, the other ends there)
+                foot = max((m["y1"] for m in lines if abs(m["y0"] - found[-1][3]) < 3), default=top)
+                if top < foot + 0.5 < l["y0"]:
+                    top = foot + 0.5
+                ruled.add((i, top))
+            elif doc.cambridge and not above and found and found[-1][0] == i and top < l["y0"] - 20 \
+                    and rules[i].get(top + 0.5, 0) < 0.6 * max(rules[i].values(), default=0):
+                # (Cambridge sets a label on the row's first line, its marks beside it. Text between the row before's label and this one,
+                # past this cut, is that row's: the 9618/02 specimen draws no rule between its rows, and the rule found was an inner
+                # table's, through the row before's text. Start midway between that text and this label.)
+                tail = [m["y1"] for m in lines if found[-1][3] + 2 < m["y0"] and top < m["y1"] < l["y0"] - 1 and m["x0"] > l["x1"]]
+                if tail:
+                    top = (max(tail) + l["y0"]) / 2
+                    ruled.add((i, top))
             key = (q_now, letter, roman)
             prev = found[-1][2] if found else None
             if doc.cambridge and prev and any(f[2] == key for f in found) and prev[0] == q_now and prev[2] in ROMANS \
@@ -849,6 +878,11 @@ def ms_tables(doc):
             t = top if p == pg else box.y0
             # (the next row's rule where it has one; a multiple-choice key's single-line row, to its next label)
             b = (nxt[1] if (nxt[0], nxt[1]) in ruled else nxt[3] if line_row(found[n], nxt) else nxt[1] - 2) if nxt and nxt[0] == p else box.y1
+            if doc.cambridge and nxt and nxt[0] == p and (nxt[0], nxt[1]) not in ruled and not line_row(found[n], nxt):
+                # (Cambridge's specimen schemes draw only some of their row rules: with none under this row, the cut sat 1pt
+                # inside its last line's foot. Take that line whole, but never the next row's label line.)
+                foot = max((l["y1"] for l in doc.lines(p) if t < l["y0"] < b and l["y0"] < nxt[3] - 2), default=b)
+                b = min(max(b, foot + 1), nxt[3] - 1)
             if EXTRACTS and not (nxt and nxt[0] == p):
                 # The next table's header can close a page, its first row overleaf: leave it to that table.
                 rest = [l for l in doc.lines(p) if l["y0"] > t + 6]
