@@ -20,7 +20,8 @@ function libraryArtVersion(): string {
 }
 
 /**
- * R2's public address. Production sets NEXT_PUBLIC_PAPERS_URL to it; a preview build falls back to it, because the
+ * The bucket's public address. Production sets NEXT_PUBLIC_PAPERS_URL to it; a preview build falls back to r2.dev (as
+ * src/config/papers.ts, which this file can't import: its module resolution differs by Node version), because the
  * question bank's topic pages read their data from R2 as they build. A local build stays on /papers-local unless
  * .env.local says otherwise.
  */

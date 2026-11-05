@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { test } from "node:test";
+import { R2_DEV_URL, resolvePapersBase } from "@/config/papers";
 import { partImage as bankPartImage, stemImage as bankStemImage, reportKey as bankReportKey, bankDataUrl } from "@/content/questionBank";
 import { bankFile, partImage, reportKey, stemImage } from "./cropUrls";
 
@@ -27,4 +29,15 @@ test("a file the subject has no hash for is null, never a made-up address", () =
   assert.equal(bankFile("x", undefined, "parts"), null);
   assert.equal(bankFile("x", { parts: "../evil" }, "parts"), null);
   assert.equal(bankDataUrl({ slug: "x", data: { parts: "abc123" } }, "reports"), null);
+});
+
+test("the variable alone says where the files are", () => {
+  assert.equal(resolvePapersBase("https://papers.example.com/", "production"), "https://papers.example.com");
+  assert.equal(resolvePapersBase("https://papers.example.com", "development"), "https://papers.example.com");
+  assert.equal(resolvePapersBase(undefined, "production"), R2_DEV_URL);
+  assert.equal(resolvePapersBase(undefined, "development"), "/papers-local");
+});
+test("the r2.dev address is written only where it is the fallback", () => {
+  const found = execFileSync("git", ["grep", "--untracked", "-l", new URL(R2_DEV_URL).hostname, "--", "."], { encoding: "utf8" }).trim().split("\n").sort();
+  assert.deepEqual(found, ["next.config.ts", "scripts/question-bank/papers_url.py", "src/config/papers.ts"]);
 });

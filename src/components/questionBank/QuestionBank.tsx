@@ -170,6 +170,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const [shown, setShown] = useState(PAGE);
   const [rangeNote, setRangeNote] = useState<string | null>(null);
   const [withReports, setWithReports] = useState(false);
+  const [withEarlier, setWithEarlier] = useState(true);
   const [typed, setTyped] = useState<string | null>(null); // null: the box shows the URL's search
   const query = typed ?? f.q;
   const set = useQuestionSet(subject.slug);
@@ -534,8 +535,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     try {
       const { buildSetPdf } = await import("@/lib/questionSetPdf");
       const reports = withReports && hasReports;
-      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, lines: true, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, reports: reports ? 1 : 0, via: "range", skipped, whole: whole ? 1 : 0 });
+      const skipped = await buildSetPdf(subject, ordered, { markSchemes: true, reports, lines: true, earlierFrom: withEarlier && parts ? parts : undefined, numbers: numbered, onProgress: (d, t) => setRangeNote(`Adding ${d} of ${t}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: picks.size, mark_schemes: true, reports: reports ? 1 : 0, via: "range", skipped, whole: whole ? 1 : 0, earlier: withEarlier ? 1 : 0 });
       const what = whole ? `${numbers.size} whole ${numbers.size === 1 ? "question" : "questions"}` : `${picks.size} ${picks.size === 1 ? "question" : "questions"}`;
       setRangeNote(skipped
         ? `Saved, but ${skipped} of ${picks.size * 2} pages couldn’t be added. Try again in a moment.`
@@ -839,6 +840,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
               <button type="submit" className="lp-btn" disabled={!results}>Download PDF</button>
             </div>
             {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports with the mark schemes</label>}
+            {hasWhole && !whole && <label className="qb-tray-ms"><input type="checkbox" checked={withEarlier} onChange={e => setWithEarlier(e.target.checked)} /> Earlier parts of each question, to read</label>}
             {rangeNote && <span className="qb-range-note" role="status">{rangeNote}</span>}
           </form>
         </div>

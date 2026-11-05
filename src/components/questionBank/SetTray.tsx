@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
-import type { BankPart, BankSubject } from "@/content/questionBank";
+import { earlierToRead, type BankPart, type BankSubject } from "@/content/questionBank";
 
 /** The most one set (or one download by number) holds: a long practice session's worth, picked by hand. */
 export const SET_MAX = 150;
@@ -62,8 +62,9 @@ export type QuestionSet = ReturnType<typeof useQuestionSet>;
 
 /**
  * The tray along the bottom once a question is in the set: how many, download
- * them as one PDF (in paper order, each question's start included, mark schemes
- * at the back), see or trim what's in it, or start again (with an undo).
+ * them as one PDF (in paper order, each question's start and the earlier parts a
+ * later part needs included, mark schemes at the back), see or trim what's in it,
+ * or start again (with an undo).
  * The PDF is built here in the browser, so there is no sign-in and no wait on a server.
  */
 export function SetTray({ subject, set, parts }: { subject: BankSubject; set: QuestionSet; parts: BankPart[] | null }) {
@@ -72,6 +73,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
   const [withMs, setWithMs] = useState(true);
   const [withReports, setWithReports] = useState(false);
   const [withLines, setWithLines] = useState(true);
+  const [withEarlier, setWithEarlier] = useState(true);
   const [undo, setUndo] = useState<string[] | null>(null);
   const [listOpen, setListOpen] = useState(false);
   if (!set.ids.length && !undo) return null;
@@ -100,8 +102,8 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
       // Numbered as the list below is, in the order they were added.
       const numbers = new Map(chosen.map((p, i) => [p.id, i + 1]));
       const reports = withReports && hasReports;
-      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, lines: withLines, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
-      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0, lines: withLines ? 1 : 0 });
+      const skipped = await buildSetPdf(subject, chosen, { markSchemes: withMs, reports, lines: withLines, earlierFrom: withEarlier && parts ? parts : undefined, numbers, onProgress: (done, total) => setBusy(`Adding ${done} of ${total}…`) });
+      track("bank_pdf_downloaded", { subject: subject.slug, questions: chosen.length, mark_schemes: withMs, reports: reports ? 1 : 0, lines: withLines ? 1 : 0, earlier: withEarlier ? 1 : 0 });
       setNote(skipped ? `Saved ✓ (${skipped} couldn’t be added)` : "Saved ✓");
     } catch {
       setNote("Couldn’t build it. Try again?");
@@ -130,6 +132,7 @@ export function SetTray({ subject, set, parts }: { subject: BankSubject; set: Qu
         {listOpen && (
           <div className="qb-tray-list">
             <label className="qb-tray-ms"><input type="checkbox" checked={withLines} onChange={e => setWithLines(e.target.checked)} /> Lines to write on</label>
+            {parts && earlierToRead(chosen, parts).size > 0 && <label className="qb-tray-ms"><input type="checkbox" checked={withEarlier} onChange={e => setWithEarlier(e.target.checked)} /> Earlier parts of each question, to read</label>}
             <label className="qb-tray-ms"><input type="checkbox" checked={withMs} onChange={e => setWithMs(e.target.checked)} /> Mark schemes at the back</label>
             {hasReports && <label className="qb-tray-ms"><input type="checkbox" checked={withReports} onChange={e => setWithReports(e.target.checked)} /> Examiner’s reports at the back</label>}
             <ol>
