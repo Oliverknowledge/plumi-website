@@ -12,6 +12,9 @@ import { isStudyHostname } from "@/lib/studyapp/routing";
  * structured data, no ad tag, no cookie question and no analytics of the site's own.
  * (The embed sends its two PostHog events itself, with no cookies: see EmbedQuestionList.)
  *
+ * `/d/<code>` is a flashcard deck shared by link: a page for one friend, with no site furniture and, above all, no
+ * analytics or ad tag that would record which deck was opened.
+ *
  * `/study/*` is the notebook app (study.tryplumi.app), not the marketing site: no marketing
  * structured data, no ad tag and no ad-cookie question inside it. It will wire its own analytics.
  * Every other path renders its children untouched.
@@ -31,6 +34,6 @@ const onStudyHost = () => typeof window !== "undefined" && isStudyHostname(windo
 export function SiteOnly({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const studyHost = useSyncExternalStore(never, onStudyHost, onStudyHost);
-  const apart = pathname?.startsWith("/embed/") || pathname === "/study" || pathname?.startsWith("/study/") || (studyHost && APP_PLACES.has(pathname ?? ""));
+  const apart = pathname?.startsWith("/embed/") || pathname?.startsWith("/d/") || pathname === "/study" || pathname?.startsWith("/study/") || (studyHost && APP_PLACES.has(pathname ?? ""));
   return apart ? null : <>{children}</>;
 }

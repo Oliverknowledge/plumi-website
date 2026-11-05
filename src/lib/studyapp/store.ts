@@ -5,6 +5,8 @@ import {
   addCard, addDeck, addSession, addStarters, addTask, deleteCard, deleteDeck, deleteSession, dueNow, EMPTY, editCard, gradeCard, importCards, importInto,
   removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last,
 } from "./model";
+import type { SharedDeck } from "./sharing/contract";
+import { addSharedDeck } from "./sharing/add";
 import type { Grade } from "./srs";
 import { noteQuestionsKey, QUESTIONS_KEY, questionsAreDurable, withoutQuestions } from "./questions/persist";
 
@@ -94,6 +96,12 @@ export const actions = {
   importInto: (target: ImportTarget, pairs: readonly (readonly [string, string])[]): { deckId: string | null; added: number } => {
     let out: { deckId: string | null; added: number } = { deckId: null, added: 0 };
     change((d) => { const r = importInto(d, target, pairs, now()); out = { deckId: r.deckId, added: r.added }; return r.data; });
+    return out;
+  },
+  /** A deck a friend shared, as this student's own private deck (sharing/add.ts). */
+  addSharedDeck: (shared: SharedDeck): { deckId: string | null; added: number } => {
+    let out: { deckId: string | null; added: number } = { deckId: null, added: 0 };
+    change((d) => { const r = addSharedDeck(d, shared, now()); out = { deckId: r.deckId, added: r.added }; return r.data; });
     return out;
   },
   grade: (cardId: string, grade: Grade) => change((d) => gradeCard(d, cardId, grade, now())),

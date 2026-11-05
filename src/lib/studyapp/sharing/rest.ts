@@ -10,11 +10,18 @@ import type { ShareApi } from "./service";
 export interface RestConfig { url: string; key: string }
 
 /** The project the site is configured for (the same two variables accounts use), or null when there is none. */
-export function restConfig(env: Record<string, string | undefined> = process.env): RestConfig | null {
+export function restConfig(env: Record<string, string | undefined>): RestConfig | null {
   const url = env.NEXT_PUBLIC_PLUMI_SUPABASE_URL?.trim().replace(/\/+$/, "");
   const key = env.NEXT_PUBLIC_PLUMI_SUPABASE_KEY?.trim();
   return url && key && /^https?:\/\//.test(url) ? { url, key } : null;
 }
+
+/**
+ * This site's project, read the one way that also works in the browser: Next inlines `process.env.NEXT_PUBLIC_X` where it is
+ * written out in full, and not through `process.env` passed around as an object (which is empty there).
+ */
+export const siteRestConfig = (): RestConfig | null =>
+  restConfig({ NEXT_PUBLIC_PLUMI_SUPABASE_URL: process.env.NEXT_PUBLIC_PLUMI_SUPABASE_URL, NEXT_PUBLIC_PLUMI_SUPABASE_KEY: process.env.NEXT_PUBLIC_PLUMI_SUPABASE_KEY });
 
 export interface RestOptions { fetch?: typeof fetch; timeoutMs?: number; token?: string | null }
 

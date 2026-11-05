@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { canonicalPath, hostPath, isStudyHostname, routeFor, studyEntry } from "./routing";
+import { canonicalPath, hostPath, isSharePath, isStudyHostname, routeFor, studyEntry } from "./routing";
 
 const S = "study.tryplumi.app";
 const M = "tryplumi.app";
@@ -92,5 +92,26 @@ describe("canonical and visible paths", () => {
     assert.equal(canonicalPath("/library"), "/study/library");
     assert.equal(canonicalPath("/study/flashcards"), "/study/flashcards");
     assert.equal(canonicalPath("/study"), "/study");
+  });
+});
+
+describe("a shared deck, /d/<code>", () => {
+  const code = "Ab3dEf6hJk9mNp2q";
+  test("is served as it is on the app's host, with no sign-in step in the way and no /study prefix", () => {
+    assert.deepEqual(routeFor(S, `/d/${code}`), { kind: "pass" });
+    assert.deepEqual(routeFor(S, `/d/${code}/`), { kind: "pass" });
+    assert.deepEqual(routeFor(S, `/d/${code}`, "?x=1"), { kind: "pass" });
+  });
+  test("opened on tryplumi.app it goes to the app's host, where a student's decks are kept", () => {
+    assert.deepEqual(routeFor(M, `/d/${code}`), { kind: "redirect", to: `https://study.tryplumi.app/d/${code}` });
+    assert.deepEqual(routeFor(`www.${M}`, `/d/${code}/`, "?a=b"), { kind: "redirect", to: `https://study.tryplumi.app/d/${code}/?a=b` });
+  });
+  test("is left alone on localhost and previews, where the app is under /study", () => {
+    for (const h of ["localhost:3800", "127.0.0.1:3800", "plumi-abc.vercel.app"]) assert.deepEqual(routeFor(h, `/d/${code}`), { kind: "pass" }, h);
+  });
+  test("only a code-shaped path counts: /d alone and other shapes are the marketing site's", () => {
+    assert.ok(isSharePath(`/d/${code}`));
+    for (const p of ["/d", "/d/", "/d/a/b", "/d/has space", "/d/x.y", "/deck/abc"]) assert.ok(!isSharePath(p), p);
+    assert.deepEqual(routeFor(S, "/d/a/b"), { kind: "redirect", to: "https://tryplumi.app/d/a/b" });
   });
 });
