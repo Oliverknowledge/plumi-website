@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { startOpens } from "@/lib/questionStart";
 import { tabColour } from "@/lib/studyapp/questions/setupBooks";
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
@@ -129,8 +130,14 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
     for (const g of byQuestion.values()) g.forEach((p, i) => { if (i > 0 || g.some((x) => x.st)) ids.add(p.id); });
     return ids;
   }, [byQuestion]);
+  /** Those whose setup is already open when they are drawn (`startOpens`). */
+  const startShown = useMemo(() => {
+    const ids = new Set<string>();
+    for (const g of byQuestion.values()) if (g.some((x) => x.st)) g.forEach((p, i) => { if (startOpens(i, p)) ids.add(p.id); });
+    return ids;
+  }, [byQuestion]);
   const mouse = useMatch("(hover: hover) and (pointer: fine)");
-  const estimate = useCallback((p: BankRow, w: number) => cardEstimate(p, w, withStart.has(p.id), mouse), [withStart, mouse]);
+  const estimate = useCallback((p: BankRow, w: number) => cardEstimate(p, w, withStart.has(p.id), mouse, startShown.has(p.id)), [withStart, mouse, startShown]);
 
   const lookup = useMemo<FeedLookup>(() => ({
     series: new Map(meta.series.map((s) => [s.id, s.label])),

@@ -5,6 +5,7 @@ import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import { bestState, otherCopy, qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
 import { cutWords, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs, type QSet } from "@/lib/studyapp/questions/model";
 import { toQPart, type BankRow } from "@/lib/studyapp/questions/picker";
+import { startOpens } from "@/lib/questionStart";
 import { qa, registerFeedPart } from "@/lib/studyapp/questions/store";
 import { FeedAnswer } from "./FeedAnswer";
 import { Check, ReportBody, useReport } from "./Check";
@@ -55,13 +56,16 @@ export interface FeedCardProps {
  * the student writes on it, opens its scheme or marks it.
  */
 export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, answer, other, prefs, siblings, eager, full, onTopic, onWhole, onSee }: FeedCardProps) {
-  const [stem, setStem] = useState(false);
   const series = lookup.series.get(part.s) ?? part.s;
   const paper = lookup.papers.get(part.p.toLowerCase()) ?? part.p;
   const q = questionOf(part.l);
   const at = siblings.findIndex((s) => s.id === part.id);
   const stemPart = useMemo(() => siblings.find((s) => s.st) ?? null, [siblings]);
+  const [stem, setStem] = useState(() => !!stemPart && startOpens(at, part));
+  const [soFar, setSoFar] = useState(false);
   const earlier = at > 0 ? siblings.slice(0, at) : [];
+  /** The setup can be open on its own; the button is about what is still folded (a later part's earlier parts). */
+  const startOpen = earlier.length > 0 ? soFar : stem;
   const hasStart = !!stemPart || earlier.length > 0;
   const st = bestState(stateOf(answer, part.m), other);
   const copy = otherCopy(answer, other);
@@ -118,13 +122,13 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
         <span className="qf-tape" aria-hidden="true" />
         {hasStart && (
           <div className="qf-start">
-            <button type="button" className="qf-startbtn" aria-expanded={stem} aria-controls={stem ? startId : undefined} onClick={() => setStem((v) => !v)} data-testid="feed-start">
-              {stem ? "Hide" : earlier.length ? `Question ${q} so far` : `How question ${q} starts`}<ChevronIcon />
+            <button type="button" className="qf-startbtn" aria-expanded={startOpen} aria-controls={stem || soFar ? startId : undefined} onClick={() => { setStem(!startOpen); setSoFar(!startOpen); }} data-testid="feed-start">
+              {startOpen ? "Hide" : earlier.length ? `Question ${q} so far` : `How question ${q} starts`}<ChevronIcon />
             </button>
-            {stem && (
+            {(stem || soFar) && (
               <div id={startId} className="qf-startbody">
-                {stemPart && <Crop className="qs-stem" src={stemImage(stemPart, view.cv)} alt={`The start of question ${q}`} guess={3.2} zoom what="the start of the question" />}
-                {earlier.filter((e) => e.id !== stemPart?.id).map((e) => (
+                {stem && stemPart && <Crop className="qs-stem" src={stemImage(stemPart, view.cv)} alt={`The start of question ${q}`} guess={3.2} zoom what="the start of the question" />}
+                {soFar && earlier.map((e) => (
                   <Crop key={e.id} src={partImage(e.id, "qp", view.cv)} w={e.w} h={e.h} alt={partAlt(e)} words={e.x ? cutWords(e.x, 110).text : undefined} what="this question picture" zoom />
                 ))}
               </div>

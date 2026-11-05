@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { cardEstimate, FEED_WIDE, indexAt, offsetsOf, rangeOf, withPinned } from "./virtual";
+import { startOpens } from "../../questionStart";
 
 describe("offsets", () => {
   const off = offsetsOf([100, 200, 50, 300]);
@@ -76,5 +77,16 @@ describe("a card's height before it has been drawn", () => {
   test("never nonsense for a part with no size", () => {
     const n = cardEstimate({ w: 0, h: 0, m: null }, 390);
     assert.ok(n > 200 && n < 2000);
+  });
+});
+
+describe("a question's setup, open before anyone asks", () => {
+  test("for the first part, which it leads into", () => assert.equal(startOpens(0, { w: 1086, h: 800 }), true));
+  test("for a part with no words of its own (\"01.2 Enrique\" and two boxes)", () => assert.equal(startOpens(1, { w: 1086, h: 67 }), true));
+  test("not for a later part that says what it needs", () => assert.equal(startOpens(1, { w: 1086, h: 400 }), false));
+  test("not on a part with no size", () => assert.equal(startOpens(1, { w: 0, h: 0 }), false));
+  test("counted in the card's guessed height", () => {
+    const p = { w: 1086, h: 66, m: 2, k: undefined, er: undefined };
+    assert.ok(cardEstimate(p, 1180, true, false, true) > cardEstimate(p, 1180, true));
   });
 });

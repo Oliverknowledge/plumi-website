@@ -64,11 +64,12 @@ const START = 48;                    // the button that opens how the question s
  * small correction as the card first appears, never a wrong list. (The constants were fitted to the heights measured on AQA GCSE Maths and Physics at 1184, 820 and 390 px: within a
  * few pixels for nine cards in ten.) `mouse`: the pointer is a mouse, which has the "Mark up the question" button.
  */
-export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, mouse = false): number {
+export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, mouse = false, startOpen = false): number {
   const wide = listWidth >= FEED_WIDE;
   const sheet = Math.max(240, (wide ? listWidth - SIDE : listWidth) - PAD_X);
   const picture = sheet * (part.h > 0 && part.w > 0 ? part.h / part.w : 0.28);
-  const h = picture + CHROME + (mouse ? TOGGLE : 0) + (hasStart ? START : 0) + (part.au ? LISTEN : 0);
+  // (0.38: the median setup picture's height over its width, across every bank.)
+  const h = picture + CHROME + (mouse ? TOGGLE : 0) + (hasStart ? START : 0) + (startOpen ? sheet * 0.38 : 0) + (part.au ? LISTEN : 0);
   if (wide) return Math.round(Math.max(MIN_WIDE, h));
   return Math.round(h + (listWidth < PHONE_W ? META_PHONE : META_NARROW) + (part.er ? 52 : 0));
 }

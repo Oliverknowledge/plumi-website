@@ -4,6 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
+import { startOpens } from "@/lib/questionStart";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
@@ -82,7 +83,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   before?: BankPart[];
   embed?: { cta: ReactNode };
 }) {
-  const [open, setOpen] = useState<{ ms?: boolean; sol?: boolean; er?: boolean; stem?: boolean }>({});
+  const [open, setOpen] = useState<{ ms?: boolean; sol?: boolean; er?: boolean; stem?: boolean; soFar?: boolean }>(() => ({ stem: parts.some(p => p.st) && startOpens(before.length, parts[0]) }));
   const [report, setReport] = useState<string | null>(null);
   const photo = useDarkCrop();
   const part = parts[0];
@@ -113,6 +114,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const stem = parts.find(p => p.st);
   const stemOpen = open.stem || many;
   const earlier = many ? [] : before;
+  // The setup can be open on its own; the button is about what is still folded (a later part's earlier parts).
+  const startOpen = !!(earlier.length ? open.soFar : open.stem);
 
   /**
    * A question or scheme picture that opens full screen to read (ZoomViewer). In the partner
@@ -125,10 +128,10 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
     </button>
   );
 
-  function flip(key: "ms" | "sol" | "er" | "stem") {
+  function flip(key: "ms" | "sol" | "er") {
     const next = !open[key];
     setOpen(o => ({ ...o, [key]: next }));
-    if (next && key !== "stem") track("bank_reveal", { subject: subject.slug, kind: key, part: many ? questionKey(part) : part.id });
+    if (next) track("bank_reveal", { subject: subject.slug, kind: key, part: many ? questionKey(part) : part.id });
     if (key === "er" && next && report === null) reportsFor(subject).then(r => setReport(r[reportKey(subject, part.id)] ?? ""));
   }
 
@@ -191,14 +194,14 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         {(stem || earlier.length > 0) && (
           <div className="qb-stem">
             {!many && (
-              <button type="button" className="qb-link" aria-expanded={!!open.stem} onClick={() => flip("stem")}>
+              <button type="button" className="qb-link" aria-expanded={startOpen} onClick={() => setOpen(o => ({ ...o, stem: !startOpen, soFar: !startOpen }))}>
                 {/* (History's stem is the sources and interpretations the question is set on) */}
-                {open.stem ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : subject.subject === "History" ? `the sources for question ${q}` : `how question ${q} starts`}
+                {startOpen ? "− Hide" : "+ Show"} {earlier.length ? `question ${q} so far` : subject.subject === "History" ? `the sources for question ${q}` : `how question ${q} starts`}
               </button>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {stem && stemOpen && <img {...photo} className="qb-img" src={stemImage(stem, subject.cropVersion)} alt={`The start of question ${q}`} loading="lazy" />}
-            {stemOpen && earlier.map(p => (
+            {open.soFar && earlier.map(p => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={p.id} {...photo} className="qb-img" src={partImage(p.id, "qp", subject.cropVersion)} width={p.w} height={p.h} loading="lazy" decoding="async"
                 alt={`Question ${p.l}: ${p.x}`} />

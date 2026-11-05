@@ -33,6 +33,7 @@ SUBJECTS = [("ocr-a-level-biology-b", "Biology B", ("H022", "H422"), "Biology B 
 AS = {specs[0] for _, _, specs, _ in SUBJECTS}
 MONTH = {"JUN": "June", "NOV": "November"}
 CROP_VERSION = 4  # 2: schemes no longer run on to the back pages; 3: rows start at their rules, no marking instructions (26 October 2026); 4: ms_fallback.py's scheme crops, a few under names an old cut had used (30 October 2026). See questionBank.ts partImage
+CROP_VERSION_OF = {"ocr-a-level-biology-a": 5}  # Paper 2, November 2020's crops hadn't been uploaded since its re-cut: their rows' sizes were another cut's (4 November 2026)
 OCR_BOILER = re.compile(r"© OCR \d{4}|Turn over|\.{6,}", re.I)
 # The examiners' reports' running header: "A Level Chemistry A - H432/01 - Summer 2025 Examiners’ report".
 REPORT_HEADER = re.compile(r"(?:OCR Level \d Advanced (?:Subsidiary )?GCE in |A Level |AS Level )[^\n]{0,90}?Examiners[’']? report|© OCR \d{4}")
@@ -118,7 +119,7 @@ def main():
         years = [int("20" + s[3:]) for s in series]
         manifest_comp = {f["component"].replace("-", ""): f["component"] for f in manifest}
         meta = {
-            "slug": subj_slug, "board": "OCR", "level": "A-Level", "subject": name, **({"fullName": long_name} if long_name else {}), "specs": list(specs), "cropVersion": CROP_VERSION,
+            "slug": subj_slug, "board": "OCR", "level": "A-Level", "subject": name, **({"fullName": long_name} if long_name else {}), "specs": list(specs), "cropVersion": CROP_VERSION_OF.get(subj_slug, CROP_VERSION),
             "sections": [{"code": s["code"], "title": s["title"]} for s in tree["sections"]], "topics": topics,
             "papers": [paper_for(manifest_comp[c], titles) for c in comps],
             "series": [{"id": s, "label": series_label(s)} for s in series],

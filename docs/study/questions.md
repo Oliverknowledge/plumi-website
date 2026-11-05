@@ -55,6 +55,8 @@ Caps (all enforced on write and again on load): 40 sets (a finished one goes fir
 At 90% of the ink total the sheet shows "Your device is nearly full of handwriting. Clear old sets" (**Your sets** lists every set with its
 size and a Delete). A stroke that would pass a cap is refused, and the zone says it is full and offers Type.
 
+**A finger flick over a writing space** (`fling.ts`, once a pen has been seen, when the page scrolls by hand): the speed comes from the events' own times over the last 100 ms, not from when the handler ran, since a busy page delivers moves in batches (eight moves of 20 px coasted 232 px when steady and 3,799 px when batched, and a student's iPad flew from question 1 to question 6, 4 November 2026). A finger that stopped 70 ms before lifting doesn't coast, the speed is capped at 4 px/ms, the coast runs by the clock so 120 Hz goes no further than 60, and a touch anywhere catches it.
+
 Writes (ink engine, fix round 1): a small answer (under 40 KB, a page of working) is written to IndexedDB the moment each stroke ends; a bigger one
 at most every 1.5 s (a debounce of 300 ms with a 1.5 s maximum wait), and everything is flushed on `pagehide`, `freeze` and `visibilitychange`.
 Typing: 250 ms after the last key and on blur. A write that fails is tried once more on a fresh connection. If IndexedDB is missing or refuses (some
@@ -309,7 +311,7 @@ start and nothing to finish:
   there is no choice), has a mark scheme, hide the ones I have marked (a snapshot, so a question does not vanish the moment it is marked), topics (areas with their topics in a long specification). They are open on a desk and folded on a phone
   until the student says otherwise. Saved ids the subject no longer has are dropped (`cleanFeedFilters`).
 - **A question** (`FeedCard.tsx`): left margin (its number, "Q01.4", "June 2025 · Paper 1 Foundation", Not started / Written / Marked 2 of 3, marks, topic stickers that filter, **The whole paper**), the picture on a taped sheet
-  (`Crop` with zoom, Read as text, "How question 3 starts" / "Question 3 so far" for a part that rests on a setup or on earlier parts), the **answer zone** (Write | Type, the pen tray), the **Mark scheme** pull-up with **Mark yourself**
+  (`Crop` with zoom, Read as text, "How question 3 starts" / "Question 3 so far" for a part that rests on a setup or on earlier parts; the setup is already open on a first part and on a part too short to have words of its own, `startOpens`), the **answer zone** (Write | Type, the pen tray), the **Mark scheme** pull-up with **Mark yourself**
   (`Check`, unchanged), and **Examiner's report** as a note on the right. On a narrow screen the margins fold above and below.
 - **The whole paper** opens that paper in the existing sheet at this question (a paper already begun is picked up, `paperState`); Back returns to the feed at the question the student left.
 
