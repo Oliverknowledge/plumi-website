@@ -1,0 +1,805 @@
+{
+ "about": "100 parts of OCR A-level Biology A (ocr-a-level-biology-a), a seeded random sample (mulberry32 seed 20260905 over the sorted part ids, shuffled, first 100). Labelled by reading each question in full. dev: first 50, used while writing the rules. held: next 50, labelled after the rules were frozen and never used to change them. text is the part question as questionText() cuts it from the bank text file (parts 7a9c85373f, text 7dee98c7b4).",
+ "rows": [
+  {
+   "id": "h02002-jun16-02-eii",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) the value of chi-squared (χ2) can be used to conclude whether the results for cells in tissue type w differ significantly from those for tissue type v. the number of degrees of freedom determines which row of the χ2 probability table is used. the number of degrees of freedom is defined as: the number of categories – 1 what will be the number of degrees of freedom used in this analysis? [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun22-18-b",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "18 the maasai mara is a grassland ecosystem in east africa with a large range of wildlife. the human population in the area is increasing. an increasing human population can affect the biodiversity of an area. (b) maintaining biodiversity in the maasai mara is important. the following are some statements about biodiversity in the maasai mara: a people visit the maasai mara to see animals such as lions, giraffes and rhinoceros. b wild animals are sometimes killed for food by local people. c large herbivores such as wildebeest are the main source of food for large predators such as lions. d part of the area is used by farmers for grazing livestock. e soil erosion has occurred where trees have been removed by humans for fuel or to clear land for grazing. f in and around the maasai mara there is accommodation for over 7000 tourists. the reasons for maintaining biodiversity can be grouped into three categories: ecological, economic and aesthetic. fill in the table to show which of the statements, a to f, could be used as an example of the importance of each of the three categories. you may use each letter once, more than once, or not at all. reason for maintaining biodiversity letter or letters ecological economic aesthetic [3]",
+   "label": "draw"
+  },
+  {
+   "id": "h42001-nov20-21-c",
+   "split": "dev",
+   "marks": 6,
+   "key": null,
+   "text": "(c)* compare and contrast the mechanism of expiration during the first 60 seconds of the trace with the mechanism of expiration when the subject was told to breathe out fully. [6]",
+   "label": "extended"
+  },
+  {
+   "id": "h42002-jun25-19-ai",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "19 the farne islands are a group of small islands off the coast of northern england. the farne islands are a national nature reserve and site of special scientific interest. they are home to many species of bird, including arctic terns, guillemots, cormorants, shags, eider ducks, razorbills, and a variety of gulls. particularly popular with the public are puffins. considered by some to be a keystone species, puffins are small birds with large colourful beaks that fly very close to the surface of the sea. they come to the islands only to breed, nesting in underground burrows. local tour operators transport large numbers of visitors to the islands each year but no visitors are allowed on the islands during the winter to allow conservation work to be carried out. such work includes repairing boardwalks and fences, tagging individual birds, and counting how many puffin burrows have been in use. in 2023, an outbreak of bird flu caused a drop in the numbers of many species, including puffins, and visitors were banned from the islands. local tour operators reported a drop in income. (i) identify evidence from the information above that supports each of the following claims: puffins are important for aesthetic reasons puffins are important for ecological reasons puffins are important for economic reasons [3]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun19-05",
+   "split": "dev",
+   "marks": 1,
+   "key": "B",
+   "text": "5 hox genes contain a homeobox sequence of 180 base pairs. two species have a homeobox sequence of 180 base pairs where 1.7% of the base pairs are different. which of the following shows the number of amino acids coded for that would be different in the two species? a minimum 0 and maximum 1 b minimum 0 and maximum 3 c minimum 1 and maximum 2 d minimum 1 and maximum 3 your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun17-14",
+   "split": "dev",
+   "marks": 1,
+   "key": "D",
+   "text": "14 the commercially grown tobacco plant, nicotiana rustica, has many pests. one such insect pest is manduca sexta, which causes damage to the stems and leaves of n. rustica. the tiny wasp cotesia congregata lays its eggs inside the body of m. sexta. when the larvae develop they feed on the body of the host, eventually killing it. n. rustica produces a volatile organic compound called volicitin when its leaves are damaged. volicitin attracts c. congregata at high concentrations. which of the following explains why n. rustica releases volicitin? 1 volicitin release reduces herbivory in n. rustica 2 volicitin release increases m. sexta growth rate 3 volicitin release reduces parasitism of m. sexta by c. congregata a 1, 2 and 3 b only 1 and 2 c only 2 and 3 d only 1 [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun25-04",
+   "split": "dev",
+   "marks": 1,
+   "key": "A",
+   "text": "4 which option describes the structure of biological molecules? a carbohydrates contain only c, h and o, usually with an h to o ratio of 2 : 1. b nucleic acids contain only c, h, o, n, p and s in variable ratios. c proteins contain only c, h, o and n in variable ratios. d triglycerides contain only c, h and o, usually with an h to o ratio of 2 : 1. your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02002-jun19-04-biv",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "4 an investigation was carried out into the loss of water from a leafy shoot. the apparatus used is shown in fig. 4.1. water leafy shoot syringe rubber tube tap air bubble (at the beginning capillary tube of experiment) scale fig. 4.1 (iv) the control experiment in this investigation was to measure the mean rate of transpiration in still air. explain why the control experiment is carried out in this investigation. [1]",
+   "label": "explain"
+  },
+  {
+   "id": "h42001-jun18-13",
+   "split": "dev",
+   "marks": 1,
+   "key": "D",
+   "text": "13 which of the following diagrams, a to d, shows a sensory neurone? a b c d your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42003-nov20-02-c",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "(c) creatine kinase (ck) is an enzyme that catalyses reactions in heart muscle. high levels of ck in the blood indicate that a person may have had a heart attack. suggest why high levels of ck in the blood indicate that a person may have had a heart attack. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42002-jun23-20-bi",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "20 grey wolves became extinct in an area of north america in the 1920s. in 1993 some grey wolves were reintroduced into the same area. grey wolves feed mainly on large herbivores, such as deer. the graph shows the population of grey wolves and some other species since the reintroduction. 100 80 60 populations wolf (individuals) 40 20 deer (×1000) beaver (colonies) 0 1990 1995 2000 2005 2010 year (b) (i) calculate the percentage increase in the wolf population between 1995 and 2003. percentage increase = [2]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02001-jun23-24-a",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "24 the age of a fossil can be calculated based on its position in rock layers in the ground. fossils of different ages can be compared to provide evidence of evolution and to help construct phylogenies. (a) diatoms are single-celled organisms that have glass-like cell walls, which can be preserved as fossils. the graph shows the fossil record for two species of diatom. key 6.0 species a species b 5.0 width of 4.0 glass-like cell wall 3.0 (μm) 2.0 1.0 0 1.6 1.8 2.0 2.2 2.4 2.6 2.8 3.0 3.2 3.4 age (millions of years) explain whether the data in this graph show evidence for evolution by natural selection. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h42001-jun25-17-ai",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "17 (a) the diagram shows some of the steps in glycolysis. glucose atp adp glucose phosphate fructose phosphate atp adp fructose 1,6-bisphosphate 2 × triose phosphate 2 nad+ 2 pi 2 nadh 2 adp + 2 pi 2 h2o 2 atp 2 × pep 2 adp 2 atp 2 × pyruvate the enzyme phosphofructokinase (pfk) catalyses the conversion of fructose phosphate to fructose 1,6-bisphosphate (hexose bisphosphate). (i) state the type of reaction that is catalysed by pfk. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42003-jun24-04-a",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "4 respiration allows cells to carry out processes such as dna replication. (a) phosphodiester bonds are formed during dna replication. the diagram shows a molecule of deoxyguanosine, which consists of deoxyribose bonded to guanine. o c h n c n h o h c h c h c c h n n o n h c c h h h h c c h o h draw two circles on the diagram around the two parts of the molecule that bond to phosphate when phosphodiester bonds form in dna. [2]",
+   "label": "draw"
+  },
+  {
+   "id": "h42003-nov20-05-bi",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "5 ecologists were studying an area that contained three different habitats. the area is shown in the diagram below. farmland 800 m2 peat bog 800 m2 grassland 400 m2 (b) two of the insect species that were sampled were the large heath butterfly and the bog hoverfly. the ecologists used the capture‑mark‑recapture technique and estimated population sizes using two different calculations: the lincoln estimate and the chapman estimate. (i) calculate the population sizes of the two insect species using each of the formulae below. write your answers in the table. population size = n1 × n2 lincoln estimate formula: m population size = ( ) –1 (n1 + 1) × (n2 + 1) chapman estimate formula: (m + 1) n = number of individuals in a particular sample m = number of marked individuals in the second sample population estimate number number total (number of individuals) captured of marked species number in and marked individuals in lincoln chapman sample 2 in sample 1 sample 2 estimate estimate large heath 77 73 4 butterfly bog 5 6 1 hoverfly [2]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02001-jun18-23-a",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "23 fig. 23 shows a microscope image of a cross section taken from the stem of a sunflower, helianthus annuus. q r s t 60μm fig. 23 (a) calculate the magnification of this image. [2]",
+   "label": "calculate"
+  },
+  {
+   "id": "h42003-jun25-02-c",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "2 adrenaline is a hormone that increases heart rate when it binds to receptors on heart cells. beta blockers are drugs that bind to adrenaline receptors on heart cells. beta blockers are used to treat tachycardia (fast heart rate) and high blood pressure. they reduce the risk of a heart attack or stroke, which are two examples of cardiovascular diseases. (c) heart rate is lowered when the heart receives stimulation from the vagus nerve. explain why the vagus nerve is considered part of the peripheral nervous system and part of the autonomic nervous system. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h42003-nov20-06-ai",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "6 (a) the oxygen dissociation curves for adult haemoglobin and fetal haemoglobin are shown in fig. 6.1. 100 80 key: adult haemoglobin fetal haemoglobin 60 saturation with oxygen (%) 40 20 0 0 20 40 60 80 100 oxygen partial pressure (po2 mmhg) fig. 6.1 (i) outline why it is important that fetal haemoglobin has a higher oxygen affinity than adult haemoglobin. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h02001-jun23-16",
+   "split": "dev",
+   "marks": 1,
+   "key": "C",
+   "text": "16 which statement is a correct description of the structure of adp? a a pyrimidine is part of its structure. b it contains deoxyribose. c it is a nucleotide. d one phosphate group is present. your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun25-16-bii",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "16 (ii) the student noticed that the spots were very faint and thought that there might be other pigments present in the mixture that were too faint to be seen. describe how the student could increase the intensity of the spots using the same chloroplast extract. [2]",
+   "label": "describe"
+  },
+  {
+   "id": "h02002-nov21-02-aii",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) fig. 2.1 shows the circulatory system of the sea bass. heart capillaries in gill capillaries in rest of the body fig. 2.1 name the type of circulatory system shown in fig. 2.1. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h02002-nov20-05-c",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "(c) describe how you would use the same equipment to test if the thickness of the exchange surface affects the diffusion rate. [2]",
+   "label": "describe"
+  },
+  {
+   "id": "h42002-jun22-11",
+   "split": "dev",
+   "marks": 1,
+   "key": "A",
+   "text": "11 nitrobacter is a bacterium that is involved in recycling nitrogen in an ecosystem. which nitrogen cycle reaction is carried out by nitrobacter? − + o2 → 2no3 − a 2no2 n2 + 8h+ + 8e− → 2nh3 + h2 b c nh2conh2 + h2o → 2nh3 + co2 − → no2 − → n2o → n2 d no3 your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun19-16-b",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "(b) the heart supplies oxygenated blood to the tissues. max is a measurement of the maximum volume of oxygen that an individual can use vo2 during intense exercise in a given time. max of an individual by measuring heart rate while smart watches can estimate the vo2 exercising. max is associated with improved aerobic fitness. having a higher vo2 max. two male students exercised for 30 min and used smart watches to record their vo2 max values they recorded. table 16 shows their masses and the vo2 max (cm3 kg−1 min−1) student mass (kg) vo2 1 65 50.4 2 57 48.2 table 16 student 1 drew the following conclusion from this result: max is higher because my mass is greater. i have more cells than my vo2 student 2. each cell needs oxygen to carry out respiration. student 2 said that this conclusion is invalid because several variables have not been controlled. state three variables necessary for a valid comparison that have not been controlled in the above experiment. 1 2 3 [3]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-jun23-10",
+   "split": "dev",
+   "marks": 1,
+   "key": "C",
+   "text": "10 which of the diagrams shows a neurone that connects to an effector? a b c d your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun23-19-a",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "19 (a) which statements about excretion and homeostasis are true, and which are false? tick (✓) one box in each row. statement true false the liver, kidneys, lungs and skin are all involved in excretion. carbon dioxide is formed by deamination of excess amino acids. urea is less soluble and less toxic that ammonia. breakdown of haem from haemoglobin produces bile pigments that are excreted in the faeces. [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-jun17-22-aii",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) which two letters identify regions that do not contain plasma proteins? [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-nov21-21-c",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "21 the formation of tissue fluid is an example of ultrafiltration. osmosis plays an important part in ultrafiltration. (c) the table below contains statements about the composition of lymph and tissue fluid. place ticks (✓) in the boxes in the table to indicate whether the statements are true or false. statement true false lymph is similar in composition to tissue fluid but has more oxygen. tissue fluid does not contain lymphocytes because they are too large to pass through the capillary wall. lymph contains more protein than tissue fluid because of antibody production by plasma cells. [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h02001-nov21-22-a",
+   "split": "dev",
+   "marks": 4,
+   "key": null,
+   "text": "22 the image below shows two white blood cells in a blood sample, seen using a light microscope. (a) explain how to measure the diameter of the nucleus of one of the white blood cells, when observing the cells through a light microscope. [4]",
+   "label": "explain"
+  },
+  {
+   "id": "h02002-jun18-04-biv",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "(iv) three rivers in the himalayan foothills were polluted with copper, which affected the aquatic wildlife. scientists were provided with one dead indian barb fish, esomus danricus, from each of the rivers. scientists were unable to take a direct measurement of the copper ion concentration in the fish. using the information provided in 4(b)(ii), suggest how the scientists could use the fish tissue to compare the copper ion pollution in the three rivers. [3]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02002-jun19-01-ai",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "1 aphids are small insects that feed on the sap that is translocated through the plant in the phloem. these insects insert their fine mouthparts, stylets, into phloem tissue and allow the sap to flow out of the phloem. one method of collecting sap is to allow the aphid to feed as shown in fig. 1. stylet phloem stem aphid fig. 1 the aphid is then anaesthetised and the stylet is cut off close to the aphid’s head. the sap can then be collected and analysed. a researcher analysed the sap collected and the results are shown in table 1. substance tested for conclusion glucose negative starch negative sucrose positive table 1 (a) (i) phloem tissue is made up of different cell types. identify the type of phloem cell into which the stylet is inserted to obtain the sap. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun23-18-ci",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "18 immobilised enzymes are often used for industrial processes. fig. 18.1 shows three methods for immobilising enzymes. fig. 18.1 adsorption covalent bonding entrapment in matrix = enzyme molecule (c) invertase is an enzyme that catalyses the following reaction: sucrose glucose + fructose. invertase is present in cells of baker’s yeast, a type of fungus. it is possible to immobilise invertase and it is also possible to immobilise yeast cells. (i) suggest one reason why using immobilised yeast might be more expensive than using immobilised invertase. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02002-jun22-04-ai",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "4 (a) fig. 4.1 shows a light micrograph of cells in the blood. cell x plays a role in the immune response. erythrocyte x fig. 4.1 (i) name cell x. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h02001-nov21-22-bi",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "22 the image below shows two white blood cells in a blood sample, seen using a light microscope. (b) during a bacterial infection, activated white blood cells multiply by mitosis. in order to study the behaviour of chromosomes during mitosis, higher resolution images are needed. (i) complete the table below about microscopes and their images. laser scanning scanning electron transmission confocal microscope microscope electron microscope maximum 200 nm 3–10 nm 0.5 nm resolution image 2d / 3d appearance image black and white colour [2]",
+   "label": "draw"
+  },
+  {
+   "id": "h42002-jun18-22-c",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "22 crude oil contains hydrocarbons. three hydrocarbons commonly present in crude oil are shown in fig. 22. h h h h h h h h h h w c c c c c c c c c h c h h h h h h h h h h h h h h c h c h x c c c c c h h h h h c c h h c c c y c c c c h h h h h fig. 22 (c) bacteria that are able to digest and metabolise the hydrocarbons in crude oil are more common in areas, such as around the coast of alaska and the gulf of mexico, where oil spillages are common. suggest an explanation for this observation. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42001-jun25-17-ciii",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "17 (iii) respiration of glucose involves a series of oxidation reactions. explain how oxidation occurs in glycolysis. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h02001-jun19-19",
+   "split": "dev",
+   "marks": 1,
+   "key": "B",
+   "text": "19 the diagram shows part of the gas exchange system of an insect. d outside of organism muscle a tissue b c which of the labels, a to d, indicates the trachea? your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02001-jun17-25-aii",
+   "split": "dev",
+   "marks": 4,
+   "key": null,
+   "text": "25 semi-conservative replication describes the process by which dna is replicated in all living organisms. (ii) dna ligase is one enzyme involved in the replication of dna. state two other enzymes involved and describe their functions. [4]",
+   "label": "describe"
+  },
+  {
+   "id": "h42001-jun17-20-e",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "20 a student carried out an investigation into the production of co2 in five different species of yeast. the yeast cells were placed in different environments and the co2 production was measured. table 20 shows the results of the experiment. the mean values for these data are also represented as a graph in fig. 20. carbon dioxide produced (bubbles min–1) conditions species s. cerevisiae c. krusei c. albidus c. albicans a. pullulans trial 1 23 18 34 12 22 2 18 17 20 15 21 3 23 19 32 26 24 4 24 23 26 13 22 5 25 19 28 14 26 aerobic 6 15 17 29 12 22 7 16 19 20 15 25 8 17 23 36 13 27 9 23 19 20 10 27 10 25 17 19 13 25 11 25 16 34 11 25 12 23 16 20 11 25 standard deviation 4 2 7 4 2 trial 1 12 6 22 8 34 2 10 9 29 22 36 3 12 10 19 6 29 4 13 12 34 12 32 5 15 7 25 19 28 anaerobic 6 9 8 19 10 26 7 10 9 23 14 27 8 15 10 27 9 29 9 15 5 35 6 35 10 14 7 26 7 20 11 15 8 19 21 30 12 11 9 25 13 34 standard deviation 2 2 5 6 table 20 29 (e) anaerobic respiration in yeast cells requires enzymes. which organelle is responsible for synthesising these enzymes? [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun24-19-biii",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "19 vaccination can protect an individual from infectious disease. polio is a viral disease that usually affects children and can have lifelong effects. (iii) there were cases of polio in england and wales in the 1980s. the scale used on the graph is not sensitive enough to show changes in the number of cases during the 1980s. suggest one way in which the y-axis scale could be changed in order that changes in the 1950s and 1980s were both visible. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02001-jun25-25-b",
+   "split": "dev",
+   "marks": 1,
+   "key": null,
+   "text": "25 (b) name an international agreement that might use data about the changing numbers of the asian elephant to monitor its conservation status. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h02001-jun16-24-bi",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "24 in mammalian blood, oxygen is mainly transported combined with haemoglobin. the presence of haemoglobin greatly increases the oxygen carrying capacity of blood. 100 cm3 of plasma contains 0.3 cm3 of oxygen when fully saturated. • 100 cm3 of blood contains 20.1 cm3 of oxygen when fully saturated. • (b) haemoglobin is found in erythrocytes. unlike other vertebrates, the mature erythrocytes of mammals lack nuclei and other membrane-bound organelles. (i) explain one advantage and one disadvantage of the lack of nuclei and other membrane- bound organelles to mammalian erythrocytes. advantage disadvantage [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h42003-jun17-07-b",
+   "split": "dev",
+   "marks": 4,
+   "key": null,
+   "text": "7 many organisms have evolved specialised gas exchange surfaces. one feature of these structures is their large surface area to volume ratio. (b) mammals use lungs for gas exchange. the following passage describes how gases are moved in and out of the lungs. complete the passage using the most appropriate words or phrases. when air enters the trachea, mucus secreted by cells traps dust and microorganisms. air diffuses through the bronchi and the bronchioles. smooth muscle in the bronchioles relaxes during the ‘fight or flight’ response. this response is produced by the sympathetic nervous system, which contains neurones that secrete the neurotransmitter . during inspiration, both the and external intercostal muscles contract. the internal intercostal muscles only contract when expiration is . [4]",
+   "label": "draw"
+  },
+  {
+   "id": "h02002-jun22-03-aii",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "(ii) a common symptom of lactose intolerance in adults is the creation of extra fluid in the large intestine. suggest why this occurs. [2]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02001-jun22-04",
+   "split": "dev",
+   "marks": 1,
+   "key": "C",
+   "text": "4 the table shows the chemical symbols for some inorganic ions involved in biological processes. ammonium ion calcium ion nitrate ion + ca+ – a nh4 no2 – ca2+ – b nh4 no3 + ca2+ – c nh4 no3 d + ca2+ – nh4 no2 which row gives the correct chemical symbols for all of these inorganic ions? your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42003-jun25-05-d",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "5 a student investigates water potential in the cells of a bell pepper, capsicum annuum. a slice of bell pepper is shown in the image. the student: • prepares several concentrations of sucrose solution • cuts pieces of pepper and records the mass of each piece • places pieces of pepper in each sucrose solution • removes the pieces after 30 minutes and dries them • records the mass of each piece. (d) the graph shows the results of the experiment. 15 10 percentage change in mass 5 0 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 sucrose concentration (mol dm–3) use the graph to estimate the concentration of sucrose solution that has the same water potential as the pepper tissue. concentration of sucrose solution = mol dm–3 [2]",
+   "label": "other"
+  },
+  {
+   "id": "h42002-jun22-17-cii",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "17 some students investigated the effect of time on the growth of bacterial populations. the students prepared a large flask of bacterial culture. they divided this large culture into a number of smaller flasks each containing 50 cm3 of bacterial culture. they then incubated the smaller flasks at 20 °c for up to 48 h. every 4 h the students removed one of the flasks and counted the bacteria. the students recorded the total number of bacteria and the number of viable bacteria in each flask. (ii) calculate the percentage decrease in the viable population between 40 h and 48 h. give your answer to 3 significant figures. percentage decrease = % [3]",
+   "label": "calculate"
+  },
+  {
+   "id": "h42002-jun22-17-biii",
+   "split": "dev",
+   "marks": 3,
+   "key": null,
+   "text": "17 some students investigated the effect of time on the growth of bacterial populations. the students prepared a large flask of bacterial culture. they divided this large culture into a number of smaller flasks each containing 50 cm3 of bacterial culture. they then incubated the smaller flasks at 20 °c for up to 48 h. every 4 h the students removed one of the flasks and counted the bacteria. the students recorded the total number of bacteria and the number of viable bacteria in each flask. (iii) in one 0.01 cm3 sample the students counted 52 bacterial cells under the microscope. describe the calculation steps the students would then need to make to estimate the total number of bacteria in the small flask. [3]",
+   "label": "describe"
+  },
+  {
+   "id": "h42003-jun25-04-b",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "4 rna and dna are polynucleotides. (b) outline how gene expression is regulated within cells at the post‑transcriptional level. [2]",
+   "label": "describe"
+  },
+  {
+   "id": "h42001-jun19-20-aiii",
+   "split": "dev",
+   "marks": 2,
+   "key": null,
+   "text": "20 rubredoxin is a protein found in bacteria. it contains around 50 amino acids. one iron ion is bound by the sulphur atoms of four cysteine amino acids. the structure of rubredoxin is shown in fig. 20.1. iron ion sulphur atom polypeptide chain fig. 20.1 (iii) rubredoxin and haemoglobin have different secondary and tertiary structures. using the information provided about rubredoxin, state two other differences between the structures of rubredoxin and haemoglobin. difference 1 difference 2 [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h02002-jun25-03-c",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "3 (c) the student completes a different experiment to investigate the effect of ph on enzyme action. suggest how they would vary and detect the ph in their experiment. [2]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42003-nov21-03-b",
+   "split": "held",
+   "marks": 6,
+   "key": null,
+   "text": "3 callose is a polysaccharide produced by plants. (b)* plants produce callose in response to pathogenic infection, injury and changes in environmental temperature. scientists wanted to investigate the effect of temperature on callose production. outline a valid plan that could be used to investigate the effect of temperature on callose production in plants. you should include a suggestion for how callose production could be observed. [6]",
+   "label": "extended"
+  },
+  {
+   "id": "h02002-jun25-06-aii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "6 (ii) calculate the person’s tidal volume during exercise. tidal volume during exercise = cm3 [1]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02001-nov20-17",
+   "split": "held",
+   "marks": 1,
+   "key": "B",
+   "text": "17 the graph below shows the oxygen dissociation curve for adult human haemoglobin. 100 80 60 saturation of haemoglobin with oxygen (%) 40 20 0 0 20 40 60 80 100 partial pressure of oxygen (mm hg) what is the proportion of oxygen molecules released by haemoglobin between 40 mm hg and 20 mm hg? a 0.31 b 0.69 c 2.21 d 3.21 your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun17-09",
+   "split": "held",
+   "marks": 1,
+   "key": "B",
+   "text": "9 the hormone hcg can be detected in urine using pregnancy tests. which of the following properties of the hormone hcg allows it to be detected in urine? a hcg is a polar molecule b hcg has a molecular mass of less than 69,000 c hcg is a polypeptide d hcg binds to cells using glycoproteins [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42002-nov20-22-ci",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "22 the human body is able to protect itself from disease in a variety of ways. (c) chickenpox is a common disease. people who have recently recovered from chickenpox can donate plasma so that their antibodies can be given to leukaemia patients with weakened immune systems. (i) use a tick (v) to indicate in the table below which type of immunity is functioning in a leukaemia patient when given chickenpox antibodies. type of immunity natural and active natural and passive artificial and active artificial and passive [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun24-12",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "12 aseptic conditions are important when culturing microorganisms. which option is not a correct part of the procedure for spreading bacteria on an agar-filled petri dish? a remove the lid of the petri dish and rest it upside-down on the work surface. b replace the lid of the petri dish and secure it with tape. c sterilise the area surrounding the experiment with disinfectant. d work near a bunsen flame to create an upward draft of air. your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-jun19-22-bii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "22 plants are capable of synthesising a variety of molecules from the products of the light-independent stage of photosynthesis. fig 22.1 summarises these processes. co2 light- independent a gp stage b glucose c glycerol d polysaccharides lipids enzymes fig. 22.1 (ii) identify one variable that was not controlled in the scientist’s method. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-jun22-01",
+   "split": "held",
+   "marks": 1,
+   "key": "C",
+   "text": "1 which statement describes the properties or functions of cholesterol? a it increases the fluidity of the phospholipid bilayer at high temperatures. b it is an unsaturated fatty acid because it contains carbon–carbon double bonds. c it is used to produce some hormones. d it is very hydrophilic so is attracted to the fatty acid tails in the membrane. your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42002-jun17-02",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "2 which of the statements, a to d, about amylopectin is correct? a it contains 1-4 and 1-6 glycosidic bonds between α-glucose monomers b it is an unbranched chain of α-glucose monomers c it contains α 1-4 and β 1-6 glycosidic bonds d it is made up of β-glucose monomers and is uncoiled your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02002-nov20-02-ci",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "(c) (i) a protein is made up of amino acids which are joined by chemical bonds. below is an incomplete diagram of one of these bonds. complete the diagram of the molecular structure of these two amino acids to show how they are joined together and name the bond you have drawn. h h h o n c c c h oh r1 r2 name of bond [2]",
+   "label": "draw"
+  },
+  {
+   "id": "h02002-jun16-05-aii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) how does the circulatory system of a fish compare to that of a mammal? [1]",
+   "label": "evaluate"
+  },
+  {
+   "id": "h02001-jun23-12",
+   "split": "held",
+   "marks": 1,
+   "key": "B",
+   "text": "12 a scientist analysed and recorded all of the chemical elements in one particular amino acid. which elements did the scientist record? a c, h, n, s b c, h, o, n c c, h, o, n, p d c, h, o, n, s, p your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42002-jun25-18-bi",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "18 sampling is an important technique for assessing biodiversity. (b) quadrat sampling is a useful tool for measuring the abundance and distribution of plant species. a student sampled plants on an area of sports field. observations recorded by the student for two of the quadrats are shown in the image below. the symbols represent different plant species. quadrat a quadrat b (i) state the species richness in quadrat a. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-jun18-17-ai",
+   "split": "held",
+   "marks": 4,
+   "key": null,
+   "text": "17 (a) chromista are photosynthetic protoctists that live in water. chromista are different from other photosynthetic organisms because they contain the pigment chlorophyll c. chlorophyll c is not found in plants. (i) outline the importance of photosynthetic pigments in photosynthesis. [4]",
+   "label": "describe"
+  },
+  {
+   "id": "h42001-jun24-18-ci",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "18 (c) the formation of tissue fluid has many similarities with the process of ultrafiltration in the kidneys. the table shows the factors involved in formation of tissue fluid and its return to the blood. hydrostatic pressure (kpa) oncotic pressure (kpa) location blood tissue fluid blood tissue fluid arteriole end 4.5 1.1 –3.3 –1.2 venule end 1.7 1.1 –3.3 –1.2 (i) the net pressure at the arteriole end is +1.3 kpa. calculate the net pressure at the venule end. net pressure at venule end = kpa [2]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02001-jun18-22-cii",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "22 fig. 22 shows a triglyceride molecule found in sunflower oil. o o o o o o fig. 22 (ii) table 22 shows the melting points of some of the methyl esters made from the transesterification of sunflower oil fatty acids. methyl ester formula melting point (°c) methyl sterate c19h38o2 39.1 methyl oleate c19h36o2 –19.9 methyl linoleate c19h34o2 –35.0 table 22 describe and explain the pattern of the melting points of these three methyl esters. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h02002-jun23-02-biii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "(iii) state the conclusion that can be drawn from the students’ results. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h02001-jun18-08",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "8 which of the following types of cells is not involved in a primary immune response? a t-memory cells b t-helper cells c t-killer cells d plasma cells your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02002-nov20-05-bii",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "(ii) justify whether the results from the investigation support your hypothesis given in part (b)(i). [2]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42002-jun18-22-bi",
+   "split": "held",
+   "marks": 3,
+   "key": null,
+   "text": "22 crude oil contains hydrocarbons. three hydrocarbons commonly present in crude oil are shown in fig. 22. h h h h h h h h h h w c c c c c c c c c h c h h h h h h h h h h h h h h c h c h x c c c c c h h h h h c c h h c c c y c c c c h h h h h fig. 22 (b) crude oil is often spilled from ships into the sea causing great damage to wildlife. the chemicals in crude oil are harmful to many species and do not break down quickly in the environment. some bacteria can break down the hydrocarbons in crude oil. these bacteria have been used by conservationists at sites where oil has been spilled. (i) the rate of hydrocarbon breakdown by bacteria can be increased by spraying the oil with detergent. detergents break up oil into droplets, thereby increasing their surface area. • student a concluded that the detergent speeded up the rate of hydrocarbon breakdown only because it increased the surface area of hydrocarbon upon which the bacteria could grow. • student b concluded that the detergents also increased the growth of the bacterial population by an alternative mechanism. use the information in fig. 22 and your knowledge of bacterial growth requirements to provide support for student b’s conclusion. [3]",
+   "label": "other"
+  },
+  {
+   "id": "h42001-nov20-21-d",
+   "split": "held",
+   "marks": 5,
+   "key": null,
+   "text": "(d) complete the following statements about exchange surfaces. use the correct terms selected from the list below. circulatory system concentration gradient diffusion pathway flow of air lung capacity surface area surface area to volume ratio ventilation large organisms have a large but they have a small . this means they need a specialised exchange surface and a . two features of an efficient exchange surface are: 1. a good blood supply to maintain the . 2. a short . [5]",
+   "label": "draw"
+  },
+  {
+   "id": "h42002-nov20-18-bii",
+   "split": "held",
+   "marks": 3,
+   "key": null,
+   "text": "18 individuals within populations vary. much of this variation is under genetic control. (ii) since 1940, people have believed that the ability to roll the tongue is caused by a single gene with two alleles. r is dominant and allows tongue-rolling. r is recessive and does not allow tongue-rolling. the genotype of students who can roll their tongue could be either rr or rr. in the results shown in the table opposite the total number of students who could roll their tongue = 171 the total number of students who could not roll their tongue = 77. the hardy-weinberg principle allows us to estimate the proportion of each genotype. use the hardy-weinberg principle to estimate the proportion of heterozygous individuals in the school survey in the table. use the equations: p2+ 2pg +q2= 1 p+q= 1 proportion = ... [3]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02001-jun19-06",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "6 which of the following molecules, a to d, could be a product of breaking a peptide bond during a hydrolysis reaction? a b h h o h o h c c n c c n ho h h h ch ch h3c ch3 h3c ch3 c d ch2oh o h oh h h h o h h c c c c oh h ho h o h h h h h oh your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42003-jun22-02-di",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "(d) fig. 2.2 shows stained tissue that includes two different blood vessels, labelled l and m, and a substance labelled n. n m l fig. 2.2 (i) state whether l is an artery or a vein and give two pieces of evidence from fig. 2.2 that allow you to reach your decision. l evidence 1 evidence 2 [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h42003-jun23-03-aiii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "3 genetic modification and selective breeding can be used to improve the characteristics of crop plants, such as maize. (iii) often a single company holds the patent for a gm crop plant. suggest a potential ethical issue that may exist if one company holds the patent for a gm crop plant. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42001-jun19-17-bi",
+   "split": "held",
+   "marks": 4,
+   "key": null,
+   "text": "17 gibberellin causes stem elongation in plants. fig. 17.1 shows the effect of gibberellin on cabbage plants. without gibberellin with gibberellin fig. 17.1 gibberellin causes an increase in the distance between the leaves on the stem, which is known as the internodal length. (b) a scientist carried out an investigation into the effect of gibberellin on cabbage plants. the scientist applied a range of volumes of gibberellin and measured the rate of increase of internodal length over 30 days. table 17 shows the scientist’s results. volume of gibberellin rate of increase of applied internodal length (x10−3 cm3 kg−1 day−1) (mm day−1) 0.0 1 0.2 1 0.4 2 0.6 4 0.9 22 1.2 47 1.4 48 1.8 49 1.9 50 2.0 50 table 17 (i) plot the results from table 17 as a suitable graph. [4]",
+   "label": "draw"
+  },
+  {
+   "id": "h02002-nov20-06-c",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "(c) in mammals the lungs act as the gas exchange system. various components of this system work together to ensure gas exchange is efficient. two such components are cartilage and elastic fibres. state the roles of these two components in mammalian gas exchange. cartilage elastic fibres [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h42003-jun17-02-bv",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "2 bread contains a mixture of polypeptides known as gluten. gluten consists of two types of polypeptide: gliadins and glutenins. (v) the students used a student’s t-test to compare the results at 30 °c and 35 °c. they calculated a t value of 2.200. the critical value for p = 0.05 is 2.306. assuming their final method was valid, what can the students conclude from the result of the t-test? [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42003-nov20-05-c",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "5 ecologists were studying an area that contained three different habitats. the area is shown in the diagram below. farmland 800 m2 peat bog 800 m2 grassland 400 m2 (c) the peat bog habitat had been damaged by peat extraction and by management of the neighbouring farmland. ecologists decided to treat the peat bog in the following way: • a buffer region was created between the peat bog and the neighbouring farmland. • no visitors were allowed on the land. • ditches were blocked to raise water levels. • peat extraction, tree planting and the use of fertilisers were banned. a student suggested that this was an example of preservation. evaluate the student’s conclusion. [2]",
+   "label": "evaluate"
+  },
+  {
+   "id": "h02002-jun24-03-d",
+   "split": "held",
+   "marks": 3,
+   "key": null,
+   "text": "3 (d) the table below shows some results from a model cell investigation. concentration of glucose found outside the temperature (°c) dialysis tubing after two minutes (mol dm–3) 10 1.5 20 3.6 30 4.7 40 5.8 explain these results in terms of the effect of temperature on the rate of diffusion. [3]",
+   "label": "explain"
+  },
+  {
+   "id": "h02001-jun18-21-di",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "21 the titicaca water frog, telmatobius culeus, is an aquatic amphibian found in lake titicaca in sub-tropical south america. the water frog has an unusual appearance with large folds of skin as shown in fig. 21.1. fig. 21.1 (d) a student was investigating the effect of cell size on the rate of diffusion into model cells. they had two cubes of agar containing phenolphthalein indicator as shown in fig. 21.2. cube a cube b fig. 21.2 the student placed the cubes in beakers of dilute hydrochloric acid, which caused the indicator to become colourless. they then measured how much of each cube became colourless over time. (i) state two ways the student could have ensured they had confidence in their results. 1 2 [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h02001-nov21-18",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "18 which row, a to d, shows the stages of meiosis where crossing over and independent assortment occur? crossing over independent assortment a prophase 1 metaphase 1 and 2 b metaphase 1 metaphase 2 only c prophase 1 metaphase 1 only d prophase 2 metaphase 1 and 2 your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02001-jun19-26-b",
+   "split": "held",
+   "marks": 3,
+   "key": null,
+   "text": "26 the specific immune system is based on white blood cells called lymphocytes. (b) a student wrote the following passage in an essay on the immune system. immunisation programmes involve injecting individuals with a small amount of the safe antibody, known as a vaccine. in the uk, babies are given routine vaccinations against a range of infectious diseases including diphtheria and measles. these injections provide a form of natural passive immunity that may last a year, a few years or a lifetime. state three errors that the student has made in this passage. [3]",
+   "label": "recall"
+  },
+  {
+   "id": "h42001-nov20-04",
+   "split": "held",
+   "marks": 1,
+   "key": "A",
+   "text": "4 which of the following statements, a to d, does not correctly describe the structure or formation of plant vascular tissues? a companion cells are linked to xylem vessels by plasmodesmata. b mature sieve tube elements do not contain nuclei. c phloem and xylem are formed by differentiation of vascular meristems. d xylem vessels have non-lignified pits to allow movement in and out. [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h02002-jun16-02-dii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) the student decided to analyse the data using a statistical test. a friend suggested using student’s t-test. why is student’s t-test not suitable for dealing with this data? [1]",
+   "label": "explain"
+  },
+  {
+   "id": "h42001-jun23-16-ai",
+   "split": "held",
+   "marks": 3,
+   "key": null,
+   "text": "16 during pregnancy the mother’s body undergoes several physiological changes to support the developing fetus. these changes affect every organ system in the body. (a) changes to the heart and circulatory system begin in the first few weeks of pregnancy. fig. 16.1 shows the changes in stroke volume and heart rate that occur during pregnancy. fig. 16.1 90 85 80 stroke volume 75 (cm3) 70 65 60 0 4 8 12 16 20 24 28 32 36 40 90 88 86 84 82 heart rate 80 (bpm) 78 76 74 72 0 4 8 12 16 20 24 28 32 36 40 length of pregnancy (weeks) (i) use the data in fig. 16.1 to calculate the cardiac output in week 20. cardiac output = unit [3]",
+   "label": "calculate"
+  },
+  {
+   "id": "h02002-jun19-04-aii",
+   "split": "held",
+   "marks": 6,
+   "key": null,
+   "text": "4 an investigation was carried out into the loss of water from a leafy shoot. the apparatus used is shown in fig. 4.1. water leafy shoot syringe rubber tube tap air bubble (at the beginning capillary tube of experiment) scale fig. 4.1 (ii)* there must be no air in the apparatus in fig. 4.1 for it to work correctly. describe and explain the precautions that need to be taken when setting up and using the apparatus in fig. 4.1 to ensure that no air is present. [6]",
+   "label": "extended"
+  },
+  {
+   "id": "h42003-jun18-04-cv",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "4 agammaglobulinemia and vici syndrome are both genetic diseases. (v) dna fragments are separated to produce a dna profile using electrophoresis. a student wrote the following description of the electrophoresis procedure: we will set up an agarose gel plate and place the dna samples in the wells at the cathode. voltage will be passed through the gel for one minute. the gel will then be placed in purified water and we will be able to see the banding pattern of each dna sample. describe two changes you would make to the student’s procedure and explain how these changes would improve electrophoresis. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h02002-jun24-04-bi",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "4 (i) explain the role of valves in veins. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h42003-jun19-02-bi",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "2 fig. 2.1 shows a naked mole rat, heterocephalus glaber. fig. 2.1 the naked mole rat is a mammal. however, it has several features that are unusual for mammals. (b) another unusual characteristic of naked mole rats is their tolerance of pain. acid causes pain responses in most mammals. naked mole rats are tolerant of the pain caused by acid. this tolerance can be explained by the type of pain receptor found in naked mole rats. fig. 2.2 shows a representation of the ion channels present in the pain receptors of naked mole rats and other mammals. pain receptor in pain receptor in naked mole rats other mammals cell membrane cell membrane voltage-gated acid-sensing acid-sensing na+ ion channel. voltage-gated na+ ion channel. na+ ion channel. na+ ion channel. this channel is this channel this channel this channel prevented from opens in the opens in the is not affected opening by the presence of presence of by h+ ions. presence of h+ ions. h+ ions. h+ ions. fig. 2.2 (i) use the information in fig. 2.2 to suggest why naked mole rats do not feel pain when exposed to acid. [2]",
+   "label": "suggest"
+  },
+  {
+   "id": "h42002-jun18-21-ci",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "21 fred sanger developed an effective dna sequencing technique in 1977. (c) one technique that has allowed the speed of dna sequencing to increase has been the development of nanopores. fig. 21 shows how nanopores can be used to sequence dna. dna strand c nanopore t a c t electrode electrode g movement of dna strand fig. 21 (i) state one development, other than nanopore technology, that has led to an increase in the speed at which dna can be sequenced. [1]",
+   "label": "recall"
+  },
+  {
+   "id": "h42002-jun17-21-d",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "21 fig. 21 shows some of the steps involved in producing a genetically modified bacterium. dna isolated from donor organism a b containing useful gene c d fig. 21 (d) bacteria can be genetically modified to produce human insulin. the process is similar to that shown in fig. 21 with some differences. first, instead of isolating dna that contains the insulin gene, mrna that codes for insulin is extracted from human pancreas cells. what needs to be done with the mrna in order for the rest of the genetic modification to be completed? [2]",
+   "label": "recall"
+  },
+  {
+   "id": "h02002-jun23-05-aii",
+   "split": "held",
+   "marks": 4,
+   "key": null,
+   "text": "(ii) student a studied the data in the table and made the following statement: ‘the mmr vaccination programme is not working because although the number of children vaccinated has reduced, measles incidence has also reduced.’ in response, student b stated: ‘you cannot tell this from the data provided here.’ with reference to the data in the table, discuss whether student b is correct. [4]",
+   "label": "evaluate"
+  },
+  {
+   "id": "h02002-nov20-02-dii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) lupus symptoms include pain in joints, inflammation, fatigue, fever and a skin rash. suggest what component of sunlight causes photosensitivity and which symptom is likely to be more common in photosensitive sufferers. component of sunlight symptom [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02001-jun19-16",
+   "split": "held",
+   "marks": 1,
+   "key": "B",
+   "text": "16 the two histograms represent the frequency distribution for the two different types of variation. q r number of number of organisms organisms characteristic characteristic which of the statements, a to d, about characteristic q is correct? a controlled by many genes and unaffected by the environment b controlled by one or two genes and unaffected by the environment c controlled by many genes and influenced by the environment d controlled by one or two genes and influenced by the environment your answer [1]",
+   "label": "choice"
+  },
+  {
+   "id": "h42001-nov21-19-bii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "(ii) cacti are popular house plants. suggest why cacti do not grow well in a terrarium. [1]",
+   "label": "suggest"
+  },
+  {
+   "id": "h02001-nov21-21-bi",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "21 fig. 21 shows a molecule of adp. nh2 o o n n o– p o p o n n o o– o– oh oh fig. 21 (b) dna is a polymer of nucleotides that contains the genetic code needed for a protein to be made. tubulin is a protein that is found in all eukaryotes and some prokaryotes. (i) explain how the genetic code in the gene for tubulin codes for the protein tubulin. [2]",
+   "label": "explain"
+  },
+  {
+   "id": "h42003-jun19-02-bii",
+   "split": "held",
+   "marks": 1,
+   "key": null,
+   "text": "2 fig. 2.1 shows a naked mole rat, heterocephalus glaber. fig. 2.1 the naked mole rat is a mammal. however, it has several features that are unusual for mammals. (ii) explain how a pain receptor is an example of a transducer. [1]",
+   "label": "explain"
+  },
+  {
+   "id": "h42002-nov21-19-bi",
+   "split": "held",
+   "marks": 2,
+   "key": null,
+   "text": "19 the inheritance of some alleles depends on the sex of the individual. (b) haemophilia in humans is a sex-linked disorder. the recessive haemophilia allele is carried on the x chromosome. females who carry the recessive allele for haemophilia on one of their sex chromosomes do not show any symptoms. a female who was a carrier of the haemophilia allele and a male who did not have the haemophilia allele had nine children. the expected ratio of phenotypes in the children of this couple would be 2 healthy females : 1 healthy male : 1 male with haemophilia. (i) a student performed a chi squared calculation on the phenotypes of the actual nine children. part of the calculation is shown in table 19.1. (o–e)2 observed expected (o–e)2 phenotypes o–e number (o) number (e) e h ealthy female 0.5 0.25 0.056 healthy male 0.75 0.56 0.249 haemophilia male –1.25 1.56 0.693 χ2 = 0.998 table 19.1 complete the table by filling in the columns for the observed and expected numbers. [answer on table 19.1] [2]",
+   "label": "draw"
+  }
+ ]
+}

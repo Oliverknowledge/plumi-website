@@ -85,7 +85,13 @@ export type PlumiEvent =
   | "pack_downloaded"
   /** How "Send it to my iPad" ended: `outcome` is sent, emailed or dismissed.
    *  The first two are also the Google Ads `sendToIpad` conversion. */
-  | "send_to_ipad_result";
+  | "send_to_ipad_result"
+  /** Topic analysis in the study app's question feed (counts of how each topic has been asked in the papers Plumi holds).
+   *  opened carries `subject` (the bank slug); topic viewed adds `topic` (the spec code); practise clicked adds `topic` and `form`
+   *  (a form id, or "all" for the whole topic). No student data. */
+  | "topic_analysis_opened"
+  | "topic_analysis_topic_viewed"
+  | "topic_analysis_practise_clicked";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 

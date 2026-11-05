@@ -8,6 +8,7 @@ import "../questions-ink.css";
 import "../questions-sheet.css";
 import "../questions-setup.css";
 import "../questions-feed.css";
+import "../questions-analysis.css";
 
 export const metadata: Metadata = { title: "Questions" };
 

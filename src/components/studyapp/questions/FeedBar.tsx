@@ -10,7 +10,8 @@ import { areaState, toggleArea } from "@/lib/studyapp/questions/picker";
 import type { SubjectMeta } from "@/lib/studyapp/questions/subject";
 import { topicName } from "./FiltersDialog";
 import { CloseIcon, SearchIcon } from "./icons";
-import { ChevronIcon, FilterIcon, ShuffleIcon } from "./pickerIcons";
+import { ChartIcon, ChevronIcon, FilterIcon, ShuffleIcon } from "./pickerIcons";
+import { FORM_NAMES, FORMS } from "@/lib/studyapp/questions/questionForm";
 
 const n = (x: number) => x.toLocaleString("en-GB");
 
@@ -30,7 +31,9 @@ export const FeedHead = forwardRef<HTMLDivElement, {
   notSaved?: boolean;
   /** The search box has the focus: the papers' text is asked for now, before a key is pressed. */
   onSearchFocus?(): void;
-}>(function FeedHead({ onSearchFocus, search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts, notSaved }, ref) {
+  /** The subject has a topic analysis: the button that opens it (null: no button). */
+  onAnalysis?: (() => void) | null;
+}>(function FeedHead({ onAnalysis, onSearchFocus, search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts, notSaved }, ref) {
   return (
     <div className="qf-head" ref={ref} role="search" aria-label="Find questions">
       <label className="qs-search qf-search">
@@ -40,6 +43,9 @@ export const FeedHead = forwardRef<HTMLDivElement, {
       <button type="button" className={`qs-tbtn qf-fbtn${active > 0 ? " on" : ""}`} aria-expanded={open} aria-controls="qf-body" onClick={onToggle} data-testid="feed-filters-toggle">
         <FilterIcon /><span>Filters</span>{active > 0 && <span className="qs-badge" aria-label={`${active} on`}>{active}</span>}
       </button>
+      {onAnalysis && (
+        <button type="button" className="qs-tbtn qf-abtn" onClick={onAnalysis} aria-haspopup="dialog" data-testid="feed-analysis"><ChartIcon /><span>Topic analysis</span></button>
+      )}
       <div className="qf-count">
         <p className="qf-nres" role="status" aria-live="polite">{count < 0 ? <b data-testid="feed-count">Searching</b> : <><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}</>}{tier && !phone ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
         {(progress || here) && (
@@ -209,6 +215,14 @@ export function FeedFilterBody({ meta, bands, f, onChange, hasCalc, hasScheme, h
           <span className="qf-rowlab" id="qf-types">Question type<span className="qf-hint"> by the marks it is worth</span></span>
           <div className="qf-chips">
             {bands.map((b) => <button key={b.id} type="button" className={`qs-chip${f.types.includes(b.id) ? " on" : ""}`} aria-pressed={f.types.includes(b.id)} onClick={() => onChange({ types: toggleIn(f.types, b.id) })} data-testid="feed-type">{b.label}<N n={nOf(counts?.types, b.id)} /></button>)}
+          </div>
+        </div>
+      )}
+      {extras.forms && (
+        <div className="qf-row" role="group" aria-labelledby="qf-forms">
+          <span className="qf-rowlab" id="qf-forms">How it is asked</span>
+          <div className="qf-chips">
+            {FORMS.map((id) => <button key={id} type="button" className={`qs-chip${f.forms.includes(id) ? " on" : ""}`} aria-pressed={f.forms.includes(id)} onClick={() => onChange({ forms: toggleIn(f.forms, id) })} data-testid="feed-form" data-form={id}>{FORM_NAMES[id]}<N n={nOf(counts?.forms, id)} /></button>)}
           </div>
         </div>
       )}

@@ -408,7 +408,7 @@ describe("counts", () => {
     row("c", { p: "P2", s: "JUN25", t: ["t2"], m: 4, calc: 1 }), row("d", { p: "P2", s: "JUN24", t: ["t3"], m: 6 }),
   ];
   const bands = bandsFor("Physics", rows);
-  const ex: FeedExtras = { practicals: new Set(["a", "c"]), year13: new Set(["d"]), twins: null };
+  const ex: FeedExtras = { practicals: new Set(["a", "c"]), year13: new Set(["d"]), twins: null, forms: null };
   const meta = { papers: [{ id: "P1", name: "1", option: "x" }, { id: "P2", name: "2", option: "y" }, { id: "P3", name: "3" }], options: { label: "O", list: [{ id: "x", name: "X" }, { id: "y", name: "Y" }] } };
   const c: FeedContext = { bands, extras: ex, meta };
   test("each option counts with every other filter kept and its own left out", () => {
@@ -437,7 +437,7 @@ describe("counts", () => {
   test("a thousand rows are counted in a few milliseconds, not seconds", () => {
     const big = Array.from({ length: 3000 }, (_, i) => row(`r${i}`, { p: `P${i % 4}`, s: i % 2 ? "JUN25" : "JUN24", t: [`t${i % 30}`, `t${(i + 7) % 30}`], m: 1 + (i % 9), calc: i % 3 === 0 ? 1 : undefined }));
     const t0 = performance.now();
-    feedCounts(big, f({ topics: ["t3"], calc: "only" }), { bands: bandsFor("Physics", big), extras: { practicals: new Set(big.slice(0, 500).map((r) => r.id)), year13: new Set(big.slice(0, 900).map((r) => r.id)), twins: null } }, bandsFor("Physics", big));
+    feedCounts(big, f({ topics: ["t3"], calc: "only" }), { bands: bandsFor("Physics", big), extras: { practicals: new Set(big.slice(0, 500).map((r) => r.id)), year13: new Set(big.slice(0, 900).map((r) => r.id)), twins: null, forms: null } }, bandsFor("Physics", big));
     assert.ok(performance.now() - t0 < 400, `took ${Math.round(performance.now() - t0)} ms`);
   });
 });
@@ -459,4 +459,33 @@ describe("pills and clear all", () => {
     assert.equal(cleared.sort, "spec");
   });
   test("the count on the Filters button counts the new filters too", () => assert.equal(feedActive(f({ yr: "12", opt: "b", prac: "only", once: true })), 4));
+});
+
+describe("the form filter (Topic analysis)", () => {
+  const rows = [row("a", { t: ["t1"] }), row("b", { t: ["t1"] }), row("c", { t: ["t1", "t2"] }), row("d", { t: ["t2"] })];
+  const forms = new Map<string, string>([["a", "explain"], ["b", "calculate"], ["c", "explain"]]);
+  const withForms: FeedContext = { ...ctx, extras: { ...NO_EXTRAS, forms } };
+  test("keeps the parts of the chosen forms, and a part the file does not know is other", () => {
+    assert.deepEqual(feedFilter(rows, f({ forms: ["explain"] }), withForms).map((r) => r.id), ["a", "c"]);
+    assert.deepEqual(feedFilter(rows, f({ forms: ["explain", "calculate"] }), withForms).map((r) => r.id), ["a", "b", "c"]);
+    assert.deepEqual(feedFilter(rows, f({ forms: ["other"] }), withForms).map((r) => r.id), ["d"]);
+  });
+  test("works with a topic, and leaves the list alone until the file has arrived", () => {
+    assert.deepEqual(feedFilter(rows, f({ topics: ["t2"], forms: ["explain"] }), withForms).map((r) => r.id), ["c"]);
+    assert.equal(feedFilter(rows, f({ forms: ["explain"] }), ctx).length, 4, "no file yet: nothing is cut (the page says so)");
+    assert.equal(feedFilter(rows, f({}), withForms).length, 4, "no form chosen: nothing is cut");
+  });
+  test("is counted, shown as a chip, taken off by it, and cleared by Clear all", () => {
+    const n = feedCounts(rows, f({ forms: ["calculate"] }), withForms, []);
+    assert.equal(n.forms.get("explain"), 2, "its own filter is left out of its own count");
+    assert.equal(feedActive(f({ forms: ["explain"] })), 1);
+    const pill = feedPills({ topics: [], papers: [], series: [], options: undefined, calcPapers: undefined }, [], f({ forms: ["explain", "calculate"] }))[0];
+    assert.equal(pill.label, "Explain");
+    assert.deepEqual(pill.off, { forms: ["calculate"] });
+    assert.deepEqual(CLEARED.forms, []);
+  });
+  test("a remembered form that is not a form is dropped when the filters are cleaned", () => {
+    const meta = { topics: [], papers: [], series: [], options: undefined, data: {} };
+    assert.deepEqual(cleanFeedFilters(f({ forms: ["explain", "nonsense"] }), meta, []).forms, ["explain"]);
+  });
 });

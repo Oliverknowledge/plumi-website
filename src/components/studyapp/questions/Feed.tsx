@@ -17,6 +17,10 @@ import { baseSubject, type CatalogueSubject, type SubjectMeta } from "@/lib/stud
 import { cardEstimate } from "@/lib/studyapp/questions/virtual";
 import { toast } from "../toast";
 import { useBankExtras, useBankText, useSubject } from "./bankData";
+import { hasInsights } from "@/lib/studyapp/questions/insightsLoad";
+import type { Form } from "@/lib/studyapp/questions/questionForm";
+import { TopicAnalysis } from "./TopicAnalysis";
+import { useInsights } from "./useInsights";
 import { FeedCard, type FeedLookup } from "./FeedCard";
 import { FeedActs, FeedFilterBody, FeedHead, FeedPills, SchoolYear } from "./FeedBar";
 import { FeedList } from "./FeedList";
@@ -47,7 +51,10 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
   const prefs0 = useFeedPrefs();
   // A remembered school year, practicals or both-tiers choice waits for its file (a moment) so the list is never shown unfiltered and then cut.
   const f0 = prefs0.filters[entry.slug];
-  const waitsForExtras = data.state === "ready" && !ex.ready && !!f0 && (!!f0.yr || !!f0.prac || f0.once);
+  // a remembered form filter waits for the analysis file too (the same load the page below uses, asked for here so the list is built once, already cut)
+  const wantsForms = data.state === "ready" && !!f0 && f0.forms.length > 0 && hasInsights(entry.slug, data.meta.data?.parts);
+  const forms0 = useInsights(entry.slug, wantsForms);
+  const waitsForExtras = data.state === "ready" && ((!ex.ready && !!f0 && (!!f0.yr || !!f0.prac || f0.once)) || (wantsForms && (forms0.state === "idle" || forms0.state === "loading")));
   const [slow, setSlow] = useState(false);
   const loading = data.state === "loading" || waitsForExtras;
   useEffect(() => {
@@ -78,7 +85,7 @@ export function Feed({ entry, q }: { entry: CatalogueSubject; q: QuestionsData }
   return <FeedReady key={entry.slug} entry={entry} meta={data.meta} rows={data.rows} tier={data.tier} q={q} extras={ex.extras} extrasReady={ex.ready} extrasFailed={ex.failed} retryExtras={ex.retry} />;
 }
 
-function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFailed, retryExtras }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData; extras: FeedExtras; extrasReady: boolean; extrasFailed: boolean; retryExtras(): void }) {
+function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, extrasFailed, retryExtras }: { entry: CatalogueSubject; meta: SubjectMeta; rows: BankRow[]; tier: string | null; q: QuestionsData; extras: FeedExtras; extrasReady: boolean; extrasFailed: boolean; retryExtras(): void }) {
   const { persisted } = useQuestions();
   const slug = entry.slug;
   const phone = useMatch("(max-width: 640px)");
@@ -91,10 +98,23 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
   /* ── the filters ───────────────────────────────────────────────── */
   const bands = useMemo(() => bandsFor(meta.subject, rows), [meta.subject, rows]);
   const stored = prefs.filters[slug] ?? NO_FEED;
+  // Topic analysis: the subject's file of how each part is asked, loaded only when it is wanted (a remembered form filter, the filters opened, the analysis opened, or a quiet moment after the page is up).
+  const hasAnalysis = hasInsights(slug, meta.data?.parts);
+  const [analysis, setAnalysis] = useState(false);
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    if (!hasAnalysis) return;
+    const t = setTimeout(() => setWarm(true), 1500);
+    return () => clearTimeout(t);
+  }, [hasAnalysis]);
+  const insights = useInsights(slug, hasAnalysis && (stored.forms.length > 0 || bodyOpen || analysis || warm));
+  const formsMap = insights.state === "ready" ? insights.forms : null;
+  const extras = useMemo<FeedExtras>(() => (formsMap ? { ...extras0, forms: formsMap } : extras0), [extras0, formsMap]);
   // (both-tier questions shown once is only a choice while both tiers are: it neither filters nor shows a pill for a student who sits one)
-  const filters = useMemo(() => { const c = cleanFeedFilters(stored, meta, bands, extrasReady ? extras : undefined); return tier !== null && c.once ? { ...c, once: false } : c; }, [stored, meta, bands, extras, extrasReady, tier]);
+  const filters = useMemo(() => { const c = cleanFeedFilters(stored, meta, bands, extrasReady ? extras : undefined); const k = hasAnalysis ? c : { ...c, forms: [] }; return tier !== null && k.once ? { ...k, once: false } : k; }, [stored, meta, bands, extras, extrasReady, tier, hasAnalysis]);
   // A remembered school year, practicals or both-tiers choice whose file did not arrive is not dropped: the student is told the list is not filtered by it, and it is asked for again.
   const lost = extrasFailed ? [stored.yr && meta.data?.year13 ? "school year" : "", stored.prac && meta.data?.practicals ? "practicals" : "", stored.once && meta.data?.tiers && tier === null ? "both tiers" : ""].filter(Boolean) : [];
+  const lostForms = hasAnalysis && stored.forms.length > 0 && insights.state === "failed";
   const change = useCallback((patch: Partial<FeedFilters>) => {
     updateFeedPrefs((p) => ({ ...p, filters: { ...p.filters, [slug]: { ...(p.filters[slug] ?? NO_FEED), ...patch } } }));
   }, [slug]);
@@ -197,6 +217,13 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
     if (r.left > 0) toast(`First ${MAX_SET_PARTS} questions`);
   };
   const setSort = (s: FeedSort) => change(s === "mix" ? { sort: "mix", seed: newSeed() } : { sort: s });
+  /** From the analysis: the feed, cut to the topic (and the form), and nothing else. The number on the button there is the number here: every other filter is put away, and so is the search. */
+  const practiseTopic = useCallback((code: string, form: Form | null) => {
+    setSearch("");
+    change({ ...CLEARED, topics: [code], forms: form ? [form] : [] });
+    setAnalysis(false);
+    requestAnimationFrame(() => { window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior }); document.getElementById("qf-results")?.focus({ preventScroll: true }); });
+  }, [change]);
   const clearAll = () => { setSearch(""); change(CLEARED); };
   const active = feedActive(filters);
   const setFolded = useCallback((f: boolean) => updateFeedPrefs((p) => ({ ...p, folded: { ...p.folded, [slug]: f } })), [slug]);
@@ -341,11 +368,14 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={settled.list === null || settled.waiting || (list.length === 0 && waitingForText) ? -1 : list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
-        tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted} onSearchFocus={() => setWantText(true)}
+        tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted} onSearchFocus={() => setWantText(true)} onAnalysis={hasAnalysis ? () => setAnalysis(true) : null}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
       {lost.length > 0 && (
         <p className="qf-lost" role="status" data-testid="feed-lost">The {lost.join(" and ")} {lost.length > 1 ? "filters" : "filter"} you chose did not load, so it is not applied. <button type="button" className="qs-link" onClick={retryExtras}>Try again</button></p>
+      )}
+      {lostForms && (
+        <p className="qf-lost" role="status" data-testid="feed-lost-forms">The “how it is asked” filter you chose did not load, so it is not applied. <button type="button" className="qs-link" onClick={insights.state === "failed" ? insights.retry : undefined}>Try again</button></p>
       )}
       {narrow && extras.year13 && <div className="qf-yearphone"><SchoolYear f={filters} counts={counts} onChange={change} /></div>}
       <FeedFilterBody
@@ -391,6 +421,7 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4M4 9l6-6 6 6" /></svg>Top
         </button>
       )}
+      {analysis && hasAnalysis && <TopicAnalysis meta={meta} insights={insights} onClose={() => setAnalysis(false)} onPractise={practiseTopic} />}
       <FeedPen prefs={q.prefs} />
     </div>
   );

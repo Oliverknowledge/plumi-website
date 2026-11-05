@@ -54,6 +54,13 @@ describe("filters saved before the new ones were added", () => {
     assert.deepEqual(p.filters.x, { ...NO_FEED, ...old });
     assert.equal(p.filters.x.yr, ""); assert.equal(p.filters.x.once, false);
   });
+  test("a record from before the form filter has no forms, and one with forms keeps the real ones", () => {
+    const p = parseFeedPrefs(JSON.stringify({ filters: { x: { topics: ["4.1.1"] }, y: { forms: ["explain", "calculate", "nonsense", 5, "explain"] } } }));
+    assert.deepEqual(p.filters.x.forms, []);
+    assert.deepEqual(p.filters.y.forms, ["explain", "calculate"]);
+    assert.equal(isPlain(p.filters.x), false);
+    assert.equal(isPlain(parseFeedPrefs(JSON.stringify({ filters: { z: { sort: "new" } } })).filters.z), true);
+  });
   test("the new filters are kept, and junk in them is dropped", () => {
     const p = parseFeedPrefs(JSON.stringify({ filters: { x: { yr: "13", opt: "islam", prac: "only", once: true, sort: "spec" }, y: { yr: "99", opt: 5, prac: "x", once: "yes", sort: "spec" } } }));
     assert.deepEqual([p.filters.x.yr, p.filters.x.opt, p.filters.x.prac, p.filters.x.once, p.filters.x.sort], ["13", "islam", "only", true, "spec"]);

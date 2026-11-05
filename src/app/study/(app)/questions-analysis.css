@@ -1,0 +1,124 @@
+/* Topic analysis: a sheet over the feed. Drawn, not written: a list of topics each with a bar and a row of dots (one per exam), and a page per topic with bars for how it is asked and a strip of the exams.
+   On the tokens of app.css and questions.css; 44px is the smallest thing you press; no em dashes in anything a student reads. The sheet has a fixed size, so going from the list to a topic and back never moves it. */
+
+/* the button in the feed's strip, beside Filters */
+.pa .qf-abtn { min-height: 48px; }
+@media (max-width: 640px) {
+  .pa .qf-head:has(.qf-abtn) { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+  .pa .qf-abtn { grid-column: 3; grid-row: 1; min-height: 44px; width: 44px; padding: 0; gap: 0; }
+  .pa .qf-abtn span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pa .qf-head:has(.qf-abtn) .qf-count { grid-column: 4; }
+}
+@media (max-width: 379px) {
+  .pa .qf-head:has(.qf-abtn) { grid-template-columns: auto auto minmax(0, 1fr); }
+  .pa .qf-head:has(.qf-abtn) .qf-search { grid-column: 1 / -1; }
+  .pa .qf-head:has(.qf-abtn) .qf-fbtn { grid-column: 1; grid-row: 2; }
+  .pa .qf-head:has(.qf-abtn) .qf-abtn { grid-column: 2; grid-row: 2; }
+  .pa .qf-head:has(.qf-abtn) .qf-count { grid-column: 3; grid-row: 2; }
+}
+
+/* the sheet */
+.pa .qa-dlg { width: min(760px, calc(100vw - 28px)); height: min(92dvh, 860px); max-height: none; padding: 0; overflow: hidden; }
+.pa .qa-dlg[open] { display: flex; flex-direction: column; }
+.pa .qa-head { padding: 8px 10px 0 14px; min-height: 56px; flex: none; }
+.pa .qa-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 22px 22px; scrollbar-gutter: stable; }
+.pa .qa-back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px 0 6px; border: 0; border-radius: 12px; background: transparent; font: 800 15px var(--f-body); color: var(--ink); cursor: pointer; }
+.pa .qa-back:hover { background: var(--card2); }
+.pa .qa-title { margin: 0 0 2px; font: 700 clamp(26px, 4vw, 32px)/1.1 var(--f-px); }
+.pa .qs-dialog h2.qa-title { font: 700 clamp(26px, 4vw, 32px)/1.1 var(--f-px); }
+.pa .qa-ttitle { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 16px; }
+.pa .qa-code { font: 700 14px var(--f-body); color: var(--soft); letter-spacing: .02em; }
+.pa .qa-ttitle .qa-code { font-size: 17px; padding: 2px 9px; border-radius: 10px; background: color-mix(in srgb, var(--tint, #f2c96b) 70%, #fffaf0); color: var(--ink); }
+.pa .qa-sub { margin: 0 0 12px; font: 800 14px var(--f-body); color: var(--soft); }
+.pa .qa-sort { margin-bottom: 8px; }
+.pa .qa-sort button { min-width: 0; }
+
+/* the list: code and name, the count, a bar; the dots at the end */
+.pa .qa-axis { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 4px 4px 2px; font: 800 11.5px var(--f-body); color: var(--mute); }
+.pa .qa-dots { display: grid; grid-template-columns: repeat(var(--n, 10), 14px); gap: 2px; align-items: center; flex: none; }
+.pa .qa-axis .qa-dots b { font: 800 11px/1 var(--f-body); text-align: center; color: var(--mute); }
+.pa .qa-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.pa .qa-list li + li { border-top: 2px dashed rgba(91, 71, 65, .14); }
+.pa .qa-row { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "code name n" "bar bar dots"; align-items: center; gap: 2px 10px; min-height: 64px; padding: 8px 6px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; transition: background .12s; }
+.pa .qa-row:hover { background: color-mix(in srgb, var(--tint, #f2c96b) 28%, #fffaf0); }
+.pa .qa-row:active { background: color-mix(in srgb, var(--tint, #f2c96b) 45%, #fffaf0); }
+.pa .qa-row .qa-code { grid-area: code; min-width: 40px; }
+.pa .qa-name { grid-area: name; font: 700 17px/1.2 var(--f-px); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.pa .qa-n { grid-area: n; font: 800 15px var(--f-body); font-variant-numeric: tabular-nums; }
+.pa .qa-row .qa-barwrap { grid-area: bar; }
+.pa .qa-row .qa-dots { grid-area: dots; }
+.pa .qa-barwrap { display: block; height: 12px; border-radius: 6px; background: rgba(34, 48, 77, .07); overflow: hidden; }
+.pa .qa-bar { display: block; height: 100%; border-radius: 6px; background: var(--tint, #f2c96b); box-shadow: inset 0 0 0 2px var(--ink); }
+@media (min-width: 641px) {
+  .pa .qa-row { grid-template-columns: 48px minmax(120px, 1.2fr) 44px minmax(80px, 1fr) auto; grid-template-areas: "code name n bar dots"; gap: 4px 12px; min-height: 52px; }
+  .pa .qa-axis { padding-right: 6px; }
+  .pa .qa-axis > span:first-child { visibility: hidden; }
+}
+
+/* a dot: filled where the topic is in the exam, a ring where the papers in Plumi have none of it, a short dash where Plumi holds no paper of that year */
+.pa .qa-dot { display: block; justify-self: center; width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; }
+.pa .qa-dot.is-in { background: var(--navy); }
+.pa .qa-dot.is-gap { border: 2px solid var(--navy); background: transparent; }
+.pa .qa-dot.is-none { width: 8px; height: 2px; border-radius: 1px; background: var(--mute); opacity: .7; }
+.pa .qa-key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 0; font: 800 12.5px var(--f-body); color: var(--soft); }
+.pa .qa-key span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* a topic: size tiles, the form bars, the exams strip, Practise */
+.pa .qa-tiles { list-style: none; margin: 0 0 6px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pa .qa-tiles li { display: grid; gap: 0; justify-items: start; padding: 10px 14px; border: 2px solid var(--ink); border-radius: 14px; background: var(--card); box-shadow: 0 3px 0 var(--ink); }
+.pa .qa-tiles b { font: 700 30px/1.1 var(--f-px); font-variant-numeric: tabular-nums; }
+.pa .qa-tiles b small { font: 700 16px var(--f-px); color: var(--soft); }
+.pa .qa-tiles span { font: 800 13px var(--f-body); color: var(--soft); }
+.pa .qa-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 12px; margin: 20px 0 6px; font: 700 22px/1.1 var(--f-px); }
+.pa .qa-h small { font: 800 12.5px var(--f-body); color: var(--mute); }
+.pa .qa-mix { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.pa .qa-mixrow { width: 100%; display: grid; grid-template-columns: minmax(120px, 176px) minmax(0, 1fr) 34px 74px; align-items: center; gap: 10px; min-height: 46px; padding: 4px 8px; border: 0; border-radius: 12px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font: inherit; transition: background .12s, transform .08s; }
+.pa .qa-mixrow:hover { background: color-mix(in srgb, var(--tint, #f2c96b) 28%, #fffaf0); }
+.pa .qa-mixrow:active { transform: scale(.99); }
+.pa .qa-flab { font: 700 16px/1.2 var(--f-px); }
+.pa .qa-mixrow .qa-barwrap { height: 18px; border-radius: 9px; }
+.pa .qa-mixrow .qa-bar { border-radius: 9px; }
+.pa .qa-fn { font: 800 15px var(--f-body); text-align: right; font-variant-numeric: tabular-nums; }
+.pa .qa-fm { font: 800 12.5px var(--f-body); color: var(--soft); white-space: nowrap; }
+.pa .qa-strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 10), minmax(0, 1fr)); gap: 6px; align-items: end; }
+.pa .qa-col { display: grid; grid-template-rows: 18px 84px auto; justify-items: center; gap: 4px; min-width: 0; }
+.pa .qa-cn { font: 800 13px var(--f-body); align-self: end; font-variant-numeric: tabular-nums; }
+.pa .qa-col-bar { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 100%; }
+.pa .qa-col-bar i { display: block; width: min(100%, 30px); border-radius: 8px 8px 3px 3px; background: var(--tint, #f2c96b); box-shadow: inset 0 0 0 2px var(--ink); }
+.pa .qa-col.is-gap .qa-col-bar i { height: 14px; background: transparent; border: 2px dashed var(--navy); box-shadow: none; opacity: .75; }
+.pa .qa-col.is-none .qa-col-bar i { height: 14px; background: repeating-linear-gradient(135deg, rgba(34, 48, 77, .22) 0 3px, transparent 3px 6px); box-shadow: none; border-radius: 3px; opacity: .8; }
+.pa .qa-cl { display: grid; justify-items: center; font: 800 12px/1.15 var(--f-body); color: var(--soft); }
+.pa .qa-cl b { font: 800 10.5px/1.15 var(--f-body); color: var(--mute); }
+.pa .qa-go { position: sticky; bottom: 0; margin: 20px -22px -22px; padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(transparent, var(--paper-cream) 28%); display: flex; }
+.pa .qa-go .btn { flex: 1; min-height: 52px; font-size: 19px; }
+
+.pa .qa-ghost { display: grid; gap: 10px; margin-top: 14px; }
+.pa .qa-ghost i { display: block; height: 52px; border-radius: 12px; background: linear-gradient(90deg, rgba(34, 48, 77, .06), rgba(34, 48, 77, .12), rgba(34, 48, 77, .06)); background-size: 200% 100%; animation: qa-shimmer 1.4s linear infinite; }
+@keyframes qa-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .pa .qa-ghost i { animation: none; } }
+.pa .qa-fail { display: grid; gap: 10px; justify-items: start; padding-top: 6px; }
+.pa .qa-fail p { margin: 0; font: 700 15px var(--f-body); color: var(--soft); }
+
+/* a phone: the sheet is the screen */
+@media (max-width: 640px) {
+  .pa .qa-dlg { width: 100%; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; }
+  .pa .qs-dialog.qa-dlg.card { border-radius: 0; }
+  .pa .qa-scroll { padding: 0 14px 18px; }
+  .pa .qa-go { margin: 18px -14px -18px; padding-inline: 14px; }
+  .pa .qa-head { padding-top: max(8px, env(safe-area-inset-top, 0px)); }
+  .pa .qa-tiles { gap: 8px; }
+  .pa .qa-tiles li { padding: 8px 10px; }
+  .pa .qa-tiles b { font-size: 25px; }
+  .pa .qa-mixrow { grid-template-columns: minmax(104px, 128px) minmax(0, 1fr) 30px; grid-template-areas: "l b n" ". m m"; row-gap: 0; min-height: 56px; }
+  .pa .qa-mixrow .qa-flab { grid-area: l; }
+  .pa .qa-mixrow .qa-barwrap { grid-area: b; }
+  .pa .qa-mixrow .qa-fn { grid-area: n; }
+  .pa .qa-mixrow .qa-fm { grid-area: m; font-size: 12px; }
+  .pa .qa-strip { gap: 3px; }
+  .pa .qa-cl { font-size: 11px; }
+  .pa .qa-cl b { font-size: 9.5px; }
+  .pa .qa-sort button { padding: 0 4px; font-size: 13px; }
+}
+@media (max-width: 380px) {
+  .pa .qa-dots { grid-template-columns: repeat(var(--n, 10), 12px); gap: 1px; }
+}

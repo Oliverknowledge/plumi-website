@@ -1,3 +1,4 @@
+import { isForm } from "./questionForm";
 import { NO_FEED, FEED_SORTS, type CalcMode, type FeedFilters, type FeedSort } from "./feed";
 
 /**
@@ -27,7 +28,7 @@ export function cleanFilters(raw: unknown): FeedFilters {
   const sort = FEED_SORTS.some((s) => s.id === raw.sort) ? (raw.sort as FeedSort) : "new";
   const calc: CalcMode = raw.calc === "only" || raw.calc === "none" ? raw.calc : "";
   return {
-    topics: strs(raw.topics), papers: strs(raw.papers), series: strs(raw.series), types: strs(raw.types, 12), calc,
+    topics: strs(raw.topics), papers: strs(raw.papers), series: strs(raw.series), forms: strs(raw.forms, 12).filter(isForm), types: strs(raw.types, 12), calc,
     scheme: raw.scheme === true, yr: raw.yr === "12" || raw.yr === "13" ? raw.yr : "", opt: typeof raw.opt === "string" ? raw.opt.slice(0, 60) : "",
     prac: raw.prac === "only" || raw.prac === "none" ? raw.prac : "", once: raw.once === true, q: typeof raw.q === "string" ? raw.q.slice(0, 120) : "", hideDone: raw.hideDone === true, sort,
     seed: typeof raw.seed === "string" ? raw.seed.slice(0, 12) : "",

@@ -3,6 +3,7 @@ import { feedId, isAnswered, isMarked, keyOf, MAX_SET_PARTS, questionKeyOf, type
 import { matches, seeded, type BankRow } from "./picker";
 import { splitSeries } from "./papers";
 import type { SubjectMeta } from "./subject";
+import { FORM_NAMES, isForm } from "./questionForm";
 
 /**
  * The question feed's rules, pure: which rows the filter bar leaves, in what order, how a year or a mark band is picked, what "Mix them up" does, how a
@@ -33,6 +34,8 @@ export interface FeedFilters {
   papers: string[];
   /** Exam sittings, "JUN23" (several at once); none is every sitting. A year is all the sittings of that year (`toggleYear`). */
   series: string[];
+  /** How a question is asked (Topic analysis): ids of `Form` (questionForm.ts: "explain", "calculate"...); none is every form. Needs the subject's insights file (`FeedExtras.forms`). */
+  forms: string[];
   /** Question types: the ids of `bandsFor` (the marks a question is worth); none is every kind. */
   types: string[];
   calc: CalcMode;
@@ -55,7 +58,7 @@ export interface FeedFilters {
   seed: string;
 }
 
-export const NO_FEED: FeedFilters = { topics: [], papers: [], series: [], types: [], calc: "", scheme: false, yr: "", opt: "", prac: "", once: false, q: "", hideDone: false, sort: "new", seed: "" };
+export const NO_FEED: FeedFilters = { topics: [], papers: [], series: [], forms: [], types: [], calc: "", scheme: false, yr: "", opt: "", prac: "", once: false, q: "", hideDone: false, sort: "new", seed: "" };
 
 /**
  * What the public bank loads beside a subject's parts, and the rules that need it (src/components/questionBank/QuestionBank.tsx): the ids of the practicals, of the questions that
@@ -66,8 +69,10 @@ export interface FeedExtras {
   year13: ReadonlySet<string> | null;
   /** A Foundation part's id to its Higher twin's id. */
   twins: ReadonlyMap<string, string> | null;
+  /** Each part's form (Topic analysis, `insightsLoad.ts`), where the subject has an analysis and it has arrived. */
+  forms: ReadonlyMap<string, string> | null;
 }
-export const NO_EXTRAS: FeedExtras = { practicals: null, year13: null, twins: null };
+export const NO_EXTRAS: FeedExtras = { practicals: null, year13: null, twins: null, forms: null };
 
 type Options = NonNullable<SubjectMeta["options"]>;
 /** The option ids a pick stands for (AQA Further Maths' "Mechanics and Statistics" is two), the pick itself otherwise. */
@@ -108,12 +113,13 @@ export function bandsFor(subject: string, rows: readonly BankRow[]): MarkBand[] 
 }
 
 /** The filters a count leaves out of its own sum (what each option would give with every other filter kept). */
-export type FeedDim = "topics" | "papers" | "series" | "types" | "calc" | "prac" | "yr" | "opt";
+export type FeedDim = "topics" | "papers" | "series" | "forms" | "types" | "calc" | "prac" | "yr" | "opt";
 const without = (f: FeedFilters, skip: FeedDim | undefined): FeedFilters => {
   switch (skip) {
     case "topics": return { ...f, topics: [] };
     case "papers": return { ...f, papers: [] };
     case "series": return { ...f, series: [] };
+    case "forms": return { ...f, forms: [] };
     case "types": return { ...f, types: [] };
     case "calc": return { ...f, calc: "" };
     case "prac": return { ...f, prac: "" };
@@ -136,6 +142,8 @@ export function feedMatcher(filters: FeedFilters, c: FeedContext, skip?: FeedDim
   const optionOf = new Map((c.meta?.papers ?? []).flatMap((p) => (p.option ? [[p.id.toLowerCase(), p.option] as const] : [])));
   const picked = opt ? takesOf(options, opt) : [];
   const prac = ex?.practicals ?? null, year13 = ex?.year13 ?? null;
+  // (a form filter waits for its file: until the parts' forms are known it filters nothing, and the feed says so)
+  const formOf = f.forms.length ? ex?.forms ?? null : null;
   const twins = f.once ? ex?.twins ?? null : null;
   return (p) => {
     if (!matches(p, base, c.text)) return false;
@@ -143,6 +151,7 @@ export function feedMatcher(filters: FeedFilters, c: FeedContext, skip?: FeedDim
     if (papers.length && !papers.includes(pl)) return false;
     if (opt) { const o = optionOf.get(pl); if (o && !picked.includes(o)) return false; }
     if (f.series.length && !f.series.includes(p.s)) return false;
+    if (formOf && !f.forms.includes(formOf.get(p.id) ?? "other")) return false;
     if (f.types.length && !bands.some((b) => inType(p, b))) return false;
     if (f.calc === "only" && !p.calc) return false;
     if (f.calc === "none" && p.calc) return false;
@@ -159,10 +168,10 @@ export const feedMatches = (p: BankRow, f: FeedFilters, c: FeedContext): boolean
 export const feedFilter = <T extends BankRow>(rows: readonly T[], f: FeedFilters, c: FeedContext): T[] => rows.filter(feedMatcher(f, c));
 
 /** How many filters are doing something (a topic counts one each; the words and the sort are not counted: the search has its own box). */
-export const feedActive = (f: FeedFilters): number => f.topics.length + f.papers.length + f.series.length + f.types.length + (f.calc ? 1 : 0) + (f.scheme ? 1 : 0) + (f.hideDone ? 1 : 0) + (f.yr ? 1 : 0) + (f.opt ? 1 : 0) + (f.prac ? 1 : 0) + (f.once ? 1 : 0);
+export const feedActive = (f: FeedFilters): number => f.topics.length + f.papers.length + f.series.length + f.forms.length + f.types.length + (f.calc ? 1 : 0) + (f.scheme ? 1 : 0) + (f.hideDone ? 1 : 0) + (f.yr ? 1 : 0) + (f.opt ? 1 : 0) + (f.prac ? 1 : 0) + (f.once ? 1 : 0);
 
 /** Every filter off (search, the sort and the mix's seed are the student's own and stay): what "Clear all" does. */
-export const CLEARED: Partial<FeedFilters> = { topics: [], papers: [], series: [], types: [], calc: "", scheme: false, yr: "", opt: "", prac: "", once: false, q: "", hideDone: false };
+export const CLEARED: Partial<FeedFilters> = { topics: [], papers: [], series: [], forms: [], types: [], calc: "", scheme: false, yr: "", opt: "", prac: "", once: false, q: "", hideDone: false };
 
 /**
  * A label as a sort key: "01.2" before "01.10", "3(a)" before "3(b)", the way `compareLabels` reads them, but made once per row so sorting thousands of
@@ -323,7 +332,7 @@ export function cleanFeedFilters(f: FeedFilters, meta: Pick<SubjectMeta, "topics
   return {
     ...f,
     topics: f.topics.filter((t) => topics.has(t)), papers: f.papers.filter((p) => papers.has(p.toLowerCase())),
-    series: f.series.filter((s) => series.has(s)), types: f.types.filter((t) => types.has(t)),
+    series: f.series.filter((s) => series.has(s)), forms: f.forms.filter(isForm), types: f.types.filter((t) => types.has(t)),
     yr: has("year13") ? f.yr : "", prac: has("practicals") ? f.prac : "", once: has("tiers") ? f.once : false, opt,
   };
 }
@@ -336,6 +345,8 @@ export interface FeedCounts {
   /** By paper id, lower case. */
   papers: Map<string, number>;
   series: Map<string, number>;
+  /** By form id; empty where the subject has no analysis (or it has not arrived). */
+  forms: Map<string, number>;
   types: Map<string, number>;
   calc: { only: number; none: number };
   prac: { only: number; none: number };
@@ -347,7 +358,7 @@ export interface FeedCounts {
 }
 
 export function feedCounts(rows: readonly BankRow[], f: FeedFilters, c: FeedContext, bands: readonly MarkBand[]): FeedCounts {
-  const out: FeedCounts = { topics: new Map(), papers: new Map(), series: new Map(), types: new Map(), calc: { only: 0, none: 0 }, prac: { only: 0, none: 0 }, yr: { "12": 0, "13": 0 }, opt: new Map(), topicRows: [] };
+  const out: FeedCounts = { topics: new Map(), papers: new Map(), series: new Map(), forms: new Map(), types: new Map(), calc: { only: 0, none: 0 }, prac: { only: 0, none: 0 }, yr: { "12": 0, "13": 0 }, opt: new Map(), topicRows: [] };
   const bump = <K,>(m: Map<K, number>, k: K) => m.set(k, (m.get(k) ?? 0) + 1);
   const ex = c.extras;
   const optionOf = new Map((c.meta?.papers ?? []).flatMap((p) => (p.option ? [[p.id.toLowerCase(), p.option] as const] : [])));
@@ -357,6 +368,7 @@ export function feedCounts(rows: readonly BankRow[], f: FeedFilters, c: FeedCont
   out.topicRows = topicRows;
   pass("papers", (p) => bump(out.papers, p.p.toLowerCase()));
   pass("series", (p) => bump(out.series, p.s));
+  if (ex?.forms) pass("forms", (p) => bump(out.forms, ex.forms!.get(p.id) ?? "other"));
   pass("types", (p) => { for (const b of bands) if (inType(p, b)) bump(out.types, b.id); });
   pass("calc", (p) => { if (p.calc) out.calc.only++; else out.calc.none++; });
   if (ex?.practicals) pass("prac", (p) => { if (ex.practicals!.has(p.id)) out.prac.only++; else out.prac.none++; });
@@ -381,6 +393,7 @@ export function feedPills(meta: Pick<SubjectMeta, "topics" | "papers" | "series"
   return [
     ...(f.opt && optName ? [{ key: "opt", label: optName, off: { opt: "" } }] : []),
     ...f.topics.map((c) => ({ key: `t-${c}`, label: label(c), off: { topics: f.topics.filter((x) => x !== c) } })),
+    ...f.forms.filter(isForm).map((id) => ({ key: `fm-${id}`, label: FORM_NAMES[id], off: { forms: f.forms.filter((x) => x !== id) } })),
     ...f.types.map((id) => ({ key: `ty-${id}`, label: bands.find((b) => b.id === id)?.label ?? id, off: { types: f.types.filter((x) => x !== id) } })),
     ...(f.papers.length > 2 ? [{ key: "papers", label: `${f.papers.length} papers`, off: { papers: [] } }]
       : f.papers.map((id) => ({ key: `p-${id}`, label: meta.papers.find((p) => p.id.toLowerCase() === id.toLowerCase())?.name ?? id, off: { papers: f.papers.filter((x) => x !== id) } }))),
