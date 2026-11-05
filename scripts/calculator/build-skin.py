@@ -1,6 +1,7 @@
 """Build Plumi's EX faceplate from the preserved upstream CY234 key artwork.
 
 The face, LCD and interactive key regions all share a 70px vertical offset.
+The lower casing extends 24px below the original artwork.
 Run from the repository root: python3 scripts/calculator/build-skin.py
 """
 from pathlib import Path
@@ -11,7 +12,7 @@ MODEL = ROOT / "public/calculator/data/CY234"
 NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", NS)
 
-skin = ET.fromstring('''<svg xmlns="http://www.w3.org/2000/svg" width="375" height="705" viewBox="0 0 375 705" fill="none">
+skin = ET.fromstring('''<svg xmlns="http://www.w3.org/2000/svg" width="375" height="729" viewBox="0 0 375 729" fill="none">
 <defs>
   <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
     <stop stop-color="#f9faf9"/><stop offset=".2" stop-color="#a6aaa9"/>
@@ -46,9 +47,9 @@ skin = ET.fromstring('''<svg xmlns="http://www.w3.org/2000/svg" width="375" heig
   </filter>
 </defs>
 <!-- Silver shell, inset textured face and a fine highlight around the edge. -->
-<rect x=".75" y=".75" width="373.5" height="703.5" rx="31" fill="url(#silver)" stroke="#e4e8e8" stroke-width="1.5"/>
-<rect x="4" y="4" width="367" height="695" rx="28" fill="url(#grip)" stroke="#07090a" stroke-width="1.5"/>
-<rect x="7" y="7" width="361" height="688" rx="25" fill="none" stroke="#7c8386" stroke-opacity=".35"/>
+<rect x=".75" y=".75" width="373.5" height="727.5" rx="31" fill="url(#silver)" stroke="#e4e8e8" stroke-width="1.5"/>
+<rect x="4" y="4" width="367" height="719" rx="28" fill="url(#grip)" stroke="#07090a" stroke-width="1.5"/>
+<rect x="7" y="7" width="361" height="712" rx="25" fill="none" stroke="#7c8386" stroke-opacity=".35"/>
 <!-- Stacked EX branding and the inset four-cell solar panel. -->
 <g font-family="Arial, Helvetica, sans-serif">
   <text x="27" y="34" font-size="25" font-weight="900" fill="#eef1f2" letter-spacing="-.5">CASIO</text>
@@ -94,4 +95,4 @@ for index, element in enumerate(original):
 
 ET.indent(skin)
 ET.ElementTree(skin).write(MODEL / "face-plumi.svg", encoding="unicode", xml_declaration=False)
-print("Built CY234 face-plumi.svg (375 × 705)")
+print("Built CY234 face-plumi.svg (375 × 729)")

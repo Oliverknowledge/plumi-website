@@ -38,8 +38,9 @@ geography, computer science, engineering, physical education, food/nutrition,
 design/technology and sociology, including the available A/B variants. This
 is access to a revision aid, not a statement of exam-room calculator rules.
 
-The floating panel follows the custom EX shell's 375:705 proportions, with rounded
+The floating panel follows the custom EX shell's 375:729 proportions, with rounded
 silver body edges, a textured black face, stacked branding and a solar-panel detail.
+The lower casing includes 24px of extra space beneath the original key artwork.
 The original CY234 key functions and labels are preserved. There is no surrounding
 header, footer or side gutter. The small
 controls provide minimise, movement and full screen; keyboard instructions
