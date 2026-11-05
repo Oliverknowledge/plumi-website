@@ -37,6 +37,11 @@ beside the A-Level languages' `aqa/audio/76521-…`).
 - **Bengali** text layers are a legacy font's glyph order, unreadable, so Bengali script is left out of
   search text and `x` (the English instructions and questions stay); questions in Bengali only were
   tagged from their rendered crops.
+- **Notice pages, Spanish (November 2026):** 17 crops changed with `cut.py`'s fix and `cut_gcse_languages.py`, which now finds a
+  question's label under a setup carried over a notice page, and gives a question with parts that setup as its stem. `8692lf-spec-22`
+  loses its notice page. The specimens regain what the old cut lost: `8692rf-spec-37` to `39` their chat, `8692rh-spec-04` to `07` their article.
+  Foundation Writing's "Answer either..." moves to Question 4 whole. `8692lf-spec-04`'s crop was already clean, so
+  only its search text changed. Marks and paper totals stayed the same, and French, German and Bengali weren't re-cut.
 - **Left out:** Paper 2 Speaking (teacher-marked role-plays and photo cards); questions whose text AQA
   removes from its copyright-removed copies, the only copies it publishes of nine Reading papers (Bengali
   Reading June 2024 and 2025, both tiers; Spanish Reading Foundation November 2020 and June 2024, Higher
