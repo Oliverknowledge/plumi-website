@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type PointerEvent as RPointerEvent, type Ref } from "react";
 import { toUnits } from "@/lib/studyapp/questions/annotGeom";
+import { addSample, coastStep, flingSpeed, FLING_MIN, type FlingSample } from "@/lib/studyapp/questions/fling";
 import { drawInk, drawLive } from "@/lib/studyapp/questions/draw";
 import {
   encodeStroke, ERASER_RADIUS, inkBottom, inkBytes, INK_WIDTHS, NO_HISTORY, pushHistory, redo as redoH, REF_W, rectUnion, strokeBounds, strokesAt, strokesToAdd, undo as undoH,
@@ -79,13 +80,32 @@ const MAX_PIXELS = 6_500_000;
 /* ── momentum of a finger scroll, by hand (once a pen has been seen) ── */
 
 let inertia = 0;
-function stopInertia() { if (inertia) { cancelAnimationFrame(inertia); inertia = 0; } }
-function coast(velocity: number) {
+// A touch anywhere catches the page, as it does in the browser's own scrolling, not only a touch on a writing space.
+const CATCH = ["pointerdown", "touchstart", "wheel"] as const;
+function stopInertia() {
+  if (!inertia) return;
+  cancelAnimationFrame(inertia);
+  inertia = 0;
+  CATCH.forEach((ev) => window.removeEventListener(ev, stopInertia, { capture: true }));
+}
+function coast(speed: number) {
   stopInertia();
   if (reducedMotion()) return;
-  let v = velocity * 16;
-  const step = () => { window.scrollBy({ top: v, behavior: "instant" as ScrollBehavior }); v *= 0.93; inertia = Math.abs(v) > 0.4 ? requestAnimationFrame(step) : 0; };
+  let v = speed, last = nowMs(), carry = 0;
+  const step = (now: number) => {
+    const c = coastStep(v, now - last);
+    last = now;
+    v = c.speed;
+    // Whole pixels: a browser that rounds its scroll position would lose a slow coast's fractions.
+    carry += c.move;
+    const px = Math.trunc(carry);
+    carry -= px;
+    if (px) window.scrollBy({ top: px, behavior: "instant" as ScrollBehavior });
+    if (Math.abs(v) > FLING_MIN) inertia = requestAnimationFrame(step);
+    else stopInertia();
+  };
   inertia = requestAnimationFrame(step);
+  CATCH.forEach((ev) => window.addEventListener(ev, stopInertia, { capture: true, passive: true }));
 }
 
 /* ── saving: every stroke is written the moment the pen lifts ──
@@ -158,7 +178,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     live: null as Live | null, adopt: null as number | null, erasing: new Set<number>(), scale: 1, w: 0, h: 0, density: 1, fit: null as null | (() => void), raf: 0, lastPen: 0,
     /** Where to repaint at the next frame (null: nowhere yet); `full` repaints the lot. */
     dirty: null as Rect | null, full: true, liveRect: null as Rect | null,
-    scroll: null as null | { id: number; y: number; t: number; v: number; moved: number; t0: number },
+    scroll: null as null | { id: number; y: number; samples: FlingSample[]; moved: number; t0: number },
   });
 
   /** Repaint what changed: clear it, redraw the strokes that touch it, then the live line or eraser ring on top. */
@@ -438,7 +458,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
         // Fingers scroll. Natively while `touch-action` lets the browser; by hand once a pen has made it `pinch-zoom`.
         // Not while a pen is writing: a resting palm must not move the page under it.
         if (penBusy()) { s.scroll = null; return; }
-        s.scroll = { id: e.pointerId, y: e.clientY, t: nowMs(), v: 0, moved: 0, t0: nowMs() };
+        s.scroll = { id: e.pointerId, y: e.clientY, samples: [{ y: e.clientY, t: e.timeStamp }], moved: 0, t0: nowMs() };
         if (props.current.penSeen) capture(e.currentTarget, e.pointerId);
         return;
       }
@@ -466,14 +486,13 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     if (e.pointerType === "pen") s.lastPen = nowMs();
     if (s.scroll && e.pointerId === s.scroll.id) {
       if (penBusy()) { s.scroll = null; return; }     // a pen has come down under this hand
-      const now = nowMs(), dy = s.scroll.y - e.clientY;
+      const dy = s.scroll.y - e.clientY;
       s.scroll.moved += Math.abs(dy);
       if (props.current.penSeen) {
         window.scrollBy({ top: dy, behavior: "instant" as ScrollBehavior });   // (the page may ask for smooth scrolling, which would trail the finger)
-        const dt = Math.max(1, now - s.scroll.t);
-        s.scroll.v = 0.8 * s.scroll.v + 0.2 * (dy / dt);
+        addSample(s.scroll.samples, e.clientY, e.timeStamp);   // (when the finger moved, not when this ran: moves arrive in batches on a busy page)
       }
-      s.scroll.y = e.clientY; s.scroll.t = now;
+      s.scroll.y = e.clientY;
       return;
     }
     const l = s.live;
@@ -503,7 +522,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       const sc = s.scroll;
       s.scroll = null;
       if (sc.moved < 8 && nowMs() - sc.t0 < 450) props.current.onFingerTap();
-      if (props.current.penSeen && Math.abs(sc.v) > 0.05) coast(sc.v);
+      const speed = flingSpeed(sc.samples, e.timeStamp);
+      if (props.current.penSeen && Math.abs(speed) > FLING_MIN) coast(speed);
       return;
     }
     if (s.live && e.pointerId === s.live.id) {

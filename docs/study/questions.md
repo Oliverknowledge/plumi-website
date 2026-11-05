@@ -55,6 +55,8 @@ Caps (all enforced on write and again on load): 40 sets (a finished one goes fir
 At 90% of the ink total the sheet shows "Your device is nearly full of handwriting. Clear old sets" (**Your sets** lists every set with its
 size and a Delete). A stroke that would pass a cap is refused, and the zone says it is full and offers Type.
 
+**A finger flick over a writing space** (`fling.ts`, once a pen has been seen, when the page scrolls by hand): the speed comes from the events' own times over the last 100 ms, not from when the handler ran, since a busy page delivers moves in batches (eight moves of 20 px coasted 232 px when steady and 3,799 px when batched, and a student's iPad flew from question 1 to question 6, 4 November 2026). A finger that stopped 70 ms before lifting doesn't coast, the speed is capped at 4 px/ms, the coast runs by the clock so 120 Hz goes no further than 60, and a touch anywhere catches it.
+
 Writes (ink engine, fix round 1): a small answer (under 40 KB, a page of working) is written to IndexedDB the moment each stroke ends; a bigger one
 at most every 1.5 s (a debounce of 300 ms with a 1.5 s maximum wait), and everything is flushed on `pagehide`, `freeze` and `visibilitychange`.
 Typing: 250 ms after the last key and on blur. A write that fails is tried once more on a fresh connection. If IndexedDB is missing or refuses (some
