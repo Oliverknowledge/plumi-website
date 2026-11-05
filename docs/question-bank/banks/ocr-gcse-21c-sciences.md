@@ -6,9 +6,9 @@ Banks: `ocr-gcse-biology-b`, `ocr-gcse-chemistry-b`, `ocr-gcse-physics-b`, `ocr-
 5 November 2026, when a member asked for "OCR 21st century" combined and triple science: every question
 from OCR's GCSE (9–1) Twenty First Century Science suite, Biology B (J257), Chemistry B (J258), Physics B
 (J259) and Combined Science B (J260), Foundation and Higher, June 2018 to June 2025 with November 2020 and
-2021 (8 series): 7,069 question parts from 159 papers (Biology B 1,448, Chemistry B 1,562, Physics B 1,375,
-Combined Science B 2,684), cut part by part with their mark scheme rows and examiners' reports, every part
-tagged to a topic, 682 marked practical (100, 153, 161, 268). 157 of the 159 papers add up to their marks
+2021 (8 series): 7,074 question parts from 159 papers (Biology B 1,448, Chemistry B 1,562, Physics B 1,376,
+Combined Science B 2,688), cut part by part with their mark scheme rows and examiners' reports, every part
+tagged to a topic, 682 marked practical (100, 153, 161, 268). All 159 papers add up to their marks
 (90 for J257–J259, 95 for J260's Biology, Chemistry and Physics papers, 75 for its Combined science paper).
 The Gateway banks' sibling pipeline (`ocr_gcse/`) is the model; this is a close copy with a new topic reader,
 new paper ids and a cutter that copes with picture pages (below).
@@ -37,7 +37,10 @@ new paper ids and a cutter that copes with picture pages (below).
     questions were one). `picture_numbers` finds each number's glyph from the page's pixels and numbers it,
     unless the numbers the paper does print say none is missing (a graph's axis figures sit in the same
     column), the glyph is taller than a digit (J260's part labels "(c)" sit in the number column) or no
-    question text follows it on its line (a drawing's edge).
+    question text follows it on its line (a drawing's edge). A number Vision read a pixel below its own line's
+    first words sorts after them, so "(a)" became a part of the question before: `picture_labels` puts it
+    ahead. It also puts right a part label whose bracket Vision dropped ("c) When…" for "(c) When…": Physics B
+    November 2020 Paper 2 Question 1(c) ran into 1(b)) and a "[1]" read as "111".
   - **"Section A".** The cutter stops a part at a line reading "SECTION A" in any case; a graph's
     "Section A" and "Section B" tick boxes (Biology B June 2024, Physics B June 2019) cut the part short,
     losing its boxes and marks. Only upper case counts now.
@@ -45,9 +48,14 @@ new paper ids and a cutter that copes with picture pages (below).
     a line, which in 24 papers was a table's figures, not a question number, so their questions
     were merged and cut short. Only numbers within 62pt of the edge count.
   - These changes are in `cut_ocr_gcse_b.py` only; no other bank's crops move.
-- **Marks read by hand:** 10 parts' marks Vision couldn't read were read off the paper and scheme into
+- **Marks read by hand:** 13 parts' marks the cutter couldn't read (or took from the part above, where its
+  "[2]" sits against the next label) were read off the paper and scheme into
   `scripts/question-bank/labels/<set>.json` (j2581h-jun24, j2592f-nov20, j260bf-jun24, j260bh-jun22,
   j260bh-nov20, j2572f-jun22, j2581f-jun23).
+- **Scheme crops for the rest:** `ms_fallback.py` read the schemes of the 73 parts the cutter couldn't pair with
+  their rows and gave 60 of them crops: 43 their own rows and 17 their whole question's rows ("Mark scheme
+  for question 6"), after 5 more were dropped on reading them: their crop took in a neighbouring part's
+  answer. Every one was read by eye.
 - **Tags:** every part was tagged by Claude following `tag.md` ("OCR GCSE Twenty First Century sciences",
   `tag/ocr-gcse-21c-sciences.md`). The specification has no topic for gears and moments, the carbon cycle,
   seismic waves or the particle model in Chemistry B, so those parts take the nearest topic (P4.1, B3.3,
@@ -60,18 +68,14 @@ Gaps, honestly:
   a mirror's copy would be Daniel's call.
 - J257/04 June 2024's examiners' report link serves Gateway's report (the library already leaves it out), so
   those questions have no report. No examiners' reports are published for November 2020 and 2021.
-- Two papers' marks don't add up: Combined Science B Biology Paper 5 Higher November 2020 reads 92 of 95 and
-  Physics B Paper 2 Foundation November 2020 89 of 90, where a picture page's "[2]" didn't read.
-- 74 parts (1.0%) link to the whole mark scheme instead of a cropped row (11, 20, 18 and 25 by bank);
-  `ms_fallback.py` can give more of them their rows.
+- 13 parts (0.2%) link to the whole mark scheme instead of a cropped row (1, 3, 6 and 3 by bank): their labels
+  don't read in the scheme, or the fallback's crop took in a neighbouring part's answer.
 - A few parts whose answer is printed words (a sentence to complete) run straight on to the next label, and
   the page break between them puts the answer line in the next part's crop (Biology B June 2022 6(b)(i),
   Chemistry B June 2023 3(b), Combined Science B June 2022 5(e)(ii)); three in all.
 - Foundation and Higher papers share questions, so those appear twice, once per tier; `tiers.json` lists
   the pairs. November 2021 papers were printed but not sat; their schemes are OCR's drafts.
 - The library has no J260 page; only the bank links to its whole papers. June 2026 isn't public yet.
-- Physics B has one part fewer than the cut (1,375 of 1,376): a label read twice on one page gave two parts one
-  id, and the builder leaves both out.
 
 ```bash
 python3 scripts/question-bank/ocr_gcse_b/fetch_ocr_gcse_b.py
@@ -82,7 +86,8 @@ python3 scripts/question-bank/ocr_gcse_b/tag_ocr_gcse_b.py merge
 python3 scripts/question-bank/ocr_gcse_b/build_ocr_gcse_b.py
 python3 scripts/question-bank/tiers.py ocr-gcse-biology-b ocr-gcse-chemistry-b ocr-gcse-physics-b ocr-gcse-combined-science-b
 python3 scripts/question-bank/practicals.py split --only=ocr-gcse-biology-b,ocr-gcse-chemistry-b,ocr-gcse-physics-b,ocr-gcse-combined-science-b --parts=scripts/question-bank/.work/ocr-gcse-b/parts.json   # judge, then merge with the same --only
-python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-b --crops-only
+python3 scripts/question-bank/upload_r2.py scripts/question-bank/.work/ocr-gcse-b --crops-only --checksum
+python3 scripts/question-bank/ms_fallback.py cut --bank=<slug> ... <work-dir>   # then read the crops, upload_r2.py --crops-only --checksum <work-dir>, ms_fallback.py apply --bank=<slug> ...   (after every build)
 python3 scripts/question-bank/ocr_gcse_b/upload_wholes_ocr_gcse_b.py
 python3 scripts/question-bank/upload_data.py ocr-gcse-biology-b ocr-gcse-chemistry-b ocr-gcse-physics-b ocr-gcse-combined-science-b
 ```

@@ -33,7 +33,7 @@ SCIENCE = {"b": "Biology", "c": "Chemistry", "p": "Physics", "m": "Combined Scie
 # J257-J259: Breadth in (1 Foundation, 3 Higher) and Depth in (2 Foundation, 4 Higher) the subject.
 FOCUS = {"1": "Breadth", "2": "Depth"}
 SUBJECT_OF = {"j257": "biology", "j258": "chemistry", "j259": "physics"}
-CROP_VERSION = 1  # bump when the banks are cut again under the same names (questionBank.ts partImage)
+CROP_VERSION = 2  # bump when the banks are cut again under the same names (questionBank.ts partImage)
 
 
 def number(comp):

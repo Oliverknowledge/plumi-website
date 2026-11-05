@@ -46,7 +46,38 @@ def init(self, path):
                          "spans": [{"text": str(n), "font": "OCR-Bold", "flags": 16, "bbox": (50, y, 60, y + 10)}]})
             self._lines[i] = sorted(kept, key=lambda l: (round(l["y0"]), l["x0"]))
     elif self.pictures and not self.scheme:
+        picture_labels(self)
         picture_numbers(self)
+
+
+LABEL_MISREAD = re.compile(r"^\(?((?:[a-h]|i{1,3}|iv|vi{0,3}))[)\]]\s|^\(((?:[a-h]|i{1,3}|iv|vi{0,3}))\s(?=[A-Z])")
+
+
+def picture_labels(self):
+    """Vision reads a picture page's part label's bracket as nothing or a space, "(c) When" as "c) When" or "(c When"
+    (Physics B November 2020 Paper 2 Foundation, Question 1(c)), so the part ran into the one above and its sub-parts took its
+    letter. A line starting in the label column with a letter or roman numeral and one bracket is put right."""
+    for i in self.pictures:
+        fixed = []
+        for l in self.lines(i):
+            m = LABEL_MISREAD.match(l["text"]) if 60 < l["x0"] < 110 else None
+            if m and not re.match(r"^\(", l["text"]) or m and re.match(r"^\(", l["text"]) and not re.match(r"^\([a-z]{1,4}\)", l["text"]):
+                tok = m.group(1) or m.group(2)
+                text = f"({tok}) " + l["text"][m.end():]
+                spans = [{**l["spans"][0], "text": f"({tok})"}] + ([{**l["spans"][0], "text": text[len(tok) + 3:]}] if len(l["spans"]) < 2 else l["spans"][1:])
+                fixed.append({**l, "text": text, "spans": spans})
+            elif l["x0"] > 500 and (mk := re.fullmatch(r"[\[Il1|(]?(\d)[\]Il1|)]", l["text"])) and not l["text"].startswith("["):
+                fixed.append({**l, "text": f"[{mk.group(1)}]"})  # "[1]" read as "111"
+            else:
+                fixed.append(l)
+        # A question number Vision read a pixel below its own line's first words ("(a)" at 63.6, "8" at 64.9) sorts after them, so
+        # "(a)" became a part of the question before: put it ahead of them.
+        for n, l in enumerate(fixed):
+            if l["x0"] < 62 and re.fullmatch(r"\*?\d{1,2}", l["text"]):
+                near = [k["y0"] for k in fixed if k["x0"] >= 58 and 0 < l["y0"] - k["y0"] < 4]
+                if near:
+                    fixed[n] = {**l, "y0": min(near) - 0.6}
+        self._lines[i] = sorted(fixed, key=lambda k: (round(k["y0"]), k["x0"]))
 
 
 def picture_numbers(self):
@@ -103,6 +134,9 @@ def picture_numbers(self):
             cur += 1
             kept = [k for k in kept if not (k["x0"] < 62 and abs(k["y0"] - y) < 6 and len(k["text"]) <= 3)]  # a misread number, not the question's own first line
             added = True
+            # (sorted ahead of the question's first line, which Vision can place a pixel above the glyph: "(a)" before "8" is part 8(a) of the question before)
+            ref = min([k["y0"] for k in lines if k["x0"] >= 58 and abs(k["y0"] - y) < 8] + [y])
+            y = min(y, ref - 0.6)
             kept.append({"x0": 50, "y0": y, "x1": 60, "y1": y + 10, "text": str(cur),
                          "spans": [{"text": str(cur), "font": "OCR-Bold", "flags": 16, "bbox": (50, y, 60, y + 10)}]})
         if added:
