@@ -18,6 +18,9 @@ import { cleanMeta, paperKeeps, tierLine, tiersOf, type SubjectMeta } from "@/li
 const metas = new Map<string, Promise<SubjectMeta>>();
 const parts = new Map<string, Promise<BankRow[]>>();
 const texts = new Map<string, Promise<Record<string, string>>>();
+/** A subject's folded text once it has arrived this visit (read without asking for it: nothing is fetched by reading this). */
+const arrived = new Map<string, Record<string, string>>();
+export const loadedText = (slug: string | null | undefined): Record<string, string> | null => (slug ? arrived.get(slug) ?? null : null);
 
 /** At most this many files in flight at once: four shelves asking together must not starve the one the student is looking at. */
 const MAX_FLIGHT = 4;
@@ -216,6 +219,7 @@ export function useBankText(slug: string | null, wanted: boolean): BankText {
         for (const k of keys.slice(i, i + 400)) out[k] = fold(raw[k]);
         await new Promise((r) => setTimeout(r, 0));
       }
+      arrived.set(slug, out);
       return out;
     })
       .then((text) => { if (live) setGot({ slug, text }); })

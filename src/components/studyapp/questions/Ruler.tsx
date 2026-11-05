@@ -3,6 +3,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { angleTo, fit, keepKnob, lengthPx, middle, moved, poseAround, pxPerMm, RULER_DEPTH_MM, RULER_MM, snap, startPose, turn, wrap, type RulerPose } from "@/lib/studyapp/questions/rulerMath";
 import { ruler, useRulerState } from "@/lib/studyapp/questions/rulerStore";
+import { usableBand } from "./rulerBand";
 
 /** The ticks, in millimetres along the ruler: a short one every millimetre, a medium one every 5, a long one every 10. */
 const T1: string[] = [], T5: string[] = [], T10: string[] = [];
@@ -23,16 +24,6 @@ export const focusRulerChip = (partId: string) => {
  * it on the picture and reads it, as on paper. Dragged by its body (pen, finger or mouse), turned by the knob at its end (it snaps softly to 0, 45 and 90 degrees), moved by the arrow keys
  * and turned by [ and ]. It fills the picture's box (its layer ignores the pointer, only the ruler takes it), so it must sit in a positioned parent that is exactly the picture.
  */
-/** The part of the window a picture can be read in: under the feed's sticky strip, above a pen tray that sits at the bottom of a touch screen. */
-function usableBand(): { top: number; bottom: number } {
-  const head = document.querySelector<HTMLElement>(".qf-head, .qs-sheet-head");
-  const tray = document.querySelector<HTMLElement>("[data-testid=pen-tray]:not(.is-away)");
-  const top = Math.max(head && getComputedStyle(head).position !== "static" ? head.getBoundingClientRect().bottom : 0, 0);
-  const tr = tray?.getBoundingClientRect();
-  const bottom = tr && tr.top > window.innerHeight / 2 ? tr.top : window.innerHeight;
-  return { top, bottom: Math.max(bottom, top + 120) };
-}
-
 export function Ruler({ partId, naturalW, clip }: { partId: string; naturalW: number; /** Cut off at the picture's edge (the enlarged picture, which scrolls) instead of drawn over the sheet. */ clip?: boolean }) {
   const st = useRulerState();
   const layer = useRef<HTMLDivElement>(null);

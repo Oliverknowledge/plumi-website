@@ -1,40 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import type { QPart } from "@/lib/studyapp/questions/model";
 import { needsRuler } from "@/lib/studyapp/questions/rulerQuestion";
 import { ruler, useRulerState } from "@/lib/studyapp/questions/rulerStore";
-import { useBankText } from "./bankData";
+import { loadedText } from "./bankData";
 import { useSharedFigure } from "./SharedFigure";
 
 /**
  * What a part knows about the ruler: whether its question is one the student measures a picture for (rulerQuestion.ts), whether the ruler is open for it now, and which picture it lies on:
  * the shared figure's when the part has a "See the figure" chip (the figure is the picture the question is about), else the part's own.
  */
-export function usePartRuler(part: QPart, siblings: readonly QPart[], subject?: string) {
-  const fig = useSharedFigure(part, siblings, subject);
-  // The question's full words (the bank's text file, which search reads too) are fetched once the page is idle, one fetch for the subject; until they are here the opening words stand in.
-  const idle = useIdle();
-  const { text } = useBankText(subject ?? null, idle && !!subject);
-  const full = text?.[part.id];
-  const offered = useMemo(() => needsRuler(full ?? part.x, part.l), [full, part.x, part.l]);
-  const { partId } = useRulerState();
-  const open = offered && partId === part.id;
-  return { fig, offered, open, onFigure: open && !!fig, onOwn: open && !fig };
+/** The chip for a part is decided ONCE per part, the first time a card for it is made, and never changes in the visit: a card must not change height when a chip pops in or out. The question's full
+ *  words are used only if the bank's text is already here (a search asked for it); nothing is ever fetched for the ruler. */
+const decided = new Map<string, boolean>();
+function offeredFor(part: QPart, subject?: string): boolean {
+  const key = `${subject ?? ""}/${part.id}`;
+  let d = decided.get(key);
+  if (d === undefined) {
+    d = needsRuler(loadedText(subject)?.[part.id] ?? part.x, part.l);
+    decided.set(key, d);
+  }
+  return d;
 }
 
-/** True a moment after the page has settled (so the text file is not fetched in the first seconds, when the pictures are). */
-function useIdle(): boolean {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    if (typeof requestIdleCallback === "function") {
-      const h = requestIdleCallback(() => setOn(true), { timeout: 3000 });
-      return () => cancelIdleCallback(h);
-    }
-    const t = setTimeout(() => setOn(true), 1500);
-    return () => clearTimeout(t);
-  }, []);
-  return on;
+export function usePartRuler(part: QPart, siblings: readonly QPart[], subject?: string) {
+  const fig = useSharedFigure(part, siblings, subject);
+  const offered = offeredFor(part, subject);
+  const { partId } = useRulerState();
+  const open = partId === part.id;
+  return { fig, offered, open, onFigure: open && !!fig && offered, onOwn: open && !(fig && offered) };
 }
 
 /** Putting a figure that sits above the chip away must not move the chip (and the buttons under it) off the screen: the page scrolls by what the layout moved. */

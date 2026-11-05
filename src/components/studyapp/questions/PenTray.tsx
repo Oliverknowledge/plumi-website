@@ -5,7 +5,9 @@ import { INK_COLOURS, INK_COLOUR_NAMES, INK_WIDTH_NAMES, INK_WIDTHS } from "@/li
 import type { QPrefs } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
 import { inkAct, useInkCaps, useInkSaving, useInkZoneVisible } from "./inkBus";
-import { EraserIcon, PenIcon, RedoIcon, TrashIcon, UndoIcon } from "./icons";
+import { EraserIcon, PenIcon, RedoIcon, RulerIcon, TrashIcon, UndoIcon } from "./icons";
+import { useRulerState } from "@/lib/studyapp/questions/rulerStore";
+import { toggleToolbarRuler } from "./rulerBand";
 
 /**
  * The pen tray: one small pill with the pen, the eraser, the pen's look (thickness and colour in one flyout), undo and
@@ -20,6 +22,7 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
   const open = wanted && here;
   const root = useRef<HTMLDivElement>(null);
   const pen = prefs.tool === "pen";
+  const rulerOn = useRulerState().partId !== null;
   // Undo or Redo that uses up its history disables its own button, and the focus it had falls to the page: it goes back to the writing space instead.
   const fromHistory = useRef(false);
   useEffect(() => {
@@ -49,6 +52,7 @@ export function PenTray({ prefs }: { prefs: QPrefs }) {
         <button type="button" className="qs-pb qs-pb-style" data-style="" aria-haspopup="true" aria-expanded={open} aria-label={`Pen style: ${INK_WIDTH_NAMES[prefs.width].toLowerCase()}, ${INK_COLOUR_NAMES[prefs.colour].toLowerCase()}`} title="Pen thickness and colour" onClick={() => setOpen(!open)} data-testid="pen-style">
           <i className="qs-nib" style={{ width: size(prefs.width), height: size(prefs.width), background: INK_COLOURS[prefs.colour] }} aria-hidden="true" />
         </button>
+        <button type="button" className="qs-pb" aria-pressed={rulerOn} aria-label="Ruler" title="Ruler" onClick={toggleToolbarRuler} data-testid="toolbar-ruler"><RulerIcon /></button>
         <span className="qs-pen-sep" aria-hidden="true" />
         <button type="button" className="qs-pb" onClick={history(inkAct.undo)} disabled={!caps.canUndo} aria-label="Undo in the answer" title="Undo in the answer (Z)" data-testid="undo"><UndoIcon /></button>
         <button type="button" className="qs-pb" onClick={history(inkAct.redo)} disabled={!caps.canRedo} aria-label="Redo in the answer" title="Redo in the answer (Shift Z)" data-testid="redo"><RedoIcon /></button>

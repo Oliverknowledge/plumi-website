@@ -28,18 +28,20 @@ export const FeedHead = forwardRef<HTMLDivElement, {
   acts: React.ReactNode;
   /** This device is not keeping answers: one calm line in the strip, which stays on screen while the student scrolls. */
   notSaved?: boolean;
-}>(function FeedHead({ search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts, notSaved }, ref) {
+  /** The search box has the focus: the papers' text is asked for now, before a key is pressed. */
+  onSearchFocus?(): void;
+}>(function FeedHead({ onSearchFocus, search, onSearch, searchNote, count, progress, active, open, onToggle, tier, phone, here, acts, notSaved }, ref) {
   return (
     <div className="qf-head" ref={ref} role="search" aria-label="Find questions">
       <label className="qs-search qf-search">
         <SearchIcon /><span className="qs-sr">Search the questions</span>
-        <input type="search" value={search} onChange={(e) => onSearch(e.target.value)} placeholder={phone ? "Search" : "Search the questions"} autoComplete="off" enterKeyHint="search" data-testid="feed-search" />
+        <input type="search" value={search} onFocus={onSearchFocus} onChange={(e) => onSearch(e.target.value)} placeholder={phone ? "Search" : "Search the questions"} autoComplete="off" enterKeyHint="search" data-testid="feed-search" />
       </label>
       <button type="button" className={`qs-tbtn qf-fbtn${active > 0 ? " on" : ""}`} aria-expanded={open} aria-controls="qf-body" onClick={onToggle} data-testid="feed-filters-toggle">
         <FilterIcon /><span>Filters</span>{active > 0 && <span className="qs-badge" aria-label={`${active} on`}>{active}</span>}
       </button>
       <div className="qf-count">
-        <p className="qf-nres" role="status" aria-live="polite"><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}{tier && !phone ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
+        <p className="qf-nres" role="status" aria-live="polite">{count < 0 ? <b data-testid="feed-count">Searching</b> : <><b data-testid="feed-count">{n(count)}</b> {count === 1 ? "question" : "questions"}</>}{tier && !phone ? ` \u00b7 ${tier}` : ""}{searchNote}</p>
         {(progress || here) && (
           <p className="qf-prog">
             {progress && <span className="qf-prog-n" data-testid="feed-progress">{progress}</span>}

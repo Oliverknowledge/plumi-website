@@ -21,9 +21,11 @@ import { FeedActs, FeedFilterBody, FeedHead, FeedPills, SchoolYear } from "./Fee
 import { FeedList } from "./FeedList";
 import { FeedPen } from "./FeedPen";
 import { ruler } from "@/lib/studyapp/questions/rulerStore";
+import { useSettledList } from "./useSettledList";
 import { useMatch } from "./useMatch";
 
 const NO_IDS: ReadonlySet<string> = new Set();
+const NO_LIST: readonly BankRow[] = [];
 
 /**
  * The questions of one subject as a single continuous list, like the public question bank but with the student's own writing space under each picture:
@@ -94,18 +96,26 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
     const t = setTimeout(() => change({ q: search }), 170);
     return () => clearTimeout(t);
   }, [search, filters.q, change]);
-  const bank = useBankText(slug, search.trim().length > 0);
+  // The papers' text is asked for at once: when the search box is focused, and on the first key (never later than the student's own search).
+  const [wantText, setWantText] = useState(false);
+  const bank = useBankText(slug, search.trim().length > 0 || wantText);
   const done = useMemo(() => (filters.hideDone ? markedIds(currentQuestions(), slug) : NO_IDS), [filters.hideDone, slug]);
 
   /* ── the list ──────────────────────────────────────────────────── */
   const orders = useMemo(() => feedOrders(rows, meta.series), [rows, meta.series]);
   const twinPaper = useMemo(() => twinPapers(rows, extras.twins), [rows, extras.twins]);
   const ctx = useMemo(() => ({ text: bank.text, bands, done, extras, meta, twinPaper }), [bank.text, bands, done, extras, meta, twinPaper]);
-  const list = useMemo(() => feedList(orders, filters, ctx), [orders, filters, ctx]);
+  const candidate = useMemo(() => feedList(orders, filters, ctx), [orders, filters, ctx]);
+  // The list on screen is never changed under the student by late data (the papers' text, the school-year file, a tier synced from elsewhere): feedSettle.ts has the rule. `intent` is what the
+  // student has chosen (their stored filters and tier), which changes in the same render as the list they asked for.
+  const intent = useMemo(() => JSON.stringify([stored, tier]), [stored, tier]);
+  const waitingForText = filters.q.trim().length > 0 && !bank.text && !bank.failed;
+  const settled = useSettledList(candidate, intent, waitingForText, waitingForText);
+  const list = settled.list ?? NO_LIST;
   // A ruler left open on a question that has left the list (a filter, a search) is put away.
   useEffect(() => { const id = ruler.get().partId; if (id && !list.some((r) => r.id === id)) ruler.close(); }, [list]);
   const byQuestion = useMemo(() => partsByQuestion(orders.new), [orders]);
-  const listKey = useMemo(() => JSON.stringify([filters, tier]), [filters, tier]);
+  const listKey = String(settled.epoch);
   /** The questions that show a "How question 3 starts" / "so far" button (a setup picture, or a part after the first), so their height is guessed right. */
   const withStart = useMemo(() => {
     const ids = new Set<string>();
@@ -310,8 +320,8 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
     <div className="qf-feed" style={{ "--tint": tint } as React.CSSProperties} data-testid="feed" data-slug={slug}>
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
-        ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
-        tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted}
+        ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={settled.list === null ? -1 : list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}
+        tier={tier} phone={phone} here={hereLine} acts={acts} notSaved={!persisted} onSearchFocus={() => setWantText(true)}
       />
       <FeedPills meta={meta} bands={bands} f={filters} onChange={change} onClear={clearAll} />
       {lost.length > 0 && (
@@ -331,13 +341,21 @@ function FeedReady({ entry, meta, rows, tier, q, extras, extrasReady, extrasFail
       <h2 className="qs-sr" id="qf-results" tabIndex={-1}>Questions</h2>
       {rows.length === 0 ? (
         <div className="qs-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>No questions here yet</b></div>
+      ) : settled.list === null ? (
+        // a search remembered from last time: the list is made once the papers' text is here (at most 2.5 s), so it is never shown and then changed
+        <div className="qf-ghosts" role="status" aria-label="Searching" data-testid="feed-searching">{[0, 1].map((i) => <div key={i} className="qf-card qf-ghost"><div className="qf-left"><i /><i /><i /></div><div className="qf-sheet"><i /></div><div className="qf-right" /></div>)}</div>
       ) : list.length === 0 ? (
         <div className="qs-empty" data-testid="feed-empty"><Image src="/study/mascot/plumi-curious.svg" alt="" width={72} height={72} unoptimized /><b>{searching ? "Nothing matches your search" : "Nothing matches"}</b>
           {searching && <button type="button" className="btn" onClick={() => setSearch("")} data-testid="feed-clear-search">Clear search</button>}
           {active > 0 && <button type="button" className="btn" onClick={clearAll}>Clear filters</button>}
         </div>
       ) : (
-        <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
+        <div className={`qf-listwrap${settled.waiting ? " is-waiting" : ""}`} aria-busy={settled.waiting || undefined} data-testid="feed-listwrap">
+          <FeedList<BankRow> items={list} estimate={estimate} render={render} listKey={listKey} start={start} onPos={(pos) => { if (!backTo.current) rememberPos(slug, pos); }} onHere={setHere} gap={gap} label={`${list.length.toLocaleString("en-GB")} questions`} />
+        </div>
+      )}
+      {settled.offer && (
+        <button type="button" className="qf-more" style={{ top: pillTop }} onClick={settled.show} data-testid="feed-more">{settled.offer}</button>
       )}
       {deep && (
         <button type="button" className="qf-top" style={{ top: pillTop }} aria-label="Back to the top" onClick={() => {
