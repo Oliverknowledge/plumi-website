@@ -19,10 +19,25 @@ const pressed = [];
 const logKeyToKiKo = Object.fromEntries(Object.entries(keys).map(([pair, value]) => [value[2], pair.split(',').map(Number)]));
 const context = { isEditing: false, logKeyToKiKo,
   sim: { SetKey: (ki, ko) => pressed.push(`${ki},${ko}`) },
-  keypadEl: { querySelector: () => null }, keypad: {},
+  keypadEl: { querySelector: () => null, contains: key => key.inKeypad }, keypad: {},
 };
 vm.createContext(context);
 vm.runInContext(source, context);
+// Starting a touch (including the first finger of a pinch) must not enter a
+// digit. Only browser-confirmed clicks should activate a key, including taps
+// after zoom and clicks on a child of the key region.
+assert.equal(context.keypad.onpointerdown, undefined, 'Gesture starts must not press keys');
+const tapKey = { dataset: { ki: '1', ko: '2' }, inKeypad: true };
+const tap = target => context.keypad.onclick({ target });
+const child = { closest: () => tapKey };
+for (let i = 0; i < 20; i++) tap(child);
+assert.equal(pressed.length, 20, 'Rapid taps must all reach the firmware queue');
+assert.ok(pressed.every(pair => pair === '1,2'));
+tap({ closest: () => null });
+tap({ closest: () => ({ ...tapKey, inKeypad: false }) });
+assert.equal(pressed.length, 20, 'Only keys in the active keypad may activate');
+pressed.length = 0;
+
 let blurred = false;
 const button = { getAttribute: name => name === 'role' ? 'button' : null, blur: () => { blurred = true; } };
 function key(key, target = {}, extra = {}) {
