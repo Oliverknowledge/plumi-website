@@ -30,7 +30,7 @@ const PRINT_H = A4.h - MARGIN * 2 - 40;
  * blank row in it, moves whole to the next page (a maths graph was cut in two, 29 October 2026).
  */
 const SHRINK = 1.4;
-async function asJpeg(url: string): Promise<Slice[] | null> {
+async function asJpeg(url: string, marks: number | null = null): Promise<Slice[] | null> {
   const res = await paced(url);
   if (!res) return null;
   const bitmap = await createImageBitmap(await res.blob());
@@ -45,7 +45,7 @@ async function asJpeg(url: string): Promise<Slice[] | null> {
   bitmap.close();
   const pageRows = Math.floor((canvas.width * PRINT_H) / PRINT_W);
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const ruled = hasAnswerLines(pixels);
+  const ruled = hasAnswerLines(pixels, marks);
   const cutOut = (top: number, bottom: number) => {
     const piece = document.createElement("canvas");
     piece.width = canvas.width;
@@ -114,18 +114,69 @@ function twoLines({ data, width: w }: Pixels, a: Rule, b: Rule) {
 }
 
 /**
- * Whether a crop already has the paper's own lines to write on (many cutters keep them: OCR's and AQA's sciences,
- * Edexcel Psychology's one-part questions), so the PDF adds none under it: three or more rules evenly spaced, or
- * the two a 1-mark part gets, at its foot (AQA's: the PDF put two more under them, 4 November 2026). A box's border
- * (Edexcel English Literature) or a lone "Answer ____" line isn't, and a table's rules span only the table.
+ * The lines to write on at a crop's foot, top to bottom. A line is a row or few of ink, solid or dotted (some boards'
+ * are too pale for `readRows`), running a good way across, with blank paper over it: a line of words has its own
+ * letters above its baseline, and the rule under "(Total for Question 6 = 40 marks)" sits right under the words.
+ * A label on its left ("Reason ____") or a mark on its right ("..... [2]") are left out of what has to be blank.
+ * A box or a table's foot has its side coming down onto it. Words on the left under the last line mean the lines
+ * aren't at the foot (what's there may set up the next part), and a mark or a question's total on the right is fine.
  */
-export function hasAnswerLines(pixels: Pixels, { rules, foot }: Rows = readRows(pixels)) {
+export function linesAtFoot({ data, width: w, height: h }: Pixels): Rule[] {
+  const inked = (y: number, x: number, level = 690) => { const i = (y * w + x) * 4; return data[i] + data[i + 1] + data[i + 2] < level; };
+  const runIn = (y: number) => {
+    let best = { from: 0, to: 0, ink: 0 }, from = -1, last = -1, ink = 0;
+    for (let x = 0; x <= w; x++) {
+      if (x < w && !inked(y, x)) continue;
+      if (from >= 0 && (x === w || x - last > w * 0.012)) { if (last - from > best.to - best.from) best = { from, to: last, ink }; from = -1; ink = 0; }
+      if (x < w) { if (from < 0) from = x; last = x; ink++; }
+    }
+    return best;
+  };
+  const found: Rule[] = [];
+  let foot = 0, run = 0, runFrom = 0, runTo = 0;
+  for (let y = 0; y <= h; y++) {
+    const r = y < h ? runIn(y) : { from: 0, to: 0, ink: 0 };
+    if (y < h && r.ink) foot = y + 1;
+    const long = r.to - r.from >= w * 0.35 && r.ink >= (r.to - r.from) * 0.2;
+    if (long) { if (!run || r.to - r.from > runTo - runFrom) { runFrom = r.from; runTo = r.to; } run++; continue; }
+    if (run && run <= 4) {
+      const top = y - run, len = runTo - runFrom;
+      const middle = (row: number) => { for (let x = Math.round(runFrom + len * 0.1); x < runFrom + len * 0.75; x++) if (inked(row, x)) return true; return false; };
+      let clear = 0;
+      for (let row = top - 3; row >= 0 && !middle(row); row--) clear++; // the rows just over a rule are its faint edge
+      const reach = Math.round(w * 0.012);
+      let side = 0;
+      for (let row = top - 2; row > Math.max(0, top - 2 - reach); row--) { for (let x = Math.max(0, runFrom - 3); x <= runFrom + 3; x++) if (inked(row, x, 600)) { side++; break; } }
+      if (clear >= w * 0.012 && side < reach) found.push({ top, end: y, from: runFrom, to: runTo });
+    }
+    run = 0;
+  }
+  const last = found.at(-1);
+  if (!last || foot - last.end > 70) return [];
+  for (let y = last.end; y < foot; y++) { let ink = 0; for (let x = 0; x < w * 0.6; x++) if (inked(y, x, 600)) ink++; if (ink > w * 0.01) return []; }
+  const block = [last];
+  for (let i = found.length - 2; i >= 0 && block[0].end - found[i].end <= 120; i--) block.unshift(found[i]);
+  return block;
+}
+
+/**
+ * Whether a crop already has the paper's own lines to write on (many cutters keep them: OCR's and AQA's sciences,
+ * Edexcel Psychology's one-part questions), so the PDF adds none under it: three or more rules evenly spaced, the
+ * two a 1-mark part gets, or the lines at its foot if they're three or more or near enough its marks (one for up to
+ * 2 marks, two for up to 3). Fewer than that is what's left of a part cut off at the page's end, or an "Answer ____"
+ * with its working room cut away, so those keep the PDF's lines. (A part with one line of its own got two more
+ * under it, wider than its column: Discord, 5 November 2026.)
+ */
+export function hasAnswerLines(pixels: Pixels, marks: number | null = null) {
+  const { rules, foot } = readRows(pixels);
   for (let i = 2; i < rules.length; i++) {
     const a = rules[i - 1].end - rules[i - 2].end, b = rules[i].end - rules[i - 1].end;
     if (a >= 14 && b >= 14 && a <= 90 && b <= 90 && Math.abs(a - b) <= Math.max(a, b) * 0.25) return true;
   }
   const n = rules.length;
-  return n >= 2 && foot - rules[n - 1].end <= 70 && twoLines(pixels, rules[n - 2], rules[n - 1]);
+  if (n >= 2 && foot - rules[n - 1].end <= 70 && twoLines(pixels, rules[n - 2], rules[n - 1])) return true;
+  const own = linesAtFoot(pixels).length;
+  return own >= 3 || (own > 0 && own + 1 >= (marks ?? 2));
 }
 
 /**
@@ -238,7 +289,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
   const want = (c: Crop) => {
     const url = c.kind === "stem" ? stemImage(c.part, subject.cropVersion) : partImage(c.part.id, c.kind, subject.cropVersion);
-    fetched.set(c, run(() => asJpeg(url).catch(() => null)));
+    fetched.set(c, run(() => asJpeg(url, c.part.m).catch(() => null)));
     return c;
   };
 
