@@ -126,6 +126,7 @@ def build(lang, bank, parts, tags, manifest, audio):
         "series": [{"id": s, "label": series_label(s)} for s in series],
         "wholes": {k: v for k, v in sorted(wholes.items()) if k.split("-")[1] in series},
         "noCalc": True, "note": NOTE,
+        "cropVersion": 1,  # 1: answer boxes and "[n marks]" no longer cut (recut_compare.py, 4 November 2026)
         "count": len(rows), "firstYear": min(years), "lastYear": max(years),
         "sample": rows[:20],
     }

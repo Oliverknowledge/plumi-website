@@ -73,6 +73,8 @@ def end_at_text(doc, pieces):
             y = max(sp["bbox"][3] for l in words for sp in l[3])
             # A boxed passage keeps its box's foot.
             y = max([d["rect"].y1 for d in doc[pg].get_drawings() if y < d["rect"].y1 < y + 24 and d["rect"].width > 100] + [y])
+            # (An answer box on the marks' line can reach further down than the words.)
+            y = max([y] + [d["rect"].y1 for d in doc[pg].get_drawings() if d["rect"].y0 < y < d["rect"].y1 and d["rect"].height < 60])
             return pieces[:n] + [(pg, pymupdf.Rect(rect.x0, rect.y0, rect.x1, min(rect.y1, y + 8)))]
     return pieces
 

@@ -155,6 +155,7 @@ def main():
             "wholes": {k: v for k, v in sorted(wholes.items())},
             **({"options": {"label": "Specification", "list": [{"id": new, "name": f"From 2026 ({new})"}, {"id": old, "name": f"2018 to 2025 ({old})"}]}} if new else {}),
             "noCalc": True,
+            "cropVersion": 1,  # 1: answer boxes no longer cut, the next question's title no longer on the end of a crop (recut_compare.py, 4 November 2026)
             "note": NOTE[name] + COMMON,
             "count": len(rows), "firstYear": min(years), "lastYear": max(years),
             "sample": rows[:20],
