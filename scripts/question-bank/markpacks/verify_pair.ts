@@ -28,6 +28,8 @@ for (const part of parts) {
   if (ra === null || rb === null) { row.why = [`no reading from ${ra === null ? "A" : ""}${rb === null ? " B" : ""}`.trim()]; continue; }
   const va = gatePack(ra, part, ocr[part.id]), vb = gatePack(rb, part, ocr[part.id]);
   if (va.status === "rejected" || vb.status === "rejected") { row.status = "rejected"; row.why = [...va.reasons.map((r) => `A: ${r}`), ...vb.reasons.map((r) => `B: ${r}`)]; continue; }
+  // Both readings are held by the gate (a figure, a tick, a number, levels, own doubt): the part is held whether or not they agree.
+  if (va.status === "held" && vb.status === "held") { row.status = "held"; row.why = [...new Set([...va.reasons, ...vb.reasons])]; continue; }
   const c = compareReadings(va.pack, vb.pack);
   if (!c.agree) { row.status = "disagree"; row.why = c.differences; continue; }
   if (va.status === "held" || vb.status === "held") { row.status = "held"; row.why = [...new Set([...va.reasons, ...vb.reasons])]; continue; }

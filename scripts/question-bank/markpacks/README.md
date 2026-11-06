@@ -113,3 +113,17 @@ Batch 2 was NOT representative for Biology: the 8 Biology parts left over were a
 - A third reading (the existing DeepSeek one) agrees with one of the two readers on only 5 of the 13, so it would not rescue most of them.
 
 Cost: 0 DeepSeek calls. 16 Claude reader runs (about 120,000 tokens each).
+
+### Round 2: board text layer, "same marks written differently", drawing rule (7 Nov 2026)
+
+`pdf_text.py` takes the scheme's words from the board's own PDF text layer (the whole-paper PDFs are already on the bank's bucket) instead of the
+bank's lossy OCR, so the word check is stricter and exact. It located the scheme rows for 51 of the 60 parts (the other 9 were figure parts, not tried).
+`consensus.ts` now treats "any one from a, b, c" as one point or as three points with a cap of one as the same scheme. The v4 prompt now tells a
+reader not to describe a drawing (skeletal formula, diagram): copy the printed words, set needs_figure_or_table. The 19 parts that were not agreed
+or held were read again by two fresh Claude readers who also got the text layer.
+
+Same 60 parts, final: **17 agreed, 37 held (figure, tick, number, levels or doubt), 4 rejected, 2 readers disagree.** Of the 23 that were not held, 17 agreed.
+Honest limits: this is one sample of 60 across six subjects (Biology was figure-heavy); the 5 re-read parts were given the text layer, so their
+wording is not fully independent; part of the rise in "held" is the prompt now sending drawing answers to held, which is correct, not a better
+reading; 2 of the 4 rejected still fail the word check and are not explained yet (`74042-nov20-08-2`, `84622f-spec-09-2`); the two readers can still
+misread a page the same way. Cost: 0 DeepSeek calls, 4 more reader runs of about 120,000 tokens.
