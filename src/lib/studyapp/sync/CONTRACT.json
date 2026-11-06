@@ -1,0 +1,156 @@
+{
+  "contract": "plumi-sync",
+  "version": 1,
+  "stage": 1,
+  "comment": "The wire format between a device and Supabase for syncing a student's flashcards and desk tasks. Read by: the SQL (Supabase/migrations/0134_syncDecks.sql, tools/sync-check), the website (src/lib/studyapp/sync, contract.test.ts) and the iPad (Sources/PlumiKit/Sync, SyncContractTests). Change a name or a limit here first; every reader fails until it agrees. Design: .context/handoffs/sync-design.md.",
+
+  "rpc": {
+    "push": { "name": "sync_push", "args": ["p_device", "p_changes"], "returns": "push_response" },
+    "pull": { "name": "sync_pull", "args": ["p_since", "p_limit"], "returns": "pull_response" }
+  },
+
+  "errors": {
+    "format": "social-style: the exception message is `sync:<code>` (SQLSTATE P0001, HTTP 400); not signed in is SQLSTATE 42501 (HTTP 403) with the message `sync:not_signed_in`",
+    "codes": ["not_signed_in", "bad_request", "too_many_changes", "bad_device"]
+  },
+
+  "limits": {
+    "id": { "min": 1, "max": 48, "pattern": "^[A-Za-z0-9._:~-]+$" },
+    "device_id": { "min": 8, "max": 64, "pattern": "^[A-Za-z0-9._-]+$" },
+    "changes_per_kind_per_push": 1000,
+    "pull_limit": { "default": 500, "max": 1000 },
+    "future_clock_clamp_ms": 300000,
+    "tombstone_keep_days": 30,
+    "live_rows_per_account": { "decks": 1000, "cards": 100000, "tasks": 5000, "task_done": 50000, "flags": 100 },
+    "fields": {
+      "deck_title": 200, "deck_subject": 80, "card_side": 5000, "picture_name": 200,
+      "task_text": 2000, "task_subject": 80, "schedule_json_bytes": 2048, "flag_key": 64, "flag_value_json_bytes": 2048
+    }
+  },
+
+  "kinds": {
+    "deck":      { "changes_key": "decks",     "table": "sync_deck" },
+    "card":      { "changes_key": "cards",     "table": "sync_card" },
+    "task":      { "changes_key": "tasks",     "table": "sync_task" },
+    "task_done": { "changes_key": "task_done", "table": "sync_task_done" },
+    "flag":      { "changes_key": "flags",     "table": "sync_flag" }
+  },
+
+  "wire": {
+    "comment": "All times are milliseconds since the epoch (integers). All keys are snake_case. A key that is absent means 'not part of this change'; an explicit null is a value. `base_*_rev` is the revision of that group the device last saw from the server (0 when it has never seen the row): it is how the server tells a stale write from an up-to-date one.",
+
+    "deck": {
+      "id": "string", "title": "string", "subject": "string|null", "origin": "string (always 'own' in stage 1)",
+      "created_at_ms": "integer", "edited_at_ms": "integer", "base_content_rev": "integer",
+      "deleted_at_ms": "integer (present only to tombstone)"
+    },
+
+    "card": {
+      "id": "string", "deck_id": "string", "created_at_ms": "integer",
+      "content": {
+        "position": "integer", "front": "string", "back": "string",
+        "front_image": "string|null (a file name only)", "back_image": "string|null (a file name only)"
+      },
+      "content_at_ms": "integer", "base_content_rev": "integer",
+      "sched": {
+        "core": {
+          "due_ms": "integer (a new card is due now)", "interval_days": "number", "ease": "number",
+          "lapses": "integer", "last_reviewed_ms": "integer|null"
+        },
+        "extra": { "web": "object|absent", "ios": "object|absent" }
+      },
+      "sched_at_ms": "integer", "base_sched_rev": "integer",
+      "deleted_at_ms": "integer (present only to tombstone)", "base_rev": "integer"
+    },
+
+    "task": {
+      "id": "string", "text": "string", "subject": "string|null", "day": "string|null (yyyy-MM-dd, the student's calendar)",
+      "repeat_days": "integer (weekday bitmask, Monday = 1; 0 = once)", "has_ink": "boolean (a hand-written task: the ink itself is stage 2)",
+      "done_at_ms": "integer|null", "filed_at_ms": "integer|null", "created_at_ms": "integer", "sort_order": "integer",
+      "edited_at_ms": "integer", "base_rev": "integer", "deleted_at_ms": "integer (present only to tombstone)"
+    },
+
+    "task_done": {
+      "task_id": "string", "day": "string (yyyy-MM-dd)", "done_at_ms": "integer", "filed_at_ms": "integer|null",
+      "edited_at_ms": "integer", "base_rev": "integer", "deleted_at_ms": "integer (present only to tombstone)"
+    },
+
+    "flag": {
+      "key": "string", "value": "json", "edited_at_ms": "integer", "base_rev": "integer", "deleted_at_ms": "integer (present only to tombstone)"
+    }
+  },
+
+  "push_response": {
+    "rev": "integer: the account's revision after this push",
+    "applied": "integer: rows changed",
+    "conflicts": "[{ kind, id, copy_id }]: a content conflict was kept as a copy; copy_id is the new card",
+    "refused": "[{ kind, id, reason }]: reason is one of quota, too_long, bad_row, no_row, bad_id",
+    "rows": "the server's current version of every row this push touched, in the pull row shape: apply these, do not guess"
+  },
+
+  "pull_response": {
+    "rev": "integer: the account's current revision",
+    "next": "integer: the cursor to send next time (the last revision in this page)",
+    "more": "boolean: there are more rows after this page",
+    "decks": "[pull row]", "cards": "[pull row]", "tasks": "[pull row]", "task_done": "[pull row]", "flags": "[pull row]",
+    "row_shape": "the wire shape above PLUS: rev, content_rev (card and deck), sched_rev (card), device_id (of the last writer), conflict_of (card: the id it is a copy of, or null), deleted_at_ms (null when alive)"
+  },
+
+  "schedule": {
+    "core_fields": ["due_ms", "interval_days", "ease", "lapses", "last_reviewed_ms"],
+    "rule": "A platform writes the core and its own extra, and preserves the other platform's extra untouched. When it has no extra of its own it rebuilds its state from the core.",
+    "web_extra_fields": ["state", "reps", "step", "relearn_to"],
+    "ios_extra_fields": ["box"],
+    "ease_range": [1.3, 4.0]
+  },
+
+  "generated_decks": {
+    "comment": "Plumi's own content is remade on each device and is NOT synced as the student's own.",
+    "title_prefixes": ["Key wording ·", "Mark scheme ·", "Mistakes:"],
+    "web_starter_set": "a web Deck whose `starter` is not null is not synced",
+    "flags": ["mark_scheme_redeemed"]
+  },
+
+  "vectors": {
+    "comment": "Golden values both mappers must reproduce exactly. `web` and `ios` are the local shapes, `wire` the card's wire shape.",
+    "card_web_to_wire": {
+      "web": {
+        "id": "c_golden1", "deckId": "d_golden", "front": "What is a mole?", "back": "6.02e23 particles", "createdAt": 1762400000000, "lastReviewed": 1762500000000,
+        "sch": { "state": "review", "due": 1763000000000, "interval": 6, "ease": 2.5, "reps": 4, "lapses": 1, "step": 0, "relearnTo": null }
+      },
+      "position": 2,
+      "wire": {
+        "id": "c_golden1", "deck_id": "d_golden", "created_at_ms": 1762400000000,
+        "content": { "position": 2, "front": "What is a mole?", "back": "6.02e23 particles", "front_image": null, "back_image": null },
+        "sched": {
+          "core": { "due_ms": 1763000000000, "interval_days": 6, "ease": 2.5, "lapses": 1, "last_reviewed_ms": 1762500000000 },
+          "extra": { "web": { "state": "review", "reps": 4, "step": 0, "relearn_to": null } }
+        }
+      }
+    },
+    "card_ios_to_wire": {
+      "ios": {
+        "id": "FLASH-GOLDEN-0001", "document_id": "DECK-GOLDEN-0001", "position": 0, "front": "Define density", "back": "mass / volume", "box": 2,
+        "due_at": 1763000000.0, "last_reviewed_at": 1762500000.0, "created_at": 1762400000.0, "updated_at": 1762500000.0,
+        "ease": 2.3, "interval_days": 3.0, "lapses": 0, "front_image": null, "back_image": null
+      },
+      "wire": {
+        "id": "FLASH-GOLDEN-0001", "deck_id": "DECK-GOLDEN-0001", "created_at_ms": 1762400000000,
+        "content": { "position": 0, "front": "Define density", "back": "mass / volume", "front_image": null, "back_image": null },
+        "sched": {
+          "core": { "due_ms": 1763000000000, "interval_days": 3, "ease": 2.3, "lapses": 0, "last_reviewed_ms": 1762500000000 },
+          "extra": { "ios": { "box": 2 } }
+        }
+      }
+    },
+    "task_web_to_wire": {
+      "web": { "id": "t_golden1", "text": "Past paper, Paper 1", "subject": "Chemistry", "due": "2026-11-09", "done": true, "createdAt": 1762400000000, "doneAt": 1762450000000 },
+      "wire": {
+        "id": "t_golden1", "text": "Past paper, Paper 1", "subject": "Chemistry", "day": "2026-11-09", "repeat_days": 0, "has_ink": false,
+        "done_at_ms": 1762450000000, "filed_at_ms": null, "created_at_ms": 1762400000000, "sort_order": 0
+      }
+    },
+    "not_synced_titles": ["Key wording · Mechanics", "Mark scheme · Cells", "Mistakes: Moles"],
+    "synced_titles": ["My notes", "Mark scheme notes", "Key wording"]
+  }
+}
