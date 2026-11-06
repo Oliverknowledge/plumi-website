@@ -2,7 +2,7 @@ import type { AppData } from "../model";
 import type { Failure, SyncClient } from "./client";
 import { noticeChanges } from "./engine";
 import { runPass } from "./runner";
-import { deviceId as makeDeviceId, emptyShadow, loadShadow, readOptIn, saveShadow, writeOptIn, type Shadow } from "./shadow";
+import { deviceId as makeDeviceId, loadShadow, readOptIn, saveShadow, writeOptIn, type Shadow } from "./shadow";
 import { OFF, reduce, type Event, type Status } from "./status";
 
 /**
@@ -52,6 +52,7 @@ export function createSyncRuntime(deps: RuntimeDeps) {
   let failures = 0;
   let timer: unknown = null;
   let epoch = 0;
+  let seen: [unknown, unknown, unknown] | null = null;
   const listeners = new Set<() => void>();
 
   const real = (a: Account | null): a is Account => !!a && !a.anonymous;
@@ -95,6 +96,7 @@ export function createSyncRuntime(deps: RuntimeDeps) {
     running = false;
     freeLease(a.id);
     if (epoch !== mine) return;   // the account changed or the choice was withdrawn while it ran: that has already reset everything
+    if (!again) { const now = deps.getApp(); seen = [now.decks, now.cards, now.tasks]; }
     if (out.kind === "done") {
       failures = 0;
       persist(out.shadow);
@@ -112,6 +114,7 @@ export function createSyncRuntime(deps: RuntimeDeps) {
 
   function reset(next: Account | null) {
     epoch++;
+    seen = null;
     cancel();
     running = false; again = false; failures = 0;
     account = next;
@@ -132,9 +135,14 @@ export function createSyncRuntime(deps: RuntimeDeps) {
     /** The student's data changed here. Costs nothing unless backing up is on. */
     notifyChange() {
       if (!on || !real(account)) return;
-      const s = shadow ?? emptyShadow(account.id);
-      const noticed = noticeChanges(deps.getApp(), s, deps.now());
-      if (noticed !== s) shadow = noticed;
+      const app = deps.getApp();
+      // a change to something the backup does not carry (where the student was last, the day's counts) is not a reason to talk to the network
+      if (seen && seen[0] === app.decks && seen[1] === app.cards && seen[2] === app.tasks) return;
+      seen = [app.decks, app.cards, app.tasks];
+      // note when each change was made, and keep it where the next pass (or another tab, or a reload) will find it
+      const s = loadFor(account);
+      const noticed = noticeChanges(app, s, deps.now());
+      if (noticed !== s) persist(noticed); else shadow = s;
       apply({ type: "pending" });
       if (running) { again = true; return; }
       later(debounce);

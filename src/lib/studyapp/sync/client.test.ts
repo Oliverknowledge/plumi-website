@@ -81,7 +81,7 @@ describe("what a student can be shown", () => {
 
   it("has no em dash or en dash anywhere, and none of the machinery's words", () => {
     for (const s of all) {
-      assert.ok(!/[–—]/.test(s), `dash in: ${s}`);
+      assert.ok(!/[\u2013\u2014]/.test(s), `dash in: ${s}`);
       assert.ok(!/\b(error|errors|failed|failure|server|rpc|sync|synced|syncing|retry|conflict|tombstone|quota|refused)\b/i.test(s), `machinery word in: ${s}`);
       assert.ok(s.length <= 60, `short: ${s}`);
     }

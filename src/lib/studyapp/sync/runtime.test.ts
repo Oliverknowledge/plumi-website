@@ -254,6 +254,38 @@ describe("when it runs", () => {
   });
 });
 
+describe("what is not a reason to call", () => {
+  it("a change to something the backup does not carry (where the student was, the day's counts) sets no timer", async () => {
+    const r = rig();
+    r.rt.setAccount({ id: "user-1" });
+    withDeck(r);
+    r.rt.enable();
+    await settle();
+    assert.deepEqual(r.clock.pending(), []);
+    r.edit((d) => ({ ...d, last: { kind: "cards", label: "x", href: "/study/flashcards", at: 1 }, log: { "2026-11-06": { n: 1, right: 1, fresh: 0 } } }));
+    assert.deepEqual(r.clock.pending(), [], "nothing to back up, so nothing to wait for");
+  });
+
+  it("an edit made while the connection was down keeps the time it was made, through the runtime and a reload", async () => {
+    let online = true;
+    const storage = new MemoryStorage();
+    const r = rig({ storage, online: () => online });
+    r.rt.setAccount({ id: "user-1" });
+    withDeck(r);
+    r.rt.enable();
+    await settle();
+    online = false;
+    r.edit((d) => editCard(d, d.cards[0].id, "made offline", "a"));
+    const madeAt = r.clock.now();
+    await r.clock.advance(4 * 3600_000);   // hours pass
+    online = true;
+    r.rt.trigger();
+    await settle();
+    assert.equal([...r.server.cards.values()][0].content.front, "made offline");
+    assert.equal([...r.server.cards.values()][0].content_at, madeAt);
+  });
+});
+
 describe("accounts do not mix", () => {
   it("the shadow and the choice are kept per account id", async () => {
     const storage = new MemoryStorage();
@@ -291,6 +323,24 @@ describe("accounts do not mix", () => {
     assert.equal(r.rt.isOn(), true, "A's choice is still A's");
   });
 
+  it("two accounts that both back up on one browser each keep their own shadow (neither overwrites the other)", async () => {
+    const storage = new MemoryStorage();
+    const server = new FakeServer();
+    const r = rig({ storage, server });
+    r.rt.setAccount({ id: "user-A" });
+    withDeck(r);
+    r.rt.enable();
+    await settle();
+    const aRows = Object.keys(loadShadow(storage, "user-A").rows).sort();
+    assert.ok(aRows.length >= 2);
+    r.rt.setAccount({ id: "user-B" });
+    r.rt.enable();
+    await settle();
+    assert.notEqual(shadowKey("user-A"), shadowKey("user-B"));
+    assert.deepEqual(Object.keys(loadShadow(storage, "user-A").rows).sort(), aRows, "A's shadow is as it was");
+    assert.ok(Object.keys(loadShadow(storage, "user-B").rows).length >= 2, "and B has its own");
+  });
+
   it("a pass that was running when the account changed does not touch the new one", async () => {
     const server = new FakeServer();
     const api = server.api();
@@ -298,6 +348,8 @@ describe("accounts do not mix", () => {
     const gated = { rpc: (n: string, a: Record<string, unknown>) => new Promise<{ data: unknown; error: null }>((res) => { release = () => res(api.rpc(n, a) as never); }) };
     const clock = clockwork();
     let app: AppData = addDeck(EMPTY, "Notes", clock.now()).data;
+    // the server already holds this deck under another title, newer: applying its answer would rename the deck here
+    server.push("other-device-1", { decks: [{ id: app.decks[0].id, title: "Server title", subject: null, origin: "own", created_at_ms: 1, edited_at_ms: clock.now() + 1_000_000, base_content_rev: 0 }], cards: [], tasks: [] });
     const rt = createSyncRuntime({ storage: new MemoryStorage(), client: createSyncClient(gated), now: clock.now, online: () => true, timers: clock.timers, getApp: () => app, update: (fn) => { app = fn(app); }, random: () => 0.5 });
     rt.setAccount({ id: "user-A" });
     rt.enable();

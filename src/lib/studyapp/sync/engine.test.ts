@@ -11,6 +11,8 @@ import { addCard, addDeck, addStarters, addTask, deleteCard, deleteDeck, editCar
 import { applyPull, applyPush, noticeChanges, planPush, REFUSED_RETRY_MS } from "./engine";
 import { parsePullPage, parsePushResponse } from "./protocol";
 import { emptyShadow } from "./shadow";
+import { createSyncClient } from "./client";
+import { runPass } from "./runner";
 import { Device, FakeServer } from "./testkit";
 
 const T0 = 1_762_400_000_000;
@@ -628,5 +630,21 @@ describe("noticing", () => {
     assert.equal(noticeChanges(EMPTY, emptyShadow("x"), 1).rows !== undefined, true);
     const plan = planPush(EMPTY as AppData, emptyShadow("x"), 1, "web-device-a");
     assert.equal(plan.count, 0);
+  });
+});
+
+describe("the pass itself", () => {
+  it("with no account, or an anonymous one, it makes no call at all", async () => {
+    const { a, server } = setup();
+    addCardTo(a, addDeckTo(a, "D"), "q");
+    const run = (account: { id: string; anonymous?: boolean } | null) => runPass({
+      client: createSyncClient(server.api("user-1")), account, device: "web-device-a", now: () => a.clock.t, online: () => true,
+      getApp: () => a.app, update: () => {}, save: () => {}, current: () => true,
+    }, a.shadow);
+    assert.equal((await run(null)).kind, "skipped");
+    assert.equal((await run({ id: "anon", anonymous: true })).kind, "skipped");
+    assert.equal(server.calls.length, 0);
+    assert.equal((await run({ id: "user-1" })).kind, "done");
+    assert.ok(server.calls.length > 0);
   });
 });
