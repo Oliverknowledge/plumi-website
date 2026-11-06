@@ -21,7 +21,11 @@ export type Outcome =
   | { kind: "unavailable" }
   | { kind: "cannot" }
   | { kind: "too_long" }
+  | { kind: "unreadable" }
   | { kind: "failed" };
+
+/** What reading a handwritten answer gives: the words (to be checked by the student), or one of the calm outcomes above. */
+export type ReadOutcome = { kind: "read"; text: string } | Exclude<Outcome, { kind: "marked" }>;
 
 export interface Deps {
   /** The function's address: https://<project>.supabase.co/functions/v1/mark */
@@ -106,6 +110,32 @@ export async function requestMark(deps: Deps, input: MarkInput): Promise<Outcome
   if (code === "allowance") {
     return { kind: "allowance", pro: json.pro === true, window: json.window === "day" ? "day" : "week", retryAfter: isInt(json.retryAfter) && json.retryAfter > 0 ? json.retryAfter : 3600 };
   }
+  if (code === "rate" || code === "busy") return { kind: "rate" };
+  if (code === "unavailable" || code === "not_configured") return { kind: "unavailable" };
+  return { kind: "failed" };
+}
+
+/** The longest picture (a data URL) the server will read. The browser sends a JPEG well under this. */
+export const MAX_PICTURE_CHARS = 1_500_000;
+
+/**
+ * Ask Plumi to read a picture of the student's own handwriting into words. It marks nothing and costs no mark: the student reads the
+ * words, fixes any misread one, and only then is that text marked (requestMark). Never throws.
+ */
+export async function requestTranscript(deps: Deps, image: string): Promise<ReadOutcome> {
+  if (image.length > MAX_PICTURE_CHARS) return { kind: "failed" };
+  const r = await send(deps, "POST", "/transcribe", { image });
+  if (r === "signin") return { kind: "signin" };
+  if (r === "network") return { kind: "failed" };
+  const { status, json } = r;
+  const code = typeof json.code === "string" ? json.code : "";
+  if (status === 200 && json.ok === true && typeof json.text === "string") {
+    const text = json.text.trim();
+    return json.unreadable === true || text === "" ? { kind: "unreadable" } : text.length > MAX_ANSWER_CHARS ? { kind: "too_long" } : { kind: "read", text };
+  }
+  if (status === 401 || code === "account_required" || code === "unauthorized") return { kind: "signin" };
+  if (code === "consent_required") return { kind: "consent", minVersion: isInt(json.minVersion) ? json.minVersion : 1 };
+  if (code === "answer_too_long") return { kind: "too_long" };
   if (code === "rate" || code === "busy") return { kind: "rate" };
   if (code === "unavailable" || code === "not_configured") return { kind: "unavailable" };
   return { kind: "failed" };
