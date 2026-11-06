@@ -100,7 +100,7 @@ misread a page the same way.
 
 | Batch | Parts | Agreed | Held (both agree: figure, tick, numeric) | Rejected by the OCR gate (both readers) | Readers disagree |
 |---|---|---|---|---|---|
-| 1: AQA A-level Biology, DeepSeek-ready parts | 12 | see below | | | |
+| 1: AQA A-level Biology, parts DeepSeek read as ready (v3.6 prompt, old gate) | 12 | not run through `verify_pair` | | | |
 | 2: six subjects, random | 60 | 11 | 29 | 7 | 13 |
 
 Batch 1 was tried with the v3.6 prompt: both readers matched the DeepSeek reading on every point, mark and total in all 12; they differed only on
@@ -109,7 +109,7 @@ where unnumbered comments apply and on how much of an "eg" list to keep.
 Batch 2 was NOT representative for Biology: the 8 Biology parts left over were all figure parts. Of the 31 parts the text marker could take
 (not held for a figure, tick or number), 11 were agreed, 13 had readers disagree and 7 were rejected by the OCR check. What the misses are:
 - 7 rejected on BOTH readers: the bank's OCR text lacks words the page shows (chemical formulas, symbols, cut lines). The fix is a better text source (the board PDF text layer), not a looser gate.
-- 13 disagreements: 4 are a figure or table flag one reader set and the other did not, 4 are the answer kind, 3 are a different split of the same scheme (for example "any one from a, b, c" as one point or three points with a cap of one: the same marks, written differently), 2 are a wording slip by one reader.
-- A third reading (the existing DeepSeek one) agrees with one of the two readers on only 4 of the 13, so it would not rescue most of them.
+- 13 disagreements (categories overlap, counted by hand): a figure or table flag set by one reader only (4), a different answer kind (3), a different split of the same scheme (4, for example "any one from a, b, c" as one point or as three points with a cap of one: the same marks written differently, which `consensus.ts` does not yet treat as equal), and a wording or scope difference in an accept item (3).
+- A third reading (the existing DeepSeek one) agrees with one of the two readers on only 5 of the 13, so it would not rescue most of them.
 
 Cost: 0 DeepSeek calls. 16 Claude reader runs (about 120,000 tokens each).
