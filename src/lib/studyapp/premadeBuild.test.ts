@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { bolded, buildSubject, capitalise, cardBack, render, verifyShape, type DefinitionsFile, type PremadeSubject, type SpecInput } from "./premadeBuild";
+import { gzipSync } from "node:zlib";
+import { bolded, buildMarkScheme, buildSubject, candidatesForCode, capitalise, cardBack, render, verifyShape, type DefinitionsFile, type PremadeSubject, type SpecInput } from "./premadeBuild";
 
 const tree = (rows: [string, string | null, string][]) => ({ topics: rows.map(([code, parent_code, title]) => ({ code, parent_code, title })) });
 const A: SpecInput = { id: "AQA-1", label: "AQA", code: "1", tree: tree([["1", null, "Cells"], ["1.1", "1", "Membranes"], ["2", null, "Exchange"], ["2.1", "2", "Lungs"], ["3", null, "Empty module"]]) };
@@ -106,6 +107,56 @@ describe("bold key words (the iPad's KeyWording.bolded and capitalised, step for
     const f: DefinitionsFile = { definitions: [{ id: "X.A", prompt: "What is a **monomer**?", answer: "a smaller unit that can join", required: ["join"], topics: { "AQA-1": ["1"] } }] };
     const { data } = build(f);
     assert.deepEqual(data.cards[0], ["X.A", "What is a **monomer**?", "A smaller unit that can **join**"]);
+  });
+});
+
+describe("mark scheme cards", () => {
+  const T = tree([["1", null, "Cells"], ["1.1", "1", "Membranes"], ["PH.2", null, "Mechanics"], ["PH.2.3", "PH.2", "Forces"], ["3", null, "Empty"]]);
+  const spec: SpecInput = { id: "X-1", label: "X", code: "1", tree: T };
+  const card = (id: string, topics: string[], extra: Record<string, unknown> = {}) => ({ id, prompt: "Define locus.", marks: 1, answer: "(Fixed) position of a gene", allow: [], not: [], ignore: [], notes: [], topics, ...extra }) as never;
+  it("tries each code with and without the PH. prefix and then one level up, as the iPad does", () => {
+    assert.deepEqual(candidatesForCode("4.6.4"), ["4.6.4", "PH.4.6.4", "4.6", "PH.4.6", "4", "PH.4"]);
+  });
+  it("files a card under the first of its topic codes that finds a module, in the tree's module order", () => {
+    const { data, report } = buildMarkScheme({ subject: "Biology", spec, hashes: { "f.json": "h" }, cards: [
+      card("X.A", ["9.9", "1.1.7"]), card("X.B", ["2.3"]), card("X.C", ["1"]), card("X.D", ["7.7"]),
+    ] });
+    assert.equal(data.kind, "markscheme");
+    assert.deepEqual(data.specs[0].mods.map((m) => [m.c, m.t, m.k.length]), [["1", "Cells", 2], ["PH.2", "Mechanics", 1]], "empty modules left out");
+    assert.deepEqual(data.unmapped, ["X.D"]);
+    assert.deepEqual(report.noModule, ["X.D"]);
+    assert.deepEqual(data.cards.map((c) => c[0]), ["X.A", "X.B", "X.C"]);
+  });
+  it("carries the card verbatim: the question with its marks, the answer as points, and the board's own lines with their leads", () => {
+    const { data } = buildMarkScheme({ subject: "Physics", spec, hashes: {}, cards: [card("X.A", ["1"], { prompt: "Explain **why**.", marks: 2, answer: "first **point**\nsecond point", allow: ["a"], not: ["n"], ignore: ["i"], notes: ["State symbols"] })] });
+    assert.deepEqual(data.cards[0], ["X.A", "Explain **why**.\n\n[2 marks]", "\u2022 first **point**\n\u2022 second point\nAlso accept: a\nNot accepted: n\nIgnore: i\nNote: State symbols"]);
+    assert.deepEqual(verifyShape(JSON.parse(render(data))), []);
+  });
+  it("refuses an em dash rather than change the board's words, and a repeated id", () => {
+    assert.throws(() => buildMarkScheme({ subject: "B", spec, hashes: {}, cards: [card("X.A", ["1"], { answer: "a \u2014 b" })] }), /em dash/);
+    assert.throws(() => buildMarkScheme({ subject: "B", spec, hashes: {}, cards: [card("X.A", ["1"]), card("X.A", ["1"])] }), /duplicate/);
+  });
+});
+
+describe("the committed mark scheme decks", () => {
+  const dir = join(import.meta.dirname, "..", "..", "content", "premadeDecks");
+  const SPECS = ["aqa-7402", "aqa-7405", "aqa-7408", "aqa-8461", "aqa-8462", "aqa-8463", "edexcel-9ph0", "ocr-h420", "ocr-h432", "ocr-h556"];
+  const files = SPECS.map((s) => join(dir, `markscheme-${s}.json`));
+  it("are all there, sound, and in budget", { skip: !files.every(existsSync) && "not built" }, () => {
+    let cards = 0, gz = 0, raw = 0;
+    for (const f of files) {
+      const text = readFileSync(f, "utf8");
+      const d = JSON.parse(text) as PremadeSubject;
+      assert.equal(d.kind, "markscheme");
+      assert.deepEqual(verifyShape(d), [], f);
+      assert.equal(d.specs.length, 1);
+      assert.ok(d.cards.every((c) => /\n\n\[\d+ marks?\]$/.test(c[1])), "every front ends with its marks");
+      assert.ok(!text.includes("\u2014"));
+      cards += d.cards.length; raw += text.length; gz += gzipSync(text).length;
+    }
+    assert.equal(cards, 1166, "all the iPad's cards are placed");
+    assert.ok(gz < 350 * 1024, `gzip ${gz}`);
+    assert.ok(raw < 700 * 1024, `raw ${raw}`);
   });
 });
 

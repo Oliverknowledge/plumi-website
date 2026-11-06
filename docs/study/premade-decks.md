@@ -1,6 +1,11 @@
 # Ready-made decks (Biology, Chemistry, Physics)
 
-The Flashcards page's "Ready-made decks" sheet is a catalogue: module decks for A-level Biology, Chemistry and Physics, plus the five free hand-written starters under "Free starters". The module decks come from the iPad app's definition files, so the web and the iPad teach the same words.
+The Flashcards page's "Ready-made decks" sheet is a catalogue: for each of Biology, Chemistry and Physics, two kinds of module deck, named as on the iPad, plus the five free hand-written starters under "Free starters".
+
+- **Key wording · <module>**: Plumi's own definitions (the iPad's `*_definitions.json`), A-level only. DRAFT, see below.
+- **Mark scheme · <module>**: the exam boards' own mark scheme wording from past papers (the iPad's `markscheme_cards_<spec>.json`), A-level and AQA GCSE. Critic-approved on the iPad, not DRAFT. See "Mark scheme cards" at the end.
+
+The module decks come from the iPad app's files, so the web and the iPad teach the same words.
 
 ## Status: DRAFT
 
@@ -23,7 +28,7 @@ Boards: Biology AQA 7402, OCR H420, Edexcel 9BN0 (Salters-Nuffield); Chemistry A
 ## Rules the build enforces
 
 - One deck per module of a specification, in the specification's own module order; modules with no cards are left out. Cards keep the iPad's order.
-- A card's text is carried exactly: the prompt as written, the answer with its first letter capitalised (as the iPad does) and nothing else changed.
+- A card's text is carried exactly: the prompt as written; the answer with its `required` key words wrapped in `**bold**` and its first letter capitalised, both as the iPad does (`KeyWording.bolded`, `capitalised`), and nothing else changed.
 - **Held back:** every id in a file's `sign_off` list is left out. Today: Biology `BIO.RHODOPSIN`, `BIO.CRITICAL_PERIOD`, `BIO.DEPRESSION`, `BIO.CANCER_OESTROGEN`, `BIO.CYSTIC_FIBROSIS`, `BIO.EXERCISE_IMMUNITY`; Chemistry `CHEM.IDEAL_GAS`, `CHEM.ARRHENIUS`, `CHEM.LATTICE_ENTHALPY`. They are listed in each output file's `held` and printed by the build.
 - A card no board's tree can place is skipped and listed in `unmapped` (none today).
 - The build fails on an em dash in any card or module name, a module name over 50 characters (a deck name is cut at 50), or a repeated id.
@@ -62,3 +67,26 @@ Caveat before turning it on: `account_pro` counts the asking device against the 
 ## Analytics
 
 `premade_opened` (`gate`), `premade_deck_added` (`subject`, `deck`, `gated`), `premade_locked_tapped` (`subject`, `deck`). No personal data.
+
+## Bold key words
+
+Each key wording card's answer carries its `required` words as `**bold**` markers, written by the build exactly as the iPad's `KeyWording.bolded` does: longest phrase first, first occurrence only, ignoring case, never inside a run already bold; a phrase the answer lacks is added as a "Key words:" line (one card does: BIO.INTRONS, where "coding sequences" is bolded inside "non-coding sequences" and then "non-coding" can no longer be found; the iPad draws the same). The capital goes after the markers. The `accept` map plays no part. The web draws `**x**` as bold on every card face, the editor list and shared decks (a student can type it too; the editor shows it as typed). Only balanced pairs are bold; the iPad bolds a last unclosed `**` to the end, the web keeps a stray one literal.
+
+## Mark scheme cards
+
+Source: the iPad repo's `local-dev` branch (not yet on `plumi`), `Sources/PlumiKit/Resources/markscheme_cards_<spec>.json` for AQA 7402, 7405, 7408, 8461, 8462, 8463, Edexcel 9PH0, OCR H420, H432, H556: 1,166 cards, all placed in 76 module decks. Make a read-only copy and point the build at it:
+
+```bash
+git -C /path/to/plumi archive origin/local-dev Sources/PlumiKit/Resources | tar -x -C /tmp/ms
+npm run decks:build -- --ms-src /tmp/ms/Sources/PlumiKit/Resources     # writes src/content/premadeDecks/markscheme-<spec>.json
+```
+
+A card is filed under the first of its topic codes that finds a module of that board's tree (the iPad's `MarkSchemeDecks.groups`, including its try-with-`PH.`-and-one-level-up rule). The front is the question, a blank line and `[n marks]`; the back is each marking point on a line led by `• ` (a line ending in a colon introduces points and is not one), then the board's own lines led by `Also accept: `, `Not accepted: `, `Ignore: `, `Note: `; `**` wraps the words the board underlines. This is the iPad's plain text (`MarkSchemeText`), carried verbatim; the web stores nothing more and reads the leads back for display (lib/studyapp/markscheme.ts), so an edited card still shows its bands. `term`, `asked` and `sources` are not carried. A few cards run past the usual 400 and 800 characters, so a catalogue deck's cards may hold 700 and 1,200 and its name 64 (`PREMADE_LIMITS` in model.ts); a student's own decks keep 400, 800 and 50.
+
+Drawn as on the iPad: the question with a small marks tag; the answer as points with dots, the board's key words heavy in the accent, "or" between alternatives, and under it quiet bands ALSO ACCEPT (green), NOT ACCEPTED (red), IGNORE (grey) and MARK SCHEME NOTE (accent). The page's dark mode turns the page over but keeps hues, so the bands stay green, red and grey. The answer is set at the largest size that fits the card, then smaller, then scrolls (the iPad's `ViewThatFits`).
+
+**Licence.** These cards reproduce each exam board's own mark scheme wording verbatim. The question bank already shows the same schemes as pictures. The founder should decide whether the text form is acceptable before the mark scheme group is switched on for students.
+
+**Superscripts and subscripts.** A maths span (`$...$`) is read for `^` and `_` (`10^{8}`, `m s^{-1}`, `SO_4^{2-}`) and drawn with `<sup>` and `<sub>`; nothing outside a span is read. The iPad data had these flattened (`10-8`) when this was built; the web does not guess exponents, so the data must be fixed at source and the files rebuilt.
+
+The mark scheme group sits behind the same gate as key wording, with the same taster (the first deck of each board with at least 10 cards is free).

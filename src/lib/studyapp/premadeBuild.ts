@@ -13,6 +13,8 @@
  * board's tree can place (counted, never guessed).
  */
 
+import { writeBack, writeFront } from "./markscheme";
+
 export interface Definition {
   id: string;
   prompt: string;
@@ -43,6 +45,8 @@ export interface PremadeModule { c: string; t: string; k: number[] }
 export interface PremadeSpec { id: string; label: string; code: string; mods: PremadeModule[] }
 export interface PremadeSubject {
   v: 1;
+  /** Absent for the key-wording decks; "markscheme" for the boards' own mark scheme cards (one specification a file). */
+  kind?: "markscheme";
   subject: string;
   /** SHA-256 of each source file this was built from, by file name. */
   src: Record<string, string>;
@@ -55,7 +59,7 @@ export interface PremadeSubject {
   cards: [string, string, string][];
 }
 
-/** The longest a deck's name can be: `addDeck` keeps 50 characters. */
+/** The longest a module name can be: a deck is "Key wording · <module>" or "Mark scheme · <module>", and `addDeck` keeps 64 characters for a catalogue deck (model.ts `PREMADE_LIMITS`). */
 export const MAX_TITLE = 50;
 const EM_DASH = "—";
 
@@ -216,7 +220,7 @@ function sortKeys(o: Record<string, string>): Record<string, string> {
 export function render(d: PremadeSubject): string {
   const specs = d.specs.map((s) => `  {"id":${JSON.stringify(s.id)},"label":${JSON.stringify(s.label)},"code":${JSON.stringify(s.code)},"mods":[\n${s.mods.map((m) => `    ${JSON.stringify(m)}`).join(",\n")}\n  ]}`).join(",\n");
   const cards = d.cards.map((c) => `  ${JSON.stringify(c)}`).join(",\n");
-  return `{\n"v":${d.v},\n"subject":${JSON.stringify(d.subject)},\n"src":${JSON.stringify(d.src)},\n"held":${JSON.stringify(d.held)},\n"unmapped":${JSON.stringify(d.unmapped)},\n"specs":[\n${specs}\n],\n"cards":[\n${cards}\n]\n}\n`;
+  return `{\n"v":${d.v},\n${d.kind ? `"kind":${JSON.stringify(d.kind)},\n` : ""}"subject":${JSON.stringify(d.subject)},\n"src":${JSON.stringify(d.src)},\n"held":${JSON.stringify(d.held)},\n"unmapped":${JSON.stringify(d.unmapped)},\n"specs":[\n${specs}\n],\n"cards":[\n${cards}\n]\n}\n`;
 }
 
 /**
@@ -224,6 +228,7 @@ export function render(d: PremadeSubject): string {
  * name fits, and no held-back card present. Returns the faults, none if sound.
  */
 export function verifyShape(d: unknown): string[] {
+  const ms = (d as { kind?: unknown } | null)?.kind === "markscheme";
   const bad: string[] = [];
   const o = d as Partial<PremadeSubject> | null;
   if (!o || o.v !== 1 || typeof o.subject !== "string" || !Array.isArray(o.specs) || !Array.isArray(o.cards) || !Array.isArray(o.held)) return ["not the premade deck shape"];
@@ -235,9 +240,9 @@ export function verifyShape(d: unknown): string[] {
     if (c[0] && o.held!.includes(c[0])) bad.push(`held-back card ${c[0]} is in the data`);
     if (c[1].includes(EM_DASH) || c[2].includes(EM_DASH)) bad.push(`em dash in ${c[0]}`);
     const lead = [...c[2]].find((ch) => ch !== "*") ?? "";
-    if (lead !== lead.toUpperCase()) bad.push(`${c[0]} back is not capitalised`);
+    if (!ms && lead !== lead.toUpperCase()) bad.push(`${c[0]} back is not capitalised`);
     if ((c[2].split("**").length - 1) % 2 !== 0) bad.push(`${c[0]} has an unbalanced bold marker`);
-    if (c[1].length > 400 || c[2].length > 800) bad.push(`${c[0]} is longer than a card can hold`);
+    if (c[1].length > (ms ? 700 : 400) || c[2].length > (ms ? 1200 : 800)) bad.push(`${c[0]} is longer than a card can hold`);
   });
   const used = new Set<number>();
   for (const s of o.specs) {
@@ -249,4 +254,77 @@ export function verifyShape(d: unknown): string[] {
   }
   for (let i = 0; i < o.cards.length; i++) if (!used.has(i)) bad.push(`card ${o.cards[i][0]} is in no deck`);
   return bad;
+}
+
+/* ── Mark scheme cards ─────────────────────────────────────────────────── */
+
+/** One card of the iPad's `markscheme_cards_<spec>.json`. The web keeps what the review shows: id, question, marks, answer and the board's own lines. */
+export interface MarkSchemeFileCard {
+  id: string; prompt: string; marks: number; answer: string;
+  allow: string[]; not: string[]; ignore: string[]; notes: string[];
+  topics: string[];
+}
+
+/**
+ * The codes to try for a bank topic code, as the iPad does (`MarkSchemeDecks.candidates`): the bank numbers some boards' topics a level deeper than
+ * the app's tree (AQA GCSE "4.6.4" where the tree stops at "4.6") or without the app's prefix (Edexcel Physics "2.3" for "PH.2.3"), so each code is
+ * tried with and without "PH." and then one level up at a time.
+ */
+export function candidatesForCode(code: string): string[] {
+  const out: string[] = [];
+  const parts = code.split(".");
+  while (parts.length > 0) {
+    const joined = parts.join(".");
+    out.push(joined, `PH.${joined}`);
+    parts.pop();
+  }
+  return out;
+}
+
+export interface MarkSchemeInput {
+  subject: string;
+  /** The file's cards. */
+  cards: MarkSchemeFileCard[];
+  spec: SpecInput;
+  hashes: Record<string, string>;
+}
+
+/**
+ * One specification's mark scheme cards, as decks of its modules ("Mark scheme · <module>"): a card is filed under the first of its topic codes that
+ * names a module of the board's tree (the iPad's `MarkSchemeDecks.groups`). The text is carried verbatim: front and back are written as the iPad writes
+ * them (markscheme.ts), the bold `**` markers are the board's own. A card no topic code can place is skipped and listed.
+ */
+export function buildMarkScheme(input: MarkSchemeInput): { data: PremadeSubject; report: { noModule: string[] } } {
+  const { spec } = input;
+  const cards: [string, string, string][] = [];
+  const unmapped: string[] = [];
+  const byModule = new Map<string, { c: string; t: string; k: number[] }>();
+  const seen = new Set<string>();
+  for (const c of input.cards) {
+    if (seen.has(c.id)) throw new Error(`duplicate card id ${c.id}`);
+    seen.add(c.id);
+    let mod: { c: string; t: string } | null = null;
+    for (const code of c.topics) {
+      for (const cand of candidatesForCode(code)) { mod = moduleOf(spec.tree, cand); if (mod) break; }
+      if (mod) break;
+    }
+    if (!mod) { unmapped.push(c.id); continue; }
+    const front = writeFront(c.prompt, c.marks), back = writeBack(c);
+    noEmDash(`${c.id} front`, front);
+    noEmDash(`${c.id} back`, back);
+    const m = byModule.get(mod.c) ?? { c: mod.c, t: mod.t, k: [] };
+    m.k.push(cards.length);
+    byModule.set(mod.c, m);
+    cards.push([c.id, front, back]);
+  }
+  const order = spec.tree.topics.filter((t) => t.parent_code === null).map((t) => t.code);
+  const mods = order.map((code) => byModule.get(code)).filter((m): m is PremadeModule => !!m);
+  for (const m of mods) {
+    noEmDash(`${spec.id} module ${m.c}`, m.t);
+    if (m.t.length > MAX_TITLE) throw new Error(`${spec.id} module title over ${MAX_TITLE} characters: ${m.t}`);
+  }
+  return {
+    data: { v: 1, kind: "markscheme", subject: input.subject, src: sortKeys(input.hashes), held: [], unmapped, specs: [{ id: spec.id, label: spec.label, code: spec.code, mods }], cards },
+    report: { noModule: unmapped },
+  };
 }
