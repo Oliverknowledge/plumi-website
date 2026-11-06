@@ -33,7 +33,9 @@ def listing(index, first=2010, last=2018):
                 continue
             if match and match[1] == code:
                 _, variant, kind, date = match.groups()
-                if int(sitting[2]) != int(date[:4]):
+                # Pearson's indexed June 2011 C1 QP has a mistyped filename year.
+                known_typo = code == "6663" and date == "00110518" and sitting[1].lower() == "june" and sitting[2] == "2011"
+                if int(sitting[2]) != int(date[:4]) and not known_typo:
                     continue
             elif f"({code})" in title and url.lower().endswith(".pdf"):
                 # Pearson's 2014 files use descriptive names rather than dates.

@@ -8,13 +8,17 @@ C3/C4 are A2 modules; C1/C2/S1/M1 are legacy AS modules.
 
 Only Pearson's public index and PDF URLs are used. January, June and regional
 papers are distinct. Descriptive 2014 filenames and the spaced older paths are
-handled. June 2011 C1 has no indexed question paper. The import includes 269
-source PDFs, 89 question papers and 749 questions. All 89 papers total 75 marks.
+handled. June 2011 C1 is recovered from Pearson's mistyped `00110518` filename;
+its cover confirms 18 May 2011. The import includes 270 source PDFs, 90 question
+papers and 759 questions. All 90 papers total 75 marks.
 
 ## Reproduce
 
 Use Python with PyMuPDF, Pillow and boto3, plus Tesseract English data. The cloud
 machine has the first two and Tesseract. Prepare the SDK environment if needed:
+
+The extraction was validated with PyMuPDF 1.26.6 and Pillow 13.0.0; preserve these
+versions when reproducing existing immutable crop objects.
 
 ```bash
 python3 -m venv --system-site-packages /tmp/plumi-r2-venv
@@ -69,8 +73,21 @@ npm run bank:status -- --check
 npm run lint
 npm run typecheck
 npm run pdf:test
-npm run build
 ```
+
+For the full static build, use the read-only S3 mirror to avoid bulk requests
+to the student-facing `r2.dev` host. Start it in one terminal, then build in
+another:
+
+```bash
+python3 scripts/question-bank/edexcel_legacy/serve_assets.py --port 3033
+# In a separate terminal:
+NEXT_PUBLIC_PAPERS_URL=http://127.0.0.1:3033 npm run build
+```
+
+This override is for local validation. Deployment builds use their configured
+public asset address. The mirror checks content hashes, shares concurrent reads
+and exposes only bank assets on loopback. Restart it for a new session.
 
 New crops use `bank/legacy-edx-…` and original papers `edexcel-legacy/…`.
 The uploader refuses to replace a different immutable object, verifies every

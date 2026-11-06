@@ -41,6 +41,12 @@ class AppendTests(unittest.TestCase):
                 meta = json.loads((root / "src/content/questionBank/edexcel-a-level-maths.json").read_text())
                 self.assertEqual(meta["data"]["solutions"], "unchanged")
                 self.assertEqual(meta["firstYear"], 2010)
+                source = json.loads((work / "parts.json").read_text())
+                source[0]["marks"] = 74
+                (work / "parts.json").write_text(json.dumps(source))
+                with self.assertRaisesRegex(ValueError, "75 marks"):
+                    append_legacy.append(work)
+                self.assertEqual(output.read_bytes(), before)
 
 
 if __name__ == "__main__":

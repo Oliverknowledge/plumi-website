@@ -9,6 +9,12 @@ def index(*hits):
 
 
 class SourceListingTests(unittest.TestCase):
+    def test_pearson_mistyped_2011_c1_filename_uses_verified_sitting(self):
+        hit = dict(title="Question paper - Unit C1 (6663) - June 2011",
+                   url="/content/dam/pdf/A Level/Mathematics/2013/Exam materials/6663_01_que_00110518.pdf")
+        row, = listing(index(hit))
+        self.assertEqual(row["series"], "JUN11")
+
     def test_scheme_labels_accept_subparts_but_reject_prose(self):
         for label in ["2", "2.", "2(a)(ii)", "4a", "Qu 2", "Question 2", "4 (b) (iv)"]:
             self.assertIsNotNone(MS_LABEL.match(label), label)

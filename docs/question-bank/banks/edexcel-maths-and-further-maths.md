@@ -5,8 +5,8 @@ Banks: `edexcel-a-level-maths`, `edexcel-a-level-further-maths`
 `/question-bank/edexcel-a-level-maths` and `/question-bank/edexcel-a-level-further-maths`:
 every question from Pearson Edexcel's current specifications, 9MA0 and AS 8MA0
 (Maths) and 9FM0 and AS 8FM0 (Further Maths). The Maths bank preserves its 444
-current-specification questions and adds 749 legacy questions from 89 papers
-(2010–2018), for 1,193 in total. Further Maths coverage is unchanged. Questions
+current-specification questions and adds 759 legacy questions from 90 papers
+(2010–2018), for 1,203 in total. Further Maths coverage is unchanged. Questions
 are cut whole because Edexcel's mark schemes and examiner's reports go by question.
 Topics follow the specification's numbered areas, with no Year 1 and Year 2 split.
 Maths has separate legacy C1–C4, S1 and M1 module filters. These are explicitly
@@ -15,8 +15,9 @@ The other legacy modules remain excluded.
 
 The additive legacy pipeline, source coverage, gaps and reproduction steps are
 in `scripts/question-bank/edexcel_legacy/README.md`. It retains the existing
-questions, crops and worked solutions. June 2011 C1 has no publicly indexed
-question paper; three regional June 2013 papers need local OCR derivatives.
+questions, crops and worked solutions. June 2011 C1's indexed filename has a
+mistyped year (`0011`); its cover confirms 2011. Three regional June 2013 papers
+need local OCR derivatives.
 
 - **Source papers:** `fetch_edexcel.py` asks the public search index behind
   Pearson's course-materials pages for each spec code. Whole papers are stored on

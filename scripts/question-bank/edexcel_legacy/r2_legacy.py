@@ -97,6 +97,12 @@ def upload(work):
 
         def put(item):
             key, body, content_type, compressed, digest = item
+            if key in existing:
+                # The listing is already a read-back ETag comparison; unchanged
+                # objects need no upload or extra HEAD on a resumed run.
+                if compressed and s3.get_object(Bucket=bucket, Key=key)["Body"].read() != body:
+                    raise ValueError(f"Read-back data mismatch: {key}")
+                return
             if key not in existing:
                 extra = {"ContentEncoding": "gzip"} if compressed else {}
                 s3.put_object(Bucket=bucket, Key=key, Body=body, ContentType=content_type,
