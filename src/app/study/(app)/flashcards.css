@@ -117,7 +117,7 @@
 .pa .dsk-flip[data-flipped] { transform: rotateY(180deg); }
 .pa .dsk-face { grid-area: 1 / 1; display: flex; flex-direction: column; min-height: 0; background: #fffdf6; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4); overflow: hidden; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(0deg); }
 .pa .dsk-face.back { transform: rotateY(180deg); }
-.pa .dsk-card-h { display: flex; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 2px solid var(--line); font: 800 12.5px var(--f-body); color: var(--soft); }
+.pa .dsk-card-h { display: flex; justify-content: space-between; gap: 12px; padding: 7px 16px; border-bottom: 2px solid var(--line); font: 800 12.5px var(--f-body); color: var(--soft); }
 .pa .dsk-card-h span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pa .dsk-card-h span:last-child { flex: none; }
 .pa .dsk-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 14px 26px 22px; overflow-y: auto; text-align: center; overscroll-behavior: contain; }
@@ -146,7 +146,7 @@
   .pa .dsk-flip[data-flipped] .dsk-face.front { opacity: 0; }
   .pa .dsk-flip[data-flipped] .dsk-face.back { opacity: 1; }
 }
-.pa .dsk-hint { flex: none; margin: 0; padding: 0 0 8px; text-align: center; font: 800 12px var(--f-body); color: var(--soft); opacity: .8; }
+.pa .dsk-hint { flex: none; margin: 0; padding: 0 0 6px; text-align: center; font: 800 11.5px var(--f-body); color: var(--soft); opacity: .8; }
 
 .pa .dsk-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 22px; text-align: center; overflow-y: auto; }
 .pa .dsk-empty h2 { margin: 0; font: 700 clamp(26px, 4vw, 36px)/1.1 var(--f-px); }
@@ -384,19 +384,19 @@
 .pa :is(.dsk-text, .fc-q, .fc-a, .sh-text, .fcp-list .q, .fcp-list .a) strong { font-weight: 700; background: linear-gradient(transparent 50%, rgba(242, 201, 107, .85) 50% 92%, transparent 92%); border-radius: 2px; }
 
 /* Superscripts and subscripts (a maths span's `^` and `_`): small, raised or lowered without changing the line's height */
-.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) :is(sup, sub) { font-size: .66em; line-height: 0; position: relative; vertical-align: baseline; }
-.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) sup { top: -.52em; }
-.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) sub { top: .3em; }
+.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) :is(sup, sub) { font-size: .72em; line-height: 0; position: relative; vertical-align: baseline; }
+.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) sup { top: -.42em; }
+.pa :is(.dsk-text, .fc-q, .fc-a, .ms, .ms-band, .fcp-list .q, .fcp-list .a) sub { top: .2em; }
 
 /* Mark scheme cards (the iPad's MarkSchemeCardView): the question with its marks in a small tag; the answer as points with dots, the words the board
    underlines heavy in the accent, "or" between alternatives, and under it the board's own lines in three quiet bands: also accept (green), not accepted
    (red), ignore (grey), and a note. */
 .pa .ms-marks { display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border-radius: 999px; background: rgba(47, 98, 200, .12); color: var(--accent); font: 800 12px var(--f-body); letter-spacing: .1em; text-transform: uppercase; }
 .pa .ms-wrap { width: 100%; align-items: stretch; }
-.pa .ms { --ms-green: #2b7a3b; --ms-grey: #5f6b82; width: 100%; display: grid; gap: 12px; text-align: left; font: 600 26px/1.15 var(--f-hand); color: #23345e; }
-.pa .ms[data-size="b"] { font-size: 24px; }
-.pa .ms[data-size="c"] { font-size: 22px; }
-.pa .ms[data-size="d"] { font-size: 20px; }
+.pa .ms { --ms-green: #2b7a3b; --ms-grey: #5f6b82; width: 100%; display: grid; gap: 12px; text-align: left; font: 600 32px/1.15 var(--f-hand); color: #23345e; }
+.pa .ms[data-size="b"] { font-size: 30px; }
+.pa .ms[data-size="c"] { font-size: 28px; }
+.pa .ms[data-size="d"] { font-size: 26px; }
 .pa .ms-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .pa .ms-point { display: flex; align-items: baseline; gap: 12px; }
 .pa .ms-point > i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); transform: translateY(-.2em); }
@@ -411,14 +411,20 @@
 .pa .ms.tight { gap: 8px; }
 .pa .ms.tight .ms-rows { gap: 5px; }
 .pa .ms.tight .ms-band { padding: 5px 10px; }
-.pa .ms.tight .ms-band p { font-size: 14px; line-height: 1.3; }
-.pa .ms-band p { margin: 0; font: 700 15px/1.35 var(--f-body); color: var(--ink); overflow-wrap: anywhere; white-space: pre-line; }
+.pa .ms.tight .ms-band p { font-size: 1.08em; line-height: 1.15; }
+.pa .ms-band p { margin: 0; font: 600 23px/1.2 var(--f-hand); color: var(--ink); overflow-wrap: anywhere; white-space: pre-line; }
 .pa .ms-band.accept { --c: var(--ms-green); }
 .pa .ms-band.not { --c: var(--red-pen); }
 .pa .ms-band.note { --c: var(--accent); }
-@media (max-width: 520px) { .pa .ms { font-size: 24px; } .pa .ms[data-size="b"] { font-size: 22px; } .pa .ms[data-size="c"] { font-size: 20px; } .pa .ms[data-size="d"] { font-size: 19px; } }
-.pa .expanded .ms { font-size: 31px; } .pa .expanded .ms[data-size="b"] { font-size: 28px; } .pa .expanded .ms[data-size="c"] { font-size: 26px; } .pa .expanded .ms[data-size="d"] { font-size: 23px; }
-.pa .expanded .ms-band p { font-size: 17px; }
+@media (max-width: 520px) { .pa .ms { font-size: 28px; } .pa .ms[data-size="b"] { font-size: 26px; } .pa .ms[data-size="c"] { font-size: 24px; } .pa .ms[data-size="d"] { font-size: 22px; } }
+.pa .expanded .ms { font-size: 42px; } .pa .expanded .ms[data-size="b"] { font-size: 38px; } .pa .expanded .ms[data-size="c"] { font-size: 35px; } .pa .expanded .ms[data-size="d"] { font-size: 32px; }
+.pa .expanded .ms-band p { font-size: 28px; } .pa .expanded .ms-band h4 { font-size: 12.5px; }
+@media (max-width: 520px) { .pa .expanded .ms { font-size: 30px; } .pa .expanded .ms[data-size="b"] { font-size: 28px; } .pa .expanded .ms[data-size="c"] { font-size: 26px; } .pa .expanded .ms[data-size="d"] { font-size: 24px; } .pa .expanded .ms-band p { font-size: 22px; } }
 /* the Desk home card is small: the same layout, smaller */
-.pa .fc .ms { font-size: 17px; gap: 8px; } .pa .fc .ms-band { padding: 5px 9px; } .pa .fc .ms-band p { font-size: 13px; } .pa .fc .ms-rows { gap: 5px; }
+.pa .fc .ms { font-size: 17px; gap: 8px; } .pa .fc .ms-band { padding: 5px 9px; } .pa .fc .ms-band p { font-size: 16px; } .pa .fc .ms-rows { gap: 5px; }
 .pa .fc-ms { width: 100%; max-height: 100%; overflow-y: auto; }
+
+/* A mark scheme answer wants every pixel of the card: no "Answer" label (the dots and bands say it) and no hint line, and a slimmer body, so the text
+   can stay large before it has to shrink. */
+.pa .dsk-face.back:has(.ms) .dsk-side, .pa .dsk-face.back:has(.ms) .dsk-hint { display: none; }
+.pa .dsk-face.back:has(.ms) .dsk-body { padding-top: 10px; padding-bottom: 12px; }

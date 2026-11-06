@@ -7,6 +7,7 @@ import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { toast } from "../toast";
+import { plainText } from "@/lib/studyapp/boldText";
 import { BoldText } from "./BoldText";
 import { CardFields } from "./CardFields";
 
@@ -60,8 +61,8 @@ export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { de
                   <span className="q"><BoldText text={c.front} /></span>
                   <span className="a"><BoldText text={c.back} /></span>
                   <span className="meta">{c.sch.state === "new" ? "new" : c.sch.state === "learning" ? "learning" : `${c.sch.interval}d`}</span>
-                  <button type="button" className="btn ghost" onClick={() => setEditing(c.id)} aria-label={`Edit: ${c.front}`}>Edit</button>
-                  <button type="button" className="btn ghost danger" onClick={() => actions.deleteCard(c.id)} aria-label={`Delete: ${c.front}`}>Delete</button>
+                  <button type="button" className="btn ghost" onClick={() => setEditing(c.id)} aria-label={`Edit: ${plainText(c.front)}`}>Edit</button>
+                  <button type="button" className="btn ghost danger" onClick={() => actions.deleteCard(c.id)} aria-label={`Delete: ${plainText(c.front)}`}>Delete</button>
                 </>
               )}
             </li>

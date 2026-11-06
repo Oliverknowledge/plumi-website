@@ -52,36 +52,33 @@ export function boldRuns(text: string): Run[] {
 }
 
 /**
- * Superscripts and subscripts. A maths span (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`) is read for `^` and `_`: `10^{8}`, `m s^{-1}`, `SO_4^{2-}`, `cm^3`,
- * `x_i`. After the mark comes `{...}` (to the next `}`), or a signed or plain run of digits, or one character. Nothing else in a span is changed, and
- * nothing outside a span is ever read: a student's `snake_case` or `2^3` typed in plain text stays exactly as typed. The delimiters are not shown.
- * A `^` or `_` with nothing after it, and a span that is not closed, stay literal. Rendered as <sup> and <sub> nodes (RichText.tsx), never HTML.
+ * Superscripts and subscripts, in the grammar the iPad's mark scheme data uses (handoff `markscheme-scripts.md`; the iPad's `ScriptText.runs`):
+ *
+ *     script := '^' '{' body '}'      superscript        3.0 x 10^{8} **m s^{-1}**      Ca^{2+}      ^{12}C
+ *             | '_' '{' body '}'      subscript          H_{2}O      SO_{4}^{2-}        [Cu(H_{2}O)_{6}]^{2+}
+ *     body   := one or more characters, none of '{' '}' or a line break
+ *
+ * Braces are always there. No nesting. A `^` or `_` not followed by `{body}`, and an unclosed brace, are ordinary text, so a student's `snake_case` or
+ * `2^3` stays as typed. Whitespace inside the braces is kept in the text but not drawn (`PO_{4}^{ 3-}`), so the body is trimmed (a body that is only
+ * space stays as typed). Bold is read first: a script may sit inside a bold run and is bold too, and one never straddles a bold marker. Drawn as <sup> and <sub>
+ * (BoldText.tsx), never as Unicode superscripts (the hand font has none) and never as HTML.
  */
 export interface RichRun { text: string; bold: boolean; script?: "sup" | "sub" }
 
-const DELIMS: [string, string][] = [["$$", "$$"], ["\\[", "\\]"], ["$", "$"], ["\\(", "\\)"]];
+const SCRIPT = /([\^_])\{([^{}\n]*)\}/g;
 
-/** A maths span's content split into plain and script runs. */
-export function scriptRuns(content: string): { text: string; script?: "sup" | "sub" }[] {
+/** A piece of text (no bold markers) as plain and script runs. */
+export function scriptRuns(text: string): { text: string; script?: "sup" | "sub" }[] {
   const out: { text: string; script?: "sup" | "sub" }[] = [];
-  let plain = "";
-  const flush = () => { if (plain) { out.push({ text: plain }); plain = ""; } };
-  for (let i = 0; i < content.length;) {
-    const c = content[i];
-    if (c === "^" || c === "_") {
-      let j = i + 1, arg = "";
-      if (content[j] === "{") {
-        const close = content.indexOf("}", j + 1);
-        if (close > j) { arg = content.slice(j + 1, close); j = close + 1; }
-      } else {
-        const m = /^[+\-\u2212]?\d+/.exec(content.slice(j));
-        if (m) { arg = m[0]; j += m[0].length; } else if (j < content.length) { arg = content[j]; j += 1; }
-      }
-      if (arg) { flush(); out.push({ text: arg, script: c === "^" ? "sup" : "sub" }); i = j; continue; }
-    }
-    plain += c; i += 1;
+  let at = 0;
+  for (const m of text.matchAll(SCRIPT)) {
+    const body = m[2].trim();
+    if (!body) continue;
+    if (m.index > at) out.push({ text: text.slice(at, m.index) });
+    out.push({ text: body, script: m[1] === "^" ? "sup" : "sub" });
+    at = m.index + m[0].length;
   }
-  flush();
+  if (at < text.length) out.push({ text: text.slice(at) });
   return out;
 }
 
@@ -90,21 +87,10 @@ export function richRuns(text: string, opts: { bold?: boolean } = {}): RichRun[]
   const out: RichRun[] = [];
   for (const run of boldRuns(text)) {
     const bold = run.bold && opts.bold !== false;
-    const t = run.text;
-    let at = 0, plainFrom = 0;
-    const push = (x: string, script?: "sup" | "sub") => { if (x) out.push({ text: x, bold, ...(script ? { script } : {}) }); };
-    while (at < t.length) {
-      const end = mathEnd(t, at);
-      if (end === null) { at += 1; continue; }
-      const d = DELIMS.find(([o]) => t.startsWith(o, at))!;
-      push(t.slice(plainFrom, at));
-      for (const r of scriptRuns(t.slice(at + d[0].length, end - d[1].length))) push(r.text, r.script);
-      at = end; plainFrom = end;
-    }
-    push(t.slice(plainFrom));
+    for (const r of scriptRuns(run.text)) out.push({ text: r.text, bold, ...(r.script ? { script: r.script } : {}) });
   }
   return out;
 }
 
-/** What the text says without its markers (bold, maths delimiters, script marks): for sizing, and for a screen reader. */
+/** What the text says without its markers (bold and script marks): for sizing, and for a screen reader. */
 export const plainText = (text: string): string => richRuns(text).map((r) => r.text).join("");
