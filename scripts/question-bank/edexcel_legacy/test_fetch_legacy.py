@@ -1,6 +1,7 @@
 """Regression checks for Pearson's mixed legacy source formats."""
 import unittest
 from fetch_legacy import MODULES, listing
+from labels import MS_LABEL
 
 
 def index(*hits):
@@ -8,6 +9,11 @@ def index(*hits):
 
 
 class SourceListingTests(unittest.TestCase):
+    def test_scheme_labels_accept_subparts_but_reject_prose(self):
+        for label in ["2", "2.", "2(a)(ii)", "4a", "Qu 2", "Question 2", "4 (b) (iv)"]:
+            self.assertIsNotNone(MS_LABEL.match(label), label)
+        self.assertIsNone(MS_LABEL.match("1 " + "a" * 1000 + ": examiner guidance"))
+
     def test_january_and_june_and_regional_papers_stay_distinct(self):
         hits = []
         for month, date, variant in [("January", "20100113", "01"), ("June", "20100524", "01"), ("June", "20130513", "01R")]:

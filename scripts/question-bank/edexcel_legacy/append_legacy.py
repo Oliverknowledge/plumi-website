@@ -35,11 +35,18 @@ def append(work):
     year13 = read(baseline / "year13.json")
     original = copy.deepcopy(rows)
     existing = {row["id"] for row in rows}
-    parts = read(work / "parts.json")
+    months = {"JAN": (1, "January"), "JUN": (6, "June"), "NOV": (11, "November")}
+    parts = sorted(read(work / "parts.json"), key=lambda p: (-int(p["series"][3:]),
+                   -months[p["series"][:3]][0], p["component"], int(p["label"])))
     manifest = read(work / "manifest.json")
     audit = read(work / "cut-audit.json")
-    if any(item["error"] for item in audit):
-        raise ValueError("Resolve cutter failures before building")
+    if any(item["error"] or not item["count"] for item in audit):
+        raise ValueError("Resolve empty papers and cutter failures before building")
+    totals = collections.Counter()
+    for part in parts:
+        totals[part["set"]] += part.get("marks") or 0
+    if any(total != 75 for total in totals.values()):
+        raise ValueError("Each legacy paper must account for all 75 marks")
     wholes = {}
     for record in manifest:
         wholes.setdefault(f"{record['component']}-{record['series']}", {})[record["kind"]] = f"edexcel-legacy/{record['file']}"
@@ -81,7 +88,6 @@ def append(work):
         module = MODULES[code]
         meta["papers"].append(dict(id=component, name=f"Legacy {module}" + (f" ({variant})" if variant else ""),
                                    title=f"Legacy {module} ({component}), previous specification", **{"as": module not in ("C3", "C4")}))
-    months = {"JAN": (1, "January"), "JUN": (6, "June"), "NOV": (11, "November")}
     series = sorted({row["s"] for row in rows}, key=lambda s: (int(s[3:]), months[s[:3]][0]), reverse=True)
     meta["series"] = [dict(id=s, label=f"{months[s[:3]][1]} 20{s[3:]}") for s in series]
     meta["specs"] = sorted(set(meta["specs"]) | set(MODULES))
