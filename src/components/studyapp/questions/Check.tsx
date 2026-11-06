@@ -15,6 +15,7 @@ import { getMeta } from "./bankData";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
 import { holdTray } from "./inkBus";
 import { useMatch } from "./useMatch";
+import { usePlumiMark } from "./PlumiMark";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
 const reports = new Map<string, Promise<Record<string, string>>>();
@@ -59,13 +60,16 @@ export function Check({ set, part, answer, reportOutside, trayAside }: { set: QS
   };
   const id = `scheme-${part.id}`;
   const ready = hasInk(answer) || hasText(answer);
+  const plumi = usePlumiMark(set, part, answer);   // "Mark with Plumi": only where a signed-in student has typed something and the server holds this part's scheme
   return (
     <div className="qs-check">
       <div className="qs-check-bar">
+        {plumi.button}
         <button type="button" className={`qs-schemebtn${ready || open ? " is-ready" : ""}${open ? " is-open" : ""}`} aria-expanded={open} aria-controls={open ? id : undefined} onClick={toggle} data-testid="check">
           Mark scheme<ChevronIcon />
         </button>
       </div>
+      {plumi.panel}
       {open && <Scheme id={id} set={set} part={part} answer={answer} reportOutside={reportOutside} trayAside={trayAside} />}
     </div>
   );
