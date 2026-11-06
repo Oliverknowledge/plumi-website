@@ -111,6 +111,13 @@ export async function requestMark(deps: Deps, input: MarkInput): Promise<Outcome
   return { kind: "failed" };
 }
 
+/** Is marking on for THIS signed-in account? (The server decides: it can be off for everyone, or on for a few accounts.) Null when it could not be asked. */
+export async function fetchEnabled(deps: Deps): Promise<boolean | null> {
+  const r = await send(deps, "GET", "/status");
+  if (r === "signin" || r === "network" || r.status !== 200 || r.json.ok !== true || typeof r.json.enabled !== "boolean") return null;
+  return r.json.enabled;
+}
+
 /** Which of these parts can be marked (a published pack for this version of the pictures). Null when it could not be asked: not remembered as "none". */
 export async function fetchAvailable(deps: Deps, bank: string, cropVersion: number, partIds: string[]): Promise<Set<string> | null> {
   const found = new Set<string>();

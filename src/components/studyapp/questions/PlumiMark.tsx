@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { supabase, useAccount } from "@/lib/account";
 import { hasText, markable, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
-import { fetchAvailable, requestMark, type Allowance, type MarkReply, type Outcome } from "@/lib/studyapp/marking/api";
+import { fetchAvailable, fetchEnabled, requestMark, type Allowance, type MarkReply, type Outcome } from "@/lib/studyapp/marking/api";
 import { answerKey, getCached, putCached, type KV } from "@/lib/studyapp/marking/cache";
 import { CONSENT_COPY, giveConsent, hasConsent, type AgeBand } from "@/lib/studyapp/marking/consent";
 import { lineFor } from "@/lib/studyapp/marking/copy";
@@ -23,11 +23,13 @@ import "../../../app/study/(app)/questions-plumimark.css";
 
 const storage = (): KV | null => { try { return typeof localStorage === "undefined" ? null : localStorage; } catch { return null; } };
 
-// Which parts of a subject have a mark scheme on the server, asked once per subject and picture version (a failure is not remembered).
+// Is marking on for this account (the server decides, per account), and which parts of a subject have a mark scheme there? Asked once and kept;
+// a failure is not remembered. A student the server has not switched marking on for is never shown the button.
 const known = new Map<string, Set<string>>();
 const asking = new Map<string, Promise<void>>();
-function useAvailable(set: QSet, enabled: boolean): Set<string> | null {
-  const key = `${set.subject}|${set.cv ?? 0}`;
+const EMPTY: Set<string> = new Set();
+function useAvailable(set: QSet, enabled: boolean, userId: string | null): Set<string> | null {
+  const key = `${userId}|${set.subject}|${set.cv ?? 0}`;
   const [, redraw] = useState(0);
   const ids = set.parts;
   useEffect(() => {
@@ -37,7 +39,10 @@ function useAvailable(set: QSet, enabled: boolean): Set<string> | null {
     if (!p) {
       const deps = liveDeps();
       if (!deps) return;
-      p = fetchAvailable(deps, set.subject, set.cv ?? 0, ids.map((x) => x.id)).then((s) => { if (s) known.set(key, s); }).finally(() => asking.delete(key));
+      p = fetchEnabled(deps)
+        .then((on) => (on === false ? EMPTY : on === true ? fetchAvailable(deps, set.subject, set.cv ?? 0, ids.map((x) => x.id)) : null))
+        .then((s) => { if (s) known.set(key, s); })
+        .finally(() => asking.delete(key));
       asking.set(key, p);
     }
     void p.then(() => { if (live) redraw((n) => n + 1); });
@@ -63,7 +68,7 @@ export interface PlumiMarkUi {
 export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined): PlumiMarkUi {
   const { ready, user, on } = useAccount();
   const signedIn = aiMarkingOn && on && ready && !!user && user.is_anonymous !== true;
-  const available = useAvailable(set, signedIn);
+  const available = useAvailable(set, signedIn, user?.id ?? null);
   const offered = signedIn && !!available?.has(part.id) && markable(part) && hasText(answer);
   const text = answer?.text ?? "";
   const bank = set.subject, cv = set.cv ?? 0;

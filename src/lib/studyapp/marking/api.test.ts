@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fetchAvailable, MAX_ANSWER_CHARS, parseMarkReply, requestMark, type Deps } from "./api";
+import { fetchAvailable, fetchEnabled, MAX_ANSWER_CHARS, parseMarkReply, requestMark, type Deps } from "./api";
 import { lineFor } from "./copy";
 
 const REPLY = { marks: 1, outOf: 2, anyHeld: false, rulesVersion: 1, packHash: "a".repeat(64), points: [
@@ -77,6 +77,17 @@ test("available: the ids that have a pack, in chunks of 300, and null when it co
   assert.equal(await fetchAvailable(deps(() => json(403, { ok: false, code: "account_required" })).d, "b-b-b", 0, ["a-1-1"]), null);
   assert.equal(await fetchAvailable(deps(() => { throw new Error("x"); }).d, "b-b-b", 0, ["a-1-1"]), null);
   assert.equal(await fetchAvailable(deps(() => json(200, { ok: true })).d, "b-b-b", 0, ["a-1-1"]), null);
+});
+
+test("enabled: what the server says for this account, and null when it could not be asked", async () => {
+  const on = deps(() => json(200, { ok: true, enabled: true, pro: false })); assert.equal(await fetchEnabled(on.d), true);
+  assert.ok(on.calls[0].url.endsWith("/status") && on.calls[0].init.method === "GET");
+  assert.equal(await fetchEnabled(deps(() => json(200, { ok: true, enabled: false })).d), false);
+  assert.equal(await fetchEnabled(deps(() => json(200, { ok: true })).d), null);
+  assert.equal(await fetchEnabled(deps(() => json(200, { ok: true, enabled: "yes" })).d), null);
+  assert.equal(await fetchEnabled(deps(() => json(403, { ok: false, code: "account_required" })).d), null);
+  assert.equal(await fetchEnabled(deps(() => { throw new Error("x"); }).d), null);
+  assert.equal(await fetchEnabled(deps(() => json(200, { ok: true, enabled: true }), { token: async () => null }).d), null);
 });
 
 // ---- what the student reads
