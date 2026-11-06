@@ -57,18 +57,26 @@ def segment(text, label, other_labels):
     if not starts: return None
     ocr_style = not me.search(text)
     best = None
-    for s in starts:
+    for st in starts:
+        # In a tall table row pdftotext prints the label in the MIDDLE of the row, so a scheme's words can sit above the label line.
+        # Start just after the previous part's label line (looser by one neighbouring row, but still local), end at the next label.
+        prevs = []
+        for o in other_labels:
+            rx = label_regex(o)
+            ms = [m.start() for m in rx.finditer(text, 0, st)] if rx else []
+            if ms: prevs.append(ms[-1])
+        begin = (text.find("\n", max(prevs)) + 1) if prevs else max(0, st - 1500)
         ends = []
         for o in other_labels:
             rx = label_regex(o)
-            m = rx.search(text, s + 1) if rx else None
+            m = rx.search(text, st + 1) if rx else None
             if m: ends.append(m.start())
         if ocr_style:
-            nxt = SUB_ROW.search(text, s + 2)
+            nxt = SUB_ROW.search(text, st + 2)
             if nxt: ends.append(nxt.start())
-        e = min(ends) if ends else min(len(text), s + 4000)
-        seg = text[s:min(e, s + 6000)]
-        if best is None or len(seg) > len(best) and len(seg) < 4000: best = seg if best is None else best
+        e = min(ends) if ends else min(len(text), st + 4000)
+        seg = text[begin:min(e, begin + 7000)]
+        if best is None: best = seg
     return best
 
 def main():
@@ -77,8 +85,11 @@ def main():
     meta = json.loads((ROOT / "src/content/questionBank" / f"{slug}.json").read_text())
     wholes = meta.get("wholes") or {}
     parts = json.loads(Path(parts_file).read_text())
-    bank_rows = {}   # the other labels of a paper: read from the parts we were given only (enough to bound a segment)
-    for r in parts: bank_rows.setdefault((r["p"], r["s"]), []).append(r["l"])
+    # Every part of the same paper bounds a segment, not only the batch's parts (the bank's own rows, one small file).
+    data = meta["data"]
+    allrows = json.loads(subprocess.run(["curl", "-sS", "--max-time", "60", f"{BASE}/bank-data/{slug}/parts.{data['parts']}.json"], capture_output=True).stdout)
+    bank_rows = {}
+    for r in allrows: bank_rows.setdefault((r["p"], r["s"]), []).append(r["l"])
     out, texts = {}, {}
     for r in parts:
         key = f"{r['p']}-{r['s']}".upper()

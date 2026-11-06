@@ -127,3 +127,22 @@ Honest limits: this is one sample of 60 across six subjects (Biology was figure-
 wording is not fully independent; part of the rise in "held" is the prompt now sending drawing answers to held, which is correct, not a better
 reading; 2 of the 4 rejected still fail the word check and are not explained yet (`74042-nov20-08-2`, `84622f-spec-09-2`); the two readers can still
 misread a page the same way. Cost: 0 DeepSeek calls, 4 more reader runs of about 120,000 tokens.
+
+### Round 3: AQA A-level Biology, 60 parts (7 Nov 2026)
+
+`fetch_batch.py` picks and downloads the parts (`--text-only` drops parts whose question words suggest a figure, table, drawing, tick-box or
+calculation). **That filter makes this sample easier than the whole bank**: 929 of 1,469 one-to-three-mark parts pass it. 60 parts, two fresh
+Claude readers each, with the board text layer.
+
+First pass: **31 of 60 rejected by the word check, on both readers.** The cause was my segment finder, not the readers: in AQA's tall table rows the
+text layer prints the question number in the middle of the row, so a scheme's words sit ABOVE the label line and the segment (which began at the
+label) missed them. `pdf_text.py` now starts just after the previous part's label line and ends at the next one, using every part of the paper from
+the bank's rows (`pdf_text_test.py`, one mutation caught). Known looseness: the segment also contains a neighbouring part's words, so the word
+check proves "these words are on this page, near this row", not "in this row".
+
+After the fix, same 60 readings: **32 agreed, 18 held (figure, tick, number, levels or doubt), 10 readers disagree, 0 rejected.** Of the 42 not held,
+32 agreed (76%). The 10: six differ in an accept item (one reader kept the "for X" substitution words or a longer phrase), two in how the points
+are worded, one in the answer kind and figure flag, one in the figure flag alone. Rounds 1 and 2 above were measured with the earlier,
+stricter segment finder and were not re-run.
+Cost: 0 DeepSeek calls, 8 reader runs of about 150,000 tokens each (about 10,000 tokens per part per reader, up from 8,000 because the
+readers also read the text file).
