@@ -19,14 +19,15 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classifyForm, FORMS, type Form } from "../../src/lib/studyapp/questions/questionForm";
+import { askWords, classifyForm, FORMS, type Form } from "../../src/lib/studyapp/questions/questionForm";
+import { openingPhrases, pickExamples, type Angles, type FormAngles } from "../../src/lib/studyapp/questions/angles";
 import { resolvePapersBase } from "../../src/config/papers";
 import { questionText } from "../../src/lib/studyapp/questions/partText";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const R2 = resolvePapersBase(process.env.NEXT_PUBLIC_PAPERS_URL, "production");
 
-interface Part { id: string; p: string; s: string; l: string; m: number | null; t: string[]; k?: string }
+interface Part { id: string; p: string; s: string; l: string; m: number | null; t: string[]; k?: string; ms?: number | string; msq?: unknown }
 interface Meta { slug: string; topics: { code: string; title: string; year?: number }[]; series: { id: string; label: string }[]; data: Record<string, string> }
 
 /** The numbered question a part belongs to ("12(b)(ii)" is question 12). */
@@ -71,7 +72,16 @@ interface Insights {
   map: Record<string, Record<string, number>>;
 }
 
-export function build(meta: Meta, parts: Part[], text: Record<string, string>): Insights {
+/** A question that leans on another part ("explain your answer to part (i)", "the information in 4(b)(ii)") is a poor stand-alone example, so it is never one. */
+const DEPENDS = /\bparts?\s*\(|\bparts?\s+\d|\bquestions?\s+\d|\b(?:your|the)\s+answers?\s+to\b|\bin\s+\d+\s*\([a-z]+\)|\bprevious\b|\babove\b/;
+
+/** What Angles needs of each part, found once while the forms are decided. */
+interface Record1 { id: string; form: Form; marks: number | null; series: string; topics: string[]; ask: string[] | null; whole: boolean; ms: boolean; alone: boolean }
+
+export function build(meta: Meta, parts: Part[], text: Record<string, string>): Insights { return buildAll(meta, parts, text).insights; }
+
+export function buildAll(meta: Meta, parts: Part[], text: Record<string, string>): { insights: Insights; angles: Angles } {
+  const records: Record1[] = [];
   const forms = [...FORMS];
   const form = (id: string) => forms.indexOf(id as Form);
   // oldest first, from the meta's own list (which is newest first)
@@ -87,7 +97,10 @@ export function build(meta: Meta, parts: Part[], text: Record<string, string>): 
   for (const part of ordered) {
     const raw = text[part.id];
     const q = questionText(raw, { m: part.m, x: (part as { x?: string }).x });
-    const f = form(classifyForm({ text: q.text.toLowerCase(), marks: part.m, key: part.k }));
+    const lower = q.text.toLowerCase();
+    const formId = classifyForm({ text: lower, marks: part.m, key: part.k });
+    const f = form(formId);
+    records.push({ id: part.id, form: formId, marks: part.m, series: part.s, topics: [...new Set(part.t)], ask: askWords(lower), whole: q.whole, ms: !!part.ms && !part.msq, alone: !DEPENDS.test(lower) });
     const si = at.get(part.s);
     if (si === undefined) throw new Error(`${part.id}: series ${part.s} is not in the meta`);
     const dash = part.id.indexOf("-", part.id.indexOf("-") + 1);
@@ -110,12 +123,52 @@ export function build(meta: Meta, parts: Part[], text: Record<string, string>): 
       seen.set(code, s);
     }
   }
-  return {
+  const built = Object.fromEntries(Object.entries(meta.data).filter(([k]) => k === "parts" || k === "text").sort(([a], [b]) => (a < b ? -1 : 1)));
+  const insights: Insights = {
     v: 1, slug: meta.slug,
-    built: Object.fromEntries(Object.entries(meta.data).filter(([k]) => k === "parts" || k === "text").sort(([a], [b]) => (a < b ? -1 : 1))),
+    built,
     forms, series, cover: Object.fromEntries([...covered].sort(([a], [b]) => a - b).map(([y, c]) => [String(y), c.map((x) => (x ? "1" : "0")).join("")])), parts: ordered.length, questions: questions.size, topics,
     map: Object.fromEntries(Object.keys(map).sort().map((g) => [g, Object.fromEntries(Object.entries(map[g]).sort(([a], [b]) => (a < b ? -1 : 1)))])),
   };
+  return { insights, angles: buildAngles(meta, records, built, Object.keys(topics)) };
+}
+
+/**
+ * Angles, per topic and form (not "other"): the opening phrases (at least two real questions each, from the words of the ask) and up to four examples. An example is a part of that form on
+ * that topic whose own mark scheme picture exists (not a whole-question scheme), whose question text was read whole, and whose ask was found at the start of a clause (so the form is
+ * not a guess from a line of diagram labels); a multiple-choice part counts by its key. The build stops if an example breaks those rules.
+ */
+function buildAngles(meta: Meta, records: Record1[], built: Record<string, string>, codes: string[]): Angles {
+  const groupOf = (id: string) => { const d = id.indexOf("-", id.indexOf("-") + 1); return d > 0 ? [id.slice(0, d), id.slice(d + 1)] as const : [id, ""] as const; };
+  const used = new Set<string>();
+  const topics: Angles["topics"] = {};
+  const byId = new Map(records.map((r) => [r.id, r]));
+  for (const code of codes) {
+    const forTopic = records.filter((r) => r.topics.includes(code));
+    const out: Partial<Record<Form, FormAngles>> = {};
+    for (const f of FORMS) {
+      if (f === "other") continue;
+      const same = forTopic.filter((r) => r.form === f);
+      if (!same.length) continue;
+      const p = f === "choice" ? [] : openingPhrases(same.flatMap((r) => (r.ask ? [r.ask] : [])));
+      const ok = same.filter((r) => r.ms && r.whole && r.alone && (f === "choice" || r.ask));
+      const e = pickExamples(ok.map((r) => ({ id: r.id, series: r.series, marks: r.marks })));
+      for (const id of e) { const r = byId.get(id)!; if (!r.ms || r.form !== f || !r.topics.includes(code)) throw new Error(`${id}: not a valid ${f} example for ${code}`); used.add(groupOf(id)[0]); }
+      if (p.length || e.length) out[f] = { p, e: e };
+    }
+    topics[code] = out;
+  }
+  const g = [...used].sort();
+  const at = new Map(g.map((x, i) => [x, i]));
+  for (const forms of Object.values(topics)) for (const a of Object.values(forms)) a.e = a.e.map((id) => { const [grp, rest] = groupOf(id); return `${at.get(grp)}:${rest}`; });
+  void meta;
+  return { v: 1, slug: meta.slug, built, g, topics };
+}
+
+/** The angles file's text: one topic per line so a change reads as a diff. */
+function renderAngles(a: Angles): string {
+  const topics = Object.entries(a.topics).map(([code, t]) => `  ${JSON.stringify(code)}: ${JSON.stringify(t)}`).join(",\n");
+  return `{\n"v": ${a.v},\n"slug": ${JSON.stringify(a.slug)},\n"built": ${JSON.stringify(a.built)},\n"g": ${JSON.stringify(a.g)},\n"topics": {\n${topics}\n}\n}\n`;
 }
 
 /**
@@ -136,9 +189,21 @@ function checkAll(): never {
     if (parts !== meta.data?.parts) problems.push(`${slug}: index.json says parts ${parts}, the bank's meta now says ${meta.data?.parts}`);
     for (const f of ["parts", "text"]) if (built[f] !== meta.data?.[f]) problems.push(`${slug}: insights were built from ${f} ${built[f]}, the bank's meta now says ${meta.data?.[f]}`);
   }
+  // Angles (the Pro layer on Topic analysis): its own file and its own index, built from the same data
+  const anglesIndexFile = join(dir, "angles.json");
+  const anglesIndex = existsSync(anglesIndexFile) ? (JSON.parse(readFileSync(anglesIndexFile, "utf8")) as Record<string, string>) : {};
+  for (const [slug, parts] of Object.entries(anglesIndex)) {
+    const metaFile = join(ROOT, "src", "content", "questionBank", `${slug}.json`);
+    const file = join(dir, `${slug}.angles.json`);
+    if (!existsSync(metaFile) || !existsSync(file)) { problems.push(`${slug}: listed in angles.json but its meta or ${slug}.angles.json is missing`); continue; }
+    const meta = JSON.parse(readFileSync(metaFile, "utf8")) as Meta;
+    const built = (JSON.parse(readFileSync(file, "utf8")) as { built?: Record<string, string> }).built ?? {};
+    if (parts !== meta.data?.parts) problems.push(`${slug}: angles.json says parts ${parts}, the bank's meta now says ${meta.data?.parts}`);
+    for (const f of ["parts", "text"]) if (built[f] !== meta.data?.[f]) problems.push(`${slug}: Angles were built from ${f} ${built[f]}, the bank's meta now says ${meta.data?.[f]}`);
+  }
   if (problems.length) {
     console.error(problems.join("\n"));
-    console.error("The bank was cut again, so its Topic analysis is out of date and the app has stopped offering it. Run: npm run bank:insights -- <slug>");
+    console.error("The bank was cut again, so its Topic analysis and Angles are out of date and the app has stopped offering them. Run: npm run bank:insights -- <slug>");
     process.exit(1);
   }
   console.log(`insights: ${Object.keys(index).length} bank(s) up to date with their data`);
@@ -158,8 +223,9 @@ async function main() {
   const parts = (await read(slug, "parts", meta.data.parts, dir)) as Part[];
   const text = (await read(slug, "text", meta.data.text, dir)) as Record<string, string>;
   if (!Array.isArray(parts) || !parts.length || typeof text !== "object") throw new Error("the data files are not what they should be");
-  const out = build(meta, parts, text);
+  const { insights: out, angles } = buildAll(meta, parts, text);
   const body = render(out);
+  const anglesBody = renderAngles(angles);
   const file = join(ROOT, "src", "content", "questionBankInsights", `${slug}.json`);
   // index.json: each bank that has insights, with the parts hash they were built from. The app reads only this (a few bytes) to know, without loading the file, whether to offer Topic
   // analysis; a bank cut again under a new hash stops offering it until the insights are built again, so a stale file is never shown.
@@ -167,16 +233,26 @@ async function main() {
   const index: Record<string, string> = existsSync(indexFile) ? JSON.parse(readFileSync(indexFile, "utf8")) : {};
   index[slug] = meta.data.parts;
   const indexBody = JSON.stringify(Object.fromEntries(Object.entries(index).sort(([a], [b]) => (a < b ? -1 : 1))), null, 1) + "\n";
+  const anglesFile = join(dirname(file), `${slug}.angles.json`);
+  const anglesIndexFile = join(dirname(file), "angles.json");
+  const aIndex: Record<string, string> = existsSync(anglesIndexFile) ? JSON.parse(readFileSync(anglesIndexFile, "utf8")) : {};
+  aIndex[slug] = meta.data.parts;
+  const anglesIndexBody = JSON.stringify(Object.fromEntries(Object.entries(aIndex).sort(([a], [b]) => (a < b ? -1 : 1))), null, 1) + "\n";
   if (check) {
     const now = existsSync(file) ? readFileSync(file, "utf8") : "";
     const nowIndex = existsSync(indexFile) ? readFileSync(indexFile, "utf8") : "";
-    if (now !== body || nowIndex !== indexBody) { console.error(`${slug}: the insights file is out of date. Run npm run bank:insights -- ${slug}`); process.exit(1); }
+    const nowAngles = existsSync(anglesFile) ? readFileSync(anglesFile, "utf8") : "";
+    const nowAIndex = existsSync(anglesIndexFile) ? readFileSync(anglesIndexFile, "utf8") : "";
+    if (now !== body || nowIndex !== indexBody || nowAngles !== anglesBody || nowAIndex !== anglesIndexBody) { console.error(`${slug}: the insights file is out of date. Run npm run bank:insights -- ${slug}`); process.exit(1); }
     console.log(`${slug}: insights are up to date`);
     return;
   }
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, body);
   writeFileSync(indexFile, indexBody);
+  writeFileSync(anglesFile, anglesBody);
+  writeFileSync(anglesIndexFile, anglesIndexBody);
+  console.log(`${slug}: angles ${(anglesBody.length / 1024).toFixed(1)} KB`);
   const forms: Record<string, number> = {};
   for (const g of Object.values(out.map)) for (const f of Object.values(g)) forms[out.forms[f]] = (forms[out.forms[f]] ?? 0) + 1;
   console.log(`${slug}: ${out.parts} parts, ${out.questions} questions, ${Object.keys(out.topics).length} topics, ${(body.length / 1024).toFixed(1)} KB, sha ${createHash("sha1").update(body).digest("hex").slice(0, 10)}`);

@@ -56,16 +56,26 @@ export function withPinned(r: { from: number; to: number }, pinned: number | nul
 
 /** The card's two layouts break here, the same width as the stylesheet's media query. */
 export const FEED_WIDE = 981;
-const SIDE = 188 + 232 + 2 * 24;   // the meta column, the examiner's column and their gaps (wide layout)
-const PAD_X = 38;                    // the sheet's padding and edges
-const CHROME = 212;                  // what a closed card holds besides its picture: the zoom and Read as text line, the Type and Draw buttons, the Mark scheme button, the sheet's padding, the gap to the next card
-const TOGGLE = 54;                   // the "Write on the question" button under the picture (a mouse; a touch screen has none)
-const MIN_WIDE = 330;                // the meta column is taller than a one-line question
-const META_NARROW = 206;             // the meta folded above the picture on a narrow screen (an iPad upright)
-const META_PHONE = 229;              // ... and on a phone, where its lines wrap (a list narrower than PHONE_W)
+/** Wide: the list's own padding (10 left, 80 right: the lofi record's corner), the meta column (156), the examiner's column (200) and their two gaps (20), then the sheet's own padding (2 x 18) and its two 2px edges. */
+const WIDE_SIDE = 10 + 80 + 156 + 200 + 2 * 20 + 2 * 18 + 2 * 2;
+/** Narrow: the paper is the whole card (padding 2 x 14, 2px edges); an iPad upright keeps 64px clear on the right for the lofi record, a phone does not (the list is under 600 wide there). */
+const NARROW_SIDE = 2 * 14 + 2 * 2;
+const NARROW_CLEAR = 64;
+const PHONE_LIST = 590;
+/*
+ * What a closed card holds besides its picture, measured on the continuous sheet (AQA GCSE Maths, Physics and Biology at 1184, 1084, 762 and 336 px wide: the median of the measured height less the picture).
+ * There is no gap between cards any more, so none of these has one in it; the 2px dashed line above a card is in them.
+ */
+const CHROME = 206;                  // the sheet's padding, the zoom row under the picture (the magnifier has a row of its own: 44), the Type and Draw buttons, the Mark scheme button
+const TOGGLE = 48;                   // the "Write on the question" button under the picture (a mouse; a touch screen has none)
+const MIN_WIDE = 300;                // the meta column is taller than a one-line question
+const META_NARROW = 114;             // the meta folded above the picture on a narrow screen (an iPad upright)
+const META_PHONE = 174;              // ... and on a phone, where its lines wrap (a list narrower than PHONE_W)
 const PHONE_W = 520;
 const LISTEN = 108;                  // the recording's player, its label and note
 const START = 48;                    // the button that opens how the question starts (or the question so far)
+const START_NARROW = 56;             // ... a little taller where the paper is the whole card
+const ER_NARROW = 86;                // the examiner's note folded under the card
 
 /** A card whose answer is open or written, as the estimate needs to know it: the screen, and what else the pinned side would hold (a setup picture, a shared figure). */
 export interface PinnedCard { vw: number; vh: number; stem: boolean; fig: Pick<QPart, "w" | "h"> | null }
@@ -82,10 +92,10 @@ export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "a
     return splitCardEstimate(questionPx(part, unsplitWidth(listWidth, pinned.vw), pinned), pinned.vh, !!part.er);
   }
   const wide = listWidth >= FEED_WIDE;
-  const sheet = Math.max(240, (wide ? listWidth - SIDE : listWidth) - PAD_X);
+  const sheet = Math.max(240, wide ? listWidth - WIDE_SIDE : listWidth - (listWidth > PHONE_LIST ? NARROW_CLEAR : 0) - NARROW_SIDE);
   const picture = sheet * (part.h > 0 && part.w > 0 ? part.h / part.w : 0.28);
   // (0.38: the median setup picture's height over its width, across every bank.)
-  const h = picture + CHROME + (mouse ? TOGGLE : 0) + (hasStart ? START : 0) + (startOpen ? sheet * 0.38 : 0) + (part.au ? LISTEN : 0);
+  const h = picture + CHROME + (mouse ? TOGGLE : 0) + (hasStart ? (wide ? START : START_NARROW) : 0) + (startOpen ? sheet * 0.38 : 0) + (part.au ? LISTEN : 0);
   if (wide) return Math.round(Math.max(MIN_WIDE, h));
-  return Math.round(h + (listWidth < PHONE_W ? META_PHONE : META_NARROW) + (part.er ? 52 : 0));
+  return Math.round(h + (listWidth < PHONE_W ? META_PHONE : META_NARROW) + (part.er ? ER_NARROW : 0));
 }

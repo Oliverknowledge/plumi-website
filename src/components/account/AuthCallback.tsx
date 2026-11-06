@@ -10,7 +10,7 @@ const safe = safeNext;
 
 export function AuthCallback() {
   const account = useAccount();
-  // Google (or Supabase) says what went wrong in the address it sends the student back to.
+  // Apple, Google (or Supabase) says what went wrong in the address it sends the student back to.
   const search = useSyncExternalStore(noop, () => window.location.search, () => "");
   const params = new URLSearchParams(search);
   const code = params.get("error_code");
@@ -19,7 +19,7 @@ export function AuthCallback() {
   // In our words, not the server's: a used or replaced link is the common one.
   const failed = code === "otp_expired" || /expired|invalid/i.test(problem ?? "")
     ? "That sign-in link has expired or has already been used. Each new email replaces the last link, so use the newest one, or sign in again."
-    : problem ? "Signing in didn’t finish. Try again, and if it keeps happening, sign in with Google instead."
+    : problem ? "Signing in didn’t finish. Try again, and if it keeps happening, use a different way in."
     : timedOut ? "Signing in didn’t finish. A sign-in link only works in the browser you asked for it from, so open it there, or try again." : null;
 
   useEffect(() => {

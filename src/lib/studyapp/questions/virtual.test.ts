@@ -64,18 +64,22 @@ describe("a card's height before it has been drawn", () => {
   const p = { w: 1086, h: 400, m: 3, k: undefined, er: undefined };
   test("taller for a taller picture, and for a mouse's Write on the question button", () => {
     assert.ok(cardEstimate({ ...p, h: 800 }, 1180) > cardEstimate(p, 1180));
-    assert.equal(cardEstimate(p, 1180, false, true) - cardEstimate(p, 1180, false, false), 54);
+    assert.equal(cardEstimate(p, 1180, false, true) - cardEstimate(p, 1180, false, false), 48);
   });
   test("a closed card shows two buttons, not a space sized to the marks: the marks do not change it", () => {
     assert.equal(cardEstimate({ ...p, m: 8 }, 1180), cardEstimate(p, 1180));
     assert.equal(cardEstimate({ ...p, k: "B" }, 1180), cardEstimate(p, 1180));
   });
-  test("the layouts add up as they were measured on drawn cards (AQA GCSE Maths: the card is the picture plus 266 wide with a mouse, plus 212 + 206 + 52 upright, plus 212 + 229 + 52 on a phone)", () => {
+  test("the layouts add up as they were measured on drawn cards on the continuous sheet (AQA GCSE Maths, Physics, Biology: the card is the picture plus 254 wide with a mouse, plus 206 + 114 + 86 upright, plus 206 + 174 + 86 on a phone; no gap under a card)", () => {
     const m = { w: 1000, h: 400, m: 1, er: 1 as const };
-    const pic = (listW: number) => (listW - 38) * 0.4;
-    assert.equal(cardEstimate(m, 820), Math.round(pic(820) + 212 + 206 + 52));
-    assert.equal(cardEstimate(m, 390), Math.round(pic(390) + 212 + 229 + 52));
-    assert.equal(cardEstimate(m, 1184, false, true), Math.round(Math.max(330, (1184 - 468 - 38) * 0.4 + 266)));
+    // (the picture's width: the list less the margins and the sheet's padding and edges, or less the card's padding where the margins fold, and 64 for the lofi record on an iPad upright)
+    assert.equal(cardEstimate(m, 820), Math.round((820 - 64 - 32) * 0.4 + 206 + 114 + 86));
+    assert.equal(cardEstimate(m, 390), Math.round((390 - 32) * 0.4 + 206 + 174 + 86));
+    assert.equal(cardEstimate(m, 1184, false, true), Math.round(Math.max(300, (1184 - 526) * 0.4 + 206 + 48)));
+  });
+  test("a card has no gap under it: the question under it follows on the same sheet", () => {
+    // the shortest wide card is the left rail's own height, not the rail plus a gap
+    assert.ok(cardEstimate({ w: 1000, h: 20, m: 1 }, 1184) <= 300);
   });
   test("a narrow list folds the meta above the picture, so it is taller than the same card wide", () => {
     assert.ok(cardEstimate(p, FEED_WIDE - 1) > cardEstimate(p, FEED_WIDE + 200));

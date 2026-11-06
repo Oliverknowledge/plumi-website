@@ -95,10 +95,7 @@ export const Tape = () => <div className="lp-tape" aria-hidden="true" />;
 /** The little blue "soon" label on anything built but not yet released. */
 export const Soon = ({ children = "soon" }: { children?: string }) => <span className="lp-soon">{children}</span>;
 
-/** A pixel window's title bar: three dots and a label. */
-export const WindowBar = ({ label }: { label: string }) => (
-  <div className="lp-bar" aria-hidden="true"><i style={{ background: "#e0605a" }} /><i style={{ background: "#f2c96b" }} /><i style={{ background: "#8fb35a" }} /><span>{label}</span></div>
-);
+export { WindowBar } from "./WindowBar";
 
 /** Schema text with ordinary hyphens and spaces, as search engines read it. */
 export const plain = (text: string) => text.replace(/‑/g, "-").replace(/ /g, " ");

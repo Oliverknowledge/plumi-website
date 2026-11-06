@@ -76,12 +76,14 @@ export const pagePx = (viewportH: number, gap = GAP_GUESS): number => Math.max(5
 export const zonePx = (part: Pick<QPart, "m"> & { k?: string }, answer: QAnswer | undefined, width: number): number => Math.round((zoneHeight(part, answer) * width) / REF_W);
 
 /**
- * A card's height when it is pinned as two columns and has not been drawn yet: the line of details above, the sheet's padding, the taller of the working page (with the head of the space and the
- * marking line under it) and the question column (never taller than the screen), then the room below. Only a guess for a card nobody has drawn; the measured height replaces it.
+ * A card's height when it is pinned as two columns and has not been drawn yet, on the continuous sheet (the paper is the whole card): its edge and padding above (16), the line of details
+ * (106), the taller of the working page (with the head of the space, the marking line and the Mark scheme button under it: 240) and the question column (never taller than the screen), the
+ * examiner's note under it (86) and the padding below (22). No gap under a card. Measured on AQA GCSE Physics at 1280 x 800 (1340) and 1180 x 820; only a guess for a card nobody has drawn,
+ * the measured height replaces it.
  */
 export function splitCardEstimate(questionHeight: number, viewportH: number, er: boolean, gap = GAP_GUESS): number {
   const col = Math.min(questionHeight + 52, Math.max(240, viewportH - gap - 14));
-  return Math.round(76 + 32 + Math.max(pagePx(viewportH, gap) + 58 + 120, col) + (er ? 56 : 0) + 30);
+  return Math.round(16 + 106 + Math.max(pagePx(viewportH, gap) + 240, col) + (er ? 86 : 0) + 22);
 }
 
 /** The columns as the stylesheet reads them: the question's share of the sheet, in percent. */

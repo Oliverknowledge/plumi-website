@@ -18,6 +18,10 @@ export interface SubjectMeta {
   /** A paper's booklet (sources, interpretations, extracts, reading texts, resources, insert; a PDF) and its code files (a zip), by `<paper>-<series>`. */
   ins?: Record<string, string>;
   code?: Record<string, string>;
+  /** The whole question paper, mark scheme and examiner's report of a sitting (PDFs, relative to the papers base), by `<paper>-<series>`: the keys on the Papers view's rows. */
+  qps?: Record<string, string>;
+  mss?: Record<string, string>;
+  ers?: Record<string, string>;
   /** The content hash of each of the bank's data files on R2 (`parts`, `text`, `reports`...): what `bankFile` (cropUrls.ts) names them by. A file the subject has none of is left out. */
   data?: Record<string, string>;
   topics: SubjectTopic[];

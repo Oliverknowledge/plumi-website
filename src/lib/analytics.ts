@@ -83,6 +83,9 @@ export type PlumiEvent =
   | "premade_deck_added"
   /** Plumi Pro on the website (lib/pro): a locked Pro thing tapped (`feature`: its id in lib/pro/features.ts), the locked panel opened (`feature`), and the
    *  student's plan checked (`state`: pro, free or unknown; never an id or an email). */
+  /** "From my mistakes" (Flashcards): the sheet opened, and cards made from it (`count`, `subject`). */
+  | "mistakes_opened"
+  | "mistakes_cards_made"
   | "pro_locked_tapped"
   | "pro_panel_opened"
   | "pro_status_checked"
@@ -105,7 +108,9 @@ export type PlumiEvent =
    *  (a form id, or "all" for the whole topic). No student data. */
   | "topic_analysis_opened"
   | "topic_analysis_topic_viewed"
-  | "topic_analysis_practise_clicked";
+  | "topic_analysis_practise_clicked"
+  /** An Angles panel opened on a topic page (Pro): `subject`, `topic`, `form`. An example opened adds nothing: no ids. */
+  | "topic_angles_opened";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 

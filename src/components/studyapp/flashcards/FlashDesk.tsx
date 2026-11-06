@@ -9,7 +9,9 @@ import { useSharing } from "@/lib/studyapp/sharing/client";
 import { useApp } from "@/lib/studyapp/store";
 import { dayOf } from "@/lib/studyapp/time";
 import { plainText } from "@/lib/studyapp/boldText";
+import type { Pic } from "@/lib/studyapp/cardPics";
 import { BoldText } from "./BoldText";
+import { CardPics } from "./CardPics";
 import { isMarkSchemeBack, MarkSchemeBody, MarkSchemeMarks, parseFront } from "./MarkSchemeFace";
 import { useReview, useReviewKeys, waitLine } from "./review";
 
@@ -124,8 +126,8 @@ export function FlashDesk({
           // already on its question, so its answer is never seen turning away.
           <div ref={cardRef} className="dsk-card" tabIndex={-1} data-shown={shown || undefined} data-testid="flipcard" onClick={onCardClick} aria-label={`Card ${position}`} role="group">
             <div key={card.id} className="dsk-flip" data-flipped={shown || undefined}>
-              <Face side="front" text={card.front} deck={review.deckTitle} position={position} hidden={shown} />
-              <Face side="back" text={card.back} deck={review.deckTitle} position={position} hidden={!shown} />
+              <Face side="front" text={card.front} pics={card.pic?.f} deck={review.deckTitle} position={position} hidden={shown} />
+              <Face side="back" text={card.back} pics={card.pic?.b} deck={review.deckTitle} position={position} hidden={!shown} />
             </div>
             <p className="sr" role="status" aria-live="polite">{touched ? (shown ? `Answer. ${plainText(card.back)}` : `Question. ${plainText(card.front)}`) : ""}</p>
           </div>
@@ -161,7 +163,7 @@ export function FlashDesk({
 }
 
 /** One side of the card. The side that is not showing is hidden from screen readers and the keyboard, as well as from the eye. */
-function Face({ side, text, deck, position, hidden }: { side: "front" | "back"; text: string; deck: string; position: string; hidden: boolean }) {
+function Face({ side, text, pics, deck, position, hidden }: { side: "front" | "back"; text: string; pics?: readonly Pic[]; deck: string; position: string; hidden: boolean }) {
   // A mark scheme card is an ordinary card with plain text leads, set out from them (lib/studyapp/markscheme.ts): the question with its marks, and the answer as points and bands.
   const front = side === "front" ? parseFront(text) : null;
   const ms = side === "back" && isMarkSchemeBack(text);
@@ -171,7 +173,14 @@ function Face({ side, text, deck, position, hidden }: { side: "front" | "back"; 
       <header className="dsk-card-h"><span>{deck}</span><span>{position}</span></header>
       <div className="dsk-body" tabIndex={hidden ? -1 : 0} role="region" aria-label={side === "back" ? "The answer" : "The question"} data-testid={side === "back" ? "card-back" : "card-front"}>
         <span className="dsk-side">{side === "back" ? "Answer" : "Question"}</span>
-        {ms ? <div className="dsk-center ms-wrap"><MarkSchemeBody back={text} /></div> : (
+        {pics?.length ? (
+          // A picture side (a mistake made into a card): the pictures, with the card's own words (the label, or their marks and answer) above or below.
+          <div className={`dsk-center dsk-pics ${side}`} data-testid="pic-side">
+            {side === "front" && <p className="dsk-cap">{text}</p>}
+            <CardPics pics={pics} />
+            {side === "back" && <p className="dsk-note"><BoldText text={text} /></p>}
+          </div>
+        ) : ms ? <div className="dsk-center ms-wrap"><MarkSchemeBody back={text} /></div> : (
           <div className="dsk-center">
             <p className="dsk-text" data-size={sizeFor(plainText(shownText))} data-testid="card-text"><BoldText text={shownText} /></p>
             {front?.marks && <MarkSchemeMarks marks={front.marks} />}

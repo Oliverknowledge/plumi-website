@@ -138,6 +138,13 @@ export function formMix(ins: Insights, code: string): FormRow[] {
   return rows.sort((a, b) => (a.form === "other" ? 1 : b.form === "other" ? -1 : 0) || b.parts - a.parts || rank(a.form) - rank(b.form));
 }
 
+/** How many of the exams that could have the topic have a part of this form on it ("Explain: in 8 of 9 exams"). */
+export function formExams(ins: Insights, code: string, form: Form): { inn: number; open: number } {
+  const t = ins.topics[code], stat = topicStat(ins, code), fi = ins.forms.indexOf(form);
+  if (!t || !stat || fi < 0) return { inn: 0, open: 0 };
+  return { inn: stat.strip.filter((c, i) => c.state !== "none" && t.c[i][fi] > 0).length, open: stat.open };
+}
+
 /** The most parts any one exam has of any of the topics: what the list's small columns are all drawn against, so a column means the same height in every row. */
 export const columnMax = (stats: readonly TopicStat[]): number => Math.max(1, ...stats.flatMap((s) => s.strip.map((c) => c.n)));
 

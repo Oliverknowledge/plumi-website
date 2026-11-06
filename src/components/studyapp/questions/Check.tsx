@@ -9,12 +9,12 @@ import { qa } from "@/lib/studyapp/questions/store";
 import { Crop } from "./Crop";
 import { CheckIcon, ReportIcon } from "./icons";
 import { MarkKey } from "./MarkKey";
-import { SchemeText } from "./ReadAsText";
 import { ChevronIcon } from "./pickerIcons";
 import { getMeta } from "./bankData";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
 import { holdTray } from "./inkBus";
 import { useMatch } from "./useMatch";
+import { usePlumiMark } from "./PlumiMark";
 
 /** Examiner's reports for a subject, fetched the first time anyone opens one. A failure is not remembered, so trying again works. */
 const reports = new Map<string, Promise<Record<string, string>>>();
@@ -59,13 +59,16 @@ export function Check({ set, part, answer, reportOutside, trayAside }: { set: QS
   };
   const id = `scheme-${part.id}`;
   const ready = hasInk(answer) || hasText(answer);
+  const plumi = usePlumiMark(set, part, answer);   // "Mark with Plumi": only where a signed-in student has typed something and the server holds this part's scheme
   return (
     <div className="qs-check">
       <div className="qs-check-bar">
+        {plumi.button}
         <button type="button" className={`qs-schemebtn${ready || open ? " is-ready" : ""}${open ? " is-open" : ""}`} aria-expanded={open} aria-controls={open ? id : undefined} onClick={toggle} data-testid="check">
           Mark scheme<ChevronIcon />
         </button>
       </div>
+      {plumi.panel}
       {open && <Scheme id={id} set={set} part={part} answer={answer} reportOutside={reportOutside} trayAside={trayAside} />}
     </div>
   );
@@ -160,7 +163,6 @@ function Scheme({ id, set, part, answer, reportOutside, trayAside }: { id: strin
             <p className="qs-scheme-label">What the examiner wants</p>
             {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
             <CappedScheme open={wholeScheme(set.subject)}><Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} /></CappedScheme>
-            <SchemeText set={set} part={part} />
           </>
         ) : part.k ? (
           <p className="qs-key">Answer <b>{part.k}</b></p>

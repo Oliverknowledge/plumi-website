@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNow } from "@/lib/studyapp/clock";
 import {
   deckStats, dueNow, SESSION_NAME_MAX, subjectColour, subjectsInUse, suggestSessionName, type AppData, type Deck, type Session,
@@ -8,6 +8,10 @@ import {
 import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
+import { collectMistakes, madeParts } from "@/lib/studyapp/questions/mistakes";
+import { useQuestions } from "@/lib/studyapp/questions/store";
+import { ProGate, useProLock } from "../../pro/ProGate";
+import { ProTag } from "../../pro/ProTag";
 
 /** What the desk is showing, so its row in the list can say so. */
 export type Source = { kind: "scope" } | { kind: "deck"; id: string } | { kind: "session"; id: string };
@@ -44,13 +48,47 @@ function NameForm({ initial, label, submit, onSubmit, onCancel, onDelete }: { in
   );
 }
 
+/**
+ * "From my mistakes", a Pro feature (lib/pro/features.ts, id `mistakes-cards`): live for Pro with a small count, locked with the Pro tag for a free student (a tap
+ * opens the calm panel), and neutral (nothing to tap) while the plan is not known yet. The count is the student's own marks, so nothing is fetched.
+ */
+function MistakesDock({ onOpen }: { onOpen: () => void }) {
+  return (
+    <ProGate feature="mistakes-cards" fallback={<LockedMistakes />} pending={<button type="button" className="dock wide" disabled aria-busy="true" data-testid="mistakes-open"><span>From my mistakes</span></button>}>
+      <LiveMistakes onOpen={onOpen} />
+    </ProGate>
+  );
+}
+
+function LockedMistakes() {
+  const lock = useProLock("mistakes-cards");
+  return (
+    <>
+      <button type="button" className="dock wide locked" onClick={lock.tap} aria-label="From my mistakes, Pro" data-testid="mistakes-open"><span>From my mistakes</span><ProTag className="sm" /></button>
+      {lock.panel}
+    </>
+  );
+}
+
+function LiveMistakes({ onOpen }: { onOpen: () => void }) {
+  const { ready, q } = useQuestions();
+  const { data } = useApp();
+  const total = useMemo(() => (ready ? collectMistakes(q, madeParts(data.cards)).total : null), [ready, q, data.cards]);
+  return (
+    <button type="button" className="dock wide mistakes" onClick={onOpen} data-testid="mistakes-open">
+      <span>From my mistakes</span>
+      {total !== null && <small data-testid="mistakes-n">{total === 0 ? "none yet" : `${total} to turn into cards`}</small>}
+    </button>
+  );
+}
+
 export function SidePanel({
-  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onShare, onImport, onNewDeck, onStarters, onShared,
+  scope, onScope, source, ticked, onTick, onClearTicks, onReviewTicked, onPickDeck, onPickSession, onEdit, onShare, onImport, onNewDeck, onStarters, onShared, onMistakes,
 }: {
   scope: string; onScope: (s: string, pointer: boolean) => void; source: Source; ticked: string[];
   onTick: (id: string, on: boolean) => void; onClearTicks: () => void; onReviewTicked: () => void;
   onPickDeck: (id: string) => void; onPickSession: (id: string) => void; onEdit: (id: string) => void; onShare: (id: string) => void;
-  onImport: () => void; onNewDeck: () => void; onStarters: () => void; onShared: () => void;
+  onImport: () => void; onNewDeck: () => void; onStarters: () => void; onShared: () => void; onMistakes: () => void;
 }) {
   const { data } = useApp();
   const sharing = useSharing();
@@ -188,7 +226,7 @@ export function SidePanel({
         <button type="button" className="dock wide" onClick={onImport} data-testid="import-open"><span aria-hidden="true">&darr;</span> Import</button>
         <button type="button" className="dock" onClick={onNewDeck} data-testid="new-deck-open">+ New deck</button>
         <button type="button" className="dock off" disabled><span>From my notes</span><small>On iPad</small></button>
-        <button type="button" className="dock off wide" disabled><span>From my mistakes</span><small>On iPad</small></button>
+        <MistakesDock onOpen={onMistakes} />
       </div>
 
       <label className="side-set">
