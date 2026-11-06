@@ -2,6 +2,7 @@
 
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { useSyncExternalStore } from "react";
+import { displayName } from "@/lib/accountName";
 import { track } from "@/lib/analytics";
 import { isSitePath } from "@/lib/safePath";
 import { browserSessionStorage } from "@/lib/sessionStorage";
@@ -23,13 +24,13 @@ import { rememberToken } from "@/lib/studyapp/library/farewell";
  * The names are Plumi's own, not NEXT_PUBLIC_SUPABASE_URL, because the waitlist
  * (lib/waitlist) falls back to that one and may live in a different project.
  *
- * Sign-in is an email code or Google. The emails ("Confirm sign up" for a new address,
+ * Sign-in is an email code, Google or (once switched on, lib/appleSignIn) Apple. The emails ("Confirm sign up" for a new address,
  * "Magic link or OTP" otherwise) carry the code and a link; the code works anywhere,
  * while the link brings the student back to /auth/callback, signed in, only in the
  * browser they asked from (PKCE). Supabase's default templates carry only the link, and
  * they can be edited only once the project sends through its own email sender (custom
  * SMTP): supabase/email-templates/ has ours. Apple on the web needs its own Services
- * ID, so it waits. The key here is the publishable one, which the app ships too: what it can
+ * ID (docs/study/sign-in-with-apple.md). The key here is the publishable one, which the app ships too: what it can
  * touch is decided by row-level security, not by keeping it secret.
  */
 
@@ -79,8 +80,7 @@ const SERVER: State = { ready: false, session: null };
 export function useAccount() {
   const s = useSyncExternalStore(subscribe, () => state, () => SERVER);
   const user = s.session?.user ?? null;
-  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const name = typeof meta.full_name === "string" ? meta.full_name : typeof meta.name === "string" ? meta.name : null;
+  const name = displayName(user?.user_metadata);
   return { ready: s.ready, user, email: user?.email ?? null, name, on: accountsOn };
 }
 
@@ -118,8 +118,8 @@ export function signInHref(reason: SignInReason, next?: string, page: "sign-in" 
   return `/${page}?next=${encodeURIComponent(back)}${reason === "header" ? "" : `&why=${reason}`}`;
 }
 
-/** Where an email link or Google sends the student back to: /auth/callback, then `next`. */
-function callbackUrl(reason: SignInReason, method: "email" | "google", next: string) {
+/** Where an email link, Google or Apple sends the student back to: /auth/callback, then `next`. */
+function callbackUrl(reason: SignInReason, method: "email" | "google" | "apple", next: string) {
   try { sessionStorage.setItem("plumi.signin.reason", `${method}:${reason}`); } catch { /* fine without */ }
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext(next))}`;
 }
@@ -193,13 +193,33 @@ export async function setPassword(password: string) {
   return { error: null };
 }
 
-/** Off to Google, and back to /auth/callback, which finishes and goes on to `next`. */
-export async function signInWithGoogle(reason: SignInReason, next: string) {
+/**
+ * Off to a provider, and back to /auth/callback, which finishes and goes on to `next`. The browser leaves the page, so
+ * the answer matters only when it does not: accounts off, or the client could not start the trip.
+ *
+ * Both providers go to the same /auth/callback?next=... (safeNext keeps `next` on this site). Apple, unlike Google, answers
+ * Supabase with a POST and Supabase sends the student on with an ordinary redirect, so nothing here handles a POST. If the
+ * student cancels at Apple (or Google), Supabase redirects to the same callback with error params, which AuthCallback shows
+ * in Plumi's words.
+ */
+async function signInWithProvider(provider: "google" | "apple", reason: SignInReason, next: string) {
   const sb = supabase();
-  if (!sb) return;
-  track("signin_started", { method: "google", reason });
-  await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: callbackUrl(reason, "google", next) } });
+  if (!sb) return off;
+  track("signin_started", { method: provider, reason });
+  try {
+    const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: callbackUrl(reason, provider, next) } });
+    return { error: error ? `That didn’t start. Check your connection and try again, or use a different way in.` : null };
+  } catch {
+    return { error: `That didn’t start. Check your connection and try again, or use a different way in.` };
+  }
 }
+
+export const signInWithGoogle = (reason: SignInReason, next: string) => signInWithProvider("google", reason, next);
+/**
+ * Apple only sends the student's name the first time they sign in, and only if they share it; Supabase puts it in
+ * `user_metadata` (lib/accountName reads it, falling back to the email, which may be Apple's private relay address).
+ */
+export const signInWithApple = (reason: SignInReason, next: string) => signInWithProvider("apple", reason, next);
 
 /** Delete the signed-in account: the server call the iPad app makes (`delete_own_account`), with this session's token (the client adds it). */
 export async function deleteOwnAccountCall(): Promise<{ error: { message?: string; code?: string; status?: number } | null }> {

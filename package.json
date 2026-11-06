@@ -19,7 +19,7 @@
     "study:contrast": "tsx scripts/study-contrast.ts",
     "social:test": "tsx --test src/lib/social/social.test.ts",
     "preapp:test": "npm run -s bank:registry",
-    "app:test": "tsx --test src/lib/studyapp/*.test.ts src/lib/studyapp/questions/*.test.ts src/lib/studyapp/sharing/*.test.ts src/lib/pro/*.test.ts src/lib/sessionStorage.test.ts src/lib/safePath.test.ts",
+    "app:test": "tsx --test src/lib/studyapp/*.test.ts src/lib/studyapp/questions/*.test.ts src/lib/studyapp/sharing/*.test.ts src/lib/pro/*.test.ts src/lib/sessionStorage.test.ts src/lib/safePath.test.ts src/lib/account.apple.test.ts src/lib/accountName.test.ts src/content/legal.apple.test.ts src/content/legal.appleOff.test.ts",
     "sharing:test": "tsx --test src/lib/studyapp/sharing/*.test.ts",
     "sharing:contract": "tsx scripts/shared-decks-contract.ts",
     "dark:test": "tsx --test src/lib/darkQuestions.test.ts",
