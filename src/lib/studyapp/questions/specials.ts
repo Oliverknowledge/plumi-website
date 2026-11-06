@@ -83,3 +83,11 @@ export function paperSpecials(meta: PaperFiles & { subject: string }, p: string,
   if (tr) out.push({ kind: "tr", href: `${papersBase}/${tr}`, label: "Transcript (PDF)" });
   return out;
 }
+
+/** The whole question paper, mark scheme and examiner's report of paper `p` of sitting `s`, as links (the Papers view's keys), where the bank hosts them. */
+export interface WholeFiles { qp?: string; ms?: string; er?: string }
+export function wholeFiles(meta: { qps?: Record<string, string>; mss?: Record<string, string>; ers?: Record<string, string> }, p: string, s: string): WholeFiles {
+  const url = (v: string | undefined) => (v ? `${papersBase}/${v.split("/").map(encodeURIComponent).join("/")}` : undefined);
+  const qp = url(find(meta.qps, p, s)), ms = url(find(meta.mss, p, s)), er = url(find(meta.ers, p, s));
+  return { ...(qp ? { qp } : {}), ...(ms ? { ms } : {}), ...(er ? { er } : {}) };
+}

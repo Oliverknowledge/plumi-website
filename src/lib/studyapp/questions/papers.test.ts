@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { againInput, createSet, EMPTY_QUESTIONS, finishCheck, finishSet, keyOf, markPart, MAX_PAPER_PARTS, MAX_SET_PARTS, sanitiseQuestions, scoreSet, setText, type QuestionsData } from "./model";
 import type { BankRow } from "./picker";
-import { countsLine, groupPapers, isChoosePaper, paperAria, paperKey, paperSetInput, paperState, shelfOf, splitSeries, stateLine, yearsOf } from "./papers";
+import { countsLine, groupPapers, isChoosePaper, paperAria, paperKey, paperSetInput, paperState, byPaperCode, rowLine, splitSeries, stateLine, yearsOf } from "./papers";
 import { paperKeeps, tierLine, tierOf, tiersOf, type SubjectMeta } from "./subject";
 
 const row = (id: string, s: string, p: string, l: string, m: number | null, o: Partial<BankRow> = {}): BankRow => ({ id, p, s, l, m, t: ["4.1.1"], w: 1086, h: 300, x: "Describe", ...o });
@@ -78,14 +78,13 @@ describe("grouping rows into papers", () => {
   test("no rows, no papers", () => assert.deepEqual(groupPapers([], META), []));
 });
 
-describe("the shelf", () => {
+describe("the papers view", () => {
   const many = Array.from({ length: 25 }, (_, i) => ({ year: String(2025 - Math.floor(i / 4)), i }));
-  test("the latest ten, and how many more there are", () => {
-    const s = shelfOf(many);
-    assert.equal(s.shown.length, 10);
-    assert.equal(s.more, 15);
-    assert.equal(shelfOf(many.slice(0, 4)).more, 0);
-    assert.equal(shelfOf(many, 3).shown[2], many[2]);
+  test("papers group by paper code, in the bank's paper order, each paper's sittings newest first", () => {
+    const cards = byPaperCode(groupPapers(ROWS, META));
+    assert.deepEqual(cards.map((c) => c.code), ["84631h", "84631f", "zz"]);
+    assert.deepEqual(cards[0].sessions.map((p) => p.series), ["June 2025", "June 2024", "Specimen"]);
+    assert.equal(cards[0].name, "Paper 1 Higher");
   });
   test("years in the order they first appear, with their counts", () => {
     assert.deepEqual(yearsOf(many).slice(0, 3), [{ year: "2025", n: 4 }, { year: "2024", n: 4 }, { year: "2023", n: 4 }]);
@@ -133,12 +132,14 @@ describe("a paper opens as a set, and its progress is remembered", () => {
     assert.equal(paperState(META.slug, key, [], {}).kind, "new");
     assert.equal(st(q).kind, "new");
     assert.equal(stateLine(st(q)), "Not started");
+    assert.equal(rowLine(st(q)), "Not started");
     let d = setText(q, id, "h25-01-1", "kinetic", T0 + 1).q;
     assert.equal(st(d).kind, "started");
     assert.equal(stateLine(st(d)), "Started");
     d = markPart(d, id, "h25-01-1", 2, T0 + 2);
     assert.equal(st(d).kind, "marking");
     assert.equal(stateLine(st(d)), "Started, 1 of 4");
+    assert.equal(rowLine(st(d)), "1 of 4 marked");
     assert.equal(st(d).phase, "started");
     assert.equal(st(d).fraction, 0.25);
     d = markPart(d, id, "h25-01-2", 0, T0 + 3);
