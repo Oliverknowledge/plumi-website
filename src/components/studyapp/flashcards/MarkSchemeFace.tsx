@@ -27,7 +27,7 @@ export function MarkSchemeBody({ back, fit = true }: { back: string; fit?: boole
       el.style.fontSize = "";
       const base = parseFloat(getComputedStyle(el).fontSize);
       el.classList.remove("tight");
-      for (let size = base; size >= Math.max(13.5, base * 0.55); size -= 1.5) {
+      for (let size = base; size >= Math.max(17, base * 0.62); size -= 1.5) {
         el.style.fontSize = `${size}px`;
         el.classList.toggle("tight", size < base * 0.85);
         if (box.scrollHeight <= box.clientHeight + 1) return;

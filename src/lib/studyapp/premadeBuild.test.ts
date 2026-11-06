@@ -142,6 +142,15 @@ describe("the committed mark scheme decks", () => {
   const dir = join(import.meta.dirname, "..", "..", "content", "premadeDecks");
   const SPECS = ["aqa-7402", "aqa-7405", "aqa-7408", "aqa-8461", "aqa-8462", "aqa-8463", "edexcel-9ph0", "ocr-h420", "ocr-h432", "ocr-h556"];
   const files = SPECS.map((s) => join(dir, `markscheme-${s}.json`));
+  it("carry the superscripts and subscripts as the iPad's data writes them (real cards)", { skip: !files.every(existsSync) && "not built" }, () => {
+    const card = (spec: string, id: string) => (JSON.parse(readFileSync(join(dir, `markscheme-${spec}.json`), "utf8")) as PremadeSubject).cards.find((c) => c[0] === id)!;
+    assert.equal(card("ocr-h556", "OCR-H556.R_4_4_2_XRAYS_UV_SIMULTANEOUS")[2], "Both travel at the same speed / speed of light/ 3.0 \u00D7 10^{8} **m s^{-1}**\nIgnore: travels at \u2018c\u2019");
+    assert.ok(card("aqa-7405", "AQA-7405.R_3_1_8_CALCIUM_HYDRATION_LESS_EXOTHERMIC")[1].includes("Ca^{2+}(g)"));
+    assert.ok(card("aqa-7405", "AQA-7405.R_3_2_3_IODIDE_CONC_H2SO4_TWO_PRODUCTS")[2].includes("SO_{4}^{2-} + 4 H^{+} + 2 I^{-} -> SO_{2} + 2 H_{2}O + I_{2}"));
+    let marks = 0;
+    for (const f of files) for (const c of (JSON.parse(readFileSync(f, "utf8")) as PremadeSubject).cards) marks += ((c[1] + c[2]).match(/[\^_]\{[^{}\n]*\}/g) ?? []).length;
+    assert.equal(marks, 1106, "the iPad's report: 352 fields in 214 cards");
+  });
   it("are all there, sound, and in budget", { skip: !files.every(existsSync) && "not built" }, () => {
     let cards = 0, gz = 0, raw = 0;
     for (const f of files) {

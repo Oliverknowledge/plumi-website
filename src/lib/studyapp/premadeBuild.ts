@@ -241,6 +241,7 @@ export function verifyShape(d: unknown): string[] {
     if (c[1].includes(EM_DASH) || c[2].includes(EM_DASH)) bad.push(`em dash in ${c[0]}`);
     const lead = [...c[2]].find((ch) => ch !== "*") ?? "";
     if (!ms && lead !== lead.toUpperCase()) bad.push(`${c[0]} back is not capitalised`);
+    if (ms && ((c[1] + c[2]).match(/[\^_]\{/g) ?? []).length !== ((c[1] + c[2]).match(/[\^_]\{[^{}\n]*\}/g) ?? []).length) bad.push(`${c[0]} has an unclosed script brace`);
     if ((c[2].split("**").length - 1) % 2 !== 0) bad.push(`${c[0]} has an unbalanced bold marker`);
     if (c[1].length > (ms ? 700 : 400) || c[2].length > (ms ? 1200 : 800)) bad.push(`${c[0]} is longer than a card can hold`);
   });
