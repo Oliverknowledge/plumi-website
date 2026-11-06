@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { addPremade, editCard, EMPTY } from "./model";
-import { boardFor, deckTitle, entriesOf, isPremadeKey, MS_BOARDS, msKey, orderSpecs, premadeKey, toAdd, TASTER_MIN } from "./premade";
+import type { MsIndexSpec } from "./premade";
+import { boardFor, deckTitle, entriesOf, isPremadeKey, MS_BOARDS, msKey, orderSpecs, premadeKey, msEntriesFromIndex, toAdd } from "./premade";
 import type { PremadeSubject } from "./premadeBuild";
 import biology from "../../content/premadeDecks/biology.json";
-import msBio from "../../content/premadeDecks/markscheme-aqa-7402.json";
-import msGcse from "../../content/premadeDecks/markscheme-aqa-8463.json";
+import msBio from "../../content/proDecks/markscheme-aqa-7402.json";
+import msGcse from "../../content/proDecks/markscheme-aqa-8463.json";
 
 const T = 1_700_000_000_000;
 const data = biology as unknown as PremadeSubject;
@@ -20,18 +23,6 @@ describe("the catalogue", () => {
     assert.equal(new Set(e.map((x) => x.key)).size, e.length);
     assert.equal(isPremadeKey("chem-carbonyls"), false);
     assert.equal(isPremadeKey(null), false);
-  });
-  it("keeps exactly one taster per board: the first deck with enough cards", () => {
-    for (const spec of data.specs) {
-      const e = entriesOf(data, spec);
-      assert.equal(e.filter((x) => x.free).length, 1);
-      const free = e.find((x) => x.free)!;
-      assert.ok(free.count >= TASTER_MIN);
-      assert.ok(e.slice(0, e.indexOf(free)).every((x) => x.count < TASTER_MIN));
-    }
-    const ocr = entriesOf(data, data.specs.find((s) => s.id === "OCR-H420")!);
-    assert.equal(ocr[0].free, false, "OCR's first module is six practical cards: not a taste");
-    assert.equal(ocr[1].free, true);
   });
   it("opens on the student's own board, from their subjects, and never guesses one", () => {
     assert.equal(boardFor("biology", ["aqa-a-level-chemistry", "ocr-a-level-biology-a"]), "OCR-H420");
@@ -84,7 +75,17 @@ describe("mark scheme decks in the catalogue", () => {
     assert.equal(e[0].title, `Mark scheme \u00B7 ${spec.mods[0].t}`);
     assert.equal(deckTitle("kw", "Cells"), "Key wording \u00B7 Cells");
     assert.ok(e.every((x) => x.title.length <= 64), "fits a catalogue deck name");
-    assert.equal(e.filter((x) => x.free).length, 1, "one taster a board, as for key wording");
+    assert.ok(e.every((x) => x.mod.k.length === x.count));
+  });
+  it("lists from the public index with names and counts only: no card text, no card ids", () => {
+    const idx = JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "content", "premadeDecks", "markscheme-index.json"), "utf8")) as { specs: MsIndexSpec[] };
+    const s = idx.specs.find((x) => x.id === "AQA-7402")!;
+    const e = msEntriesFromIndex(s);
+    assert.deepEqual(e.map((x) => [x.module, x.count]), spec.mods.map((m) => [m.t, m.k.length]), "the index agrees with the full file");
+    assert.deepEqual(e.map((x) => x.key), entriesOf(ms, spec).map((x) => x.key));
+    assert.ok(e.every((x) => x.mod.k.length === 0));
+    assert.equal(idx.specs.length, 10);
+    assert.equal(idx.specs.reduce((n, x) => n + x.mods.reduce((m, y) => m + y.n, 0), 0), 1166);
   });
   it("adds with the board's wording intact and is never added twice", () => {
     const e = entriesOf(ms, spec)[0];

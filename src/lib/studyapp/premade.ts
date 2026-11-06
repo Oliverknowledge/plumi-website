@@ -29,32 +29,6 @@ export const MS_BOARDS: Record<PremadeSlug, MsBoard[]> = {
 const MS_IDS = new Set(Object.values(MS_BOARDS).flat().map((b) => b.id));
 const GCSE_IDS = new Set(Object.values(MS_BOARDS).flat().filter((b) => b.label.endsWith("GCSE")).map((b) => b.id));
 
-const msCache = new Map<string, Promise<PremadeSubject>>();
-
-/** One specification's mark scheme cards: its own chunk, fetched when its chip is chosen. */
-export function loadMarkScheme(specId: string): Promise<PremadeSubject> {
-  let p = msCache.get(specId);
-  if (!p) {
-    const load: Promise<{ default: unknown }> | null =
-      specId === "AQA-7402" ? import("@/content/premadeDecks/markscheme-aqa-7402.json")
-      : specId === "OCR-H420" ? import("@/content/premadeDecks/markscheme-ocr-h420.json")
-      : specId === "AQA-8461" ? import("@/content/premadeDecks/markscheme-aqa-8461.json")
-      : specId === "AQA-7405" ? import("@/content/premadeDecks/markscheme-aqa-7405.json")
-      : specId === "OCR-H432" ? import("@/content/premadeDecks/markscheme-ocr-h432.json")
-      : specId === "AQA-8462" ? import("@/content/premadeDecks/markscheme-aqa-8462.json")
-      : specId === "AQA-7408" ? import("@/content/premadeDecks/markscheme-aqa-7408.json")
-      : specId === "OCR-H556" ? import("@/content/premadeDecks/markscheme-ocr-h556.json")
-      : specId === "EDEXCEL-9PH0" ? import("@/content/premadeDecks/markscheme-edexcel-9ph0.json")
-      : specId === "AQA-8463" ? import("@/content/premadeDecks/markscheme-aqa-8463.json")
-      : null;
-    if (!load) return Promise.reject(new Error(`no mark scheme cards for ${specId}`));
-    p = load.then((m) => (m.default ?? m) as unknown as PremadeSubject);
-    p.catch(() => msCache.delete(specId));
-    msCache.set(specId, p);
-  }
-  return p;
-}
-
 const cache = new Map<PremadeSlug, Promise<PremadeSubject>>();
 
 /** One subject's data. Each file is its own chunk; a failed fetch is forgotten so the next try asks again. */
@@ -72,29 +46,55 @@ export function loadPremade(slug: PremadeSlug): Promise<PremadeSubject> {
   return p;
 }
 
+/** The mark scheme decks every student may see: modules and card counts per specification, with no card text (src/content/premadeDecks/markscheme-index.json). */
+export interface MsIndexSpec { id: string; subject: string; label: string; code: string; mods: { c: string; t: string; n: number }[] }
+let indexLoad: Promise<MsIndexSpec[]> | null = null;
+export function loadMarkSchemeIndex(): Promise<MsIndexSpec[]> {
+  indexLoad ??= import("@/content/premadeDecks/markscheme-index.json").then((m) => ((m.default ?? m) as unknown as { specs: MsIndexSpec[] }).specs);
+  indexLoad.catch(() => { indexLoad = null; });
+  return indexLoad;
+}
+
+/** Why the cards did not come: the server would not (not Pro), or could not. The student sees the Pro panel for the first, "didn't open" for the second. */
+export class MarkSchemeDenied extends Error {}
+
+/**
+ * One specification's cards, from the server, with the student's own access token. Only a Pro account gets them (403 otherwise). Kept in memory for the
+ * visit, never written anywhere else.
+ */
+const msCache = new Map<string, PremadeSubject>();
+export async function loadMarkScheme(specId: string, token: string): Promise<PremadeSubject> {
+  const hit = msCache.get(specId);
+  if (hit) return hit;
+  const res = await fetch(`/api/premade/markscheme/${encodeURIComponent(specId.toLowerCase())}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+  if (res.status === 401 || res.status === 403) throw new MarkSchemeDenied();
+  if (!res.ok) throw new Error(`mark scheme ${res.status}`);
+  const data = (await res.json()) as PremadeSubject;
+  msCache.set(specId, data);
+  return data;
+}
+
 /** A deck's stable id, kept on the student's deck as `starter`: a deck is added once. Mark scheme decks are `pm:ms:<spec>:<module>`. */
 export const premadeKey = (slug: string, specId: string, moduleCode: string) => `pm:${slug}:${specId}:${moduleCode}`;
 export const msKey = (specId: string, moduleCode: string) => premadeKey("ms", specId, moduleCode);
 export const isPremadeKey = (starter: string | null | undefined) => !!starter && starter.startsWith("pm:");
 
-/** The fewest cards a deck needs to be the free taster: a module of five is not a taste of anything. */
-export const TASTER_MIN = 10;
-
 /** A module deck as the catalogue lists it. Light: the cards are only cut out when the deck is added (`cardsOf`). */
-export interface PremadeEntry { key: string; title: string; /** The module's own name: what a tile shows (the deck is titled with its kind in front). */ module: string; count: number; free: boolean; mod: PremadeModule }
+export interface PremadeEntry { key: string; title: string; /** The module's own name: what a tile shows (the deck is titled with its kind in front). */ module: string; count: number; mod: PremadeModule }
 
-/**
- * A board's decks in the specification's own module order. `free`: the taster each subject keeps open when Pro is required
- * (see pro.ts): the first deck on the board with at least `TASTER_MIN` cards.
- */
+/** A board's decks in the specification's own module order. */
 export function entriesOf(data: PremadeSubject, spec: PremadeSpec): PremadeEntry[] {
   const ms = data.kind === "markscheme";
   const slug = data.subject.toLowerCase();
-  const taster = spec.mods.findIndex((m) => m.k.length >= TASTER_MIN);
-  return spec.mods.map((mod, i) => ({
-    key: ms ? msKey(spec.id, mod.c) : premadeKey(slug, spec.id, mod.c), title: deckTitle(ms ? "ms" : "kw", mod.t), module: mod.t,
-    count: mod.k.length, free: i === (taster < 0 ? 0 : taster), mod,
+  return spec.mods.map((mod) => ({
+    key: ms ? msKey(spec.id, mod.c) : premadeKey(slug, spec.id, mod.c), title: deckTitle(ms ? "ms" : "kw", mod.t),
+    module: mod.t, count: mod.k.length, mod,
   }));
+}
+
+/** The tiles of one board's mark scheme decks, from the public index (names and counts: no card text, no card id). `mod.k` is empty until the cards are fetched. */
+export function msEntriesFromIndex(spec: MsIndexSpec): PremadeEntry[] {
+  return spec.mods.map((m) => ({ key: msKey(spec.id, m.c), title: deckTitle("ms", m.t), module: m.t, count: m.n, mod: { c: m.c, t: m.t, k: [] } }));
 }
 
 /** The deck, ready for `actions.addPremade`. */

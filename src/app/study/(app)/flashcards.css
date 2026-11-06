@@ -279,6 +279,8 @@
 .pa .cat-groups { display: inline-flex; gap: 4px; padding: 3px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; justify-self: start; }
 .pa .cat-group { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; font: 800 14.5px var(--f-body); color: var(--ink); cursor: pointer; }
 .pa .cat-group[aria-pressed="true"] { background: var(--gold); }
+.pa .cat-group-pro { margin-left: 7px; padding: 1px 6px; border-radius: 7px; background: var(--navy); color: #f5f9ff; font: 800 10px var(--f-body); font-style: normal; letter-spacing: .08em; text-transform: uppercase; vertical-align: middle; }
+.pa .cat-wait { display: inline-block; width: 28px; height: 28px; }
 .pa .cat-boards { display: flex; flex-wrap: wrap; gap: 6px; }
 .pa .cat-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font: 800 14.5px var(--f-body); color: var(--ink); cursor: pointer; }
 .pa .cat-chip small { font: 700 11.5px var(--f-body); color: var(--soft); }
