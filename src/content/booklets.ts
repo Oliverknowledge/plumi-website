@@ -87,7 +87,7 @@ const file = (group: string, name: string) => `${papersBase}/${raw.prefix}/${gro
 export const bookletPdf = (group: string, b: Pick<Booklet, "slug">) => file(group, `${b.slug}.pdf`);
 /** Its questions-only version. */
 export const bookletQuestionsPdf = (group: string, b: Pick<Booklet, "slug">) => file(group, `${b.slug}-questions.pdf`);
-export const bookletPreview = (group: string, b: Pick<Booklet, "slug">) => file(group, `${b.slug}.webp`);
+export const bookletPreview = (group: string, b: Pick<Booklet, "slug">) => file(group, `${b.slug}-preview.webp`);
 
 /** "3.4 MB", "820 KB". */
 export const fileSize = (bytes: number) => (bytes >= 1e6 ? `${(bytes / 1e6).toFixed(bytes >= 1e7 ? 0 : 1)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`);

@@ -41,6 +41,8 @@ export type PlumiEvent =
   /** A maths booklet opened from /maths-booklets (BookletClickTracker). Carries `page`, `booklet`, `group`
    *  and `kind`: `full`, or `questions` for its questions-only version. */
   | "booklet_opened"
+  /** A search on the booklets that settled (1.2s without typing): `page`, `query` (first 60 characters), `results`. */
+  | "booklet_searched"
   /** The question bank: filters settled on (`results`), a mark scheme or report
    *  opened (`kind`), a question added to a set (`size`), a set downloaded. */
   | "bank_filtered"

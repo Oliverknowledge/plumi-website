@@ -39,8 +39,18 @@ python3 scripts/booklets/upload.py --verify
 - **Questions** are counted from "Question N" headings, or "1.", "2.", … where a booklet numbers them that way
   (the integration mixes, trigonometric identities). A "Question N" can hold several parts, so "Integration by
   parts" has 3 questions and 30 integrals. Stars are read where the booklet prints them; about 90 don't.
-- **Previews** are the first page with a question on it, 640px wide, as WebP.
-- **Files** are on R2 under `booklets/madasmaths/<group>/`: `<slug>.pdf`, `<slug>-questions.pdf` and `<slug>.webp`,
+- **Previews** are the first question, cut from just above its first line (past the "Created by" line every page
+  repeats) to a 4:3 frame across the text, 640px wide, as WebP.
+- **Files** are on R2 under `booklets/madasmaths/<group>/`: `<slug>.pdf`, `<slug>-questions.pdf` and `<slug>-preview.webp`,
   served inline and cached for a year as immutable. A changed booklet needs a new slug.
 
-`booklet_opened` (analytics) reports each booklet opened, with its group and which file.
+## The pages
+
+Blue where the rest of the site is orange (founder, 6 November 2026). Both pages list the booklets through
+`BookletBrowser`: a search box, chips for the group or shelf, exam questions or practice, Mechanics' modules, "has
+questions only" and difficulty, and cards or a compact list (remembered per browser; the hub starts on the list, a
+group's page on cards). Opening a booklet on a wide screen shows it in a viewer on the page, the browser's own PDF
+viewer in a dialog; on a phone it opens in a new tab, as an embedded PDF there shows only its first page.
+
+`booklet_opened` (analytics) reports each booklet opened, with its group and which file; `booklet_searched` a search
+that settled, with how many it found.

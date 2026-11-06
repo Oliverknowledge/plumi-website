@@ -4,18 +4,20 @@ import { PageStructuredData } from "@/components/StructuredData";
 import { intentFor } from "@/config/routes";
 import {
   bookletCopy, bookletGroupPath, bookletGroups, bookletPdf, bookletPreview, bookletQuestionsPdf, bookletSource,
-  bookletsPath, bookletTotals, fileSize, groupCopy, groupCount, starRange, type Booklet, type BookletGroup,
+  bookletsPath, bookletTotals, fileSize, groupCopy, groupCount, type Booklet, type BookletGroup,
 } from "@/content/booklets";
+import { BookletBrowser, type BrowserItem, type BrowserSection } from "./BookletBrowser";
 import { BookletClickTracker } from "./BookletClickTracker";
 import "@/app/pages.css";
 import "@/app/past-papers.css";
 import "@/app/booklets.css";
 
 /**
- * /maths-booklets and /maths-booklets/<group>: MadAsMaths' topic booklets (src/content/booklets.ts).
- * The hub is a card per group and every booklet's name, so a crawler and a student both reach every
- * one; a group's page has each booklet as a card, with a preview of its first questions and the
- * files themselves. Every link to a file is a plain anchor, reported by one listener (BookletClickTracker).
+ * /maths-booklets and /maths-booklets/<group>: MadAsMaths' topic booklets (src/content/booklets.ts), in blue
+ * (founder, 6 November 2026) where the rest of the site is orange. The hub is a card per group, then every
+ * booklet in a searchable list; a group's page is its booklets as cards, by shelf. Both lists are
+ * BookletBrowser, which renders every booklet on the server too, so a crawler reaches each one. File links
+ * are reported by one listener (BookletClickTracker).
  */
 
 const questionsTotal = (g: BookletGroup) => g.shelves.reduce((n, s) => n + s.booklets.reduce((m, b) => m + b.questions, 0), 0);
@@ -30,8 +32,22 @@ function Credit() {
   );
 }
 
+/** A booklet as the browser shows it: its files' addresses worked out here, so the client needs no data module. */
+function item(g: BookletGroup, shelf: string, b: Booklet): BrowserItem {
+  return {
+    slug: b.slug, title: b.title, kind: b.kind, modules: b.modules, stars: b.stars, questions: b.questions, pages: b.pages,
+    size: fileSize(b.bytes), pdf: bookletPdf(g.slug, b), preview: bookletPreview(g.slug, b), previewSize: b.preview, group: g.slug,
+    context: `${groupCopy[g.slug].heading} ${g.name} ${shelf}`,
+    ...(b.questionsOnly ? { questionsPdf: bookletQuestionsPdf(g.slug, b), questionsOnlySize: fileSize(b.questionsOnly.bytes) } : {}),
+  };
+}
+
 export function BookletHub() {
   const intent = intentFor(bookletsPath);
+  const sections: BrowserSection[] = bookletGroups.map(g => ({
+    id: g.slug, title: groupCopy[g.slug].heading, href: bookletGroupPath(g.slug),
+    items: g.shelves.flatMap(s => s.booklets.map(b => item(g, s.name, b))),
+  }));
   return (
     <CosyPage after={<>
       <PageStructuredData path={bookletsPath} name={intent.title} description={intent.description} type="CollectionPage"
@@ -62,11 +78,10 @@ export function BookletHub() {
               {bookletGroups.map(g => (
                 <li key={g.slug}>
                   <Link className="lp-card bk-group" href={bookletGroupPath(g.slug)} data-testid={`booklets-group-${g.slug}`}>
-                    <small>{groupCopy[g.slug].level} · {g.name} topics</small>
+                    <span className="bk-group-band"><small>{groupCopy[g.slug].level}</small><span className="bk-group-count">{groupCount(g)}</span></span>
                     <b>{groupCopy[g.slug].heading}</b>
-                    <span>{groupCopy[g.slug].blurb}</span>
-                    <span className="bk-group-count">{groupCount(g)} booklets · {number(questionsTotal(g))} questions</span>
-                    <span className="pp-board-go">See the booklets ›</span>
+                    <span className="bk-group-blurb">{groupCopy[g.slug].blurb}</span>
+                    <span className="bk-group-go">{number(questionsTotal(g))} questions ›</span>
                   </Link>
                 </li>
               ))}
@@ -74,60 +89,14 @@ export function BookletHub() {
           </div>
         </section>
 
-        <section aria-labelledby="all-title" className="pp-group">
+        <section aria-labelledby="find-title" className="pp-group">
           <div className="lp-wrap">
-            <h2 id="all-title" className="pp-group-title">Every booklet</h2>
-            <div className="bk-index">
-              {bookletGroups.map(g => (
-                <section key={g.slug} aria-labelledby={`index-${g.slug}`} className="bk-index-group">
-                  <h3 id={`index-${g.slug}`}><Link href={bookletGroupPath(g.slug)}>{groupCopy[g.slug].heading}</Link></h3>
-                  <ul>
-                    {g.shelves.flatMap(s => s.booklets).map(b => (
-                      <li key={b.slug}><Link href={`${bookletGroupPath(g.slug)}#${b.slug}`}>{label(b)}</Link></li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
+            <h2 id="find-title" className="pp-group-title">Find a <em>booklet</em></h2>
+            <BookletBrowser sections={sections} sectionLabel="Group" page="hub" defaultView="list" placeholder={`Search ${number(bookletTotals.booklets)} booklets: integration, vectors, Poisson…`} />
           </div>
         </section>
       </article>
     </CosyPage>
-  );
-}
-
-/** "Logarithms (exam questions)", "Collisions (M2)". */
-const label = (b: Booklet) => [b.title, b.kind?.toLowerCase(), b.modules?.join("/")].filter(Boolean).reduce((t, x, i) => (i ? `${t} (${x})` : t));
-
-function BookletCard({ group, booklet: b }: { group: string; booklet: Booklet }) {
-  const pdf = bookletPdf(group, b);
-  return (
-    <li id={b.slug} className="lp-card bk-card">
-      <a className="bk-preview" href={pdf} target="_blank" rel="noopener" tabIndex={-1} aria-hidden="true"
-        data-booklet={b.slug} data-group={group} data-kind="full">
-        {/* eslint-disable-next-line @next/next/no-img-element -- served from R2 beside the PDFs, already sized */}
-        <img src={bookletPreview(group, b)} width={b.preview[0]} height={b.preview[1]} alt="" loading="lazy" decoding="async" />
-      </a>
-      <div className="bk-body">
-        <h3>{b.title}</h3>
-        {(b.kind || b.modules || b.stars) && (
-          <p className="bk-tags">
-            {b.kind && <span className="bk-tag">{b.kind}</span>}
-            {b.modules && <span className="bk-tag">{b.modules.join(" · ")}</span>}
-            {b.stars && <span className="bk-stars" title="Difficulty, in MadAsMaths' stars">{starRange(b.stars)}</span>}
-          </p>
-        )}
-        <p className="bk-meta">{number(b.questions)} {b.questions === 1 ? "question" : "questions"} · {b.pages} pages · {fileSize(b.bytes)}</p>
-        <p className="bk-get">
-          <a className="pp-file is-qp" href={pdf} target="_blank" rel="noopener" data-booklet={b.slug} data-group={group} data-kind="full"
-            aria-label={`${bookletCopy.open}: ${label(b)}, with answers and worked solutions (PDF, ${fileSize(b.bytes)})`}>{bookletCopy.open}</a>
-          {b.questionsOnly && (
-            <a className="pp-file is-ms" href={bookletQuestionsPdf(group, b)} target="_blank" rel="noopener" data-booklet={b.slug} data-group={group} data-kind="questions"
-              aria-label={`${label(b)}, questions only (PDF, ${fileSize(b.questionsOnly.bytes)})`}>{bookletCopy.questionsOnly}</a>
-          )}
-        </p>
-      </div>
-    </li>
   );
 }
 
@@ -136,6 +105,7 @@ export function BookletGroupPage({ group }: { group: BookletGroup }) {
   const copy = groupCopy[group.slug];
   const meta = groupPageMeta(group);
   const others = bookletGroups.filter(g => g.slug !== group.slug);
+  const sections: BrowserSection[] = group.shelves.map((s, i) => ({ id: `shelf-${i}`, title: s.name, items: s.booklets.map(b => item(group, s.name, b)) }));
   const hasQuestionsOnly = group.shelves.some(s => s.booklets.some(b => b.questionsOnly));
   return (
     <CosyPage after={<>
@@ -157,25 +127,16 @@ export function BookletGroupPage({ group }: { group: BookletGroup }) {
             <li><strong>{number(questionsTotal(group))}</strong><span>questions</span></li>
             <li><strong>£0</strong><span>no sign‑up</span></li>
           </ul>
-          {group.shelves.length > 1 && (
-            <nav className="pp-jump" aria-label="Jump to">
-              {group.shelves.map((s, i) => <a key={s.name} href={`#shelf-${i}`}>{s.name}</a>)}
-            </nav>
-          )}
           <Credit />
           {hasQuestionsOnly && <p className="pp-note">{bookletCopy.questionsOnlyNote}</p>}
         </header>
 
-        {group.shelves.map((s, i) => (
-          <section key={s.name} aria-labelledby={`shelf-${i}`} className="pp-group">
-            <div className="lp-wrap">
-              {group.shelves.length > 1 && <h2 id={`shelf-${i}`} className="pp-group-title">{s.name}</h2>}
-              <ul className="bk-cards" aria-labelledby={group.shelves.length > 1 ? `shelf-${i}` : undefined} aria-label={group.shelves.length > 1 ? undefined : copy.heading}>
-                {s.booklets.map(b => <BookletCard key={b.slug} group={group.slug} booklet={b} />)}
-              </ul>
-            </div>
-          </section>
-        ))}
+        <section aria-label="The booklets" className="pp-group">
+          <div className="lp-wrap">
+            <BookletBrowser sections={sections} sectionLabel="Topic" page={group.slug} defaultView="cards"
+              placeholder={`Search ${groupCount(group)} ${copy.heading} booklets…`} />
+          </div>
+        </section>
 
         <section aria-labelledby="more-title" className="pp-more">
           <div className="lp-wrap">

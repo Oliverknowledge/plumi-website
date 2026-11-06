@@ -8,7 +8,7 @@ Reads <work-dir>/pdf/<folder>/<file>.pdf (fetch.py) and writes:
   src/content/booklets.json                                    the groups and every booklet, read at build time
   <work-dir>/r2/booklets/madasmaths/<group>/<slug>.pdf          the booklet, unmodified
   <work-dir>/r2/booklets/madasmaths/<group>/<slug>-questions.pdf   its questions-only version, where there is one
-  <work-dir>/r2/booklets/madasmaths/<group>/<slug>.webp         a preview: the first page of questions
+  <work-dir>/r2/booklets/madasmaths/<group>/<slug>-preview.webp  a preview: the first question, 4:3
 
 Each booklet is a title page, then its questions, each with its difficulty in stars, its answer boxed and
 a worked solution beside it. Some also come as a "student version", questions only, which is paired with
@@ -28,6 +28,7 @@ PDF = os.path.join(WORK, "pdf")
 OUT = os.path.join(WORK, "r2", "booklets", "madasmaths")
 PREFIX = "booklets/madasmaths"
 PREVIEW_WIDTH = 640
+PREVIEW_MARGIN = 48  # points either side: MadAsMaths' text starts about 70pt in on a 595pt page
 
 # The Drive folder's groups, in the order a student meets them, and their own folders' shelves.
 GROUPS = [
@@ -210,13 +211,28 @@ def read(path):
 
 
 def preview(doc, dest):
-    """The first page with a question on it (the title page says only the booklet's name), as WebP."""
-    page = next((p for p in doc if QUESTION.search(p.get_text())), None) or next((p for p in doc if NUMBERED.search(p.get_text())), doc[min(1, len(doc) - 1)])
-    zoom = PREVIEW_WIDTH / page.rect.width
-    pix = page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), alpha=False)
+    """The first question, as a 4:3 WebP: cut from the first page with a question on it (the title page says only
+    the booklet's name), from just above the question's first line, past the "Created by" line every page repeats,
+    across the text's width, so a card shows the question itself."""
+    def first_line(page, pattern):
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                text = "".join(s["text"] for s in line["spans"]).strip()
+                if pattern.match(text + " "):
+                    return line["bbox"][1]
+        return None
+    for pattern in (QUESTION, NUMBERED):
+        hit = next(((p, y) for p in doc if (y := first_line(p, pattern)) is not None), None)
+        if hit:
+            break
+    page, top = hit if hit else (doc[min(1, len(doc) - 1)], 60)
+    width = page.rect.width - 2 * PREVIEW_MARGIN
+    clip = pymupdf.Rect(PREVIEW_MARGIN, max(0, top - 14), PREVIEW_MARGIN + width, max(0, top - 14) + width * 3 / 4)
+    zoom = PREVIEW_WIDTH / width
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip, alpha=False)
     from PIL import Image  # noqa: PLC0415
     img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
-    img.save(dest, "WEBP", quality=72, method=6)
+    img.save(dest, "WEBP", quality=74, method=6)
     return img.width, img.height
 
 
@@ -252,7 +268,7 @@ def main():
                 title, kind, modules = title_and_kind(base)
                 os.makedirs(os.path.join(OUT, gslug), exist_ok=True)
                 shutil.copyfile(src, os.path.join(OUT, gslug, slug + ".pdf"))
-                w, h = preview(info["doc"], os.path.join(OUT, gslug, slug + ".webp"))
+                w, h = preview(info["doc"], os.path.join(OUT, gslug, slug + "-preview.webp"))
                 booklet = {"slug": slug, "title": title, "pages": info["pages"], "questions": info["questions"],
                            "bytes": os.path.getsize(src), "preview": [w, h]}
                 if kind:

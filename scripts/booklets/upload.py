@@ -1,6 +1,10 @@
 """Put the maths booklets on R2: everything build.py wrote under <work-dir>/r2/, at the same keys.
 
-    python3 scripts/booklets/upload.py [work-dir] [--dry-run] [--verify]
+    python3 scripts/booklets/upload.py [work-dir] [--dry-run] [--verify] [--prune]
+
+--prune deletes what's under booklets/ on R2 that build.py no longer writes (the first previews, whole pages,
+were <slug>.webp until they were cut to the first question as <slug>-preview.webp). Only for files no published
+page links to: R2 serves them as immutable, so an old deployment would lose them.
 
 <work-dir>/r2/booklets/madasmaths/<group>/<slug>.pdf goes to booklets/madasmaths/<group>/<slug>.pdf, and so on:
 PDFs inline (they open in the browser's viewer), previews as WebP, each cached for a year as immutable, as
@@ -18,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
 WORK = os.path.abspath(args[0]) if args else os.path.join(HERE, ".work")
-DRY, VERIFY = "--dry-run" in sys.argv, "--verify" in sys.argv
+DRY, VERIFY, PRUNE = "--dry-run" in sys.argv, "--verify" in sys.argv, "--prune" in sys.argv
 TYPES = {".pdf": "application/pdf", ".webp": "image/webp"}
 SINGLE_PART = 8 * 1024 * 1024  # boto3's multipart threshold
 
@@ -74,6 +78,15 @@ def main():
                 if done % 100 == 0:
                     print(f"  {done}/{len(jobs)}", file=sys.stderr)
         print(f"uploaded {done}", file=sys.stderr)
+
+    stale = sorted(k for k in remote if k not in local)
+    if stale:
+        print(f"{len(stale)} under booklets/ on R2 that the build no longer writes, e.g. {stale[0]}"
+              + ("" if PRUNE else " (--prune deletes them)"), file=sys.stderr)
+    if stale and PRUNE and not DRY:
+        for i in range(0, len(stale), 1000):
+            s3.delete_objects(Bucket=bucket, Delete={"Objects": [{"Key": k} for k in stale[i:i + 1000]], "Quiet": True})
+        print(f"deleted {len(stale)}", file=sys.stderr)
 
     if VERIFY:
         bad = []
