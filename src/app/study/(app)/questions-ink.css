@@ -21,7 +21,10 @@
 .pa .qs-fly-clear:disabled { opacity: .35; cursor: default; }
 .pa .qs-fly-clear svg { width: 18px; height: 18px; }
 @media (max-width: 640px) {
-  .pa .qs-pen { left: 12px; transform: none; max-width: calc(100vw - 96px); }
+  /* The tray takes the whole width, with the record player above it while it is there: its seven buttons do not fit beside the player. They give up width only where 44 px cannot fit (a 320 px phone). */
+  .pa .qs-pen { left: 12px; transform: none; max-width: calc(100vw - 24px); }
+  .pa .qs-pen > .qs-pb { flex: 0 1 44px; min-width: 36px; }
+  .pa:has(.qs-pen:not(.is-away)) .rp { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
   .pa .qs-pen.is-away { transform: translateY(14px); }
   .pa .qs-pen-fly { left: 0; transform: none; }
 }
