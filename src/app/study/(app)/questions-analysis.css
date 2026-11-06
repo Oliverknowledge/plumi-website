@@ -16,6 +16,8 @@
   .pa .qf-head:has(.qf-abtn) .qf-fbtn { padding: 0 9px; }
   .pa .qf-head:has(.qf-abtn) .qf-nres, .pa .qf-head:has(.qf-abtn) .qf-here { max-width: 72px; white-space: normal; overflow: visible; text-overflow: clip; }
   .pa .qf-head:has(.qf-abtn) .qf-nres b { display: block; }
+  /* The strip is as tall for one label as for another: "Q5(b)" is one line, "Q5(a)(ii)" two, and the label is where the reading line is, which depends on how tall the strip is (a strip that changed height with the label rocked the page by 17px when the reading line sat on the edge of two questions). Two lines are always kept for it. */
+  .pa .qf-head:has(.qf-abtn) .qf-prog { height: 34px; overflow: hidden; }
 }
 @media (max-width: 379px) {
   .pa .qf-head:has(.qf-abtn) { grid-template-columns: auto auto minmax(0, 1fr); }

@@ -324,7 +324,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
     <div ref={box} className="qf-list" role="list" aria-label={label} data-testid="feed-list" data-from={from} data-to={to} data-total={n} onPointerDownCapture={report} onClickCapture={report}>
       <div aria-hidden="true" className="qf-spacer" style={{ height: offs[from] ?? 0 }} />
       {shown.map((it, k) => (
-        <div key={it.id} ref={observe} role="listitem" tabIndex={-1} className="qf-item" aria-posinset={from + k + 1} aria-setsize={n} data-k={it.id} data-i={from + k} data-odd={(from + k) % 2}>
+        <div key={it.id} ref={observe} role="listitem" tabIndex={-1} className="qf-item" aria-posinset={from + k + 1} aria-setsize={n} data-k={it.id} data-i={from + k} data-last={from + k === n - 1 ? 1 : undefined}>
           {render(it, from + k)}
         </div>
       ))}
