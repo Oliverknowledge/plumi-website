@@ -25,6 +25,7 @@
     "dark:test": "tsx --test src/lib/darkQuestions.test.ts",
     "prepdf:test": "npm run -s bank:registry",
     "pdf:test": "tsx --test src/lib/questionSetPdf.test.ts",
+    "markpacks:test": "tsx --test scripts/question-bank/markpacks/*.test.ts",
     "dark:score": "tsx scripts/dark-questions/score.ts",
     "social:vectors": "tsx scripts/social-vectors.ts",
     "social:check-sql": "tsx scripts/social-check-sql.ts",
