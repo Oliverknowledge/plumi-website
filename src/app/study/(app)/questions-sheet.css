@@ -1,5 +1,5 @@
 /* Questions: the practice sheet's own accessibility and data-state pieces (skip links, the progress list, a picture that did not
-   load, "Read as text", the Page dialog, the finish question). Imported by Sheet.tsx; questions.css has the rest of the sheet.
+   load, the Page dialog, the finish question). Imported by Sheet.tsx; questions.css has the rest of the sheet.
    Every rule is under .pa .qs-... with one class more than the matching rule in questions.css where the two meet, so order does not matter. */
 
 /* ── skip links: out of sight until focused ──────────────────────────── */
@@ -63,27 +63,6 @@
 .pa dialog.qs-zoomd .qs-zoomd-body { background: #fff; }
 @media (max-width: 640px) { .pa .qs-cropbox .qs-zoom { left: 0; top: auto; bottom: 0; } .pa dialog.qs-zoomd { width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; padding: 54px 0 0; } }
 
-/* ── "Read as text" ──────────────────────────────────────────────────── */
-.pa .qs-astext { margin: 0 0 4px; }
-.pa .qs-part > .qs-astext { margin: 0; }
-.pa .qs-part > .qs-astext > summary { align-items: center; }
-.pa .qs-part > .qs-astext > summary { position: absolute; z-index: 3; top: 2px; right: calc(-1 * (clamp(14px, 4.4vw, 46px) / 2 + 22px)); display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; font-size: 0; list-style: none; text-decoration: none; }
-.pa .qs-part > .qs-astext > summary::-webkit-details-marker { display: none; }
-.pa .qs-part > .qs-astext > summary::before { content: "Aa"; display: grid; place-items: center; width: 30px; height: 30px; border: 1.5px solid rgba(91, 71, 65, .28); border-radius: 50%; background: rgba(255, 255, 255, .88); box-shadow: 0 1px 2px rgba(91, 71, 65, .14); font: 800 12px var(--f-body); color: var(--soft); transition: background .15s, color .15s, border-color .15s; }
-.pa .qs-part > .qs-astext > summary:hover::before, .pa .qs-part > .qs-astext[open] > summary::before { background: #fff; color: var(--ink); border-color: var(--ink); }
-.pa .qs-part > .qs-astext > summary:focus-visible { outline-offset: -4px; border-radius: 50%; }
-.pa .qs-part > .qs-astext > .qs-astext-body { margin-top: 4px; padding: 10px 14px; border-radius: 10px; background: rgba(255, 255, 255, .6); }
-@media (max-width: 640px) {
-  /* a phone has no margin to hang the icon in, and the picture is small: "Read as text" is a quiet line under it */
-  .pa .qs-part > .qs-astext > summary { position: static; display: inline-flex; width: auto; justify-content: flex-start; gap: 8px; padding: 0 2px; font-size: 12.5px; font-weight: 800; color: var(--soft); }
-  .pa .qs-part > .qs-astext > summary::before { width: 26px; height: 26px; }
-}
-.pa .qs-astext summary { display: inline-flex; align-items: center; min-height: 32px; padding: 0 2px; font: 800 12.5px var(--f-body); color: var(--soft); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-@media (pointer: coarse) { .pa .qs-astext summary { min-height: 44px; } }
-.pa .qs-astext-body { padding: 6px 2px 10px; display: grid; gap: 6px; }
-.pa .qs-astext-body p { margin: 0; font: 600 15px/1.6 var(--f-body); color: var(--ink); }
-.pa .qs-astext-body p.qs-scheme-note { font-size: 13px; }
-
 /* ── marking: a number in each circle ────────────────────────────────── */
 .pa .qs-tick .qs-num { font: 700 28px/1 var(--f-hand); color: var(--soft); }
 .pa .qs-sum-line { margin: 0; font: 800 14px var(--f-body); color: var(--soft); }
@@ -131,7 +110,7 @@
 
 /* ── forced colours: the progress capsules keep their meaning without the fills ── */
 @media (forced-colors: active) {
-  .pa .qs-set, .pa .qs-sw-paper, .pa .qs-mode, .pa .qs-cropbox .qs-zoom::before, .pa .qs-part > .qs-astext > summary::before, .pa .qs-confirm-chip { border: 2px solid CanvasText; }
+  .pa .qs-set, .pa .qs-sw-paper, .pa .qs-mode, .pa .qs-cropbox .qs-zoom::before, .pa .qs-confirm-chip { border: 2px solid CanvasText; }
   .pa .qs-set::before, .pa .qs-set::after, .pa .qs-confirm::before { display: none; }
   .pa .qs-swatch.on .qs-sw-paper { outline: 3px solid Highlight; }
   .pa .qs-mode button[aria-pressed="true"] { outline: 3px solid Highlight; outline-offset: -3px; }

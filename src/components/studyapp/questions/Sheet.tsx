@@ -30,7 +30,6 @@ import { useSubjectMeta } from "./bankData";
 import { OtherCopy } from "./OtherCopy";
 import { PagePopover } from "./PagePopover";
 import { PenTray } from "./PenTray";
-import { ReadAsText } from "./ReadAsText";
 import { SetsSheet } from "./SetsSheet";
 import { Summary } from "./Summary";
 import "../../../app/study/(app)/questions-sheet.css";
@@ -372,9 +371,7 @@ const PartBlock = memo(function PartBlock({ set, files, part, block, answer, fee
           {part.or && block.parts.some((o) => !o.or) && <p className="qs-or">OR</p>}
           <SharedFigureChip fig={rl.fig} partId={part.id} cv={set.cv} ruler={rl.onFigure} />
           {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
-          <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom ruler={rl.onOwn ? part.id : undefined}>
-            <ReadAsText set={set} part={part} />
-          </AnnotCrop>
+          <AnnotCrop setId={set.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", set.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" zoom ruler={rl.onOwn ? part.id : undefined} />
           {files && <PartFiles files={specialsFor(files, part).filter((f) => f.kind !== "tr")} />}
           {part.au && <ListenPlayer part={part} transcript={files ? transcriptOf(files.trs, part.p, part.s) : null} checked />}
           <div className="qs-answer" onPointerDownCapture={feedCopy ? (e) => { if (marksOnCopy(e, fingerDraws(prefs.fingerScrolls, coarse))) void qa.continueHere(feedId(set.subject), set.id, part.id, feed!); } : undefined}

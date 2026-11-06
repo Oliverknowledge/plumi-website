@@ -15,7 +15,6 @@ import { ListenPlayer } from "./ListenPlayer";
 import { PartFiles } from "./PartFiles";
 import { specialsFor } from "@/lib/studyapp/questions/specials";
 import { OtherCopy } from "./OtherCopy";
-import { ReadAsText } from "./ReadAsText";
 import { AnnotCrop } from "./AnnotCrop";
 import { SharedFigureChip } from "./SharedFigure";
 import { RulerChip, usePartRuler } from "./RulerChip";
@@ -165,9 +164,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
         <SharedFigureChip fig={rl.fig} partId={part.id} cv={view.cv} ruler={rl.onFigure} pinned={split} covered={soFar} />
         {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
         <div className="qf-pic">
-          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom ruler={rl.onOwn ? part.id : undefined}>
-            <ReadAsText set={view} part={part} />
-          </AnnotCrop>
+          <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom ruler={rl.onOwn ? part.id : undefined} />
         </div>
         <PartFiles files={files} />
         {part.au && <ListenPlayer part={part} transcript={lookup.trs[`${part.p}-${part.s}`] ?? null} checked={!!answer?.chk || answer?.got !== undefined} onWhole={() => onWhole(part)} />}
