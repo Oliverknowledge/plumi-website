@@ -1,0 +1,2075 @@
+{
+ "tags": {
+  "chem1-jan09-1-a": [
+   "3.1.1"
+  ],
+  "chem1-jan09-1-b": [
+   "3.1.1"
+  ],
+  "chem1-jan09-1-c-i": [
+   "3.1.1"
+  ],
+  "chem1-jan09-1-c-ii": [
+   "3.1.1"
+  ],
+  "chem1-jan09-1-e": [
+   "3.1.1"
+  ],
+  "chem1-jan09-1-f": [
+   "3.1.1"
+  ],
+  "chem1-jan09-2-a": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-b": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-c": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-d": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-e": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-f": [
+   "3.1.3"
+  ],
+  "chem1-jan09-2-g": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-a-i": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-a-ii": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-b-i": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-b-ii": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-b-iii": [
+   "3.1.2"
+  ],
+  "chem1-jan09-3-b-iv": [
+   "3.1.2"
+  ],
+  "chem1-jan09-4-a-i": [
+   "3.1.1"
+  ],
+  "chem1-jan09-4-a-ii": [
+   "3.1.1",
+   "3.2.1"
+  ],
+  "chem1-jan09-4-a-iii": [
+   "3.1.1",
+   "3.2.1"
+  ],
+  "chem1-jan09-4-b": [
+   "3.2.1"
+  ],
+  "chem1-jan09-5-a-i": [
+   "3.1.2"
+  ],
+  "chem1-jan09-5-a-ii": [
+   "3.1.2"
+  ],
+  "chem1-jan09-5-a-iii": [
+   "3.1.2"
+  ],
+  "chem1-jan09-5-b": [
+   "3.1.2"
+  ],
+  "chem1-jan09-6-a": [
+   "3.3.1",
+   "3.3.2"
+  ],
+  "chem1-jan09-6-b": [
+   "3.3.2"
+  ],
+  "chem1-jan09-6-c": [
+   "3.3.2"
+  ],
+  "chem1-jan09-6-d": [
+   "3.3.2"
+  ],
+  "chem1-jan09-6-e": [
+   "3.3.2"
+  ],
+  "chem1-jan09-6-f": [
+   "3.3.1"
+  ],
+  "chem1-jun09-1-a": [
+   "3.1.1"
+  ],
+  "chem1-jun09-1-b-i": [
+   "3.1.1"
+  ],
+  "chem1-jun09-1-b-ii": [
+   "3.1.1"
+  ],
+  "chem1-jun09-1-b-iii": [
+   "3.1.1"
+  ],
+  "chem1-jun09-1-c": [
+   "3.2.1"
+  ],
+  "chem1-jun09-1-d": [
+   "3.1.3",
+   "3.2.1"
+  ],
+  "chem1-jun09-1-e": [
+   "3.1.3"
+  ],
+  "chem1-jun09-1-f": [
+   "3.1.1"
+  ],
+  "chem1-jun09-2-a-i": [
+   "3.1.2"
+  ],
+  "chem1-jun09-2-a-ii": [
+   "3.1.2"
+  ],
+  "chem1-jun09-2-a-iii": [
+   "3.1.2"
+  ],
+  "chem1-jun09-2-a-iv": [
+   "3.1.2"
+  ],
+  "chem1-jun09-2-b": [
+   "3.1.2"
+  ],
+  "chem1-jun09-2-c": [
+   "3.1.2"
+  ],
+  "chem1-jun09-3-a-i": [
+   "3.1.3"
+  ],
+  "chem1-jun09-3-a-ii": [
+   "3.1.3"
+  ],
+  "chem1-jun09-3-b": [
+   "3.1.3"
+  ],
+  "chem1-jun09-3-c-i": [
+   "3.3.5"
+  ],
+  "chem1-jun09-3-c-ii": [
+   "3.3.5"
+  ],
+  "chem1-jun09-3-c-iii": [
+   "3.3.5"
+  ],
+  "chem1-jun09-3-d-i": [
+   "3.2.2",
+   "3.3.2"
+  ],
+  "chem1-jun09-3-d-ii": [
+   "3.3.2"
+  ],
+  "chem1-jun09-4-a": [
+   "3.3.1"
+  ],
+  "chem1-jun09-4-b-i": [
+   "3.3.1"
+  ],
+  "chem1-jun09-4-b-ii": [
+   "3.3.1"
+  ],
+  "chem1-jun09-4-c": [
+   "3.1.2"
+  ],
+  "chem1-jun09-4-d-i": [
+   "3.1.3"
+  ],
+  "chem1-jun09-4-d-ii": [
+   "3.3.2"
+  ],
+  "chem1-jun09-5-a-i": [
+   "3.1.1"
+  ],
+  "chem1-jun09-5-a-ii": [
+   "3.1.1"
+  ],
+  "chem1-jun09-5-c": [
+   "3.1.3"
+  ],
+  "chem1-jun09-5-d": [
+   "3.1.3"
+  ],
+  "chem2-jun09-1-a": [
+   "3.1.5"
+  ],
+  "chem2-jun09-1-b": [
+   "3.1.5"
+  ],
+  "chem2-jun09-1-c": [
+   "3.1.5"
+  ],
+  "chem2-jun09-1-d-i": [
+   "3.1.5"
+  ],
+  "chem2-jun09-1-d-ii": [
+   "3.1.5"
+  ],
+  "chem2-jun09-2-a-i": [
+   "3.1.4"
+  ],
+  "chem2-jun09-2-a-ii": [
+   "3.1.4"
+  ],
+  "chem2-jun09-2-a-iii": [
+   "3.1.4"
+  ],
+  "chem2-jun09-2-b-ii": [
+   "3.1.5"
+  ],
+  "chem2-jun09-2-c-i": [
+   "3.2.2"
+  ],
+  "chem2-jun09-2-c-ii": [
+   "3.2.2"
+  ],
+  "chem2-jun09-2-c-iii": [
+   "3.2.2"
+  ],
+  "chem2-jun09-3-a-i": [
+   "3.1.4"
+  ],
+  "chem2-jun09-3-a-ii": [
+   "3.1.4"
+  ],
+  "chem2-jun09-3-a-iii": [
+   "3.1.4"
+  ],
+  "chem2-jun09-3-a-iv": [
+   "3.1.4"
+  ],
+  "chem2-jun09-3-b": [
+   "3.1.3",
+   "3.1.4"
+  ],
+  "chem2-jun09-4-a": [
+   "3.1.6"
+  ],
+  "chem2-jun09-4-b": [
+   "3.1.6"
+  ],
+  "chem2-jun09-4-c-i": [
+   "3.1.5"
+  ],
+  "chem2-jun09-4-c-ii": [
+   "3.1.6"
+  ],
+  "chem2-jun09-4-d-i": [
+   "3.3.5"
+  ],
+  "chem2-jun09-4-d-ii": [
+   "3.1.2"
+  ],
+  "chem2-jun09-5-a-i": [
+   "3.3.2"
+  ],
+  "chem2-jun09-5-b-i": [
+   "3.2.2"
+  ],
+  "chem2-jun09-5-b-ii": [
+   "3.2.2"
+  ],
+  "chem2-jun09-5-b-iii": [
+   "3.2.2"
+  ],
+  "chem2-jun09-6-a": [
+   "3.2.3"
+  ],
+  "chem2-jun09-6-b": [
+   "3.2.3"
+  ],
+  "chem2-jun09-6-c": [
+   "3.2.3"
+  ],
+  "chem2-jun09-7-a": [
+   "3.3.4"
+  ],
+  "chem2-jun09-7-b": [
+   "3.3.4"
+  ],
+  "chem2-jun09-7-c-i": [
+   "3.3.4"
+  ],
+  "chem2-jun09-7-c-ii": [
+   "3.3.4"
+  ],
+  "chem2-jun09-8-a": [
+   "3.3.3"
+  ],
+  "chem2-jun09-8-b": [
+   "3.3.3"
+  ],
+  "chem2-jun09-8-c": [
+   "3.3.3"
+  ],
+  "chem2-jun09-8-d": [
+   "3.3.3"
+  ],
+  "chem2-jun09-9-a": [
+   "3.3.5"
+  ],
+  "chem2-jun09-9-b": [
+   "3.3.6"
+  ],
+  "chem2-jun09-9-c": [
+   "3.3.5"
+  ],
+  "chem2-jun09-10-a": [
+   "3.1.7"
+  ],
+  "chem2-jun09-10-b": [
+   "3.2.3",
+   "3.1.2"
+  ],
+  "chem2-jun09-10-c": [
+   "3.2.3"
+  ],
+  "chem2-jun09-11-a": [
+   "3.3.2"
+  ],
+  "chem2-jun09-11-b": [
+   "3.3.3"
+  ],
+  "chem2-jun09-11-c": [
+   "3.3.3"
+  ],
+  "chm1-jan08-1-a": [
+   "3.1.1"
+  ],
+  "chm1-jan08-2-a": [
+   "3.1.2"
+  ],
+  "chm1-jan08-2-b": [
+   "3.1.2"
+  ],
+  "chm1-jan08-2-c": [
+   "3.1.2"
+  ],
+  "chm1-jan08-3-a": [
+   "3.1.1"
+  ],
+  "chm1-jan08-3-b": [
+   "3.1.3"
+  ],
+  "chm1-jan08-3-c": [
+   "3.1.3"
+  ],
+  "chm1-jan08-3-d": [
+   "3.1.3"
+  ],
+  "chm1-jan08-3-e": [
+   "3.1.8"
+  ],
+  "chm1-jan08-4-a": [
+   "3.2.2"
+  ],
+  "chm1-jan08-4-b": [
+   "3.2.2"
+  ],
+  "chm1-jan08-5-a": [
+   "3.1.3"
+  ],
+  "chm1-jan08-5-b": [
+   "3.1.3"
+  ],
+  "chm1-jan08-6-a": [
+   "3.2.1"
+  ],
+  "chm1-jan08-6-b": [
+   "3.2.1"
+  ],
+  "chm1-jan09-1-a": [
+   "3.1.1"
+  ],
+  "chm1-jan09-1-d": [
+   "3.1.1"
+  ],
+  "chm1-jan09-1-e": [
+   "3.1.1"
+  ],
+  "chm1-jan09-2-a": [
+   "3.3.2"
+  ],
+  "chm1-jan09-2-b": [
+   "3.1.2"
+  ],
+  "chm1-jan09-2-c": [
+   "3.1.2"
+  ],
+  "chm1-jan09-2-d": [
+   "3.1.3"
+  ],
+  "chm1-jan09-2-e-i": [
+   "3.1.2"
+  ],
+  "chm1-jan09-2-e-ii": [
+   "3.1.2"
+  ],
+  "chm1-jan09-2-f": [
+   "3.1.2"
+  ],
+  "chm1-jan09-3-a-i": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-a-ii": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-b": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-c-i": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-c-ii": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-c-iii": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-c-iv": [
+   "3.1.3"
+  ],
+  "chm1-jan09-3-d": [
+   "3.1.3"
+  ],
+  "chm1-jan09-4-a": [
+   "3.1.3"
+  ],
+  "chm1-jan09-4-b": [
+   "3.1.3"
+  ],
+  "chm1-jan09-4-c": [
+   "3.1.3"
+  ],
+  "chm1-jan09-4-d": [
+   "3.1.3"
+  ],
+  "chm1-jan09-5-a-i": [
+   "3.1.3"
+  ],
+  "chm1-jan09-5-a-ii": [
+   "3.2.3"
+  ],
+  "chm1-jan09-5-b": [
+   "3.2.1"
+  ],
+  "chm1-jan09-5-c": [
+   "3.2.2"
+  ],
+  "chm1-jun08-1-a": [
+   "3.1.1"
+  ],
+  "chm1-jun08-1-b": [
+   "3.1.1"
+  ],
+  "chm1-jun08-1-c": [
+   "3.1.7"
+  ],
+  "chm1-jun08-1-d": [
+   "3.1.1"
+  ],
+  "chm1-jun08-2-a": [
+   "3.1.2"
+  ],
+  "chm1-jun08-2-b": [
+   "3.1.2"
+  ],
+  "chm1-jun08-2-c": [
+   "3.1.2"
+  ],
+  "chm1-jun08-3-a": [
+   "3.1.1"
+  ],
+  "chm1-jun08-3-b": [
+   "3.1.1"
+  ],
+  "chm1-jun08-3-c": [
+   "3.1.1"
+  ],
+  "chm1-jun08-3-d": [
+   "3.1.3"
+  ],
+  "chm1-jun08-3-e": [
+   "3.1.3"
+  ],
+  "chm1-jun08-4-a": [
+   "3.2.1"
+  ],
+  "chm1-jun08-4-b": [
+   "3.1.1",
+   "3.2.1"
+  ],
+  "chm1-jun08-4-c": [
+   "3.2.2"
+  ],
+  "chm1-jun08-5": [
+   "3.1.3"
+  ],
+  "chm1-jun08-6": [
+   "3.1.3"
+  ],
+  "chm2-jan08-1-a": [
+   "3.2.3"
+  ],
+  "chm2-jan08-1-b": [
+   "3.2.3"
+  ],
+  "chm2-jan08-1-c": [
+   "3.2.3"
+  ],
+  "chm2-jan08-2-a": [
+   "3.1.6"
+  ],
+  "chm2-jan08-2-b": [
+   "3.1.6"
+  ],
+  "chm2-jan08-2-c": [
+   "3.1.6"
+  ],
+  "chm2-jan08-2-d": [
+   "3.1.6"
+  ],
+  "chm2-jan08-3-a": [
+   "3.1.4"
+  ],
+  "chm2-jan08-3-b": [
+   "3.3.5"
+  ],
+  "chm2-jan08-3-c": [
+   "3.1.4"
+  ],
+  "chm2-jan08-3-d": [
+   "3.1.4"
+  ],
+  "chm2-jan08-3-e": [
+   "3.1.4"
+  ],
+  "chm2-jan08-3-f": [
+   "3.1.4"
+  ],
+  "chm2-jan08-4-a": [
+   "3.1.5"
+  ],
+  "chm2-jan08-4-b": [
+   "3.1.5"
+  ],
+  "chm2-jan08-4-c": [
+   "3.1.5"
+  ],
+  "chm2-jan08-5-a": [
+   "3.1.7"
+  ],
+  "chm2-jan08-5-b": [
+   "3.1.7"
+  ],
+  "chm2-jan08-6-b": [
+   "3.2.2"
+  ],
+  "chm2-jun08-1-b": [
+   "3.2.2"
+  ],
+  "chm2-jun08-2-a": [
+   "3.1.4"
+  ],
+  "chm2-jun08-2-b": [
+   "3.1.4"
+  ],
+  "chm2-jun08-2-c": [
+   "3.1.4"
+  ],
+  "chm2-jun08-2-d": [
+   "3.1.4"
+  ],
+  "chm2-jun08-3-a": [
+   "3.1.7"
+  ],
+  "chm2-jun08-3-b-i": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-b-ii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-b-iii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-b-iv": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-c-i": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-c-ii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-c-iii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-d": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-e-i": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-e-ii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-3-e-iii": [
+   "3.2.3"
+  ],
+  "chm2-jun08-4-a": [
+   "3.1.6"
+  ],
+  "chm2-jun08-4-b-i": [
+   "3.1.6"
+  ],
+  "chm2-jun08-4-b-ii": [
+   "3.1.6"
+  ],
+  "chm2-jun08-4-c": [
+   "3.1.6"
+  ],
+  "chm2-jun08-4-d": [
+   "3.1.6"
+  ],
+  "chm2-jun08-5-a": [
+   "3.1.5"
+  ],
+  "chm2-jun08-5-b": [
+   "3.1.5"
+  ],
+  "chm2-jun08-5-c": [
+   "3.1.5"
+  ],
+  "chm2-jun08-5-d": [
+   "3.1.5"
+  ],
+  "chm3w-jan08-1-a-i": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-a-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-b": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-c-i": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-c-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-c-iii": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-1-d-i": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-1-d-ii": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-2-a-i": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-2-a-ii": [
+   "3.3.1"
+  ],
+  "chm3w-jan08-2-b": [
+   "3.3.1"
+  ],
+  "chm3w-jan08-2-c": [
+   "3.3.1"
+  ],
+  "chm3w-jan08-2-d-i": [
+   "3.1.2"
+  ],
+  "chm3w-jan08-2-d-ii": [
+   "3.1.2"
+  ],
+  "chm3w-jan08-2-e-i": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-2-e-ii": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-2-e-iii": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-3-a-i": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-3-a-ii": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-3-b-i": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-3-b-ii": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-3-c": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-3-d": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-4-a": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-4-c": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-4-d": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-4-e": [
+   "3.3.5"
+  ],
+  "chm3w-jan08-5-a": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-5-b-i": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-5-b-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jan08-5-c": [
+   "3.3.3",
+   "3.3.11"
+  ],
+  "chm3w-jan08-6-a": [
+   "3.3.1"
+  ],
+  "chm3w-jan08-6-b": [
+   "3.3.3"
+  ],
+  "chm3w-jan08-6-c": [
+   "3.3.4"
+  ],
+  "chm3w-jan08-6-d": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-1-a-i": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-a-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-a-iii": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-b-i": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-b-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-c": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-1-d": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-2-a": [
+   "3.3.1"
+  ],
+  "chm3w-jun08-2-b": [
+   "3.3.1"
+  ],
+  "chm3w-jun08-2-c": [
+   "3.3.1"
+  ],
+  "chm3w-jun08-2-d": [
+   "3.3.1"
+  ],
+  "chm3w-jun08-2-e-i": [
+   "3.3.5"
+  ],
+  "chm3w-jun08-2-e-ii": [
+   "3.3.8"
+  ],
+  "chm3w-jun08-2-e-iii": [
+   "3.3.8"
+  ],
+  "chm3w-jun08-2-f-i": [
+   "3.3.4"
+  ],
+  "chm3w-jun08-2-f-ii": [
+   "3.3.5"
+  ],
+  "chm3w-jun08-2-f-iii": [
+   "3.3.4"
+  ],
+  "chm3w-jun08-3-a-i": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-3-a-ii": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-3-b-i": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-3-b-ii": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-3-b-iii": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-4-a-i": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-4-a-ii": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-4-b": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-4-c-i": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-4-c-ii": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-5-a": [
+   "3.3.1"
+  ],
+  "chm3w-jun08-5-b": [
+   "3.3.3"
+  ],
+  "chm3w-jun08-5-c-i": [
+   "3.3.4"
+  ],
+  "chm3w-jun08-5-c-ii": [
+   "3.3.4"
+  ],
+  "chm3w-jun08-5-d": [
+   "3.3.4"
+  ],
+  "chm3w-jun08-6-a": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-6-b": [
+   "3.3.2"
+  ],
+  "chm3w-jun08-6-c": [
+   "3.3.5"
+  ],
+  "chm3w-jun08-6-d": [
+   "3.3.5"
+  ],
+  "chm4-jan08-1-a": [
+   "3.1.12"
+  ],
+  "chm4-jan08-1-b": [
+   "3.1.12"
+  ],
+  "chm4-jan08-2-a": [
+   "3.1.12"
+  ],
+  "chm4-jan08-2-b": [
+   "3.1.12"
+  ],
+  "chm4-jan08-3-a": [
+   "3.1.6"
+  ],
+  "chm4-jan08-3-b": [
+   "3.1.6"
+  ],
+  "chm4-jan08-3-c": [
+   "3.1.6"
+  ],
+  "chm4-jan08-3-d": [
+   "3.1.6"
+  ],
+  "chm4-jan08-3-e": [
+   "3.1.10"
+  ],
+  "chm4-jan08-3-f": [
+   "3.1.10"
+  ],
+  "chm4-jan08-3-g": [
+   "3.1.6"
+  ],
+  "chm4-jan08-4-a": [
+   "3.3.15"
+  ],
+  "chm4-jan08-4-b": [
+   "3.3.15"
+  ],
+  "chm4-jan08-5-a": [
+   "3.3.13",
+   "3.3.12"
+  ],
+  "chm4-jan08-5-b": [
+   "3.3.12"
+  ],
+  "chm4-jan08-5-c": [
+   "3.3.12"
+  ],
+  "chm4-jan08-5-d": [
+   "3.1.3"
+  ],
+  "chm4-jan08-6-a": [
+   "3.1.9"
+  ],
+  "chm4-jan08-6-b": [
+   "3.1.9"
+  ],
+  "chm4-jan08-7-b": [
+   "3.3.11"
+  ],
+  "chm4-jan08-8-a": [
+   "3.3.9"
+  ],
+  "chm4-jan08-8-b": [
+   "3.3.6"
+  ],
+  "chm4-jan08-8-c": [
+   "3.3.6"
+  ],
+  "chm4-jan08-8-d": [
+   "3.3.6"
+  ],
+  "chm4-jun08-1-a": [
+   "3.1.12"
+  ],
+  "chm4-jun08-1-b": [
+   "3.1.12"
+  ],
+  "chm4-jun08-1-c": [
+   "3.1.12"
+  ],
+  "chm4-jun08-1-d": [
+   "3.1.12"
+  ],
+  "chm4-jun08-2-a": [
+   "3.1.9"
+  ],
+  "chm4-jun08-2-b": [
+   "3.1.9"
+  ],
+  "chm4-jun08-3-a": [
+   "3.1.10"
+  ],
+  "chm4-jun08-3-b": [
+   "3.1.10"
+  ],
+  "chm4-jun08-3-c": [
+   "3.1.10"
+  ],
+  "chm4-jun08-4-a": [
+   "3.3.12"
+  ],
+  "chm4-jun08-4-b": [
+   "3.3.12"
+  ],
+  "chm4-jun08-4-c": [
+   "3.3.13"
+  ],
+  "chm4-jun08-5-a": [
+   "3.3.4"
+  ],
+  "chm4-jun08-5-b": [
+   "3.3.11"
+  ],
+  "chm4-jun08-5-c": [
+   "3.3.11",
+   "3.1.2"
+  ],
+  "chm4-jun08-5-d": [
+   "3.3.15"
+  ],
+  "chm4-jun08-5-e": [
+   "3.3.15",
+   "3.3.11"
+  ],
+  "chm4-jun08-6-a": [
+   "3.3.9"
+  ],
+  "chm4-jun08-6-b": [
+   "3.3.10"
+  ],
+  "chm4-jun08-7-a": [
+   "3.3.6",
+   "3.3.8",
+   "3.3.9"
+  ],
+  "chm4-jun08-7-b": [
+   "3.3.6"
+  ],
+  "chm4-jun08-7-c": [
+   "3.3.15"
+  ],
+  "chm5-jun08-1-a": [
+   "3.1.12"
+  ],
+  "chm5-jun08-1-b": [
+   "3.1.3"
+  ],
+  "chm5-jun08-1-c": [
+   "3.3.3"
+  ],
+  "chm5-jun08-1-d": [
+   "3.1.12"
+  ],
+  "chm5-jun08-1-e": [
+   "3.2.5"
+  ],
+  "chm5-jun08-1-f": [
+   "3.3.9"
+  ],
+  "chm5-jun08-2-a": [
+   "3.1.8"
+  ],
+  "chm5-jun08-2-b": [
+   "3.1.8"
+  ],
+  "chm5-jun08-2-c": [
+   "3.1.8"
+  ],
+  "chm5-jun08-2-d": [
+   "3.1.8"
+  ],
+  "chm5-jun08-3-a": [
+   "3.1.8"
+  ],
+  "chm5-jun08-3-b": [
+   "3.1.8"
+  ],
+  "chm5-jun08-3-c": [
+   "3.1.8"
+  ],
+  "chm5-jun08-3-d": [
+   "3.1.8"
+  ],
+  "chm5-jun08-4-a": [
+   "3.1.11"
+  ],
+  "chm5-jun08-4-b": [
+   "3.1.11"
+  ],
+  "chm5-jun08-4-c": [
+   "3.2.3",
+   "3.1.7"
+  ],
+  "chm5-jun08-5-a": [
+   "3.1.9"
+  ],
+  "chm5-jun08-5-b": [
+   "3.1.9"
+  ],
+  "chm5-jun08-5-c": [
+   "3.1.9"
+  ],
+  "chm5-jun08-5-d": [
+   "3.2.5"
+  ],
+  "chm5-jun08-5-e": [
+   "3.2.5"
+  ],
+  "chm5-jun08-6-a": [
+   "3.2.6"
+  ],
+  "chm5-jun08-6-b": [
+   "3.1.7",
+   "3.1.2"
+  ],
+  "chm5-jun08-7-a": [
+   "3.1.3",
+   "3.2.5"
+  ],
+  "chm5-jun08-7-b": [
+   "3.2.5"
+  ],
+  "chm5-jun08-7-c": [
+   "3.3.8",
+   "3.3.7"
+  ],
+  "chm5-jun08-8-a": [
+   "3.1.8"
+  ],
+  "chm5-jun08-8-b": [
+   "3.1.8"
+  ],
+  "chm5-jun08-8-c": [
+   "3.1.8"
+  ],
+  "chm5-jun08-8-d": [
+   "3.1.12",
+   "3.2.6"
+  ],
+  "chm5-jun08-9-a": [
+   "3.1.4"
+  ],
+  "chm5-jun08-9-b": [
+   "3.1.6"
+  ],
+  "chm5-jun08-9-c": [
+   "3.3.15"
+  ],
+  "pa01-jan08-1-a": [
+   "3.2.1"
+  ],
+  "pa01-jan08-1-b-ii": [
+   "3.2.1"
+  ],
+  "pa01-jan08-2-a": [
+   "3.2.2"
+  ],
+  "pa01-jan08-2-b": [
+   "3.2.2"
+  ],
+  "pa01-jan08-2-c": [
+   "3.2.2"
+  ],
+  "pa01-jan08-3-a": [
+   "3.2.1"
+  ],
+  "pa01-jan08-3-b": [
+   "3.2.1"
+  ],
+  "pa01-jan08-3-c": [
+   "3.2.1"
+  ],
+  "pa01-jan08-3-d": [
+   "3.2.1"
+  ],
+  "pa01-jan08-4-a": [
+   "3.3.2"
+  ],
+  "pa01-jan08-4-b": [
+   "3.3.2"
+  ],
+  "pa01-jan08-4-c": [
+   "3.3.2"
+  ],
+  "pa01-jan08-5-a": [
+   "3.2.2"
+  ],
+  "pa01-jan08-5-b": [
+   "3.2.2"
+  ],
+  "pa01-jan08-5-c": [
+   "3.2.2"
+  ],
+  "pa01-jan09-1-a": [
+   "3.2.1"
+  ],
+  "pa01-jan09-1-b": [
+   "3.2.1"
+  ],
+  "pa01-jan09-1-c": [
+   "3.2.1"
+  ],
+  "pa01-jan09-1-d": [
+   "3.2.1"
+  ],
+  "pa01-jan09-2-a": [
+   "3.2.2"
+  ],
+  "pa01-jan09-2-b": [
+   "3.2.2"
+  ],
+  "pa01-jan09-3-a": [
+   "3.2.2"
+  ],
+  "pa01-jan09-3-b": [
+   "3.2.2"
+  ],
+  "pa01-jan09-4-a": [
+   "3.3.2"
+  ],
+  "pa01-jan09-4-b": [
+   "3.3.2"
+  ],
+  "pa01-jan09-5-a": [
+   "3.2.1"
+  ],
+  "pa01-jan09-5-b": [
+   "3.2.1"
+  ],
+  "pa01-jan09-6-a": [
+   "3.2.2"
+  ],
+  "pa01-jan09-6-b": [
+   "3.2.2"
+  ],
+  "pa02-jan08-1-a": [
+   "3.6.2"
+  ],
+  "pa02-jan08-1-b": [
+   "3.6.2"
+  ],
+  "pa02-jan08-1-c": [
+   "3.6.2"
+  ],
+  "pa02-jan08-1-d": [
+   "3.6.2"
+  ],
+  "pa02-jan08-2-a": [
+   "3.4.1"
+  ],
+  "pa02-jan08-2-b": [
+   "3.4.1"
+  ],
+  "pa02-jan08-3-a": [
+   "3.4.1"
+  ],
+  "pa02-jan08-3-b": [
+   "3.4.1"
+  ],
+  "pa02-jan08-3-c": [
+   "3.4.1"
+  ],
+  "pa02-jan08-4-a": [
+   "3.4.1"
+  ],
+  "pa02-jan08-4-b": [
+   "3.4.1"
+  ],
+  "pa02-jan08-5-a": [
+   "3.4.1"
+  ],
+  "pa02-jan08-5-b": [
+   "3.4.1"
+  ],
+  "pa02-jan08-5-c": [
+   "3.4.1"
+  ],
+  "pa02-jan08-6-a": [
+   "3.4.1"
+  ],
+  "pa02-jan08-6-b": [
+   "3.6.2"
+  ],
+  "pa02-jan09-1-a": [
+   "3.4.1"
+  ],
+  "pa02-jan09-1-b": [
+   "3.4.1"
+  ],
+  "pa02-jan09-1-c": [
+   "3.4.1"
+  ],
+  "pa02-jan09-1-d": [
+   "3.4.1"
+  ],
+  "pa02-jan09-1-e": [
+   "3.4.1"
+  ],
+  "pa02-jan09-2-a": [
+   "3.4.1"
+  ],
+  "pa02-jan09-2-b": [
+   "3.4.1"
+  ],
+  "pa02-jan09-3-a": [
+   "3.6.2"
+  ],
+  "pa02-jan09-3-b": [
+   "3.6.2"
+  ],
+  "pa02-jan09-4-a": [
+   "3.4.1"
+  ],
+  "pa02-jan09-4-b": [
+   "3.4.1"
+  ],
+  "pa02-jan09-5-a": [
+   "3.4.1"
+  ],
+  "pa02-jan09-5-b": [
+   "3.4.1"
+  ],
+  "pa02-jan09-6": [
+   "3.6.2"
+  ],
+  "pa02-jun08-1-a": [
+   "3.4.1"
+  ],
+  "pa02-jun08-1-b": [
+   "3.4.1"
+  ],
+  "pa02-jun08-1-c": [
+   "3.4.1"
+  ],
+  "pa02-jun08-2-a": [
+   "3.4.1"
+  ],
+  "pa02-jun08-2-b": [
+   "3.4.1"
+  ],
+  "pa02-jun08-2-c": [
+   "3.4.1"
+  ],
+  "pa02-jun08-3-a": [
+   "3.4.1"
+  ],
+  "pa02-jun08-3-b": [
+   "3.4.1"
+  ],
+  "pa02-jun08-4-a": [
+   "3.6.2"
+  ],
+  "pa02-jun08-4-b": [
+   "3.6.2"
+  ],
+  "pa02-jun08-5-a": [
+   "3.6.2"
+  ],
+  "pa02-jun08-5-b": [
+   "3.6.2"
+  ],
+  "pa02-jun08-6-a": [
+   "3.4.1"
+  ],
+  "pa02-jun08-6-b": [
+   "3.4.1"
+  ],
+  "pa02-jun08-6-c": [
+   "3.4.1"
+  ],
+  "pa02-jun08-6-d": [
+   "3.4.1"
+  ],
+  "pa04a-jan08-1": [
+   "3.6.1"
+  ],
+  "pa04a-jan08-2": [
+   "3.6.1"
+  ],
+  "pa04a-jan08-3": [
+   "3.6.1"
+  ],
+  "pa04a-jan08-4": [
+   "3.3.1"
+  ],
+  "pa04a-jan08-5": [
+   "3.3.2"
+  ],
+  "pa04a-jan08-6": [
+   "3.3.2"
+  ],
+  "pa04a-jan08-7": [
+   "3.3.2"
+  ],
+  "pa04a-jan08-8": [
+   "3.7.4"
+  ],
+  "pa04a-jan08-9": [
+   "3.6.1"
+  ],
+  "pa04a-jan08-10": [
+   "3.7.2"
+  ],
+  "pa04a-jan08-11": [
+   "3.7.2"
+  ],
+  "pa04a-jan08-12": [
+   "3.7.3"
+  ],
+  "pa04a-jan08-13": [
+   "3.7.1"
+  ],
+  "pa04a-jan08-14": [
+   "3.7.5"
+  ],
+  "pa04a-jan08-15": [
+   "3.8.1"
+  ],
+  "pa04a-jun08-1": [
+   "3.6.1"
+  ],
+  "pa04a-jun08-2": [
+   "3.6.1"
+  ],
+  "pa04a-jun08-3": [
+   "3.3.1"
+  ],
+  "pa04a-jun08-4": [
+   "3.3.1"
+  ],
+  "pa04a-jun08-5": [
+   "3.3.2"
+  ],
+  "pa04a-jun08-6": [
+   "3.7.4"
+  ],
+  "pa04a-jun08-7": [
+   "3.7.4"
+  ],
+  "pa04a-jun08-8": [
+   "3.6.1"
+  ],
+  "pa04a-jun08-9": [
+   "3.7.2"
+  ],
+  "pa04a-jun08-10": [
+   "3.7.3"
+  ],
+  "pa04a-jun08-11": [
+   "3.7.3"
+  ],
+  "pa04a-jun08-12": [
+   "3.7.5"
+  ],
+  "pa04a-jun08-13": [
+   "3.8.1"
+  ],
+  "pa04a-jun08-14": [
+   "3.8.1"
+  ],
+  "pa04a-jun08-15": [
+   "3.8.1"
+  ],
+  "pa04b-jun08-1-a": [
+   "3.6.1"
+  ],
+  "pa04b-jun08-1-b": [
+   "3.6.1"
+  ],
+  "pa04b-jun08-1-c": [
+   "3.6.1"
+  ],
+  "pa04b-jun08-1-d": [
+   "3.6.1"
+  ],
+  "pa04b-jun08-2-a": [
+   "3.3.2"
+  ],
+  "pa04b-jun08-2-b": [
+   "3.3.2"
+  ],
+  "pa04b-jun08-3-a": [
+   "3.7.2"
+  ],
+  "pa04b-jun08-3-b": [
+   "3.7.2"
+  ],
+  "pa04b-jun08-4-a": [
+   "3.7.5"
+  ],
+  "pa04b-jun08-4-b": [
+   "3.7.5"
+  ],
+  "pa04b-jun08-5-a": [
+   "3.8.1"
+  ],
+  "pa04b-jun08-5-b": [
+   "3.8.1"
+  ],
+  "pa04b-jan08-1-a": [
+   "3.3.1"
+  ],
+  "pa04b-jan08-1-b": [
+   "3.3.1"
+  ],
+  "pa04b-jan08-2-a": [
+   "3.7.4"
+  ],
+  "pa04b-jan08-2-b": [
+   "3.7.4"
+  ],
+  "pa04b-jan08-3-a": [
+   "3.7.3"
+  ],
+  "pa04b-jan08-3-b": [
+   "3.7.3"
+  ],
+  "pa04b-jan08-4-a": [
+   "3.8.1"
+  ],
+  "pa04b-jan08-4-b": [
+   "3.8.1"
+  ],
+  "pa04b-jan08-4-c": [
+   "3.8.1"
+  ],
+  "pa04b-jan08-5-a": [
+   "3.7.2"
+  ],
+  "pa04b-jan08-5-b": [
+   "3.7.2"
+  ],
+  "pa10-jun08-1-a": [
+   "3.4.1"
+  ],
+  "pa10-jun08-1-b": [
+   "3.7.5",
+   "3.4.1"
+  ],
+  "pa10-jun08-2-a": [
+   "3.7.4"
+  ],
+  "pa10-jun08-2-b": [
+   "3.7.4"
+  ],
+  "pa10-jun08-3-a": [
+   "3.3.1"
+  ],
+  "pa10-jun08-3-b": [
+   "3.3.1",
+   "3.4.2"
+  ],
+  "pa10-jun08-3-c": [
+   "3.4.2"
+  ],
+  "pa10-jun08-4-a": [
+   "3.7.2"
+  ],
+  "pa10-jun08-4-b": [
+   "3.7.2"
+  ],
+  "pa10-jun08-5-a": [
+   "3.6.2",
+   "3.2.2"
+  ],
+  "pa10-jun08-5-b": [
+   "3.3.2"
+  ],
+  "pa10-jun08-6-a": [
+   "3.6.1",
+   "3.1.2"
+  ],
+  "pa10-jun08-6-b": [
+   "3.6.1"
+  ],
+  "pa10-jun08-6-c": [
+   "3.6.1",
+   "3.1.2"
+  ],
+  "pa10-jun08-7-a": [
+   "3.2.1"
+  ],
+  "pa10-jun08-7-b": [
+   "3.2.1",
+   "3.8.1"
+  ],
+  "pa10-jun08-8-a": [
+   "3.2.2"
+  ],
+  "pa10-jun08-8-b": [
+   "3.8.1"
+  ],
+  "pha3w-jan08-1-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-1-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-2-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-2-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-3-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-3-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-4-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-4-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan08-5-a": [
+   "3.4.2"
+  ],
+  "pha3w-jan08-5-b": [
+   "3.4.2"
+  ],
+  "pha3w-jan08-5-c": [
+   "3.4.2"
+  ],
+  "pha3w-jan09-1-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-1-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-2-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-2-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-3-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-3-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-4-a": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-4-b": [
+   "3.5.1"
+  ],
+  "pha3w-jan09-5-a": [
+   "3.4.2"
+  ],
+  "pha3w-jan09-5-b": [
+   "3.4.2"
+  ],
+  "pha3w-jun08-1-a": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-1-b": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-1-c": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-2-a": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-2-b": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-3-a": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-3-b": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-4-a": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-4-b": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-5-a": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-5-b": [
+   "3.5.1"
+  ],
+  "pha3w-jun08-6": [
+   "3.4.2"
+  ],
+  "pha3w-jun08-6-b": [
+   "3.4.2"
+  ],
+  "pha3w-jun08-6-c": [
+   "3.4.2"
+  ],
+  "pha5w-jun08-1-a": [
+   "3.8.1"
+  ],
+  "pha5w-jun08-1-b": [
+   "3.8.1"
+  ],
+  "pha5w-jun08-1-c": [
+   "3.8.1"
+  ],
+  "pha5w-jun08-2-a": [
+   "3.9.1"
+  ],
+  "pha5w-jun08-2-b": [
+   "3.9.1"
+  ],
+  "pha5w-jun08-3-a": [
+   "3.9.1"
+  ],
+  "pha5w-jun08-3-b": [
+   "3.9.1"
+  ],
+  "pha5w-jun08-4-a": [
+   "3.9.2"
+  ],
+  "pha5w-jun08-4-b": [
+   "3.9.2"
+  ],
+  "pha5w-jun08-5-a": [
+   "3.9.3"
+  ],
+  "pha5w-jun08-5-b": [
+   "3.9.3"
+  ],
+  "pha5w-jun08-5-c": [
+   "3.9.2"
+  ],
+  "pha6w-jun08-1-a": [
+   "3.8.1"
+  ],
+  "pha6w-jun08-1-b": [
+   "3.8.1"
+  ],
+  "pha6w-jun08-1-c": [
+   "3.8.1"
+  ],
+  "pha6w-jun08-2-a": [
+   "3.10.1"
+  ],
+  "pha6w-jun08-2-b": [
+   "3.10.1"
+  ],
+  "pha6w-jun08-3-a": [
+   "3.10.2"
+  ],
+  "pha6w-jun08-3-b": [
+   "3.10.2"
+  ],
+  "pha6w-jun08-4-a": [
+   "3.10.4"
+  ],
+  "pha6w-jun08-4-b": [
+   "3.10.4"
+  ],
+  "pha6w-jun08-4-c": [
+   "3.10.4"
+  ],
+  "pha6w-jun08-5-a": [
+   "3.10.5"
+  ],
+  "pha6w-jun08-5-b": [
+   "3.10.5"
+  ],
+  "pha7w-jun08-1-a": [
+   "3.8.1"
+  ],
+  "pha7w-jun08-1-b": [
+   "3.8.1"
+  ],
+  "pha7w-jun08-1-c": [
+   "3.8.1"
+  ],
+  "pha7w-jun08-2-a": [
+   "3.11.1"
+  ],
+  "pha7w-jun08-2-b": [
+   "3.11.1"
+  ],
+  "pha7w-jun08-3-a": [
+   "3.11.2"
+  ],
+  "pha7w-jun08-3-b": [
+   "3.11.2"
+  ],
+  "pha7w-jun08-4-a": [
+   "3.11.1"
+  ],
+  "pha7w-jun08-4-b": [
+   "3.11.1"
+  ],
+  "pha7w-jun08-4-c": [
+   "3.11.1"
+  ],
+  "pha7w-jun08-5-a": [
+   "3.11.2"
+  ],
+  "pha7w-jun08-5-b": [
+   "3.11.2"
+  ],
+  "pha7w-jun08-5-c": [
+   "3.11.2"
+  ],
+  "pha8w-jun08-1-a": [
+   "3.8.1"
+  ],
+  "pha8w-jun08-1-b": [
+   "3.8.1"
+  ],
+  "pha8w-jun08-1-c": [
+   "3.8.1"
+  ],
+  "pha8w-jun08-2-a": [
+   "3.12.1"
+  ],
+  "pha8w-jun08-2-b": [
+   "3.12.1"
+  ],
+  "pha8w-jun08-3-a": [
+   "3.12.2"
+  ],
+  "pha8w-jun08-3-b": [
+   "3.12.2"
+  ],
+  "pha8w-jun08-4": [
+   "3.12.3"
+  ],
+  "pha8w-jun08-5-a": [
+   "3.12.2"
+  ],
+  "pha8w-jun08-5-b": [
+   "3.12.2"
+  ],
+  "pha9w-jun08-1-a": [
+   "3.8.1"
+  ],
+  "pha9w-jun08-1-b": [
+   "3.8.1"
+  ],
+  "pha9w-jun08-1-c": [
+   "3.8.1"
+  ],
+  "pha9w-jun08-2-a": [
+   "3.5.1"
+  ],
+  "pha9w-jun08-2-b": [
+   "3.5.1"
+  ],
+  "pha9w-jun08-2-c": [
+   "3.7.4"
+  ],
+  "pha9w-jun08-2-d": [
+   "3.7.4",
+   "3.5.1"
+  ],
+  "pha9w-jun08-3-a": [
+   "3.5.1",
+   "3.7.4"
+  ],
+  "pha9w-jun08-4-a": [
+   "3.13.4"
+  ],
+  "pha9w-jun08-4-b": [
+   "3.13.4"
+  ],
+  "pha9w-jun08-5-a": [
+   "3.13.3"
+  ],
+  "pha9w-jun08-5-b": [
+   "3.13.3"
+  ],
+  "pha9w-jun08-5-c": [
+   "3.5.1"
+  ],
+  "pa01-jun08-1-a": [
+   "3.2.1"
+  ],
+  "pa01-jun08-1-b": [
+   "3.2.1"
+  ],
+  "pa01-jun08-1-c": [
+   "3.2.1"
+  ],
+  "pa01-jun08-2-a": [
+   "3.8.1"
+  ],
+  "pa01-jun08-2-b": [
+   "3.8.1"
+  ],
+  "pa01-jun08-2-c": [
+   "3.8.1"
+  ],
+  "pa01-jun08-2-d": [
+   "3.8.1"
+  ],
+  "pa01-jun08-3-a": [
+   "3.2.1"
+  ],
+  "pa01-jun08-3-b": [
+   "3.2.1"
+  ],
+  "pa01-jun08-3-c": [
+   "3.2.1"
+  ],
+  "pa01-jun08-4": [
+   "3.2.2"
+  ],
+  "pa01-jun08-5-a": [
+   "3.3.2"
+  ],
+  "pa01-jun08-5-b": [
+   "3.3.2"
+  ],
+  "pa01-jun08-5-c": [
+   "3.3.2"
+  ],
+  "pa01-jun08-6-a": [
+   "3.2.2"
+  ],
+  "pa01-jun08-6-b": [
+   "3.2.2"
+  ],
+  "chm6w-jun08-1": [
+   "3.1.3"
+  ],
+  "chm6w-jun08-2": [
+   "3.1.1"
+  ],
+  "chm6w-jun08-3": [
+   "3.1.12"
+  ],
+  "chm6w-jun08-4": [
+   "3.1.12"
+  ],
+  "chm6w-jun08-5": [
+   "3.1.12"
+  ],
+  "chm6w-jun08-6": [
+   "3.1.12"
+  ],
+  "chm6w-jun08-7": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-8": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-9": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-10": [
+   "3.3.9",
+   "3.3.1"
+  ],
+  "chm6w-jun08-11": [
+   "3.3.4"
+  ],
+  "chm6w-jun08-13": [
+   "3.3.11"
+  ],
+  "chm6w-jun08-14": [
+   "3.3.14"
+  ],
+  "chm6w-jun08-15": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-16": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-17": [
+   "3.3.1"
+  ],
+  "chm6w-jun08-18": [
+   "3.2.3"
+  ],
+  "chm6w-jun08-19": [
+   "3.2.6"
+  ],
+  "chm6w-jun08-20": [
+   "3.1.11"
+  ],
+  "chm6w-jun08-21": [
+   "3.2.5",
+   "3.3.3"
+  ],
+  "chm6w-jun08-22": [
+   "3.1.2"
+  ],
+  "chm6w-jun08-23": [
+   "3.1.9"
+  ],
+  "chm6w-jun08-24": [
+   "3.1.5"
+  ],
+  "chm6w-jun08-25": [
+   "3.1.9"
+  ],
+  "chm6w-jun08-26": [
+   "3.2.6",
+   "3.3.9",
+   "3.2.3"
+  ],
+  "chm6w-jun08-27": [
+   "3.1.3"
+  ],
+  "chm6w-jun08-28": [
+   "3.2.6"
+  ],
+  "chm6w-jun08-29": [
+   "3.1.6",
+   "3.1.7",
+   "3.1.8"
+  ],
+  "chm6w-jun08-30": [
+   "3.3.14"
+  ],
+  "chm6w-jun08-31": [
+   "3.1.3"
+  ],
+  "chm6w-jun08-32": [
+   "3.3.13",
+   "3.3.7"
+  ],
+  "chm6w-jun08-33": [
+   "3.1.7"
+  ],
+  "chm6w-jun08-34": [
+   "3.3.7"
+  ],
+  "chm6w-jun08-35": [
+   "3.3.6",
+   "3.3.15"
+  ],
+  "chm6w-jun08-36": [
+   "3.3.14"
+  ],
+  "chm6w-jun08-37": [
+   "3.3.4",
+   "3.3.8"
+  ],
+  "chm6w-jun08-38": [
+   "3.3.1"
+  ],
+  "chm6w-jun08-40": [
+   "3.1.8"
+  ]
+ },
+ "off": {
+  "chem1-jan09-1-d-i": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chem1-jan09-1-d-ii": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chem1-jun09-5-b": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jan08-1-b": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jun08-1-e": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jan09-1-b-i": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jan09-1-b-ii": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jan09-1-c": "Magnetic-sector mass-spectrometer deflection is absent from 7405, which teaches time of flight.",
+  "chm1-jan08-1-c": "Requires isotope patterns of molecular chlorine ions; current 7405 atomic mass spectra are limited to mononuclear ions.",
+  "chem2-jun09-2-b-i": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-a-ii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-a-iii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-c-i": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-c-ii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-c-iii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chem2-jun09-5-c-iv": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jan08-6-a": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jan08-6-c": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-a-i": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-a-ii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-c-i": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-c-ii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-c-iii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-d-i": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-d-ii": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm2-jun08-1-e": "Legacy industrial extraction/recycling process outside 7405; its marks require the omitted process.",
+  "chm3w-jan08-4-b": "Requires epoxyethane preparation or reactions, absent from 7405. A shared award is kept together.",
+  "chm3w-jun08-6-e": "Requires epoxyethane preparation or reactions, absent from 7405. A shared award is kept together.",
+  "chm6w-jun08-12": "Requires epoxyethane preparation or reactions, absent from 7405. A shared award is kept together.",
+  "chm4-jan08-7-a": "Includes industrial manufacture of phenylethene from ethylbenzene, absent from 7405, in a shared award.",
+  "chm5-jun08-8-e": "Requires hydrolysis of silicon tetrachloride, absent from the current Period 3 oxides content.",
+  "chm6w-jun08-39": "Requires hydrolysis of silicon tetrachloride, absent from the current Period 3 oxides content.",
+  "pha9w-jun08-3-b": "Capacitive reactance calculations are absent from 7408.",
+  "pha9w-jun08-3-c": "Comparing electrolytic and mica capacitor construction is absent from 7408."
+ },
+ "practicals": [
+  "phya1-jun09-5-a-i",
+  "phya1-jun09-5-a-ii",
+  "phya2-jun09-4-b",
+  "pha3w-jan08-3-a",
+  "pha3w-jan09-1-a",
+  "pha3w-jun08-2-a",
+  "pha3w-jun08-5-b",
+  "pa04b-jan08-2-a",
+  "pa04b-jan08-2-b",
+  "pa10-jun08-6-a",
+  "pa10-jun08-6-c",
+  "chem2-jun09-1-d-ii",
+  "chm2-jan08-3-e",
+  "chm2-jan08-3-f"
+ ]
+}

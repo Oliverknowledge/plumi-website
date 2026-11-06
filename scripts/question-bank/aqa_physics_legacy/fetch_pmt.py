@@ -1,6 +1,7 @@
 """Fetch AQA's legacy A-Level Physics A (2450) papers, 2010-2016, from Physics & Maths Tutor.
 
     python3 scripts/question-bank/aqa_physics_legacy/fetch_pmt.py [work-dir]   # default scripts/question-bank/.work/phya
+    python3 scripts/question-bank/aqa_physics_legacy/fetch_pmt.py <work-dir> --from-year 2009 --to-year 2009
 
 AQA publishes none of the 2450 papers any more: its file store answers "not found" for every
 PHYA unit and series, and its past paper search starts at June 2016 (2 November 2026). The
@@ -19,11 +20,18 @@ one scheme, and PHYA5 into Section 1 (the core, "5-1") and its four Section 2 op
 Downloads to <work-dir>/pdf/AQA-<paper>-<QP|MS>-<series>.pdf and writes <work-dir>/manifest.json
 in fetch_aqa.py's shape, with `source` the PMT link. Polite: one request at a time, cached.
 """
-import json, os, re, sys, time, urllib.parse, urllib.request
+import argparse, json, os, re, sys, time, urllib.parse, urllib.request
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130 Safari/537.36"
 HERE = os.path.dirname(os.path.abspath(__file__))
-WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "..", ".work", "phya")
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("work_dir", nargs="?", default=os.path.join(HERE, "..", ".work", "phya"))
+parser.add_argument("--from-year", type=int, default=2010)
+parser.add_argument("--to-year", type=int, default=2016)
+args = parser.parse_args()
+if not 2009 <= args.from_year <= args.to_year <= 2016:
+    parser.error("Physics A papers cover 2009–2016; choose a range within those years")
+WORK = os.path.abspath(args.work_dir)
 PDF = os.path.join(WORK, "pdf")
 BASE = "https://www.physicsandmathstutor.com/past-papers/a-level-physics/"
 UNITS = ["aqa-unit-1", "aqa-unit-2", "aqa-unit-4", "aqa-unit-5"]
@@ -53,7 +61,7 @@ def main():
         for href in sorted(set(re.findall(r'href="([^"#]+\.pdf)"', html))):
             name = urllib.parse.unquote(href.rsplit("/", 1)[1])
             m = re.match(r"(January|June) (\d{4}) (QP|MS) - Unit ([\dA-D-]+?)-? AQA Physics", name)
-            if not m or int(m.group(2)) < 2010:
+            if not m or not args.from_year <= int(m.group(2)) <= args.to_year:
                 continue
             series, kind = MONTH[m.group(1)] + m.group(2)[2:], m.group(3).lower()
             for comp in PAPERS[m.group(4)]:
