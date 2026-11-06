@@ -206,7 +206,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
           <h1 className="qs-bar-title" ref={title} tabIndex={-1}>{set.name}</h1>
           <div className="qs-skips">
             <a className="qs-skip" href="#qs-sheet" onClick={(e) => { e.preventDefault(); focusAt("qs-sheet"); }}>Skip to the questions</a>
-            {firstOpen && <a className="qs-skip" href={`#part-${firstOpen.id}`} onClick={(e) => { e.preventDefault(); focusAt(`part-${firstOpen.id}`, "part"); }} data-testid="skip-open">Skip to the first part to answer</a>}
+            {firstOpen && <a className="qs-skip" href={`#part-${firstOpen.id}`} onClick={(e) => { e.preventDefault(); focusAt(`part-${firstOpen.id}`, "part"); }} data-testid="skip-open">Skip to the first question to answer</a>}
           </div>
           <nav className="qs-pn" aria-label="Questions" data-testid="progress">
             <ol onKeyDown={onPnKey}>
@@ -259,7 +259,7 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
           </section>
         </article>
       </div>
-      {anyInk && <PenTray prefs={prefs} />}
+      {anyInk && <PenTray prefs={prefs} subject={meta?.subject} />}
       {sets && <SetsSheet q={q} onClose={() => setSets(false)} />}
       {confirm && <FinishConfirm unmarked={check.unmarked} blank={check.blank} onKeep={() => setConfirm(false)} onFinish={finish} />}
     </main>

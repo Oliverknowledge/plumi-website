@@ -38,7 +38,7 @@ export function AccountButton() {
       {menu && (
         <div className="lp-acct-menu" role="menu">
           <p className="lp-acct-who">{account.name ?? "Signed in"}<small>{account.email}</small></p>
-          <p className="lp-acct-note">Your marks are saved to your account.</p>
+          <p className="lp-acct-note">Your marks, bookmarks and notes are saved to your account.</p>
           <OpenApp />
           <LibraryMenuRow onAction={() => setMenu(false)} />
           <button type="button" role="menuitem" className="lp-acct-out" onClick={() => { setMenu(false); void signOut(); }}>Sign out</button>

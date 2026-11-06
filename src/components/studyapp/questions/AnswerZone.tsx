@@ -23,12 +23,16 @@ const INK_ROOM = 24;
  * Memoised on what it draws (set, part, answer, prefs): a stroke or a keystroke in another part does not draw this
  * one again. The device-wide ink room is read when a stroke ends, not passed down (so it is not a prop that changes on every stroke).
  */
-export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark && a.bare === b.bare && a.headSlot === b.headSlot && a.onReset === b.onReset && a.onMode === b.onMode);
+export const AnswerZone = memo(AnswerZoneView, (a, b) => a.set === b.set && a.part === b.part && a.answer === b.answer && a.prefs === b.prefs && a.showMark === b.showMark && a.bare === b.bare && a.headSlot === b.headSlot && a.extra === b.extra && a.pagePx === b.pagePx && a.onReset === b.onReset && a.onMode === b.onMode);
 
-function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, headSlot, onReset, onMode }: {
+function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, headSlot, extra, pagePx, onReset, onMode }: {
   set: QSet; part: QPart; answer: QAnswer | undefined; prefs: QPrefs; showMark: boolean; inkTotal?: number;
   /** The feed's card opened this space from its Type or Draw button and it holds nothing: the head is those two buttons (`headSlot`) in the place where the Draw | Type toggle and Reset go once there is something, so nothing moves when the first mark or key arrives. */
   bare?: boolean; headSlot?: React.ReactNode;
+  /** Small controls of the card's own for the head of the space (the feed's "Pin question"), after the buttons. */
+  extra?: React.ReactNode;
+  /** The question is pinned beside this space (split.ts): the space is a page this tall (css px) at least, whatever the marks say. Only what is shown: the height kept for the answer is not changed by it. */
+  pagePx?: number;
   /** Told when the student has cleared the answer on purpose (Reset, then Clear). */
   onReset?: () => void;
   /** Told when the student switches the way (Draw | Type) so the card's own record of it follows. */
@@ -43,7 +47,10 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
   const [drag, setDrag] = useState<number | null>(null);
   const [low, setLow] = useState(0);
   const floor = Math.max(zoneHeight({ m: null }), Math.ceil(low + INK_ROOM));
-  const units = Math.max(floor, drag ?? base);
+  // (A pinned page: its width is read before the first paint, so the space is drawn at its height at once.)
+  const [boxW, setBoxW] = useState(0);
+  const page = pagePx && boxW > 0 ? Math.min(ZONE_MAX_H, Math.ceil((pagePx * REF_W) / boxW)) : 0;
+  const units = Math.max(floor, drag ?? base, page);
   const mode = answer?.mode ?? (phone ? "type" : "ink");
   const ink = useRef<InkCanvasHandle>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -80,6 +87,16 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || !pagePx) { setBoxW(0); return; }
+    const read = () => { const w = Math.round(el.getBoundingClientRect().width); setBoxW((o) => (Math.abs(o - w) < 2 ? o : w)); };
+    read();
+    let raf = 0;
+    const ro = new ResizeObserver(() => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; read(); }); });
+    ro.observe(el);
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, [pagePx]);
   // The pen tray is shown while any writing zone is on the screen.
   useEffect(() => {
     const el = box.current;
@@ -98,7 +115,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
   useEffect(() => { lowRef.current = low; });
 
   const setMode = (m: "ink" | "type") => { onMode?.(m); if (answer?.mode !== m) qa.mode(set.id, part.id, m); };
-  const more = () => qa.height(set.id, part.id, Math.min(ZONE_MAX_H, base + 120));
+  const more = () => qa.height(set.id, part.id, Math.min(ZONE_MAX_H, Math.max(base, page) + 120));
   const keep = () => { back.current = "reset"; setAsking(false); };
   const reset = () => {
     back.current = "tab";
@@ -134,7 +151,7 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
   return (
     <div className={`qs-zone${tone}${active && mode === "ink" ? " is-active" : ""}${has ? " is-has" : ""}`} ref={box} data-testid="answer-zone" data-part={part.id} data-mode={mode}>
       <div className="qs-zone-body">
-        {bare ? (headSlot ? <div className="qs-zone-head qs-zone-head-bare">{headSlot}</div> : null) : <div className="qs-zone-head">
+        {bare ? (headSlot || extra ? <div className="qs-zone-head qs-zone-head-bare">{headSlot}<span className="grow" />{extra}</div> : null) : <div className="qs-zone-head">
           <div className="qs-mode" role="group" aria-label="How to answer">
             <button ref={mode === "ink" ? modeBtn : undefined} type="button" aria-pressed={mode === "ink"} onClick={() => setMode("ink")} aria-label={`Draw by hand${written ? ", has drawing" : ""}`}>
               <PenSmallIcon /> Draw{written && <i aria-hidden="true" />}
@@ -155,8 +172,9 @@ function AnswerZoneView({ set, part, answer, prefs, showMark, bare = false, head
             </span>
           ) : (
             <span className="qs-zone-tools">
-              <button type="button" className="qs-mini qs-icon" onClick={more} disabled={base >= ZONE_MAX_H} title="More space" aria-label="More space"><ExpandIcon /></button>
-              {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Reset</button>}
+              {extra}
+              <button type="button" className="qs-mini qs-icon" onClick={more} disabled={Math.max(base, page) >= ZONE_MAX_H} title="More space" aria-label="More space"><ExpandIcon /></button>
+              {has && <button ref={resetBtn} type="button" className="qs-mini qs-reset" onClick={() => setAsking(true)} data-testid="zone-reset">Clear answer</button>}
             </span>
           )}
         </div>}

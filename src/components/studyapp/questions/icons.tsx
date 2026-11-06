@@ -7,6 +7,7 @@ const I = ({ children, size = 22 }: { children: ReactNode; size?: number }) => (
 export const PenIcon = () => <I><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19z" /><path d="M14 7l3 3" /></I>;
 export const EraserIcon = () => <I><path d="M8 20h11" /><path d="M5 15l8.5-8.5a2 2 0 012.8 0l2.2 2.2a2 2 0 010 2.8L11 20H8l-3-3a1.4 1.4 0 010-2z" /></I>;
 export const RulerIcon = () => <I><path d="M3.5 17.5L17.5 3.5l3 3-14 14z" /><path d="M7.2 13.8l1.6 1.6M10 11l1.6 1.6M12.8 8.2l1.6 1.6" /></I>;
+export const CalculatorIcon = () => <I><rect x="5" y="3" width="14" height="18" rx="2.5" /><path d="M8.5 7h7v3.5h-7z" /><path d="M9 14.5h.01M12 14.5h.01M15 14.5h.01M9 17.5h.01M12 17.5h.01M15 17.5h.01" /></I>;
 export const UndoIcon = () => <I><path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 010 12h-3" /></I>;
 export const RedoIcon = () => <I><path d="M15 14l5-5-5-5" /><path d="M20 9H10a6 6 0 000 12h3" /></I>;
 export const TrashIcon = () => <I><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /></I>;
@@ -16,6 +17,8 @@ export const BoltIcon = () => <I size={18}><path d="M13 3L5 13h6l-1 8 8-10h-6z" 
 export const CheckIcon = () => <I size={18}><path d="M5 12.5l4.5 4.5L19 7" /></I>;
 export const BackIcon = () => <I size={18}><path d="M15 5l-7 7 7 7" /></I>;
 export const TypeIcon = () => <I size={18}><path d="M5 7V5h14v2M12 5v14M9 19h6" /></I>;
+/** A drawing pin: the question stays where it is. */
+export const PinIcon = () => <I size={16}><path d="M9 4h6l-1 6 3 3H7l3-3z" /><path d="M12 13v7" /></I>;
 export const PenSmallIcon = () => <I size={18}><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19z" /></I>;
 export const PlusIcon = () => <I size={18}><path d="M12 5v14M5 12h14" /></I>;
 export const CloseIcon = () => <I size={18}><path d="M6 6l12 12M18 6L6 18" /></I>;

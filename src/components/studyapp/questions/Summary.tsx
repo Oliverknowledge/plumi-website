@@ -89,16 +89,16 @@ export function Summary({ set, q, onReview }: { set: QSet; q: QuestionsData; onR
             {catchUp && <button type="button" className={`btn${redo ? "" : " gold"}`} onClick={() => { qa.catchUp(set.id); }} data-testid="catchup-set">Do the skipped ones <span className="k">{catchUp.parts.length}</span></button>}
             <button type="button" className={`btn${redo || catchUp ? "" : " gold"}`} onClick={() => qa.open(null)} data-testid="keep-going">Keep going</button>
             {againInput(set) && <button type="button" className="btn" onClick={() => { qa.again(set.id); }} data-testid="again-paper">Do this paper again</button>}
-            <button type="button" className="btn ghost" onClick={() => onReview()} data-testid="review-sheet">Review the sheet</button>
+            <button type="button" className="btn ghost" onClick={() => onReview()} data-testid="review-sheet">Review your answers</button>
             <button
               type="button" className="btn ghost" data-testid="save-work" disabled={saved === "working"}
               onClick={() => { setSaved("working"); void saveWork(set, q).then((r) => setSaved(r === "failed" ? "failed" : r === "no-marks" ? "partial" : "done")); }}
             >{saved === "working" ? "Saving..." : saved === "done" || saved === "partial" ? "Saved \u2713" : "Save my work"}</button>
             {saved === "done" && <span className="qs-saved" data-testid="saved-note">Saved to your downloads</span>}
-            {saved === "partial" && <span className="qs-saved" data-testid="saved-note">Saved without your marks on the question</span>}
+            {saved === "partial" && <span className="qs-saved" data-testid="saved-note">Saved without your writing on the question</span>}
             {saved === "failed" && <span className="qs-saved qs-saved-no" data-testid="saved-note">Could not save. Try again.</span>}
           </div>
-          <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "partial" ? "Saved without your marks on the question." : saved === "failed" ? "Could not save. Try again." : ""}</p>
+          <p className="qs-sr" role="status">{saved === "done" ? "Saved to your downloads." : saved === "partial" ? "Saved without your writing on the question." : saved === "failed" ? "Could not save. Try again." : ""}</p>
         </section>
       </div>
     </main>

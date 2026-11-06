@@ -8,9 +8,9 @@ import { insertAt, SymbolBar } from "./SymbolBar";
  * Used to add a card and to edit one. Cmd or Ctrl and Enter submits from either box.
  */
 export function CardFields({
-  initialFront = "", initialBack = "", submitLabel, onSubmit, onCancel, resetOnSubmit = false, idPrefix,
+  initialFront = "", initialBack = "", submitLabel, onSubmit, onCancel, resetOnSubmit = false, idPrefix, frontMax = 400, backMax = 800,
 }: {
-  initialFront?: string; initialBack?: string; submitLabel: string; onSubmit: (front: string, back: string) => void; onCancel?: () => void; resetOnSubmit?: boolean; idPrefix: string;
+  initialFront?: string; initialBack?: string; submitLabel: string; onSubmit: (front: string, back: string) => void; onCancel?: () => void; resetOnSubmit?: boolean; idPrefix: string; frontMax?: number; backMax?: number;
 }) {
   const [front, setFront] = useState(initialFront);
   const [back, setBack] = useState(initialBack);
@@ -37,9 +37,9 @@ export function CardFields({
     <div className="cardfields">
       <div className="cf-grid">
         <label htmlFor={`${idPrefix}-front`} className="lbl">Front (the question)</label>
-        <textarea id={`${idPrefix}-front`} data-autofocus ref={frontEl} value={front} maxLength={400} rows={2} onChange={(e) => setFront(e.target.value)} onFocus={() => setActive("front")} onKeyDown={keys} data-testid={`${idPrefix}-front`} />
+        <textarea id={`${idPrefix}-front`} data-autofocus ref={frontEl} value={front} maxLength={frontMax} rows={2} onChange={(e) => setFront(e.target.value)} onFocus={() => setActive("front")} onKeyDown={keys} data-testid={`${idPrefix}-front`} />
         <label htmlFor={`${idPrefix}-back`} className="lbl">Back (the answer)</label>
-        <textarea id={`${idPrefix}-back`} ref={backEl} value={back} maxLength={800} rows={3} onChange={(e) => setBack(e.target.value)} onFocus={() => setActive("back")} onKeyDown={keys} data-testid={`${idPrefix}-back`} />
+        <textarea id={`${idPrefix}-back`} ref={backEl} value={back} maxLength={backMax} rows={3} onChange={(e) => setBack(e.target.value)} onFocus={() => setActive("back")} onKeyDown={keys} data-testid={`${idPrefix}-back`} />
       </div>
       <SymbolBar onInsert={put} />
       <div className="cf-acts">

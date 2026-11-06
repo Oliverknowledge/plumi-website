@@ -63,7 +63,7 @@ export function SubjectChooser({ catalogue, recent, onPick, current }: { catalog
       </label>
       {recents.length > 0 && !words.length && (
         <div className="qs-recent">
-          <span className="lbl">Lately</span>
+          <span className="lbl">Recent</span>
           {recents.map((c) => <button key={c.slug} type="button" className="qs-chip" onClick={() => onPick(c.slug)}>{c.title}</button>)}
         </div>
       )}

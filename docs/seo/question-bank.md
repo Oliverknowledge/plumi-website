@@ -293,7 +293,8 @@ need only the AS content) or Year 13 (questions that need second-year content).
 
 - **Data:** `public/question-bank/<slug>/year13.json`, the ids of the Year 13 questions,
   beside the bank's data so a rebuild leaves it alone. `bankHasYears` turns the filter
-  on for A-Level Maths and Further Maths; the URL keeps it as `?yr=12` or `?yr=13`.
+  on for any bank with that file's hash in its meta's `data`, so a bank needs no code to
+  get it; the URL keeps it as `?yr=12` or `?yr=13`.
 - **Where it shows:** a "School year" switch (Both years · Year 12 · Year 13, with
   counts) at the top of the filters, above the topics, and on a single topic's page too.
   It started as two checkboxes near the bottom, and a student on Edexcel Maths didn't
@@ -308,12 +309,94 @@ need only the AS content) or Year 13 (questions that need second-year content).
   are Year 12, and each A-Level paper question was read against that board's AS Further
   Maths specification (`maths_years.py split-further` / `merge-further`, brief in
   `tag.md`). Cambridge's Further Maths (9231) has no AS, so it has no switch.
+- **A-Level Physics** (AQA, Edexcel, OCR A, OCR B, Eduqas, WJEC, Cambridge; 5 November 2026)
+  splits by rule, not by reading (`physics_years.py`, which says how): each topic's `year` in
+  the bank's meta comes from the board's specification, so an AS paper's questions are Year 12,
+  and a full A-Level paper's are Year 12 only when every topic tag is a first-year topic and the
+  text has none of the second-year terms (capacitor, magnetic field, simple harmonic…). AQA's
+  legacy 2010–2016 papers: the AS units (PHYA1, PHYA2) are Year 12, the A2 units (PHYA4, PHYA5)
+  all Year 13, because their tags are unreliable. WJEC's Units 3 and 4 are all Year 13. A
+  re-tag of a Physics bank changes its topics, so run `physics_years.py` again, then `upload_data.py`.
+
+**Psychology, Sociology, Politics, Law and Geography (5 November 2026).** The founder asked for
+the same switch on every A-Level subject that has an AS. These banks split by the board's own
+AS specification, so most of the decision is a map, not a read (`humanities_years.py`; rules
+and reasons in its docstring, `humanities_years.py report` for the counts):
+
+- An AS paper's questions are Year 12. On a full A-Level paper a question is Year 12 when
+  the board's AS covers all of it, and Year 13 when it needs content only the A-Level has:
+  a whole paper (OCR Sociology Paper 3, OCR Psychology Paper 3, Edexcel Psychology Papers 2
+  and 3, Edexcel Geography Paper 3, AQA Psychology Paper 3), a topic (Edexcel Politics' ideas,
+  USA and global politics; AQA Geography's deserts, ecosystems, global systems, population
+  and resources), or a named item inside an AS topic (AQA Psychology's localisation of
+  function, inferential tests other than the sign test…, found by keyword in the question).
+- Year 12 means "in the AS", not "what a school teaches first": Edexcel Politics' core
+  ideas are Year 13 here because 8PL0 has no ideas, though many schools teach them in Year 12.
+- Banks with no AS and no year split in the specification are skipped: AQA Politics (7152)
+  and AQA Law (7162) are linear A-Levels, and AQA lists no AS for either.
+- Hand reads (54 parts: OCR Psychology and OCR Law questions that mix the years, one Edexcel
+  Psychology question) are in `humanities_years_reads.json`; they win over the rules. AQA
+  Sociology Paper 3's five methods questions were read too, and are all AS content.
+- Like Maths, the ids are in `year13.json` on R2 (`upload_data.py`); the hash in the
+  bank's meta turns the switch on, and a bank without the file shows none.
+- After a new series: `humanities_years.py build <slug>`, check `report` for the new
+  tags, read what the rules cannot place, then `upload_data.py <slug>`.
+
+## Year 12 and Year 13 (A-Level Biology, 5 November 2026)
+
+The same "School year" switch (Both years · Year 12 · Year 13) on the eight A-Level Biology banks
+(AQA, Edexcel A and B, OCR A and B, Eduqas, WJEC, Cambridge). Unlike maths, Biology's topics
+already sit in a year (each topic's `year` in the meta: 1 AS, 2 second year, 3 Eduqas's options), so
+`scripts/question-bank/biology_years.py` decides by rule rather than by reading every question:
+
+- a part on an AS paper is Year 12;
+- a part on a full A-Level paper is Year 13 if any of its topics is second-year content, else Year 12;
+- a short list of parts whose tag was wrong, found by reading, is overridden in `HAND_READ` (10 AQA
+  parts tagged 3.7.3 that only ask natural selection, which AQA examines at AS; 13 WJEC A2-unit parts
+  tagged with AS topics that ask ATP, pigments, the electron transport chain, the kidney, the options).
+
+The topic years match each board's AS content: every AS topic is drawn on by that board's AS papers, and
+no second-year topic is, bar 21 AQA parts (3.5.1, 3.5.2, 3.7.2, 3.7.3, 3.7.4) on AS papers, which stay Year 12.
+`bankHasYears` is on for any A-Level Biology bank; the data is `year13.json` as for maths. After a new
+series: `biology_years.py`, then `upload_data.py <slug>`.
+
+Known edges: AQA Paper 3's 25-mark essays go by their tags (an essay titled on a first-year topic is Year
+12 although a full-marks answer may draw on the whole specification); Cambridge Paper 5 (planning and
+evaluation) goes by the topic its experiment is on.
 
 **Exam years, several at once (27 October 2026).** A student wanted to "keep 24 and 25
 untouched but do all the ones below it" (for a mock). The Exam control is a checklist
 now, not a single choice: every sitting starts ticked, untick the ones to keep back (or
 "Leave out the latest two"), and the list, the counts and "Download PDF" follow. The URL
 keeps it as `?year=JUN23,JUN22,…`, which the page already read.
+
+## Year 12 and Year 13 (English Literature, AQA French, German and Spanish)
+
+5 November 2026, the same switch for the other A-Level subjects with AS papers in the bank. No
+question was read one by one: both families have a rule the papers and tags already carry
+(`scripts/question-bank/english_languages_years.py`, which writes each bank's `year13.json`;
+`sample` prints a few ids per rule). Every AS-paper question is Year 12.
+
+- **AQA French, German, Spanish:** AQA's subject content says the course is designed for two
+  years, themes 1 and 2 in the first and 3 and 4 in the second, and the AS papers test only
+  themes 1 and 2. A listening or reading question on an A-Level paper is tagged with its
+  theme: themes 3 and 4 are Year 13 (French 139, German 132, Spanish 130), the rest Year 12.
+  The set-text and film essays (Paper 2) use the AS's own lists of works, and the
+  literary-extract reading questions exist at AS too, so they are Year 12.
+- **English Literature:** which texts are first year is the board's and the school's choice,
+  so the AS papers decide. What an AS paper of that board sets, text or task, is Year 12 on the
+  A-Level paper as well; what only the A-Level sets is Year 13. Pearson says it directly: AS and
+  the first year of the A-Level "can be taught at the same time, with students in the same
+  class covering the same content". AQA A: Paper 1 Year 12, Paper 2A/2B (texts in shared
+  contexts) Year 13. AQA B: Paper 1 Section A Year 12; Section C across two texts and Paper 2A/2B
+  (crime, protest writing) Year 13. Edexcel: prose (Paper 2), other drama and Poems of the Decade
+  Year 12; Shakespeare (Section A) and period poetry (Paper 3 Section B) Year 13. OCR:
+  Shakespeare Year 12; the drama-and-poetry comparison and all of Component 2 Year 13.
+  If a school teaches Shakespeare in Year 12 on a board whose AS has none (Edexcel), the
+  topic filter still finds it: only the switch hides it.
+- **Not split:** Eduqas (the bank has no AS papers; the AS is B720, left out of the bank) and
+  AQA English Language (no AS, 44 questions).
+- The switch shows for any bank whose meta has a `year13` hash (`bankHasYears`); `?yr=12|13` as for maths.
 
 ## Practicals and whole questions
 

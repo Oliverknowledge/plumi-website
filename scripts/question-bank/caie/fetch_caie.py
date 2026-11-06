@@ -1,8 +1,8 @@
 """Gather Cambridge International's (CAIE's) public papers for the question bank.
 
-    python3 scripts/question-bank/caie/fetch_caie.py [--igcse] [--maths] [--from=<past-papers cie work dir>] [work-dir]
+    python3 scripts/question-bank/caie/fetch_caie.py [--igcse] [--maths] [--cs] [--from=<past-papers cie work dir>] [work-dir]
     # default work dir: scripts/question-bank/.work/caie-sciences (with --maths, .work/caie-maths;
-    # with --igcse, .work/caie-igcse-sciences and .work/caie-igcse-maths)
+    # with --igcse, .work/caie-igcse-sciences and .work/caie-igcse-maths; with --cs, .work/caie-cs)
     # default --from:   scripts/past-papers/.work/cie (written by scripts/past-papers/boards/cie.py)
 
 Cambridge keeps its archive behind the School Support Hub login; we never fetch from
@@ -31,6 +31,12 @@ the same papers: 0970, 0971 and 0972's June 2024 and specimen papers are 0610, 0
 but its public June 2024 papers are another time-zone variant (0980/12, /22, /32, /42
 against 0580/11, /21, /31, /41), different questions on the same content: they join the
 0580 bank as a second June 2024 sitting, series "JUN24V2".
+
+--cs does AS & A Level Computer Science 9618. Paper 4, sat at a computer, comes with a
+zip of the evidence document and data files the candidate works from: it joins each
+sitting's rows as kind "code", for its whole-paper links only. (Paper 2's insert, the
+pseudocode functions and operators, is left to the library: the bank's insert links
+are worded for sources.)
 """
 import filecmp, json, os, shutil, sys
 
@@ -39,8 +45,9 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 MATHS = "--maths" in sys.argv
 IGCSE = "--igcse" in sys.argv
+CS = "--cs" in sys.argv
 SOURCE = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--from=")), os.path.join(ROOT, "scripts", "past-papers", ".work", "cie"))
-WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", f"caie{'-igcse' if IGCSE else ''}-{'maths' if MATHS else 'sciences'}")
+WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "caie-cs" if CS else f"caie{'-igcse' if IGCSE else ''}-{'maths' if MATHS else 'sciences'}")
 PDF = os.path.join(WORK, "pdf")
 # The syllabus and the bank its papers go in.
 BANKS = {
@@ -48,15 +55,18 @@ BANKS = {
     (False, False): {"9700": "caie-a-level-biology", "9701": "caie-a-level-chemistry", "9702": "caie-a-level-physics"},
     (True, True): {"0580": "caie-igcse-maths", "0980": "caie-igcse-maths", "0606": "caie-igcse-additional-maths"},
     (True, False): {"0610": "caie-igcse-biology", "0620": "caie-igcse-chemistry", "0625": "caie-igcse-physics"},
-}[(IGCSE, MATHS)]
+}[(IGCSE, MATHS)] if not CS else {"9618": "caie-a-level-computer-science"}
 # Components sat at AS (the rest are A-Level only). 9709: Pure 1, Pure 2, Mechanics, Probability & Statistics 1.
 # IGCSE has no AS: its Core and Extended papers say which they are in their titles.
-AS = {"9709": ("1", "2", "4", "5"), "9231": (), "9700": ("1", "2", "3"), "9701": ("1", "2", "3"), "9702": ("1", "2", "3")}
+AS = {"9709": ("1", "2", "4", "5"), "9231": (), "9700": ("1", "2", "3"), "9701": ("1", "2", "3"), "9702": ("1", "2", "3"),
+      "9618": ("1", "2")}
 # The practical papers (A Level 3, IGCSE 5) are skipped: their questions are instructions for apparatus
 # in front of the candidate. IGCSE Paper 6, the alternative to practical, is in.
 SKIP = {"9700": ("3",), "9701": ("3",), "9702": ("3",), "0610": ("5",), "0620": ("5",), "0625": ("5",)}
 # 0980's June 2024 papers are a second sitting of 0580's (another variant); its specimens are 0580's own.
 SERIES = {"0980": {"JUN24": "JUN24V2", "SPEC": None}}
+# Files a sitting comes with besides its paper and scheme, linked whole: the library's kind, and the bank's.
+EXTRA = {"9618": {"data": "code"}}
 
 
 def main():
@@ -73,7 +83,7 @@ def main():
         spec, _, num = f["code"].partition("/")
         # The paper is the component's first digit (9709/31), or a specimen's second (9709/03).
         paper = num[1:2] if num.startswith("0") else num[:1]
-        if spec not in BANKS or f["kind"] not in ("qp", "ms") or f["series"] not in ("JUN24", "SPEC") or not num or paper in SKIP.get(spec, ()):
+        if spec not in BANKS or f["kind"] not in ("qp", "ms", *EXTRA.get(spec, {})) or f["series"] not in ("JUN24", "SPEC") or not num or paper in SKIP.get(spec, ()):
             continue
         series = SERIES.get(spec, {}).get(f["series"], f["series"])
         if not series:
@@ -83,11 +93,11 @@ def main():
             print(f"{f['code']} {f['series']}: the mark scheme is the question paper; left out", file=sys.stderr)
             continue
         comp = f"{spec}-{num}"
-        rows = [(f, f["kind"], None)]
+        rows = [(f, EXTRA.get(spec, {}).get(f["kind"], f["kind"]), None)]
         if f["kind"] == "qp" and f["series"] == "JUN24" and spec in reports:
             rows.append((reports[spec], "er", f"{spec}/{num}"))
         for g, kind, section in rows:
-            name = f"{comp}-{kind}-{series.lower()}.pdf" if kind != "er" else f"{spec}-er-{g['series'].lower()}.pdf"
+            name = f"{comp}-{kind}-{series.lower()}.{g['file'].rsplit('.', 1)[1]}" if kind != "er" else f"{spec}-er-{g['series'].lower()}.pdf"
             dest = os.path.join(PDF, name)
             if not os.path.exists(dest):
                 shutil.copyfile(os.path.join(SOURCE, "pdf", os.path.basename(g["file"])), dest)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FeedPos } from "@/lib/studyapp/questions/feedView";
 import { anchorMoved, indexAt, offsetsOf, rangeOf, withPinned } from "@/lib/studyapp/questions/virtual";
 
@@ -41,6 +41,10 @@ const model = <T extends { id: string }>(list: readonly T[], w: number, estimate
   offsetsOf(list.map((it) => measured.get(it.id) ?? estimate(it, w)));
 /** Move the page now, whatever smooth scrolling the page asks for (a position read straight after must be the new one). */
 const jump = (y: number) => window.scrollTo({ top: Math.max(0, y), left: window.scrollX, behavior: "instant" as ScrollBehavior });
+
+/** The list's width (css px): what a card in it is as wide as. A card that lays itself out by its width (FeedCard's pinned question) reads it here, so it is right in the very render that needs it. */
+const ListWidth = createContext(0);
+export const useListWidth = () => useContext(ListWidth);
 
 export function FeedList<T extends { id: string }>({ items, estimate, render, listKey, start, onPos, onHere, gap, label }: FeedListProps<T>) {
   const box = useRef<HTMLDivElement>(null);
@@ -320,6 +324,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
   const from = Math.min(win.from, Math.max(0, n - 1)), to = Math.min(win.to, n);
   const shown = items.slice(from, to);
   return (
+    <ListWidth.Provider value={width}>
     <div ref={box} className="qf-list" role="list" aria-label={label} data-testid="feed-list" data-from={from} data-to={to} data-total={n} onPointerDownCapture={report} onClickCapture={report}>
       <div aria-hidden="true" className="qf-spacer" style={{ height: offs[from] ?? 0 }} />
       {shown.map((it, k) => (
@@ -329,5 +334,6 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
       ))}
       <div aria-hidden="true" className="qf-spacer" style={{ height: Math.max(0, (offs[n] ?? 0) - (offs[to] ?? 0)) }} />
     </div>
+    </ListWidth.Provider>
   );
 }

@@ -21,7 +21,7 @@ export function workHtml(set: QSet, answers: Record<string, QAnswer>, images: Re
       const text = hasText(a) ? a!.text! : "";
       const marked = a?.got !== undefined && markable(p) ? `<p class="m">You gave yourself ${a.got} out of ${p.m}.</p>` : "";
       if (!img && !text && !marked && !qmarks) continue;
-      mine.push(`<section><h3>${esc(p.l)}${p.m != null ? ` <small>${p.m} ${p.m === 1 ? "mark" : "marks"}</small>` : ""}</h3>${qmarks ? `<img class="q" alt="The question ${esc(p.l)} with your marks on it" src="${qmarks}">` : ""}${text ? `<p class="t">${esc(text).replace(/\n/g, "<br>")}</p>` : ""}${img ? `<img alt="Handwriting for ${esc(p.l)}" src="${img}">` : ""}${marked}</section>`);
+      mine.push(`<section><h3>${esc(p.l)}${p.m != null ? ` <small>${p.m} ${p.m === 1 ? "mark" : "marks"}</small>` : ""}</h3>${qmarks ? `<img class="q" alt="The question ${esc(p.l)} with your writing on it" src="${qmarks}">` : ""}${text ? `<p class="t">${esc(text).replace(/\n/g, "<br>")}</p>` : ""}${img ? `<img alt="Handwriting for ${esc(p.l)}" src="${img}">` : ""}${marked}</section>`);
     }
     if (mine.length) rows.push(`<h2>Question ${b.n}${small ? ` <small>${esc(small)}</small>` : ""}</h2>`, ...mine);
   }

@@ -2,6 +2,7 @@
 
 import { onUser, supabase } from "@/lib/account";
 import { allAttempts, mergeAttempts, onMarkEvent, type Attempt, type MarkEvent } from "@/lib/bankProgress";
+import { clearSaved, mergeSaved, onSavedChange, savedItems, savedOwner, setSavedOwner, toSend } from "@/lib/bankSaved";
 
 /**
  * Keeps a signed-in student's marks in their account, so they follow them to any
@@ -13,7 +14,7 @@ import { allAttempts, mergeAttempts, onMarkEvent, type Attempt, type MarkEvent }
  * that each mark, correction and undo goes up as it happens.
  *
  * Tables: bank_attempt and bank_prefs (supabase/migrations/0004_bank_progress.sql; bank_prefs
- * waits for "Your subjects"),
+ * waits for "Your subjects"), and bank_saved (0005, further down),
  * each row-level secured to its owner. If they aren't there yet, sync stays quiet and
  * the site carries on saving to this browser.
  */
@@ -67,10 +68,81 @@ async function pushMark(e: MarkEvent) {
   }
 }
 
+/* ── Saved questions: bookmarks and notes (lib/bankSaved; supabase/migrations/0005_bank_saved.sql) ── */
+
+type SavedRow = { user_id: string; part_id: string; subject: string; bookmarked: boolean; note: string; updated_at: string };
+
+const toSavedRow = (uid: string, part: string): SavedRow | null => {
+  const e = savedItems()[part];
+  return e ? { user_id: uid, part_id: part, subject: e.s, bookmarked: e.b, note: e.n, updated_at: new Date(e.at).toISOString() } : null;
+};
+
+let warnedSaved = false;
+function quietSaved(error: { message: string } | null) {
+  if (error && !warnedSaved) { warnedSaved = true; console.warn("Plumi: saved questions aren’t syncing to your account yet:", error.message); }
+  return !error;
+}
+
+async function pushSaved(uid: string, parts: string[]) {
+  const sb = supabase();
+  if (!sb) return false;
+  const rows = parts.map(p => toSavedRow(uid, p)).filter((r): r is SavedRow => !!r);
+  for (let i = 0; i < rows.length; i += 500) {
+    if (!quietSaved((await sb.from("bank_saved").upsert(rows.slice(i, i + 500), { onConflict: "user_id,part_id" })).error)) return false;
+  }
+  return true;
+}
+
+async function fullSyncSaved(uid: string) {
+  const sb = supabase();
+  if (!sb) return;
+  const remote: SavedRow[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from("bank_saved").select("user_id,part_id,subject,bookmarked,note,updated_at").eq("user_id", uid).order("part_id").range(from, from + 999);
+    if (!quietSaved(error) || !data || user !== uid) return;
+    remote.push(...(data as SavedRow[]));
+    if (data.length < 1000) break;
+  }
+  mergeSaved(remote.map(r => ({ part: r.part_id, entry: { s: r.subject, b: r.bookmarked, n: r.note, at: Date.parse(r.updated_at) } })));
+  const missing = toSend(savedItems(), remote.map(r => ({ part: r.part_id, at: Date.parse(r.updated_at) })));
+  if (await pushSaved(uid, missing) && user === uid) setSavedOwner(uid);
+}
+
+/**
+ * A change waits a moment, so a note being typed, or a whole question's parts, go up as one
+ * request. One that doesn't arrive (offline, the tab closed) is still newer here than in the
+ * account, so the next full sync sends it.
+ */
+const waiting = new Set<string>();
+let savedTimer: ReturnType<typeof setTimeout> | null = null;
+function flushSaved() {
+  if (savedTimer) { clearTimeout(savedTimer); savedTimer = null; }
+  if (user && waiting.size) void pushSaved(user, [...waiting]);
+  waiting.clear();
+}
+
+/**
+ * Notes are a student's own words, and computers get shared. So when a browser's copy has
+ * been synced with an account, it leaves with that account: at sign-out (it's all still in the
+ * account), and before anyone else's sign-in, so one student's notes never go up into another's.
+ */
+function savedForUser(id: string | null) {
+  const owner = savedOwner();
+  if (owner && owner !== id) { waiting.clear(); clearSaved(); }
+  if (id) void fullSyncSaved(id);
+}
+
 /** Start once per page; safe to call from every component that wants it. */
 export function startSync() {
   if (started || typeof window === "undefined") return;
   started = true;
-  onUser(id => { user = id; if (id) void fullSync(id); });
+  onUser(id => { user = id; if (id) void fullSync(id); savedForUser(id); });
   onMarkEvent(e => { void pushMark(e); });
+  onSavedChange(parts => {
+    if (!user) return;
+    parts.forEach(p => waiting.add(p));
+    if (savedTimer) clearTimeout(savedTimer);
+    savedTimer = setTimeout(flushSaved, 1500);
+  });
+  window.addEventListener("pagehide", flushSaved);
 }

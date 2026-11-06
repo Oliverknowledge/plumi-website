@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { QuestionsPage } from "@/components/studyapp/questions/QuestionsPage";
+import { StudyCalculator } from "@/components/studyapp/questions/StudyCalculator";
 import { bankLevel, bankSubjects, bankTitle } from "@/content/questionBank";
 import { tiersOf, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import "../questions.css";
@@ -22,5 +23,5 @@ const catalogue: CatalogueSubject[] = bankSubjects
   .sort((a, b) => a.title.localeCompare(b.title));
 
 export default function Questions() {
-  return <QuestionsPage catalogue={catalogue} />;
+  return <><QuestionsPage catalogue={catalogue} /><StudyCalculator /></>;
 }

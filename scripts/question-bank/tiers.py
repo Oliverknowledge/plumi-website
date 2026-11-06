@@ -60,7 +60,7 @@ def pairs(slug):
     meta = json.load(open(os.path.join(ROOT, "src", "content", "questionBank", f"{slug}.json")))
     rows = json.load(open(os.path.join(PUB, slug, "parts.json")))
     text = json.load(open(os.path.join(PUB, slug, "text.json")))
-    maths = meta.get("subject") == "Maths"
+    maths = meta.get("subject") in ("Maths", "Statistics")  # (a Statistics question is the same data, as a maths one is the same sum)
     higher = [p["id"] for p in meta["papers"] if tier_of(p) == "H"]
     foundation = [p["id"] for p in meta["papers"] if tier_of(p) == "F"]
     assert len(higher) == len(foundation), (slug, higher, foundation)

@@ -147,8 +147,16 @@ export function examDays(data: AppData, today: string): number | null {
 
 const clip = (s: string, n: number) => s.replace(/\r/g, "").trim().slice(0, n);
 
+/**
+ * How much a card side and a deck name may hold. A student's own are 400, 800 and 50. A catalogue deck (its `starter` is a `pm:` key) is the exam
+ * boards' own wording carried word for word, and a few cards run past those, so its cards and its "Mark scheme · module" name keep their length.
+ */
+export const LIMITS = { front: 400, back: 800, title: 50 };
+export const PREMADE_LIMITS = { front: 700, back: 1200, title: 64 };
+export const limitsFor = (starter: string | null | undefined) => (starter && starter.startsWith("pm:") ? PREMADE_LIMITS : LIMITS);
+
 export function addDeck(data: AppData, title: string, now: number, subject: string | null = null, starter: string | null = null): { data: AppData; deck: Deck | null } {
-  const t = title.replace(/\s+/g, " ").trim().slice(0, 50);
+  const t = title.replace(/\s+/g, " ").trim().slice(0, limitsFor(starter).title);
   if (!t) return { data, deck: null };
   const deck: Deck = { id: makeId("d", now), title: t, subject, createdAt: now, starter };
   return { data: { ...data, decks: [...data.decks, deck] }, deck };
@@ -178,10 +186,12 @@ export function addCard(data: AppData, deckId: string, front: string, back: stri
 
 /** Many cards at once (an import): one pass, in the order given, and the same limits as `addCard`. Pairs that are empty once trimmed are skipped. */
 export function addCards(data: AppData, deckId: string, pairs: readonly (readonly [string, string])[], now: number): AppData {
-  if (!data.decks.some((d) => d.id === deckId)) return data;
+  const deck = data.decks.find((d) => d.id === deckId);
+  if (!deck) return data;
+  const lim = limitsFor(deck.starter);
   const made: Card[] = [];
   for (const [front, back] of pairs) {
-    const f = clip(front, 400), b = clip(back, 800);
+    const f = clip(front, lim.front), b = clip(back, lim.back);
     if (f && b) made.push({ id: makeId("c", now), deckId, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null });
   }
   return made.length ? { ...data, cards: [...data.cards, ...made] } : data;
@@ -207,7 +217,9 @@ export function importInto(data: AppData, target: ImportTarget, pairs: readonly 
 
 /** Edit the words of a card; its schedule is kept (fixing a typo does not reset what a student has learned). */
 export function editCard(data: AppData, id: string, front: string, back: string): AppData {
-  const f = clip(front, 400), b = clip(back, 800);
+  const card = data.cards.find((c) => c.id === id);
+  const lim = limitsFor(card ? data.decks.find((d) => d.id === card.deckId)?.starter : null);
+  const f = clip(front, lim.front), b = clip(back, lim.back);
   return f && b ? { ...data, cards: data.cards.map((c) => (c.id === id ? { ...c, front: f, back: b } : c)) } : data;
 }
 
@@ -225,6 +237,20 @@ export function addStarters(data: AppData, ids: readonly string[], now: number):
     for (const [front, back] of starter.cards) next = addCard(next, made.deck.id, front, back, now);
   }
   return next;
+}
+
+/** A ready-made deck from the catalogue (premade.ts), as the model needs it: a stable key, a name, a subject and the cards. */
+export interface PremadeToAdd { key: string; title: string; subject: string; cards: readonly (readonly [string, string])[] }
+
+/**
+ * Add one catalogue deck. Its `key` (`pm:<group>:<board>:<module>`) is kept on the deck as `starter`, as the starters keep theirs, so
+ * a deck is never added twice, can never be shared as the student's own, and (once added) is theirs to edit like any other.
+ */
+export function addPremade(data: AppData, deck: PremadeToAdd, now: number): AppData {
+  if (!deck.key || data.decks.some((d) => d.starter === deck.key)) return data;
+  const made = addDeck(data, deck.title, now, deck.subject, deck.key);
+  if (!made.deck) return data;
+  return addCards(made.data, made.deck.id, deck.cards, now);
 }
 
 /**
