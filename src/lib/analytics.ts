@@ -47,6 +47,12 @@ export type PlumiEvent =
   | "bank_quiz_started"
   | "bank_quiz_finished"
   | "bank_reveal"
+  /** Saved questions (lib/bankSaved): a bookmark on or off (`on`, `parts`); a note started, once per
+   *  part per visit (never its words); the Saved list opened (`saved`, how many). Whether people come
+   *  back to open it is what says the bookmarks are worth having. */
+  | "bank_bookmarked"
+  | "bank_note_started"
+  | "bank_saved_opened"
   | "bank_set_added"
   | "bank_pdf_downloaded"
   | "paper_marked_done"
