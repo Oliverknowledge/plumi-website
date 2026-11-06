@@ -717,3 +717,54 @@ html.qf-locked, html.qf-locked body { overflow: hidden; overscroll-behavior: non
 .pa .qf-more:hover { background: #fff; }
 .pa .qf-listwrap.is-waiting { pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .pa .qf-listwrap { transition: none; } }
+
+/* ── a tall question stays in view while its answer is open (lib/studyapp/questions/split.ts has the rules) ──────────────
+   Wide screen: the open card is two columns, the question sticking under the strip on the left (its own scroll if taller than the screen), a large working page on the right.
+   Narrow screen: a slim bar under the strip, once the question has scrolled away, opens it over the page. Nothing here changes a card that is not pinned. */
+.pa .qf-qcol, .pa .qf-acol { display: contents; }
+.pa .qf-card.is-split { grid-template-columns: minmax(0, 1fr); }
+.pa .qf-card.is-split .qf-left { position: static; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 12px; padding: 0 0 14px; }
+.pa .qf-card.is-split .qf-num { grid-row: span 2; }
+.pa .qf-card.is-split .qf-q, .pa .qf-card.is-split .qf-meta { grid-column: 2; }
+.pa .qf-card.is-split .qf-tags { grid-column: 1 / -1; }
+.pa .qf-card.is-split .qf-tags > .qf-state, .pa .qf-card.is-split .qf-tags > .qf-whole { flex: 0 1 auto; }
+.pa .qf-card.is-split .qf-tags > .qf-whole { margin-left: auto; }
+.pa .qf-card.is-split .qf-right { padding: 18px 0 0; }
+.pa .qf-card.is-split .qf-note { transform: none; }
+@media (min-width: 981px) { .pa .qf-card.is-split { padding-left: 52px; } }   /* the pen tray stands in the left margin */
+.pa .qf-sheet.is-split { display: grid; grid-template-columns: minmax(0, var(--qf-qw, 45%)) minmax(0, 1fr); column-gap: 24px; align-items: start; }
+.pa .qf-sheet.is-split > .qf-qcol, .pa .qf-sheet.is-split > .qf-acol { display: block; min-width: 0; }
+.pa .qf-sheet.is-split > .qf-qcol { position: sticky; top: calc(var(--qf-gap, 136px) + 10px); max-height: calc(100vh - var(--qf-gap, 136px) - 24px); max-height: calc(100dvh - var(--qf-gap, 136px) - 24px); overflow-y: auto; padding: 2px 8px 8px 0; scrollbar-width: thin; border-right: 2px dashed rgba(120, 96, 50, .25); }
+.pa .qf-sheet.is-split > .qf-qcol .qf-start { margin: 0 0 12px; }
+.pa .qf-sheet.is-split .qf-pinstart { display: grid; gap: 10px; justify-items: start; }
+.pa .qf-sheet.is-split .qf-pinstart > .qs-cropbox, .pa .qf-sheet.is-split .qf-pinstart .qs-cropbox { width: 100%; }
+.pa .qf-sheet.is-split .qs-cropbox .qs-zoom { left: 6px; right: auto; top: auto; bottom: 6px; }
+.pa .qf-sheet.is-split .qs-cropbox .qs-zoom::before { left: 8px; }
+.pa .qf-sheet.is-split .qs-fig-cap { margin: 0 0 6px; font: 800 12.5px var(--f-body); color: var(--soft); }
+.pa .qf-sheet.is-split .qf-pic > .qs-astext { text-align: left; }
+.pa .qf-sheet.is-split .qf-pic > .qs-astext > summary { justify-content: flex-start; }
+.pa .qf-sheet.is-split .qf-ans .qs-zone[data-mode] .qs-zone-head { height: auto; flex-wrap: wrap; row-gap: 4px; }
+.pa .qf-pins { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pa .qf-pin, .pa .qf-wider { display: inline-flex; align-items: center; gap: 6px; border-style: dashed; white-space: nowrap; }
+.pa .qs-zone-head .qf-pin, .pa .qs-zone-head .qf-wider { border: 1.5px dashed rgba(34, 48, 77, .4); background: rgba(255, 255, 255, .6); }
+.pa .qs-zone-head .qf-pin[aria-pressed="true"] { border-style: solid; border-color: var(--ink); background: #fff3cf; }
+.pa .qf-pin svg { flex: none; }
+
+.pa .qf-peek { position: sticky; top: var(--qf-gap, 136px); height: 0; z-index: 6; }
+.pa .qf-peekbar { position: absolute; left: -18px; right: -18px; top: 0; background: var(--paper-cream, #fffaf0); border-bottom: 2px solid var(--ink); box-shadow: 0 6px 14px rgba(60, 40, 30, .16); }
+.pa .qf-peekbtn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 18px; border: 0; background: none; color: var(--ink); cursor: pointer; text-align: left; }
+.pa .qf-peeklab { flex: none; font: 700 19px/1 var(--f-hand); }
+.pa .qf-peekcut { flex: 1 1 0; min-width: 0; height: 34px; overflow: hidden; border: 1.5px solid rgba(34, 48, 77, .4); border-radius: 6px; background: #fff; }
+.pa .qf-peekcut img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 0 0; }
+.pa .qf-peekfig { flex: none; width: 34px; height: 34px; overflow: hidden; border: 1.5px solid rgba(34, 48, 77, .4); border-radius: 6px; background: #fff; }
+.pa .qf-peekfig img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 0 0; }
+.pa .qf-peekgo { flex: none; display: inline-flex; align-items: center; gap: 2px; font: 800 13px var(--f-body); color: var(--soft); }
+.pa .qf-peekbtn[aria-expanded="true"] .qf-peekgo svg { transform: rotate(180deg); }
+.pa .qf-peekbtn:focus-visible { outline: 3px solid var(--navy); outline-offset: -3px; }
+.pa .qf-peekpanel { position: fixed; z-index: 11; top: calc(var(--qf-gap, 136px) + 50px); left: 50%; transform: translateX(-50%); width: min(calc(100vw - 16px), 760px); display: grid; gap: 10px; box-sizing: border-box; max-height: min(62vh, calc(100vh - var(--qf-gap, 136px) - 50px - 110px)); max-height: min(62dvh, calc(100dvh - var(--qf-gap, 136px) - 50px - 110px)); overflow-y: auto; padding: 12px 14px 16px; background: var(--paper-cream, #fffaf0); border: 2px solid var(--ink); border-top: 0; border-radius: 0 0 14px 14px; box-shadow: 0 12px 28px rgba(60, 40, 30, .24); }
+.pa .qf-peekpanel .qf-startbtn { justify-self: start; }
+@media (max-width: 640px) { .pa .qf-peekbar { left: -10px; right: -10px; } .pa .qf-peekbtn { padding-inline: 10px; } .pa .qf-peekpanel { padding-inline: 10px; } }
+@media (pointer: coarse) { .pa .qf-peekbtn { min-height: 52px; } }
+@media (prefers-reduced-motion: no-preference) { .pa .qf-peekbtn .qf-peekgo svg { transition: transform .15s; } }
+@media (forced-colors: active) { .pa .qf-peekbar { border: 2px solid CanvasText; } .pa .qf-sheet.is-split > .qf-qcol { border-right: 2px solid CanvasText; } }
+.pa .qf-sheet:has(.qf-peekbar:not([hidden])) { z-index: 8; }   /* the bar and the question over the page lie above what follows the card (the sheet is its own stacking layer) */
