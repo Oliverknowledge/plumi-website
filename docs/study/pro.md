@@ -27,8 +27,11 @@ Pro is bought **only in the Plumi app on iPad**. The website only **reads** the 
 | `state` | Meaning | On screen |
 | --- | --- | --- |
 | `unknown` | The answer is on its way, or could not be had (Supabase slow or down, an error) | Neutral: no lock, no tag. Never "free". Asked again after 60 s |
-| `free` | Signed out, anonymous, no record, expired, revoked | Locked tiles, the panel on a tap, "Free plan" in Settings |
+| `free` | Signed out, anonymous, no record, expired, revoked: the server **said so** | Locked tiles, the panel on a tap, "Free plan" in Settings |
+| `session` | The server would not take the student's sign-in (401), even after the client renewed it once. **The plan is not known**, so this is never `free` (a Pro student must not be told they are free) | Settings: "Your sign-in has run out. Sign out and sign in again to see your plan." with Sign out, no "Free plan" and no "bought in the app". Tiles stay locked (Pro tag); the panel says "Your sign-in has run out. Sign in again, then it will work here." with a Sign in button (it signs out first, because /sign-in sends a signed-in student straight back). No error code |
 | `pro` | A live record | Open. "You have Plumi Pro", "Active until 14 Dec" from `expires_at`. We never say it renews |
+
+**A 401 is `session`, never `free`.** The client (`askWithRefresh` in `client.ts`) renews the session ONCE (`refreshAccessToken` in `account.ts`) and asks once more with the new token: accepted gives `pro` or `free` as the server says; still refused, or the renewal refused, gives `session`; a renewal that could not reach the network gives `unknown` (asked again after 60 s). There is no loop: a `session` answer is kept like any other, and is asked again only on Check again, when the tab returns after 5 minutes, or when a new sign-in changes the token. When the renewal fails with a plain "invalid refresh token" (`isDeadSession` in `authErrors.ts`: a 400/401 naming the refresh token, or no session), or `getSession()` reports one, the student is also signed out **in this browser only** (`signOut({scope: "local"})`), so the app shows signed out instead of signed in with a dead session. Never for a network or server error (0, 429, 5xx). The server still answers 401 `token` for a bad token.
 
 Signed out is `free` at once (no flash). The answer is kept for the visit; it is asked again when the tab comes back after 5 minutes or more (the old answer stays on screen until the new one lands) and after signing in or out. Settings "Check again" asks again past every cache (`?fresh=1`, which also skips the server's 30 s cache), for the minute after a purchase on iPad.
 
@@ -58,7 +61,7 @@ In a build that is **not production** (`next dev`, tests) add `?pro=on` or `?pro
 ## Checks
 
 ```bash
-npm run app:test                      # includes src/lib/pro/*.test.ts
+npm run app:test                      # includes src/lib/pro/*.test.ts and src/lib/authErrors.test.ts
 npm run build && npm run decks:leak-check   # the mark scheme card text is absent from the static output
 ```
 
@@ -66,8 +69,9 @@ npm run build && npm run decks:leak-check   # the mark scheme card text is absen
 
 1. Sign in on the iPad with a Plumi account and buy Pro in the App Store Sandbox. Check the `account_entitlements` row appears for that account (`status = 'active'`, `expires_at` ahead).
 2. On the website, sign in to the **same** account. Settings, "Plumi Pro": "You have Plumi Pro", "Active until <date>". Flashcards, Ready-made decks, Mark scheme: a plus on each deck; tapping adds one.
-3. Signed out, or with a free account: locked tiles, the panel, "Free plan". `curl -i https://<site>/api/premade/markscheme/aqa-7402` is 401; with a free account's token it is 403.
-4. Right after buying: Settings, "Check again" turns "Free plan" into "You have Plumi Pro" without a reload.
+3. A session the server has ended (sign out on another device, or an old tab): Settings says "Your sign-in has run out" (or, when the refresh token is plainly dead, the app simply shows signed out), never "Free plan".
+4. Signed out, or with a free account: locked tiles, the panel, "Free plan". `curl -i https://<site>/api/premade/markscheme/aqa-7402` is 401; with a free account's token it is 403.
+5. Right after buying: Settings, "Check again" turns "Free plan" into "You have Plumi Pro" without a reload.
 
 ## Three prerequisites (none is done by this code)
 

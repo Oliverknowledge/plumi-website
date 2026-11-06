@@ -35,8 +35,14 @@ describe("what Settings says about the plan", () => {
     assert.equal(e.tone, "later");
     assert.ok(!/free/i.test(e.headline));
   });
+  it("session (the server would not take the sign-in): the plan is not known, so never 'Free plan' and never 'bought in the app'", () => {
+    const l = describePlan({ state: "session" }, { signedIn: true, loading: false }, NOW);
+    assert.deepEqual(l, { tone: "session", headline: "Your sign-in has run out.", detail: "Sign out and sign in again to see your plan." });
+    assert.ok(!/free|iPad|app\b/i.test(`${l.headline} ${l.detail}`));
+    assert.equal(describePlan({ state: "session" }, { signedIn: false, loading: false }, NOW).tone, "signedout", "signed out wins");
+  });
   it("no price, no buy words, no em dash anywhere a student reads", () => {
-    const all = [describePlan({ state: "free", reason: "none" }, { signedIn: true, loading: false }), describePlan(pro("2026-12-14T09:00:00Z"), { signedIn: true, loading: false })].map((l) => `${l.headline} ${l.detail ?? ""}`).join(" ");
+    const all = [describePlan({ state: "free", reason: "none" }, { signedIn: true, loading: false }), describePlan(pro("2026-12-14T09:00:00Z"), { signedIn: true, loading: false }), describePlan({ state: "session" }, { signedIn: true, loading: false })].map((l) => `${l.headline} ${l.detail ?? ""}`).join(" ");
     assert.ok(!/[$£€]|price|cheap|buy|subscribe|—/i.test(all));
   });
 });

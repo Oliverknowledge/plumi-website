@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { boardFor, entriesOf, GROUPS, loadMarkScheme, loadMarkSchemeIndex, loadPremade, MarkSchemeDenied, msEntriesFromIndex, MS_BOARDS, orderSpecs, PREMADE_SUBJECTS, toAdd, type MsIndexSpec, type PremadeEntry, type PremadeGroup, type PremadeSlug } from "@/lib/studyapp/premade";
 import type { PremadeSubject } from "@/lib/studyapp/premadeBuild";
-import { accessToken, usePro } from "@/lib/pro/client";
+import { accessToken } from "@/lib/account";
+import { usePro } from "@/lib/pro/client";
 import { useProLock } from "../../pro/ProGate";
 import { ProTag } from "../../pro/ProTag";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
@@ -97,7 +98,7 @@ function SubjectDecks({ slug, own }: { slug: PremadeSlug; own: (g: PremadeGroup)
     }
     // Mark scheme: Pro only. The tile only says so; the server is what decides. A free student gets the panel; if the plan could not be read, ask the server anyway.
     const plan = pro.state === "unknown" ? await pro.ready() : pro.plan;
-    if (plan.state === "free") { lock.tap(); return; }
+    if (plan.state === "free" || plan.state === "session") { lock.tap(); return; }
     setBusy(true);
     try {
       const token = await accessToken();
@@ -109,7 +110,7 @@ function SubjectDecks({ slug, own }: { slug: PremadeSlug; own: (g: PremadeGroup)
       track("premade_deck_added", { subject: slug, deck: entry.key, group });
       toast("Deck added");
     } catch (err) {
-      if (err instanceof MarkSchemeDenied) lock.tap();
+      if (err instanceof MarkSchemeDenied) { await pro.refresh(); lock.tap(); }   // (asked again first, so the panel says the true reason: a sign-in that has run out is not "buy Pro")
       else toast("That deck didn\u2019t open. Try again.");
     } finally { setBusy(false); }
   };
@@ -145,7 +146,7 @@ function SubjectDecks({ slug, own }: { slug: PremadeSlug; own: (g: PremadeGroup)
         <ul className="cat-grid" data-testid="cat-decks">
           {entries.map((e) => {
             const added = has(e.key);
-            const locked = group === "ms" && pro.state === "free";
+            const locked = group === "ms" && (pro.state === "free" || pro.state === "session");
             const waiting = group === "ms" && pro.state === "unknown";
             return (
               <li key={e.key}>
