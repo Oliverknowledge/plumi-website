@@ -15,18 +15,22 @@ Everything older is on the School Support Hub, behind a school login, and is not
 fetched (gaps.md says what's missing per syllabus). Covers:
 
   cie        International AS & A Level Maths 9709, Further Maths 9231,
-             Biology 9700, Chemistry 9701, Physics 9702
+             Biology 9700, Chemistry 9701, Physics 9702, Computer Science 9618
   cie-igcse  IGCSE Maths 0580, Maths (9-1) 0980, Additional Maths 0606,
              Biology 0610 / 0970, Chemistry 0620 / 0971, Physics 0625 / 0972
 
 Downloads question papers, mark schemes, examiner reports, confidential
 instructions (kind "ins"), inserts and grade thresholds, unmodified, to
-.work/cie/pdf/CIE-<code with / as ->-<KIND>-<SERIES>.pdf, and writes
+.work/cie/pdf/CIE-<code with / as ->-<KIND>-<SERIES>.pdf, and Computer Science
+Paper 4's support files (kind "data", the zip of the evidence document and data
+files a candidate works from) as .zip. Its specimen Paper 4 is only published as a
+zip of the question paper and evidence document: the zip is its "data", and the
+question paper is taken out of it as the "qp", and writes
 .work/cie/manifest.json (boards/README.md) and .work/cie/gaps.md. Polite: one
 request at a time, pages cached for a week (--refresh re-reads them), PDFs cached
 for good, so a re-run fetches only what's missing.
 """
-import datetime, html, json, os, re, sys, time, urllib.error, urllib.request
+import datetime, html, io, json, os, re, sys, time, urllib.error, urllib.request, zipfile
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130 Safari/537.36"
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -49,6 +53,7 @@ SYLLABUSES = {
     "9700": ("a-level-biology", "cie", "AS & A Level (9700)", "cambridge-international-as-and-a-level-biology-9700"),
     "9701": ("a-level-chemistry", "cie", "AS & A Level (9701)", "cambridge-international-as-and-a-level-chemistry-9701"),
     "9702": ("a-level-physics", "cie", "AS & A Level (9702)", "cambridge-international-as-and-a-level-physics-9702"),
+    "9618": ("a-level-computer-science", "cie", "AS & A Level (9618)", "cambridge-international-as-and-a-level-computer-science-9618"),
     "0580": ("gcse-maths", "cie-igcse", "IGCSE Mathematics (0580)", "cambridge-igcse-mathematics-0580"),
     "0980": ("gcse-maths", "cie-igcse", "IGCSE Mathematics 9–1 (0980)", "cambridge-igcse-mathematics-9-1-0980"),
     "0606": ("gcse-maths", "cie-igcse", "IGCSE Additional Mathematics (0606)", "cambridge-igcse-mathematics-additional-0606"),
@@ -73,6 +78,7 @@ PAPER_NAMES = {
     "9231": {"1": "Further Pure Mathematics 1", "2": "Further Pure Mathematics 2", "3": "Further Mechanics",
              "4": "Further Probability & Statistics"},
     "9700": SCIENCE_AL, "9701": SCIENCE_AL, "9702": SCIENCE_AL,
+    "9618": {"1": "Theory Fundamentals", "2": "Fundamental Problem-solving and Programming Skills", "3": "Advanced Theory", "4": "Practical"},
     "0580": MATHS_IG, "0980": MATHS_IG,
     "0606": {"1": "Non-calculator", "2": "Calculator"},
     "0610": SCIENCE_IG, "0970": SCIENCE_IG, "0620": SCIENCE_IG, "0971": SCIENCE_IG, "0625": SCIENCE_IG, "0972": SCIENCE_IG,
@@ -124,7 +130,9 @@ def text(s):
 def classify(title):
     """'June 2024 Mark Scheme Paper 11' -> ('ms', '11'); '2023 Specimen Paper 5 Confidential Instructions' -> ('ins', '5')."""
     t = title.lower()
-    if re.search(r"confidential instructions|insert|pre-release|source booklet", t):
+    if "support file" in t:
+        kind = "data"
+    elif re.search(r"confidential instructions|insert|pre-release|source booklet", t):
         kind = "ins"
     elif re.search(r"mark ?scheme", t):
         kind = "ms"
@@ -150,7 +158,7 @@ def syllabus_files(syl):
     for sec in re.finditer(r'<div class="related-dynamic-content-list ([a-z-]+)">(.*?)</div>', body, re.S):
         section, chunk = sec.group(1), sec.group(2)
         year = month = None
-        for tok in re.finditer(r"<h3>(.*?)</h3>|<h4>(.*?)</h4>|<a href=\"(/Images/[^\"]+\.pdf)\"[^>]*>(.*?)</a>", chunk, re.S):
+        for tok in re.finditer(r"<h3>(.*?)</h3>|<h4>(.*?)</h4>|<a href=\"(/Images/[^\"]+\.(?:pdf|zip))\"[^>]*>(.*?)</a>", chunk, re.S):
             if tok.group(1) is not None:
                 year, month = text(tok.group(1)), None
                 continue
@@ -171,6 +179,8 @@ def syllabus_files(syl):
             else:
                 print(f"  {syl}: no series for {title!r}", file=sys.stderr)
                 continue
+            if href.endswith(".zip") and kind == "qp":  # 9618's specimen Paper 4: the zip is its support files, the paper inside it
+                out.append({"kind": "data", "comp": comp, "series": series, "title": title, "source": SITE + href, "year": year})
             out.append({"kind": kind, "comp": comp, "series": series, "title": title, "source": SITE + href, "year": year})
     return out, url
 
@@ -224,12 +234,17 @@ def code_of(syl, comp):
 
 
 def download(url, out):
+    """A PDF or a zip, as published; a PDF from a zip (a paper only published in one) is the zip's one PDF."""
     if os.path.exists(out):
         return True
     body = get(url, binary=True)
     time.sleep(0.5)
-    if not body or not body.startswith(b"%PDF"):
-        print("  not a pdf", url, file=sys.stderr)
+    if body and url.endswith(".zip") and out.endswith(".pdf") and body.startswith(b"PK"):
+        with zipfile.ZipFile(io.BytesIO(body)) as z:
+            pdfs = [n for n in z.namelist() if n.lower().endswith(".pdf")]
+            body = z.read(pdfs[0]) if len(pdfs) == 1 else None
+    if not body or not body.startswith(b"PK" if out.endswith(".zip") else b"%PDF"):
+        print("  not a " + out.rsplit(".", 1)[1], url, file=sys.stderr)
         return False
     with open(out, "wb") as fh:
         fh.write(body)
@@ -258,7 +273,7 @@ def main():
                 entries.append((syl, "Grade thresholds", "gt", series, src))
         seen = set()
         for code, paper, kind, series, src in entries:
-            name = f"CIE-{code.replace('/', '-')}-{kind.upper()}-{series}.pdf"
+            name = f"CIE-{code.replace('/', '-')}-{kind.upper()}-{series}.{'zip' if kind == 'data' else 'pdf'}"
             if name in seen:
                 print(f"  {syl}: two files for {name}, kept the first", file=sys.stderr)
                 continue

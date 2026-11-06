@@ -1,0 +1,176 @@
+{
+ "_about": "Topic list for the Edexcel Statistics bank (9ST0 and AS 8ST0): the 21 numbered content areas of Pearson's A level Statistics specification (Issue 2, January 2024), in the shape spec.py writes for AQA ({key: [{code, title, level, text}]}). Codes are ours: the letter is a section we group them under for browsing, the number is the specification's own topic number (H.8 = topic 8, Introduction to hypothesis testing), so a student's 'unit 14' is R.14. 'text' is the specification's content wording, used only for tagging. The Statistical Enquiry Cycle (SEC) is assessed through all of them and is not a topic of its own.",
+ "statistics": [
+  {
+   "code": "D",
+   "title": "Data and probability",
+   "level": 1,
+   "text": ""
+  },
+  {
+   "code": "D.1",
+   "title": "Numerical measures, graphs and diagrams",
+   "level": 2,
+   "section": "D",
+   "text": "Interpret statistical diagrams including bar charts, stem and leaf diagrams, box and whisker plots, cumulative frequency diagrams, histograms (with either equal or unequal class intervals), time series and scatter diagrams. Students will not be required to draw or construct statistical diagrams. Students may be required to comment on or interpret the main features of published visualisations (for example those listed opposite) or critically assess published visualisations. This may include examples which draw upon multivariate data.* Know the features needed to ensure an appropriate representation of data using the above diagrams, and how misrepresentation may occur. Justify appropriate graphical representation and comment on those published. Compare different data sets, using appropriate diagrams or calculated measures of central tendency and spread: mean, median, mode, range, interquartile range, percentiles, variance and standard deviation. Students may be required to comment on or interpret the main features of published visualisations (for example those listed in section ). This may include examples which draw upon multivariate data.* Calculate measures using calculators and manual calculation as appropriate. Where raw data is given candidates will be expected to obtain the values of the mean, standard deviation and variance directly from a calculator. Identify outliers by inspection and using appropriate calculations. Determine the nature of outliers in reference to the population and original data collection process. Appreciate that data can be misrepresented when used out of context or through misleading visualisation. This may include examples which draw upon multivariate data.*"
+  },
+  {
+   "code": "D.2",
+   "title": "Probability",
+   "level": 2,
+   "section": "D",
+   "text": "Know and use language and symbols associated with set theory in the context of probability. The complement of the set A will be denoted by the symbol A'. Represent and interpret probabilities using tree diagrams, Venn diagrams and two-way tables. Calculate and compare probabilities: single, independent, mutually exclusive and conditional probabilities. Use and apply the laws of probability to include conditional probability. To include addition and multiplication laws. Determine if two events are statistically independent. E E − ∑ as an approximate χ2 statistic. Students will be expected to know how to find the number of degrees of freedom and that questions set will not require the use of Yates’ correction. Students must follow the rule to combine classes when expected frequencies are smaller than 5, and 'pooling' is sensible."
+  },
+  {
+   "code": "D.3",
+   "title": "Population and samples",
+   "level": 2,
+   "section": "D",
+   "text": "Know both simple (without replacement) and unrestricted (with replacement) random samples. Students should know that for a random sample of size n: every member of the population is equally likely to be included all subsets of the population of size n must be possible or that every possible sample of size n must be equally likely to occur. Know how to obtain a random sample using random numbers tables or random numbers generated on a calculator. Evaluate the practical application of random and non-random sampling techniques: simple random, systematic, cluster, judgmental and snowball, including the use of stratification (in proportional and disproportional ratios) prior to sampling taking place. Students should appreciate that snowball sampling can be used to reach populations that are difficult to sample when using other sampling methods e.g. drug users. Know the advantages and limitations of sampling methods. Make reasoned choices with reference to the context in which the sampling is to take place. Examples include, but are not limited to: market research, exit polls, experiments and quality assurance. Understand the practical constraints of collecting unbiased data."
+  },
+  {
+   "code": "D.11",
+   "title": "Bayes’ theorem",
+   "level": 2,
+   "section": "D",
+   "text": "Calculate and use conditional probabilities to include Bayes’ theorem for up to three events, including the use of tree diagrams."
+  },
+  {
+   "code": "B",
+   "title": "Probability distributions",
+   "level": 1,
+   "text": ""
+  },
+  {
+   "code": "B.4",
+   "title": "Introduction to probability distributions",
+   "level": 2,
+   "section": "B",
+   "text": "Know and use terms for variability: random, discrete, continuous, dependent and independent. With reference to random variables. Calculate probabilities and determine expected values, variances and standard deviations for discrete distributions. Such distributions may be explained in words, given in a table or by definition of the discrete probability function. Use discrete random variables to model real-world situations. Know the properties of a continuous distribution. Interpret graphical representations or tabulated probabilities of characteristic discrete random variables. Interpret rectilinear graphical representations of continuous distributions. With reference to the uniform distribution only."
+  },
+  {
+   "code": "B.5",
+   "title": "Binomial distribution",
+   "level": 2,
+   "section": "B",
+   "text": "Know when a binomial model is appropriate (in real world situations including modelling assumptions). Know methods to evaluate or read probabilities using formula and tables. Students may use calculator functions to obtain binomial probabilities and are advised to do so. Calculate and interpret the mean and variance. Students will not be expected to derive the formulae for the mean and variance."
+  },
+  {
+   "code": "B.6",
+   "title": "Normal distribution",
+   "level": 2,
+   "section": "B",
+   "text": "Know the specific properties of the normal distribution, and know that data from such an underlying population would approximate to having these properties, with different samples showing variation. Students should be aware that the normal distribution has a bell-shaped probability density curve. Apply knowledge that approximately 2 3 of observations lie within μ ±σ , and equivalent results for 2σ and 3σ . Students should learn that approximately 95% of observations lie within μ ± 2σ and approximately % of observations lie within μ ± 3σ Determine probabilities and unknown parameters with a normal distribution. Students may use calculator functions to obtain information for a normal distribution directly and are advised to do so. Apply the normal distribution to model real-world situations. Use the fact that the distribution of X has a normal distribution if X has a normal distribution. Students are expected to know that X ~ 2 , N n σ µ       Use the fact that the normal distribution can be used to approximate a binomial distribution under particular circumstances. Students should learn that, as an alternative to using the exact binomial distribution, the normal distribution may be used to approximate a binomial distribution when: n  20 and p ≈ np ˃10 or n(1−p) ˃10 Students will be expected to use a continuity correction when finding a probability if a normal approximation to a binomial distribution is used."
+  },
+  {
+   "code": "B.12",
+   "title": "Probability distributions",
+   "level": 2,
+   "section": "B",
+   "text": "Know the use and validity of distributions which could be appropriate in a particular real world situation: binomial, normal, Poisson and exponential. Evaluate the mean and variance of linear combinations of independent random variables through knowledge that if Xi are independently distributed ( ) 2 , i i µ σ then i i a X ∑ is distributed( ) 2 2 , i i i i a a ∑ ∑ µ σ . Students should know that ( ) ( ) ( ) E E E aX bY a X b Y ± = ± Evaluate probabilities for linear combinations of two or more independent normal distributions and apply this knowledge to practical situations."
+  },
+  {
+   "code": "B.18",
+   "title": "Exponential and Poisson distributions",
+   "level": 2,
+   "section": "B",
+   "text": "Determine when a Poisson model is appropriate (in real world situations including modelling assumptions). Students will be expected to know the conditions necessary for a Poisson model to be appropriate and to explain or discuss whether these conditions are likely to be present in a given context. Determine when an exponential distribution is appropriate (and its relationship to the Poisson distribution as a model of the times between randomly occurring Poisson events). Students will be expected to know and use the relationship between corresponding Poisson and exponential distributions, in a given context, for Poisson events occurring randomly in time or in space. Evaluate probabilities for Poisson and exponential distributions and know the corresponding mean and variance. Students will not be expected to derive the formulae for the mean and variance."
+  },
+  {
+   "code": "R",
+   "title": "Relationships, experiments and sampling",
+   "level": 1,
+   "text": ""
+  },
+  {
+   "code": "R.7",
+   "title": "Correlation and linear regression",
+   "level": 2,
+   "section": "R",
+   "text": "Calculate (only using appropriate technology ‒ calculator) and interpret association using Spearman’s rank correlation coefficient or Pearson’s product moment correlation coefficient. When evaluating Spearman’s coefficient, candidates will be expected to: rank both variables consistently rank tied values appropriately use a calculator to obtain the value of Spearman’s rank correlation coefficient Students will be expected to find Pearson’s product moment correlation coefficients directly from the calculator. Interpretation of correlation coefficients should always be in the context of the question. Use tables to test for significance of a correlation coefficient. A test on a Pearson’s correlation coefficient requires the assumption that the population has a bivariate normal distribution. Know the appropriate conditions for the use of each of these methods of calculating correlation and determine an appropriate approach to assessing correlation in context. Pearson’s product moment correlation coefficient measures the strength of the linear relationship between 2 variables. For Spearman’s rank correlation coefficient, no assumptions are necessary regarding the distribution used. Calculate (only using appropriate technology ‒ calculator) and interpret the coefficients for a least squares regression line in context; interpolation and extrapolation, and use of residuals to evaluate the model and identify outliers. Students will be expected to find the coefficients for a least squares regression line directly from the calculator. Students will be expected to know that residual i i y a bx = −− for a least squares regression line of the form y a bx = + Students will be expected to make a numeric evaluation of a residual when asked for the value of a specific residual(s) but may be asked to make general comments regarding residuals visually from a scatter graph with a line of best fit drawn on it."
+  },
+  {
+   "code": "R.13",
+   "title": "Experimental design",
+   "level": 2,
+   "section": "R",
+   "text": "Know and discuss issues involved in experimental design: experimental error, randomisation, replication, control and experimental groups, and blind and double blind trials. Students will be expected to explain and discuss these concepts in a given context. (applies to all of section 13) Know the benefits of use of paired comparisons and blocking to reduce experimental error. Use completely random and randomised block designs."
+  },
+  {
+   "code": "R.14",
+   "title": "Sampling, estimates and resampling",
+   "level": 2,
+   "section": "R",
+   "text": "Use and demonstrate understanding of terms parameter, statistic, unbiased and standard error. Students will be expected to know that: a parameter is a numerical property of a population a statistic is a numerical property of a sample and is a function of only the values in the sample and contains no unknown parameters. Know the use of the central limit theorem in the distribution of X where the initial distribution, X, is not normally distributed and the sample is large. Students are expected to know that: the central limit theorem may be used when the sample size (of random samples) is sufficiently large (n 30) it is only necessary to use the central limit theorem when the underlying population is not normally distributed."
+  },
+  {
+   "code": "H",
+   "title": "Hypothesis testing and inference",
+   "level": 1,
+   "text": ""
+  },
+  {
+   "code": "H.8",
+   "title": "Introduction to hypothesis testing",
+   "level": 2,
+   "section": "H",
+   "text": "Use and demonstrate understanding of the terms parameter, statistic, unbiased and standard error. Students will be expected to know that: a parameter is a numerical property of a population a statistic is a numerical property of a sample and is a function only of the values in the sample and contains no unknown parameters. Students should be familiar with the notations µ and σ 2 for a population mean and variance respectively. Know and use the language of statistical hypothesis testing: null hypothesis, alternative hypothesis, significance level, test statistic, 1- tail test, 2-tail test, critical value, critical region, and acceptance region and p-value. Students will be expected to use the convention of a 5% significance level unless directed otherwise. Know that a sample is being used to make an inference about the population and appreciate the need for a random sample and of the necessary conditions. Students should be aware that a conclusion to a hypothesis test should not be stated as definite. Choose the appropriate hypothesis test to carry out in particular circumstances. Conduct a statistical hypothesis test for the proportion in the binomial distribution and interpret the results in context using exact probabilities or, where appropriate, a normal approximation. In a hypothesis test on a population proportion, candidates may use either π or p as the parameter in their hypotheses. Conduct a statistical hypothesis test for the mean of a normal distribution with known or assumed variance, from a large sample, and interpret the results in context. Know the importance of appropriate sampling when using hypothesis tests and be able to critique the conclusions drawn from rejecting or failing to reject a null hypothesis by considering the test performed."
+  },
+  {
+   "code": "H.9",
+   "title": "Contingency tables",
+   "level": 2,
+   "section": "H",
+   "text": "Construct contingency tables from real data, combining data where appropriate, and interpret results in context. Use a χ2 test with the appropriate number of degrees of freedom to test for independence in a contingency table and interpret the results of such a test. Students will be expected to know how to find the number of degrees of freedom and that questions set will not require the use of Yates’ correction. Know that expected frequencies must be greater than, or equal to, 5 for a χ2 test to be carried out and understand the requirement for combining classes if that is not the case. Students must combine classes when expected frequencies are smaller than 5, and 'pooling' is sensible."
+  },
+  {
+   "code": "H.10",
+   "title": "One and two sample non-parametric tests",
+   "level": 2,
+   "section": "H",
+   "text": "Use sign or Wilcoxon signed-rank tests to investigate population median in single sample tests and also to investigate for differences using a paired model. Students will be expected to use the sign test or the Wilcoxon signed-rank test to: test the value of a single population median based on a single sample test for a difference between two population medians based on a sample of 'paired' data. Students will be expected to learn and recall necessary conditions for the validity of these tests, and may be required to use these to select the test that is most appropriate in a given context. Sign test – no assumptions necessary regarding the distribution for test to be valid. Wilcoxon signed-rank test – assumption that the distribution is symmetrical, or that the distribution of differences is symmetrical in the case of a paired test, for test to be valid. Use the Wilcoxon rank-sum test to investigate for difference between independent samples. Students will be expected to test for a difference between two population medians, based on two independent samples, using the Wilcoxon rank-sum test (this is also known as the Mann-Whitney test)."
+  },
+  {
+   "code": "H.15",
+   "title": "Hypothesis testing, significance testing, confidence intervals and power",
+   "level": 2,
+   "section": "H",
+   "text": "Use confidence intervals for the mean using z or t as appropriate, interpreting results in practical contexts. Students are expected to use the t-distribution when the sample size is small (n < 30) and the population standard deviation,σ , is unknown. Students should be familiar with the notation x and s2 as statistics evaluated from a sample for respective estimates of µ and 2 σ . Students should know that the (n −1) divisor is used when evaluating s2. Students will be expected to learn the formulae for constructing a confidence interval for a population mean: ( ) ( ) or standarderror x z t ± × Know that a change in sample size will affect the width of a confidence interval. Students will be expected to be able to find the sample size required in order to obtain a confidence interval with a specified width. Evaluate the strength of conclusions and misreporting of findings from hypothesis tests, including the calculation and importance of the power of a hypothesis test. See Know that sample size can be changed to potentially elicit appropriate evidence in a hypothesis test. and power (continued) Interpret Type I and Type II errors, in hypothesis testing and know their practical meaning. Students will be expected to know that: a Type I error is when the null hypothesis is true but is rejected a Type II error is when the null hypothesis is false but is accepted and that these should be interpreted in the given context. Students should understand the link between the significance level of a test and the probabilities of Type I and Type II errors for the test. Also, the impact on these errors of selecting a different significance level. Calculate the risk of a Type II error. Students are expected to know that the power of a test is given by Power = 1 – P(Type II error). Students will not be required to draw a power curve. Know the difference and advantages of using critical regions or p-values as appropriate in real life contexts in all tests in this subject content. In hypothesis tests on population correlation coefficients, p-values will not be used."
+  },
+  {
+   "code": "H.16",
+   "title": "Hypothesis testing for 1 and 2 samples",
+   "level": 2,
+   "section": "H",
+   "text": "Know how to apply knowledge about carrying out hypothesis testing to conduct tests for the: mean of a normal distribution with unknown variance using the t-distribution Students are expected to use the t-distribution when the sample size is small (n < 30) and the population standard deviation,σ , is unknown. t-test – assumption required is that the distribution is normal for test to be valid. difference of two means for two independent normal distributions with known variances difference of two means for two independent normal distributions with unknown but equal variances Students should be aware that a test for a difference of two means for two independent normal distributions with unknown variances is valid only if equal variances can be assumed. Candidates will be expected to use a pooled estimate for an unknown common population variance. Candidates will not be expected to test for equality of variances. t-test – assumptions required are that both distributions are normal and have equal variances for test to be valid. difference between two binomial proportions Candidates will be expected to use a pooled estimate for an unknown population proportion. interpret results for these tests in context."
+  },
+  {
+   "code": "H.17",
+   "title": "Paired tests",
+   "level": 2,
+   "section": "H",
+   "text": "Use sign, Wilcoxon signed-rank or paired t-test, understanding appropriate test selection and interpreting the results in context. Students will be expected to use the sign and Wilcoxon signed-ranked tests for paired data. Students will be expected to learn and recall necessary conditions for the validity of these tests, and may be required to use these to select the test that is most appropriate in a given context. Sign test – no assumption necessary regarding the distribution for test to be valid. Wilcoxon signed-rank test – assumption that the distribution of differences is symmetrical for test to be valid. Paired t-test – assumption required is that the distribution of differences is normal for test to be valid."
+  },
+  {
+   "code": "H.19",
+   "title": "Goodness of fit",
+   "level": 2,
+   "section": "H",
+   "text": "Conduct a chi-squared goodness of fit test for binomial, Poisson, normal and exponential distributions, or for a specified discrete distribution, using the sum of (O - E)^2 / E as an approximate chi-squared statistic. Find the degrees of freedom; no Yates' correction. Combine classes when expected frequencies are smaller than 5."
+  },
+  {
+   "code": "H.20",
+   "title": "Analysis of variance",
+   "level": 2,
+   "section": "H",
+   "text": "Conduct one-way analysis of variance, using a completely randomised design with appreciation of the underlying model with additive effects and experimental errors distributed as N(0,σ 2). Students will only be required to use one-factor ANOVA or two-factor ANOVA (and will not be required to use a Latin square). (applies to all of section 20) ANOVA - assumptions that the distributions from which the samples are taken are normal and have equal variances for the test to be valid. Conduct two-way analysis of variance without replication, using a randomised block design with blocking. Identify assumptions and interpretations in context."
+  },
+  {
+   "code": "H.21",
+   "title": "Effect size",
+   "level": 2,
+   "section": "H",
+   "text": "Know the notion of effect size as a complementary methodology to standard significance testing, and apply in authentic contexts. Students should be aware that interpretation of effect size depends on the context involved and that effect size simply quantifies the size of the difference between two means (rather than its statistical significance). Students should also be aware that a p-value, in the context of testing for statistical significance, depends on both the effect size and the sample size. Know and use Cohen’s d in simple situations. Students should be aware of the standard guideline boundaries for interpreting the value of Cohen’s d. d < small effect size d < medium effect size d large effect size"
+  }
+ ]
+}

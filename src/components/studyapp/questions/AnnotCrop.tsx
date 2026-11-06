@@ -10,7 +10,7 @@ import { InkCanvas, type InkCanvasHandle } from "./InkCanvas";
 import { setZoneVisible, useInkSaving, usePenSeen } from "./inkBus";
 import { useMatch } from "./useMatch";
 
-/** The key a part's marks on the question are kept under (IndexedDB), beside its answer's. */
+/** The key a part's writing on the question is kept under (IndexedDB), beside its answer's. */
 export const annotKey = (setId: string, partId: string) => `${setId}/${partId}:q`;
 
 const Icon = ({ d }: { d: string[] }) => (
@@ -29,14 +29,14 @@ type Props = CropProps & {
   part: Pick<QPart, "id" | "l">;
   answer: QAnswer | undefined;
   prefs: QPrefs;
-  /** No marks on this picture now (the feed is full of answers and this question has none: nothing would be kept, so nothing is offered). */
+  /** No writing on this picture now (the feed is full of answers and this question has none: nothing would be kept, so nothing is offered). */
   off?: boolean;
 };
 
 /**
  * The question's picture with a layer of the student's own marks ON it (underline, circle, a sum in the margin, a tick): the strokes are kept in the picture's own units (800 across,
  * the same as an answer, so they follow the picture when it resizes or turns), under their own key, and never touch the answer, its status or its marks. A pen always writes on it; a finger scrolls
- * (or writes, with "Draw with my finger"); a mouse marks only once "Mark up the question" is on. The canvas is made only where it is needed: for a picture with marks, once a pen is put down
+ * (or writes, with "Draw with my finger"); a mouse writes only once "Write on the question" is on. The canvas is made only where it is needed: for a picture with marks, once a pen is put down
  * on it (the stroke is taken up where it began), while the mouse switch is on, or, on a touch screen where a pen has been seen, for the pictures near the screen. It is shown read-only on the enlarged picture.
  */
 export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }: Props) {
@@ -69,7 +69,7 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
   // (said once the strokes stop changing)
   useEffect(() => {
     if (count === saidFor.current) return;
-    const t = setTimeout(() => { saidFor.current = count; setSaid(count > 0 ? `${count} ${count === 1 ? "mark" : "marks"} on this question` : "Marks cleared"); }, 600);
+    const t = setTimeout(() => { saidFor.current = count; setSaid(count > 0 ? `${count} ${count === 1 ? "stroke" : "strokes"} on this question` : "Writing cleared"); }, 600);
     return () => clearTimeout(t);
   }, [count]);
 
@@ -104,7 +104,7 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
   const noop = useCallback(() => undefined, []);
   const onFull = useCallback(() => setFull(true), []);
   const closeAsk = (clear: boolean) => { refocus.current = true; setAsking(false); if (clear) ink.current?.clear(); };
-  // focus goes back to a control after "Clear my marks?" (the Clear button, or what is left of the row), never to the page
+  // focus goes back to a control after "Clear my writing?" (the Clear button, or what is left of the row), never to the page
   useEffect(() => {
     if (asking || !refocus.current) return;
     refocus.current = false;
@@ -167,7 +167,7 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
     >
       {canvasUp && (
         <InkCanvas
-          ref={ink} annot mouseDraws={mouse} inkKey={key} label={`Marks on part ${part.l}`} units={1} bg="plain" tool={prefs.tool} colour={prefs.colour} width={prefs.width}
+          ref={ink} annot mouseDraws={mouse} inkKey={key} label={`Your writing on part ${part.l}`} units={1} bg="plain" tool={prefs.tool} colour={prefs.colour} width={prefs.width}
           fingerScrolls={fingerScrolls} penSeen={penSeen || !!prefs.penSeen} metaN={answer?.ann?.n ?? 0} getCap={getCap} onInk={onInk} onFull={onFull} onFingerTap={noop} onBottom={noop}
         />
       )}
@@ -178,30 +178,30 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
   const cue = false;
   const bare = !mouseAble && count === 0 && !asking && !cue && !full;
   const toolsRow = (
-    <div ref={tools} className={`qs-annot-tools${bare ? " is-bare" : ""}`} role="group" aria-label="Marks on the question" data-testid="annot-tools">
+    <div ref={tools} className={`qs-annot-tools${bare ? " is-bare" : ""}`} role="group" aria-label="Your writing on the question" data-testid="annot-tools">
       {mouseAble && (
-        <button type="button" className={`qs-annot-btn qs-annot-btn-t${mouse ? " on" : ""}`} aria-pressed={mouse} onClick={() => { const next = !mouse; setAnnotMouse(next); if (next) setHidden(false); }} title="Mark up the question with the mouse" data-testid="annot-toggle">
-          <Icon d={PENCIL} /><span className="qs-annot-t">Mark up the question</span><span className="qs-sr">{mouse ? ", on" : ", off"}</span>
+        <button type="button" className={`qs-annot-btn qs-annot-btn-t${mouse ? " on" : ""}`} aria-pressed={mouse} onClick={() => { const next = !mouse; setAnnotMouse(next); if (next) setHidden(false); }} title="Write on the question with the mouse" data-testid="annot-toggle">
+          <Icon d={PENCIL} /><span className="qs-annot-t">Write on the question</span><span className="qs-sr">{mouse ? ", on" : ", off"}</span>
         </button>
       )}
       {cue && <p className="qs-annot-cue" data-testid="annot-cue">write on the question with your pencil</p>}
       {count > 0 && !asking && (
         <>
-          <button type="button" className="qs-annot-btn" aria-pressed={!hidden} aria-label="My marks on the question" title={hidden ? "Show my marks" : "Hide my marks"} onClick={() => setHidden((v) => !v)} data-testid="annot-hide"><Icon d={hidden ? EYE_OFF : EYE} /><span className="qs-annot-t qs-annot-t-d">{hidden ? "Show" : "Hide"}</span></button>
-          {!hidden && <button type="button" className="qs-annot-btn" aria-label="Undo mark on the question" title="Undo mark on the question" onClick={() => ink.current?.dropLast()} data-testid="annot-undo"><Icon d={UNDO} /><span className="qs-annot-t qs-annot-t-d"><span className="qs-annot-long">Undo mark</span><span className="qs-annot-short">Undo</span></span></button>}
-          {!hidden && <button ref={clearBtn} type="button" className="qs-annot-btn" aria-label="Clear my marks" title="Clear my marks" onClick={() => setAsking(true)} data-testid="annot-clear"><Icon d={BIN} /><span className="qs-annot-t qs-annot-t-d">Clear</span></button>}
-          <span className="qs-annot-dot" title="You marked up this question" aria-hidden="true" /><span className="qs-annot-dot-t">You marked up this question</span>
+          <button type="button" className="qs-annot-btn" aria-pressed={!hidden} aria-label="Your writing on the question" title={hidden ? "Show my writing" : "Hide my writing"} onClick={() => setHidden((v) => !v)} data-testid="annot-hide"><Icon d={hidden ? EYE_OFF : EYE} /><span className="qs-annot-t qs-annot-t-d"><span className="qs-annot-long">{hidden ? "Show my writing" : "Hide my writing"}</span><span className="qs-annot-short">{hidden ? "Show" : "Hide"}</span></span></button>
+          {!hidden && <button type="button" className="qs-annot-btn" aria-label="Undo last stroke on the question" title="Undo last stroke on the question" onClick={() => ink.current?.dropLast()} data-testid="annot-undo"><Icon d={UNDO} /><span className="qs-annot-t qs-annot-t-d"><span className="qs-annot-long">Undo</span><span className="qs-annot-short">Undo</span></span></button>}
+          {!hidden && <button ref={clearBtn} type="button" className="qs-annot-btn" aria-label="Clear my writing" title="Clear my writing" onClick={() => setAsking(true)} data-testid="annot-clear"><Icon d={BIN} /><span className="qs-annot-t qs-annot-t-d"><span className="qs-annot-long">Clear my writing</span><span className="qs-annot-short">Clear</span></span></button>}
+          <span className="qs-annot-dot" title="You wrote on this question" aria-hidden="true" /><span className="qs-annot-dot-t">You wrote on this question</span>
         </>
       )}
       {asking && (
-        <span className="qs-annot-ask" role="group" aria-label="Clear my marks?" onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(false); } }}>
-          <span>Clear my marks?</span>
+        <span className="qs-annot-ask" role="group" aria-label="Clear my writing?" onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeAsk(false); } }}>
+          <span>Clear my writing?</span>
           <button type="button" className="qs-mini" autoFocus onClick={() => closeAsk(false)} data-testid="annot-keep">Keep</button>
           <button type="button" className="qs-mini danger" onClick={() => closeAsk(true)} data-testid="annot-clear-yes">Clear</button>
         </span>
       )}
-      {(full || (!saving && count > 0)) && <p className="qs-annot-note" data-testid="annot-note">{full ? "These marks are full. Clear some to add more." : "Not saved on this device. Keep this tab open."}</p>}
-      <span className="qs-sr" role="status" aria-live="polite">{!saving && count > 0 ? "Not saved" : said}{full ? ". These marks are full" : ""}</span>
+      {(full || (!saving && count > 0)) && <p className="qs-annot-note" data-testid="annot-note">{full ? "Your writing here is full. Clear some to add more." : "Not saved on this device. Keep this tab open."}</p>}
+      <span className="qs-sr" role="status" aria-live="polite">{!saving && count > 0 ? "Not saved" : said}{full ? ". Your writing here is full" : ""}</span>
     </div>
   );
 

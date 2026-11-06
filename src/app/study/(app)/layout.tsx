@@ -9,6 +9,7 @@ import "./app.css";
 import "./timer.css";
 import "./vinyl.css";
 import "./settings.css";
+import "./pro.css";
 import "./dark-app.css";
 
 /**

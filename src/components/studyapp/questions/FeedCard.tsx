@@ -3,7 +3,7 @@
 import { memo, useEffect, useId, useMemo, useState } from "react";
 import { partImage, stemImage } from "@/lib/studyapp/questions/cropUrls";
 import { bestState, otherCopy, qStateLine, stateOf, type QState } from "@/lib/studyapp/questions/feed";
-import { cutWords, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs, type QSet } from "@/lib/studyapp/questions/model";
+import { cutWords, isAnswered, isMarked, partAlt, questionOf, type FeedInfo, type QAnswer, type QPrefs, type QSet } from "@/lib/studyapp/questions/model";
 import { toQPart, type BankRow } from "@/lib/studyapp/questions/picker";
 import { startOpens } from "@/lib/questionStart";
 import { qa, registerFeedPart } from "@/lib/studyapp/questions/store";
@@ -22,6 +22,9 @@ import { RulerChip, usePartRuler } from "./RulerChip";
 import { copyFirstOnKey, fingerDraws, marksOnCopy } from "./copyFirst";
 import { symbolsFor } from "@/lib/studyapp/questions/symbols";
 import { useMatch } from "./useMatch";
+import { useOpenAnswer } from "./answerOpen";
+import { usePin } from "./usePin";
+import { QuestionPeek } from "./QuestionPeek";
 
 /** The names a card needs of a subject, made once: the sitting, the paper (by lower-case code) and the topic. */
 export interface FeedLookup { series: Map<string, string>; papers: Map<string, string>; topics: Map<string, string>; trs: Record<string, string>; ins?: Record<string, string>; code?: Record<string, string>; subject: string }
@@ -74,6 +77,11 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const tone = answer?.got === undefined || !part.m ? "" : answer.got >= part.m ? "full" : answer.got > 0 ? "part" : "zero";
   const startId = useId();
   const rl = usePartRuler(part, siblings, info.subject);
+  // A tall question stays in view while its answer is open (split.ts has the rules): two columns on a wide screen, a peek bar on a narrow one.
+  const open = useOpenAnswer(`${view.id}/${part.id}`);
+  const shownZone = !(full && answer === undefined) && (isAnswered(answer) || isMarked(answer) || !!copy || !!open);
+  const pin = usePin({ shown: shownZone, part, answer, stem: !!stemPart, fig: rl.fig?.from ?? null });
+  const split = pin.mode === "split";
   // The paper's booklet or code files, where this question needs them (the transcript has its place under the player).
   const files = useMemo(() => specialsFor(lookup, part).filter((f) => f.kind !== "tr"), [lookup, part]);
   // The card tells the store what this question is; the question joins the feed set at the first real write on it (see `registerFeedPart`), never on a touch or a look.
@@ -101,7 +109,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
   const label = `${series} ${paper}, question ${part.l}`;
   return (
     <article
-      className={`qf-card${st.state === "marked" ? " is-marked" : st.state === "written" ? " is-written" : ""}`} aria-label={label} tabIndex={-1} data-testid="feed-card" data-part={part.id}
+      className={`qf-card${st.state === "marked" ? " is-marked" : st.state === "written" ? " is-written" : ""}${split ? " is-split" : ""}`} aria-label={label} tabIndex={-1} data-testid="feed-card" data-part={part.id} data-pin={pin.mode ?? undefined}
     >
       <div className="qf-left">
         <span className="qf-num" aria-hidden="true">{n}</span>
@@ -118,9 +126,28 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
         </div>
       </div>
 
-      <div className="qf-sheet">
+      <div className={`qf-sheet${split ? " is-split" : ""}`} style={split ? ({ "--qf-qw": `${pin.share}%` } as React.CSSProperties) : undefined}>
         <span className="qf-tape" aria-hidden="true" />
-        {hasStart && (
+        <div className="qf-qcol" data-testid="question-col">
+        {hasStart && (split ? (
+          <div className="qf-start qf-pinstart">
+            {stemPart && <Crop className="qs-stem" src={stemImage(stemPart, view.cv)} alt={`The start of question ${q}`} guess={3.2} zoom what="the start of the question" />}
+            {earlier.length > 0 && (
+              <>
+                <button type="button" className="qf-startbtn" aria-expanded={soFar} aria-controls={soFar ? startId : undefined} onClick={() => setSoFar(!soFar)} data-testid="feed-start">
+                  {soFar ? "Hide" : `Question ${q} so far`}<ChevronIcon />
+                </button>
+                {soFar && (
+                  <div id={startId} className="qf-startbody">
+                    {earlier.map((e) => (
+                      <Crop key={e.id} src={partImage(e.id, "qp", view.cv)} w={e.w} h={e.h} alt={partAlt(e)} words={e.x ? cutWords(e.x, 110).text : undefined} what="this question picture" zoom />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
           <div className="qf-start">
             <button type="button" className="qf-startbtn" aria-expanded={startOpen} aria-controls={stem || soFar ? startId : undefined} onClick={() => { setStem(!startOpen); setSoFar(!startOpen); }} data-testid="feed-start">
               {startOpen ? "Hide" : earlier.length ? `Question ${q} so far` : `How question ${q} starts`}<ChevronIcon />
@@ -134,8 +161,8 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
               </div>
             )}
           </div>
-        )}
-        <SharedFigureChip fig={rl.fig} partId={part.id} cv={view.cv} ruler={rl.onFigure} />
+        ))}
+        <SharedFigureChip fig={rl.fig} partId={part.id} cv={view.cv} ruler={rl.onFigure} pinned={split} covered={soFar} />
         {rl.offered && <RulerChip partId={part.id} open={rl.open} figure={!!rl.fig} />}
         <div className="qf-pic">
           <AnnotCrop off={full && answer === undefined} setId={view.id} part={part} answer={answer} prefs={prefs} src={partImage(part.id, "qp", view.cv)} w={part.w} h={part.h} alt={partAlt(part)} words={part.x ? cutWords(part.x, 110).text : undefined} what="this question picture" eager={eager} zoom ruler={rl.onOwn ? part.id : undefined}>
@@ -144,12 +171,15 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
         </div>
         <PartFiles files={files} />
         {part.au && <ListenPlayer part={part} transcript={lookup.trs[`${part.p}-${part.s}`] ?? null} checked={!!answer?.chk || answer?.got !== undefined} onWhole={() => onWhole(part)} />}
+        </div>
+        {pin.mode === "peek" && <QuestionPeek part={part} cv={view.cv} label={`Q${part.l}`} stemPart={stemPart} earlier={earlier} fig={rl.fig?.from ?? null} figLabel={rl.fig?.label ?? ""} setId={view.id} />}
+        <div className="qf-acol">
         {full && answer === undefined ? (
-          <p className="qf-full" role="status">Your feed already holds 1,200 questions with answers. Your sets can clear the whole feed to make room, or practise these questions in a set instead.</p>
+          <p className="qf-full" role="status">This list is full: it keeps answers for 1,200 questions. Open Your sets to clear room, or practise these questions as a set.</p>
         ) : (
           <>
             <div className="qs-answer qf-answer" onPointerDownCapture={copy ? takeCopy : undefined} onKeyDownCapture={copy ? takeCopyKey : undefined}>
-              <FeedAnswer set={view} part={part} answer={answer} shown={shown} prefs={prefs} copy={!!copy} />
+              <FeedAnswer set={view} part={part} answer={answer} shown={shown} prefs={prefs} copy={!!copy} pin={pin} />
               {copy && (
                 <OtherCopy
                   code={symbolsFor(view.subject).code} partId={part.id} setId={copy.setId!} answer={copy.answer!} label={`From ${copy.kind === "paper" ? "a paper" : "a set"}`}
@@ -162,6 +192,7 @@ export const FeedCard = memo(function FeedCard({ n, part, view, info, lookup, an
           </>
         )}
         <span className="qs-sr" role="status">{answer?.got !== undefined && part.m != null ? `Part ${part.l}: ${answer.got} of ${part.m} marks` : ""}</span>
+        </div>
       </div>
 
       <div className="qf-right">{part.er && <ExaminerNote view={view} part={part} />}</div>

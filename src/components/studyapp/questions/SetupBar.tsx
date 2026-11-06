@@ -15,7 +15,7 @@ export function SetupBar({ pile, line, ready, onDone, onFix }: {
   const n = pile.length;
   const shown = pile.slice(-SHOWN);
   return (
-    <div className="qk-bar" role="region" aria-label="Your books">
+    <div className="qk-bar" role="region" aria-label="Your subjects">
       <span className="qk-bar-tape" aria-hidden="true" />
       <span className="qk-pile" aria-hidden="true">
         {shown.map((b, i) => (
@@ -24,7 +24,7 @@ export function SetupBar({ pile, line, ready, onDone, onFix }: {
         <b className="qk-count" data-testid="setup-count">{n}</b>
       </span>
       <p id="qk-bar-line" className={`qk-line${line.kind === "missing" ? " ask" : ""}`} role="status" aria-live="polite">
-        <span className="qs-sr">{n} {n === 1 ? "book" : "books"} chosen. </span><span className="qk-line-text">{line.kind === "missing" && line.text.startsWith("Pick a board ") ? <><span className="qk-pick">Pick a board </span>{line.text.slice("Pick a board ".length)}</> : line.text}</span><span className="qk-line-n" aria-hidden="true">{n} {n === 1 ? "book" : "books"}</span>
+        <span className="qs-sr">{n} {n === 1 ? "subject" : "subjects"} chosen. </span><span className="qk-line-text">{line.kind === "missing" && line.text.startsWith("Pick a board ") ? <><span className="qk-pick">Pick a board </span>{line.text.slice("Pick a board ".length)}</> : line.text}</span><span className="qk-line-n" aria-hidden="true">{n} {n === 1 ? "subject" : "subjects"}</span>
       </p>
       <button type="button" className={`btn gold qk-go${ready ? "" : " ask"}`} onClick={() => (ready ? onDone() : onFix())} id="qk-bar-go" data-testid="setup-done" data-ready={ready}
         aria-label={ready ? "Let's go" : line.text} aria-describedby={ready ? undefined : "qk-bar-line"}>

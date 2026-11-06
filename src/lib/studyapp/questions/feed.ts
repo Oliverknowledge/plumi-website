@@ -19,7 +19,7 @@ export const FEED_SORTS: readonly { id: FeedSort; label: string }[] = [
   { id: "spec", label: "Spec order" },
   { id: "most", label: "Most marks" },
   { id: "least", label: "Fewest marks" },
-  { id: "mix", label: "Mixed up" },
+  { id: "mix", label: "Random order" },
 ];
 /** "": either; "only": calculator allowed (or, where the bank only knows which questions ask for a calculation, those); "none": the rest. */
 export type CalcMode = "" | "only" | "none";

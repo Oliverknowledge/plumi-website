@@ -6,7 +6,7 @@ import { actions, useApp } from "@/lib/studyapp/store";
 import { toast } from "../toast";
 import { CardFields } from "./CardFields";
 import { Sheet } from "./Sheet";
-import { StarterPicker } from "./StarterPicker";
+import { Catalogue } from "./Catalogue";
 
 /** "+ New deck": a name and a subject. */
 export function NewDeckSheet({ onClose, onMade }: { onClose: () => void; onMade: (id: string) => void }) {
@@ -38,8 +38,8 @@ export function NewDeckSheet({ onClose, onMade }: { onClose: () => void; onMade:
 /** The ready-made decks, in a sheet. */
 export function StartersSheet({ onClose }: { onClose: () => void }) {
   return (
-    <Sheet title="Ready-made decks" hint="Ten cards each. Yours to edit once added." onClose={onClose} wide>
-      <StarterPicker compact />
+    <Sheet title="Ready-made decks" hint="Tap a deck to add it." onClose={onClose} wide>
+      <Catalogue />
     </Sheet>
   );
 }

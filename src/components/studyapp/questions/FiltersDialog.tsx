@@ -77,8 +77,8 @@ export function FiltersDialog({ meta, topics, filters, onFilters, onTopics, show
           </section>
         )}
         {meta.series.length > 1 && (
-          <section className="qs-fsec" aria-label="Series">
-            <h3 className="lbl">Series</h3>
+          <section className="qs-fsec" aria-label="Exam">
+            <h3 className="lbl">Exam</h3>
             <div className="qs-pills">
               <button type="button" className={`qs-pill${!filters.series ? " on" : ""}`} aria-pressed={!filters.series} onClick={() => onFilters({ series: null })}>Any</button>
               {meta.series.map((s) => <button key={s.id} type="button" className={`qs-pill${filters.series === s.id ? " on" : ""}`} aria-pressed={filters.series === s.id} onClick={() => onFilters({ series: filters.series === s.id ? null : s.id })}>{s.label}</button>)}

@@ -5,6 +5,9 @@ import { warmCalculator, saveCalculatorData } from "@/lib/calculatorWarmup";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { track } from "@/lib/analytics";
 import { partStatus, setHideDone, useBankMarks, useHideDone } from "@/lib/bankProgress";
+import { useAccount } from "@/lib/account";
+import { useBookmarks } from "@/lib/bankSaved";
+import { SignInLink } from "@/components/account/Account";
 import { inType, isChoice, markBands } from "@/lib/markBands";
 import { baseSubject, fetchBankData, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
@@ -13,6 +16,7 @@ import { QuestionRow } from "./QuestionRow";
 import { SET_MAX, SetTray, useQuestionSet } from "./SetTray";
 import { ZoomViewer } from "./ZoomViewer";
 import { ChoiceQuiz } from "./ChoiceQuiz";
+import { RibbonIcon } from "./SavedControls";
 
 const PAGE = 20;
 const NARROW = "(max-width: 980px)";
@@ -30,9 +34,9 @@ type Yr = "" | "12" | "13";
  * first-year content, or "13", the ones that need second-year content; `view` shows parts one by one or whole questions;
  * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all; `once` (GCSE) shows a question
  * printed on both tiers' papers once, as its Higher copy; `marks` the question types picked (markBands' ids); `again`
- * only what's come back to have another go at; `part` one question, from Redo in Your history; `seed` the
+ * only what's come back to have another go at; `saved` only what's bookmarked; `part` one question, from Redo in Your history; `seed` the
  * "mix" sort's shuffle, so a reload or a shared link keeps the same mix. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; part: string; view: View; sort: Sort; seed: string }
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; saved: boolean; part: string; view: View; sort: Sort; seed: string }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -60,7 +64,7 @@ function parse(search: string): Filters {
     yr: yr === "12" || yr === "13" ? yr : "",
     opt: u.get("option") ?? "",
     once: u.get("tiers") === "once",
-    marks: list("marks"), again: u.get("again") === "1", part: u.get("question") ?? "",
+    marks: list("marks"), again: u.get("again") === "1", saved: u.get("saved") === "1", part: u.get("question") ?? "",
     view: u.get("view") === "whole" ? "whole" : "parts",
     sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" || sort === "mix" ? sort : "new",
     seed: u.get("seed") ?? "",
@@ -79,6 +83,7 @@ function write(f: Filters) {
   if (f.once) u.set("tiers", "once");
   if (f.marks.length) u.set("marks", f.marks.join(","));
   if (f.again) u.set("again", "1");
+  if (f.saved) u.set("saved", "1");
   if (f.part) u.set("question", f.part);
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
@@ -191,6 +196,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   // What this student has done here (lib/bankProgress), and whether to keep it out of the list.
   const mine = useBankMarks().subjects[subject.slug];
   const hideDone = useHideDone();
+  const bookmarks = useBookmarks(subject.slug);
+  const account = useAccount();
+  // Everything bookmarked while Saved is open: one taken off stays in view until Saved is closed, so a slip can be tapped back on.
+  const [savedHere, setSavedHere] = useState<ReadonlySet<string>>(() => new Set());
+  if (f.saved ? [...bookmarks].some(id => !savedHere.has(id)) : savedHere.size > 0) setSavedHere(f.saved ? new Set([...savedHere, ...bookmarks]) : new Set());
   // Marked since the page opened: kept in view, so a question doesn't vanish the moment it's marked.
   const [since] = useState(() => Date.now());
 
@@ -216,7 +226,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     if (bankHasPracticals(subject)) {
       fetchBankData<string[]>(subject, "practicals").then(ids => setPracticals(new Set(ids ?? []))).catch(() => setPracticals(new Set()));
     }
-    // The questions that need second-year content, for A-Level Maths and Further Maths: no file and the filter stays hidden.
+    // The questions that need second-year content: no file and the filter stays hidden.
     if (bankHasYears(subject)) {
       fetchBankData<string[]>(subject, "year13").then(ids => setYear13(ids ? new Set(ids) : null)).catch(() => setYear13(null));
     }
@@ -267,14 +277,17 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   /**
    * Whether a part is in the list as far as history goes. Redo's one question always is;
    * "Have another go" is only what's due again; otherwise, with hiding on, what's new or
-   * due again, plus anything marked since the page opened.
+   * due again, plus anything marked since the page opened. Saved is every bookmark, done or
+   * not: a question that's been marked is hidden from the list, and this is the way back to it.
    */
   const visible = useCallback((p: BankPart) => {
     if (f.part) return true;
+    if (f.saved && !bookmarks.has(p.id) && !savedHere.has(p.id)) return false;
     const { status, last } = partStatus(mine?.[p.id]);
     if (f.again) return status === "again";
+    if (f.saved) return true;
     return !hideDone || status === "new" || status === "again" || (!!last && last[2] >= since);
-  }, [f.part, f.again, hideDone, mine, since]);
+  }, [f.part, f.again, f.saved, bookmarks, savedHere, hideDone, mine, since]);
 
   const matches = useCallback((p: BankPart, skip?: Dim) => {
     const ws = skip === "q" ? [] : words(f.q);
@@ -350,7 +363,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
 
   /** What hiding keeps out of the list as it is now: parts, or in the whole-question view, questions with no part left showing. */
   const hiddenCount = useMemo(() => {
-    if (!parts || !hideDone || f.part || f.again) return 0;
+    if (!parts || !hideDone || f.part || f.again || f.saved) return 0;
     const shown = new Set<string>();
     const hidden = new Set<string>();
     for (const p of parts) {
@@ -359,7 +372,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       (visible(p) ? shown : hidden).add(k);
     }
     return [...hidden].filter(k => !shown.has(k)).length;
-  }, [parts, hideDone, f.part, f.again, matches, visible, whole]);
+  }, [parts, hideDone, f.part, f.again, f.saved, matches, visible, whole]);
   const hasHistory = !!mine && Object.keys(mine).length > 0;
 
   /** How many questions each chip would give, with every other filter kept. */
@@ -391,15 +404,22 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf, bands]);
   const n = (dim: keyof NonNullable<typeof counts>, k: string) => counts?.[dim].get(k);
 
-  const list = results ?? initial.map(p => [p]);
-  const total = results?.length ?? subject.count;
-  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (opt ? 1 : 0) + f.marks.length + (f.again ? 1 : 0) + (f.part ? 1 : 0) + (f.q ? 1 : 0);
+  // How many are bookmarked, counted as the list counts: questions in the whole-question view, and only ones the bank still has.
+  const savedCount = useMemo(() => {
+    if (!parts) return bookmarks.size;
+    const here = parts.filter(p => bookmarks.has(p.id));
+    return whole ? new Set(here.map(questionKey)).size : here.length;
+  }, [parts, bookmarks, whole]);
+  // (Saved isn't the newest twenty the server sent, so it shows nothing until the list has loaded.)
+  const list = results ?? (f.saved ? [] : initial.map(p => [p]));
+  const total = results?.length ?? (f.saved ? savedCount : subject.count);
+  const active = (lockedTopic ? 0 : f.topics.length) + f.papers.length + f.series.length + (f.calc ? 1 : 0) + (f.prac ? 1 : 0) + (f.yr && hasYears ? 1 : 0) + (opt ? 1 : 0) + f.marks.length + (f.again ? 1 : 0) + (f.saved ? 1 : 0) + (f.part ? 1 : 0) + (f.q ? 1 : 0);
 
   useEffect(() => {
     if (!results || !active) return;
-    const t = setTimeout(() => track("bank_filtered", { subject: subject.slug, results: results.length, topics: f.topics.length, search: f.q ? 1 : 0, marks: f.marks.join(",") || undefined, again: f.again ? 1 : 0, hide_done: hideDone ? 1 : 0 }), 1200);
+    const t = setTimeout(() => track("bank_filtered", { subject: subject.slug, results: results.length, topics: f.topics.length, search: f.q ? 1 : 0, marks: f.marks.join(",") || undefined, again: f.again ? 1 : 0, saved: f.saved ? 1 : 0, hide_done: hideDone ? 1 : 0 }), 1200);
     return () => clearTimeout(t);
-  }, [results, active, f.topics.length, f.q, f.marks, f.again, hideDone, subject.slug]);
+  }, [results, active, f.topics.length, f.q, f.marks, f.again, f.saved, hideDone, subject.slug]);
 
   function showResults() {
     setUserOpen(false);
@@ -481,14 +501,29 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     ...(f.yr && hasYears ? [{ label: f.yr === "12" ? "Year 12 content" : "Year 13 content", clear: () => update({ yr: "" }) }] : []),
     ...bands.filter(b => f.marks.includes(b.id)).map(b => ({ label: b.label, clear: () => update({ marks: f.marks.filter(x => x !== b.id) }) })),
     ...(f.again ? [{ label: "Have another go", clear: () => update({ again: false }) }] : []),
+    ...(f.saved ? [{ label: "Saved", clear: () => update({ saved: false }) }] : []),
     ...(f.part ? [{ label: partLabel(f.part), clear: () => update({ part: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, saved: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
   // The multiple-choice questions in view, in the list's order, for the quiz: offered once the
   // Multiple choice type is picked, or when everything in view is multiple choice.
   const choicePool = useMemo(() => (results ? [...new Map(results.flat().filter(isChoice).map(p => [p.id, p])).values()] : []), [results]);
   const offerQuiz = choicePool.length > 1 && (f.marks.includes("mc") || choicePool.length === results?.flat().length);
+
+  function toggleSaved() {
+    if (!f.saved) track("bank_saved_opened", { subject: subject.slug, saved: savedCount });
+    update({ saved: !f.saved, part: "" });
+  }
+  // Every saved question in view into the set, for one PDF: all of them, or a note if they wouldn't fit (as `set.add` does for a whole question).
+  const savedInView = useMemo(() => (f.saved && results ? results.flat().map(p => p.id).filter(id => bookmarks.has(id)) : []), [f.saved, results, bookmarks]);
+  const allInSet = savedInView.every(id => set.has(id));
+  function addSavedToSet() {
+    const missing = savedInView.filter(id => !set.has(id));
+    if (set.ids.length + missing.length > SET_MAX) { setRangeNote(`They won’t all fit: a set holds ${SET_MAX}, and ${set.ids.length + missing.length} is too many. Filter them down, or clear the set first.`); return; }
+    setRangeNote(null);
+    set.add(savedInView);
+  }
 
   function mixUp() {
     update({ sort: "mix", seed: newSeed() });
@@ -764,8 +799,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     onTopic: lockedTopic ? undefined : (code: string) => { update({ topics: [code] }); setCardTab("find"); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); },
     onTopics: lockedTopic ? undefined : (codes: string[]) => { update({ topics: codes }); setCardTab("find"); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); },
     board,
-    onAgain: () => { update({ again: true, part: "" }); toResults(); },
-    onRedo: (id: string) => { update({ part: id, again: false }); toResults(); },
+    onAgain: () => { update({ again: true, saved: false, part: "" }); toResults(); },
+    onRedo: (id: string) => { update({ part: id, again: false, saved: false }); toResults(); },
   };
   const marked = mine ? Object.values(mine).filter(r => r.h.length).length : 0;
   const cardTabs = [
@@ -843,6 +878,16 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
                 <span aria-hidden="true">✓</span> Quiz me
               </button>
             )}
+            {(savedCount > 0 || f.saved) && (
+              <button type="button" className={`lp-btn qb-mix-btn qb-saved-btn${f.saved ? " is-on" : ""}`} aria-pressed={f.saved} onClick={toggleSaved} title="The questions you’ve bookmarked">
+                <RibbonIcon /> Saved <span className="qb-saved-n">{savedCount.toLocaleString("en-GB")}</span>
+              </button>
+            )}
+            {f.saved && savedInView.length > 0 && (
+              <button type="button" className="lp-btn qb-mix-btn qb-saved-add" onClick={addSavedToSet} disabled={allInSet}>
+                {allInSet ? "✓ All in your set" : "+ Add all to set"}
+              </button>
+            )}
           </div>
           <form className="qb-range" onSubmit={downloadRange}>
             <label htmlFor="qb-range-input">Download by number, no sign-in</label>
@@ -862,6 +907,9 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
             <button type="button" className="qb-link" onClick={() => setHideDone(false)}>Show them</button>
           </p>
         )}
+        {f.saved && savedCount > 0 && account.on && account.ready && !account.user && (
+          <p className="qb-hidden-note">Saved in this browser, which can clear them. <SignInLink reason="marks">Sign in</SignInLink> to keep them on every device.</p>
+        )}
         {pills.length > 0 && (
           <ul className="qb-pills" aria-label="Filters on">
             {pills.map(p => <li key={p.label}><button type="button" onClick={p.clear} aria-label={`Remove ${p.label}`}>{p.label} <span aria-hidden="true">×</span></button></li>)}
@@ -879,7 +927,12 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           </p>
         )}
 
-        {results && results.length === 0 ? (
+        {results && results.length === 0 && f.saved && savedCount === 0 ? (
+          <div className="lp-card qb-empty">
+            <p><strong>Nothing saved yet.</strong> Tap the bookmark on a question, or add a note to it, and it’ll wait for you here.</p>
+            <button type="button" className="lp-btn" onClick={() => update({ saved: false })}>Back to all the questions</button>
+          </div>
+        ) : results && results.length === 0 ? (
           <div className="lp-card qb-empty">
             <p><strong>Nothing matches all of that.</strong> Take one of the filters off:</p>
             <ul className="qb-pills">

@@ -64,7 +64,7 @@ export function SetupBook({ choice, dataKey, slug, tierOptions, tierChosen, open
   return (
     <li className={`qk-slot qk-size-${art.size}${on ? " on" : ""}${on && !slug ? " need" : ""}${showFlap ? " out" : ""}${wantNote ? " wanted" : ""}`} style={style} data-key={dataKey} onKeyDown={keys}
       onBlur={(e) => { if (showFlap && !e.currentTarget.contains(e.relatedTarget as Node | null)) onClose(); }}>
-      {wantNote && <p className="qk-want qk-want-book" id={wantId} data-testid="setup-want">No {choice.base} book yet. Tick it to begin.</p>}
+      {wantNote && <p className="qk-want qk-want-book" id={wantId} data-testid="setup-want">{choice.base} is not in your subjects yet. Tick it to begin.</p>}
       <div className={`qk-book qk-cover--${art.cover} qk-tape--${art.tape} qk-bind--${art.binding}`}>
         <span className="qk-spine" aria-hidden="true" />
         <span className="qk-tape" aria-hidden="true" />

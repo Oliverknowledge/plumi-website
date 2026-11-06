@@ -1,6 +1,6 @@
 """Read Cambridge International's (CAIE's) syllabuses into topic trees.
 
-    python3 scripts/question-bank/caie/spec_caie.py [--igcse] [--maths] [work-dir]
+    python3 scripts/question-bank/caie/spec_caie.py [--igcse] [--maths] [--cs] [work-dir]
 
 Writes <work-dir>/spec.json in spec_ocr.py's shape: { "9701": { "sections": [...], "topics": [...] } }.
 Cambridge numbers its content in two levels: topics ("23 Chemical energetics") are the
@@ -9,7 +9,9 @@ shown with their codes. In the sciences topics 1-11 (Chemistry 1-22) are the AS
 content (year 1), the rest A Level only (year 2). Maths and Further Maths are set out by
 paper, so a paper's content is a tile ("Pure Mathematics 3") and its sub-topics the
 topics; the banks don't split them by year. Each topic keeps the syllabus's learning
-outcomes under it ("text") for tagging only.
+outcomes under it ("text") for tagging only. --cs reads Computer Science 9618 the
+sciences' way: topics 1-12 AS, 13-20 A Level, from the 2024-2025 syllabus the June 2024
+papers were set on (the 2021 specimens' content is the same).
 
 The syllabuses are the current public ones on cambridgeinternational.org (sciences
 2025-2027, maths 2026-2027); their content matches the 2024 papers and the specimens.
@@ -39,7 +41,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 MATHS = "--maths" in sys.argv
 IGCSE = "--igcse" in sys.argv
-WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", f"caie{'-igcse' if IGCSE else ''}-{'maths' if MATHS else 'sciences'}")
+CS = "--cs" in sys.argv
+WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work", "caie-cs" if CS else f"caie{'-igcse' if IGCSE else ''}-{'maths' if MATHS else 'sciences'}")
 BASE = "https://www.cambridgeinternational.org/Images/"
 SYLLABUSES = {
     "9700": ("664560-2025-2027-syllabus.pdf", 11),
@@ -47,6 +50,7 @@ SYLLABUSES = {
     "9702": ("664565-2025-2027-syllabus.pdf", 11),
     "9709": ("697427-2026-2027-syllabus.pdf", None),
     "9231": ("697357-2026-2027-syllabus.pdf", None),
+    "9618": ("636089-2024-2025-syllabus.pdf", 12),
 }
 SECTIONS = {
     "9700": ["Cell structure", "Biological molecules", "Enzymes", "Cell membranes and transport", "The mitotic cell cycle",
@@ -71,6 +75,12 @@ SECTIONS = {
     "9709": ["Pure Mathematics 1", "Pure Mathematics 2", "Pure Mathematics 3", "Mechanics", "Probability & Statistics 1",
              "Probability & Statistics 2"],
     "9231": ["Further Pure Mathematics 1", "Further Pure Mathematics 2", "Further Mechanics", "Further Probability & Statistics"],
+    "9618": ["Information representation", "Communication", "Hardware", "Processor fundamentals", "System software",
+             "Security, privacy and data integrity", "Ethics and ownership", "Databases", "Algorithm design and problem-solving",
+             "Data types and structures", "Programming", "Software development",
+             # A Level
+             "Data representation", "Communication and internet technologies", "Hardware and virtual machines", "System software",
+             "Security", "Artificial intelligence (AI)", "Computational thinking and problem-solving", "Further programming"],
 }
 # IGCSE: the syllabus PDF and how it sets out its content.
 IGCSE_SYLLABUSES = {
@@ -81,7 +91,7 @@ IGCSE_SYLLABUSES = {
     "0606": ("662470-2025-2027-syllabus.pdf", "statements"),
 }
 # Sub-topic headings the PDF garbles.
-TITLES = {"9231": {"4.3": "χ²-tests"}, "0580": {"6.6": "Pythagoras’ theorem and trigonometry in 3D"},
+TITLES = {"9231": {"4.3": "χ²-tests"}, "9618": {"1.2": "Multimedia"}, "0580": {"6.6": "Pythagoras’ theorem and trigonometry in 3D"},
           "9701": {"24.2": "Standard electrode potentials E⦵, standard cell potentials E⦵cell and the Nernst equation"}}
 # "1.3 Electrons, energy levels and atomic orbitals", maybe a note ("In 1.3 each atom…"), then its learning outcomes.
 HEADING = re.compile(r"(?m)^(\d{1,2}\.\d{1,2})[\t ]*\n?((?:(?!In \d)[^\n]*\n){1,5}?)(?:In \d{1,2}\.\d[^\n]*\n(?:[^\n]*\n){0,2}?)?"
@@ -191,7 +201,7 @@ def main():
     os.makedirs(os.path.join(WORK, "spec"), exist_ok=True)
     out = {}
     for spec, (name, as_last) in SYLLABUSES.items():
-        if (spec in ("9709", "9231")) != MATHS:
+        if (spec in ("9709", "9231")) != MATHS or (spec == "9618") != CS:
             continue
         topics = topics_of(fetch(name, os.path.join(WORK, "spec", f"{spec}.pdf")), spec, as_last)
         sections = [{"code": str(n), "title": t, "year": 0 if as_last is None else 1 if n <= as_last else 2}

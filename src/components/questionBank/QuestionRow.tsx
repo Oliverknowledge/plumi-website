@@ -8,6 +8,7 @@ import { startOpens } from "@/lib/questionStart";
 import { AgainTag, ChoicePick, MarginScore, SelfMark } from "./SelfMark";
 import { openZoom } from "./ZoomViewer";
 import { AnswerBox } from "./AnswerBox";
+import { BookmarkRibbon, NoteBox } from "./SavedControls";
 import { useDarkCrop } from "@/lib/darkCrops";
 import { isEssaySubject } from "@/lib/markBands";
 import {
@@ -182,7 +183,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         {!embed && whole?.code && <a className="qb-wholelink" href={`${papersBase}/${whole.code}`} download>The code files (zip) ↓</a>}
       </div>
 
-      <div className="qb-sheet">
+      <div className={`qb-sheet${embed ? "" : " has-bookmark"}`}>
+        {!embed && <BookmarkRibbon subject={subject.slug} parts={parts} label={`question ${shown}`} />}
         {inSet && <span className="qb-stamp" aria-hidden="true">In your set</span>}
         {listen && (
           <div className="qb-listen">
@@ -219,13 +221,21 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
             !embed && p.k && /^[A-D]( or [A-D])*$/.test(p.k) ? <ChoicePick key={`${p.id}-pick`} subject={subject.slug} part={p} /> : null,
             // Anything else can be answered in writing first, then checked against the scheme:
             // under each part when a question shows in parts, under the whole (after the zoom hint) otherwise.
-            !embed && !p.k && many ? <AnswerBox key={`${p.id}-answer`} subject={subject.slug} part={p} open={isEssaySubject(subject)} many={many}
-              schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} /> : null,
+            !embed && many ? (
+              <div key={`${p.id}-foot`} className="qb-foot">
+                {!p.k && <AnswerBox subject={subject.slug} part={p} open={isEssaySubject(subject)} many={many}
+                  schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />}
+                <NoteBox subject={subject.slug} part={p} many={many} />
+              </div>
+            ) : null,
           ])}
         </div>
         {!embed && <p className="qb-swipe" aria-hidden="true">Tap the question to read it full screen.</p>}
-        {!embed && !many && !part.k && (
-          <AnswerBox subject={subject.slug} part={part} open={isEssaySubject(subject)} schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />
+        {!embed && !many && (
+          <div className="qb-foot">
+            {!part.k && <AnswerBox subject={subject.slug} part={part} open={isEssaySubject(subject)} schemeOpen={!!open.ms} onCheck={withScheme.length ? () => flip("ms") : undefined} />}
+            <NoteBox subject={subject.slug} part={part} />
+          </div>
         )}
         {embed?.cta}
         {open.ms && withScheme.map((p, i) => p.k

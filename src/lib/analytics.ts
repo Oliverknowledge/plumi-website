@@ -47,6 +47,12 @@ export type PlumiEvent =
   | "bank_quiz_started"
   | "bank_quiz_finished"
   | "bank_reveal"
+  /** Saved questions (lib/bankSaved): a bookmark on or off (`on`, `parts`); a note started, once per
+   *  part per visit (never its words); the Saved list opened (`saved`, how many). Whether people come
+   *  back to open it is what says the bookmarks are worth having. */
+  | "bank_bookmarked"
+  | "bank_note_started"
+  | "bank_saved_opened"
   | "bank_set_added"
   | "bank_pdf_downloaded"
   | "paper_marked_done"
@@ -72,6 +78,14 @@ export type PlumiEvent =
   | "password_set"
   /** "Join the library" (lib/library): the card shown, a student joined (`colour`), a name
    *  refused (`why`: the rule's reason, never the name), the library left. */
+  /** The ready-made decks catalogue (study app, Flashcards): opened, a deck added (`subject`, `deck`: the stable id, `group`: kw or ms). No personal data. */
+  | "premade_opened"
+  | "premade_deck_added"
+  /** Plumi Pro on the website (lib/pro): a locked Pro thing tapped (`feature`: its id in lib/pro/features.ts), the locked panel opened (`feature`), and the
+   *  student's plan checked (`state`: pro, free or unknown; never an id or an email). */
+  | "pro_locked_tapped"
+  | "pro_panel_opened"
+  | "pro_status_checked"
   | "library_join_shown"
   | "library_joined"
   | "library_name_refused"

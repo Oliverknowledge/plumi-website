@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { deleteOwnAccountCall, signInHref, signOut, signOutLocal, useAccount } from "@/lib/account";
 import { CONFIRM_WORD, clearPlumiKeys, confirmOk, deleteAccount } from "@/lib/studyapp/accountDelete";
 import { readDark, subscribeAppearance, writeDark } from "@/components/study/appearance";
+import { ProPlanSection } from "@/components/pro/ProPlan";
 
 /** Everything Plumi saved on this device, except its look and the ad choice (accountDelete.ts): its keys, and the databases of handwriting and answers. */
 async function clearThisDevice() {
@@ -37,7 +38,7 @@ function Page({ dark }: { dark: boolean }) {
 }
 
 /**
- * Settings, a sheet over whatever the student is doing: the look (light or dark), and, if they have an account, who it is, signing out and deleting it. Opened from the account
+ * Settings, a sheet over whatever the student is doing: the look (light or dark), their Plumi Pro plan, and, if they have an account, who it is, signing out and deleting it. Opened from the account
  * menu; Escape closes it (a delete in progress holds it open); focus goes back to the account button.
  */
 export function Settings({ onClose }: { onClose(): void }) {
@@ -93,6 +94,8 @@ export function Settings({ onClose }: { onClose(): void }) {
               </button>
             </div>
           </section>
+
+          <ProPlanSection path={path} />
 
           {!user && (
             <section className="stg-sec" aria-labelledby={`${title}-acct`}>
