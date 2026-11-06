@@ -51,6 +51,17 @@ test("on a one-point part, whole-question and point 1 are the same", () => {
 test("an extra point disagrees", () => {
   const b = clone(base()); b.points.push({ n: 3, text: "extra", marks: 0 }); assert.equal(compareReadings(base(), b).agree, false);
 });
+test("'any one from a, b, c' as one point or as separate points with a cap is the same scheme", () => {
+  const one = clone(base()), many = clone(base());
+  for (const p of [one, many]) { p.marks_printed = 1; p.scheme_total = 1; p.accept = []; p.reject = []; }
+  one.points = [{ n: 1, text: "Any one from: ornaments; musical instruments; hinges / knobs / screws", marks: 1 }];
+  many.points = [{ n: 1, text: "ornaments", marks: 1 }, { n: 2, text: "musical instruments", marks: 1 }, { n: 3, text: "hinges knobs screws", marks: 1 }]; many.max_marks = 1;
+  assert.equal(compareReadings(one, many).agree, true);
+  many.points.reverse(); assert.equal(compareReadings(one, many).agree, true);   // order of the alternatives does not matter
+  many.points.reverse();
+  many.max_marks = 2; assert.equal(compareReadings(one, many).agree, false);          // a different cap is a different scheme
+  many.max_marks = 1; many.points[2].text = "hinges knobs"; assert.equal(compareReadings(one, many).agree, false);   // a missing word is not tolerated
+});
 test("atoms", () => assert.deepEqual(atoms("Ligase/ primase/ DNA gyrase"), ["ligase", "primase", "dna gyrase"]));
 test("fuller keeps the reading with more accept, reject and ignore words", () => {
   const a = clone(base()), b = clone(base()); b.accept = [{ point: 1, text: "gp41/gp120 eg more words here" }];

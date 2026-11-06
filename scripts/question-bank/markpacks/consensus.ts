@@ -29,6 +29,21 @@ function itemSet(items: PackItem[], singlePoint: boolean): string[] {
   return [...new Set(out)].sort();
 }
 
+const LEAD = /^\s*(?:any\s+)?(?:one|two|three|four|\d+)\s+(?:answers?\s+)?from\s*[:;,.]?\s+/i;
+
+/**
+ * "Any one from a, b, c" written as ONE point, or as three points with a cap of one, is the same scheme. Both forms reduce to the
+ * same words and the same effective marks; a reading of any other shape reduces to null and is compared strictly.
+ */
+function alternativesForm(p: ExtractedPack): { marks: number; words: string } | null {
+  const words = (pts: ExtractedPack["points"]) => norm(pts.map((x) => x.text.replace(LEAD, "")).join(" ")).split(" ").sort().join(" ");
+  if (p.points.length === 1 && LEAD.test(p.points[0].text) && p.max_marks === null) return { marks: p.points[0].marks, words: words(p.points) };
+  if (p.points.length > 1 && p.max_marks !== null && p.points.every((x) => x.marks === p.points[0].marks)) {
+    return { marks: p.max_marks, words: words(p.points.map((x) => ({ ...x, text: x.text.replace(LEAD, "") }))) };
+  }
+  return null;
+}
+
 export interface Comparison { agree: boolean; differences: string[] }
 
 export function compareReadings(a: ExtractedPack, b: ExtractedPack): Comparison {
@@ -36,10 +51,15 @@ export function compareReadings(a: ExtractedPack, b: ExtractedPack): Comparison 
   const eq = (name: string, x: unknown, y: unknown) => { if (JSON.stringify(x) !== JSON.stringify(y)) d.push(`${name}: ${JSON.stringify(x)} vs ${JSON.stringify(y)}`); };
   eq("marks_printed", a.marks_printed, b.marks_printed);
   eq("scheme_total", a.scheme_total, b.scheme_total);
-  eq("max_marks", a.max_marks, b.max_marks);
   eq("answer_kind", a.answer_kind, b.answer_kind);
   eq("needs_figure_or_table", a.needs_figure_or_table, b.needs_figure_or_table);
-  eq("points", a.points.map((p) => [p.n, norm(p.text), p.marks]), b.points.map((p) => [p.n, norm(p.text), p.marks]));
+  const fa = alternativesForm(a), fb = alternativesForm(b);
+  if (fa && fb && a.points.length !== b.points.length) {
+    eq("alternatives", fa, fb);   // one reading is "any one from a, b, c" as a single point, the other as separate points with a cap
+  } else {
+    eq("max_marks", a.max_marks, b.max_marks);
+    eq("points", a.points.map((p) => [p.n, norm(p.text), p.marks]), b.points.map((p) => [p.n, norm(p.text), p.marks]));
+  }
   const single = a.points.length === 1 && b.points.length === 1;
   for (const k of ["accept", "reject", "ignore"] as const) {
     const x = itemSet(a[k], single), y = itemSet(b[k], single);
