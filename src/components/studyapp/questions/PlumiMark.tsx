@@ -23,32 +23,63 @@ import "../../../app/study/(app)/questions-plumimark.css";
 
 const storage = (): KV | null => { try { return typeof localStorage === "undefined" ? null : localStorage; } catch { return null; } };
 
-// Is marking on for this account (the server decides, per account), and which parts of a subject have a mark scheme there? Asked once and kept;
-// a failure is not remembered. A student the server has not switched marking on for is never shown the button.
-const known = new Map<string, Set<string>>();
-const asking = new Map<string, Promise<void>>();
-const EMPTY: Set<string> = new Set();
-function useAvailable(set: QSet, enabled: boolean, userId: string | null): Set<string> | null {
+// Is marking on for this account (the server decides, per account), and does THIS part have a mark scheme there? Parts are asked about as they
+// appear (the question list does not hold a subject's parts up front, so there is no list to ask about in one go): a short wait gathers
+// the parts on screen into one request. An answer is kept; a failure is not remembered, so the next draw asks again. A student the server
+// has not switched marking on for is never shown the button.
+interface Slot { has: Set<string>; done: Set<string>; queue: Set<string>; timer: ReturnType<typeof setTimeout> | null }
+const slots = new Map<string, Slot>();
+const accountOn = new Map<string, boolean>();
+const accountAsk = new Map<string, Promise<boolean | null>>();
+const watchers = new Set<() => void>();
+const GATHER_MS = 60;
+const slotFor = (key: string): Slot => { let s = slots.get(key); if (!s) { s = { has: new Set(), done: new Set(), queue: new Set(), timer: null }; slots.set(key, s); } return s; };
+const tell = () => watchers.forEach((w) => w());
+
+async function isOn(userId: string): Promise<boolean | null> {
+  const known = accountOn.get(userId);
+  if (known !== undefined) return known;
+  let p = accountAsk.get(userId);
+  if (!p) {
+    const deps = liveDeps();
+    if (!deps) return null;
+    p = fetchEnabled(deps).then((on) => { if (on !== null) accountOn.set(userId, on); return on; }).finally(() => accountAsk.delete(userId));
+    accountAsk.set(userId, p);
+  }
+  return p;
+}
+
+function gather(key: string, userId: string, subject: string, cv: number, partId: string) {
+  const s = slotFor(key);
+  s.queue.add(partId);
+  if (s.timer) return;
+  s.timer = setTimeout(async () => {
+    s.timer = null;
+    const ids = [...s.queue].filter((x) => !s.done.has(x));
+    s.queue.clear();
+    if (!ids.length) return;
+    const on = await isOn(userId);
+    if (on === null) { tell(); return; }
+    if (on) {
+      const deps = liveDeps();
+      const found = deps ? await fetchAvailable(deps, subject, cv, ids) : null;
+      if (found) { found.forEach((x) => s.has.add(x)); ids.forEach((x) => s.done.add(x)); }
+    }
+    tell();
+  }, GATHER_MS);
+}
+
+function useAvailable(set: QSet, part: QPart, enabled: boolean, userId: string | null): boolean {
   const key = `${userId}|${set.subject}|${set.cv ?? 0}`;
   const [, redraw] = useState(0);
-  const ids = set.parts;
   useEffect(() => {
-    if (!enabled || known.has(key)) return;
-    let live = true;
-    let p = asking.get(key);
-    if (!p) {
-      const deps = liveDeps();
-      if (!deps) return;
-      p = fetchEnabled(deps)
-        .then((on) => (on === false ? EMPTY : on === true ? fetchAvailable(deps, set.subject, set.cv ?? 0, ids.map((x) => x.id)) : null))
-        .then((s) => { if (s) known.set(key, s); })
-        .finally(() => asking.delete(key));
-      asking.set(key, p);
-    }
-    void p.then(() => { if (live) redraw((n) => n + 1); });
-    return () => { live = false; };
-  }, [enabled, key, set.subject, set.cv, ids]);
-  return enabled ? known.get(key) ?? null : null;
+    if (!enabled || !userId) return;
+    const w = () => redraw((n) => n + 1);
+    watchers.add(w);
+    if (!slotFor(key).done.has(part.id)) gather(key, userId, set.subject, set.cv ?? 0, part.id);
+    return () => { watchers.delete(w); };
+  }, [enabled, userId, key, set.subject, set.cv, part.id]);
+  return enabled && !!userId && accountOn.get(userId) !== false && slots.get(key)?.has.has(part.id) === true;
 }
 
 type View =
@@ -68,8 +99,8 @@ export interface PlumiMarkUi {
 export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined): PlumiMarkUi {
   const { ready, user, on } = useAccount();
   const signedIn = aiMarkingOn && on && ready && !!user && user.is_anonymous !== true;
-  const available = useAvailable(set, signedIn, user?.id ?? null);
-  const offered = signedIn && !!available?.has(part.id) && markable(part) && hasText(answer);
+  const available = useAvailable(set, part, signedIn, user?.id ?? null);
+  const offered = signedIn && available && markable(part) && hasText(answer);
   const text = answer?.text ?? "";
   const bank = set.subject, cv = set.cv ?? 0;
   const key = answerKey(bank, part.id, cv, text);
