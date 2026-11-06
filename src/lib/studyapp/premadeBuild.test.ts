@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { buildSubject, capitalise, render, verifyShape, type DefinitionsFile, type PremadeSubject, type SpecInput } from "./premadeBuild";
+import { bolded, buildSubject, capitalise, cardBack, render, verifyShape, type DefinitionsFile, type PremadeSubject, type SpecInput } from "./premadeBuild";
 
 const tree = (rows: [string, string | null, string][]) => ({ topics: rows.map(([code, parent_code, title]) => ({ code, parent_code, title })) });
 const A: SpecInput = { id: "AQA-1", label: "AQA", code: "1", tree: tree([["1", null, "Cells"], ["1.1", "1", "Membranes"], ["2", null, "Exchange"], ["2.1", "2", "Lungs"], ["3", null, "Empty module"]]) };
@@ -50,6 +50,7 @@ describe("premade deck builder", () => {
     assert.equal(c["X.TWO"][2], "PH is acidity", "as the iPad does: no cleverness");
     assert.equal(capitalise(""), "");
     assert.equal(capitalise("1s, 2s"), "1s, 2s");
+    assert.equal(capitalise("**a** b"), "**A** b");
   });
   it("refuses an em dash anywhere a student reads, and an over-long deck name or a repeated id", () => {
     const bad = (answer: string) => ({ ...file, definitions: [{ id: "X.ONE", prompt: "Q?", answer, topics: { "AQA-1": ["1"] } }] });
@@ -69,6 +70,42 @@ describe("premade deck builder", () => {
     assert.ok(verifyShape({ ...d, cards: [...d.cards, ["X.NEW", "Q", "A—B"]] }).some((m) => /em dash|no deck/.test(m)));
     d.specs[0].mods[0].k.push(99);
     assert.ok(verifyShape(d).some((m) => /index 99/.test(m)));
+  });
+});
+
+describe("bold key words (the iPad's KeyWording.bolded and capitalised, step for step)", () => {
+  it("bolds each required word and capitalises after the marker (real iPad cards)", () => {
+    assert.equal(cardBack("a smaller unit that can join with many others to form a polymer", ["join", "polymer"]), "A smaller unit that can **join** with many others to form a **polymer**");
+    assert.equal(cardBack("the total number of protons and neutrons in the nucleus of an atom", ["protons and neutrons"]), "The total number of **protons and neutrons** in the nucleus of an atom");
+  });
+  it("a phrase with spaces is one run, and the first word is capitalised inside its markers", () => {
+    assert.equal(cardBack("per unit charge of a source", ["per unit charge"]), "**Per unit charge** of a source");
+  });
+  it("bolds only the first occurrence of a repeated word", () => {
+    assert.equal(bolded("join the join", ["join"]), "**join** the join");
+  });
+  it("longest first, and never inside a run already bold", () => {
+    assert.equal(bolded("energy transferred per unit charge", ["charge", "per unit charge"]), "energy transferred **per unit charge**");
+  });
+  it("matches ignoring case and keeps the text's own letters", () => {
+    assert.equal(bolded("a polymer", ["Polymer"]), "a **polymer**");
+  });
+  it("leaves maths and symbols alone around the bold", () => {
+    assert.equal(cardBack("the ionic product, Kw = [H\u207A][OH\u207B]", ["ionic product"]), "The **ionic product**, Kw = [H\u207A][OH\u207B]");
+  });
+  it("the accept map plays no part: an alternative that is the one present does not stand in (the iPad adds a Key words line)", () => {
+    const f: DefinitionsFile = { definitions: [{ id: "X.A", prompt: "Q?", answer: "a unit that can bond", required: ["join"], topics: { "AQA-1": ["1"] }, accept: { join: ["bond"] } } as never] };
+    const { data } = build(f);
+    assert.equal(data.cards[0][2], "A unit that can bond\nKey words: **join**");
+  });
+  it("an answer that already holds ** is read: a word inside an existing run is skipped, one outside is bolded", () => {
+    assert.equal(bolded("a **big** word", ["word", "big"]), "a **big** **word**");
+    assert.equal(cardBack("**big** word", []), "**Big** word");
+  });
+  it("the build writes it into the card back, and leaves the prompt alone", () => {
+    const f: DefinitionsFile = { definitions: [{ id: "X.A", prompt: "What is a **monomer**?", answer: "a smaller unit that can join", required: ["join"], topics: { "AQA-1": ["1"] } }] };
+    const { data } = build(f);
+    assert.deepEqual(data.cards[0], ["X.A", "What is a **monomer**?", "A smaller unit that can **join**"]);
   });
 });
 

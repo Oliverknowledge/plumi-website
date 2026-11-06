@@ -7,7 +7,7 @@
  *   - one deck per module of a specification, where a card is filed under the root of the topic its FIRST topic code names on that board
  *     (Physics: the first topic its skill maps to on that board, canonical_skills_physics.json);
  *   - a board that does not list a card does not get it;
- *   - the card's back is the answer with its first letter capitalised, and nothing else added;
+ *   - the card's back is the answer with its required words in `**bold**` and its first letter capitalised, and nothing else added;
  *   - module names are the specification topic trees' own (topics_*.json), never invented here.
  * What it leaves out, on purpose: the cards each file lists in `sign_off` (held back until a teacher has looked), and any card that no
  * board's tree can place (counted, never guessed).
@@ -17,6 +17,8 @@ export interface Definition {
   id: string;
   prompt: string;
   answer: string;
+  /** The words the answer cannot lose, each one word-for-word in it: drawn bold on the card (see `bolded`). */
+  required?: string[];
   /** Physics only: the canonical skill, which maps to each board's topic. */
   skill?: string;
   /** Biology and Chemistry: specification id to that board's topic codes; the first is where the card is filed. */
@@ -49,7 +51,7 @@ export interface PremadeSubject {
   /** Cards no board's tree could place, by id: not in `cards`. */
   unmapped: string[];
   specs: PremadeSpec[];
-  /** [id, front, back]: the iPad's id, its prompt, its answer with a capital. */
+  /** [id, front, back]: the iPad's id, its prompt, its answer with its key words in `**bold**` and a capital. */
   cards: [string, string, string][];
 }
 
@@ -57,11 +59,53 @@ export interface PremadeSubject {
 export const MAX_TITLE = 50;
 const EM_DASH = "—";
 
-/** The answer's first letter in capitals, as the iPad does (`KeyWording.capitalised`). */
+/**
+ * The first letter in capitals, as the iPad does (`KeyWording.capitalised`): the first character that is not a `*`, so a bold run at the start
+ * is capitalised inside its markers.
+ */
 export function capitalise(text: string): string {
-  const first = text.charAt(0);
-  return first ? first.toUpperCase() + text.slice(1) : text;
+  const chars = [...text];
+  const at = chars.findIndex((c) => c !== "*");
+  if (at < 0) return text;
+  chars[at] = chars[at].toUpperCase();
+  return chars.join("");
 }
+
+/** The first case-insensitive occurrence of `phrase` that is not inside `**...**` (`KeyWording.unwrappedRange`): the text before it holds an even number of markers. */
+function unwrappedRange(text: string, phrase: string): [number, number] | null {
+  const lower = text.toLowerCase(), needle = phrase.toLowerCase();
+  if (lower.length !== text.length || needle.length !== phrase.length || !needle) throw new Error(`case folding changes the length of ${JSON.stringify(text.slice(0, 40))}`);
+  let from = 0;
+  for (;;) {
+    const at = lower.indexOf(needle, from);
+    if (at < 0) return null;
+    if ((text.slice(0, at).split("**").length - 1) % 2 === 0) return [at, at + phrase.length];
+    from = at + phrase.length;
+  }
+}
+
+/**
+ * `text` with each required phrase wrapped in `**` at its first occurrence, ignoring case: the iPad's `KeyWording.bolded`, step for step.
+ * Longest first, and never inside a phrase already wrapped, so "per unit charge" is bolded whole rather than "charge" alone. A phrase the
+ * text does not contain at all is added as "Key words: ..." after it, as the iPad does (the iPad's tests hold that no definition needs this).
+ * The `accept` map plays no part: it is only for marking a typed answer.
+ */
+export function bolded(text: string, required: readonly string[]): string {
+  let result = text;
+  const missing: string[] = [];
+  for (const phrase of [...required].sort((a, b) => [...b].length - [...a].length)) {
+    const r = unwrappedRange(result, phrase);
+    if (!r) {
+      if (!result.toLowerCase().includes(phrase.toLowerCase())) missing.push(phrase);
+      continue;
+    }
+    result = `${result.slice(0, r[0])}**${result.slice(r[0], r[1])}**${result.slice(r[1])}`;
+  }
+  return missing.length ? `${result}\nKey words: ${missing.map((m) => `**${m}**`).join(", ")}` : result;
+}
+
+/** The back of a card: bold first, then the capital (`KeyWording.back`, with no board term). */
+export const cardBack = (answer: string, required: readonly string[] = []): string => capitalise(bolded(answer, required));
 
 /** A text a student reads must not hold an em dash (founder's rule). */
 export function noEmDash(label: string, text: string): void {
@@ -136,7 +180,7 @@ export function buildSubject(input: BuildInput): { data: PremadeSubject; report:
     noEmDash(`${d.id} prompt`, d.prompt);
     noEmDash(`${d.id} answer`, d.answer);
     index.set(d.id, cards.length);
-    cards.push([d.id, d.prompt, capitalise(d.answer)]);
+    cards.push([d.id, d.prompt, cardBack(d.answer, d.required)]);
   }
 
   const out: PremadeSpec[] = specs.map((spec) => {
@@ -190,7 +234,9 @@ export function verifyShape(d: unknown): string[] {
     ids.add(c[0]);
     if (c[0] && o.held!.includes(c[0])) bad.push(`held-back card ${c[0]} is in the data`);
     if (c[1].includes(EM_DASH) || c[2].includes(EM_DASH)) bad.push(`em dash in ${c[0]}`);
-    if (c[2][0] !== c[2][0].toUpperCase()) bad.push(`${c[0]} back is not capitalised`);
+    const lead = [...c[2]].find((ch) => ch !== "*") ?? "";
+    if (lead !== lead.toUpperCase()) bad.push(`${c[0]} back is not capitalised`);
+    if ((c[2].split("**").length - 1) % 2 !== 0) bad.push(`${c[0]} has an unbalanced bold marker`);
     if (c[1].length > 400 || c[2].length > 800) bad.push(`${c[0]} is longer than a card can hold`);
   });
   const used = new Set<number>();
