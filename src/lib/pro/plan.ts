@@ -4,7 +4,7 @@ import type { ProPlan } from "./client";
  * What the Settings "Plumi Pro" section says about the student's plan, as plain words (plan.test.ts). Nothing here says Pro renews: the record only knows when it
  * is active until (`expires_at`), so that is all we say.
  */
-export interface PlanLine { tone: "signedout" | "checking" | "later" | "pro" | "free"; headline: string; detail?: string }
+export interface PlanLine { tone: "signedout" | "checking" | "later" | "session" | "pro" | "free"; headline: string; detail?: string }
 
 /** "14 Dec", or "14 Dec 2027" when it is not this year (London time, British month names). */
 export function plainDate(iso: string | undefined, now: Date = new Date()): string | null {
@@ -17,6 +17,8 @@ export function plainDate(iso: string | undefined, now: Date = new Date()): stri
 
 export function describePlan(plan: ProPlan, o: { signedIn: boolean; loading: boolean }, now: Date = new Date()): PlanLine {
   if (!o.signedIn) return { tone: "signedout", headline: "Sign in to see your plan" };
+  // The server would not take the sign-in, so the plan is NOT known: never "Free plan" (a Pro student would be told they are free).
+  if (plan.state === "session") return { tone: "session", headline: "Your sign-in has run out.", detail: "Sign out and sign in again to see your plan." };
   if (plan.state === "unknown") return o.loading ? { tone: "checking", headline: "Checking your plan" } : { tone: "later", headline: "Couldn’t check your plan just now" };
   const d = plainDate(plan.expiresAt, now);
   if (plan.state === "pro") {

@@ -5,7 +5,9 @@ import { AppLink } from "@/components/studyapp/AppLink";
 import { useNow } from "@/lib/studyapp/clock";
 import { dueNow, subjectsInUse } from "@/lib/studyapp/model";
 import { useApp } from "@/lib/studyapp/store";
+import { track } from "@/lib/analytics";
 import { DeckEditor } from "./DeckEditor";
+import { MistakesSheet } from "./MistakesSheet";
 import { AddCardSheet, NewDeckSheet, StartersSheet } from "./DeckSheets";
 import { FlashDesk } from "./FlashDesk";
 import { ImportSheet } from "./ImportSheet";
@@ -21,7 +23,7 @@ import { ALL, decksInScope, NONE, SidePanel, subjectOf, type Source } from "./Si
  * What is on the desk follows one rule: decks ticked in the list win (a mix); otherwise the deck or session
  * that was clicked; otherwise everything due in the chosen subject.
  */
-type Sheet = { kind: "share"; deckId: string } | { kind: "shared" } | { kind: "import"; deckId?: string } | { kind: "starters" } | { kind: "newdeck" } | { kind: "card"; current: string | null };
+type Sheet = { kind: "share"; deckId: string } | { kind: "shared" } | { kind: "import"; deckId?: string } | { kind: "starters" } | { kind: "newdeck" } | { kind: "mistakes" } | { kind: "card"; current: string | null };
 
 /** While the desk fills the screen: the page behind cannot scroll or be reached, and Escape leaves. Undone however the page goes away. */
 function useFocusMode(active: boolean, exit: () => void) {
@@ -120,6 +122,7 @@ export function FlashcardsPage() {
             onTick={tick} onClearTicks={() => setTicked([])} onReviewTicked={() => showPane("fc-desk")}
             onPickDeck={pickDeck} onPickSession={pickSession} onEdit={edit} onShare={(id) => setSheet({ kind: "share", deckId: id })}
             onImport={() => setSheet({ kind: "import" })} onNewDeck={() => setSheet({ kind: "newdeck" })} onStarters={() => setSheet({ kind: "starters" })} onShared={() => setSheet({ kind: "shared" })}
+            onMistakes={() => { track("mistakes_opened"); setSheet({ kind: "mistakes" }); }}
           />
         </div>
 
@@ -144,6 +147,7 @@ export function FlashcardsPage() {
       {sheet?.kind === "shared" && <SharedDecksSheet onClose={() => setSheet(null)} />}
       {sheet?.kind === "import" && <ImportSheet deckId={sheet.deckId} onClose={() => setSheet(null)} onDone={importDone} />}
       {sheet?.kind === "starters" && <StartersSheet onClose={() => setSheet(null)} />}
+      {sheet?.kind === "mistakes" && <MistakesSheet onClose={() => setSheet(null)} onReview={pickDeck} />}
       {sheet?.kind === "newdeck" && <NewDeckSheet onClose={() => setSheet(null)} onMade={(id) => { setSheet(null); edit(id); }} />}
       {sheet?.kind === "card" && <AddCardSheet deckIds={view.ids ?? data.decks.map((d) => d.id)} current={sheet.current} onClose={() => setSheet(null)} onNeedDeck={() => setSheet({ kind: "newdeck" })} />}
     </main>

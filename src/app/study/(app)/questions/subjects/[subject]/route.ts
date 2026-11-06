@@ -9,11 +9,11 @@ export function generateStaticParams() {
 export async function GET(_request: Request, { params }: { params: Promise<{ subject: string }> }) {
   const s = bankSubject((await params).subject);
   if (!s) return Response.json({ error: "No such subject" }, { status: 404 });
-  const files = (k: "tr" | "ins" | "code") => {
+  const files = (k: "tr" | "ins" | "code" | "qp" | "ms" | "er") => {
     const e = Object.entries(s.wholes).filter(([, w]) => w[k]).map(([key, w]) => [key, w[k] as string]);
     return e.length ? Object.fromEntries(e) : undefined;
   };
-  const trs = files("tr"), ins = files("ins"), code = files("code");
+  const trs = files("tr"), ins = files("ins"), code = files("code"), qps = files("qp"), mss = files("ms"), ers = files("er");
   const meta: SubjectMeta = {
     slug: s.slug,
     title: bankTitle(s),
@@ -31,6 +31,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sub
     ...(trs ? { trs } : {}),
     ...(ins ? { ins } : {}),
     ...(code ? { code } : {}),
+    ...(qps ? { qps } : {}),
+    ...(mss ? { mss } : {}),
+    ...(ers ? { ers } : {}),
     // The parts, the search text and the reports; and the extra files the public bank's filters read, only where the bank offers that filter for this subject (as QuestionBank.tsx decides).
     data: Object.fromEntries(Object.entries(s.data ?? {}).filter(([k]) => k === "parts" || k === "text" || k === "reports"
       || (k === "practicals" && bankHasPracticals(s)) || (k === "year13" && bankHasYears(s)) || (k === "tiers" && bankHasTiers(s)))),

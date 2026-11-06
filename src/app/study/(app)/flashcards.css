@@ -422,3 +422,54 @@
    can stay large before it has to shrink. */
 .pa .dsk-face.back:has(.ms) .dsk-side, .pa .dsk-face.back:has(.ms) .dsk-hint { display: none; }
 .pa .dsk-face.back:has(.ms) .dsk-body { padding-top: 10px; padding-bottom: 12px; }
+
+/* ── Picture cards: "From my mistakes" ───────────────────────────────── */
+.pa .dock.mistakes { flex-direction: column; gap: 0; }
+.pa .dock.mistakes small { color: var(--soft); }
+.pa .dock.locked { background: #e8eff9; }
+.pa .dock:disabled { cursor: default; opacity: .7; }
+/* a card side that is a picture: the label or note in words, the pictures at the width of the card, scrolling inside when tall */
+.pa .dsk-pics { width: 100%; align-items: stretch; gap: 10px; text-align: center; }
+.pa .cpics { display: grid; gap: 10px; width: 100%; max-width: 640px; margin-inline: auto; }
+.pa .cpic { display: block; width: 100%; height: auto; background: #fff; border: 2px solid var(--line); border-radius: 8px; }
+.pa .cpic-bad { margin: 0; padding: 14px; border: 2px dashed var(--line); border-radius: 8px; font: 800 13.5px var(--f-body); color: var(--soft); }
+.pa .dsk-cap { margin: 0; font: 800 14px var(--f-body); color: var(--soft); letter-spacing: .02em; }
+.pa .dsk-note { margin: 0; font: 600 24px/1.2 var(--f-hand); color: #1d4a9a; white-space: pre-line; overflow-wrap: anywhere; }
+.pa .dsk-pics.back .dsk-note { order: -1; }
+.pa .expanded .dsk-note { font-size: 30px; }
+.pa .fc-pics { display: grid; gap: 6px; width: 100%; }
+.pa .fc-cap { margin: 0; font: 800 12.5px var(--f-body); color: var(--soft); white-space: pre-line; }
+.pa .fc-pics .cpics { gap: 6px; }
+.pa .fcp-list .pic-chip { margin-left: 8px; padding: 1px 7px; border-radius: 7px; border: 2px solid var(--line); background: var(--card2); font: 800 10.5px var(--f-body); font-style: normal; text-transform: uppercase; letter-spacing: .06em; color: var(--soft); vertical-align: middle; }
+.pa .fcp-picnote { margin: 0 0 6px; font: 800 13.5px var(--f-body); color: var(--soft); }
+.pa .cf-grid textarea[readonly] { background: var(--card2); color: var(--soft); }
+
+/* the mistakes sheet */
+.pa .mk { display: grid; gap: 12px; min-width: 0; }
+.pa .mk-bar-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.pa .mk-count { margin-right: auto; font: 800 14px var(--f-body); color: var(--soft); }
+.pa .mk-groups { display: grid; gap: 14px; max-height: 46dvh; overflow-y: auto; padding: 2px; }
+.pa .mk-subject h3 { margin: 0 0 4px; font: 700 22px var(--f-px); }
+.pa .mk-topic h4 { margin: 8px 0 6px; font: 700 20px var(--f-hand); color: var(--soft); }
+.pa .mk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pa .mk-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; min-height: 52px; border: 2px solid var(--ink); border-radius: 11px; background: #fff; cursor: pointer; }
+.pa .mk-row:hover { background: #fff8e6; }
+.pa .mk-row.off { border-style: dashed; border-color: #7b869d; background: transparent; }
+.pa .mk-row .cbx { margin: 0; width: 20px; height: 20px; flex: none; accent-color: var(--navy); }
+.pa .mk-q { display: grid; line-height: 1.2; min-width: 0; margin-right: auto; }
+.pa .mk-q b { font: 600 19px var(--f-px); }
+.pa .mk-q small { font: 700 12.5px var(--f-body); color: var(--soft); }
+.pa .mk-dots { display: inline-flex; gap: 4px; flex: none; }
+.pa .mk-dots i { width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 50%; background: transparent; }
+.pa .mk-dots i.on { background: var(--gold); }
+.pa .mk-bar { flex: none; width: 70px; height: 10px; border: 2px solid var(--ink); border-radius: 6px; background: var(--card2); overflow: hidden; }
+.pa .mk-bar i { display: block; height: 100%; background: var(--gold); }
+.pa .mk-empty { display: grid; justify-items: center; gap: 8px; padding: 18px 8px; text-align: center; color: var(--soft); }
+.pa .mk-empty p { margin: 0; max-width: 38ch; font: 700 16px/1.4 var(--f-body); }
+.pa .mk-done { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: #eef6ea; }
+.pa .mk-tick { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 2px solid var(--ink); border-radius: 50%; background: var(--gold); font: 800 16px var(--f-body); flex: none; }
+.pa .mk-done p { margin: 0; display: grid; margin-right: auto; }
+.pa .mk-done b { font: 600 19px var(--f-px); }
+.pa .mk-done small { font: 700 13px var(--f-body); color: var(--soft); }
+.pa .mk-ghost { min-height: 52px; border: 2px dashed var(--line); border-radius: 11px; background: var(--card2); animation: cat-pulse 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .pa .mk-ghost { animation: none; } }

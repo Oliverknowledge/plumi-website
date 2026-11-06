@@ -16,6 +16,10 @@ describe("the Pro features list", () => {
     assert.equal(proFeature("mark-scheme-decks")?.status, "live");
     assert.equal(proFeature("nope"), undefined);
   });
+  it("Angles (Topic analysis) is a live Pro feature", () => {
+    assert.equal(proFeature("angles")?.status, "live");
+    assert.equal(proFeature("angles")?.title, "Angles");
+  });
   it("says nothing about price or buying (Pro is bought only in the iPad app), and has no em dash", () => {
     for (const f of PRO_FEATURES) assert.ok(!/[$£€]|price|cheap|buy|purchase|subscribe|—/i.test(`${f.title} ${f.line}`), f.id);
   });

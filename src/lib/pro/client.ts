@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import { supabase, useAccount } from "@/lib/account";
+import { accessToken, refreshAccessToken, useAccount, type Refreshed } from "@/lib/account";
 import { track } from "@/lib/analytics";
 import { applyOverrideQuery, readProOverride } from "./override";
 import type { ProReason } from "./server";
@@ -13,17 +13,20 @@ import type { ProReason } from "./server";
  *
  * The rules, so a Pro student is never shown a lock and a free student never sees a flash of unlocked:
  *   - "unknown" (never "free") while the answer is on its way, and when it could not be had (an error shows as unknown, quietly, and is asked again after 60 s).
+ *   - "session" when the server would not take the student's sign-in, even after ONE refresh of it. The plan is then NOT KNOWN (never "free": a Pro student must not be
+ *     told they are free); the screen asks them to sign in again. A session the server has plainly ended is also signed out in this browser (lib/account).
  *   - Signed out, or an anonymous visitor, is "free" at once and asks nothing.
  *   - ONE request is shared by every component; a real answer is kept for the visit.
  *   - It is asked again when the tab comes back after 5 minutes or more (the old answer stays on screen until the new one lands), and after signing in or out.
  *   - `refresh()` asks again now, past every cache (Settings "Check again", for the minute after a purchase on iPad).
  */
-export type ProState = "unknown" | "free" | "pro";
+export type ProState = "unknown" | "free" | "pro" | "session";
 
 /** What the server said, as the screen needs it. */
 export type ProAnswer =
   | { kind: "pro"; expiresAt?: string; status?: "active" | "grace" }
   | { kind: "free"; reason: ProReason | "signed_out"; expiresAt?: string }
+  | { kind: "session" }
   | { kind: "unknown" };
 
 export interface ProPlan { state: ProState; reason?: ProReason | "signed_out"; expiresAt?: string; status?: "active" | "grace" }
@@ -31,18 +34,24 @@ export interface ProPlan { state: ProState; reason?: ProReason | "signed_out"; e
 export const RETRY_MS = 60_000;
 export const STALE_MS = 5 * 60_000;
 
-/** What /api/pro-status answered: 200 Pro (with its expiry), 403 free (with why), a token it would not take is free too, anything else could not be told. */
+/**
+ * What /api/pro-status answered: 200 Pro (with its expiry), 403 free (with why), 401 a token it would not take (the plan is NOT known: "session", never free),
+ * anything else could not be told.
+ */
 export function parseStatus(status: number, body: unknown): ProAnswer {
   const b = (body && typeof body === "object" ? body : {}) as { expiresAt?: unknown; status?: unknown; reason?: unknown };
   const expiresAt = typeof b.expiresAt === "string" ? b.expiresAt : undefined;
   if (status === 200) return { kind: "pro", expiresAt, status: b.status === "grace" ? "grace" : "active" };
   if (status === 403) return { kind: "free", reason: (typeof b.reason === "string" ? b.reason : "none") as ProReason, ...(expiresAt ? { expiresAt } : {}) };
-  if (status === 401) return { kind: "free", reason: "bad_token" };
+  if (status === 401) return { kind: "session" };
   return { kind: "unknown" };
 }
 
 const plan = (a: ProAnswer): ProPlan =>
-  a.kind === "pro" ? { state: "pro", expiresAt: a.expiresAt, status: a.status } : a.kind === "free" ? { state: "free", reason: a.reason, expiresAt: a.expiresAt } : { state: "unknown" };
+  a.kind === "pro" ? { state: "pro", expiresAt: a.expiresAt, status: a.status }
+    : a.kind === "free" ? { state: "free", reason: a.reason, expiresAt: a.expiresAt }
+    : a.kind === "session" ? { state: "session" }
+    : { state: "unknown" };
 
 export interface Who { ready: boolean; userId: string | null; anonymous: boolean }
 interface Entry { answer: ProAnswer; at: number }
@@ -138,26 +147,38 @@ export class ProStore {
   }
 }
 
-/** The student's access token, if signed in (null if not, or if accounts are off). `getSession` refreshes an expired one first. */
-export async function accessToken(forceRefresh = false): Promise<string | null> {
-  const sb = supabase();
-  if (!sb) return null;
-  try {
-    if (forceRefresh) { const r = await sb.auth.refreshSession(); return r.data.session?.access_token ?? null; }
-    return (await sb.auth.getSession()).data.session?.access_token ?? null;
-  } catch { return null; }
+/** What `askWithRefresh` needs: the stored token, one refresh, and one call (a seam for tests). */
+export interface AskDeps {
+  token: () => Promise<string | null>;
+  refresh: () => Promise<Refreshed>;
+  call: (token: string) => Promise<ProAnswer>;
+}
+
+/**
+ * Ask the server for the plan; a token it will not take gets ONE refresh and ONE more ask, never a loop. Still rejected (or the sign-in cannot be renewed) means the
+ * plan is not known: "session", never "free". A refresh that could not reach the network is "unknown" (quiet, asked again), not "session". A call that throws
+ * (offline) propagates and the store makes it unknown.
+ */
+export async function askWithRefresh(d: AskDeps): Promise<ProAnswer> {
+  const token = await d.token();
+  if (!token) return { kind: "session" };            // signed in as far as the screen knows, yet nothing to present
+  const a = await d.call(token);
+  if (a.kind !== "session") return a;
+  const r = await d.refresh();
+  if (r.kind === "offline") return { kind: "unknown" };
+  if (r.kind !== "ok") return { kind: "session" };   // "dead" is also signed out locally, by refreshAccessToken
+  return d.call(r.token);
 }
 
 async function probeServer(fresh: boolean): Promise<ProAnswer> {
-  const call = async (token: string) => {
-    const res = await fetch(`/api/pro-status${fresh ? "?fresh=1" : ""}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(8000) });
-    return parseStatus(res.status, await res.json().catch(() => null));
-  };
-  let token = await accessToken();
-  if (!token) return { kind: "free", reason: "no_token" };
-  let a = await call(token);
-  // A token that expired mid-session: take a new one once and ask again.
-  if (a.kind === "free" && a.reason === "bad_token") { token = await accessToken(true); if (token) a = await call(token); }
+  const a = await askWithRefresh({
+    token: accessToken,
+    refresh: refreshAccessToken,
+    call: async (token) => {
+      const res = await fetch(`/api/pro-status${fresh ? "?fresh=1" : ""}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+      return parseStatus(res.status, await res.json().catch(() => null));
+    },
+  });
   track("pro_status_checked", { state: a.kind });
   return a;
 }
@@ -166,6 +187,7 @@ async function probeServer(fresh: boolean): Promise<ProAnswer> {
 export const store = new ProStore(probeServer);
 
 let focusBound = false;
+let seenToken: string | null = null;
 let current: Who = { ready: false, userId: null, anonymous: false };
 function bindFocus() {
   if (focusBound || typeof document === "undefined") return;
@@ -187,12 +209,18 @@ export interface UsePro {
 }
 
 export function usePro(): UsePro {
-  const { ready, user } = useAccount();
+  const { ready, user, token } = useAccount();
   const who: Who = { ready, userId: user?.id ?? null, anonymous: !!user?.is_anonymous };
   const key = `${who.ready}|${who.userId}|${who.anonymous}`;
   // The snapshot is a string so React compares by value; it changes when an answer lands or who is signed in changes.
   useSyncExternalStore(store.subscribe, () => `${key}|${store.version}`, () => "server");
   useEffect(() => { current = who; bindFocus(); void store.ask(who); }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A new sign-in (a different token) for a student whose sign-in had run out: ask again, once, rather than keep saying so. (Only when the token CHANGES, so no loop.)
+  useEffect(() => {
+    const changed = token !== null && token !== seenToken;
+    seenToken = token;
+    if (changed && store.peek(current).state === "session") void store.ask(current, { fresh: true });
+  }, [token]);
   const refresh = useCallback(() => store.ask(current, { fresh: true }), []);
   const ensure = useCallback(() => store.ask(current), []);
 

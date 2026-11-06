@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseStatus, ProStore, RETRY_MS, STALE_MS, type ProAnswer } from "./client";
+import { askWithRefresh, parseStatus, ProStore, RETRY_MS, STALE_MS, type AskDeps, type ProAnswer } from "./client";
 import { applyOverrideQuery, OVERRIDE_KEY, readProOverride } from "./override";
 
 const real = { ready: true, userId: "u1", anonymous: false };
@@ -20,13 +20,88 @@ function make(answers: (ProAnswer | "throw")[] | (() => Promise<ProAnswer>)) {
 }
 
 describe("reading /api/pro-status", () => {
-  it("200 is Pro with its expiry; 403 is free with why; 401 is a token it would not take; the rest could not be told", () => {
+  it("200 is Pro with its expiry; 403 is free with why; 401 is a token it would not take (the plan is NOT known: never free); the rest could not be told", () => {
     assert.deepEqual(parseStatus(200, { pro: true, expiresAt: "2026-12-14T09:00:00Z", status: "grace" }), { kind: "pro", expiresAt: "2026-12-14T09:00:00Z", status: "grace" });
     assert.deepEqual(parseStatus(200, null), { kind: "pro", expiresAt: undefined, status: "active" });
     assert.deepEqual(parseStatus(403, { error: "pro", reason: "expired", expiresAt: "2026-10-01T00:00:00Z" }), { kind: "free", reason: "expired", expiresAt: "2026-10-01T00:00:00Z" });
     assert.deepEqual(parseStatus(403, null), { kind: "free", reason: "none" });
-    assert.deepEqual(parseStatus(401, {}), { kind: "free", reason: "bad_token" });
+    assert.deepEqual(parseStatus(401, {}), { kind: "session" });
+    assert.deepEqual(parseStatus(401, { error: "token" }), { kind: "session" });
+    assert.notEqual(parseStatus(401, {}).kind, "free", "a rejected token must never read as the Free plan");
     for (const s of [429, 500, 503, 0]) assert.deepEqual(parseStatus(s, {}), { kind: "unknown" });
+  });
+});
+
+/** Mocked token, refresh and call; `calls` records every token the server was asked with. */
+function deps(o: { token?: string | null; refresh?: AskDeps["refresh"]; replies: (ProAnswer | "throw")[] }) {
+  const calls: string[] = [];
+  let refreshes = 0;
+  const d: AskDeps = {
+    token: async () => (o.token === undefined ? "old" : o.token),
+    refresh: async () => { refreshes++; return o.refresh ? o.refresh() : { kind: "ok", token: "new" }; },
+    call: async (t) => { const r = o.replies[calls.length]; calls.push(t); if (r === "throw") throw new Error("offline"); return r ?? { kind: "session" }; },
+  };
+  return { d, calls, refreshes: () => refreshes };
+}
+const SESSION: ProAnswer = { kind: "session" };
+
+describe("a rejected sign-in: refresh once, ask again, else the plan is not known", () => {
+  it("accepted at once: no refresh at all", async () => {
+    const m = deps({ replies: [PRO] });
+    assert.deepEqual(await askWithRefresh(m.d), PRO);
+    assert.equal(m.refreshes(), 0);
+    assert.deepEqual(m.calls, ["old"]);
+  });
+  it("rejected, refreshed, then accepted: the answer is Pro (the Pro student is not told they are free)", async () => {
+    const m = deps({ replies: [SESSION, PRO] });
+    assert.deepEqual(await askWithRefresh(m.d), PRO);
+    assert.equal(m.refreshes(), 1);
+    assert.deepEqual(m.calls, ["old", "new"], "the second ask carries the NEW token");
+  });
+  it("a refresh that answers free is free: only the server's own word", async () => {
+    const m = deps({ replies: [SESSION, { kind: "free", reason: "none" }] });
+    assert.deepEqual(await askWithRefresh(m.d), { kind: "free", reason: "none" });
+  });
+  it("rejected and the refresh fails (dead or refused): session, with no second ask", async () => {
+    for (const kind of ["dead", "refused"] as const) {
+      const m = deps({ replies: [SESSION], refresh: async () => ({ kind }) });
+      assert.deepEqual(await askWithRefresh(m.d), SESSION, kind);
+      assert.equal(m.calls.length, 1);
+      assert.equal(m.refreshes(), 1);
+    }
+  });
+  it("rejected, refreshed, rejected again: session, and exactly one refresh and two asks (no loop)", async () => {
+    const m = deps({ replies: [SESSION, SESSION, SESSION, SESSION] });
+    assert.deepEqual(await askWithRefresh(m.d), SESSION);
+    assert.equal(m.refreshes(), 1);
+    assert.equal(m.calls.length, 2);
+  });
+  it("the refresh could not reach the network: unknown (asked again later), never session or free", async () => {
+    const m = deps({ replies: [SESSION], refresh: async () => ({ kind: "offline" }) });
+    assert.deepEqual(await askWithRefresh(m.d), { kind: "unknown" });
+  });
+  it("no stored token for someone signed in: the plan is not known (session); other answers pass through; a throw propagates", async () => {
+    assert.deepEqual(await askWithRefresh(deps({ token: null, replies: [] }).d), SESSION);
+    assert.deepEqual(await askWithRefresh(deps({ replies: [{ kind: "free", reason: "expired" }] }).d), { kind: "free", reason: "expired" });
+    assert.deepEqual(await askWithRefresh(deps({ replies: [UNK] }).d), UNK);
+    await assert.rejects(askWithRefresh(deps({ replies: ["throw"] }).d));
+  });
+  it("in the store: session is not free, is remembered (no repeat asking, so no refresh loop), and is asked again past the cache", async () => {
+    const m = make([SESSION, PRO]);
+    assert.deepEqual(await m.s.ask(real), { state: "session" });
+    assert.deepEqual(m.s.peek(real), { state: "session" });
+    assert.equal(m.s.loading(real), false);
+    await m.s.ask(real); await m.s.ask(real);
+    assert.equal(m.calls(), 1, "kept: one probe, one refresh, not one per render");
+    assert.equal(m.timers.filter((t) => t.live).length, 0, "and no timer re-asks it on its own");
+    assert.equal((await m.s.ask(real, { fresh: true })).state, "pro", "Check again, or a new sign-in, recovers it");
+  });
+  it("a background check that finds the sign-in has run out follows it (the screen stops saying Pro)", async () => {
+    const m = make([PRO, SESSION]);
+    await m.s.ask(real);
+    m.clock.t += STALE_MS; m.s.refreshIfStale(real);
+    await new Promise((r) => setTimeout(r, 0));
+    assert.equal(m.s.peek(real).state, "session");
   });
 });
 

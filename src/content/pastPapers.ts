@@ -21,18 +21,9 @@ import ownFiles from "./questionBank/files.json";
 import ownEdexcelFiles from "./questionBank/files-edexcel.json";
 import ownEdexcelScienceFiles from "./questionBank/files-edexcel-sciences.json";
 import { bankSubject, papersBase } from "./questionBank";
+import type { FileKind } from "./pastPaperKinds";
 
-/** The file kinds a session can have, in the order they are shown. */
-export const fileKinds = ["qp", "ms", "er", "ins", "gt"] as const;
-export type FileKind = (typeof fileKinds)[number];
-
-export const fileKindLabel: Record<FileKind, { short: string; long: string }> = {
-  qp: { short: "QP", long: "Question paper" },
-  ms: { short: "MS", long: "Mark scheme" },
-  er: { short: "ER", long: "Examiner’s report" },
-  ins: { short: "Insert", long: "Insert" },
-  gt: { short: "GT", long: "Grade thresholds" },
-};
+export { fileKinds, fileKindLabel, type FileKind } from "./pastPaperKinds";
 
 export interface PaperLink { label: string; href: string }
 

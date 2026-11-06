@@ -23,8 +23,6 @@ const UNDO = ["M9 7L4 12l5 5", "M4 12h10a6 6 0 010 12"];
 const BIN = ["M4 7h16", "M9 7V4h6v3", "M6 7l1 13h10l1-13"];
 
 type Props = CropProps & {
-  /** What sits right under the picture (Read as text): the row of mark tools comes after it. */
-  children?: React.ReactNode;
   setId: string;
   part: Pick<QPart, "id" | "l">;
   answer: QAnswer | undefined;
@@ -39,7 +37,7 @@ type Props = CropProps & {
  * (or writes, with "Draw with my finger"); a mouse writes only once "Write on the question" is on. The canvas is made only where it is needed: for a picture with marks, once a pen is put down
  * on it (the stroke is taken up where it began), while the mouse switch is on, or, on a touch screen where a pen has been seen, for the pictures near the screen. It is shown read-only on the enlarged picture.
  */
-export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }: Props) {
+export function AnnotCrop({ setId, part, answer, prefs, off, ...crop }: Props) {
   const key = annotKey(setId, part.id);
   const coarse = useMatch("(pointer: coarse)");
   const mouseAble = useMatch("(hover: hover) and (pointer: fine)");
@@ -205,11 +203,10 @@ export function AnnotCrop({ setId, part, answer, prefs, children, off, ...crop }
     </div>
   );
 
-  if (off || annotOff()) return <><Crop {...crop} />{children}</>;
+  if (off || annotOff()) return <Crop {...crop} />;
   return (
     <>
       <Crop {...crop} overlay={overlay} marksKey={count > 0 && !hidden ? key : undefined} />
-      {children}
       {toolsRow}
     </>
   );

@@ -341,15 +341,15 @@ describe("words for the picture", () => {
     const x = "Describe the difference between renewable energy resources and non-renewable energy resources. [2 marks] Figure 1 shows a new design of tidal turbine to generat";
     const alt = partAlt({ l: "01.1", m: 2, x });
     assert.match(alt, /^Question 01\.1 \(2 marks\)\. It starts: Describe the difference/);
-    assert.match(alt, /That is only the start\. Open Read as text/);
+    assert.match(alt, /That is only the start of the question\./);
     assert.ok(!/generat\b/.test(alt), alt);
     const quoted = alt.match(/It starts: (.*?)\u2026/)![1];
     assert.ok(x.startsWith(quoted.trimEnd()), "the quoted words are the real opening, ending on a whole word");
     assert.ok(/\s/.test(x[quoted.trimEnd().length]) , "the next character in the source is a space: no word was cut");
   });
-  test("a short question that ends on its own marks is given whole; one with nothing is pointed to the text", () => {
+  test("a short question that ends on its own marks is given whole; one with nothing says it is a picture", () => {
     assert.equal(partAlt({ l: "3(b)", m: 1, x: "Name the unit of power. [1 mark]" }), "Question 3(b) (1 mark): Name the unit of power. [1 mark]");
-    assert.match(partAlt({ l: "4", m: null, x: "" }), /^Question 4\. A picture of the question\. Open Read as text/);
+    assert.match(partAlt({ l: "4", m: null, x: "" }), /^Question 4\. A picture of the question\.$/);
   });
   test("cutWords stops on a word and says it cut", () => {
     assert.deepEqual(cutWords("one two three", 20), { text: "one two three", cut: false });

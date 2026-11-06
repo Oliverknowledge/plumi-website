@@ -16,6 +16,8 @@
   .pa .qf-head:has(.qf-abtn) .qf-fbtn { padding: 0 9px; }
   .pa .qf-head:has(.qf-abtn) .qf-nres, .pa .qf-head:has(.qf-abtn) .qf-here { max-width: 72px; white-space: normal; overflow: visible; text-overflow: clip; }
   .pa .qf-head:has(.qf-abtn) .qf-nres b { display: block; }
+  /* The strip is as tall for one label as for another: "Q5(b)" is one line, "Q5(a)(ii)" two, and the label is where the reading line is, which depends on how tall the strip is (a strip that changed height with the label rocked the page by 17px when the reading line sat on the edge of two questions). Two lines are always kept for it. */
+  .pa .qf-head:has(.qf-abtn) .qf-prog { height: 34px; overflow: hidden; }
 }
 @media (max-width: 379px) {
   .pa .qf-head:has(.qf-abtn) { grid-template-columns: auto auto minmax(0, 1fr); }
@@ -137,4 +139,43 @@
 }
 @media (max-width: 380px) {
   .pa .qa-axis .qa-cols b { font-size: 8.5px; letter-spacing: -.02em; }
+}
+
+/* Angles: under a form's bar. A button beside the bar opens it (a lock with the Pro tag for anyone not on Pro); inside, one fact line, how the board words it (bars), and real examples that open to the board's own question and mark scheme. */
+.pa .qa-formli { display: block; }
+.pa .qa-formline { display: flex; align-items: center; gap: 4px; }
+.pa .qa-formline .qa-mixrow { flex: 1; min-width: 0; width: auto; }
+.pa .qa-angbtn { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 88px; min-height: 44px; padding: 0 10px; border: 2px solid rgba(34, 48, 77, .55); border-radius: 12px; background: transparent; font: 800 13px var(--f-body); color: var(--ink); cursor: pointer; transition: background .12s; }
+.pa .qa-angbtn:hover { background: #fff; border-color: var(--ink); }
+.pa .qa-angbtn.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.pa .qa-angbtn.on svg { transform: rotate(180deg); }
+.pa .qa-angbtn.is-locked { border-style: dashed; }
+.pa .qa-angbtn.is-pending { border-color: transparent; background: transparent; cursor: default; pointer-events: none; }
+.pa .qa-angbtn .pro-tag { margin-left: 2px; }
+.pa .qa-ang { margin: 2px 0 10px 6px; padding: 10px 12px 12px; border-left: 3px solid var(--tint, #f2c96b); border-radius: 0 12px 12px 0; background: rgba(255, 255, 255, .55); display: grid; gap: 10px; }
+.pa .qa-fact { margin: 0; font: 700 14px/1.35 var(--f-body); color: var(--soft); }
+.pa .qa-fact b { color: var(--ink); font-weight: 800; }
+.pa .qa-angh { margin: 4px 0 4px; font: 700 17px/1.1 var(--f-px); }
+.pa .qa-phr { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.pa .qa-phr li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(40px, 1fr) 34px; align-items: center; gap: 10px; min-height: 32px; }
+.pa .qa-phrase { font: 800 14px/1.2 var(--f-body); overflow-wrap: anywhere; }
+.pa .qa-phrase i { font-style: normal; color: var(--mute); }
+.pa .qa-phr .qa-barwrap { height: 10px; }
+.pa .qa-exs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.pa .qa-exrow { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 12px; border: 2px solid var(--line); border-radius: 12px; background: #fff; font: 800 14px var(--f-body); color: var(--ink); text-align: left; cursor: pointer; }
+.pa .qa-exrow:hover { border-color: var(--navy); }
+.pa .qa-exrow[aria-expanded="true"] svg { transform: rotate(180deg); }
+.pa .qa-pair { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 10px 0 4px; }
+.pa .qa-pair figure { margin: 0; min-width: 0; display: grid; gap: 4px; align-content: start; }
+.pa .qa-pair figcaption { font: 800 12.5px var(--f-body); color: var(--soft); }
+.pa .qa-angnone, .pa .qa-angfail { margin: 0; font: 700 14px var(--f-body); color: var(--soft); }
+.pa .qa-angghost i { height: 36px; }
+.pa .qa-angpractise { justify-self: start; min-height: 44px; }
+@media (min-width: 641px) { .pa .qa-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  /* the bars keep their length: the Angles button sits under the count, on the line with the marks */
+  .pa .qa-formline { position: relative; display: block; }
+  .pa .qa-formline .qa-mixrow { width: 100%; min-height: 82px; }
+  .pa .qa-angbtn { position: absolute; right: 2px; bottom: 2px; min-width: 84px; padding: 0 8px; }
+  .pa .qa-ang { margin-left: 2px; padding-inline: 10px; }
 }

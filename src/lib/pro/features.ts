@@ -14,6 +14,8 @@ export interface ProFeature {
 
 export const PRO_FEATURES = [
   { id: "mark-scheme-decks", title: "Mark scheme decks", line: "The exam boards’ own mark schemes, deck by deck.", status: "live" },
+  { id: "angles", title: "Angles", line: "How each topic is asked, with real questions and mark schemes.", status: "live" },
+  { id: "mistakes-cards", title: "From my mistakes", line: "Questions you lost marks on, as cards to redo.", status: "live" },
 ] as const satisfies readonly ProFeature[];
 
 export type ProFeatureId = (typeof PRO_FEATURES)[number]["id"];
