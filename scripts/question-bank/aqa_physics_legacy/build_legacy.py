@@ -1,6 +1,7 @@
 """Add the legacy Physics A (2450) parts to the AQA A-Level Physics bank.
 
     python3 scripts/question-bank/aqa_physics_legacy/build_legacy.py [work-dir]   # default scripts/question-bank/.work/phya
+    python3 scripts/question-bank/aqa_physics_legacy/build_legacy.py <new-work-dir> --append
 
 Reads <work-dir>/parts.json (cut_legacy.py), tags.json and off.json (tag_legacy.py) and
 manifest.json (fetch_pmt.py), and merges the parts into the bank build_bank.py wrote:
@@ -10,13 +11,17 @@ Earlier legacy rows (ids "phya...") are replaced, so a re-run is safe, and the 7
 rows are left as they are. The legacy papers sit after the current ones, named for the
 old spec ("PHYA1 (old spec)"). A part tagged [] (its physics isn't on 7408) is left out.
 The past paper library's files.json is not touched: these are PMT's copies, for the bank only.
+--append keeps all earlier rows, search text and whole-paper links. It rejects changes
+to an existing part: re-cutting published crops requires the separate re-cut workflow.
 """
 import json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 QB = os.path.dirname(HERE)
 ROOT = os.path.abspath(os.path.join(QB, "..", ".."))
-WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(QB, ".work", "phya")
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(QB, ".work", "phya")
+APPEND = "--append" in sys.argv
 SLUG = "aqa-a-level-physics"
 sys.path.insert(0, QB)
 from build_bank import BOILERPLATE, CALC  # noqa: E402
@@ -54,8 +59,9 @@ def main():
     meta_path = os.path.join(ROOT, "src", "content", "questionBank", f"{SLUG}.json")
     pub = os.path.join(ROOT, "public", "question-bank", SLUG)
     meta = json.load(open(meta_path))
-    rows = [r for r in json.load(open(os.path.join(pub, "parts.json"))) if not r["id"].startswith("phya")]
-    text = {k: v for k, v in json.load(open(os.path.join(pub, "text.json"))).items() if not k.startswith("phya")}
+    rows = [r for r in json.load(open(os.path.join(pub, "parts.json"))) if APPEND or not r["id"].startswith("phya")]
+    text = {k: v for k, v in json.load(open(os.path.join(pub, "text.json"))).items() if APPEND or not k.startswith("phya")}
+    existing = {r["id"]: r for r in rows}
     whole_ms = {(f["component"], f["series"]): f"aqa/{f['file']}" for f in manifest if f["kind"] == "ms"}
 
     legacy, off = [], []
@@ -84,8 +90,13 @@ def main():
             row["k"] = p["key"]
         if CALC.search(own) or CALC.search(p.get("msText", "")[:300]):
             row["calc"] = 1
+        search = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", re.sub(r"\.{4,}", " ", p["text"] + " " + p.get("msText", ""))).lower()).strip()
+        if p["id"] in existing:
+            if row != existing[p["id"]] or search != text.get(p["id"]):
+                sys.exit(f"{p['id']}: --append cannot change an existing part; use the re-cut workflow")
+            continue
         legacy.append(row)
-        text[p["id"]] = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", re.sub(r"\.{4,}", " ", p["text"] + " " + p.get("msText", ""))).lower()).strip()
+        text[p["id"]] = search
     legacy.sort(key=lambda r: (-rank(r["s"]), ORDER[r["p"]], label_key(r["l"])))
     rows += legacy
 
@@ -95,13 +106,13 @@ def main():
             counts[c] = counts.get(c, 0) + 1
     for t in meta["topics"]:
         t["count"] = counts.get(t["code"], 0)
-    used = {r["p"] for r in legacy}
+    used = {r["p"] for r in rows if r["p"].startswith("PHYA")}
     meta["specs"] = [s for s in meta["specs"] if s != "2450"] + ["2450"]
     meta["papers"] = [x for x in meta["papers"] if not x["id"].startswith("PHYA")] + \
         [{"id": i, "name": n, "title": t, "as": a} for i, n, t, a in PAPERS if i in used]
     series = sorted({r["s"] for r in rows}, key=rank, reverse=True)
     meta["series"] = [{"id": s, "label": "Specimen" if s == "SPEC" else f"{MONTH[s[:3]]} 20{s[3:]}"} for s in series]
-    meta["wholes"] = {k: v for k, v in meta["wholes"].items() if not k.startswith("PHYA")}
+    meta["wholes"] = {k: v for k, v in meta["wholes"].items() if APPEND or not k.startswith("PHYA")}
     for f in manifest:
         if f["component"] in used and f["kind"] in ("qp", "ms"):
             meta["wholes"].setdefault(f"{f['component']}-{f['series']}", {})[f["kind"]] = f"aqa/{f['file']}"

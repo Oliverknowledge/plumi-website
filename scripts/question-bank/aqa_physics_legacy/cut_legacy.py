@@ -170,7 +170,7 @@ def qp_frame(page):
     return f
 
 
-def qp_labels(page, mcq):
+def qp_labels(page, mcq, allow_plain=False):
     out = []
     for y, row in rows_of(page):
         x0, first, bold = row[0]
@@ -180,20 +180,20 @@ def qp_labels(page, mcq):
             if re.fullmatch(r"\d{1,2}", first) and x0 < 60:
                 out.append((y, key_of(first)))
             continue
-        if not bold:
-            continue
         m = QP_LABEL.match(" ".join(t for _, t, _ in row))
+        if not bold and not (allow_plain and m and m.group(2)):
+            continue
         if m:
             out.append((y, key_of(m.group(1), m.group(2), m.group(3))))
     return out
 
 
-def qp_regions(doc, mcq):
+def qp_regions(doc, mcq, allow_plain=False):
     marks, prev = [], None
     for i, page in enumerate(doc):
         if SKIP.search(page.get_text()):
             continue
-        for y, k in qp_labels(page, mcq):
+        for y, k in qp_labels(page, mcq, allow_plain):
             if ok_next(prev, k):
                 marks.append((i, y, k))
                 prev = k
@@ -434,6 +434,33 @@ def ending(page, top, end):
     return None
 
 
+def ms_questions_2009(doc):
+    """The unruled 2009 schemes centre labels vertically beside their answers.
+
+    Cutting at those labels divides answers between parts. Keep the complete
+    question, including diagrams and QWC descriptors, and mark it as shared.
+    Every question in these four schemes has an explicit 'Question n' heading.
+    """
+    headings = []
+    for pg, page in enumerate(doc):
+        for x0, y0, x1, y1, text, *_ in lines_of(page):
+            match = re.fullmatch(r"Question\s+(\d+)", text)
+            if match:
+                headings.append((pg, y0 - 3, key_of(match.group(1))))
+    out = {}
+    for n, (pg, top, key) in enumerate(headings):
+        end_pg, end_y, _ = headings[n + 1] if n + 1 < len(headings) else (len(doc) - 1, float("inf"), None)
+        pieces = []
+        for i in range(pg, end_pg + 1):
+            frame = cut.ms_frame(doc[i])
+            rect = pymupdf.Rect(frame.x0, top if i == pg else frame.y0,
+                                frame.x1, min(end_y, frame.y1) if i == end_pg else frame.y1)
+            if rect.height > 8 and doc[i].get_text("text", clip=rect).strip():
+                pieces.append((i, rect))
+        out[key] = (pieces, "\n".join(doc[i].get_text("text", clip=r) for i, r in pieces))
+    return out
+
+
 def mcq_keys(doc):
     """The Unit 4 scheme's key to Section A: {1: 'C', ...}, read by position (a row of numbers over a
     row of letters, or number-letter pairs side by side)."""
@@ -515,10 +542,22 @@ def cut_set(qp_path, ms_path, set_id, meta):
     qp = pymupdf.open(qp_path)
     ms = open_upright(ms_path) if ms_path and os.path.exists(ms_path) else None
     mcq = meta["component"] == "PHYA4A"
-    regions = qp_regions(qp, mcq)
+    early = meta["series"] in ("JAN09", "JUN09")
+    regions = qp_regions(qp, mcq, allow_plain=early)
     keys = mcq_keys(ms) if (ms and mcq) else {}
     mode = "B" if meta["component"] == "PHYA4B" else "last" if meta["component"].startswith("PHYA5B") else "first"
-    ms_map = ms_regions(ms, mode) if (ms and not mcq) else {}
+    ms_map = (ms_questions_2009(ms) if early else ms_regions(ms, mode)) if (ms and not mcq) else {}
+    # January 2009 PHYA1 6(b)(i–iii) has one combined six-mark award, printed
+    # after (iii). Keep the three prompts together rather than inventing marks.
+    if meta["component"] == "PHYA1" and meta["series"] == "JAN09":
+        grouped = []
+        for k, pieces, text in regions:
+            if k[:2] == (6, "b") and k[2] and grouped and grouped[-1][0] == (6, "b", None):
+                pk, pp, pt = grouped[-1]
+                grouped[-1] = (pk, pp + pieces, pt + "\n" + text)
+            else:
+                grouped.append((k, pieces, text))
+        regions = grouped
     # A part that prints the marks for its own (i) and (ii), which print none ("2 (b) Suggest why ...
     # if a sample is: [2 marks]" then "(i) less than 200 years old", PHYA5 June 2014), is one part.
     merged = []
@@ -543,6 +582,10 @@ def cut_set(qp_path, ms_path, set_id, meta):
         q, a, r = k
         pid = "-".join([set_id, str(q)] + ([a] if a else []) + ([r] if r else []))
         anc = list(dict.fromkeys(x for x in [key_of(q), key_of(q, a) if r else None] if x and x != k and x in setups))
+        # June 2009 PHYA2 puts Figure 6 under 5(a), but 5(b) also asks about
+        # point Y on that figure. Carry the figure to the sibling part too.
+        if meta["component"] == "PHYA2" and meta["series"] == "JUN09" and k == (5, "b", None):
+            anc = [key_of(5, "a")]
         stem_name = stem_key = None
         if anc:
             parent = anc[-1]
