@@ -5,8 +5,7 @@
  * Pure and deterministic: the same words give the same form, with no model and no network. It is conservative on purpose: a part that does not
  * clearly say what it asks for is "other", never a guess, so a count of a form is a count of parts that really say so.
  *
- * Input: the part's question text as the bank holds it (lower case, folded; `questionText` in partText.ts cuts the question out of the page's
- * text), its marks, and the bank's multiple-choice key if it has one.
+ * Input: the part's question text as the bank holds it (lower case, folded: the question cut out of the page's text), its marks, and the bank's multiple-choice key if it has one.
  *
  * The rules, in the order they are applied:
  *

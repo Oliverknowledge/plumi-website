@@ -9,7 +9,6 @@ import { qa } from "@/lib/studyapp/questions/store";
 import { Crop } from "./Crop";
 import { CheckIcon, ReportIcon } from "./icons";
 import { MarkKey } from "./MarkKey";
-import { SchemeText } from "./ReadAsText";
 import { ChevronIcon } from "./pickerIcons";
 import { getMeta } from "./bankData";
 import { bankFile } from "@/lib/studyapp/questions/cropUrls";
@@ -164,7 +163,6 @@ function Scheme({ id, set, part, answer, reportOutside, trayAside }: { id: strin
             <p className="qs-scheme-label">What the examiner wants</p>
             {part.msq && <p className="qs-scheme-note">This is the whole question&apos;s scheme. Look for {part.l}.</p>}
             <CappedScheme open={wholeScheme(set.subject)}><Crop src={partImage(part.id, "ms", set.cv)} alt={`Mark scheme for ${label}`} what="the mark scheme" pdf={pdf} zoom={reportOutside} onState={(s) => setPic(s)} /></CappedScheme>
-            <SchemeText set={set} part={part} />
           </>
         ) : part.k ? (
           <p className="qs-key">Answer <b>{part.k}</b></p>

@@ -109,10 +109,29 @@ export function groupPapers(rows: readonly BankRow[], meta: Pick<SubjectMeta, "s
     || (paperRank.get(a.p.toLowerCase()) ?? 1e6) - (paperRank.get(b.p.toLowerCase()) ?? 1e6) || (a.p < b.p ? -1 : a.p > b.p ? 1 : 0));
 }
 
-/** The shelf holds the latest few; the rest are "More papers". */
-export const SHELF_PAPERS = 10;
-export function shelfOf<T>(papers: readonly T[], n = SHELF_PAPERS): { shown: T[]; more: number } {
-  return { shown: papers.slice(0, n), more: Math.max(0, papers.length - n) };
+/** The sittings of one paper code (the Papers view's card): "Paper 1 Higher", newest sitting first. */
+export interface PaperCode { code: string; name: string; title?: string; tier: string | null; sessions: Paper[] }
+
+/** Group papers (newest sitting first, as `groupPapers` returns them) by paper code, the codes in the bank's paper order: a card per paper with its sittings as rows, as the public past papers page lays a board out. */
+export function byPaperCode(papers: readonly Paper[]): PaperCode[] {
+  const by = new Map<string, PaperCode>();
+  for (const p of papers) {
+    const k = p.p.toLowerCase();
+    const c = by.get(k);
+    if (c) c.sessions.push(p);
+    else by.set(k, { code: k, name: p.name, ...(p.title ? { title: p.title } : {}), tier: p.tier, sessions: [p] });
+  }
+  return [...by.values()];
+}
+
+/** The Papers view's own words for how a paper is going: "Not started", "12 of 44 marked", "Done, 62 of 80 marks". */
+export function rowLine(s: PaperState): string {
+  switch (s.phase) {
+    case "new": return "Not started";
+    case "started": return s.done > 0 ? `${s.done} of ${s.of} marked` : "Started";
+    case "partial": return s.done > 0 ? `Finished, ${s.done} of ${s.of} marked` : "Finished";
+    case "done": return s.pct == null ? "Done" : `Done, ${s.got} of ${s.total} marks`;
+  }
 }
 
 /** The years of a list of papers, in the order they first appear (newest first), with how many papers each holds. */

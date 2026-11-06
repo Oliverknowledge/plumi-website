@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { signInHref, useAccount } from "@/lib/account";
+import { signInHref, signOut, useAccount } from "@/lib/account";
 import { usePro } from "@/lib/pro/client";
 import { PRO_FEATURES, type ProFeature } from "@/lib/pro/features";
 import { describePlan } from "@/lib/pro/plan";
@@ -12,7 +12,7 @@ const Lock = () => <svg viewBox="0 0 24 24" width="14" height="14" fill="none" s
 
 /**
  * Settings' "Plumi Pro" section: what plan the student has (from the server, through `usePro`), what Pro includes (lib/pro/features.ts), and "Check again" for the
- * minute after they buy on iPad. Signed out it only says to sign in. No price and no way to buy: Pro is bought in the iPad app (Apple's rules).
+ * minute after they buy on iPad. Signed out it only says to sign in; with a sign-in that has run out (the plan is not known, never "Free plan") it says so and offers Sign out. No price and no way to buy: Pro is bought in the iPad app (Apple's rules).
  */
 export function ProPlanSection({ path }: { path: string }) {
   const { user } = useAccount();
@@ -36,6 +36,8 @@ export function ProPlanSection({ path }: { path: string }) {
 
       {line.tone === "signedout" ? (
         <div className="stg-row"><a className="btn" href={signInHref("library", path)} data-testid="pro-plan-signin">Sign in</a></div>
+      ) : line.tone === "session" ? (
+        <div className="stg-row"><button type="button" className="btn" onClick={() => void signOut()} data-testid="pro-plan-signout">Sign out</button></div>
       ) : (
         <>
           {line.tone !== "checking" && (

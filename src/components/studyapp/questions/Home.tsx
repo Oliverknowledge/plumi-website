@@ -16,12 +16,12 @@ import { useMatch } from "./useMatch";
 import { ChevronIcon } from "./pickerIcons";
 import { PlusIcon } from "./icons";
 import { SetsSheet } from "./SetsSheet";
-import { Shelf } from "./Shelf";
+import { PapersList } from "./PapersList";
 
 const VIEWS: { id: FeedViewKind; label: string }[] = [{ id: "questions", label: "Questions" }, { id: "papers", label: "Papers" }];
 
 /**
- * The front door: one subject at a time, its questions as a single continuous list (the feed) or its past papers on a shelf (Papers). The subjects are the
+ * The front door: one subject at a time, its questions as a single continuous list (the feed) or its past papers laid out like the public past papers page (Papers). The subjects are the
  * student's own, small notebook tabs along the top (Change, Add a subject); which subject and which of the two views they were last in is remembered.
  */
 export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: CatalogueSubject[]; q: QuestionsData; mine: string[]; onPick(slug: string, mix: boolean): void; onSetup(): void }) {
@@ -118,9 +118,7 @@ export function Home({ catalogue, q, mine, onPick, onSetup }: { catalogue: Catal
           </div>}
 
           <div id="qf-panel" role="tabpanel" aria-labelledby={phone ? "qf-subjbtn" : `qf-tab-${entry.slug}`} className="qf-panel">
-            {view === "questions" ? <Feed key={entry.slug} entry={entry} q={q} /> : (
-              <div className="qh-shelves" id="qh-shelves"><Shelf key={entry.slug} entry={entry} q={q} onPick={onPick} /></div>
-            )}
+            {view === "questions" ? <Feed key={entry.slug} entry={entry} q={q} /> : <PapersList key={entry.slug} entry={entry} q={q} onPick={onPick} />}
           </div>
         </div>
       </div>

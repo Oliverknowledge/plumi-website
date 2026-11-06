@@ -407,16 +407,17 @@ export function cutWords(text: string, max: number): { text: string; cut: boolea
 
 /**
  * The text a screen reader gets for a part's picture. The picture holds the question, and the bank keeps only its opening
- * words (`x`), so this says what it has and where the rest is: a cut is never passed off as the whole question.
+ * words (`x`, already loaded with the list), so this says what it has: a cut is never passed off as the whole question. (There is no visible "Read as text" any more, so this is the
+ * only wording a screen reader gets without fetching the paper's text.)
  */
 export function partAlt(p: Pick<QPart, "l" | "m" | "x">): string {
   const marks = p.m != null && p.m > 0 ? ` (${p.m} ${p.m === 1 ? "mark" : "marks"})` : "";
   const head = `Question ${p.l}${marks}`;
   const x = (p.x ?? "").replace(/\s+/g, " ").trim();
-  if (!x) return `${head}. A picture of the question. Open Read as text under it.`;
+  if (!x) return `${head}. A picture of the question.`;
   const c = cutWords(x, 110);
   const whole = !c.cut && /\[\d+ marks?\]$/.test(x);
-  return whole ? `${head}: ${x}` : `${head}. It starts: ${c.text}${c.cut ? "" : "."} That is only the start. Open Read as text under the picture for more.`;
+  return whole ? `${head}: ${x}` : `${head}. It starts: ${c.text}${c.cut ? "" : "."} That is only the start of the question.`;
 }
 
 /* ── changes ─────────────────────────────────────────────────────────── */
