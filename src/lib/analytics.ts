@@ -72,11 +72,14 @@ export type PlumiEvent =
   | "password_set"
   /** "Join the library" (lib/library): the card shown, a student joined (`colour`), a name
    *  refused (`why`: the rule's reason, never the name), the library left. */
-  /** The ready-made decks catalogue (study app, Flashcards): opened, a deck added (`subject`, `deck`: the stable id, `group`: kw or ms), a locked
-   *  Mark scheme (Pro) deck tapped (`subject`, `deck`, `group`). No personal data. */
+  /** The ready-made decks catalogue (study app, Flashcards): opened, a deck added (`subject`, `deck`: the stable id, `group`: kw or ms). No personal data. */
   | "premade_opened"
   | "premade_deck_added"
-  | "premade_locked_tapped"
+  /** Plumi Pro on the website (lib/pro): a locked Pro thing tapped (`feature`: its id in lib/pro/features.ts), the locked panel opened (`feature`), and the
+   *  student's plan checked (`state`: pro, free or unknown; never an id or an email). */
+  | "pro_locked_tapped"
+  | "pro_panel_opened"
+  | "pro_status_checked"
   | "library_join_shown"
   | "library_joined"
   | "library_name_refused"

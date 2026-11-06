@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { signInHref, useAccount } from "@/lib/account";
 import { track } from "@/lib/analytics";
 import { boardFor, entriesOf, GROUPS, loadMarkScheme, loadMarkSchemeIndex, loadPremade, MarkSchemeDenied, msEntriesFromIndex, MS_BOARDS, orderSpecs, PREMADE_SUBJECTS, toAdd, type MsIndexSpec, type PremadeEntry, type PremadeGroup, type PremadeSlug } from "@/lib/studyapp/premade";
 import type { PremadeSubject } from "@/lib/studyapp/premadeBuild";
-import { accessToken, isLocked, onTap, usePro } from "@/lib/studyapp/pro";
+import { accessToken, usePro } from "@/lib/pro/client";
+import { useProLock } from "../../pro/ProGate";
+import { ProTag } from "../../pro/ProTag";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { toast } from "../toast";
@@ -26,8 +27,7 @@ export function Catalogue() {
   const own = (slug: PremadeSlug, group: PremadeGroup) => boardFor(slug, mine, recent, group);
   const first = (): Tab => PREMADE_SUBJECTS.find((s) => own(s.slug, "kw") || own(s.slug, "ms"))?.slug ?? "biology";
   const [tab, setTab] = useState<Tab>(first);
-  const [locked, setLocked] = useState(false);
-
+  
   const opened = useRef(false);
   useEffect(() => {
     if (opened.current) return;
@@ -35,7 +35,6 @@ export function Catalogue() {
     track("premade_opened");
   }, []);
 
-  if (locked) return <ProPanel onBack={() => setLocked(false)} />;
   return (
     <div className="cat" data-testid="catalogue">
       <div className="seg cat-tabs" role="tablist" aria-label="Subject">
@@ -47,7 +46,7 @@ export function Catalogue() {
       <div id="cat-panel" role="tabpanel" aria-labelledby={`cat-tab-${tab}`}>
         {tab === "free"
           ? <StarterPicker compact />
-          : <SubjectDecks key={tab} slug={tab} own={(g) => own(tab, g)} onLocked={() => setLocked(true)} />}
+          : <SubjectDecks key={tab} slug={tab} own={(g) => own(tab, g)} />}
       </div>
     </div>
   );
@@ -55,9 +54,10 @@ export function Catalogue() {
 
 type Loaded<T> = { key: string; status: "loading" | "failed" | "ready"; data?: T };
 
-function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: PremadeGroup) => string | null; onLocked: () => void }) {
+function SubjectDecks({ slug, own }: { slug: PremadeSlug; own: (g: PremadeGroup) => string | null }) {
   const { data: app } = useApp();
   const pro = usePro();
+  const lock = useProLock("mark-scheme-decks");
   // Open on the kind the student's own board has decks of (a GCSE student has mark scheme decks only), else Key wording.
   const [group, setGroup] = useState<PremadeGroup>(() => (own("kw") || !own("ms") ? "kw" : "ms"));
   const [picked, setPicked] = useState<Partial<Record<PremadeGroup, string>>>({});
@@ -95,14 +95,13 @@ function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: Pre
       toast("Deck added");
       return;
     }
-    // Mark scheme: Pro only. The tile only says so; the server is what decides.
-    let action = onTap(pro.state);
-    if (action === "wait") action = onTap(await pro.ask());
-    if (action === "locked") { track("premade_locked_tapped", { subject: slug, deck: entry.key, group }); onLocked(); return; }
+    // Mark scheme: Pro only. The tile only says so; the server is what decides. A free student gets the panel; if the plan could not be read, ask the server anyway.
+    const plan = pro.state === "unknown" ? await pro.ready() : pro.plan;
+    if (plan.state === "free") { lock.tap(); return; }
     setBusy(true);
     try {
       const token = await accessToken();
-      if (!token) { onLocked(); return; }
+      if (!token) { lock.tap(); return; }
       const full = await loadMarkScheme(board!, token);
       const e = entriesOf(full, full.specs[0]).find((x) => x.key === entry.key);
       if (!e) throw new Error("module");
@@ -110,8 +109,8 @@ function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: Pre
       track("premade_deck_added", { subject: slug, deck: entry.key, group });
       toast("Deck added");
     } catch (err) {
-      if (err instanceof MarkSchemeDenied) { track("premade_locked_tapped", { subject: slug, deck: entry.key, group }); onLocked(); }
-      else toast("That deck didn’t open. Try again.");
+      if (err instanceof MarkSchemeDenied) lock.tap();
+      else toast("That deck didn\u2019t open. Try again.");
     } finally { setBusy(false); }
   };
 
@@ -120,7 +119,7 @@ function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: Pre
       <div className="cat-groups" role="group" aria-label="Kind of deck">
         {GROUPS.map((g) => (
           <button key={g.id} type="button" className="cat-group" aria-pressed={group === g.id} onClick={() => setGroup(g.id)} data-testid={`cat-group-${g.id}`}>
-            {g.name}{g.id === "ms" && <i className="cat-group-pro" aria-label="Pro">Pro</i>}
+            {g.name}{g.id === "ms" && <ProTag className="sm" />}
           </button>
         ))}
       </div>
@@ -146,15 +145,15 @@ function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: Pre
         <ul className="cat-grid" data-testid="cat-decks">
           {entries.map((e) => {
             const added = has(e.key);
-            const lock = group === "ms" && isLocked(pro.state);
+            const locked = group === "ms" && pro.state === "free";
             const waiting = group === "ms" && pro.state === "unknown";
             return (
               <li key={e.key}>
-                <button type="button" className={`cat-tile${added ? " added" : ""}${lock ? " locked" : ""}`} disabled={added} onClick={() => void tap(e)} data-testid={`cat-deck-${e.key}`} aria-label={`${e.title}, ${e.count} cards${added ? ", added" : lock ? ", Pro" : ""}`}>
+                <button type="button" className={`cat-tile${added ? " added" : ""}${locked ? " locked" : ""}`} disabled={added} onClick={() => void tap(e)} data-testid={`cat-deck-${e.key}`} aria-label={`${e.title}, ${e.count} cards${added ? ", added" : locked ? ", Pro" : ""}`}>
                   <span className="cat-name"><b>{e.module}</b><small>{e.count} cards</small></span>
                   <span className="cat-end" aria-hidden="true">
                     {added ? <span className="cat-done">Added</span>
-                      : lock ? <span className="cat-pro">Pro</span>
+                      : locked ? <ProTag />
                       : waiting ? <span className="cat-wait" />
                       : <span className="cat-plus">+</span>}
                   </span>
@@ -165,25 +164,8 @@ function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: Pre
           })}
         </ul>
       )}
+      {lock.panel}
       <p className="starter-note" data-testid="cat-note">{group === "ms" ? "Each exam board’s own mark scheme wording, from past papers. The key words are in bold." : "Written by Plumi, not yet checked by a teacher. Check a card against your own spec and edit it if it differs."}</p>
-    </div>
-  );
-}
-
-/** What a tap on a locked deck shows. No price and no way to buy: Pro is bought in the iPad app, and the website only learns of it at sign-in. */
-function ProPanel({ onBack }: { onBack: () => void }) {
-  const { user } = useAccount();
-  const signedOut = !user || !!user.is_anonymous;
-  return (
-    <div className="cat-pro-panel" data-testid="pro-panel" role="region" aria-labelledby="pro-h">
-      <div className="cat-pro-art" aria-hidden="true">{PREMADE_SUBJECTS.map((s) => <span key={s.slug} className="stk" style={{ background: TINT[s.slug] }}>{s.name}</span>)}</div>
-      <h3 id="pro-h">Part of Plumi Pro</h3>
-      <p>Pro adds every Mark scheme deck, word for word from the exam boards.</p>
-      <p className="cat-pro-how">Pro is bought in the Plumi app on iPad, then it works here when you sign in.</p>
-      <div className="sheet-acts">
-        {signedOut && <a className="btn gold" href={signInHref("header", "/study/flashcards")} data-testid="pro-signin">Sign in</a>}
-        <button type="button" className={signedOut ? "btn ghost" : "btn gold"} onClick={onBack} data-autofocus data-testid="pro-back">Back to the decks</button>
-      </div>
     </div>
   );
 }

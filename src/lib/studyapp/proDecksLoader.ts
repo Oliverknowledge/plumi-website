@@ -1,5 +1,5 @@
 import "server-only";
-import type { MsSlug } from "./proServer";
+import type { MsSlug } from "./markSchemeRoute";
 
 /**
  * The mark scheme cards, read from src/content/proDecks. This is the ONLY place that imports them, and it is imported only by the route handler:

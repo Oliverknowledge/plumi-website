@@ -334,7 +334,7 @@ export function buildMarkScheme(input: MarkSchemeInput): { data: PremadeSubject;
 
 /**
  * What every student may see of the mark scheme decks: for each specification its modules, and how many cards each holds. No card text and no card id:
- * the cards themselves are served only to a Pro account (src/app/api/premade/markscheme, lib/studyapp/proServer.ts). Derived from the full files, so it can
+ * the cards themselves are served only to a Pro account (src/app/api/premade/markscheme, lib/pro/server.ts). Derived from the full files, so it can
  * be checked against them without the iPad's files.
  */
 export interface MarkSchemeIndex { v: 1; kind: "markscheme-index"; specs: { id: string; subject: string; label: string; code: string; mods: { c: string; t: string; n: number }[] }[] }

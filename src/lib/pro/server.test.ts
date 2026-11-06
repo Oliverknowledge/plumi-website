@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, it } from "node:test";
-import { bearer, handleMarkScheme, handleProStatus, isLive, isMsSlug, limited, MS_SLUGS, verdictFor, type ProDeps } from "./proServer";
+import { beforeEach, describe, it } from "node:test";
+import { handleMarkScheme, isMsSlug, MS_SLUGS } from "../studyapp/markSchemeRoute";
+import { bearer, cacheKeys, clearProCache, getProState, handleProStatus, infoFor, isLive, limited, proInfoFor, requirePro, sameOrigin, type ProDeps } from "./server";
 
+beforeEach(() => clearProCache());
 const NOW = Date.parse("2026-11-06T12:00:00Z");
 const iso = (ms: number) => new Date(ms).toISOString();
 const DAY = 86_400_000;
 const UID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 const TOKEN = "aaaa.bbbb.cccc";
-const REQ = (h: Record<string, string> = { authorization: `Bearer ${TOKEN}` }) => new Request("http://x/api", { headers: h });
+const REQ = (h: Record<string, string> = { authorization: `Bearer ${TOKEN}` }, url = "http://x/api") => new Request(url, { headers: h });
 
 describe("the entitlement rule (account_pro_live in migration 0127)", () => {
   it("active grants while expires_at is ahead", () => {
@@ -33,6 +35,7 @@ describe("the entitlement rule (account_pro_live in migration 0127)", () => {
 
 /** A fake Supabase: /auth/v1/user and /rest/v1/account_entitlements, recording what it was asked. */
 function fake(opts: { user?: { id?: string; is_anonymous?: boolean } | number; rows?: unknown[] | number | "throw" } = {}) {
+  clearProCache(); // every scenario starts with an empty cache (the same token is used throughout)
   const calls: { url: string; headers: Record<string, string> }[] = [];
   const f: typeof fetch = async (input, init) => {
     const url = String(input);
@@ -56,32 +59,34 @@ const PRO_ROW = [{ status: "active", expires_at: iso(NOW + DAY) }];
 describe("who is Pro, asked of Supabase with the caller's own token", () => {
   it("pro: a live row of the caller's own", async () => {
     const { deps, calls } = fake({ rows: PRO_ROW });
-    assert.equal(await verdictFor(TOKEN, deps), "pro");
+    assert.equal((await infoFor(TOKEN, deps)).state, "pro");
     assert.ok(calls[1].url.includes(`user_id=eq.${UID}`) && calls[1].url.includes("account_entitlements"));
     assert.equal(calls[1].headers.Authorization, `Bearer ${TOKEN}`, "the caller's own token, so row-level security applies");
     assert.ok(calls.every((c) => !c.url.includes("account_pro")), "never the RPC: it would take a device slot");
   });
   it("free: no row, an expired or revoked one, or an anonymous user", async () => {
-    assert.equal(await verdictFor(TOKEN, fake({ rows: [] }).deps), "free");
-    assert.equal(await verdictFor(TOKEN, fake({ rows: [{ status: "expired", expires_at: iso(NOW + DAY) }] }).deps), "free");
-    assert.equal(await verdictFor(TOKEN, fake({ rows: [{ status: "revoked", expires_at: iso(NOW + DAY) }] }).deps), "free");
-    assert.equal(await verdictFor(TOKEN, fake({ rows: [{ status: "active", expires_at: iso(NOW - DAY) }] }).deps), "free");
+    assert.deepEqual(await infoFor(TOKEN, fake({ rows: [] }).deps), { state: "free", reason: "none" });
+    assert.equal((await infoFor(TOKEN, fake({ rows: [{ status: "expired", expires_at: iso(NOW + DAY) }] }).deps)).reason, "expired");
+    assert.equal((await infoFor(TOKEN, fake({ rows: [{ status: "revoked", expires_at: iso(NOW + DAY) }] }).deps)).reason, "revoked");
+    assert.deepEqual(await infoFor(TOKEN, fake({ rows: [{ status: "active", expires_at: iso(NOW - DAY) }] }).deps), { state: "free", reason: "expired", expiresAt: iso(NOW - DAY) });
     const anon = fake({ user: { id: UID, is_anonymous: true }, rows: PRO_ROW });
-    assert.equal(await verdictFor(TOKEN, anon.deps), "free");
+    assert.deepEqual(await infoFor(TOKEN, anon.deps), { state: "free", reason: "anonymous" });
     assert.equal(anon.calls.length, 1, "an anonymous user never even gets the entitlement read");
   });
   it("another user's row is not trusted: the query is for the verified user only", async () => {
     const { deps, calls } = fake({ user: { id: UID }, rows: PRO_ROW });
-    await verdictFor(TOKEN, deps);
+    await infoFor(TOKEN, deps);
     assert.ok(!calls[1].url.includes("user_id=eq.00000000"), "only the id Supabase gave for this token");
   });
-  it("unauth: a token Supabase does not accept; error: Supabase down, odd answers, no config", async () => {
-    assert.equal(await verdictFor(TOKEN, fake({ user: 401 }).deps), "unauth");
-    assert.equal(await verdictFor(TOKEN, fake({ user: 500 }).deps), "error");
-    assert.equal(await verdictFor(TOKEN, fake({ user: { id: "not-a-uuid" } }).deps), "error");
-    assert.equal(await verdictFor(TOKEN, fake({ rows: 500 }).deps), "error");
-    assert.equal(await verdictFor(TOKEN, fake({ rows: "throw" }).deps), "error");
-    assert.equal(await verdictFor(TOKEN, { ...fake().deps, env: null }), "error");
+  it("bad_token: a token Supabase does not accept; unknown (never free): Supabase down, odd answers, no config", async () => {
+    assert.deepEqual(await infoFor(TOKEN, fake({ user: 401 }).deps), { state: "free", reason: "bad_token" });
+    for (const f of [fake({ user: 500 }), fake({ user: { id: "not-a-uuid" } }), fake({ rows: 500 }), fake({ rows: "throw" })]) assert.equal((await infoFor(TOKEN, f.deps)).state, "unknown");
+    assert.equal((await infoFor(TOKEN, { ...fake().deps, env: null })).state, "unknown");
+  });
+  it("tells a Pro student's expiry and status (active, or grace)", async () => {
+    assert.deepEqual(await infoFor(TOKEN, fake({ rows: PRO_ROW }).deps), { state: "pro", reason: "ok", expiresAt: PRO_ROW[0].expires_at, status: "active" });
+    const g = [{ status: "grace", expires_at: iso(NOW - DAY) }];
+    assert.deepEqual(await infoFor(TOKEN, fake({ rows: g }).deps), { state: "pro", reason: "ok", expiresAt: g[0].expires_at, status: "grace" });
   });
   it("reads only a bearer token that looks like a JWT", () => {
     assert.equal(bearer("Bearer aaa.bbb.ccc"), "aaa.bbb.ccc");
@@ -144,8 +149,12 @@ describe("GET /api/premade/markscheme/<spec>", () => {
 describe("GET /api/pro-status", () => {
   it("200 for Pro, 403 free, 401 no token, 503 when it cannot be told", async () => {
     assert.equal((await handleProStatus(REQ(), fake({ rows: PRO_ROW }).deps)).status, 200);
-    assert.deepEqual(await (await handleProStatus(REQ(), fake({ rows: PRO_ROW }).deps)).json(), { pro: true });
-    assert.equal((await handleProStatus(REQ(), fake({ rows: [] }).deps)).status, 403);
+    assert.deepEqual(await (await handleProStatus(REQ(), fake({ rows: PRO_ROW }).deps)).json(), { pro: true, expiresAt: PRO_ROW[0].expires_at, status: "active" });
+    const free = await handleProStatus(REQ(), fake({ rows: [] }).deps);
+    assert.equal(free.status, 403);
+    assert.deepEqual(await free.json(), { error: "pro", reason: "none" });
+    const ended = await handleProStatus(REQ(), fake({ rows: [{ status: "expired", expires_at: iso(NOW - DAY) }] }).deps);
+    assert.deepEqual(await ended.json(), { error: "pro", reason: "expired", expiresAt: iso(NOW - DAY) }, "says why, and when it ended");
     assert.equal((await handleProStatus(REQ({}), fake().deps)).status, 401);
     assert.equal((await handleProStatus(REQ(), fake({ rows: 500 }).deps)).status, 503);
   });
@@ -165,5 +174,65 @@ describe("the cards stay on the server", () => {
     const idx = readFileSync(join(src, "content/premadeDecks/markscheme-index.json"), "utf8");
     assert.ok(!idx.includes("Both travel") && !idx.includes("[1 mark]") && !idx.includes("Also accept"));
     assert.deepEqual(walk(join(src, "content/premadeDecks")).filter((f) => f.includes("markscheme") && !f.endsWith("markscheme-index.json")), []);
+  });
+});
+
+describe("the Pro layer: getProState and requirePro, for any route", () => {
+  it("getProState: pro, free with why, and unknown; a missing or malformed token is free (no_token)", async () => {
+    assert.equal((await getProState(REQ(), fake({ rows: PRO_ROW }).deps)).state, "pro");
+    assert.deepEqual(await getProState(REQ(), fake({ rows: [] }).deps), { state: "free", reason: "none" });
+    assert.deepEqual(await getProState(REQ({}), fake().deps), { state: "free", reason: "no_token" });
+    assert.deepEqual(await getProState(REQ({ authorization: "Bearer junk" }), fake().deps), { state: "free", reason: "no_token" });
+    assert.equal((await getProState(REQ(), fake({ rows: 500 }).deps)).state, "unknown");
+  });
+  it("requirePro: ok with the info for Pro; 403, 401, 503 otherwise, and a cross-origin call is refused", async () => {
+    const ok = await requirePro(REQ(), fake({ rows: PRO_ROW }).deps);
+    assert.ok(ok.ok && ok.info.state === "pro");
+    const no = await requirePro(REQ(), fake({ rows: [] }).deps);
+    assert.ok(!no.ok && no.response.status === 403);
+    assert.equal((await requirePro(REQ({}), fake().deps) as { response: Response }).response.status, 401);
+    assert.equal((await requirePro(REQ(), fake({ rows: 500 }).deps) as { response: Response }).response.status, 503, "slow or down is never 'free'");
+    for (const h of [{ authorization: `Bearer ${TOKEN}`, origin: "https://evil.example" } as Record<string, string>, { authorization: `Bearer ${TOKEN}`, "sec-fetch-site": "cross-site" } as Record<string, string>]) {
+      const r = await requirePro(REQ(h), fake({ rows: PRO_ROW }).deps) as { ok: boolean; response: Response };
+      assert.ok(!r.ok && r.response.status === 403);
+    }
+    assert.equal(sameOrigin(REQ({ origin: "http://x" })), true);
+    assert.equal(sameOrigin(REQ({})), true);
+    assert.equal(sameOrigin(REQ({ origin: "not a url" })), false);
+  });
+  it("answers are cached for 30 seconds by a hash of the token: a page with several checks costs one read", async () => {
+    const f = fake({ rows: PRO_ROW });
+    await proInfoFor(TOKEN, f.deps); await proInfoFor(TOKEN, f.deps); await getProState(REQ(), f.deps);
+    assert.equal(f.calls.length, 2, "one /user and one entitlement read for all three");
+    let t = NOW;
+    const late: ProDeps = { ...f.deps, now: () => t };
+    t = NOW + 31_000;
+    await proInfoFor(TOKEN, late);
+    assert.equal(f.calls.length, 4, "asked again after 30 seconds");
+    await proInfoFor(TOKEN, late, true);
+    assert.equal(f.calls.length, 6, "fresh skips the cache (Check again after a purchase)");
+    await getProState(REQ({ authorization: `Bearer ${TOKEN}` }, "http://x/api?fresh=1"), late);
+    assert.equal(f.calls.length, 8, "?fresh=1 too");
+  });
+  it("only a real answer is cached: unknown and a rejected token are asked again", async () => {
+    const f = fake({ rows: 500 });
+    await proInfoFor(TOKEN, f.deps); await proInfoFor(TOKEN, f.deps);
+    assert.equal(f.calls.length, 4);
+    const bad = fake({ user: 401 });
+    await proInfoFor("x.y.z", bad.deps); await proInfoFor("x.y.z", bad.deps);
+    assert.equal(bad.calls.length, 2);
+  });
+  it("the cache never holds a token: its keys are hashes", async () => {
+    const f = fake({ rows: PRO_ROW });
+    await proInfoFor("secret.token.value", f.deps);
+    assert.deepEqual(cacheKeys().map((k) => /^[0-9a-f]{64}$/.test(k)), [true]);
+    assert.ok(!cacheKeys().join("").includes("secret"));
+  });
+  it("Supabase gets 4 seconds, then it is unknown (503), not free", async () => {
+    const slow: ProDeps = { env: { url: "https://p.example", key: "k" }, now: () => NOW, timeoutMs: 30, fetch: (_u, init) => new Promise((_res, rej) => { init?.signal?.addEventListener("abort", () => rej(new Error("aborted"))); }) as Promise<Response> };
+    const t0 = Date.now();
+    assert.equal((await infoFor(TOKEN, slow)).state, "unknown");
+    assert.ok(Date.now() - t0 < 1000);
+    assert.equal((await handleProStatus(REQ(), slow)).status, 503);
   });
 });
