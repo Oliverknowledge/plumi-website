@@ -227,6 +227,20 @@ export function addStarters(data: AppData, ids: readonly string[], now: number):
   return next;
 }
 
+/** A ready-made deck from the catalogue (premade.ts), as the model needs it: a stable key, a name, a subject and the cards. */
+export interface PremadeToAdd { key: string; title: string; subject: string; cards: readonly (readonly [string, string])[] }
+
+/**
+ * Add one catalogue deck. Its `key` (`pm:<subject>:<board>:<module>`) is kept on the deck as `starter`, as the starters keep theirs, so
+ * a deck is never added twice, can never be shared as the student's own, and (once added) is theirs to edit like any other.
+ */
+export function addPremade(data: AppData, deck: PremadeToAdd, now: number): AppData {
+  if (!deck.key || data.decks.some((d) => d.starter === deck.key)) return data;
+  const made = addDeck(data, deck.title, now, deck.subject, deck.key);
+  if (!made.deck) return data;
+  return addCards(made.data, made.deck.id, deck.cards, now);
+}
+
 /**
  * Cards pasted as text, one per line: front and back split by a tab, or a semicolon, or " | ". Lines without a
  * separator are skipped (and counted), so a half-pasted list never invents a card.
