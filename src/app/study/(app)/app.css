@@ -245,15 +245,16 @@
 .pa .deck-h b { font: 600 19px var(--f-px); }
 .pa .due-n { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 12px; background: var(--red-pen); color: #fff; font-size: 12.5px; font-weight: 900; border: 2px solid var(--ink); }
 .pa .fc { position: relative; perspective: 1200px; height: 190px; }
-.pa .fc-in { position: relative; height: 100%; transition: transform .55s cubic-bezier(.35,.1,.25,1); transform-style: preserve-3d; }
+.pa .fc-in { position: relative; height: 100%; transition: transform .34s cubic-bezier(.22,.7,.28,1); transform-style: preserve-3d; }
 .pa .fc.shown .fc-in { transform: rotateY(180deg); }
 .pa .fc-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 38px 14px 14px; border: 2px solid var(--ink); border-radius: 8px; background: #fffdf6 repeating-linear-gradient(to bottom, transparent 0 24px, #d6e4f3 24px 26px); background-position: 0 40px; background-repeat: no-repeat; background-size: 100% calc(100% - 40px); text-align: center; overflow: hidden; }
 .pa .fc-face::after { content: ""; position: absolute; left: 0; right: 0; top: 34px; height: 2px; background: #e7aaa3; }
 .pa button.fc-face { cursor: pointer; width: 100%; }
-.pa .fc-back { transform: rotateY(180deg); }
+.pa .fc-back { transform: rotateY(180deg); cursor: pointer; }
+.pa .fc-back .grades button { cursor: pointer; }
 .pa .fc-top { position: absolute; top: 6px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--soft); }
-.pa .fc-q { font: 700 27px/1.05 var(--f-hand); color: #23345e; }
-.pa .fc-a { font: 700 20px/1.1 var(--f-hand); color: #2a5599; }
+.pa .fc-q { font: 600 27px/1.05 var(--f-hand); color: #23345e; }
+.pa .fc-a { font: 600 20px/1.1 var(--f-hand); color: #2a5599; }
 .pa .fc-hint { position: absolute; bottom: 8px; font-size: 12px; font-weight: 800; color: var(--mute); }
 .pa .grades { display: flex; gap: 6px; width: 100%; margin-top: 4px; }
 .pa .grades button { flex: 1; height: 34px; border: 2px solid var(--ink); border-radius: 9px; font-size: 12.5px; font-weight: 900; cursor: pointer; }
@@ -288,7 +289,14 @@
 .pa .fc.big .fc-a[data-long] { font-size: 21px; }
 .pa .fc.big .fc-face { padding: 44px 24px 18px; }
 .pa .fc.big .grades button { height: 52px; font-size: 14px; }
-@media (prefers-reduced-motion: reduce) { .pa .fc-in { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pa .fc-in { transition: none; }
+  .pa .fc-face { transition: opacity .16s linear; }
+  .pa .fc-in, .pa .fc.shown .fc-in { transform: none; }
+  .pa .fc-back { transform: none; opacity: 0; }
+  .pa .fc.shown .fc-face:not(.fc-back) { opacity: 0; }
+  .pa .fc.shown .fc-back { opacity: 1; }
+}
 
 /* ── desk additions: what the live to-do needs beyond the artifact's rows ── */
 .pa .row .rm { width: 28px; height: 28px; flex: none; border: 0; border-radius: 8px; background: transparent; color: var(--mute); font: 800 20px/1 var(--f-body); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; }
