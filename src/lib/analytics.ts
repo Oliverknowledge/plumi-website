@@ -72,6 +72,11 @@ export type PlumiEvent =
   | "password_set"
   /** "Join the library" (lib/library): the card shown, a student joined (`colour`), a name
    *  refused (`why`: the rule's reason, never the name), the library left. */
+  /** The ready-made decks catalogue (study app, Flashcards): opened (`gate`: on or off), a deck added (`subject`, `deck`: the stable id,
+   *  `locked`: whether Pro would have been needed), a locked deck tapped (`subject`, `deck`). No personal data. */
+  | "premade_opened"
+  | "premade_deck_added"
+  | "premade_locked_tapped"
   | "library_join_shown"
   | "library_joined"
   | "library_name_refused"

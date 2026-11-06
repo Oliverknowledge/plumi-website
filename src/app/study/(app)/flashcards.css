@@ -272,6 +272,46 @@
 .pa .starters .name small { font-size: 12.5px; font-weight: 700; color: var(--soft); }
 .pa .starters .stk { transform: none; }
 .pa .starter-note { margin: 10px 0 0; font-size: 12.5px; font-weight: 700; color: var(--soft); }
+/* the ready-made decks catalogue: subject tabs, board chips, deck tiles with a drawn size bar */
+.pa .cat { display: grid; gap: 12px; min-width: 0; }
+.pa .cat-tabs { justify-self: start; }
+.pa .cat-boards { display: flex; flex-wrap: wrap; gap: 6px; }
+.pa .cat-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font: 800 14.5px var(--f-body); color: var(--ink); cursor: pointer; }
+.pa .cat-chip small { font: 700 11.5px var(--f-body); color: var(--soft); }
+.pa .cat-chip i { font: 800 10.5px var(--f-body); font-style: normal; text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: 8px; background: var(--gold); }
+.pa .cat-chip[aria-pressed="true"] { background: var(--navy); color: #f5f9ff; }
+.pa .cat-chip[aria-pressed="true"] small { color: #c9d6ee; }
+.pa .cat-chip[aria-pressed="true"] i { color: var(--ink); }
+.pa .cat-pick { margin: 6px 0; font: 600 20px var(--f-px); color: var(--soft); }
+.pa .cat-grid { list-style: none; margin: 0; padding: 2px; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); max-height: 44dvh; overflow-y: auto; }
+.pa .cat-grid > li { display: grid; }
+.pa .cat-tile { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; width: 100%; min-height: 64px; padding: 9px 12px 14px; border: 2px solid var(--ink); border-radius: 11px; background: #fff; color: var(--ink); text-align: left; cursor: pointer; overflow: hidden; }
+.pa .cat-tile:hover:not(:disabled) { background: #fff8e6; }
+.pa .cat-tile:disabled { cursor: default; opacity: .65; }
+.pa .cat-tile.ghosty { min-height: 64px; background: var(--card2); border-style: dashed; border-color: var(--line); animation: cat-pulse 1.2s ease-in-out infinite; }
+@keyframes cat-pulse { 50% { opacity: .5; } }
+@media (prefers-reduced-motion: reduce) { .pa .cat-tile.ghosty { animation: none; } }
+.pa .cat-name { display: grid; line-height: 1.2; min-width: 0; }
+.pa .cat-name b { font: 600 17px var(--f-px); overflow-wrap: anywhere; }
+.pa .cat-name small { font-size: 12.5px; font-weight: 700; color: var(--soft); }
+.pa .cat-end { display: inline-flex; align-items: center; }
+.pa .cat-plus { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 2px solid var(--ink); border-radius: 50%; background: var(--gold); font: 800 18px/1 var(--f-body); }
+.pa .cat-done, .pa .cat-pro, .pa .cat-free { font: 800 11.5px var(--f-body); text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border: 2px solid var(--ink); border-radius: 8px; }
+.pa .cat-pro { background: var(--navy); color: #f5f9ff; }
+.pa .cat-free { background: var(--card2); }
+.pa .cat-done { background: transparent; border-color: var(--soft); color: var(--soft); }
+.pa .cat-tile.locked { background: var(--card2); }
+.pa .cat-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--card2); border-top: 2px solid var(--ink); }
+.pa .cat-bar i { display: block; height: 100%; border-right: 2px solid var(--ink); }
+.pa .cat-empty { display: grid; justify-items: start; gap: 10px; padding: 8px 0; }
+.pa .cat-empty p { margin: 0; font: 700 15px var(--f-body); color: var(--soft); }
+.pa .cat-pro-panel { display: grid; gap: 10px; justify-items: start; padding: 4px 0 2px; }
+.pa .cat-pro-panel h3 { margin: 0; font: 700 26px var(--f-px); }
+.pa .cat-pro-panel p { margin: 0; font: 700 15px/1.4 var(--f-body); }
+.pa .cat-pro-how { color: var(--soft); }
+.pa .cat-pro-art { display: flex; flex-wrap: wrap; gap: 8px; }
+.pa .cat-pro-art .stk { transform: none; }
+@media (max-width: 520px) { .pa .cat-tabs button { padding: 0 9px; font-size: 15px; } .pa .cat-long { display: none; } .pa .cat-grid { grid-template-columns: minmax(0, 1fr); max-height: 50dvh; } .pa .cat-tabs { max-width: 100%; } }
 .pa .starters.compact ul { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 
 /* the deck editor, in the desk's place */
