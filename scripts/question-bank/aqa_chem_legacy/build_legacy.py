@@ -1,10 +1,13 @@
 """Add the legacy Chemistry units (CHEM1, 2, 4, 5; 2010-2016) to the AQA A-Level Chemistry bank.
 
     python3 scripts/question-bank/aqa_chem_legacy/build_legacy.py [work-dir]
+    python3 scripts/question-bank/aqa_chem_legacy/build_legacy.py <new-work-dir> --append
 
 build_bank.py writes the bank from the current specification's work folder; this adds the old
 units' parts to what it wrote, so neither has to be re-run for the other. Re-running replaces
 the legacy rows (any paper id starting "CHEM") and leaves every 7405/7404 row as it is.
+--append instead preserves all earlier rows, search text and whole-paper links, and
+rejects changes to an existing part rather than silently re-cutting published crops.
 
 Reads <work-dir>/parts.json (cut_legacy.py), tags.json and off.json (tag_legacy.py) and
 manifest.json (fetch_pmt.py). A part tagged "off" (its content isn't on 7405) or with no topic
@@ -18,7 +21,9 @@ import collections, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-WORK = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "..", ".work-chem-legacy")
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+WORK = os.path.abspath(ARGS[0]) if ARGS else os.path.join(HERE, "..", ".work-chem-legacy")
+APPEND = "--append" in sys.argv
 SLUG = "aqa-a-level-chemistry"
 UNITS = {"CHEM1": ("Foundation Chemistry", True), "CHEM2": ("Chemistry in Action", True),
          "CHEM4": ("Kinetics, Equilibria and Organic Chemistry", False), "CHEM5": ("Energetics, Redox and Inorganic Chemistry", False)}
@@ -57,8 +62,12 @@ def main():
     meta_path = os.path.join(ROOT, "src", "content", "questionBank", f"{SLUG}.json")
     pub = os.path.join(ROOT, "public", "question-bank", SLUG)
     meta = json.load(open(meta_path))
-    rows = [r for r in json.load(open(os.path.join(pub, "parts.json"))) if not r["p"].startswith("CHEM")]
-    text = {k: v for k, v in json.load(open(os.path.join(pub, "text.json"))).items() if not k.startswith("chem")}
+    rows = [r for r in json.load(open(os.path.join(pub, "parts.json"))) if APPEND or not r["p"].startswith("CHEM")]
+    text = {k: v for k, v in json.load(open(os.path.join(pub, "text.json"))).items() if APPEND or not k.startswith("chem")}
+    existing = {r["id"]: r for r in rows}
+    missing = [p["id"] for p in parts if p["id"] not in tags and p["id"] not in off]
+    if missing:
+        sys.exit(f"{len(missing)} parts have no tagging decision: {missing[:10]}")
     valid = {t["code"] for t in meta["topics"]}
 
     whole_ms = {(f["component"], f["series"]): f"aqa/{f['file']}" for f in manifest if f["kind"] == "ms"}
@@ -91,11 +100,17 @@ def main():
             row["msf"] = whole_ms[(p["component"], p["series"])]
         if CALC.search(own) or CALC.search(p.get("msText", "")[:300]):
             row["calc"] = 1
+        search = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", p["text"] + " " + p.get("msText", "")).lower())
+        if p["id"] in existing:
+            owned = set(row) | {"st", "ms", "msq", "msf", "calc"}
+            if any(row.get(k) != existing[p["id"]].get(k) for k in owned) or search != text.get(p["id"]):
+                sys.exit(f"{p['id']}: --append cannot change an existing part; use the re-cut workflow")
+            continue
         new.append(row)
         r["added"] += 1
         r["marks"] += p["marks"] or 0
         r["msf"] += "msf" in row
-        text[p["id"]] = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", p["text"] + " " + p.get("msText", "")).lower())
+        text[p["id"]] = search
     new.sort(key=lambda r: (-rank(r["s"]), UNITS[r["p"]][1], r["p"], label_key(r["l"])))
     rows += new
 
@@ -106,12 +121,13 @@ def main():
         {"id": u, "name": f"{u} (old spec)", "title": title, "as": as_level} for u, (title, as_level) in UNITS.items()]
     series = sorted({r["s"] for r in rows}, key=rank, reverse=True)
     meta["series"] = [{"id": s, "label": "Specimen" if s == "SPEC" else f"{MONTH[s[:3]]} 20{s[3:]}"} for s in series]
-    meta["wholes"] = {k: v for k, v in meta["wholes"].items() if not k.startswith("CHEM")}
+    meta["wholes"] = {k: v for k, v in meta["wholes"].items() if APPEND or not k.startswith("CHEM")}
     for f in sorted(manifest, key=lambda f: (f["component"], -rank(f["series"]))):
         meta["wholes"].setdefault(f"{f['component']}-{f['series']}", {})[f["kind"]] = f"aqa/{f['file']}"
     years = [int("20" + s[3:]) for s in series if s != "SPEC"]
     meta["count"], meta["firstYear"], meta["lastYear"] = len(rows), min(years), max(years)
-    meta["note"] = NOTE
+    legacy_years = [int("20" + r["s"][3:]) for r in rows if r["p"].startswith("CHEM")]
+    meta["note"] = NOTE.replace("2010 to 2016", f"{min(legacy_years)} to {max(legacy_years)}") if legacy_years else NOTE
     # Keep the key order build_bank.py writes: "note" before the counts.
     order = ["slug", "board", "level", "subject", "specs", "cropVersion", "sections", "topics", "papers", "series", "wholes", "note", "count", "firstYear", "lastYear", "sample"]
     meta = {k: meta[k] for k in order if k in meta} | {k: v for k, v in meta.items() if k not in order}
