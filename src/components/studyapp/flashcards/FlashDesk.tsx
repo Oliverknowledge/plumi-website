@@ -8,6 +8,8 @@ import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { useApp } from "@/lib/studyapp/store";
 import { dayOf } from "@/lib/studyapp/time";
+import { plainText } from "@/lib/studyapp/boldText";
+import { BoldText } from "./BoldText";
 import { useReview, useReviewKeys, waitLine } from "./review";
 
 /** How big the words on a card are, from how much there is: a short question is big, a paragraph still fits. */
@@ -38,8 +40,8 @@ export function FlashDesk({
   const oneDeck = deckIds?.length === 1 ? data.decks.find((d) => d.id === deckIds[0]) : undefined;
   const shareDeck = onShare && sharing.available && oneDeck && canShare(oneDeck) ? oneDeck : null;
   useReviewKeys(review, keysOn && !hidden);
-  const { card, shown, done, remaining, counts, previews } = review;
-  const cardRef = useRef<HTMLElement>(null);
+  const { card, shown, touched, done, remaining, counts, previews } = review;
+  const cardRef = useRef<HTMLDivElement>(null);
   const first = useRef(true);
 
   // The button that was pressed is gone once the card turns or the next one arrives; keep the keyboard on the card.
@@ -49,10 +51,12 @@ export function FlashDesk({
     if (!a || a === document.body) cardRef.current?.focus({ preventScroll: true });
   }, [card?.id, shown]);
 
+  // A tap turns the card over, or back; a drag that selects words (to copy them) does not.
+  const onCardClick = () => { if (window.getSelection()?.toString()) return; review.flip(); };
+
   const today = now ? dayOf(now) : "";
   const log = today ? data.log[today] : undefined;
   const streak = today ? reviewStreak(data, today) : 0;
-  const text = card ? (shown ? card.back : card.front) : "";
   const position = `${done + 1} of ${done + remaining}`;
 
   let empty: React.ReactNode = null;
@@ -115,13 +119,15 @@ export function FlashDesk({
 
       <div className="dsk-stage">
         {card ? (
-          <article ref={cardRef} className="dsk-card" tabIndex={-1} data-shown={shown || undefined} data-testid="flipcard" onClick={() => { if (!shown) review.show(); }} aria-label={`Card ${position}`} role="group">
-            <header className="dsk-card-h"><span>{review.deckTitle}</span><span>{position}</span></header>
-            <div className="dsk-body" tabIndex={0} role="region" aria-label={shown ? "The answer" : "The question"} aria-live="polite" data-testid={shown ? "card-back" : "card-front"}>
-              <span className="dsk-side">{shown ? "Answer" : "Question"}</span>
-              <p className="dsk-text" data-size={sizeFor(text)} data-testid="card-text">{text}</p>
+          // One card, two faces in the same box, turned about its middle. The flip is keyed to the card: the next card is a new element,
+          // already on its question, so its answer is never seen turning away.
+          <div ref={cardRef} className="dsk-card" tabIndex={-1} data-shown={shown || undefined} data-testid="flipcard" onClick={onCardClick} aria-label={`Card ${position}`} role="group">
+            <div key={card.id} className="dsk-flip" data-flipped={shown || undefined}>
+              <Face side="front" text={card.front} deck={review.deckTitle} position={position} hidden={shown} />
+              <Face side="back" text={card.back} deck={review.deckTitle} position={position} hidden={!shown} />
             </div>
-          </article>
+            <p className="sr" role="status" aria-live="polite">{touched ? (shown ? `Answer. ${plainText(card.back)}` : `Question. ${plainText(card.front)}`) : ""}</p>
+          </div>
         ) : empty}
       </div>
 
@@ -147,8 +153,22 @@ export function FlashDesk({
             </span>
           ))}
         </div>
-        <p className="dsk-keys"><kbd>Space</kbd> or <kbd>Enter</kbd> turn over <span aria-hidden="true">&middot;</span> <kbd>1</kbd> Again <kbd>2</kbd> Hard <kbd>3</kbd> Good <kbd>4</kbd> Easy</p>
+        <p className="dsk-keys"><kbd>Space</kbd> or <kbd>Enter</kbd> turn over or back <span aria-hidden="true">&middot;</span> <kbd>1</kbd> Again <kbd>2</kbd> Hard <kbd>3</kbd> Good <kbd>4</kbd> Easy</p>
       </div>
     </section>
+  );
+}
+
+/** One side of the card. The side that is not showing is hidden from screen readers and the keyboard, as well as from the eye. */
+function Face({ side, text, deck, position, hidden }: { side: "front" | "back"; text: string; deck: string; position: string; hidden: boolean }) {
+  return (
+    <div className={`dsk-face ${side}`} aria-hidden={hidden || undefined} inert={hidden}>
+      <header className="dsk-card-h"><span>{deck}</span><span>{position}</span></header>
+      <div className="dsk-body" tabIndex={hidden ? -1 : 0} role="region" aria-label={side === "back" ? "The answer" : "The question"} data-testid={side === "back" ? "card-back" : "card-front"}>
+        <span className="dsk-side">{side === "back" ? "Answer" : "Question"}</span>
+        <p className="dsk-text" data-size={sizeFor(plainText(text))} data-testid="card-text"><BoldText text={text} /></p>
+      </div>
+      <p className="dsk-hint" aria-hidden="true">{side === "back" ? "Tap to turn back" : "Tap to turn over"}</p>
+    </div>
   );
 }

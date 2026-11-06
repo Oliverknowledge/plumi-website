@@ -126,3 +126,6 @@
 }
 /* the ruled paper's red margin line sits at 30px: keep the words off it */
 @media (min-width: 761px) { .pa .sh-main { padding-left: max(48px, env(safe-area-inset-left)); padding-right: max(48px, env(safe-area-inset-right)); } }
+
+/* **Bold** on a card (as in the study app: a marker-pen stripe, since the hand font has no heavier weight) */
+.pa .sh-text strong, .pa .sh-plain strong { font-weight: 700; background: linear-gradient(transparent 50%, rgba(242, 201, 107, .85) 50% 92%, transparent 92%); border-radius: 2px; }

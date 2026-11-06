@@ -109,17 +109,21 @@
 .pa .dsk-pill span { flex: none; font: 800 13.5px var(--f-body); color: var(--soft); }
 
 .pa .dsk-stage { flex: 1; min-height: 0; display: grid; place-items: center; }
-.pa .dsk-card, .pa .dsk-empty { width: min(100%, 760px); height: min(100%, 460px); background: #fffdf6; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4); overflow: hidden; outline: none; }
-.pa .dsk-card { display: flex; flex-direction: column; cursor: default; }
-.pa .dsk-card[data-shown] { cursor: default; }
-.pa .dsk-card:not([data-shown]) { cursor: pointer; }
+.pa .dsk-empty { width: min(100%, 760px); height: min(100%, 460px); background: #fffdf6; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4); overflow: hidden; outline: none; }
+/* The card: a sized box with depth (perspective) that holds the turning part. Its two faces are stacked in one grid cell, so the box is the same
+   size on either side and never moves what is around it; a long side scrolls inside its face. */
+.pa .dsk-card { width: min(100%, 760px); height: min(100%, 460px); perspective: 2200px; cursor: pointer; outline: none; }
+.pa .dsk-flip { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .32s cubic-bezier(.22, .7, .28, 1); }
+.pa .dsk-flip[data-flipped] { transform: rotateY(180deg); }
+.pa .dsk-face { grid-area: 1 / 1; display: flex; flex-direction: column; min-height: 0; background: #fffdf6; border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 6px 0 rgba(34, 48, 77, .4); overflow: hidden; -webkit-backface-visibility: hidden; backface-visibility: hidden; transform: rotateY(0deg); }
+.pa .dsk-face.back { transform: rotateY(180deg); }
 .pa .dsk-card-h { display: flex; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 2px solid var(--line); font: 800 12.5px var(--f-body); color: var(--soft); }
 .pa .dsk-card-h span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pa .dsk-card-h span:last-child { flex: none; }
 .pa .dsk-body { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 14px 26px 22px; overflow-y: auto; text-align: center; overscroll-behavior: contain; }
 .pa .dsk-side { flex: none; font: 800 11.5px var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); }
-.pa .dsk-text { margin: auto 0; max-width: 100%; font: 700 34px/1.12 var(--f-hand); color: #23345e; white-space: pre-line; overflow-wrap: anywhere; }
-.pa .dsk-card[data-shown] .dsk-text { color: #1d4a9a; }
+.pa .dsk-text { margin: auto 0; max-width: 100%; font: 600 34px/1.12 var(--f-hand); color: #23345e; white-space: pre-line; overflow-wrap: anywhere; }
+.pa .dsk-face.back .dsk-text { color: #1d4a9a; }
 .pa .dsk-text[data-size="xl"] { font-size: 46px; }
 .pa .dsk-text[data-size="l"] { font-size: 36px; }
 .pa .dsk-text[data-size="m"] { font-size: 28px; }
@@ -133,10 +137,15 @@
   .pa .dsk-text[data-size="s"] { font-size: 20px; }
   .pa .dsk-text[data-size="xs"] { font-size: 17px; }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .pa .dsk-card .dsk-text, .pa .dsk-card .dsk-side { animation: dskTurn .22s ease-out; }
-  @keyframes dskTurn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+/* Reduced motion: no turning. The two faces stay flat and the one that is not showing fades out as the other fades in. */
+@media (prefers-reduced-motion: reduce) {
+  .pa .dsk-flip, .pa .dsk-flip[data-flipped] { transform: none; transition: none; }
+  .pa .dsk-face { transition: opacity .16s linear; }
+  .pa .dsk-face.back { transform: none; opacity: 0; }
+  .pa .dsk-flip[data-flipped] .dsk-face.front { opacity: 0; }
+  .pa .dsk-flip[data-flipped] .dsk-face.back { opacity: 1; }
 }
+.pa .dsk-hint { flex: none; margin: 0; padding: 0 0 8px; text-align: center; font: 800 12px var(--f-body); color: var(--soft); opacity: .8; }
 
 .pa .dsk-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 22px; text-align: center; overflow-y: auto; }
 .pa .dsk-empty h2 { margin: 0; font: 700 clamp(26px, 4vw, 36px)/1.1 var(--f-px); }
@@ -307,6 +316,7 @@
 
 /* the deck editor, in the desk's place */
 .pa .fcl-desk:focus-visible, .pa .dsk-card:focus-visible, .pa .fcl-editor:focus-visible { outline: none; }
+.pa .dsk-card:focus-visible { box-shadow: none; }
 .pa .fcl-editor { outline: none; }
 .pa .fcp-editor { display: grid; gap: 16px; max-width: 900px; }
 .pa .fcp-editor .fcp-bar { margin-block: 0; }
@@ -364,3 +374,7 @@
 @media (max-width: 520px) { .pa .shr-rows li { grid-template-columns: minmax(0, 1fr); } .pa .shr-small { justify-self: start; } }
 .pa .fcp-bar .btn { min-height: 44px; }
 .pa .shr-list { min-height: 44px; }
+
+/* **Bold** on a card. The hand font's heaviest weight is 700 and the card's own words are 600, so bold is a step heavier AND carries a marker-pen stripe:
+   it reads without colour, and in the inverted dark mode too. */
+.pa :is(.dsk-text, .fc-q, .fc-a, .sh-text, .fcp-list .q, .fcp-list .a) strong { font-weight: 700; background: linear-gradient(transparent 50%, rgba(242, 201, 107, .85) 50% 92%, transparent 92%); border-radius: 2px; }
