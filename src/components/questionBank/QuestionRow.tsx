@@ -12,7 +12,7 @@ import { BookmarkRibbon, NoteBox } from "./SavedControls";
 import { useDarkCrop } from "@/lib/darkCrops";
 import { isEssaySubject } from "@/lib/markBands";
 import {
-  bankTopicPath, fetchBankData, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
+  bankTopicPath, fetchBankData, isMadas, paperName, papersBase, partImage, questionKey, stemImage, questionOf, reportKey, seriesLabel, topicName,
   type BankPart, type BankSubject,
 } from "@/content/questionBank";
 
@@ -89,6 +89,8 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
   const photo = useDarkCrop();
   const part = parts[0];
   const many = parts.length > 1;
+  // A MadAsMaths question: its booklet and "MadAsMaths" where a paper and sitting go, and its answers with a worked solution for a scheme.
+  const madas = isMadas(part);
   const q = questionOf(part.l);
   const shown = many ? q : part.l;
   const label = `${seriesLabel(subject, part.s)} ${paperName(subject, part.p)}, question ${shown}`;
@@ -141,7 +143,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
       <div className="qb-left">
         <span className="qb-num" aria-hidden="true">{n}</span>
         <p className="qb-q">Q{shown}</p>
-        <p className="qb-meta">{seriesLabel(subject, part.s)} · {paperName(subject, part.p)}</p>
+        <p className="qb-meta">{seriesLabel(subject, part.s)} · {paperName(subject, part.p)}{madas && part.mst && <span className="qb-stars" title="Difficulty, in MadAsMaths' stars"> {part.mst.replace(/\*/g, "★")}</span>}</p>
         {!embed && <MarginScore subject={subject.slug} parts={parts} />}
         {!embed && <AgainTag subject={subject.slug} parts={parts} />}
         <div className="qb-tags">
@@ -158,7 +160,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
         </div>
         <div className="qb-keys">
           {withScheme.length > 0 && (
-            <button type="button" className={`qb-key${open.ms ? " is-open" : ""}`} aria-expanded={!!open.ms} onClick={() => flip("ms")}>{!many && part.k ? "Answer" : "Mark scheme"}</button>
+            <button type="button" className={`qb-key${open.ms ? " is-open" : ""}`} aria-expanded={!!open.ms} onClick={() => flip("ms")}>{!many && part.k ? "Answer" : madas ? "Answers" : "Mark scheme"}</button>
           )}
           {withSolution.length > 0 && (
             <button type="button" className={`qb-key${open.sol ? " is-open" : ""}`} aria-expanded={!!open.sol} onClick={() => flip("sol")}>Worked solution</button>
@@ -245,7 +247,7 @@ export function QuestionRow({ n, parts, subject, inSet, setFull, onToggleSet, on
           : (
             <div key={p.id} className="qb-note qb-reveal-ms">
               <span className="lp-tape" aria-hidden="true" />
-              <p className="qb-note-label">{p.msq ? <>Mark scheme for question {questionOf(p.l)}: find {inWholeNames} in it</> : <>Mark scheme for {p.l}</>}</p>
+              <p className="qb-note-label">{isMadas(p) ? <>Answers and worked solution</> : p.msq ? <>Mark scheme for question {questionOf(p.l)}: find {inWholeNames} in it</> : <>Mark scheme for {p.l}</>}</p>
               <div className="qb-scroll">{zoomable(p, "ms",
                 // eslint-disable-next-line @next/next/no-img-element
                 <img {...photo} className="qb-img" src={partImage(p.id, "ms", subject.cropVersion)} alt={`Mark scheme for ${seriesLabel(subject, p.s)} ${paperName(subject, p.p)}, question ${p.l}`} loading="lazy" />)}</div>

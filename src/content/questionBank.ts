@@ -75,7 +75,27 @@ export interface BankPart {
   auw?: 1;
   /** The opening words, for alt text and the static topic pages. */
   x: string;
+  /** A MadAsMaths question (series MADAS), mixed in by the bank's "Add MadAsMaths questions" switch: its booklet's name. See madasSubject. */
+  mm?: string;
+  /** Its difficulty, in MadAsMaths' stars as printed ("***+"). */
+  mst?: string;
 }
+
+/**
+ * MadAsMaths questions, cut from its topic booklets (scripts/booklets/cut.py) and tagged to the bank's topics
+ * (scripts/booklets/bank.py): a bank with a madas.json among its data has the switch. They're rows like the bank's
+ * own, whose "paper" is the booklet (p, "madas-logarithms-exam-questions") and whose "series" is MADAS, so a paper
+ * or year filter leaves them out, and their scheme crop is the answers with the worked solution.
+ */
+export const MADAS_SERIES = "MADAS";
+export const isMadas = (p: Pick<BankPart, "s">) => p.s === MADAS_SERIES;
+export const bankHasMadas = (s: Pick<BankSubject, "data">) => Boolean(s.data?.madas);
+/** The subject as its rows name things once MadAsMaths questions are in: each booklet a "paper", MadAsMaths a "series". */
+export const madasSubject = (subject: BankSubject, madas: BankPart[]): BankSubject => ({
+  ...subject,
+  papers: [...subject.papers, ...[...new Map(madas.map(p => [p.p, p.mm ?? "MadAsMaths"])).entries()].map(([id, name]) => ({ id, name, title: name, as: false }))],
+  series: [...subject.series, { id: MADAS_SERIES, label: "MadAsMaths" }],
+});
 
 export interface BankSubject {
   slug: string;
@@ -124,7 +144,7 @@ export interface BankSubject {
   data: Partial<Record<BankDataFile | "solutions", string>>;
 }
 
-export type BankDataFile = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers";
+export type BankDataFile = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers" | "madas";
 
 /** Every bank in src/content/questionBank/, found by scripts/question-bank/bank-registry.mjs: a new meta is all a new bank needs. */
 export const bankSubjects = bankMetas as BankSubject[];

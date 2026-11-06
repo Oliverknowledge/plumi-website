@@ -29,6 +29,7 @@ export const footerLinks: readonly (readonly [string, string])[] = [
   ["Practice papers", "/practice-papers"],
   ["Past papers", "/past-papers"],
   ["Question bank", "/question-bank"],
+  ["Maths booklets", "/maths-booklets"],
   ["vs Goodnotes", "/goodnotes-alternative-for-students"],
   ["Android", "/android"],
   ["About", "/about"],

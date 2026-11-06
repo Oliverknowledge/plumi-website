@@ -1,0 +1,107 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE MATHS BOOKLETS, IN THE COSY NOTEBOOK, IN BLUE
+
+   /maths-booklets and its group pages (src/components/booklets/). The hero,
+   facts, crumbs and file keys are past-papers.css's; this adds the group
+   cards, the search and filter bar, the booklet cards and compact list, and
+   the viewer. The section is blue where the rest of the site is orange
+   (founder, 6 November 2026): inside .bk the orange token is the blue one,
+   so every em, number, star and focus ring follows. Colours are the theme's
+   tokens only, so dark mode needs nothing of its own. Scoped under .lp.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lp .bk { --lp-orange: var(--lp-blue); --bk-tint: color-mix(in srgb, var(--lp-blue-soft) 45%, var(--lp-card-bg)); }
+
+/* where they're from */
+.lp .bk-credit { justify-self: start; max-width: 46em; margin: 4px 0 0; padding: 10px 16px; font-size: 15.5px; font-weight: 700; color: var(--lp-ink-soft); box-shadow: 0 4px 0 var(--lp-shadow); border-width: 2px; border-radius: 14px; background: var(--bk-tint); }
+.lp .bk-credit a { color: var(--lp-blue); font-weight: 800; }
+.lp .pp-more .bk-credit { margin-top: 26px; }
+
+/* the hub's groups: a blue band with who it's for and how many, then the name */
+.bk-groups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 22px; }
+.lp .bk-group { display: grid; align-content: start; gap: 8px; height: 100%; padding: 0 0 16px; overflow: hidden; color: var(--lp-ink); text-decoration: none; transition: transform .08s, box-shadow .08s; }
+.lp .bk-group:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
+.bk-group-band { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 18px; background: var(--lp-blue-soft); border-bottom: 3px solid var(--lp-line); }
+.bk-group-band small { font-family: var(--f-px); font-weight: 600; font-size: 14px; }
+.bk-group-count { font-family: var(--f-px); font-weight: 700; font-size: 15px; border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; background: var(--lp-card-bg); }
+.bk-group b { padding: 4px 18px 0; font-family: var(--f-px); font-weight: 700; font-size: 24px; line-height: 1.1; }
+.bk-group-blurb { padding: 0 18px; font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
+.bk-group-go { padding: 2px 18px 0; font-family: var(--f-px); font-weight: 600; color: var(--lp-blue); }
+
+/* the search and filter bar */
+.lp .bk-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 14px; align-items: center; padding: 16px 18px; margin-bottom: 26px; background: var(--bk-tint); }
+.bk-search { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 3px solid var(--lp-line); border-radius: 14px; background: var(--lp-field, #fff); }
+.bk-search svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--lp-ink-soft); stroke-width: 2.5; stroke-linecap: round; }
+.lp .bk-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 17px; font-weight: 600; color: var(--lp-ink); }
+.bk-search:focus-within { outline: 3px solid var(--lp-blue); outline-offset: 2px; }
+.bk-view { display: inline-flex; border: 2px solid var(--lp-line); border-radius: 12px; overflow: hidden; box-shadow: 0 3px 0 var(--lp-shadow); }
+.lp .bk-view button, .lp .bk-chips button { font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink); cursor: pointer; }
+.lp .bk-view button { min-height: 42px; padding: 0 14px; border: 0; background: var(--lp-card-bg); }
+.lp .bk-view button + button { border-left: 2px solid var(--lp-line); }
+.lp .bk-view button[aria-pressed="true"] { background: var(--lp-blue-soft); }
+.bk-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bk-chips-label { font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink-soft); margin-right: 2px; }
+.lp .bk-chips button { min-height: 36px; padding: 0 12px; border: 2px solid var(--lp-line); border-radius: 999px; background: var(--lp-card-bg); }
+.lp .bk-chips button:hover { background: var(--bk-tint); }
+.lp .bk-chips button[aria-pressed="true"] { background: var(--lp-blue); border-color: var(--lp-blue); color: var(--lp-card-bg); }
+.lp .bk-select select { min-height: 36px; padding: 0 30px 0 12px; border: 2px solid var(--lp-line); border-radius: 999px; background: var(--lp-card-bg); color: var(--lp-ink); font-family: var(--f-px); font-weight: 600; font-size: 14px; }
+.bk-count { grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.lp .bk-clear { border: 0; padding: 0; background: none; font: inherit; color: var(--lp-blue); text-decoration: underline; cursor: pointer; }
+.lp .bk-empty { display: grid; gap: 4px; padding: 22px; font-weight: 600; }
+
+/* a section of the list: a group on the hub, a shelf on a group's page */
+.lp .bk .bk-section { padding: 0 0 34px; }
+.lp .bk-section .pp-group-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; font-size: clamp(24px, 3vw, 32px); margin-bottom: 18px; scroll-margin-top: 90px; }
+.lp .bk-section .pp-group-title a { color: var(--lp-ink); text-decoration: none; }
+.lp .bk-section .pp-group-title a:hover { color: var(--lp-blue); }
+.lp .bk-section .pp-group-title small { font-family: var(--f-body, inherit); font-size: 15px; font-weight: 700; color: var(--lp-ink-soft); }
+
+/* cards */
+.bk-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px 22px; }
+.lp .bk-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; scroll-margin-top: 90px; transition: transform .08s, box-shadow .08s; }
+.lp .bk-card:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
+.lp .bk-card:target, .lp .bk-row:target { outline: 4px solid var(--lp-blue); outline-offset: 3px; }
+/* the first question, cut from its page: white like the paper it is, in either theme */
+.lp .bk-preview { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: #fff; border-bottom: 3px solid var(--lp-line); border-radius: 17px 17px 0 0; }
+.lp .bk-preview img { display: block; width: 100%; height: auto; image-rendering: auto; }
+.bk-body { display: grid; align-content: start; gap: 8px; padding: 14px 16px 16px; }
+.lp .bk-body h3 { font-size: 19px; line-height: 1.2; }
+.bk-tags { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.bk-tag { font-family: var(--f-px); font-weight: 600; font-size: 13px; border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 7px; background: var(--bk-tint); }
+.bk-stars { font-size: 14px; letter-spacing: 1px; color: var(--lp-blue); white-space: nowrap; }
+.bk-meta { margin: 0; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.bk-get { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
+.lp .bk-get .pp-file { min-height: 40px; padding: 0 12px; }
+.lp .bk .pp-file.is-ms { background: var(--lp-card-bg); }
+
+/* the compact list */
+.lp .bk-list { list-style: none; margin: 0; padding: 4px 0; }
+.bk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px 16px; align-items: center; padding: 10px 18px; border-bottom: 2px dashed var(--lp-dash, #d8c8ad); scroll-margin-top: 90px; }
+.bk-row:last-child { border-bottom: 0; }
+.bk-row:hover { background: var(--bk-tint); }
+.bk-row-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.bk-row-title b { font-size: 16.5px; }
+.bk-row-meta { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); white-space: nowrap; }
+.lp .bk-row .bk-get { margin: 0; flex-wrap: nowrap; }
+.lp .bk-row .pp-file { min-height: 34px; min-width: 0; padding: 0 10px; font-size: 13.5px; }
+
+/* the viewer: the browser's PDF viewer in a dialog, nearly the whole window */
+.lp .bk-viewer { width: min(1100px, 96vw); height: 94vh; max-height: none; max-width: none; padding: 0; border: 3px solid var(--lp-line); border-radius: 20px; background: var(--lp-card-bg); color: var(--lp-ink); box-shadow: 0 10px 0 var(--lp-shadow); overflow: hidden; }
+.lp .bk-viewer::backdrop { background: rgb(20 16 14 / .6); }
+.bk-viewer-box { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+.bk-viewer-bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px 10px 18px; background: var(--lp-blue-soft); border-bottom: 3px solid var(--lp-line); }
+.bk-viewer-bar b { flex: 1; min-width: 0; font-family: var(--f-px); font-weight: 600; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp .bk-viewer-bar .pp-file { background: var(--lp-card-bg); cursor: pointer; }
+.bk-viewer iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+
+@media (max-width: 980px) {
+  .bk-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .bk-cards { grid-template-columns: minmax(0, 1fr); }
+  .lp .bk-tools { padding: 12px; grid-template-columns: minmax(0, 1fr); }
+  .bk-view { justify-self: start; }
+  .bk-row { grid-template-columns: minmax(0, 1fr) auto; padding: 10px 12px; }
+  .bk-row-meta { grid-column: 1; grid-row: 2; }
+  .lp .bk-row .bk-get { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; }
+}

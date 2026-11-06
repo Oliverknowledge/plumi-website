@@ -1,0 +1,3774 @@
+{
+ "source": "https://www.madasmaths.com",
+ "prefix": "booklets/madasmaths",
+ "groups": [
+  {
+   "slug": "elementary",
+   "name": "Elementary",
+   "shelves": [
+    {
+     "name": "Getting started",
+     "booklets": [
+      {
+       "slug": "basic-skills",
+       "title": "Basic skills",
+       "pages": 92,
+       "questions": 54,
+       "bytes": 2489010,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        1,
+        5
+       ],
+       "questionsOnly": {
+        "pages": 42,
+        "bytes": 120306
+       }
+      },
+      {
+       "slug": "equations-basic-techniques",
+       "title": "Equations: basic techniques",
+       "pages": 40,
+       "questions": 12,
+       "bytes": 5620553,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "practical-arithmetic-problem-solving",
+       "title": "Practical arithmetic and problem solving",
+       "pages": 19,
+       "questions": 28,
+       "bytes": 2768996,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "quadratics",
+       "title": "Quadratics",
+       "pages": 9,
+       "questions": 10,
+       "bytes": 363615,
+       "preview": [
+        641,
+        481
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "basic",
+   "name": "Basic",
+   "shelves": [
+    {
+     "name": "Pure",
+     "booklets": [
+      {
+       "slug": "algebraic-fractions",
+       "title": "Algebraic fractions",
+       "pages": 47,
+       "questions": 16,
+       "bytes": 4848497,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "algebraic-fractions-exam-questions",
+       "title": "Algebraic fractions",
+       "pages": 21,
+       "questions": 34,
+       "bytes": 3910956,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "arithmetic-series-exam-questions",
+       "title": "Arithmetic series",
+       "pages": 91,
+       "questions": 128,
+       "bytes": 15731583,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "binomial-expansions-exam-questions",
+       "title": "Binomial expansions",
+       "pages": 57,
+       "questions": 76,
+       "bytes": 9594778,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "binomial-expansions-practice",
+       "title": "Binomial expansions",
+       "pages": 9,
+       "questions": 9,
+       "bytes": 891918,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "circle-coordinate-geometry-exam-questions",
+       "title": "Circle coordinate geometry",
+       "pages": 109,
+       "questions": 113,
+       "bytes": 23164247,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "cubic-sketching",
+       "title": "Cubic sketching",
+       "pages": 14,
+       "questions": 19,
+       "bytes": 1709514,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "cubics-exam-questions",
+       "title": "Cubics",
+       "pages": 32,
+       "questions": 31,
+       "bytes": 4496384,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "equations-exam-questions-i",
+       "title": "Equations I",
+       "pages": 56,
+       "questions": 81,
+       "bytes": 9005024,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "geometric-series",
+       "title": "Geometric series",
+       "pages": 91,
+       "questions": 113,
+       "bytes": 15742452,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "geometric-series-worded-questions",
+       "title": "Geometric series, worded questions",
+       "pages": 20,
+       "questions": 19,
+       "bytes": 3044170,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "identities",
+       "title": "Identities",
+       "pages": 14,
+       "questions": 26,
+       "bytes": 218491,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "indices-exam-questions",
+       "title": "Indices",
+       "pages": 46,
+       "questions": 61,
+       "bytes": 5099037,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "indices-practice",
+       "title": "Indices",
+       "pages": 38,
+       "questions": 13,
+       "bytes": 1870483,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "questionsOnly": {
+        "pages": 22,
+        "bytes": 78131
+       }
+      },
+      {
+       "slug": "inequalities-exam-questions",
+       "title": "Inequalities",
+       "pages": 25,
+       "questions": 27,
+       "bytes": 3600011,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "inequalities-basic-practice",
+       "title": "Inequalities, the basics",
+       "pages": 19,
+       "questions": 13,
+       "bytes": 1947844,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "line-coordinate-geometry-exam-questions",
+       "title": "Line coordinate geometry",
+       "pages": 119,
+       "questions": 44,
+       "bytes": 21905897,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "line-coordinate-geometry-practice",
+       "title": "Line coordinate geometry",
+       "pages": 27,
+       "questions": 16,
+       "bytes": 2178711,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "logarithms-exam-questions",
+       "title": "Logarithms",
+       "pages": 83,
+       "questions": 120,
+       "bytes": 15444951,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "logarithms-practice",
+       "title": "Logarithms",
+       "pages": 22,
+       "questions": 8,
+       "bytes": 2983424,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "geometric-mensuration",
+       "title": "Mensuration",
+       "pages": 128,
+       "questions": 127,
+       "bytes": 17367211,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "3d-geometric-mensuration",
+       "title": "Mensuration in three dimensions",
+       "pages": 8,
+       "questions": 7,
+       "bytes": 731845,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "polynomials-exam-questions-intro",
+       "title": "Polynomials, an introduction",
+       "pages": 55,
+       "questions": 67,
+       "bytes": 8287035,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "polynomials-practice-intro",
+       "title": "Polynomials, an introduction",
+       "pages": 17,
+       "questions": 15,
+       "bytes": 1836610,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "quadratic-sketching",
+       "title": "Quadratic sketching",
+       "pages": 19,
+       "questions": 18,
+       "bytes": 1603345,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "quadratics-exam-questions",
+       "title": "Quadratics",
+       "pages": 86,
+       "questions": 101,
+       "bytes": 11638139,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "reciprocal-functions",
+       "title": "Reciprocal functions",
+       "pages": 26,
+       "questions": 24,
+       "bytes": 3916738,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "recurrence-relations",
+       "title": "Recurrence relations",
+       "pages": 66,
+       "questions": 73,
+       "bytes": 8577378,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "series-mixed-exam-questions",
+       "title": "Series, mixed",
+       "pages": 33,
+       "questions": 33,
+       "bytes": 4668996,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "surds",
+       "title": "Surds",
+       "pages": 36,
+       "questions": 34,
+       "bytes": 3050351,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 18,
+        "bytes": 81814
+       }
+      },
+      {
+       "slug": "surd-exam-questions",
+       "title": "Surds",
+       "pages": 68,
+       "questions": 97,
+       "bytes": 11348849,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "discriminant-exam-questions",
+       "title": "The discriminant",
+       "pages": 49,
+       "questions": 30,
+       "bytes": 7347192,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "discriminant-practice",
+       "title": "The discriminant",
+       "pages": 34,
+       "questions": 26,
+       "bytes": 5319317,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "vector-algebra-introduction",
+       "title": "Vector algebra, an introduction",
+       "pages": 47,
+       "questions": 125,
+       "bytes": 10414157,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Calculus",
+     "booklets": [
+      {
+       "slug": "integration-areas-intro",
+       "title": "Areas by integration, an introduction",
+       "pages": 64,
+       "questions": 63,
+       "bytes": 10589877,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "calculus-introduction-exam-questions",
+       "title": "Calculus, an introduction",
+       "pages": 277,
+       "questions": 305,
+       "bytes": 48031246,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differentiation-practice-i",
+       "title": "Differentiation I",
+       "pages": 71,
+       "questions": 35,
+       "bytes": 8685180,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "integration-intro",
+       "title": "Integration, an introduction",
+       "pages": 36,
+       "questions": 35,
+       "bytes": 4702048,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "differentiation-optimization-problems",
+       "title": "Optimisation problems",
+       "pages": 49,
+       "questions": 44,
+       "bytes": 10041341,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "standard",
+   "name": "Standard",
+   "shelves": [
+    {
+     "name": "Pure",
+     "booklets": [
+      {
+       "slug": "binomial-series-expansions-exam-questions",
+       "title": "Binomial series expansions",
+       "pages": 87,
+       "questions": 92,
+       "bytes": 13933072,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "binomial-series-expansions-practice",
+       "title": "Binomial series expansions",
+       "pages": 18,
+       "questions": 17,
+       "bytes": 1691399,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "curve-sketching-exam-questions",
+       "title": "Curve sketching",
+       "pages": 17,
+       "questions": 17,
+       "bytes": 1729368,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differentiation-ii-exam-questions",
+       "title": "Differentiation II",
+       "pages": 232,
+       "questions": 280,
+       "bytes": 44860357,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differentiation-practice-ii",
+       "title": "Differentiation II",
+       "pages": 85,
+       "questions": 21,
+       "bytes": 334116,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "stars": [
+        2,
+        5
+       ],
+       "questionsOnly": {
+        "pages": 44,
+        "bytes": 151403
+       }
+      },
+      {
+       "slug": "differentiation-practice-ii-exam-questions",
+       "title": "Differentiation II, more",
+       "pages": 14,
+       "questions": 15,
+       "bytes": 2601672,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "equations-advanced-skills",
+       "title": "Equations advanced skills",
+       "pages": 75,
+       "questions": 101,
+       "bytes": 15972790,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "exponentials-logarithms-exam-questions",
+       "title": "Exponentials and logarithms",
+       "pages": 107,
+       "questions": 128,
+       "bytes": 17497089,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "exponentials-logarithms-practice",
+       "title": "Exponentials and logarithms",
+       "pages": 16,
+       "questions": 15,
+       "bytes": 1995196,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "function-exam-questions",
+       "title": "Functions",
+       "pages": 166,
+       "questions": 163,
+       "bytes": 25661833,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "function-practice",
+       "title": "Functions",
+       "pages": 47,
+       "questions": 23,
+       "bytes": 5556089,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "implicit-differentiation",
+       "title": "Implicit differentiation",
+       "pages": 20,
+       "questions": 10,
+       "bytes": 1969989,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "implicit-equations-exam-questions",
+       "title": "Implicit equations",
+       "pages": 76,
+       "questions": 84,
+       "bytes": 14245433,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "inequalities",
+       "title": "Inequalities",
+       "pages": 29,
+       "questions": 16,
+       "bytes": 5300331,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "modulus-function-exam-questions",
+       "title": "Modulus function",
+       "pages": 95,
+       "questions": 100,
+       "bytes": 12510301,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "modulus-function-practice",
+       "title": "Modulus function",
+       "pages": 18,
+       "questions": 9,
+       "bytes": 2091613,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "numerical-solutions-of-equations",
+       "title": "Numerical solutions of equations",
+       "pages": 63,
+       "questions": 35,
+       "bytes": 9942422,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "parametric-equations",
+       "title": "Parametric equations",
+       "pages": 29,
+       "questions": 8,
+       "bytes": 4369378,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "parametric-equations-exam-questions",
+       "title": "Parametric equations",
+       "pages": 159,
+       "questions": 162,
+       "bytes": 28010301,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "polynomials",
+       "title": "Polynomials",
+       "pages": 28,
+       "questions": 29,
+       "bytes": 4461720,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "related-rates-of-change",
+       "title": "Related rates of change",
+       "pages": 54,
+       "questions": 56,
+       "bytes": 9343663,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "transformations-of-graphs-exam-questions",
+       "title": "Transformations of graphs",
+       "pages": 94,
+       "questions": 94,
+       "bytes": 13680040,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "transformations-of-graphs-practice",
+       "title": "Transformations of graphs",
+       "pages": 7,
+       "questions": 6,
+       "bytes": 47621,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "questionsOnly": {
+        "pages": 8,
+        "bytes": 49015
+       }
+      }
+     ]
+    },
+    {
+     "name": "Trigonometry",
+     "booklets": [
+      {
+       "slug": "trigonometry-compound-angle-identities",
+       "title": "Compound angle identities",
+       "pages": 18,
+       "questions": 28,
+       "bytes": 3770330,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometry-double-angle-identities",
+       "title": "Double angle identities",
+       "pages": 21,
+       "questions": 20,
+       "bytes": 3231946,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometric-inverse-functions",
+       "title": "Inverse trigonometric functions",
+       "pages": 85,
+       "questions": 37,
+       "bytes": 16875572,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "trigonometry-pythagorean-identities",
+       "title": "Pythagorean identities",
+       "pages": 14,
+       "questions": 14,
+       "bytes": 2795378,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometry-minor-trig-ratios",
+       "title": "Sec, cosec and cot",
+       "pages": 16,
+       "questions": 17,
+       "bytes": 3373030,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometric-equations",
+       "title": "Trigonometric equations",
+       "pages": 32,
+       "questions": 30,
+       "bytes": 6629774,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometric-equations-introduction",
+       "title": "Trigonometric equations, an introduction",
+       "pages": 40,
+       "questions": 39,
+       "bytes": 7316765,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "trigonometry-introduction-exam-equations",
+       "title": "Trigonometric equations, introductory exam questions",
+       "pages": 49,
+       "questions": 74,
+       "bytes": 7942911,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "trigonometric-general-solutions",
+       "title": "Trigonometric general solutions",
+       "pages": 18,
+       "questions": 33,
+       "bytes": 833692,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      },
+      {
+       "slug": "trigonometric-graphs",
+       "title": "Trigonometric graphs",
+       "pages": 36,
+       "questions": 37,
+       "bytes": 4370008,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "trigonometric-identities-with-solutions",
+       "title": "Trigonometric identities",
+       "pages": 35,
+       "questions": 125,
+       "bytes": 5415588,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "trigonometry-exam-questions",
+       "title": "Trigonometry",
+       "pages": 361,
+       "questions": 659,
+       "bytes": 67101078,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "trigonometry-r-transformations",
+       "title": "Trigonometry: R transformations",
+       "pages": 16,
+       "questions": 17,
+       "bytes": 2281717,
+       "preview": [
+        641,
+        481
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Integration and differential equations",
+     "booklets": [
+      {
+       "slug": "integration-areas",
+       "title": "Areas by integration",
+       "pages": 39,
+       "questions": 35,
+       "bytes": 6576424,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "odes-context-modelling",
+       "title": "Differential equations in context",
+       "pages": 107,
+       "questions": 48,
+       "bytes": 23869094,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "integration-indefinite-mix",
+       "title": "Indefinite integration mix",
+       "pages": 115,
+       "questions": 378,
+       "bytes": 33953197,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 32,
+        "bytes": 111360
+       }
+      },
+      {
+       "slug": "integration-by-a-special-manipulation",
+       "title": "Integration by a special manipulation",
+       "pages": 3,
+       "questions": 1,
+       "bytes": 208545,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 2,
+        "bytes": 20827
+       }
+      },
+      {
+       "slug": "integration-partial-fractions",
+       "title": "Integration by partial fractions",
+       "pages": 11,
+       "questions": 5,
+       "bytes": 2790125,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 6,
+        "bytes": 37709
+       }
+      },
+      {
+       "slug": "integration-by-parts",
+       "title": "Integration by parts",
+       "pages": 16,
+       "questions": 9,
+       "bytes": 1819075,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 10,
+        "bytes": 42861
+       }
+      },
+      {
+       "slug": "integration-by-reverse-chain-rule",
+       "title": "Integration by reverse chain rule",
+       "pages": 15,
+       "questions": 9,
+       "bytes": 804813,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 10,
+        "bytes": 44516
+       }
+      },
+      {
+       "slug": "integration-by-substitution",
+       "title": "Integration by substitution",
+       "pages": 26,
+       "questions": 12,
+       "bytes": 4695266,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 15,
+        "bytes": 68650
+       }
+      },
+      {
+       "slug": "integration-by-trigonometric-identities",
+       "title": "Integration by trigonometric identities",
+       "pages": 17,
+       "questions": 9,
+       "bytes": 2046782,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 10,
+        "bytes": 41663
+       }
+      },
+      {
+       "slug": "integration-structured-exam-questions-part-i",
+       "title": "Integration, structured questions I",
+       "pages": 268,
+       "questions": 332,
+       "bytes": 50305741,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "integration-basics",
+       "title": "Integration: the basics",
+       "pages": 21,
+       "questions": 20,
+       "bytes": 92118,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 21,
+        "bytes": 72229
+       }
+      },
+      {
+       "slug": "integration-numerical",
+       "title": "Numerical integration",
+       "pages": 54,
+       "questions": 22,
+       "bytes": 7671289,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "parametric-integration-exam-questions",
+       "title": "Parametric integration",
+       "pages": 92,
+       "questions": 30,
+       "bytes": 14689251,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "odes-separable-no-context",
+       "title": "Separable differential equations",
+       "pages": 82,
+       "questions": 89,
+       "bytes": 15816271,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "integration-volume-of-revolution",
+       "title": "Volumes of revolution",
+       "pages": 78,
+       "questions": 76,
+       "bytes": 11292599,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "further",
+   "name": "Further",
+   "shelves": [
+    {
+     "name": "Pure",
+     "booklets": [
+      {
+       "slug": "combinatorics",
+       "title": "Combinatorics",
+       "pages": 33,
+       "questions": 12,
+       "bytes": 6162363,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "complex-numbers-part-1",
+       "title": "Complex numbers 1",
+       "pages": 49,
+       "questions": 33,
+       "bytes": 6493982,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "complex-numbers-part-1-exam-questions",
+       "title": "Complex numbers 1",
+       "pages": 68,
+       "questions": 83,
+       "bytes": 11665002,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "complex-numbers-part-2",
+       "title": "Complex numbers 2",
+       "pages": 76,
+       "questions": 30,
+       "bytes": 10208998,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "complex-numbers-part-2-exam-questions",
+       "title": "Complex numbers 2",
+       "pages": 170,
+       "questions": 186,
+       "bytes": 29491979,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "conic-sections",
+       "title": "Conic sections",
+       "pages": 119,
+       "questions": 38,
+       "bytes": 25617398,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "curve-sketching",
+       "title": "Curve sketching",
+       "pages": 100,
+       "questions": 104,
+       "bytes": 16318960,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differentiation-from-first-principles",
+       "title": "Differentiation from first principles",
+       "pages": 31,
+       "questions": 29,
+       "bytes": 4185174,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differentiation-practice-iii",
+       "title": "Differentiation III",
+       "pages": 11,
+       "questions": 4,
+       "bytes": 53238,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "hyperbolic-functions",
+       "title": "Hyperbolic functions",
+       "pages": 76,
+       "questions": 88,
+       "bytes": 14298095,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "linearization-of-graphs",
+       "title": "Linearisation of graphs",
+       "pages": 22,
+       "questions": 21,
+       "bytes": 4188135,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "advanced-mensuration",
+       "title": "Mensuration, advanced",
+       "pages": 10,
+       "questions": 9,
+       "bytes": 1274638,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "number-theory",
+       "title": "Number theory",
+       "pages": 29,
+       "questions": 33,
+       "bytes": 7473309,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "polar-coordinates-exam-questions",
+       "title": "Polar coordinates",
+       "pages": 59,
+       "questions": 26,
+       "bytes": 11767503,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "polar-coordinates-practice",
+       "title": "Polar coordinates",
+       "pages": 22,
+       "questions": 14,
+       "bytes": 2383450,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "proof-general",
+       "title": "Proof",
+       "pages": 32,
+       "questions": 45,
+       "bytes": 7338649,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "proof-by-induction",
+       "title": "Proof by induction",
+       "pages": 82,
+       "questions": 36,
+       "bytes": 15931232,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "rational-functions",
+       "title": "Rational functions",
+       "pages": 6,
+       "questions": 5,
+       "bytes": 963929,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        4
+       ]
+      },
+      {
+       "slug": "roots-of-polynomial-equations",
+       "title": "Roots of polynomial equations",
+       "pages": 59,
+       "questions": 40,
+       "bytes": 7946713,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "series-and-integrals",
+       "title": "Series and integrals",
+       "pages": 9,
+       "questions": 8,
+       "bytes": 1329028,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "series-expansions",
+       "title": "Series expansions",
+       "pages": 63,
+       "questions": 20,
+       "bytes": 10346767,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "series-summation-practice",
+       "title": "Series summation",
+       "pages": 84,
+       "questions": 17,
+       "bytes": 13213060,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "stars": [
+        2,
+        5
+       ]
+      }
+     ]
+    },
+    {
+     "name": "Matrices and vectors",
+     "booklets": [
+      {
+       "slug": "consistency-of-equations",
+       "title": "Consistency of equations",
+       "pages": 22,
+       "questions": 21,
+       "bytes": 2775558,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        4
+       ]
+      },
+      {
+       "slug": "matrices-practice",
+       "title": "Matrices",
+       "pages": 87,
+       "questions": 23,
+       "bytes": 10775558,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "matrices-exam-questions-part-a",
+       "title": "Matrices A",
+       "pages": 47,
+       "questions": 51,
+       "bytes": 6667936,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "matrices-exam-questions-part-b",
+       "title": "Matrices B",
+       "pages": 125,
+       "questions": 135,
+       "bytes": 19009340,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "vector-exam-questions-part-a",
+       "title": "Vectors A",
+       "pages": 164,
+       "questions": 166,
+       "bytes": 30185435,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "vector-practice-part-a",
+       "title": "Vectors A",
+       "pages": 76,
+       "questions": 33,
+       "bytes": 13919256,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "vectors-exam-questions-part-b",
+       "title": "Vectors B",
+       "pages": 66,
+       "questions": 68,
+       "bytes": 13764230,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "vectors-practice-part-b",
+       "title": "Vectors B",
+       "pages": 38,
+       "questions": 23,
+       "bytes": 5201371,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      }
+     ]
+    },
+    {
+     "name": "Integration and differential equations",
+     "booklets": [
+      {
+       "slug": "arclength-surface-of-revolution",
+       "title": "Arc length and surfaces of revolution",
+       "pages": 37,
+       "questions": 17,
+       "bytes": 7365726,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "integration-definite-megamix",
+       "title": "Definite integration megamix",
+       "pages": 47,
+       "questions": 104,
+       "bytes": 8208879,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 20,
+        "bytes": 88981
+       }
+      },
+      {
+       "slug": "1st-order-differential-equations-exam-questions",
+       "title": "First order differential equations",
+       "pages": 27,
+       "questions": 29,
+       "bytes": 4775133,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "1st-order-differential-equations-practice",
+       "title": "First order differential equations",
+       "pages": 7,
+       "questions": 6,
+       "bytes": 488617,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "1st-order-differential-equations-substitutions",
+       "title": "First order differential equations by substitution",
+       "pages": 41,
+       "questions": 45,
+       "bytes": 7422350,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "improper-integrals",
+       "title": "Improper integrals",
+       "pages": 13,
+       "questions": 12,
+       "bytes": 3086431,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "integration-indefinite-megamix",
+       "title": "Indefinite integration megamix",
+       "pages": 251,
+       "questions": 759,
+       "bytes": 78215327,
+       "preview": [
+        641,
+        481
+       ],
+       "questionsOnly": {
+        "pages": 66,
+        "bytes": 227879
+       }
+      },
+      {
+       "slug": "integration-structured-exam-questions-part-ii",
+       "title": "Integration, structured questions II",
+       "pages": 114,
+       "questions": 136,
+       "bytes": 23924614,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "differential-equations-numerical-methods",
+       "title": "Numerical methods for differential equations",
+       "pages": 26,
+       "questions": 14,
+       "bytes": 6778524,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "reduction-formulas",
+       "title": "Reduction formulas",
+       "pages": 37,
+       "questions": 36,
+       "bytes": 7044620,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "2nd-order-differential-equations-exam-questions",
+       "title": "Second order differential equations",
+       "pages": 29,
+       "questions": 16,
+       "bytes": 5508545,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "2nd-order-differential-equations-practice",
+       "title": "Second order differential equations",
+       "pages": 16,
+       "questions": 12,
+       "bytes": 1378908,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Practice"
+      },
+      {
+       "slug": "2nd-order-differential-equations-substitutions",
+       "title": "Second order differential equations by substitution",
+       "pages": 24,
+       "questions": 23,
+       "bytes": 5917966,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "mechanics",
+   "name": "Mechanics",
+   "shelves": [
+    {
+     "name": "Mechanics",
+     "booklets": [
+      {
+       "slug": "m2-centre-of-mass",
+       "title": "Centre of mass",
+       "pages": 36,
+       "questions": 33,
+       "bytes": 4983143,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m3-centre-of-mass",
+       "title": "Centre of mass",
+       "pages": 32,
+       "questions": 18,
+       "bytes": 4834648,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-m3-circular-motion",
+       "title": "Circular motion",
+       "pages": 58,
+       "questions": 45,
+       "bytes": 8130912,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2",
+        "M3"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-collisions",
+       "title": "Collisions",
+       "pages": 23,
+       "questions": 22,
+       "bytes": 5231466,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-collisions",
+       "title": "Collisions",
+       "pages": 30,
+       "questions": 30,
+       "bytes": 4168323,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m1-connected-particles",
+       "title": "Connected particles",
+       "pages": 33,
+       "questions": 30,
+       "bytes": 5872096,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-dynamics",
+       "title": "Dynamics",
+       "pages": 28,
+       "questions": 25,
+       "bytes": 3706362,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-m3-elastic-strings-springs",
+       "title": "Elastic strings and springs",
+       "pages": 34,
+       "questions": 33,
+       "bytes": 4712272,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2",
+        "M3"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-equilibrium",
+       "title": "Equilibrium",
+       "pages": 50,
+       "questions": 39,
+       "bytes": 6045919,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m4-m6-equilibrium-and-potential-energy",
+       "title": "Equilibrium and potential energy",
+       "pages": 21,
+       "questions": 20,
+       "bytes": 4975760,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m2-equilibrium-of-rigid-bodies",
+       "title": "Equilibrium of rigid bodies",
+       "pages": 47,
+       "questions": 46,
+       "bytes": 6457831,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-m4-frameworks-multistructures",
+       "title": "Frameworks and multi-body structures",
+       "pages": 21,
+       "questions": 15,
+       "bytes": 3365131,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2",
+        "M4"
+       ],
+       "stars": [
+        3,
+        4
+       ]
+      },
+      {
+       "slug": "m3-gravitation-problems",
+       "title": "Gravitation problems",
+       "pages": 14,
+       "questions": 12,
+       "bytes": 1648873,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-m3-impulse",
+       "title": "Impulse",
+       "pages": 19,
+       "questions": 20,
+       "bytes": 2307910,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2",
+        "M3"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m6-intrinsic-coordinates",
+       "title": "Intrinsic coordinates",
+       "pages": 22,
+       "questions": 19,
+       "bytes": 4701233,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-kinematic-graphs",
+       "title": "Kinematic graphs",
+       "pages": 38,
+       "questions": 31,
+       "bytes": 6457428,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-kinematics",
+       "title": "Kinematics",
+       "pages": 55,
+       "questions": 30,
+       "bytes": 8040226,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m3-m4-kinematics-dynamics-easier-odes",
+       "title": "Kinematics and dynamics with differential equations I",
+       "pages": 28,
+       "questions": 27,
+       "bytes": 2926645,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M4"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m4-m6-kinematics-dynamics-harder-odes",
+       "title": "Kinematics and dynamics with differential equations II",
+       "pages": 21,
+       "questions": 20,
+       "bytes": 3831210,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-m2-kinematics-using-calculus",
+       "title": "Kinematics using calculus",
+       "pages": 31,
+       "questions": 21,
+       "bytes": 6062239,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1",
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-m2-moments",
+       "title": "Moments",
+       "pages": 20,
+       "questions": 19,
+       "bytes": 3260694,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1",
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m4-m6-moments-in-vector-form",
+       "title": "Moments in vector form",
+       "pages": 13,
+       "questions": 12,
+       "bytes": 2304421,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      },
+      {
+       "slug": "m4-m5-moment-of-inertia-calculations",
+       "title": "Moments of inertia",
+       "pages": 36,
+       "questions": 23,
+       "bytes": 5553171,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M5"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m6-motion-on-axisymmetric-surfaces",
+       "title": "Motion on axisymmetric surfaces",
+       "pages": 4,
+       "questions": 2,
+       "bytes": 473944,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M6"
+       ],
+       "stars": [
+        3,
+        3
+       ]
+      },
+      {
+       "slug": "m3-m4-oblique-collisions",
+       "title": "Oblique collisions",
+       "pages": 48,
+       "questions": 46,
+       "bytes": 8720127,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M4"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m3-m6-pendulum-motion",
+       "title": "Pendulum motion",
+       "pages": 9,
+       "questions": 6,
+       "bytes": 735472,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M6"
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      },
+      {
+       "slug": "m4-m6-polar-coordinates-and-central-forces",
+       "title": "Polar coordinates and central forces",
+       "pages": 32,
+       "questions": 31,
+       "bytes": 6353337,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m2-power",
+       "title": "Power",
+       "pages": 22,
+       "questions": 24,
+       "bytes": 2450093,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m1-m2-projectiles",
+       "title": "Projectiles",
+       "pages": 55,
+       "questions": 53,
+       "bytes": 10677939,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1",
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m3-m6-advanced-projectiles",
+       "title": "Projectiles, advanced",
+       "pages": 47,
+       "questions": 26,
+       "bytes": 10559878,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M6"
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "m3-m4-relative-motion",
+       "title": "Relative motion",
+       "pages": 42,
+       "questions": 43,
+       "bytes": 7436258,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M4"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m1-resultants",
+       "title": "Resultants",
+       "pages": 11,
+       "questions": 10,
+       "bytes": 1369086,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m4-m6-rotational-and-translational-motion",
+       "title": "Rotational and translational motion",
+       "pages": 33,
+       "questions": 32,
+       "bytes": 6412240,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m4-m6-rotational-motion",
+       "title": "Rotational motion",
+       "pages": 64,
+       "questions": 64,
+       "bytes": 11506639,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m3-m5-s-h-m",
+       "title": "Simple harmonic motion",
+       "pages": 44,
+       "questions": 28,
+       "bytes": 6697698,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M3",
+        "M5"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m4-m6-variable-mass-problems",
+       "title": "Variable mass problems",
+       "pages": 26,
+       "questions": 25,
+       "bytes": 7133830,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m4-m6-vector-differential-equations",
+       "title": "Vector differential equations",
+       "pages": 8,
+       "questions": 3,
+       "bytes": 693666,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      },
+      {
+       "slug": "m1-vectors-applications",
+       "title": "Vectors in mechanics",
+       "pages": 53,
+       "questions": 23,
+       "bytes": 6833044,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M1"
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "m2-work-and-energy",
+       "title": "Work and energy",
+       "pages": 28,
+       "questions": 26,
+       "bytes": 3360046,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M2"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "m4-m6-work-in-vector-form",
+       "title": "Work in vector form",
+       "pages": 9,
+       "questions": 8,
+       "bytes": 1562933,
+       "preview": [
+        641,
+        481
+       ],
+       "modules": [
+        "M4",
+        "M6"
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "statistics",
+   "name": "Statistics",
+   "shelves": [
+    {
+     "name": "Statistics",
+     "booklets": [
+      {
+       "slug": "binomial-distribution",
+       "title": "Binomial distribution",
+       "pages": 48,
+       "questions": 28,
+       "bytes": 8378490,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "combinations-and-permutations",
+       "title": "Combinations and permutations",
+       "pages": 28,
+       "questions": 30,
+       "bytes": 3952550,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "contingency-tables",
+       "title": "Contingency tables",
+       "pages": 15,
+       "questions": 14,
+       "bytes": 3357852,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      },
+      {
+       "slug": "correlation-and-regression",
+       "title": "Correlation and regression",
+       "pages": 50,
+       "questions": 89,
+       "bytes": 10207306,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "data-analysis",
+       "title": "Data analysis",
+       "pages": 44,
+       "questions": 17,
+       "bytes": 11055669,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "data-analysis-exam-questions",
+       "title": "Data analysis",
+       "pages": 36,
+       "questions": 34,
+       "bytes": 8875470,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "discrete-random-variables",
+       "title": "Discrete random variables",
+       "pages": 42,
+       "questions": 41,
+       "bytes": 7702727,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "distributional-approximations",
+       "title": "Distributional approximations",
+       "pages": 28,
+       "questions": 110,
+       "bytes": 4506616,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "geometric-distribution",
+       "title": "Geometric distribution",
+       "pages": 18,
+       "questions": 10,
+       "bytes": 1943985,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "goodness-of-fit",
+       "title": "Goodness of fit",
+       "pages": 25,
+       "questions": 15,
+       "bytes": 3180401,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "hypothesis-testing-normal-distribution",
+       "title": "Hypothesis testing with the normal distribution",
+       "pages": 71,
+       "questions": 27,
+       "bytes": 11442339,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "hypothesis-testing-introduction",
+       "title": "Hypothesis testing, an introduction",
+       "pages": 61,
+       "questions": 16,
+       "bytes": 8455775,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "normal-distribution-calculations",
+       "title": "Normal distribution calculations",
+       "pages": 57,
+       "questions": 38,
+       "bytes": 12743846,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "normal-variables",
+       "title": "Normal variables",
+       "pages": 23,
+       "questions": 23,
+       "bytes": 3883338,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "poisson-distribution",
+       "title": "Poisson distribution",
+       "pages": 30,
+       "questions": 22,
+       "bytes": 5014309,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "probability",
+       "title": "Probability",
+       "pages": 127,
+       "questions": 67,
+       "bytes": 19208973,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "probability-density-functions",
+       "title": "Probability density functions",
+       "pages": 41,
+       "questions": 12,
+       "bytes": 9563941,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "probability-sampling-distributions",
+       "title": "Probability sampling distributions",
+       "pages": 5,
+       "questions": 6,
+       "bytes": 746543,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        4
+       ]
+      },
+      {
+       "slug": "rectangular-distribution",
+       "title": "Rectangular distribution",
+       "pages": 18,
+       "questions": 19,
+       "bytes": 2248544,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        5
+       ]
+      },
+      {
+       "slug": "related-random-variables",
+       "title": "Related random variables",
+       "pages": 4,
+       "questions": 3,
+       "bytes": 422191,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        3
+       ]
+      },
+      {
+       "slug": "proportion-samples",
+       "title": "Sampling proportions",
+       "pages": 11,
+       "questions": 6,
+       "bytes": 1117462,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "t-distribution",
+       "title": "The t-distribution",
+       "pages": 28,
+       "questions": 8,
+       "bytes": 5356166,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        3
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "advanced",
+   "name": "Advanced",
+   "shelves": [
+    {
+     "name": "Beyond A-Level",
+     "booklets": [
+      {
+       "slug": "bessel-functions",
+       "title": "Bessel functions",
+       "pages": 31,
+       "questions": 25,
+       "bytes": 7305784,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "complex-variables",
+       "title": "Complex variables",
+       "pages": 23,
+       "questions": 15,
+       "bytes": 4235095,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "diagonalization-of-conics-and-quadrics",
+       "title": "Diagonalisation of conics and quadrics",
+       "pages": 16,
+       "questions": 9,
+       "bytes": 3797185,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "difference-equations",
+       "title": "Difference equations",
+       "pages": 20,
+       "questions": 19,
+       "bytes": 3989719,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "differentiation-under-the-integral-sign",
+       "title": "Differentiation under the integral sign",
+       "pages": 68,
+       "questions": 46,
+       "bytes": 12503316,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "fourier-series",
+       "title": "Fourier series",
+       "pages": 48,
+       "questions": 28,
+       "bytes": 11037754,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "fourier-transform",
+       "title": "Fourier transforms",
+       "pages": 62,
+       "questions": 28,
+       "bytes": 13668689,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "integration-further-applications",
+       "title": "Further applications of integration",
+       "pages": 56,
+       "questions": 53,
+       "bytes": 10314252,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "gamma-and-beta-functions",
+       "title": "Gamma and beta functions",
+       "pages": 66,
+       "questions": 56,
+       "bytes": 12691699,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "index-summation-notation",
+       "title": "Index summation notation",
+       "pages": 16,
+       "questions": 17,
+       "bytes": 2792138,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "integral-equations",
+       "title": "Integral equations",
+       "pages": 4,
+       "questions": 3,
+       "bytes": 607290,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "intrinsic-coordinates",
+       "title": "Intrinsic coordinates",
+       "pages": 40,
+       "questions": 45,
+       "bytes": 6899932,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "jacobians-and-curvilinear-coordinates",
+       "title": "Jacobians and curvilinear coordinates",
+       "pages": 39,
+       "questions": 38,
+       "bytes": 6869589,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "laplace-transforms-introduction",
+       "title": "Laplace transforms: an introduction",
+       "pages": 63,
+       "questions": 15,
+       "bytes": 8918410,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "laplace-transforms-applications",
+       "title": "Laplace transforms: applications",
+       "pages": 56,
+       "questions": 20,
+       "bytes": 10775888,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "laplace-transforms-further",
+       "title": "Laplace transforms: further",
+       "pages": 61,
+       "questions": 45,
+       "bytes": 11421161,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "legendre-functions-and-polynomials",
+       "title": "Legendre functions and polynomials",
+       "pages": 26,
+       "questions": 21,
+       "bytes": 4902541,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "leibniz-rule-differentiation",
+       "title": "Leibniz's rule for differentiation",
+       "pages": 7,
+       "questions": 5,
+       "bytes": 1085686,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        3
+       ]
+      },
+      {
+       "slug": "limits",
+       "title": "Limits",
+       "pages": 59,
+       "questions": 50,
+       "bytes": 9853693,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "line-integrals",
+       "title": "Line integrals",
+       "pages": 57,
+       "questions": 18,
+       "bytes": 10203163,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "multivariable-integration-in-cartesian",
+       "title": "Multivariable integration in Cartesian coordinates",
+       "pages": 48,
+       "questions": 61,
+       "bytes": 8009018,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "multivariable-integration-in-polars",
+       "title": "Multivariable integration in polar coordinates",
+       "pages": 54,
+       "questions": 30,
+       "bytes": 7312020,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "multivariable-integration-in-spherical-polars",
+       "title": "Multivariable integration in spherical polar coordinates",
+       "pages": 29,
+       "questions": 28,
+       "bytes": 4904015,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "odes-by-variation-of-parameters",
+       "title": "ODEs by variation of parameters",
+       "pages": 13,
+       "questions": 14,
+       "bytes": 2577622,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        3,
+        4
+       ]
+      },
+      {
+       "slug": "odes-systematic-1",
+       "title": "ODEs, systematic methods I",
+       "pages": 112,
+       "questions": 35,
+       "bytes": 19719689,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "odes-systematic-2",
+       "title": "ODEs, systematic methods II",
+       "pages": 76,
+       "questions": 19,
+       "bytes": 17542634,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "odes-various",
+       "title": "ODEs, various methods",
+       "pages": 113,
+       "questions": 122,
+       "bytes": 18675030,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "odes-series-solutions",
+       "title": "ODEs: series solutions",
+       "pages": 44,
+       "questions": 9,
+       "bytes": 14336402,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "parameterization",
+       "title": "Parameterisation",
+       "pages": 28,
+       "questions": 27,
+       "bytes": 4958153,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "partial-differentiation-introduction",
+       "title": "Partial differentiation: an introduction",
+       "pages": 45,
+       "questions": 47,
+       "bytes": 9065816,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "partial-differentiation-applications",
+       "title": "Partial differentiation: applications",
+       "pages": 37,
+       "questions": 12,
+       "bytes": 5502565,
+       "preview": [
+        641,
+        481
+       ],
+       "stars": [
+        2,
+        4
+       ]
+      },
+      {
+       "slug": "pdes-integral-transformations",
+       "title": "PDEs by integral transforms",
+       "pages": 24,
+       "questions": 19,
+       "bytes": 7150820,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "pdes-general-introduction",
+       "title": "PDEs: an introduction",
+       "pages": 65,
+       "questions": 19,
+       "bytes": 10679480,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "pdes-general-applied",
+       "title": "PDEs: applications",
+       "pages": 2,
+       "questions": 1,
+       "bytes": 221541,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "pdes-the-laplace-equation",
+       "title": "PDEs: Laplace's equation",
+       "pages": 37,
+       "questions": 16,
+       "bytes": 14722874,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "pdes-the-heat-equation",
+       "title": "PDEs: the heat equation",
+       "pages": 25,
+       "questions": 13,
+       "bytes": 8340682,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "product-operator",
+       "title": "Product operator",
+       "pages": 27,
+       "questions": 26,
+       "bytes": 4285937,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "residues-and-applications-in-integration",
+       "title": "Residues: applications in integration",
+       "pages": 65,
+       "questions": 15,
+       "bytes": 17926697,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "residues-and-applications-in-series-summation",
+       "title": "Residues: applications in series summation",
+       "pages": 15,
+       "questions": 13,
+       "bytes": 6449086,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "matrix-row-reducing",
+       "title": "Row reduction of matrices",
+       "pages": 33,
+       "questions": 11,
+       "bytes": 5127363,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "series-exam-questions",
+       "title": "Series",
+       "pages": 134,
+       "questions": 159,
+       "bytes": 23065540,
+       "preview": [
+        641,
+        481
+       ],
+       "kind": "Exam questions",
+       "stars": [
+        2,
+        5
+       ]
+      },
+      {
+       "slug": "sketching-in-3-dimensions",
+       "title": "Sketching in three dimensions",
+       "pages": 14,
+       "questions": 16,
+       "bytes": 2769471,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "special-functions-and-general-transforms",
+       "title": "Special functions and general transforms",
+       "pages": 14,
+       "questions": 8,
+       "bytes": 1612705,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "surface-integrals",
+       "title": "Surface integrals",
+       "pages": 33,
+       "questions": 32,
+       "bytes": 7025267,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "big-integral-theorems",
+       "title": "The big integral theorems",
+       "pages": 52,
+       "questions": 19,
+       "bytes": 12882679,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "d-operator",
+       "title": "The D operator",
+       "pages": 20,
+       "questions": 12,
+       "bytes": 3357561,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "heaviside-function",
+       "title": "The Heaviside function",
+       "pages": 14,
+       "questions": 13,
+       "bytes": 1836109,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "impulse-function",
+       "title": "The impulse function",
+       "pages": 10,
+       "questions": 11,
+       "bytes": 970913,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "vector-integrals",
+       "title": "Vector integrals",
+       "pages": 53,
+       "questions": 26,
+       "bytes": 9536414,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "vector-operators",
+       "title": "Vector operators",
+       "pages": 55,
+       "questions": 23,
+       "bytes": 9377356,
+       "preview": [
+        641,
+        481
+       ]
+      },
+      {
+       "slug": "volume-by-slicing",
+       "title": "Volume by slicing",
+       "pages": 7,
+       "questions": 6,
+       "bytes": 915744,
+       "preview": [
+        641,
+        481
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
