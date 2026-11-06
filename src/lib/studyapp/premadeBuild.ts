@@ -329,3 +329,39 @@ export function buildMarkScheme(input: MarkSchemeInput): { data: PremadeSubject;
     report: { noModule: unmapped },
   };
 }
+
+/* ── The public index of the mark scheme decks ─────────────────────────── */
+
+/**
+ * What every student may see of the mark scheme decks: for each specification its modules, and how many cards each holds. No card text and no card id:
+ * the cards themselves are served only to a Pro account (src/app/api/premade/markscheme, lib/studyapp/proServer.ts). Derived from the full files, so it can
+ * be checked against them without the iPad's files.
+ */
+export interface MarkSchemeIndex { v: 1; kind: "markscheme-index"; specs: { id: string; subject: string; label: string; code: string; mods: { c: string; t: string; n: number }[] }[] }
+
+export function buildMarkSchemeIndex(files: PremadeSubject[]): MarkSchemeIndex {
+  return {
+    v: 1, kind: "markscheme-index",
+    specs: files.map((d) => ({ id: d.specs[0].id, subject: d.subject, label: d.specs[0].label, code: d.specs[0].code, mods: d.specs[0].mods.map((m) => ({ c: m.c, t: m.t, n: m.k.length })) })),
+  };
+}
+
+export function renderIndex(x: MarkSchemeIndex): string {
+  const specs = x.specs.map((s) => `  {"id":${JSON.stringify(s.id)},"subject":${JSON.stringify(s.subject)},"label":${JSON.stringify(s.label)},"code":${JSON.stringify(s.code)},"mods":${JSON.stringify(s.mods)}}`).join(",\n");
+  return `{\n"v":1,\n"kind":"markscheme-index",\n"specs":[\n${specs}\n]\n}\n`;
+}
+
+/** Faults in an index: its shape, and that it holds nothing but names and counts. */
+export function verifyIndex(d: unknown): string[] {
+  const o = d as Partial<MarkSchemeIndex> | null;
+  if (!o || o.v !== 1 || o.kind !== "markscheme-index" || !Array.isArray(o.specs)) return ["not the mark scheme index shape"];
+  const bad: string[] = [];
+  for (const s of o.specs) {
+    if (typeof s.id !== "string" || !Array.isArray(s.mods) || s.mods.length === 0) { bad.push(`index ${String(s.id)}: no modules`); continue; }
+    for (const m of s.mods) {
+      if (typeof m.c !== "string" || typeof m.t !== "string" || !Number.isInteger(m.n) || m.n < 1 || Object.keys(m).length !== 3) bad.push(`index ${s.id} ${m.c}: not a name and a count`);
+      else if (m.t.length > MAX_TITLE || m.t.includes(EM_DASH)) bad.push(`index ${s.id} ${m.c}: title`);
+    }
+  }
+  return bad;
+}

@@ -5,7 +5,7 @@
  *     npm run decks:build -- --src /path/to/Resources     # or PLUMI_RESOURCES=/path (default /home/user/plumi/Sources/PlumiKit/Resources)
  *     npm run decks:build -- --check                      # is the committed output what the source would build? (this is what CI runs)
  *
- * It also builds the iPad's MARK SCHEME cards (markscheme_cards_<spec>.json, on the iPad repo's local-dev branch) into markscheme-<spec>.json, one file a
+ * It also builds the iPad's MARK SCHEME cards (markscheme_cards_<spec>.json, on the iPad repo's local-dev branch) into src/content/proDecks/markscheme-<spec>.json (server only: Pro) and a public index of names and counts, one file a
  * specification so the website loads only the board a student opens. Those are read from `--ms-src <folder>` or PLUMI_MS_RESOURCES (default: the same folder
  * as the rest); without the files the committed ones are only verified. Make a read-only copy of the branch's Resources with
  * `git -C <plumi> archive origin/local-dev Sources/PlumiKit/Resources | tar -x -C <tmp>`. Their trees and cards are read from that one folder.
@@ -19,10 +19,13 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildMarkScheme, buildSubject, render, verifyShape, type DefinitionsFile, type MarkSchemeFileCard, type SkillsFile, type SpecInput, type TopicTree } from "../../src/lib/studyapp/premadeBuild";
+import { buildMarkScheme, buildMarkSchemeIndex, buildSubject, render, renderIndex, verifyIndex, verifyShape, type DefinitionsFile, type MarkSchemeFileCard, type PremadeSubject, type SkillsFile, type SpecInput, type TopicTree } from "../../src/lib/studyapp/premadeBuild";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const OUT = join(ROOT, "src", "content", "premadeDecks");
+/** The mark scheme cards are Pro-only: their text lives where only the server reads it (src/app/api/premade/markscheme), never in the client bundle or public output. Only the index (names and counts) is in premadeDecks. */
+const OUT_PRO = join(ROOT, "src", "content", "proDecks");
+const INDEX = join(OUT, "markscheme-index.json");
 const DEFAULT_SRC = "/home/user/plumi/Sources/PlumiKit/Resources";
 
 interface SubjectPlan { slug: string; subject: string; file: string; skills?: string; specs: { id: string; label: string; code: string; tree: string }[] }
@@ -70,7 +73,7 @@ const SRC = srcArg >= 0 ? args[srcArg + 1] : process.env.PLUMI_RESOURCES ?? DEFA
 const msArg = args.indexOf("--ms-src");
 const MS_SRC = msArg >= 0 ? args[msArg + 1] : process.env.PLUMI_MS_RESOURCES ?? SRC;
 const msFile = (p: MsPlan) => `markscheme_cards_${p.slug}.json`;
-const msOut = (p: MsPlan) => join(OUT, `markscheme-${p.slug}.json`);
+const msOut = (p: MsPlan) => join(OUT_PRO, `markscheme-${p.slug}.json`);
 const haveMs = MS_PLAN.every((p) => existsSync(join(MS_SRC, msFile(p))) && existsSync(join(MS_SRC, p.tree)));
 
 function buildMs(plan: MsPlan) {
@@ -114,6 +117,13 @@ function verifyCommitted(): number {
     for (const b of bad.slice(0, 10)) console.error(`mark scheme ${plan.slug}: ${b}`);
     faults += bad.length;
   }
+  // The public index: names and counts only, and exactly what the full files give.
+  if (existsSync(INDEX) && MS_PLAN.every((p) => existsSync(msOut(p)))) {
+    const committed = readFileSync(INDEX, "utf8");
+    for (const b of verifyIndex(JSON.parse(committed)).slice(0, 10)) { console.error(b); faults++; }
+    const fresh = renderIndex(buildMarkSchemeIndex(MS_PLAN.map((p) => JSON.parse(readFileSync(msOut(p), "utf8")) as PremadeSubject)));
+    if (committed !== fresh) { console.error("mark scheme index is out of date with the full files (run npm run decks:build)"); faults++; }
+  } else { console.error("mark scheme index is missing"); faults++; }
   return faults;
 }
 
@@ -142,6 +152,7 @@ if (check) {
 
 if (!haveSource) { console.error(`The iPad's definition files are not at ${SRC}. Pass --src <folder> or set PLUMI_RESOURCES.`); process.exit(1); }
 mkdirSync(OUT, { recursive: true });
+mkdirSync(OUT_PRO, { recursive: true });
 let total = 0;
 for (const plan of PLAN) {
   const { data, report } = build(plan);
@@ -168,6 +179,9 @@ if (haveMs) {
   }
   console.log(`mark scheme total: ${msCards} cards, ${msDecks} decks, ${(msTotal / 1024).toFixed(1)} KB`);
   total += msTotal;
+  const index = renderIndex(buildMarkSchemeIndex(MS_PLAN.map((p) => JSON.parse(readFileSync(msOut(p), "utf8")) as PremadeSubject)));
+  writeFileSync(INDEX, index);
+  console.log(`mark scheme index: ${(Buffer.byteLength(index) / 1024).toFixed(1)} KB (public: names and counts)`);
 } else console.log(`Mark scheme cards not built: no markscheme_cards_*.json at ${MS_SRC} (pass --ms-src <folder>); the committed files are kept.`);
 console.log(`total ${(total / 1024).toFixed(1)} KB`);
 const faults = verifyCommitted();

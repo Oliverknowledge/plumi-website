@@ -139,7 +139,7 @@ describe("mark scheme cards", () => {
 });
 
 describe("the committed mark scheme decks", () => {
-  const dir = join(import.meta.dirname, "..", "..", "content", "premadeDecks");
+  const dir = join(import.meta.dirname, "..", "..", "content", "proDecks");
   const SPECS = ["aqa-7402", "aqa-7405", "aqa-7408", "aqa-8461", "aqa-8462", "aqa-8463", "edexcel-9ph0", "ocr-h420", "ocr-h432", "ocr-h556"];
   const files = SPECS.map((s) => join(dir, `markscheme-${s}.json`));
   it("carry the superscripts and subscripts as the iPad's data writes them (real cards)", { skip: !files.every(existsSync) && "not built" }, () => {

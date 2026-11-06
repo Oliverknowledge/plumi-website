@@ -36,7 +36,7 @@ Boards: Biology AQA 7402, OCR H420, Edexcel 9BN0 (Salters-Nuffield); Chemistry A
 ## Where it lives
 
 - `scripts/premade-decks/build.ts`, with the pure builder in `src/lib/studyapp/premadeBuild.ts` (tested).
-- Output: `src/content/premadeDecks/{biology,chemistry,physics}.json`, about 160 KB in all. Deterministic (no dates, fixed order); each records the SHA-256 of every source file it used.
+- Output: `src/content/premadeDecks/{biology,chemistry,physics}.json` (public, lazy-loaded), about 170 KB in all. Deterministic (no dates, fixed order); each records the SHA-256 of every source file it used.
 - `src/lib/studyapp/premade.ts` loads one subject at a time by dynamic import, only when the student opens that tab. None of it is in the study app's first load.
 - A deck added to the student's own list keeps a stable id on `deck.starter` (`pm:<subject>:<spec>:<module>`), so it is never added twice, is not shareable as theirs, and is theirs to edit.
 
@@ -54,19 +54,31 @@ Rebuild whenever the iPad's definition or topic files change, and commit the thr
 
 The Questions setup holds the student's subjects as bank slugs, which name the board (`ocr-a-level-biology-a`). The catalogue opens each subject on that board, with a "yours" tag, and the other boards one tap away. With no board known for a subject, nothing is guessed: it asks "Pick your board". A slug the iPad has no definitions for (OCR or Edexcel Biology B, any GCSE, CIE, WJEC) counts as no board.
 
-## The Pro gate (built, OFF)
+## Pro: the Mark scheme decks (enforced on the server)
 
-`src/lib/studyapp/pro.ts`. `PREMADE_GATE_ON` is false unless the build sets `NEXT_PUBLIC_PREMADE_GATE=on`; while off, nothing asks the server and every deck is open.
+**Founder decision (6 November 2026): Mark scheme decks are exclusively Pro.** No taster, no switch. Key wording decks and the five free starters stay free.
 
-When on: a student who is not Pro sees every module deck with a "Pro" tag except one taster per board (the first deck with at least 10 cards, tagged "Free"). Tapping a locked deck opens a calm panel: what Pro adds, and "Pro is bought in the Plumi app on iPad, then it works here when you sign in." There is no price, no purchase link and no "cheaper on the web" wording (Apple's steering rules). The free starters are never gated.
+What a student sees: the Mark scheme group is marked "Pro". Everyone sees the deck names and card counts (a public index, `src/content/premadeDecks/markscheme-index.json`: names and numbers only). Locked decks carry a Pro tag; tapping one shows the calm panel ("Pro is bought in the Plumi app on iPad, then it works here when you sign in", a Sign in link only when signed out, no price and no purchase link: Apple's steering rules). While the answer is loading the tiles are neutral, never locked and then opened.
 
-How Pro is decided: the Supabase RPC `account_pro(p_device_id)` (migration 0127) as the signed-in student. `pro: true` is Pro. Signed out, anonymous, an error, an odd answer or no Supabase config is free for gated decks (fail closed), never an error on screen. Unknown while the answer is on its way (decks do not flash locked, and a tap waits for the answer). A real answer is kept for the visit; an error is asked again after a minute.
+**The text is not in the website's public output.** The cards (`src/content/proDecks/markscheme-<spec>.json`, built by `decks:build`) are read only by the route handler, through `src/lib/studyapp/proDecksLoader.ts` (`import "server-only"`, so a client import is a build error). Nothing in the client bundle, `.next/static` or `public/` holds them. Proof after any `next build`:
 
-Caveat before turning it on: `account_pro` counts the asking device against the account's three (0127, rule 4). The website therefore asks as one fixed id (`plumi-web-browser`), so all of a student's browsers take one slot, but that is still a slot. If that is not wanted, read the student's own `account_entitlements` row instead (RLS allows it) and apply the same live rule; only `ProGate`'s transport changes.
+```bash
+npm run build && npm run decks:leak-check    # searches .next/static, the study app's prerendered pages and public/ for 870 phrases from the answers; fails on any hit
+```
+
+`proServer.test.ts` also fails if anything but the loader imports `content/proDecks`, or if the loader is imported by anything but the route.
+
+**How a Pro student gets them.** The client sends `Authorization: Bearer <Supabase access token>` to `GET /api/premade/markscheme/<spec>` (spec: one of the ten lowercase ids, e.g. `ocr-h556`; anything else is 400 before anything else is asked). The server verifies the token with Supabase (`/auth/v1/user`), reads that user's own `account_entitlements` row with the caller's own token (row-level security allows only own rows), and returns the JSON only if the record grants Pro; otherwise 403 with a tiny body (401 for no or rejected token, 503 if Supabase cannot be asked). `Cache-Control: private, no-store`; nothing is logged; a light per-token limit (60 a minute). `GET /api/pro-status` answers `{pro:true}` or 403 the same way and drives the lock on the tiles (cached for the visit; an error is free, quietly, and asked again after a minute).
+
+**The entitlement rule** is migration 0127's `account_pro_live`: status `active` grants while `expires_at` is in the future; `grace` while `expires_at` is less than two days ago; `expired`, `revoked`, no row, or an anonymous user never grant. **Where it differs from `account_pro`:** the web does not call that function and ignores its three-device limit, because the function would record the website as a device and use up one of the account's three slots. It uses the app server's clock, not the database's `now()` (a few seconds of skew at an expiry edge).
+
+**What a Pro student keeps.** Adding a deck copies its cards into the student's own flashcards (on their device), where they are theirs to review and edit. If Pro lapses the decks they already added stay; they simply cannot add more. The decks are not shareable (they are marked as ours).
+
+**How to verify with a real Pro account** (not done here: no production Supabase was called): apply migration 0127 and confirm an `account_entitlements` row for the test account (`status = 'active'`, `expires_at` in the future); sign in to the website as that account; open Flashcards, Ready-made decks, Biology, Mark scheme: tiles should show a plus, and tapping one should add the deck. Then in a private window, signed out, check the tiles are locked, and `curl -i https://<site>/api/premade/markscheme/aqa-7402` is 401. With a free account's token it is 403. Check the project's `NEXT_PUBLIC_PLUMI_SUPABASE_URL` and `_KEY` are set on the host (the route reads the same public variables as the browser).
 
 ## Analytics
 
-`premade_opened` (`gate`), `premade_deck_added` (`subject`, `deck`, `gated`), `premade_locked_tapped` (`subject`, `deck`). No personal data.
+`premade_opened`, `premade_deck_added` (`subject`, `deck`, `group`), `premade_locked_tapped` (`subject`, `deck`, `group`). No personal data.
 
 ## Bold key words
 
@@ -78,7 +90,7 @@ Source: the iPad repo's `local-dev` branch (not yet on `plumi`), `Sources/PlumiK
 
 ```bash
 git -C /path/to/plumi archive origin/local-dev Sources/PlumiKit/Resources | tar -x -C /tmp/ms
-npm run decks:build -- --ms-src /tmp/ms/Sources/PlumiKit/Resources     # writes src/content/premadeDecks/markscheme-<spec>.json
+npm run decks:build -- --ms-src /tmp/ms/Sources/PlumiKit/Resources     # writes src/content/proDecks/markscheme-<spec>.json and the public index
 ```
 
 A card is filed under the first of its topic codes that finds a module of that board's tree (the iPad's `MarkSchemeDecks.groups`, including its try-with-`PH.`-and-one-level-up rule). The front is the question, a blank line and `[n marks]`; the back is each marking point on a line led by `• ` (a line ending in a colon introduces points and is not one), then the board's own lines led by `Also accept: `, `Not accepted: `, `Ignore: `, `Note: `; `**` wraps the words the board underlines. This is the iPad's plain text (`MarkSchemeText`), carried verbatim; the web stores nothing more and reads the leads back for display (lib/studyapp/markscheme.ts), so an edited card still shows its bands. `term`, `asked` and `sources` are not carried. A few cards run past the usual 400 and 800 characters, so a catalogue deck's cards may hold 700 and 1,200 and its name 64 (`PREMADE_LIMITS` in model.ts); a student's own decks keep 400, 800 and 50.
@@ -91,4 +103,4 @@ Drawn as on the iPad: the question with a small marks tag; the answer as points 
 
 **Source of truth.** The mark scheme files are in the iPad repo's worktree/branch that carries the superscript fix (`/home/user/msfont` on 6 November 2026; local, not yet on `origin/local-dev`). Rebuild with `npm run decks:build -- --ms-src <that folder>/Sources/PlumiKit/Resources` (the build only reads it). `decks:build -- --check` compares byte for byte when `--ms-src` (or `PLUMI_MS_RESOURCES`) points at the files, and otherwise checks the committed data's shape (including that every script brace is closed) and says it did not compare.
 
-The mark scheme group sits behind the same gate as key wording, with the same taster (the first deck of each board with at least 10 cards is free).
+The mark scheme group is Pro only: see "Pro: the Mark scheme decks" above.

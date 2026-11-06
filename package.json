@@ -49,6 +49,7 @@
     "bank:check": "python3 scripts/question-bank/check_bank.py",
     "bank:insights": "tsx scripts/question-bank/build-insights.ts",
     "decks:build": "tsx scripts/premade-decks/build.ts",
+    "decks:leak-check": "tsx scripts/premade-decks/leak-check.ts",
     "bank:fetch:edexcel": "python3 scripts/question-bank/fetch_edexcel.py",
     "bank:cut:edexcel": "python3 scripts/question-bank/cut_edexcel.py",
     "bank:build:edexcel": "python3 scripts/question-bank/build_bank_edexcel.py",
