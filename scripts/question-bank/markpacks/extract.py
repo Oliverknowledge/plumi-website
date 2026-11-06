@@ -15,7 +15,8 @@ from pathlib import Path
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-BASE = "https://pub-e8a9dbab8e2a4d089f52b2a45e0d0b50.r2.dev"      # src/config/papers.ts (R2_DEV_URL)
+# The bank's public address is read from src/config/papers.ts (the one place it is written), not repeated here.
+BASE = re.search(r'R2_DEV_URL = "([^"]+)"', (HERE.parents[2] / "src/config/papers.ts").read_text()).group(1)
 PRICE_IN, PRICE_HIT, PRICE_OUT = 0.30, 0.006, 1.20
 
 def get(url, tries=3):
