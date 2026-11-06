@@ -13,6 +13,9 @@ describe("the app's own host", () => {
   });
   test("Questions is a place too: /questions is served from /study/questions, the prefix redirects", () => {
     assert.deepEqual(routeFor(S, "/questions"), { kind: "rewrite", to: "/study/questions" });
+    assert.deepEqual(routeFor(S, "/success"), { kind: "rewrite", to: "/study/success" });
+    assert.deepEqual(routeFor(S, "/success/", "?checkout=success"), { kind: "rewrite", to: "/study/success?checkout=success" });
+    assert.deepEqual(routeFor(S, "/study/success"), { kind: "redirect", to: "/success" });
     assert.deepEqual(routeFor(S, "/questions/", "?set=1"), { kind: "rewrite", to: "/study/questions?set=1" });
     assert.deepEqual(routeFor(S, "/study/questions"), { kind: "redirect", to: "/questions" });
     // the subject lists the picker fetches go by their /study/ address on either host
