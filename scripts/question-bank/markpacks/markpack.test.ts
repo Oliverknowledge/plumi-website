@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { coverage, gatePack, labelsMatch, packHash, parseExtraction, type BankPartRef } from "./markpack";
+import { coverage, gatePack, labelsMatch, packHash, parseExtraction, type BankPartRef, type ExtractedPack } from "./markpack";
 
 const D = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "pilot-v2");
 const read = (f: string) => JSON.parse(readFileSync(join(D, f), "utf8"));
@@ -61,6 +61,7 @@ test("an 'OR' scheme worth one mark keeps every alternative and caps the marks (
 // ---------------------------------------------------------------------------------------
 
 const GOOD = "74023-jun17-05-1";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- readings are edited as loose JSON on purpose
 const mutate = (f: (d: Record<string, any>) => void, id = GOOD) => { const d = structuredClone(fixture(id)); f(d); return gate(id, d); };
 const rejectedFor = (v: ReturnType<typeof gate>, needle: string) => { assert.equal(v.status, "rejected"); assert.ok(v.reasons.some((r) => r.includes(needle)), v.reasons.join("; ")); };
 
@@ -123,12 +124,12 @@ test("coverage counts words of three letters or more", () => {
 
 const SOURCES = { partId: GOOD, qpSha256: "a".repeat(64), msSha256: "b".repeat(64), cropVersion: 3 };
 test("the hash is stable, and changes with the reading, either picture, or the crop version", async () => {
-  const pack = (gate(GOOD) as { pack: any }).pack;
+  const pack = (gate(GOOD) as { pack: ExtractedPack }).pack;
   const h = await packHash(pack, SOURCES);
   assert.equal(h.length, 64);
   assert.equal(await packHash(structuredClone(pack), SOURCES), h, "same");
   const reordered = Object.fromEntries(Object.entries(pack).reverse());
-  assert.equal(await packHash(reordered as any, SOURCES), h, "key order does not matter");
+  assert.equal(await packHash(reordered as unknown as ExtractedPack, SOURCES), h, "key order does not matter");
   const changed = structuredClone(pack); changed.points[0].text += "!";
   assert.notEqual(await packHash(changed, SOURCES), h, "reading");
   assert.notEqual(await packHash(pack, { ...SOURCES, msSha256: "c".repeat(64) }), h, "scheme picture re-cut");

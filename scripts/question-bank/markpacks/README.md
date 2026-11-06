@@ -146,3 +146,11 @@ are worded, one in the answer kind and figure flag, one in the figure flag alone
 stricter segment finder and were not re-run.
 Cost: 0 DeepSeek calls, 8 reader runs of about 150,000 tokens each (about 10,000 tokens per part per reader, up from 8,000 because the
 readers also read the text file).
+
+### Publishing agreed packs (7 Nov 2026)
+
+`publish_packs.ts <slug> <agreedDir> <out.sql>` turns agreed packs into SQL for the private pack store (migration 0130 in the app repo,
+`mark_pack_publish`). It hashes each reading together with the exact bytes of the question and scheme pictures and the bank's cropVersion, and
+writes a `.sql` file; it applies nothing. The SQL is board material and stays out of git. 52 agreed packs were generated across six subjects
+(Biology 35, A-level Chemistry 4, A-level Psychology 4, GCSE Biology 3, GCSE Chemistry 3, OCR Chemistry A 3) and applied to a throwaway local
+Postgres only: all 52 stored, twice, with no error.
