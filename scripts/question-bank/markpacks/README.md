@@ -89,3 +89,27 @@ and "allow ..." comments go in the accept list. One rule (splitting alternatives
 Known limits: readings vary between runs (a figure flag flipped on one pilot pack), so a pack should eventually need two agreeing reads; one
 question-wide "ignore" note is still scoped to the wrong point on one GCSE Biology pack; the two critics disagree on 11 packs, which a person
 should look at (the review page does that); the critics are the same model family (DeepSeek) or the author's own family (Claude), not examiners.
+
+## Two Claude readers instead of one DeepSeek reader (7 Nov 2026)
+
+Why: no DeepSeek spend, and no person reviewing each pack. Two independent Claude agents each transcribe a part from its images
+(`extraction_prompt_v4.txt`, which keeps "issues" for real doubt only). `verify_pair.ts` then decides: a part is **agreed** only if both
+readings pass `gatePack` AND `consensus.ts` finds them identical on everything that decides a mark (points, marks, totals, caps, kind,
+accept / reject / ignore items). Everything else is held and never goes to a person. **Agreement is not correctness**: two readers can
+misread a page the same way.
+
+| Batch | Parts | Agreed | Held (both agree: figure, tick, numeric) | Rejected by the OCR gate (both readers) | Readers disagree |
+|---|---|---|---|---|---|
+| 1: AQA A-level Biology, DeepSeek-ready parts | 12 | see below | | | |
+| 2: six subjects, random | 60 | 11 | 29 | 7 | 13 |
+
+Batch 1 was tried with the v3.6 prompt: both readers matched the DeepSeek reading on every point, mark and total in all 12; they differed only on
+where unnumbered comments apply and on how much of an "eg" list to keep.
+
+Batch 2 was NOT representative for Biology: the 8 Biology parts left over were all figure parts. Of the 31 parts the text marker could take
+(not held for a figure, tick or number), 11 were agreed, 13 had readers disagree and 7 were rejected by the OCR check. What the misses are:
+- 7 rejected on BOTH readers: the bank's OCR text lacks words the page shows (chemical formulas, symbols, cut lines). The fix is a better text source (the board PDF text layer), not a looser gate.
+- 13 disagreements: 4 are a figure or table flag one reader set and the other did not, 4 are the answer kind, 3 are a different split of the same scheme (for example "any one from a, b, c" as one point or three points with a cap of one: the same marks, written differently), 2 are a wording slip by one reader.
+- A third reading (the existing DeepSeek one) agrees with one of the two readers on only 4 of the 13, so it would not rescue most of them.
+
+Cost: 0 DeepSeek calls. 16 Claude reader runs (about 120,000 tokens each).
