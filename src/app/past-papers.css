@@ -69,6 +69,27 @@
 .pp-older { margin-top: 8px; }
 .pp-older summary { cursor: pointer; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-blue); padding: 6px 0; }
 
+/* a student's own entries (OwnPapers): the same card and table, plus a small form. One card, so it sits straight. */
+.pp-own .lp-lead { margin-bottom: 22px; max-width: 40em; }
+.lp .pp .pp-own .pp-paper { max-width: 620px; transform: none; scroll-margin-top: 90px; }
+.pp-own .pp-table-wrap { margin: 0 0 14px; }
+.pp-own .pp-table tbody th { white-space: normal; overflow-wrap: anywhere; }
+.pp-table .pp-own-edit { width: 1%; text-align: right; }
+.lp button.pp-file { cursor: pointer; }
+.lp .pp-own-add { padding: 8px 16px; font-size: 16px; box-shadow: 0 4px 0 var(--lp-shadow); background: var(--lp-gold); }
+.lp .pp-own-note { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--lp-ink-soft); }
+.pp-own-form { display: grid; gap: 10px; padding-block: 6px; }
+.pp-own-field { display: grid; gap: 3px; font-size: 14.5px; font-weight: 700; }
+.pp-own-field label span { font-weight: 600; color: var(--lp-ink-soft); }
+.pp-own-field input { width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 16px; color: var(--lp-ink); background: var(--lp-field); border: 2px solid var(--lp-line); border-radius: 11px; }
+.pp-own-field input:focus { outline: 3px solid var(--lp-orange); outline-offset: 1px; }
+.pp-own-field input[aria-invalid="true"] { border-color: var(--lp-red); }
+.lp .pp-own-error { font-size: 14.5px; font-weight: 700; color: var(--lp-red); }
+.pp-own-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 2px; }
+.lp .pp-own-text { min-height: 40px; padding: 0 8px; font-family: var(--f-px); font-weight: 600; font-size: 15px; color: var(--lp-blue); background: none; border: 0; cursor: pointer; }
+.lp .pp-own-text:hover { text-decoration: underline; }
+.lp .pp-own-text.is-delete { margin-left: auto; color: var(--lp-red); }
+
 /* folded legacy specifications */
 .pp-legacy .lp-lead { margin-bottom: 22px; }
 .lp .pp-old { padding: 0; margin-bottom: 18px; box-shadow: 0 5px 0 var(--lp-shadow); }

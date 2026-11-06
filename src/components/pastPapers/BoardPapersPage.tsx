@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CosyPage, WindowBar } from "@/components/cosy/Chrome";
 import { PageStructuredData } from "@/components/StructuredData";
+import { OwnPapers } from "./OwnPapers";
 import { PaperClickTracker } from "./PaperClickTracker";
 import { PaperTable } from "./PaperTable";
 import {
@@ -69,6 +70,7 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
               {jumpGroups.flatMap((g, i) => g.papers.map(p => (
                 <a key={`${g.id}-${p.id}`} href={`#${g.id}-${p.id}`}>{jumpLabel(g, p.name, i === 0 && uniqueNames)}</a>
               )))}
+              <a href="#own-papers">Your own papers</a>
             </nav>
           )}
         </header>
@@ -83,6 +85,8 @@ export function BoardPapersPage({ hub, board }: { hub: SubjectHub; board: BoardP
             </div>
           </section>
         ))}
+
+        <OwnPapers board={path} heading={heading} bar={<WindowBar label="Only you can see these" />} />
 
         {legacy.length > 0 && (
           <section aria-labelledby="legacy-title" className="pp-group pp-legacy">

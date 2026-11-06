@@ -57,6 +57,7 @@ CI runs lint, typecheck and `bank:status -- --check` on every PR. Before pushing
 | Question PDFs | `npm run pdf:test` |
 | Dark questions | `npm run dark:test` |
 | A question bank | `npm run bank:check -- <slug>` |
+| Past paper own entries | `npm run papers:test` |
 
 Passing checks don't prove a page works. Look at UI changes in a browser, and watch the console: when a bank's data fails to load, the heading and a built-in sample still look right.
 
