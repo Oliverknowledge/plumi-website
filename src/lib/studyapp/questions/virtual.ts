@@ -1,4 +1,5 @@
 import type { QPart } from "./model";
+import { pinKind, questionPx, splitCardEstimate, unsplitWidth } from "./split";
 
 /**
  * A long list that draws only what is near the screen, pure: heights (measured where an item has been drawn, a good guess where it has not) add
@@ -58,13 +59,20 @@ const PHONE_W = 520;
 const LISTEN = 108;                  // the recording's player, its label and note
 const START = 48;                    // the button that opens how the question starts (or the question so far)
 
+/** A card whose answer is open or written, as the estimate needs to know it: the screen, and what else the pinned side would hold (a setup picture, a shared figure). */
+export interface PinnedCard { vw: number; vh: number; stem: boolean; fig: Pick<QPart, "w" | "h"> | null }
+
 /**
  * A card's height at the list's width, from the picture's size: a card shows two buttons under its picture, not a space to write on, so the marks do not change it (an answer
  * that has been written makes it taller once it has been drawn, and the measured height then replaces this). Only a guess for a card that has not been drawn; a wrong guess costs a
  * small correction as the card first appears, never a wrong list. (The constants were fitted to the heights measured on AQA GCSE Maths and Physics at 1184, 820 and 390 px: within a
  * few pixels for nine cards in ten.) `mouse`: the pointer is a mouse, which has the "Write on the question" button.
  */
-export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, mouse = false, startOpen = false): number {
+export function cardEstimate(part: Pick<QPart, "w" | "h" | "m" | "k" | "er" | "au" | "auw">, listWidth: number, hasStart = false, mouse = false, startOpen = false, pinned?: PinnedCard): number {
+  // An open answer beside a tall question is two columns (split.ts): about a screen and a bit tall, not a picture and two buttons.
+  if (pinned && pinKind({ viewportW: pinned.vw, viewportH: pinned.vh, questionPx: questionPx(part, unsplitWidth(listWidth, pinned.vw), pinned), zonePx: 0, was: null }) === "split" && pinned.vw >= 900) {
+    return splitCardEstimate(questionPx(part, unsplitWidth(listWidth, pinned.vw), pinned), pinned.vh, !!part.er);
+  }
   const wide = listWidth >= FEED_WIDE;
   const sheet = Math.max(240, (wide ? listWidth - SIDE : listWidth) - PAD_X);
   const picture = sheet * (part.h > 0 && part.w > 0 ? part.h / part.w : 0.28);

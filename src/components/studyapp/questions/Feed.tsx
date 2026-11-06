@@ -8,13 +8,16 @@ import {
   bandsFor, CLEARED, cleanFeedFilters, elsewhere, feedActive, feedCounts, feedList, feedOrders, feedProgress, hasCalcChoice, markedIds, NO_FEED, newSeed, practiseRows, progressLine, twinPapers,
   type FeedExtras, type FeedFilters, type FeedSort,
 } from "@/lib/studyapp/questions/feed";
-import { clearLeftCard, getLeftCard, holdScroll, rememberPos, setLeftCard, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
-import { blocks, feedHasRoom, feedId, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
+import { clearLeftCard, currentFeedPrefs, getLeftCard, holdScroll, rememberPos, setLeftCard, savedPos, setOpenPart, updateFeedPrefs, useFeedPrefs } from "@/lib/studyapp/questions/feedStore";
+import { blocks, feedHasRoom, feedId, isAnswered, isMarked, keyOf, MAX_SET_PARTS, questionKeyOf, type FeedInfo, type QSet, type QuestionsData } from "@/lib/studyapp/questions/model";
 import { groupPapers, paperKey, paperSetInput, paperState } from "@/lib/studyapp/questions/papers";
 import { buildSetInput, hasScheme, partsByQuestion, type BankRow } from "@/lib/studyapp/questions/picker";
 import { currentQuestions, qa, useQuestions } from "@/lib/studyapp/questions/store";
 import { baseSubject, type CatalogueSubject, type SubjectMeta } from "@/lib/studyapp/questions/subject";
-import { cardEstimate } from "@/lib/studyapp/questions/virtual";
+import { cardEstimate, type PinnedCard } from "@/lib/studyapp/questions/virtual";
+import { SPLIT_MIN_W } from "@/lib/studyapp/questions/split";
+import { sharedFigure } from "@/lib/studyapp/questions/sharedFigure";
+import { openModeOf } from "./answerOpen";
 import { toast } from "../toast";
 import { useBankExtras, useBankText, useSubject } from "./bankData";
 import { hasInsights } from "@/lib/studyapp/questions/insightsLoad";
@@ -24,6 +27,7 @@ import { useInsights } from "./useInsights";
 import { FeedCard, type FeedLookup } from "./FeedCard";
 import { FeedActs, FeedFilterBody, FeedHead, FeedPills, SchoolYear } from "./FeedBar";
 import { FeedList } from "./FeedList";
+import { setFeedGap } from "./usePin";
 import { FeedPen } from "./FeedPen";
 import { ruler } from "@/lib/studyapp/questions/rulerStore";
 import { useSettledList } from "./useSettledList";
@@ -94,6 +98,18 @@ function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, e
   const folded = prefs.folded[slug];
   const bodyOpen = folded === undefined ? false : !folded;
   const head = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  // Where the strip ends (it sticks under the app's bar): a pinned question sticks just below it (--qf-gap, read by the stylesheet).
+  useLayoutEffect(() => {
+    const h = head.current, r = root.current;
+    if (!h || !r) return;
+    const set = () => { const top = parseFloat(getComputedStyle(h).top); const g = Math.round((Number.isFinite(top) ? top : 66) + h.offsetHeight); r.style.setProperty("--qf-gap", `${g}px`); setFeedGap(g); };
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(h);
+    window.addEventListener("resize", set);
+    return () => { ro.disconnect(); window.removeEventListener("resize", set); };
+  }, []);
 
   /* ── the filters ───────────────────────────────────────────────── */
   const bands = useMemo(() => bandsFor(meta.subject, rows), [meta.subject, rows]);
@@ -157,7 +173,19 @@ function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, e
     return ids;
   }, [byQuestion]);
   const mouse = useMatch("(hover: hover) and (pointer: fine)");
-  const estimate = useCallback((p: BankRow, w: number) => cardEstimate(p, w, withStart.has(p.id), mouse, startShown.has(p.id)), [withStart, mouse, startShown]);
+  // A card that is not drawn yet but whose answer is open (the tab was reloaded) or written is guessed as it will be drawn: pinned beside a tall question, two columns. (Read when asked, never a reason for the list to be measured again.)
+  const estimate = useCallback((p: BankRow, w: number) => {
+    let pinned: PinnedCard | undefined;
+    if (typeof window !== "undefined" && window.innerWidth >= SPLIT_MIN_W && !currentFeedPrefs().split.off) {
+      const id = feedId(slug);
+      const a = currentQuestions().answers[keyOf(id, p.id)];
+      if (openModeOf(`${id}/${p.id}`) || isAnswered(a) || isMarked(a)) {
+        const sib = byQuestion.get(questionKeyOf(p)) ?? [p];
+        pinned = { vw: window.innerWidth, vh: window.innerHeight, stem: sib.some((x) => x.st), fig: sharedFigure(p, sib)?.from ?? null };
+      }
+    }
+    return cardEstimate(p, w, withStart.has(p.id), mouse, startShown.has(p.id), pinned);
+  }, [withStart, mouse, startShown, byQuestion, slug]);
 
   const lookup = useMemo<FeedLookup>(() => ({
     series: new Map(meta.series.map((s) => [s.id, s.label])),
@@ -364,7 +392,7 @@ function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, e
   const skip = (e: React.MouseEvent) => { e.preventDefault(); const el = document.getElementById("qf-results"); el?.scrollIntoView({ block: "start" }); el?.focus({ preventScroll: true }); };
 
   return (
-    <div className="qf-feed" style={{ "--tint": tint } as React.CSSProperties} data-testid="feed" data-slug={slug}>
+    <div ref={root} className="qf-feed" style={{ "--tint": tint } as React.CSSProperties} data-testid="feed" data-slug={slug}>
       <a className="qs-skip" href="#qf-results" onClick={skip} data-testid="feed-skip">Skip to the questions</a>
       <FeedHead
         ref={head} search={search} onSearch={setSearch} searchNote={searchNote} count={settled.list === null || settled.waiting || (list.length === 0 && waitingForText) ? -1 : list.length} progress={line} active={active} open={bodyOpen} onToggle={toggleBody}

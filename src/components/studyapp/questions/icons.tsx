@@ -17,6 +17,8 @@ export const BoltIcon = () => <I size={18}><path d="M13 3L5 13h6l-1 8 8-10h-6z" 
 export const CheckIcon = () => <I size={18}><path d="M5 12.5l4.5 4.5L19 7" /></I>;
 export const BackIcon = () => <I size={18}><path d="M15 5l-7 7 7 7" /></I>;
 export const TypeIcon = () => <I size={18}><path d="M5 7V5h14v2M12 5v14M9 19h6" /></I>;
+/** A drawing pin: the question stays where it is. */
+export const PinIcon = () => <I size={16}><path d="M9 4h6l-1 6 3 3H7l3-3z" /><path d="M12 13v7" /></I>;
 export const PenSmallIcon = () => <I size={18}><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19z" /></I>;
 export const PlusIcon = () => <I size={18}><path d="M12 5v14M5 12h14" /></I>;
 export const CloseIcon = () => <I size={18}><path d="M6 6l12 12M18 6L6 18" /></I>;

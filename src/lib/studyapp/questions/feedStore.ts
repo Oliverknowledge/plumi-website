@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { EMPTY_FEED_PREFS, FEED_KEY, mergePrefs, parseFeedPrefs, type FeedPos, type FeedPrefs } from "./feedView";
+import { EMPTY_FEED_PREFS, FEED_KEY, mergePrefs, parseFeedPrefs, type FeedPos, type FeedPrefs, type SplitFlags } from "./feedView";
 
 /**
  * The feed's own remembered choices (feedView.ts says what) on this device. Reads and writes are guarded: a private window, a full disk or a blocked
@@ -13,7 +13,7 @@ let started = false;
 const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setTimeout> | null = null;
 /** What this tab has changed since it last wrote: only these are written over what another tab has stored (two tabs on two subjects must not undo each other). */
-const dirty = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>() };
+const dirty = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>(), split: new Set<string>() };
 
 function start() {
   if (started || typeof window === "undefined") return;
@@ -34,7 +34,7 @@ function flush() {
     const merged = mergePrefs(parseFeedPrefs(localStorage.getItem(FEED_KEY)), prefs, dirty);
     localStorage.setItem(FEED_KEY, JSON.stringify(merged));
     dirty.last = false;
-    for (const k of ["view", "filters", "pos", "folded"] as const) dirty[k].clear();
+    for (const k of ["view", "filters", "pos", "folded", "split"] as const) dirty[k].clear();
     prefs = merged;
   } catch { /* full or blocked: the choices last for the visit */ }
 }
@@ -43,7 +43,7 @@ function later() { if (!timer) timer = setTimeout(flush, 400); }
 /** Mark what differs between two records as this tab's own change. */
 function markDirty(a: FeedPrefs, b: FeedPrefs) {
   if (a.last !== b.last) dirty.last = true;
-  for (const k of ["view", "filters", "pos", "folded"] as const) {
+  for (const k of ["view", "filters", "pos", "folded", "split"] as const) {
     const x = a[k] as Record<string, unknown>, y = b[k] as Record<string, unknown>;
     for (const key of new Set([...Object.keys(x), ...Object.keys(y)])) if (x[key] !== y[key]) dirty[k].add(key);
   }
@@ -72,6 +72,18 @@ export const savedPos = (slug: string): FeedPos | null => { start(); return pref
 export const currentFeedPrefs = (): FeedPrefs => { start(); return prefs; };
 
 const subscribe = (cb: () => void) => { start(); listeners.add(cb); return () => { listeners.delete(cb); }; };
+/** How an open answer lays out beside a tall question (feedView.ts `SplitFlags`): read by each card, drawn again only when these change. */
+export function useSplitFlags(): SplitFlags {
+  return useSyncExternalStore(subscribe, () => { start(); return prefs.split; }, () => EMPTY_FEED_PREFS.split);
+}
+export function setSplitFlag(key: "off" | "wide", on: boolean) {
+  updateFeedPrefs((p) => {
+    if (!!p.split[key] === on) return p;
+    const split = { ...p.split };
+    if (on) split[key] = true; else delete split[key];
+    return { ...p, split };
+  });
+}
 export function useFeedPrefs(): FeedPrefs {
   return useSyncExternalStore(subscribe, () => { start(); return prefs; }, () => EMPTY_FEED_PREFS);
 }

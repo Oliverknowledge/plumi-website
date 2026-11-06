@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useNow } from "@/lib/studyapp/clock";
-import { deckStats, exportDeck } from "@/lib/studyapp/model";
+import { deckStats, exportDeck, limitsFor } from "@/lib/studyapp/model";
 import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
 import { toast } from "../toast";
+import { plainText } from "@/lib/studyapp/boldText";
+import { hasPictures } from "@/lib/studyapp/cardPics";
+import { BoldText } from "./BoldText";
 import { CardFields } from "./CardFields";
 
 /** One deck: rename it, add cards, edit or delete them, bring a list in, copy the deck out, review it, or delete it. */
@@ -24,7 +27,9 @@ export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { de
 
   const copy = async () => {
     const text = exportDeck(data, deckId);
-    try { await navigator.clipboard.writeText(text); toast(`${cards.length} card${cards.length === 1 ? "" : "s"} copied`); }
+    const pics = cards.filter(hasPictures).length, words = cards.length - pics;
+    if (words === 0) { toast("Picture cards stay in Plumi: there is no text to copy"); return; }
+    try { await navigator.clipboard.writeText(text); toast(`${words} card${words === 1 ? "" : "s"} copied${pics ? `, not the ${pics} picture card${pics === 1 ? "" : "s"}` : ""}`); }
     catch { setOut(text); toast("Copy the cards from the box below"); }
   };
 
@@ -53,14 +58,17 @@ export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { de
           {cards.map((c) => (
             <li key={c.id} data-testid="deck-card">
               {editing === c.id ? (
-                <CardFields idPrefix={`edit-${c.id}`} initialFront={c.front} initialBack={c.back} submitLabel="Save" onCancel={() => setEditing(null)} onSubmit={(f, b) => { actions.editCard(c.id, f, b); setEditing(null); }} />
+                <>
+                {hasPictures(c) && <p className="fcp-picnote" data-testid="pic-note">A picture card from your mistakes. You can change the note.</p>}
+                <CardFields idPrefix={`edit-${c.id}`} lockFront={hasPictures(c)} initialFront={c.front} initialBack={c.back} frontMax={limitsFor(deck.starter).front} backMax={limitsFor(deck.starter).back} submitLabel="Save" onCancel={() => setEditing(null)} onSubmit={(f, b) => { actions.editCard(c.id, f, b); setEditing(null); }} />
+                </>
               ) : (
                 <>
-                  <span className="q">{c.front}</span>
-                  <span className="a">{c.back}</span>
+                  <span className="q"><BoldText text={c.front} />{hasPictures(c) && <i className="pic-chip" data-testid="pic-chip">Picture</i>}</span>
+                  <span className="a"><BoldText text={c.back} /></span>
                   <span className="meta">{c.sch.state === "new" ? "new" : c.sch.state === "learning" ? "learning" : `${c.sch.interval}d`}</span>
-                  <button type="button" className="btn ghost" onClick={() => setEditing(c.id)} aria-label={`Edit: ${c.front}`}>Edit</button>
-                  <button type="button" className="btn ghost danger" onClick={() => actions.deleteCard(c.id)} aria-label={`Delete: ${c.front}`}>Delete</button>
+                  <button type="button" className="btn ghost" onClick={() => setEditing(c.id)} aria-label={`Edit: ${plainText(c.front)}`}>Edit</button>
+                  <button type="button" className="btn ghost danger" onClick={() => actions.deleteCard(c.id)} aria-label={`Delete: ${plainText(c.front)}`}>Delete</button>
                 </>
               )}
             </li>

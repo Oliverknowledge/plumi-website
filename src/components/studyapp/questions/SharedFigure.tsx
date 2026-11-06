@@ -25,13 +25,26 @@ export function useSharedFigure(part: QPart, siblings: readonly QPart[], subject
 type Fig = NonNullable<ReturnType<typeof sharedFigure>>;
 
 /** `ruler`: the virtual ruler is open for this part and lies on this figure (so the figure is open while it is, and putting the figure away puts the ruler away). */
-export function SharedFigureChip({ fig, partId, cv, ruler: rulerOn }: { fig: Fig | null; partId: string; cv?: number; ruler?: boolean }) {
+export function SharedFigureChip({ fig, partId, cv, ruler: rulerOn, pinned, covered }: { fig: Fig | null; partId: string; cv?: number; ruler?: boolean;
+  /** The question is pinned beside the student's page (FeedCard): the figure is simply there, with its source named, not folded behind a button. */
+  pinned?: boolean;
+  /** The earlier parts are open in the same column, and the figure is already in them: it is not shown twice (unless the ruler is on it). */
+  covered?: boolean }) {
   const [open, setOpen] = useState(false);
   const [asked, setAsked] = useState(false);
   if (!!rulerOn !== asked) { setAsked(!!rulerOn); if (rulerOn) setOpen(true); }
   const id = useId();
   if (!fig) return null;
   const from = fig.from;
+  if (pinned) {
+    if (covered && !rulerOn) return null;
+    return (
+      <div className="qf-start qs-fig qs-fig-pinned" data-testid="shared-figure">
+        <p className="qs-fig-cap">The figure<span className="qs-fig-from"> from part {fig.label}</span></p>
+        <Crop src={partImage(from.id, "qp", cv)} w={from.w} h={from.h} alt={`The figure, from part ${fig.label}: ${partAlt(from)}`} words={from.x ? cutWords(from.x, 110).text : undefined} what="the figure" zoom ruler={rulerOn ? partId : undefined} />
+      </div>
+    );
+  }
   return (
     <div className="qf-start qs-fig" data-testid="shared-figure">
       <button type="button" className="qf-startbtn" aria-expanded={open} aria-controls={open ? id : undefined} onClick={() => { if (open && rulerOn) { ruler.close(partId); } setOpen((v) => !v); }} data-testid="shared-figure-btn">

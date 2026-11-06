@@ -4,6 +4,7 @@
  * device and tells React.
  */
 import { newSchedule, schedule, queue, NEW_PER_DAY, type Grade, type Schedule } from "./srs";
+import { cleanCardPic, type CardPic } from "./cardPics";
 import { STARTER_DECKS } from "./starterDecks";
 import { addDays, dayOf, daysBetween } from "./time";
 import { EMPTY_QUESTIONS, sanitiseQuestions, type QuestionsData } from "./questions/model";
@@ -23,7 +24,11 @@ export interface Task {
 export interface Exam { name: string; date: string }
 
 export interface Deck { id: string; title: string; subject: string | null; createdAt: number; starter: string | null }
-export interface Card { id: string; deckId: string; front: string; back: string; createdAt: number; sch: Schedule; lastReviewed: number | null }
+export interface Card {
+  id: string; deckId: string; front: string; back: string; createdAt: number; sch: Schedule; lastReviewed: number | null;
+  /** A card made from a question in the bank ("From my mistakes"): its sides are pictures (cardPics.ts). `front` and `back` stay plain text beside them (a label, the student's marks and note), so every older surface still reads the card. Absent on every other card. */
+  pic?: CardPic;
+}
 
 /** Per London day: how many cards were reviewed, how many were not Again, and how many new ones were started. */
 export interface DayLog { n: number; right: number; fresh: number }
@@ -147,8 +152,16 @@ export function examDays(data: AppData, today: string): number | null {
 
 const clip = (s: string, n: number) => s.replace(/\r/g, "").trim().slice(0, n);
 
+/**
+ * How much a card side and a deck name may hold. A student's own are 400, 800 and 50. A catalogue deck (its `starter` is a `pm:` key) is the exam
+ * boards' own wording carried word for word, and a few cards run past those, so its cards and its "Mark scheme · module" name keep their length.
+ */
+export const LIMITS = { front: 400, back: 800, title: 50 };
+export const PREMADE_LIMITS = { front: 700, back: 1200, title: 64 };
+export const limitsFor = (starter: string | null | undefined) => (starter && starter.startsWith("pm:") ? PREMADE_LIMITS : LIMITS);
+
 export function addDeck(data: AppData, title: string, now: number, subject: string | null = null, starter: string | null = null): { data: AppData; deck: Deck | null } {
-  const t = title.replace(/\s+/g, " ").trim().slice(0, 50);
+  const t = title.replace(/\s+/g, " ").trim().slice(0, limitsFor(starter).title);
   if (!t) return { data, deck: null };
   const deck: Deck = { id: makeId("d", now), title: t, subject, createdAt: now, starter };
   return { data: { ...data, decks: [...data.decks, deck] }, deck };
@@ -178,10 +191,12 @@ export function addCard(data: AppData, deckId: string, front: string, back: stri
 
 /** Many cards at once (an import): one pass, in the order given, and the same limits as `addCard`. Pairs that are empty once trimmed are skipped. */
 export function addCards(data: AppData, deckId: string, pairs: readonly (readonly [string, string])[], now: number): AppData {
-  if (!data.decks.some((d) => d.id === deckId)) return data;
+  const deck = data.decks.find((d) => d.id === deckId);
+  if (!deck) return data;
+  const lim = limitsFor(deck.starter);
   const made: Card[] = [];
   for (const [front, back] of pairs) {
-    const f = clip(front, 400), b = clip(back, 800);
+    const f = clip(front, lim.front), b = clip(back, lim.back);
     if (f && b) made.push({ id: makeId("c", now), deckId, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null });
   }
   return made.length ? { ...data, cards: [...data.cards, ...made] } : data;
@@ -207,11 +222,45 @@ export function importInto(data: AppData, target: ImportTarget, pairs: readonly 
 
 /** Edit the words of a card; its schedule is kept (fixing a typo does not reset what a student has learned). */
 export function editCard(data: AppData, id: string, front: string, back: string): AppData {
-  const f = clip(front, 400), b = clip(back, 800);
+  const card = data.cards.find((c) => c.id === id);
+  const lim = limitsFor(card ? data.decks.find((d) => d.id === card.deckId)?.starter : null);
+  const f = clip(front, lim.front), b = clip(back, lim.back);
   return f && b ? { ...data, cards: data.cards.map((c) => (c.id === id ? { ...c, front: f, back: b } : c)) } : data;
 }
 
 export const deleteCard = (data: AppData, id: string): AppData => ({ ...data, cards: data.cards.filter((c) => c.id !== id) });
+
+/** A picture card to add: its words and its pictures (questions/mistakes.ts makes them). */
+export interface PictureCardToAdd { front: string; back: string; pic: CardPic }
+
+/** The deck a subject's mistakes go to is found by this key, kept on the deck as `starter` (so it is never shared as the student's own, and survives a rename). */
+export const mistakesKey = (subject: string) => `mistakes:${subject.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+
+/**
+ * Turn mistakes into cards: one deck for the subject ("My mistakes \u00B7 Physics"), made if it is missing, the cards added to it. A part that is already a card
+ * (by `pic.part`) is not added again. Returns the deck's id and how many cards were added.
+ */
+export function addMistakeCards(data: AppData, subject: string, cards: readonly PictureCardToAdd[], now: number): { data: AppData; deckId: string | null; added: number } {
+  const key = mistakesKey(subject);
+  let next = data;
+  let deck = next.decks.find((d) => d.starter === key);
+  if (!deck) {
+    const made = addDeck(next, `My mistakes \u00B7 ${subject}`, now, (SUBJECTS as readonly string[]).includes(subject) ? subject : null, key);
+    if (!made.deck) return { data, deckId: null, added: 0 };
+    next = made.data; deck = made.deck;
+  }
+  const have = new Set(next.cards.flatMap((c) => (c.pic?.part ? [c.pic.part] : [])));
+  const made: Card[] = [];
+  for (const c of cards) {
+    const f = clip(c.front, 400), b = clip(c.back, 800), pic = cleanCardPic(c.pic);
+    if (!f || !b || !pic?.part || have.has(pic.part)) continue;
+    have.add(pic.part);
+    made.push({ id: makeId("c", now), deckId: deck.id, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null, pic });
+  }
+  // A deck made for nothing is not left behind.
+  if (made.length === 0) return { data, deckId: data.decks.find((d) => d.starter === key)?.id ?? null, added: 0 };
+  return { data: { ...next, cards: [...next.cards, ...made] }, deckId: deck.id, added: made.length };
+}
 
 /** Add the starter decks the student chose. A deck already added is not added twice. */
 export function addStarters(data: AppData, ids: readonly string[], now: number): AppData {
@@ -225,6 +274,20 @@ export function addStarters(data: AppData, ids: readonly string[], now: number):
     for (const [front, back] of starter.cards) next = addCard(next, made.deck.id, front, back, now);
   }
   return next;
+}
+
+/** A ready-made deck from the catalogue (premade.ts), as the model needs it: a stable key, a name, a subject and the cards. */
+export interface PremadeToAdd { key: string; title: string; subject: string; cards: readonly (readonly [string, string])[] }
+
+/**
+ * Add one catalogue deck. Its `key` (`pm:<group>:<board>:<module>`) is kept on the deck as `starter`, as the starters keep theirs, so
+ * a deck is never added twice, can never be shared as the student's own, and (once added) is theirs to edit like any other.
+ */
+export function addPremade(data: AppData, deck: PremadeToAdd, now: number): AppData {
+  if (!deck.key || data.decks.some((d) => d.starter === deck.key)) return data;
+  const made = addDeck(data, deck.title, now, deck.subject, deck.key);
+  if (!made.deck) return data;
+  return addCards(made.data, made.deck.id, deck.cards, now);
 }
 
 /**
@@ -309,7 +372,8 @@ export function reviewStreak(data: AppData, today: string): number {
 /** A deck as text: one card a line, front and back split by a tab (what the import reads back). Tabs and line breaks inside a card become spaces. */
 export function exportDeck(data: AppData, deckId: string): string {
   const flat = (s: string) => s.replace(/[\t\r\n]+/g, " ").trim();
-  return data.cards.filter((c) => c.deckId === deckId).map((c) => `${flat(c.front)}\t${flat(c.back)}`).join("\n");
+  // A picture card is a picture from the bank: its words alone would be a label and a mark, so it is left out (the editor says so).
+  return data.cards.filter((c) => c.deckId === deckId && !c.pic?.f?.length && !c.pic?.b?.length).map((c) => `${flat(c.front)}\t${flat(c.back)}`).join("\n");
 }
 
 /* ── Sessions: saved mixes of decks ──────────────────────────────────── */
@@ -376,6 +440,14 @@ function cleanSessions(raw: unknown, deckIds: ReadonlySet<string>): Session[] {
   return out;
 }
 
+/** A card with its picture descriptor checked (one that is not valid is dropped and the card is an ordinary text card). Cards without one are returned as they are. */
+function cleanPic(c: Card): Card {
+  if (c.pic === undefined) return c;
+  const pic = cleanCardPic(c.pic);
+  const { pic: _drop, ...rest } = c; void _drop;
+  return pic ? { ...rest, pic } : rest;
+}
+
 /** A tidy copy of whatever was in storage; anything unreadable becomes empty rather than breaking the page. */
 export function sanitise(raw: unknown): AppData {
   if (!raw || typeof raw !== "object") return EMPTY;
@@ -389,7 +461,7 @@ export function sanitise(raw: unknown): AppData {
     tasks: arr<Task>(r.tasks).filter((t) => t && typeof t.id === "string" && typeof t.text === "string" && typeof t.due === "string"),
     exam: r.exam && typeof r.exam.name === "string" && typeof r.exam.date === "string" ? r.exam : null,
     decks,
-    cards: arr<Card>(r.cards).filter((c) => c && typeof c.id === "string" && ids.has(c.deckId) && c.sch && typeof c.sch.due === "number"),
+    cards: arr<Card>(r.cards).filter((c) => c && typeof c.id === "string" && ids.has(c.deckId) && c.sch && typeof c.sch.due === "number").map(cleanPic),
     log: r.log && typeof r.log === "object" ? r.log : {},
     last: r.last && typeof r.last.label === "string" && typeof r.last.href === "string" ? r.last : null,
     perDay: typeof r.perDay === "number" && r.perDay >= 0 && r.perDay <= 200 ? r.perDay : NEW_PER_DAY,

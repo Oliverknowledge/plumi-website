@@ -6,6 +6,8 @@ import { AppLink } from "@/components/studyapp/AppLink";
 import { site } from "@/config/site";
 import { ADDED_KEY, addedDeckFor, readCodes, writeCodes, type SharedDeck } from "@/lib/studyapp/sharing";
 import { actions, useApp } from "@/lib/studyapp/store";
+import { BoldText } from "@/components/studyapp/flashcards/BoldText";
+import { plainText } from "@/lib/studyapp/boldText";
 import { ReportSheet } from "./ReportSheet";
 
 /** How big the words on a card are, from how much there is: a short question is big, a page still scrolls inside the card. */
@@ -120,7 +122,7 @@ export function SharedDeckView({ code, deck }: { code: string; deck: SharedDeck 
         <div className="sh-card" data-turn={turn ?? undefined} data-side={back ? "back" : "front"} onClick={onCardClick} data-testid="card">
           <div className="sh-card-h"><span data-testid="card-side">{back ? "Answer" : "Question"}</span><span>{i + 1} / {n}</span></div>
           <div className="sh-body" tabIndex={0} role="region" aria-label={`Card ${i + 1} of ${n}, ${back ? "answer" : "question"}`} aria-live="polite">
-            <p key={`${i}:${back}`} className="sh-text" data-size={sizeFor(text)} data-testid="card-text">{text}</p>
+            <p key={`${i}:${back}`} className="sh-text" data-size={sizeFor(plainText(text))} data-testid="card-text"><BoldText text={text} /></p>
           </div>
         </div>
 
@@ -147,7 +149,7 @@ export function SharedDeckView({ code, deck }: { code: string; deck: SharedDeck 
       </footer>
 
       <noscript>
-        <ol className="sh-plain">{deck.cards.map((c, k) => <li key={k}><b>{c.front}</b><span>{c.back}</span></li>)}</ol>
+        <ol className="sh-plain">{deck.cards.map((c, k) => <li key={k}><b><BoldText text={c.front} /></b><span><BoldText text={c.back} /></span></li>)}</ol>
       </noscript>
 
       {report && <ReportSheet code={code} onClose={() => setReport(false)} onSent={() => setReported(true)} />}

@@ -1,10 +1,12 @@
+import { appleSignInOn } from "@/lib/appleSignIn";
+
 export type LegalBlock = { kind: "text"; text: string } | { kind: "list"; items: readonly string[] } | { kind: "todo"; text: string };
 export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
 const updated = "14 October 2026";
 const updatedIso = "2026-10-14";
-const privacyUpdated = "5 November 2026";
-const privacyUpdatedIso = "2026-11-05";
+const privacyUpdated = "6 November 2026";
+const privacyUpdatedIso = "2026-11-06";
 /**
  * Rewritten 27 October 2026 to cover the app as well as the website. The App Store listing and the
  * app's consent screen both link here, and the previous text said it covered the website only and that
@@ -23,7 +25,7 @@ export const privacy: LegalDoc = {
     { heading: "The short version", blocks: [{kind:"list",items:[
       "Your notebooks, handwriting and marked work are stored on your device. We do not keep a copy of them on our servers.",
       "When you ask Plumi to mark, explain or give a hint, the part of your work you asked about is sent, through Plumi, to our AI provider DeepSeek. This happens only after you agree, and you can say no or change your mind in Account.",
-      "You do not need an account to use the app or the website. An account lets you keep your subscription, use the social features and, on the website, keep your question bank marks on every device.",
+      "You do not need an account to use the app or the website. An account lets you keep your subscription, use the social features and, on the website, keep your question bank marks, bookmarks and notes on every device.",
       "Sharing a flashcard deck is your choice. Only if you tap Share, the deck’s name and the words on its cards are stored on our servers, and anyone with the link can read them until you stop sharing.",
       "The social features (friends, groups, the Grand Library) are optional. In the Grand Library strangers see a random nickname, never your name, and nobody can message you privately.",
       "We never sell your information. The app shows no adverts, and nothing you write, draw or upload is shared for advertising.",
@@ -39,6 +41,7 @@ export const privacy: LegalDoc = {
         "A flashcard deck you choose to share by link: its name, an optional subject label and the text on its cards (not pictures, not how well you know them), kept with your account so you can see and stop your shared decks. The shared page shows no name, email address or avatar, and nobody who opens it needs an account. Anyone with the link can read it, and can add a copy to their own cards. A shared page can be reported; reports may be looked at by us, and a deck reported enough times is hidden.",
         "Reports and blocks: if you report or block someone, we keep the report and who made it so we can act on it.",
         "Question bank marks on the website, if you are signed in: for each question part you mark yourself on, its id, subject and topics, your score and what it was out of, the letter you picked for a multiple-choice question, and when. Signed out, these stay in your browser. Answers you type into the question bank stay in your browser and are never sent to us.",
+        "Question bank bookmarks and notes on the website, if you are signed in: for each question part you bookmark or write a note on, its id and subject, whether it is bookmarked, the words of your note, and when it last changed. Signed out, these stay in your browser. Once they are in your account, signing out takes them off that browser.",
         "Your subscription: whether you have Plumi Pro and the plan, through Apple and our payments service. We never see your card details.",
         "Feedback you choose to send us.",
         "How the app is used: which screens were opened and which features were used, whether the app crashed, your app and iOS version, device type and the country your connection appears to be in. This does not include what you wrote or drew. Screen recording is off.",
@@ -104,7 +107,7 @@ export const privacy: LegalDoc = {
      * section changes in the same commit.
      */
     { heading: "The website", blocks: [
-      {kind:"text",text:"You can explore and use the website without an account. Two places ask for an email address: signing in, and the Android waitlist described below. Signing in uses the same Plumi account as the app, with Google, a code sent to your email, or an email and password, and you must be 13 or over. It keeps your question bank marks in your account (see What we collect) and lets you join the Grand Library. To keep you signed in, a sign-in token is stored in your browser; signing out from the account menu removes it. You can also leave the Grand Library from the account menu. Three measurement services run on the website and they do different things."},
+      {kind:"text",text:`You can explore and use the website without an account. Two places ask for an email address: signing in, and the Android waitlist described below. Signing in uses the same Plumi account as the app, with ${appleSignInOn ? "Apple (which may share your name and email, or an Apple relay address if you hide your email), " : ""}Google, a code sent to your email, or an email and password, and you must be 13 or over. It keeps your question bank marks in your account (see What we collect) and lets you join the Grand Library. To keep you signed in, a sign-in token is stored in your browser; signing out from the account menu removes it. You can also leave the Grand Library from the account menu. Three measurement services run on the website and they do different things.`},
       {kind:"list",items:[
         "Our own analytics records which sections of a page were read and which buttons were pressed, so we can tell whether the site explains Plumi well. It is hosted in the EU, it never creates a profile of you, it does not record your screen, and it never receives anything you type. Email addresses are stripped before any event leaves your browser.",
         "Vercel Web Analytics, from our hosting provider, counts page views and visitors so we can see how many people the site reaches. It sets no cookies and builds no profile: a visitor is recognised for one day by an anonymised value that is then discarded.",
