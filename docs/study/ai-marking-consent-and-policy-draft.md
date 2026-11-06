@@ -61,7 +61,12 @@ Line references are to the version updated 5 Nov 2026.
 6. **The App Privacy label** on the App Store lists User Content as not collected (founder-morning-steps.md); check it against reality.
 7. Does the marketing rule "no prices, plans or Pro on any page" need a carve-out for the consent screen and the success page?
 
-## 4. Not built
+## 4. What is built, what is not (7 Nov 2026)
 
-The consent screen component, the Account toggle to withdraw, the policy edits, and the marking function that calls
-`ai_consent_valid`. Each waits for this wording to be approved.
+Built, behind `NEXT_PUBLIC_PLUMI_AI_MARKING=on` (unset means nothing changes for any student):
+- The consent dialog (this wording, version 1), "Mark with Plumi" under a typed answer, the result card, the one-line notes, and an Account switch
+  that turns marking off (`src/components/studyapp/questions/PlumiMark.tsx`, `MarkingSetting.tsx`, `src/lib/studyapp/marking/`).
+- Offered only to a signed-in, non-anonymous account, on a part the server holds a mark scheme for, with something typed. Consent is checked before the answer is sent.
+
+Not built: the privacy policy edits in section 2, the lawyer's answers in section 3, handwriting, and the question 7 decision (the end of the free marks says
+nothing about Pro or a price until that is decided). The consent wording above is a draft: the flag stays off until it is approved.

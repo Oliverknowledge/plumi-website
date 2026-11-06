@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { deleteOwnAccountCall, signInHref, signOut, signOutLocal, useAccount } from "@/lib/account";
+import { MarkingSetting } from "./MarkingSetting";
 import { CONFIRM_WORD, clearPlumiKeys, confirmOk, deleteAccount } from "@/lib/studyapp/accountDelete";
 import { readDark, subscribeAppearance, writeDark } from "@/components/study/appearance";
 
@@ -93,6 +94,8 @@ export function Settings({ onClose }: { onClose(): void }) {
               </button>
             </div>
           </section>
+
+          <MarkingSetting />
 
           {!user && (
             <section className="stg-sec" aria-labelledby={`${title}-acct`}>
