@@ -10,6 +10,10 @@ question, because Edexcel's mark schemes and examiner's reports go by question.
 Topics follow the specification's numbered areas, with no Year 1 and Year 2 split.
 The legacy modules (C1–C4, FP1–3, M1–5, S1–4, D1–2) are left out on purpose.
 
+**MadAsMaths** (6 November 2026): A-Level Maths has an "Add MadAsMaths questions" switch, off by default, that
+mixes 6,477 questions from MadAsMaths' topic booklets into its topics (`madas.json` among its data). How they're cut,
+tagged and mapped to this bank's topics: `docs/BOOKLETS.md`.
+
 - **Source papers:** `fetch_edexcel.py` asks the public search index behind
   Pearson's course-materials pages for each spec code. Whole papers are stored on
   R2 under `edexcel/`, and crops under `bank/` next to AQA's.

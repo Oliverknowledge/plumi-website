@@ -9,7 +9,7 @@ import { useAccount } from "@/lib/account";
 import { useBookmarks } from "@/lib/bankSaved";
 import { SignInLink } from "@/components/account/Account";
 import { inType, isChoice, markBands } from "@/lib/markBands";
-import { baseSubject, fetchBankData, bankHasPracticals, bankHasTiers, bankHasYears, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
+import { baseSubject, fetchBankData, bankHasMadas, bankHasPracticals, bankHasTiers, bankHasYears, isMadas, madasSubject, papersBase, paperName, questionKey, seriesLabel, topicRef, type BankPart, type BankSubject } from "@/content/questionBank";
 import { BankProgress, MarkingBadge } from "./BankProgress";
 import type { BoardSubject } from "./TopicBoard";
 import { QuestionRow } from "./QuestionRow";
@@ -35,8 +35,8 @@ type Yr = "" | "12" | "13";
  * `opt` is one of the bank's `options` (Eduqas Religious Studies' religions), "" for all; `once` (GCSE) shows a question
  * printed on both tiers' papers once, as its Higher copy; `marks` the question types picked (markBands' ids); `again`
  * only what's come back to have another go at; `saved` only what's bookmarked; `part` one question, from Redo in Your history; `seed` the
- * "mix" sort's shuffle, so a reload or a shared link keeps the same mix. */
-interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; saved: boolean; part: string; view: View; sort: Sort; seed: string }
+ * "mix" sort's shuffle, so a reload or a shared link keeps the same mix; `mm` mixes in MadAsMaths questions, where the bank has them. */
+interface Filters { topics: string[]; papers: string[]; series: string[]; q: string; calc: Calc; prac: Calc; yr: Yr; opt: string; once: boolean; marks: string[]; again: boolean; saved: boolean; part: string; view: View; sort: Sort; seed: string; mm: boolean }
 
 /**
  * The filters live in the URL and nowhere else, so any view of the bank is a link
@@ -68,6 +68,7 @@ function parse(search: string): Filters {
     view: u.get("view") === "whole" ? "whole" : "parts",
     sort: sort === "old" || sort === "spec" || sort === "marks" || sort === "short" || sort === "mix" ? sort : "new",
     seed: u.get("seed") ?? "",
+    mm: u.get("madas") === "1",
   };
 }
 function write(f: Filters) {
@@ -88,6 +89,7 @@ function write(f: Filters) {
   if (f.view === "whole") u.set("view", "whole");
   if (f.sort !== "new") u.set("sort", f.sort);
   if (f.sort === "mix" && f.seed) u.set("seed", f.seed);
+  if (f.mm) u.set("madas", "1");
   const qs = u.toString();
   window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
   urlListeners.forEach(l => l());
@@ -150,6 +152,26 @@ function mix(groups: BankPart[][], topicOf: (p: BankPart) => string, seed: strin
   return out;
 }
 
+/**
+ * MadAsMaths questions sprinkled through the past papers' (the list sorted newest or oldest first, where they'd all
+ * fall at the end, having no year): one after every two of the bank's own, then the rest of whichever runs longer.
+ * They come in their own order: the ones mainly on a topic picked first (on logarithms, a logarithms question before an
+ * arithmetic series one that solves for n with logs), then easiest first, by their stars.
+ */
+const starsOf = (p: BankPart) => (p.mst ? p.mst.replace(/\+/g, "").length + (p.mst.endsWith("+") ? 0.5 : 0) : 3);
+function sprinkle(sorted: BankPart[], on: boolean, mainly: (p: BankPart) => boolean) {
+  if (!on) return sorted;
+  const own = sorted.filter(p => !isMadas(p));
+  const extra = sorted.filter(isMadas).sort((a, b) => Number(mainly(b)) - Number(mainly(a)) || starsOf(a) - starsOf(b));
+  const out: BankPart[] = [];
+  let i = 0, j = 0;
+  while (i < own.length || j < extra.length) {
+    for (let k = 0; k < 2 && i < own.length; k++) out.push(own[i++]);
+    if (j < extra.length) out.push(extra[j++]);
+  }
+  return out;
+}
+
 type Dim = "topics" | "papers" | "series" | "calc" | "prac" | "yr" | "opt" | "marks" | "done" | "q";
 
 /**
@@ -177,7 +199,14 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const search = useSyncExternalStore(subscribeUrl, () => window.location.search, () => "");
   const urlFilters = useMemo(() => parse(search), [search]);
   const f: Filters = lockedTopic ? { ...urlFilters, topics: [lockedTopic] } : urlFilters;
-  const [parts, setParts] = useState<BankPart[] | null>(null);
+  const [bankParts, setParts] = useState<BankPart[] | null>(null);
+  // MadAsMaths questions, fetched the first time the switch is turned on; with it on they're in `parts` like the bank's own.
+  const hasMadas = bankHasMadas(subject);
+  const [madas, setMadas] = useState<BankPart[] | null>(null);
+  const madasOn = f.mm && hasMadas && !!madas;
+  const parts = useMemo(() => (bankParts && madasOn ? [...bankParts, ...madas!] : bankParts), [bankParts, madasOn, madas]);
+  // Rows and downloaded sets name a MadAsMaths question's booklet and "MadAsMaths" where a past paper's name and sitting go.
+  const rowSubject = useMemo(() => (madasOn ? madasSubject(subject, madas!) : subject), [madasOn, subject, madas]);
   const [text, setText] = useState<Record<string, string> | null>(null);
   const [practicals, setPracticals] = useState<Set<string> | null>(null);
   const [year13, setYear13] = useState<Set<string> | null>(null);
@@ -235,6 +264,9 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
         .then(m => setTwins(m && Object.keys(m).length ? new Map(Object.entries(m)) : null)).catch(() => setTwins(null));
     }
   }, [subject]);
+  useEffect(() => {
+    if (f.mm && hasMadas && !madas) fetchBankData<BankPart[]>(subject, "madas").then(m => setMadas(m ?? [])).catch(() => setMadas([]));
+  }, [f.mm, hasMadas, madas, subject]);
 
   const needText = useCallback(() => {
     if (text || loadingText.current) return;
@@ -299,10 +331,11 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
       (skip === "series" || !f.series.length || f.series.includes(p.s)) &&
       (skip === "calc" || ((f.calc !== "only" || !!p.calc) && (f.calc !== "none" || !p.calc))) &&
       (skip === "prac" || !f.prac || !practicals || (f.prac === "only") === practicals.has(p.id)) &&
-      (skip === "yr" || !f.yr || !year13 || (f.yr === "13") === year13.has(p.id)) &&
+      // (MadAsMaths questions aren't sorted into years, so the Year filter leaves them out, as the paper and year filters do.)
+      (skip === "yr" || !f.yr || !year13 || (!isMadas(p) && (f.yr === "13") === year13.has(p.id))) &&
       // On both tiers, once: a Foundation part goes when its Higher twin's paper is in view too.
       (!f.once || !twins?.has(p.id) || (!!f.papers.length && !f.papers.includes(twinPaper(p.id)))) &&
-      (!ws.length || (text ? ws.every(w => (text[p.id] ?? "").includes(w)) : ws.every(w => fold(p.x.toLowerCase()).includes(w))));
+      (!ws.length || ws.every(w => (text?.[p.id] ?? fold(p.x.toLowerCase())).includes(w)));
   }, [f.topics, f.papers, f.series, f.calc, f.prac, f.yr, f.once, f.q, f.part, f.marks, opt, picked, text, sectionOf, optionOf, practicals, year13, twins, twinPaper, bands, visible]);
 
   // Every part of each question, in order, for the whole-question view.
@@ -333,6 +366,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
   const hasYears = !!year13;
   const whole = f.view === "whole" && hasWhole;
 
+  // Whether a question is mainly on a topic picked: its first topic is one of them, or in a section picked.
+  const mainly = useCallback((p: BankPart) => !f.topics.length || f.topics.some(sel => p.t[0] === sel || sectionOf.get(p.t[0]) === sel), [f.topics, sectionOf]);
   const results = useMemo(() => {
     if (!parts) return null;
     // Within a series: the full A-Level papers before AS, then paper order, then question order.
@@ -344,7 +379,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
           : f.sort === "marks" ? (a, b) => (b.m ?? 0) - (a.m ?? 0) || byNew(a, b)
             : f.sort === "short" ? (a, b) => (a.m ?? 99) - (b.m ?? 99) || byNew(a, b)
               : byNew);
-    if (!whole || !questions) return f.sort === "mix" ? mix(sorted.map(p => [p]), mixTopic, f.seed) : sorted.map(p => [p]);
+    if (!whole || !questions) return f.sort === "mix" ? mix(sorted.map(p => [p]), mixTopic, f.seed) : sprinkle(sorted, madasOn && (f.sort === "new" || f.sort === "old"), mainly).map(p => [p]);
     // Whole questions: each question any of whose parts matches, all its parts, where its first match falls.
     const seen = new Set<string>();
     const groups: BankPart[][] = [];
@@ -358,7 +393,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     if (f.sort === "marks") groups.sort((a, b) => total(b) - total(a));
     if (f.sort === "short") groups.sort((a, b) => total(a) - total(b));
     return f.sort === "mix" ? mix(groups, mixTopic, f.seed) : groups;
-  }, [parts, matches, f.sort, f.seed, mixTopic, subject.papers, whole, questions]);
+  }, [parts, matches, f.sort, f.seed, mixTopic, subject.papers, whole, questions, madasOn, mainly]);
 
   /** What hiding keeps out of the list as it is now: parts, or in the whole-question view, questions with no part left showing. */
   const hiddenCount = useMemo(() => {
@@ -402,6 +437,8 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     return c;
   }, [parts, matches, sectionOf, whole, practicals, year13, subject.options, optionOf, bands]);
   const n = (dim: keyof NonNullable<typeof counts>, k: string) => counts?.[dim].get(k);
+  // How many MadAsMaths questions the list has as it's filtered now.
+  const madasCount = useMemo(() => (madasOn && results ? results.reduce((k, g) => k + (g.some(isMadas) ? 1 : 0), 0) : 0), [madasOn, results]);
 
   // How many are bookmarked, counted as the list counts: questions in the whole-question view, and only ones the bank still has.
   const savedCount = useMemo(() => {
@@ -504,7 +541,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
     ...(f.part ? [{ label: partLabel(f.part), clear: () => update({ part: "" }) }] : []),
     ...(f.q ? [{ label: `“${f.q}”`, clear: () => { setTyped(""); update({ q: "" }); } }] : []),
   ];
-  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, saved: false, part: "", view: f.view, sort: f.sort, seed: f.seed }); setShown(PAGE); };
+  const clearAll = () => { setTyped(""); write({ topics: [], papers: [], series: [], q: "", calc: "", prac: "", yr: "", opt: "", once: false, marks: [], again: false, saved: false, part: "", view: f.view, sort: f.sort, seed: f.seed, mm: f.mm }); setShown(PAGE); };
   // The multiple-choice questions in view, in the list's order, for the quiz: offered once the
   // Multiple choice type is picked, or when everything in view is multiple choice.
   const choicePool = useMemo(() => (results ? [...new Map(results.flat().filter(isChoice).map(p => [p.id, p])).values()] : []), [results]);
@@ -778,6 +815,15 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
               </label>
             </div>
           )}
+          {hasMadas && (
+            <div className="qb-field qb-calc qb-madas" role="group" aria-label="MadAsMaths questions">
+              <span className="qb-label">Extra practice</span>
+              <label title="Questions from MadAsMaths' topic booklets, each with its answers and a worked solution, mixed in with the past papers' on each topic">
+                <input type="checkbox" checked={f.mm} onChange={e => { update({ mm: e.target.checked }); track("bank_madas", { subject: subject.slug, on: e.target.checked }); }} /> Add MadAsMaths questions
+                {f.mm && !madas && <span className="qb-n"> …</span>}{madasOn && madasCount > 0 && <span className="qb-n"> +{madasCount.toLocaleString("en-GB")}</span>}
+              </label>
+            </div>
+          )}
           {hasPracticals && <div className="qb-field qb-calc" role="group" aria-label="Practicals">
             <span className="qb-label">Practicals</span>
             <label><input type="checkbox" checked={f.prac === "only"} onChange={e => update({ prac: e.target.checked ? "only" : "" })} /> Only these{counts && <span className="qb-n"> {n("prac", "only") ?? 0}</span>}</label>
@@ -941,7 +987,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
         ) : (
           <ol className="qb-rows">
             {list.slice(0, shown).map((g, i) => (
-              <QuestionRow key={g[0].id} n={i + 1} parts={g} subject={subject} inSet={g.every(p => set.has(p.id))} setFull={set.ids.length + g.filter(p => !set.has(p.id)).length > SET_MAX}
+              <QuestionRow key={g[0].id} n={i + 1} parts={g} subject={rowSubject} inSet={g.every(p => set.has(p.id))} setFull={set.ids.length + g.filter(p => !set.has(p.id)).length > SET_MAX}
                 before={g.length === 1 ? earlierParts(g[0]) : undefined}
                 onToggleSet={() => (g.every(p => set.has(p.id)) ? set.remove(g.map(p => p.id)) : set.add(g.map(p => p.id)))}
                 onTopic={lockedTopic ? undefined : code => { update({ topics: [code] }); requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" })); }} />
@@ -957,7 +1003,7 @@ export function QuestionBank({ subject, initial, lockedTopic, board }: {
         )}
       </section>
 
-      <SetTray subject={subject} set={set} parts={parts} />
+      <SetTray subject={rowSubject} set={set} parts={parts} />
       <ZoomViewer />
       {choicePool.length > 1 && <ChoiceQuiz subject={subject} pool={choicePool} open={quiz} onClose={() => setQuiz(false)} />}
     </div>

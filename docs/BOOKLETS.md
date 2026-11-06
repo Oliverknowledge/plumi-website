@@ -54,3 +54,41 @@ viewer in a dialog; on a phone it opens in a new tab, as an embedded PDF there s
 
 `booklet_opened` (analytics) reports each booklet opened, with its group and which file; `booklet_searched` a search
 that settled, with how many it found.
+
+## In the question bank: "Add MadAsMaths questions"
+
+A bank can mix MadAsMaths questions in with its past papers', on each topic, behind a switch that's off by default
+(`?madas=1`). Pilot, 6 November 2026: Edexcel A-Level Maths only, 6,477 questions.
+
+```bash
+python3 scripts/booklets/cut.py                  # every A-Level booklet into single questions (about 5 minutes)
+python3 scripts/booklets/tag.py split            # batches of questions to tag; each is tagged by a reader into batch-NN.tags.json
+python3 scripts/booklets/tag.py merge
+python3 scripts/booklets/bank.py <bank slug>     # the bank's madas.json and the crops it needs
+python3 scripts/question-bank/upload_r2.py scripts/booklets/.work/bank-upload --crops-only
+python3 scripts/question-bank/upload_data.py --pull <bank slug>   # the bank's other data, which upload_data rewrites the meta from
+python3 scripts/question-bank/upload_data.py <bank slug> --verify
+```
+
+- **Cutting** (`cut.py`): the Basic, Standard, Further, Mechanics and Statistics booklets, 9,946 questions (Elementary
+  and Advanced are left as booklets). A MadAsMaths page sets each question out the same way: "Question 4 (**+)", the
+  question, a row of boxed answers, then the worked solution, a scanned handwritten page set small beside it. The
+  question's crop stops above its answers, so the card doesn't give them away; its scheme crop is the answers with
+  the solution. A scan is a whole page of working for several questions, clipped in the PDF to this one's, so the
+  shown part is what's cut, never the image. 97 are left out, with neither answers nor a solution: the drill sheets
+  ("Differentiation practice", "Integration basics") write each answer in beside its item. Read the sheets of
+  both crops side by side (`check.py`) before a bank takes them: numbers have passed cuts that put answers on the question.
+- **Tagging** (`tag.py`, `topics.json`): once, to a shared list of 53 topics (indices and surds, integration methods,
+  projectiles, Poisson, ...), not to any board's. 7,101 questions (Year 12 and 13 pure, Statistics, and the M1–M2
+  Mechanics booklets) were tagged on 6 November 2026 by Claude subagents, 600 a batch, following the brief in
+  `tag.py`; 800 have two topics. Some readers sorted long repetitive runs by keyword, then read the odd ones, so
+  this is a first pass: corrections go in `.work/tag/overrides.json`. Further Maths and M3–M6 aren't tagged yet.
+- **A bank** takes them through its map in `topics.json`, from each shared topic to one of its own, or to null where
+  its specification doesn't have it. A question goes in only if every topic it needs is in the specification (624
+  aren't, for Edexcel A-Level Maths: Poisson, momentum, further statistics...). Another bank is another map and
+  `bank.py`, not another tagging pass.
+- **On the page**: the rows are the bank's own shape (`madas.json` among the bank's data, crops under `bank/madas-*`),
+  so marking, saving, sets and PDFs work on them unchanged. Their "paper" is the booklet and their "series" MADAS
+  (`madasSubject` in `questionBank.ts` names them for the rows), so the paper, year and Year 12/13 filters leave them
+  out. Sorted newest or oldest first, they're sprinkled in, one after every two past-paper questions; by topic, marks
+  or mixed, they sort with the rest. The scheme button reads "Answers". `bank_madas` reports the switch.

@@ -48,6 +48,8 @@ export type PlumiEvent =
   | "bank_filtered"
   /** "Mix them up" (or Reshuffle, `again`): a question from each topic in turn. */
   | "bank_mixed"
+  /** "Add MadAsMaths questions" switched on or off (`on`), in a bank that has them. */
+  | "bank_madas"
   /** The multiple-choice quiz (ChoiceQuiz): started (`questions`, `timed`) and finished (`score`, `answered`). */
   | "bank_quiz_started"
   | "bank_quiz_finished"
