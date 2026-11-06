@@ -92,6 +92,20 @@ class LegacyAppendTest(unittest.TestCase):
                     module.main()
                 self.assertEqual((pub / "parts.json").read_bytes(), before)
 
+    def test_preserves_annotations_added_after_import(self):
+        for subject in ("physics", "chem"):
+            with self.subTest(subject=subject), tempfile.TemporaryDirectory() as temp:
+                module, _, pub, _ = self.fixture(subject, Path(temp))
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    module.main()
+                    path = pub / "parts.json"
+                    rows = json.loads(path.read_text())
+                    rows[-1].update(er=1, cv=4)
+                    path.write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")))
+                    before = path.read_bytes()
+                    module.main()
+                self.assertEqual(path.read_bytes(), before)
+
 
 if __name__ == "__main__":
     unittest.main()

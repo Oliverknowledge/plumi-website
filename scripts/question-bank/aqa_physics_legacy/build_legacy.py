@@ -92,7 +92,8 @@ def main():
             row["calc"] = 1
         search = re.sub(r"\s+", " ", BOILERPLATE.sub(" ", re.sub(r"\.{4,}", " ", p["text"] + " " + p.get("msText", ""))).lower()).strip()
         if p["id"] in existing:
-            if row != existing[p["id"]] or search != text.get(p["id"]):
+            owned = set(row) | {"st", "sk", "ms", "msq", "msf", "k", "calc"}
+            if any(row.get(k) != existing[p["id"]].get(k) for k in owned) or search != text.get(p["id"]):
                 sys.exit(f"{p['id']}: --append cannot change an existing part; use the re-cut workflow")
             continue
         legacy.append(row)
