@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { boldRuns, plainText } from "./boldText";
+import { boldRuns, plainText, richRuns, scriptRuns } from "./boldText";
 
 const r = (t: string) => boldRuns(t).map((x) => (x.bold ? `[${x.text}]` : x.text)).join("");
 
@@ -39,5 +39,39 @@ describe("bold runs", () => {
   });
   it("never produces markup: angle brackets stay text", () => {
     assert.equal(r("<b>**x**</b>"), "<b>[x]</b>");
+  });
+});
+
+const rich = (t: string, o?: { bold?: boolean }) => richRuns(t, o).map((x) => `${x.bold ? "*" : ""}${x.script === "sup" ? "^" : x.script === "sub" ? "_" : ""}[${x.text}]`).join("");
+
+describe("superscripts and subscripts in a maths span", () => {
+  it("reads ^ and _ with braces, signed digits, digit runs or one character", () => {
+    assert.deepEqual(scriptRuns("10^{8}"), [{ text: "10" }, { text: "8", script: "sup" }]);
+    assert.deepEqual(scriptRuns("m s^{-1}"), [{ text: "m s" }, { text: "-1", script: "sup" }]);
+    assert.deepEqual(scriptRuns("m s^-1"), [{ text: "m s" }, { text: "-1", script: "sup" }]);
+    assert.deepEqual(scriptRuns("SO_4^{2-}"), [{ text: "SO" }, { text: "4", script: "sub" }, { text: "2-", script: "sup" }]);
+    assert.deepEqual(scriptRuns("cm^3"), [{ text: "cm" }, { text: "3", script: "sup" }]);
+    assert.deepEqual(scriptRuns("Ca^{2+}"), [{ text: "Ca" }, { text: "2+", script: "sup" }]);
+    assert.deepEqual(scriptRuns("x_i"), [{ text: "x" }, { text: "i", script: "sub" }]);
+    assert.deepEqual(scriptRuns("V^\u221212"), [{ text: "V" }, { text: "\u221212", script: "sup" }]);
+  });
+  it("draws a card line: the delimiters go, the scripts are runs", () => {
+    assert.equal(rich("3.0 \u00D7 $10^{8}$ m s$^{-1}$"), "[3.0 \u00D7 ][10]^[8][ m s]^[-1]");
+    assert.equal(rich("$CO_2$ and $H_2O$"), "[CO]_[2][ and ][H]_[2][O]");
+    assert.equal(plainText("$CO_2$ gas"), "CO2 gas");
+  });
+  it("works inside bold, and leaves bold markers out when asked (the bands)", () => {
+    assert.equal(rich("**$H_2O$ forms**"), "*[H]*_[2]*[O]*[ forms]");
+    assert.equal(rich("an **ion $Ca^{2+}$**", { bold: false }), "[an ][ion ][Ca]^[2+]");
+  });
+  it("reads only inside a span: plain text and a student's own symbols stay as typed", () => {
+    assert.equal(rich("snake_case and 2^3"), "[snake_case and 2^3]");
+    assert.equal(rich("costs $5 and x^2"), "[costs $5 and x^2]", "an unclosed $ is not a span");
+    assert.equal(rich("$a^$"), "[a^]", "a mark with nothing after it is literal");
+    assert.equal(rich("$a**b$ **x**"), "[a**b][ ]*[x]");
+  });
+  it("never produces markup", () => {
+    assert.ok(richRuns("$<b>x</b>^2$").every((r) => !r.text.includes("\u0000")));
+    assert.equal(rich("$<b>^2$"), "[<b>]^[2]");
   });
 });

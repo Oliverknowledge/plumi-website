@@ -10,6 +10,7 @@ import { useApp } from "@/lib/studyapp/store";
 import { dayOf } from "@/lib/studyapp/time";
 import { plainText } from "@/lib/studyapp/boldText";
 import { BoldText } from "./BoldText";
+import { isMarkSchemeBack, MarkSchemeBody, MarkSchemeMarks, parseFront } from "./MarkSchemeFace";
 import { useReview, useReviewKeys, waitLine } from "./review";
 
 /** How big the words on a card are, from how much there is: a short question is big, a paragraph still fits. */
@@ -161,12 +162,21 @@ export function FlashDesk({
 
 /** One side of the card. The side that is not showing is hidden from screen readers and the keyboard, as well as from the eye. */
 function Face({ side, text, deck, position, hidden }: { side: "front" | "back"; text: string; deck: string; position: string; hidden: boolean }) {
+  // A mark scheme card is an ordinary card with plain text leads, set out from them (lib/studyapp/markscheme.ts): the question with its marks, and the answer as points and bands.
+  const front = side === "front" ? parseFront(text) : null;
+  const ms = side === "back" && isMarkSchemeBack(text);
+  const shownText = front ? front.question : text;
   return (
     <div className={`dsk-face ${side}`} aria-hidden={hidden || undefined} inert={hidden}>
       <header className="dsk-card-h"><span>{deck}</span><span>{position}</span></header>
       <div className="dsk-body" tabIndex={hidden ? -1 : 0} role="region" aria-label={side === "back" ? "The answer" : "The question"} data-testid={side === "back" ? "card-back" : "card-front"}>
         <span className="dsk-side">{side === "back" ? "Answer" : "Question"}</span>
-        <p className="dsk-text" data-size={sizeFor(plainText(text))} data-testid="card-text"><BoldText text={text} /></p>
+        {ms ? <div className="dsk-center ms-wrap"><MarkSchemeBody back={text} /></div> : (
+          <div className="dsk-center">
+            <p className="dsk-text" data-size={sizeFor(plainText(shownText))} data-testid="card-text"><BoldText text={shownText} /></p>
+            {front?.marks && <MarkSchemeMarks marks={front.marks} />}
+          </div>
+        )}
       </div>
       <p className="dsk-hint" aria-hidden="true">{side === "back" ? "Tap to turn back" : "Tap to turn over"}</p>
     </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useNow } from "@/lib/studyapp/clock";
-import { deckStats, exportDeck } from "@/lib/studyapp/model";
+import { deckStats, exportDeck, limitsFor } from "@/lib/studyapp/model";
 import { canShare } from "@/lib/studyapp/sharing";
 import { useSharing } from "@/lib/studyapp/sharing/client";
 import { actions, useApp } from "@/lib/studyapp/store";
@@ -54,7 +54,7 @@ export function DeckEditor({ deckId, onBack, onReview, onImport, onShare }: { de
           {cards.map((c) => (
             <li key={c.id} data-testid="deck-card">
               {editing === c.id ? (
-                <CardFields idPrefix={`edit-${c.id}`} initialFront={c.front} initialBack={c.back} submitLabel="Save" onCancel={() => setEditing(null)} onSubmit={(f, b) => { actions.editCard(c.id, f, b); setEditing(null); }} />
+                <CardFields idPrefix={`edit-${c.id}`} initialFront={c.front} initialBack={c.back} frontMax={limitsFor(deck.starter).front} backMax={limitsFor(deck.starter).back} submitLabel="Save" onCancel={() => setEditing(null)} onSubmit={(f, b) => { actions.editCard(c.id, f, b); setEditing(null); }} />
               ) : (
                 <>
                   <span className="q"><BoldText text={c.front} /></span>

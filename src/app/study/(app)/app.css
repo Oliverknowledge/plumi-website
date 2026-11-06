@@ -253,8 +253,8 @@
 .pa .fc-back { transform: rotateY(180deg); cursor: pointer; }
 .pa .fc-back .grades button { cursor: pointer; }
 .pa .fc-top { position: absolute; top: 6px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; color: var(--soft); }
-.pa .fc-q { font: 600 27px/1.05 var(--f-hand); color: #23345e; }
-.pa .fc-a { font: 600 20px/1.1 var(--f-hand); color: #2a5599; }
+.pa .fc-q { font: 600 32px/1.05 var(--f-hand); color: #23345e; }
+.pa .fc-a { font: 600 24px/1.1 var(--f-hand); color: #2a5599; }
 .pa .fc-hint { position: absolute; bottom: 8px; font-size: 12px; font-weight: 800; color: var(--mute); }
 .pa .grades { display: flex; gap: 6px; width: 100%; margin-top: 4px; }
 .pa .grades button { flex: 1; height: 34px; border: 2px solid var(--ink); border-radius: 9px; font-size: 12.5px; font-weight: 900; cursor: pointer; }
@@ -276,17 +276,17 @@
 
 /* ── flashcards: the artifact's card, with the real grades under it ─────── */
 .pa .fc-q, .pa .fc-a { white-space: pre-line; overflow-wrap: anywhere; max-height: 100%; overflow-y: auto; }
-.pa .fc-q[data-long] { font-size: 21px; line-height: 1.1; }
-.pa .fc-a[data-long] { font-size: 16.5px; line-height: 1.1; }
+.pa .fc-q[data-long] { font-size: 25px; line-height: 1.1; }
+.pa .fc-a[data-long] { font-size: 19.5px; line-height: 1.1; }
 .pa .grades button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; height: 44px; line-height: 1.1; }
 .pa .grades button small { font-size: 10.5px; font-weight: 800; opacity: .65; }
 .pa .grades button:hover { filter: brightness(.96); transform: translateY(-1px); }
 .pa .grades button:active { transform: translateY(1px); }
 .pa .fc.big { height: clamp(260px, 42vh, 380px); }
-.pa .fc.big .fc-q { font-size: 38px; }
-.pa .fc.big .fc-a { font-size: 27px; }
-.pa .fc.big .fc-q[data-long] { font-size: 28px; }
-.pa .fc.big .fc-a[data-long] { font-size: 21px; }
+.pa .fc.big .fc-q { font-size: 45px; }
+.pa .fc.big .fc-a { font-size: 32px; }
+.pa .fc.big .fc-q[data-long] { font-size: 33px; }
+.pa .fc.big .fc-a[data-long] { font-size: 25px; }
 .pa .fc.big .fc-face { padding: 44px 24px 18px; }
 .pa .fc.big .grades button { height: 52px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {

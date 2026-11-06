@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { plainText } from "@/lib/studyapp/boldText";
 import { useNow } from "@/lib/studyapp/clock";
 import { BoldText } from "./BoldText";
+import { isMarkSchemeBack, MarkSchemeBody, MarkSchemeMarks, parseFront } from "./MarkSchemeFace";
 import { afterGrade, canGrade, FRESH, isShown, keyAction, toggle, show as showAnswer, turnBack, type FlipState } from "@/lib/studyapp/flip";
 import { dueNow, type Card, type Scope } from "@/lib/studyapp/model";
 import { GRADES, previewLabel, type Grade } from "@/lib/studyapp/srs";
@@ -115,12 +116,15 @@ export function FlipCard({ review, big = false, position }: { review: Review; bi
       <div className="fc-in">
         <button type="button" className="fc-face" onClick={review.flip} aria-label="Show the answer" tabIndex={shown ? -1 : 0} data-testid="card-front">
           <span className="fc-top"><span>{deckTitle}</span><span>{position}</span></span>
-          <span className="fc-q" data-long={long(card.front) || undefined}><BoldText text={card.front} /></span>
+          <span className="fc-q" data-long={long(parseFront(card.front).question) || undefined}><BoldText text={parseFront(card.front).question} /></span>
+          {parseFront(card.front).marks && <MarkSchemeMarks marks={parseFront(card.front).marks!} />}
           <span className="fc-hint">Click, or press Space or Enter</span>
         </button>
         <div className="fc-face fc-back" inert={!shown} aria-hidden={!shown || undefined} data-testid="card-back" onClick={(e) => { if (!(e.target as HTMLElement).closest("button") && !window.getSelection()?.toString()) review.hide(); }}>
           <span className="fc-top"><span>{deckTitle}</span><span>{position}</span></span>
-          <span className="fc-a" data-long={long(card.back) || undefined}><BoldText text={card.back} /></span>
+          {isMarkSchemeBack(card.back)
+            ? <div className="fc-a fc-ms"><MarkSchemeBody back={card.back} fit={false} /></div>
+            : <span className="fc-a" data-long={long(card.back) || undefined}><BoldText text={card.back} /></span>}
           <span className="grades">
             {GRADES.map((g, i) => (
               <button key={g.grade} type="button" className={`g${g.grade}`} onClick={() => review.grade(g.grade)} aria-label={`${g.label}, back in ${review.previews[i]}`} data-testid={`grade-${g.label.toLowerCase()}`}>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signInHref, useAccount } from "@/lib/account";
 import { track } from "@/lib/analytics";
-import { entriesOf, boardFor, loadPremade, orderSpecs, PREMADE_SUBJECTS, toAdd, type PremadeEntry, type PremadeSlug } from "@/lib/studyapp/premade";
+import { boardFor, entriesOf, GROUPS, loadMarkScheme, loadPremade, MS_BOARDS, orderSpecs, PREMADE_SUBJECTS, toAdd, type PremadeEntry, type PremadeGroup, type PremadeSlug } from "@/lib/studyapp/premade";
 import type { PremadeSubject } from "@/lib/studyapp/premadeBuild";
 import { isLocked, onTap, PREMADE_GATE_ON, usePro } from "@/lib/studyapp/pro";
 import { useQuestionsValue } from "@/lib/studyapp/questions/store";
@@ -22,10 +22,9 @@ export function Catalogue() {
   const mine = useQuestionsValue((q) => q.mine);
   const sets = useQuestionsValue((q) => q.sets);
   const recent = useMemo(() => sets.slice().sort((a, b) => b.updatedAt - a.updatedAt).map((s) => s.subject).filter((s): s is string => !!s), [sets]);
-  const own = (slug: PremadeSlug) => boardFor(slug, mine, recent);
-  const first = (): Tab => PREMADE_SUBJECTS.find((s) => own(s.slug))?.slug ?? "biology";
+  const own = (slug: PremadeSlug, group: PremadeGroup) => boardFor(slug, mine, recent, group);
+  const first = (): Tab => PREMADE_SUBJECTS.find((s) => own(s.slug, "kw") || own(s.slug, "ms"))?.slug ?? "biology";
   const [tab, setTab] = useState<Tab>(first);
-  const [picked, setPicked] = useState<Partial<Record<PremadeSlug, string>>>({});
   const [locked, setLocked] = useState<{ slug: PremadeSlug; entry: PremadeEntry } | null>(null);
 
   const opened = useRef(false);
@@ -47,37 +46,42 @@ export function Catalogue() {
       <div id="cat-panel" role="tabpanel" aria-labelledby={`cat-tab-${tab}`}>
         {tab === "free"
           ? <StarterPicker compact />
-          : <SubjectDecks key={tab} slug={tab} own={own(tab)} board={picked[tab] ?? own(tab)} onBoard={(b) => setPicked((p) => ({ ...p, [tab]: b }))} onLocked={(entry) => setLocked({ slug: tab, entry })} />}
+          : <SubjectDecks key={tab} slug={tab} own={(g) => own(tab, g)} onLocked={(entry) => setLocked({ slug: tab, entry })} />}
       </div>
     </div>
   );
 }
 
-function SubjectDecks({ slug, own, board, onBoard, onLocked }: { slug: PremadeSlug; own: string | null; board: string | null; onBoard: (spec: string) => void; onLocked: (e: PremadeEntry) => void }) {
+function SubjectDecks({ slug, own, onLocked }: { slug: PremadeSlug; own: (g: PremadeGroup) => string | null; onLocked: (e: PremadeEntry) => void }) {
   const { data: app } = useApp();
   const pro = usePro();
-  const [state, setState] = useState<{ status: "loading" } | { status: "failed" } | { status: "ready"; data: PremadeSubject }>({ status: "loading" });
+  // Open on the kind the student's own board has decks of (a GCSE student has mark scheme cards only), else Key wording.
+  const [group, setGroup] = useState<PremadeGroup>(() => (own("kw") || !own("ms") ? "kw" : "ms"));
+  const [picked, setPicked] = useState<Partial<Record<PremadeGroup, string>>>({});
+  const board = picked[group] ?? own(group);
+  const [state, setState] = useState<{ key: string; status: "loading" | "failed" | "ready"; data?: PremadeSubject }>({ key: "", status: "loading" });
   const [tries, setTries] = useState(0);
+  // What is fetched: the whole subject's key wording (one file), or the one board's mark scheme cards (one file a board, chosen by its chip).
+  const want = group === "kw" ? `kw:${slug}` : board ? `ms:${board}` : "";
   useEffect(() => {
+    if (!want) return;
     let live = true;
-    loadPremade(slug).then((data) => { if (live) setState({ status: "ready", data }); }, () => { if (live) setState({ status: "failed" }); });
+    (group === "kw" ? loadPremade(slug) : loadMarkScheme(board!)).then((data) => { if (live) setState({ key: want, status: "ready", data }); }, () => { if (live) setState({ key: want, status: "failed" }); });
     return () => { live = false; };
-  }, [slug, tries]);
+  }, [want, tries]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (state.status === "failed") {
-    return (
-      <div className="cat-empty" data-testid="cat-failed">
-        <p>These decks didn&rsquo;t open.</p>
-        <button type="button" className="btn gold" onClick={() => { setState({ status: "loading" }); setTries((n) => n + 1); }}>Try again</button>
-      </div>
-    );
-  }
-  if (state.status === "loading") return <ul className="cat-grid" aria-busy="true" aria-label="Loading decks" data-testid="cat-loading">{[0, 1, 2, 3].map((i) => <li key={i} className="cat-tile ghosty" aria-hidden="true" />)}</ul>;
-
-  const data = state.data;
-  const specs = orderSpecs(data.specs, own);
-  const spec = specs.find((s) => s.id === board) ?? null;
-  const entries = spec ? entriesOf(data, spec) : [];
+  const switcher = (
+    <div className="cat-groups" role="group" aria-label="Kind of deck">
+      {GROUPS.map((g) => <button key={g.id} type="button" className="cat-group" aria-pressed={group === g.id} onClick={() => setGroup(g.id)} data-testid={`cat-group-${g.id}`}>{g.name}</button>)}
+    </div>
+  );
+  const ready = state.status === "ready" && state.key === want ? state.data! : null;
+  const failed = state.status === "failed" && state.key === want;
+  // The chips: key wording's come with its data; mark scheme's are known up front.
+  const boards = group === "ms" ? MS_BOARDS[slug] : ready ? orderSpecs(ready.specs, own("kw")).map((s) => ({ id: s.id, label: s.label, code: s.code })) : [];
+  const chips = group === "ms" ? [...boards].sort((a, b) => Number(b.id === own("ms")) - Number(a.id === own("ms"))) : boards;
+  const spec = ready ? ready.specs.find((s) => s.id === board) ?? null : null;
+  const entries = ready && spec ? entriesOf(ready, spec) : [];
   const most = Math.max(1, ...entries.map((e) => e.count));
   const has = (key: string) => app.decks.some((d) => d.starter === key);
 
@@ -85,25 +89,37 @@ function SubjectDecks({ slug, own, board, onBoard, onLocked }: { slug: PremadeSl
     let action = onTap(pro.gateOn, pro.state, entry.free);
     if (action === "wait") action = onTap(pro.gateOn, await pro.ask(), entry.free);
     if (action === "locked") {
-      track("premade_locked_tapped", { subject: slug, deck: entry.key });
+      track("premade_locked_tapped", { subject: slug, deck: entry.key, group });
       onLocked(entry);
       return;
     }
-    actions.addPremade(toAdd(data, entry));
-    track("premade_deck_added", { subject: slug, deck: entry.key, gated: pro.gateOn && !entry.free });
+    actions.addPremade(toAdd(ready!, entry));
+    track("premade_deck_added", { subject: slug, deck: entry.key, group, gated: pro.gateOn && !entry.free });
     toast("Deck added");
   };
 
   return (
     <div className="cat-sub" data-testid={`cat-${slug}`}>
-      <div className="cat-boards" role="group" aria-label="Exam board">
-        {specs.map((s) => (
-          <button key={s.id} type="button" className="cat-chip" aria-pressed={s.id === board} onClick={() => onBoard(s.id)} data-testid={`cat-board-${s.id}`} title={`${s.label} ${s.code}`}>
-            {s.label}<small>{s.code}</small>{s.id === own && <i aria-label="your board">yours</i>}
-          </button>
-        ))}
-      </div>
-      {!spec ? (
+      {switcher}
+      {chips.length > 0 && (
+        <div className="cat-boards" role="group" aria-label="Exam board">
+          {chips.map((s) => (
+            <button key={s.id} type="button" className="cat-chip" aria-pressed={s.id === board} onClick={() => setPicked((p) => ({ ...p, [group]: s.id }))} data-testid={`cat-board-${s.id}`} title={`${s.label} ${s.code}`}>
+              {s.label}<small>{s.code}</small>{s.id === own(group) && <i aria-label="your board">yours</i>}
+            </button>
+          ))}
+        </div>
+      )}
+      {failed ? (
+        <div className="cat-empty" data-testid="cat-failed">
+          <p>These decks didn&rsquo;t open.</p>
+          <button type="button" className="btn gold" onClick={() => { setState({ key: "", status: "loading" }); setTries((n) => n + 1); }}>Try again</button>
+        </div>
+      ) : group === "ms" && !board ? (
+        <p className="cat-pick" data-testid="cat-pick-board">Pick your board.</p>
+      ) : !ready ? (
+        <ul className="cat-grid" aria-busy="true" aria-label="Loading decks" data-testid="cat-loading">{[0, 1, 2, 3].map((i) => <li key={i} className="cat-tile ghosty" aria-hidden="true" />)}</ul>
+      ) : !spec ? (
         <p className="cat-pick" data-testid="cat-pick-board">Pick your board.</p>
       ) : (
         <ul className="cat-grid" data-testid="cat-decks">
@@ -113,7 +129,7 @@ function SubjectDecks({ slug, own, board, onBoard, onLocked }: { slug: PremadeSl
             return (
               <li key={e.key}>
                 <button type="button" className={`cat-tile${added ? " added" : ""}${lock ? " locked" : ""}`} disabled={added} onClick={() => void tap(e)} data-testid={`cat-deck-${e.key}`} aria-label={`${e.title}, ${e.count} cards${added ? ", added" : lock ? ", Pro" : ""}`}>
-                  <span className="cat-name"><b>{e.title}</b><small>{e.count} cards</small></span>
+                  <span className="cat-name"><b>{e.module}</b><small>{e.count} cards</small></span>
                   <span className="cat-end" aria-hidden="true">
                     {added ? <span className="cat-done">Added</span>
                       : lock ? <span className="cat-pro">Pro</span>
@@ -127,7 +143,7 @@ function SubjectDecks({ slug, own, board, onBoard, onLocked }: { slug: PremadeSl
           })}
         </ul>
       )}
-      <p className="starter-note" data-testid="cat-note">Written by Plumi, not yet checked by a teacher. Check a card against your own spec and edit it if it differs.</p>
+      <p className="starter-note" data-testid="cat-note">{group === "ms" ? "Each exam board\u2019s own mark scheme wording, from past papers. The key words are in bold." : "Written by Plumi, not yet checked by a teacher. Check a card against your own spec and edit it if it differs."}</p>
     </div>
   );
 }
