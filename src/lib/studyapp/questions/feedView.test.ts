@@ -68,6 +68,26 @@ describe("filters saved before the new ones were added", () => {
   });
 });
 
+describe("pinning the question beside the page", () => {
+  test("an older record without it reads as nothing chosen", () => {
+    const p = parseFeedPrefs(JSON.stringify({ last: "a", view: { a: "papers" } }));
+    assert.deepEqual(p.split, {});
+  });
+  test("the two choices are kept, and anything else in the field is dropped", () => {
+    assert.deepEqual(parseFeedPrefs(JSON.stringify({ split: { off: true, wide: true } })).split, { off: true, wide: true });
+    assert.deepEqual(parseFeedPrefs(JSON.stringify({ split: { off: "yes", wide: 1, other: true } })).split, {});
+    assert.deepEqual(parseFeedPrefs(JSON.stringify({ split: 5 })).split, {});
+  });
+  test("this tab's change goes over what another tab stored, and only that one", () => {
+    const stored = parseFeedPrefs(JSON.stringify({ split: { off: true } }));
+    const mine = parseFeedPrefs(JSON.stringify({ split: { wide: true } }));
+    const d = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>() };
+    assert.deepEqual(mergePrefs(stored, mine, { ...d, split: new Set(["wide"]) }).split, { off: true, wide: true });
+    assert.deepEqual(mergePrefs(stored, parseFeedPrefs("{}"), { ...d, split: new Set(["off"]) }).split, {});
+    assert.deepEqual(mergePrefs(stored, mine, d).split, { off: true });
+  });
+});
+
 describe("two tabs", () => {
   const none = { last: false, view: new Set<string>(), filters: new Set<string>(), pos: new Set<string>(), folded: new Set<string>() };
   const stored = parseFeedPrefs(JSON.stringify({ last: "a", view: { a: "papers" }, filters: { a: { ...NO_FEED, q: "x" } }, pos: { a: { id: "p1", off: 1 } }, folded: { a: true } }));

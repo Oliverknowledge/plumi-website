@@ -5,8 +5,10 @@ import { isAnswered, isMarked, type QAnswer, type QPart, type QPrefs, type QSet 
 import { qa } from "@/lib/studyapp/questions/store";
 import { AnswerZone } from "./AnswerZone";
 import { foldAnswer, openAnswer, useOpenAnswer, type OpenMode } from "./answerOpen";
-import { TypeIcon } from "./icons";
+import { PinIcon, TypeIcon } from "./icons";
 import { useMatch } from "./useMatch";
+import { setSplitFlag } from "@/lib/studyapp/questions/feedStore";
+import type { Pin } from "./usePin";
 
 const Icon = ({ d }: { d: string[] }) => (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{d.map((p) => <path key={p} d={p} />)}</svg>
@@ -24,7 +26,7 @@ const NIB = ["M12 3l5.5 9.5L12 21l-5.5-8.5z", "M12 3v10", "M12 12.500v2"];
  * on it, so no click ever moves what the student is looking at); Reset, then Clear, folds it too. Nothing is written to the answers until the first real write (the mode a space is in is
  * kept then). Kept for the tab, so a reload brings back the spaces that were open.
  */
-export function FeedAnswer({ set, part, answer, shown, prefs, copy }: { set: QSet; part: QPart; answer: QAnswer | undefined; shown: QAnswer | undefined; prefs: QPrefs; copy: boolean }) {
+export function FeedAnswer({ set, part, answer, shown, prefs, copy, pin }: { set: QSet; part: QPart; answer: QAnswer | undefined; shown: QAnswer | undefined; prefs: QPrefs; copy: boolean; pin?: Pin }) {
   const key = `${set.id}/${part.id}`;
   const open = useOpenAnswer(key);
   const phone = useMatch("(max-width: 640px)");
@@ -73,6 +75,8 @@ export function FeedAnswer({ set, part, answer, shown, prefs, copy }: { set: QSe
 
   // Opened by a tap: the space is brought into view (clear of the sticky bar above and the pen below), and for typing the caret goes into the box once it is drawn.
   const arrived = useRef(false);
+  const pinSplit = useRef(false);
+  useEffect(() => { pinSplit.current = pin?.mode === "split"; });
   useEffect(() => {
     if (!open || !arrived.current) return;
     let tries = 0;
@@ -86,7 +90,9 @@ export function FeedAnswer({ set, part, answer, shown, prefs, copy }: { set: QSe
       const tray = document.querySelector<HTMLElement>(".qs-pen:not(.is-away)");
       const bottom = (tray ? tray.getBoundingClientRect().top : window.innerHeight) - 12;
       const r = box.getBoundingClientRect();
-      const dy = r.bottom > bottom ? Math.min(r.bottom - bottom, r.top - top) : r.top < top ? r.top - top : 0;
+      // A pinned page is a screen tall: the page moves only if its top is under the strip or well down the screen (never to bring its foot in, which would carry the question away).
+      const dy = pinSplit.current ? (r.top < top || r.top > window.innerHeight * 0.6 ? r.top - top : 0)
+        : r.bottom > bottom ? Math.min(r.bottom - bottom, r.top - top) : r.top < top ? r.top - top : 0;
       if (Math.abs(dy) > 1) window.scrollBy({ top: dy, behavior: "instant" });   // (at once, never gliding: a pen that goes down the moment the space is there must not have the page move under it)
       return true;
     };
@@ -120,10 +126,26 @@ export function FeedAnswer({ set, part, answer, shown, prefs, copy }: { set: QSe
     </div>
   );
 
+  // The question stays in view while this is open (split.ts): the switch for it, and "Wider question" while it is two columns.
+  const pinned = pin?.mode != null;
+  const split = pin?.mode === "split";
+  const wide = !!pin?.wide;
+  const extra = useMemo(() => !pin?.eligible ? null : (
+    <span className="qf-pins">
+      <button type="button" className="qs-mini qf-pin" aria-pressed={pinned} onClick={() => setSplitFlag("off", pinned)} title={split ? "Keep the question beside your page" : "Keep the question in view while you write"} data-testid="pin-toggle">
+        <PinIcon />Pin question
+      </button>
+      {split && (
+        <button type="button" className="qs-mini qf-wider" aria-pressed={wide} onClick={() => setSplitFlag("wide", !wide)} data-testid="wider-toggle">
+          {wide ? "Wider page" : "Wider question"}
+        </button>
+      )}
+    </span>
+  ), [pin?.eligible, pinned, split, wide]);
   return (
     <div className={`qf-ans${zone ? " is-open" : ""}`} ref={root} data-testid="answer-opener">
       {!zone && buttons}
-      {zone && <AnswerZone set={set} part={part} answer={zoneAnswer} prefs={prefs} showMark bare={bare} headSlot={buttons} onReset={onReset} onMode={onMode} />}
+      {zone && <AnswerZone set={set} part={part} answer={zoneAnswer} prefs={prefs} showMark bare={bare} headSlot={buttons} onReset={onReset} onMode={onMode} extra={extra} pagePx={split ? pin?.page : undefined} />}
     </div>
   );
 }

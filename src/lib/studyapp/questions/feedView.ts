@@ -16,8 +16,11 @@ export interface FeedPrefs {
   pos: Record<string, FeedPos>;
   /** The subject bar of the filters is folded (a phone starts folded). */
   folded: Record<string, boolean>;
+  /** How the open answer lays out beside a tall question (split.ts): `off` is "Pin question" switched off, `wide` is the question given the wider column. Absent in older records. */
+  split: SplitFlags;
 }
-export const EMPTY_FEED_PREFS: FeedPrefs = { last: null, view: {}, filters: {}, pos: {}, folded: {} };
+export type SplitFlags = { off?: boolean; wide?: boolean };
+export const EMPTY_FEED_PREFS: FeedPrefs = { last: null, view: {}, filters: {}, pos: {}, folded: {}, split: {} };
 
 const MAX_SUBJECTS = 60;
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -41,13 +44,17 @@ export function parseFeedPrefs(raw: string | null): FeedPrefs {
   let j: unknown;
   try { j = JSON.parse(raw); } catch { return EMPTY_FEED_PREFS; }
   if (!isObj(j)) return EMPTY_FEED_PREFS;
-  const out: FeedPrefs = { last: typeof j.last === "string" && j.last.length <= 80 ? j.last : null, view: {}, filters: {}, pos: {}, folded: {} };
+  const out: FeedPrefs = { last: typeof j.last === "string" && j.last.length <= 80 ? j.last : null, view: {}, filters: {}, pos: {}, folded: {}, split: {} };
   if (isObj(j.view)) for (const [k, v] of Object.entries(j.view).slice(0, MAX_SUBJECTS)) if (v === "questions" || v === "papers") out.view[k.slice(0, 80)] = v;
   if (isObj(j.filters)) for (const [k, v] of Object.entries(j.filters).slice(0, MAX_SUBJECTS)) out.filters[k.slice(0, 80)] = cleanFilters(v);
   if (isObj(j.pos)) for (const [k, v] of Object.entries(j.pos).slice(0, MAX_SUBJECTS)) {
     if (isObj(v) && typeof v.id === "string" && v.id.length <= 100 && typeof v.off === "number" && Number.isFinite(v.off)) out.pos[k.slice(0, 80)] = { id: v.id, off: Math.max(0, Math.min(5000, Math.round(v.off))) };
   }
   if (isObj(j.folded)) for (const [k, v] of Object.entries(j.folded).slice(0, MAX_SUBJECTS)) if (typeof v === "boolean") out.folded[k.slice(0, 80)] = v;
+  if (isObj(j.split)) {
+    if (j.split.off === true) out.split.off = true;
+    if (j.split.wide === true) out.split.wide = true;
+  }
   return out;
 }
 
@@ -63,7 +70,7 @@ export function subjectFor(p: FeedPrefs, mine: readonly string[]): string | null
 }
 
 /** `stored` with this tab's own changes over it. */
-export function mergePrefs(stored: FeedPrefs, mine: FeedPrefs, d: { last: boolean; view: ReadonlySet<string>; filters: ReadonlySet<string>; pos: ReadonlySet<string>; folded: ReadonlySet<string> }): FeedPrefs {
+export function mergePrefs(stored: FeedPrefs, mine: FeedPrefs, d: { last: boolean; view: ReadonlySet<string>; filters: ReadonlySet<string>; pos: ReadonlySet<string>; folded: ReadonlySet<string>; split?: ReadonlySet<string> }): FeedPrefs {
   const over = <T,>(from: Record<string, T>, own: Record<string, T>, keys: ReadonlySet<string>) => {
     const out = { ...from };
     for (const k of keys) if (k in own) out[k] = own[k];
@@ -73,6 +80,17 @@ export function mergePrefs(stored: FeedPrefs, mine: FeedPrefs, d: { last: boolea
     last: d.last ? mine.last : stored.last,
     view: over(stored.view, mine.view, d.view), filters: over(stored.filters, mine.filters, d.filters),
     pos: over(stored.pos, mine.pos, d.pos), folded: over(stored.folded, mine.folded, d.folded),
+    split: pickSplit(stored.split, mine.split, d.split),
   };
 }
 
+
+/** The split flags: those this tab changed win over what is stored. */
+function pickSplit(stored: SplitFlags | undefined, mine: SplitFlags | undefined, changed: ReadonlySet<string> | undefined): SplitFlags {
+  const out: SplitFlags = { ...stored };
+  for (const k of ["off", "wide"] as const) {
+    if (!changed?.has(k)) continue;
+    if (mine?.[k]) out[k] = true; else delete out[k];
+  }
+  return out;
+}
