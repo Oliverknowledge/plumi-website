@@ -30,6 +30,7 @@ import { useSubjectMeta } from "./bankData";
 import { OtherCopy } from "./OtherCopy";
 import { PagePopover } from "./PagePopover";
 import { PenTray } from "./PenTray";
+import { offersCalculator } from "@/content/calculator";
 import { SetsSheet } from "./SetsSheet";
 import { Summary } from "./Summary";
 import "../../../app/study/(app)/questions-sheet.css";
@@ -258,7 +259,8 @@ export function Sheet({ set, q }: { set: QSet; q: QuestionsData }) {
           </section>
         </article>
       </div>
-      {anyInk && <PenTray prefs={prefs} subject={meta?.subject} />}
+      {/* (the Calculator button lives in the tray, so a set of typed answers has the tray too where the subject has calculator work) */}
+      {(anyInk || (!!meta?.subject && offersCalculator(meta.subject))) && <PenTray prefs={prefs} subject={meta?.subject} />}
       {sets && <SetsSheet q={q} onClose={() => setSets(false)} />}
       {confirm && <FinishConfirm unmarked={check.unmarked} blank={check.blank} onKeep={() => setConfirm(false)} onFinish={finish} />}
     </main>

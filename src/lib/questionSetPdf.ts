@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { isChoice } from "@/lib/markBands";
-import { bankOwner, earlierToRead, fetchBankData, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject, type EarlierParts } from "@/content/questionBank";
+import { bankOwner, fetchBankData, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -30,8 +30,7 @@ const PRINT_H = A4.h - MARGIN * 2 - 40;
  * blank row in it, moves whole to the next page (a maths graph was cut in two, 29 October 2026).
  */
 const SHRINK = 1.4;
-/** `reading`: a part that's there to read (`earlierToRead`), so it stops above its own lines to write on. */
-async function asJpeg(url: string, reading = false): Promise<Slice[] | null> {
+async function asJpeg(url: string, marks: number | null = null): Promise<Slice[] | null> {
   const res = await paced(url);
   if (!res) return null;
   const bitmap = await createImageBitmap(await res.blob());
@@ -46,10 +45,7 @@ async function asJpeg(url: string, reading = false): Promise<Slice[] | null> {
   bitmap.close();
   const pageRows = Math.floor((canvas.width * PRINT_H) / PRINT_W);
   const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const rows = readRows(pixels);
-  const ruled = hasAnswerLines(pixels, rows);
-  const words = writingStarts(pixels, rows) ?? rows.foot + 8;
-  const height = reading && words >= 40 ? Math.min(canvas.height, words) : canvas.height; // a crop that is nearly all lines stays whole
+  const ruled = hasAnswerLines(pixels, marks);
   const cutOut = (top: number, bottom: number) => {
     const piece = document.createElement("canvas");
     piece.width = canvas.width;
@@ -57,7 +53,8 @@ async function asJpeg(url: string, reading = false): Promise<Slice[] | null> {
     piece.getContext("2d")?.drawImage(canvas, 0, top, canvas.width, bottom - top, 0, 0, canvas.width, bottom - top);
     return { bytes: piece.toDataURL("image/jpeg", 0.88), w: piece.width, h: piece.height, ruled };
   };
-  if (height <= pageRows * SHRINK) return [height === canvas.height ? { bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: canvas.height, ruled } : cutOut(0, height)];
+  const height = canvas.height;
+  if (height <= pageRows * SHRINK) return [{ bytes: canvas.toDataURL("image/jpeg", 0.88), w: canvas.width, h: height, ruled }];
   const blank = (row: number) => ctx.getImageData(0, row, canvas.width, 1).data.every((v, i) => i % 4 === 3 || v > 235);
   const slices: Slice[] = [];
   for (let top = 0; top < height;) {
@@ -117,43 +114,69 @@ function twoLines({ data, width: w }: Pixels, a: Rule, b: Rule) {
 }
 
 /**
- * Whether a crop already has the paper's own lines to write on (many cutters keep them: OCR's and AQA's sciences,
- * Edexcel Psychology's one-part questions), so the PDF adds none under it: three or more rules evenly spaced, or
- * the two a 1-mark part gets, at its foot (AQA's: the PDF put two more under them, 4 November 2026). A box's border
- * (Edexcel English Literature) or a lone "Answer ____" line isn't, and a table's rules span only the table.
+ * The lines to write on at a crop's foot, top to bottom. A line is a row or few of ink, solid or dotted (some boards'
+ * are too pale for `readRows`), running a good way across, with blank paper over it: a line of words has its own
+ * letters above its baseline, and the rule under "(Total for Question 6 = 40 marks)" sits right under the words.
+ * A label on its left ("Reason ____") or a mark on its right ("..... [2]") are left out of what has to be blank.
+ * A box or a table's foot has its side coming down onto it. Words on the left under the last line mean the lines
+ * aren't at the foot (what's there may set up the next part), and a mark or a question's total on the right is fine.
  */
-export function hasAnswerLines(pixels: Pixels, { rules, foot }: Rows = readRows(pixels)) {
+export function linesAtFoot({ data, width: w, height: h }: Pixels): Rule[] {
+  const inked = (y: number, x: number, level = 690) => { const i = (y * w + x) * 4; return data[i] + data[i + 1] + data[i + 2] < level; };
+  const runIn = (y: number) => {
+    let best = { from: 0, to: 0, ink: 0 }, from = -1, last = -1, ink = 0;
+    for (let x = 0; x <= w; x++) {
+      if (x < w && !inked(y, x)) continue;
+      if (from >= 0 && (x === w || x - last > w * 0.012)) { if (last - from > best.to - best.from) best = { from, to: last, ink }; from = -1; ink = 0; }
+      if (x < w) { if (from < 0) from = x; last = x; ink++; }
+    }
+    return best;
+  };
+  const found: Rule[] = [];
+  let foot = 0, run = 0, runFrom = 0, runTo = 0;
+  for (let y = 0; y <= h; y++) {
+    const r = y < h ? runIn(y) : { from: 0, to: 0, ink: 0 };
+    if (y < h && r.ink) foot = y + 1;
+    const long = r.to - r.from >= w * 0.35 && r.ink >= (r.to - r.from) * 0.2;
+    if (long) { if (!run || r.to - r.from > runTo - runFrom) { runFrom = r.from; runTo = r.to; } run++; continue; }
+    if (run && run <= 4) {
+      const top = y - run, len = runTo - runFrom;
+      const middle = (row: number) => { for (let x = Math.round(runFrom + len * 0.1); x < runFrom + len * 0.75; x++) if (inked(row, x)) return true; return false; };
+      let clear = 0;
+      for (let row = top - 3; row >= 0 && !middle(row); row--) clear++; // the rows just over a rule are its faint edge
+      const reach = Math.round(w * 0.012);
+      let side = 0;
+      for (let row = top - 2; row > Math.max(0, top - 2 - reach); row--) { for (let x = Math.max(0, runFrom - 3); x <= runFrom + 3; x++) if (inked(row, x, 600)) { side++; break; } }
+      if (clear >= w * 0.012 && side < reach) found.push({ top, end: y, from: runFrom, to: runTo });
+    }
+    run = 0;
+  }
+  const last = found.at(-1);
+  if (!last || foot - last.end > 70) return [];
+  for (let y = last.end; y < foot; y++) { let ink = 0; for (let x = 0; x < w * 0.6; x++) if (inked(y, x, 600)) ink++; if (ink > w * 0.01) return []; }
+  const block = [last];
+  for (let i = found.length - 2; i >= 0 && block[0].end - found[i].end <= 120; i--) block.unshift(found[i]);
+  return block;
+}
+
+/**
+ * Whether a crop already has the paper's own lines to write on (many cutters keep them: OCR's and AQA's sciences,
+ * Edexcel Psychology's one-part questions), so the PDF adds none under it: three or more rules evenly spaced, the
+ * two a 1-mark part gets, or the lines at its foot if they're three or more or near enough its marks (one for up to
+ * 2 marks, two for up to 3). Fewer than that is what's left of a part cut off at the page's end, or an "Answer ____"
+ * with its working room cut away, so those keep the PDF's lines. (A part with one line of its own got two more
+ * under it, wider than its column: Discord, 5 November 2026.)
+ */
+export function hasAnswerLines(pixels: Pixels, marks: number | null = null) {
+  const { rules, foot } = readRows(pixels);
   for (let i = 2; i < rules.length; i++) {
     const a = rules[i - 1].end - rules[i - 2].end, b = rules[i].end - rules[i - 1].end;
     if (a >= 14 && b >= 14 && a <= 90 && b <= 90 && Math.abs(a - b) <= Math.max(a, b) * 0.25) return true;
   }
   const n = rules.length;
-  return n >= 2 && foot - rules[n - 1].end <= 70 && twoLines(pixels, rules[n - 2], rules[n - 1]);
-}
-
-/**
- * The row a crop's closing lines to write on start at, with a label beside the first ("1 ____"), or null if it
- * doesn't close with some. Words on the left under them may be the next part's setup, so those keep the crop whole;
- * a mark or a question's total on the right ("(2)") goes with the lines.
- */
-export function writingStarts(pixels: Pixels, { rules, foot }: Rows = readRows(pixels)) {
-  const { data, width: w } = pixels;
-  let i = rules.length - 1;
-  if (i < 1 || foot - rules[i].end > 70 || !twoLines(pixels, rules[i - 1], rules[i])) return null;
-  const inkIn = (y: number, from: number, to: number) => {
-    let ink = 0;
-    for (let x = from; x < to; x++) { const n = (y * w + x) * 4; if (data[n] + data[n + 1] + data[n + 2] < 600) ink++; }
-    return ink;
-  };
-  // (a speck is the rule's own edge, a row below it: AQA's 8464B1F June 2025 06.2)
-  for (let y = rules[i].end; y < foot; y++) if (inkIn(y, 0, Math.floor(w * 0.6)) > w * 0.01) return null;
-  const gap = rules[i].end - rules[i - 1].end;
-  while (i > 0 && twoLines(pixels, rules[i - 1], rules[i]) && Math.abs(rules[i].end - rules[i - 1].end - gap) <= gap * 0.25) i--;
-  // The first line's label, left of where the line starts, goes with it; anything reaching over the line is words.
-  const { top, from } = rules[i];
-  let start = top;
-  for (let y = top - 1; y > Math.max(0, top - 30) && !inkIn(y, from, w); y--) if (inkIn(y, 0, from)) start = y;
-  return Math.max(0, start - 3); // the rows just above a rule are its faint edge
+  if (n >= 2 && foot - rules[n - 1].end <= 70 && twoLines(pixels, rules[n - 2], rules[n - 1])) return true;
+  const own = linesAtFoot(pixels).length;
+  return own >= 3 || (own > 0 && own + 1 >= (marks ?? 2));
 }
 
 /**
@@ -217,9 +240,6 @@ function ranges(nums: Iterable<number>) {
 const LINE_GAP = 24;
 const linesFor = (p: BankPart) => (p.k ? 0 : Math.min(40, Math.max(2, Math.round((p.m ?? 2) * 2))));
 const RULE = rgb(0.78, 0.74, 0.7);
-/** How big an earlier part, there to be read, is drawn: a paper's 11 pt comes to about 8 pt. */
-const READ_SCALE = 0.75;
-const READ_INDENT = 10;
 
 /**
  * The set as one A4 PDF: a title, each question with a one-line label ("3 · June 2023 ·
@@ -227,20 +247,13 @@ const READ_INDENT = 10;
  * print size, then, if asked, the mark schemes and the examiner's reports in the same
  * order: each question's report once, after its last part's scheme. Questions keep the
  * order they were picked in, so the PDF reads as the list on screen did.
- *
- * `earlierFrom` is the bank's parts: a later part picked without the ones before it gets them to read, as the
- * page's "Show question 5 so far" does ("particle X" is described in 03.2, and 03.3 only names it; a student
- * found a PDF of 03.3 alone couldn't be answered, 4 November 2026). They go in once, above the first part that
- * needs them, smaller and without their lines to write on: every part's own copy made a 20-part topic set of
- * 21 pages 37, and this makes it 28. They aren't numbered, marked, or given a scheme.
  */
 export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts: {
-  markSchemes: boolean; reports?: boolean; lines?: boolean; earlierFrom?: BankPart[]; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
+  markSchemes: boolean; reports?: boolean; lines?: boolean; numbers?: Map<string, number>; onProgress?: (done: number, total: number) => void;
 }): Promise<number> {
   const parts = [...picked];
   const reports: Record<string, string> = opts.reports ? await fetchBankData<Record<string, string>>(subject, "reports").then(r => r ?? {}).catch(() => ({})) : {};
   let skipped = 0;
-  let unread = 0; // earlier parts that couldn't be fetched: said in the count, but they alone don't fail the PDF
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${bankTitle(subject)} questions`);
   pdf.setCreator("Plumi question bank (tryplumi.app)");
@@ -269,52 +282,44 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   pending = { title: `${bankTitle(subject)}: ${parts.length} ${parts.length === 1 ? "question" : "questions"}`, sub: marks ? `${marks} ${marks === 1 ? "mark" : "marks"}` : undefined };
 
   // Every crop the PDF needs, in the order it's drawn, fetched six at a time from the start.
-  // `quiet` is an earlier part after the first of its run, whose label already covers it (it shows again over a page).
-  type Crop = { part: BankPart; kind: "qp" | "ms" | "stem" | "earlier"; label: string; quiet?: boolean; last?: boolean };
+  type Crop = { part: BankPart; kind: "qp" | "ms" | "stem"; label: string };
   const crops: Crop[] = [];
   const msCrops = new Map<BankPart, Crop>();
   const run = limited(6);
   const fetched = new Map<Crop, ReturnType<typeof asJpeg>>();
   const want = (c: Crop) => {
-    const url = c.kind === "stem" ? stemImage(c.part, subject.cropVersion) : partImage(c.part.id, c.kind === "earlier" ? "qp" : c.kind, subject.cropVersion);
-    fetched.set(c, run(() => asJpeg(url, c.kind === "earlier").catch(() => null)));
+    const url = c.kind === "stem" ? stemImage(c.part, subject.cropVersion) : partImage(c.part.id, c.kind, subject.cropVersion);
+    fetched.set(c, run(() => asJpeg(url, c.part.m).catch(() => null)));
     return c;
   };
 
-  async function place({ kind, label, part, quiet, last }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
+  async function place({ kind, label, part }: Crop, slices: Awaited<ReturnType<typeof asJpeg>>) {
     if (kind === "qp" || kind === "ms") {
       done += 1;
       opts.onProgress?.(done, total);
     }
     if (!slices) {
       if (kind === "qp" || kind === "ms") skipped += 1;
-      if (kind === "earlier") unread += 1;
       return;
     }
-    const reading = kind === "earlier";
     for (const [n, img] of slices.entries()) {
       const jpg = await pdf.embedJpg(img.bytes);
-      let w = reading ? PRINT_W * READ_SCALE : PRINT_W;
+      let w = PRINT_W;
       let h = (img.h / img.w) * w;
       if (h > PRINT_H) { h = PRINT_H; w = (img.w / img.h) * h; }
       const above = pending ? headingHeight(pending) : 0;
-      const silent = quiet && !n;
-      if (y - above - h - (silent ? 0 : 16) < MARGIN + 10 && y < A4.h - MARGIN) {
+      if (y - above - h - 16 < MARGIN + 10 && y < A4.h - MARGIN) {
         page = pdf.addPage([A4.w, A4.h]);
         footer(page);
         y = A4.h - MARGIN;
       }
       if (pending) { drawHeading(pending); pending = null; }
-      if (!silent || y >= A4.h - MARGIN) {
-        const text = n ? `${label} (continued)` : label;
-        const size = Math.min(9.5, (9.5 * PRINT_W) / bold.widthOfTextAtSize(text, 9.5));
-        page.drawText(text, { x: MARGIN, y: y - 10, size, font: bold, color: reading ? SOFT : INK });
-        y -= 16;
-      }
-      // A rule down the side sets what's there to read apart from the questions to answer.
-      if (reading) page.drawLine({ start: { x: MARGIN + 1, y }, end: { x: MARGIN + 1, y: y - h }, thickness: 1.5, color: RULE });
-      page.drawImage(jpg, { x: reading ? MARGIN + READ_INDENT : MARGIN, y: y - h, width: w, height: h });
-      y -= h + (reading && !last ? 6 : GAP);
+      const text = n ? `${label} (continued)` : label;
+      const size = Math.min(9.5, (9.5 * PRINT_W) / bold.widthOfTextAtSize(text, 9.5));
+      page.drawText(text, { x: MARGIN, y: y - 10, size, font: bold, color: INK });
+      y -= 16;
+      page.drawImage(jpg, { x: MARGIN, y: y - h, width: w, height: h });
+      y -= h + GAP;
     }
     if (kind === "qp" && opts.lines && !slices.some(s => s.ruled)) {
       // The lines start under the crop and carry on over the page if they must, as a paper's do.
@@ -337,19 +342,12 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   const stemsDone = new Set<string>();
   const stemFor = new Map<string, number[]>();
   for (const p of parts) if (p.st && opts.numbers?.has(p.id)) stemFor.set(stemImage(p), [...(stemFor.get(stemImage(p)) ?? []), opts.numbers.get(p.id)!]);
-  const earlier = opts.earlierFrom ? earlierToRead(parts, opts.earlierFrom) : new Map<string, EarlierParts>();
   for (const p of parts) {
     const stem = stemImage(p);
     if (p.st && !stemsDone.has(stem)) {
       stemsDone.add(stem);
       const covers = stemFor.has(stem) ? `For ${ranges(stemFor.get(stem)!)} · ` : "";
       crops.push(want({ part: p, kind: "stem", label: `${covers}${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)} · start of question ${questionOf(p.l)}` }));
-    }
-    const read = earlier.get(p.id);
-    if (read) {
-      const nums = read.needs.flatMap(x => opts.numbers?.get(x.id) ?? []);
-      const label = `${nums.length ? `For ${ranges(nums)} · ` : ""}Question ${questionOf(p.l)} so far, to read, not to answer · ${seriesLabel(subject, p.s)} · ${paperName(subject, p.p)}`;
-      read.parts.forEach((part, i) => crops.push(want({ part, kind: "earlier", label, quiet: i > 0, last: i === read.parts.length - 1 })));
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
@@ -458,5 +456,5 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
-  return skipped + unread;
+  return skipped;
 }

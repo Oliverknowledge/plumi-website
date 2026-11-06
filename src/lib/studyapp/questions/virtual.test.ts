@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { cardEstimate, FEED_WIDE, indexAt, offsetsOf, rangeOf, withPinned } from "./virtual";
+import { anchorMoved, cardEstimate, FEED_WIDE, indexAt, offsetsOf, rangeOf, withPinned } from "./virtual";
 import { startOpens } from "../../questionStart";
+
+describe("anchorMoved", () => {
+  test("the student's own scrolling is not a move", () => assert.equal(anchorMoved({ top: 200, y: 1000 }, 500, 700), 0));
+  test("a card above growing is, by what it grew", () => assert.equal(anchorMoved({ top: 200, y: 1000 }, 217, 1000), 17));
+  test("both at once: only the growth counts", () => assert.equal(anchorMoved({ top: 200, y: 1000 }, 483, 700), -17));
+});
 
 describe("offsets", () => {
   const off = offsetsOf([100, 200, 50, 300]);
