@@ -38,6 +38,9 @@ export type PlumiEvent =
   /** A question paper, mark scheme or examiner report opened from /past-papers.
    *  Carries `page`, `paper`, `kind` and `session`. */
   | "paper_opened"
+  /** A maths booklet opened from /maths-booklets (BookletClickTracker). Carries `page`, `booklet`, `group`
+   *  and `kind`: `full`, or `questions` for its questions-only version. */
+  | "booklet_opened"
   /** The question bank: filters settled on (`results`), a mark scheme or report
    *  opened (`kind`), a question added to a set (`size`), a set downloaded. */
   | "bank_filtered"

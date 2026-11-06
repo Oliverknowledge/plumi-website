@@ -1,0 +1,59 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE MATHS BOOKLETS, IN THE COSY NOTEBOOK
+
+   /maths-booklets and its group pages (src/components/booklets/). The hero,
+   facts, crumbs, jump links and file keys are past-papers.css's; this adds the
+   group cards, the A–Z of every booklet and a card per booklet, with a peek at
+   its first page of questions. Colours are the theme's tokens only, so dark
+   mode needs nothing of its own. Scoped under .lp like everything else.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* where they're from */
+.lp .bk-credit { justify-self: start; max-width: 46em; margin: 4px 0 0; padding: 10px 16px; font-size: 15.5px; font-weight: 700; color: var(--lp-ink-soft); box-shadow: 0 4px 0 var(--lp-shadow); border-width: 2px; border-radius: 14px; }
+.lp .bk-credit a { color: var(--lp-blue); font-weight: 800; }
+.lp .pp-more .bk-credit { margin-top: 26px; }
+
+/* the hub's groups */
+.bk-groups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.lp .bk-group { display: grid; align-content: start; gap: 6px; height: 100%; padding: 20px 22px; color: var(--lp-ink); text-decoration: none; transition: transform .08s, box-shadow .08s; }
+.lp .bk-group:hover { transform: translateY(-2px); box-shadow: 0 9px 0 var(--lp-shadow); }
+.bk-group small { font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink-soft); }
+.bk-group b { font-family: var(--f-px); font-weight: 700; font-size: 26px; line-height: 1.1; }
+.bk-group > span:not([class]) { font-size: 15.5px; font-weight: 600; color: var(--lp-ink-soft); }
+.bk-group-count { justify-self: start; margin-top: 4px; font-family: var(--f-px); font-weight: 600; font-size: 14px; border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; background: var(--lp-paper-2); }
+
+/* the A–Z */
+.bk-index { columns: 3 240px; column-gap: 34px; }
+.lp .bk .bk-index-group { padding: 0 0 22px; break-inside: avoid-column; }
+.lp .bk-index-group h3 { font-size: 20px; margin-bottom: 6px; }
+.lp .bk-index-group h3 a { color: var(--lp-ink); text-decoration: none; }
+.lp .bk-index-group h3 a:hover { color: var(--lp-orange); }
+.bk-index-group ul { list-style: none; margin: 0; padding: 0; }
+.bk-index-group li { break-inside: avoid; }
+.lp .bk-index-group li a { display: inline-block; padding: 3px 0; font-size: 15px; font-weight: 600; color: var(--lp-blue); text-decoration: none; }
+.lp .bk-index-group li a:hover { text-decoration: underline; }
+
+/* a group's booklets */
+.bk-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px 22px; }
+.lp .bk-card { display: grid; grid-template-rows: auto 1fr; overflow: hidden; scroll-margin-top: 90px; }
+.lp .bk-card:target { outline: 4px solid var(--lp-gold); outline-offset: 3px; }
+/* the top of the first page of questions, as a peek: white like the paper it is, in either theme */
+.lp .bk-preview { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: #fff; border-bottom: 3px solid var(--lp-line); border-radius: 17px 17px 0 0; }
+.lp .bk-preview img { display: block; width: 100%; height: auto; image-rendering: auto; transition: transform .2s; }
+.lp .bk-preview:hover img { transform: translateY(-3%); }
+.bk-body { display: grid; align-content: start; gap: 8px; padding: 14px 16px 16px; }
+.lp .bk-body h3 { font-size: 19px; line-height: 1.2; }
+.bk-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.bk-tag { font-family: var(--f-px); font-weight: 600; font-size: 13px; border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 7px; background: var(--lp-paper-2); }
+.bk-stars { font-size: 14px; letter-spacing: 1px; color: var(--lp-orange); }
+.bk-meta { margin: 0; font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); }
+.bk-get { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; }
+.lp .bk-get .pp-file { min-height: 40px; padding: 0 12px; }
+
+@media (max-width: 980px) {
+  .bk-groups, .bk-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .bk-groups, .bk-cards { grid-template-columns: minmax(0, 1fr); }
+  .lp .bk-preview { aspect-ratio: 16 / 9; }
+}
