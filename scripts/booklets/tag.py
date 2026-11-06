@@ -8,7 +8,7 @@ batch-NN.jsonl, one question per line: its id, the booklet it's from (a strong h
 questions)"), its words and its answers' words, each clipped. A question already in tags.json isn't batched
 again, so a later split (Further Maths, say) only adds batches. Each batch is tagged by a reader following
 BRIEF below into batch-NN.tags.json, {"<id>": ["<topic code>", ...]}. merge collects them into
-<work-dir>/questions/tags.json, keeping only codes in topics.json, with tag/overrides.json's corrections over them.
+scripts/booklets/tags.json (committed), keeping only codes in topics.json, with tag/overrides.json's corrections over them.
 
 --groups picks the booklets: a group's slug, or "mechanics:M1+M2" for the Mechanics booklets written for
 those modules (the rest are Further Maths).
@@ -29,7 +29,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 WORK = os.path.join(HERE, ".work")
 TAG = os.path.join(WORK, "tag")
 QUESTIONS = os.path.join(WORK, "questions", "questions.json")
-TAGS = os.path.join(WORK, "questions", "tags.json")
+TAGS = os.path.join(HERE, "tags.json")  # committed: the tagging can't be redone cheaply, unlike the cut
 mode = sys.argv[1] if len(sys.argv) > 1 else "split"
 opt = dict(a[2:].split("=", 1) for a in sys.argv[2:] if a.startswith("--") and "=" in a)
 SIZE = int(opt.get("size", 300))

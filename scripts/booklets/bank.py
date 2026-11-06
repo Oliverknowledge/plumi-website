@@ -4,7 +4,7 @@
     python3 scripts/question-bank/upload_r2.py scripts/booklets/.work/bank-upload --crops-only
     python3 scripts/question-bank/upload_data.py <bank slug> --verify
 
-Reads <work-dir>/questions/questions.json (cut.py), <work-dir>/questions/tags.json (tag.py merge), topics.json
+Reads <work-dir>/questions/questions.json (cut.py), scripts/booklets/tags.json (tag.py merge, committed), topics.json
 (the shared topics and each bank's map from them) and src/content/booklets.json (each booklet's name). A question
 goes in where any of its topics maps to one of the bank's (topics that map to null, Poisson for Edexcel A-Level
 Maths, are beyond its specification); it carries the bank's codes its topics map to.
@@ -45,7 +45,7 @@ def main():
     meta = json.load(open(os.path.join(ROOT, "src", "content", "booklets.json")))
     names = {b["slug"]: b["title"] + (f" ({b['kind'].lower()})" if b.get("kind") else "") + (f", {'/'.join(b['modules'])}" if b.get("modules") else "")
              for g in meta["groups"] for s in g["shelves"] for b in s["booklets"]}
-    tags = json.load(open(os.path.join(Q, "tags.json")))
+    tags = json.load(open(os.path.join(HERE, "tags.json")))
     questions = json.load(open(os.path.join(Q, "questions.json")))
     rows, runs, last = [], {}, {}
     shutil.rmtree(os.path.dirname(UPLOAD), ignore_errors=True)

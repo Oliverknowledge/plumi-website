@@ -82,7 +82,8 @@ python3 scripts/question-bank/upload_data.py <bank slug> --verify
   projectiles, Poisson, ...), not to any board's. 7,101 questions (Year 12 and 13 pure, Statistics, and the M1–M2
   Mechanics booklets) were tagged on 6 November 2026 by Claude subagents, 600 a batch, following the brief in
   `tag.py`; 800 have two topics. Some readers sorted long repetitive runs by keyword, then read the odd ones, so
-  this is a first pass: corrections go in `.work/tag/overrides.json`. Further Maths and M3–M6 aren't tagged yet.
+  this is a first pass. The tags are committed, in `scripts/booklets/tags.json`; corrections go in
+  `.work/tag/overrides.json`, then `tag.py merge`. Further Maths and M3–M6 aren't tagged yet.
 - **A bank** takes them through its map in `topics.json`, from each shared topic to one of its own, or to null where
   its specification doesn't have it. A question goes in only if every topic it needs is in the specification (624
   aren't, for Edexcel A-Level Maths: Poisson, momentum, further statistics...). Another bank is another map and
