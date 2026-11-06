@@ -112,14 +112,14 @@ calls them yet. They are the hand-off for AI marking.
 The surface (`InkCanvas.tsx`) reads `pointerType`:
 
 - **Mouse** draws. **Pen** draws with real pressure (`pressure`; a pen that reports one constant pressure just draws at that width, live and stored alike).
-  The pen's **eraser end** (`buttons & 32` or `button === 5`) erases. A system gesture that cancels a pen or mouse stroke (`pointercancel`) keeps what was written; a cancelled finger stroke is dropped.
+  The pen's **eraser end** (`buttons & 32` or `button === 5`) erases. A system gesture that cancels a pen or mouse stroke (`pointercancel`) keeps what was written, unless it is only a tick from a stroke cut off as it began; a cancelled finger stroke is dropped.
 - **Touch**, with "Finger scrolls, pen writes" ON (the default where the primary pointer is coarse; switch in **Page**): a finger never draws.
   While no pen has been seen the surface says `touch-action: pan-y pinch-zoom`, so the browser scrolls the page natively with momentum. The moment
   a pen is seen (any pen `pointerover` / `pointerdown` on the page, a `touchstart` whose Safari `touchType` is `stylus`, or a `pointercancel` of a pen touch the browser took
   for a scroll) it says `touch-action: pinch-zoom`, remembered on the device (`prefs.penSeen`), and the finger's scroll is done by hand (`window.scrollBy`
   with a little inertia, none under reduced motion, cancelled by any pointer-down on the page). That is because the spec applies `touch-action` to pen as well as touch, and a pen stroke must never be taken for a pan.
   `pinch-zoom` stays allowed so two fingers zoom the page over a writing zone as over the question picture (the browser then cancels the finger pointers). A stylus `touchstart` is also
-  `preventDefault`ed where the browser lets us (Safari). While a pen is down, hovering, or was a quarter of a second ago, a resting hand neither scrolls nor draws.
+  `preventDefault`ed where the browser lets us (Safari). From a pen touching the glass until 400 ms after it lifts, a page-wide touch listener stops any touch off a control from starting a browser gesture, because a pen and a resting palm read as a pinch: the browser cancels the pen and zooms the page. While a pen is down or was a quarter of a second ago, a hand neither scrolls nor draws. While it only hovers, a palm-sized touch (over 34 px) doesn't scroll but a fingertip does, since a pen held in the swiping hand hovers the whole time.
 - On a touch device where no pen has been seen, each writing zone's header carries **Draw with my finger** until a pen is seen or it is used; a first finger tap also shows
   "Fingers scroll the page. Write with a pen." with the same button and a dismiss, and it stays until dismissed (it no longer disappears after 5 s).
 - **Finger draws** (toggle off): `touch-action: pinch-zoom`, touch draws. **Palm rejection**: a touch is ignored within 250 ms of any pen event, while a pen is down, and when its contact patch is wider than 34 px.

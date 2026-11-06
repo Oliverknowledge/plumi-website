@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { FeedPos } from "@/lib/studyapp/questions/feedView";
-import { indexAt, offsetsOf, rangeOf, withPinned } from "@/lib/studyapp/questions/virtual";
+import { anchorMoved, indexAt, offsetsOf, rangeOf, withPinned } from "@/lib/studyapp/questions/virtual";
 
 /**
  * A very long list of tall, changing items (the question feed: thousands of questions, each with a picture, a writing space and a mark scheme) that keeps
@@ -90,13 +90,16 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
 
   // The item at the reading line as the page shows it (the first drawn item that ends below the line), and where its top is: when a height changes anywhere above
   // it, this is what moved, and the page is scrolled back by exactly that. Read from the page itself, so a wrong guess in the model cannot put it in the wrong place.
-  const anchor = useRef<{ id: string; top: number; h: number } | null>(null);
+  const anchor = useRef<{ id: string; top: number; y: number; h: number } | null>(null);
+  // Cards have just been added or taken away and their heights are not in yet: this frame's scroll must not take a new position over the shift they cause, or nothing corrects it and the page visibly jumps.
+  const shiftDue = useRef(false);
+  useLayoutEffect(() => { shiftDue.current = true; }, [win]);
   const capture = useCallback(() => {
     const g = latest.current.gap();
     anchor.current = null;
     for (const el of box.current?.querySelectorAll<HTMLElement>("[data-k]") ?? []) {
       const r = el.getBoundingClientRect();
-      if (r.bottom > g) { anchor.current = { id: el.dataset.k ?? "", top: r.top, h: r.height }; return; }
+      if (r.bottom > g) { anchor.current = { id: el.dataset.k ?? "", top: r.top, y: window.scrollY, h: r.height }; return; }
     }
   }, []);
   // one observer for every drawn item: a change of height is taken into the model, and the page follows it when it was above the reading line
@@ -125,11 +128,12 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
         const a = anchor.current;
         const at = a ? box.current?.querySelector<HTMLElement>(`[data-k="${a.id}"]`) : null;
         if (a && at) {
-          const d = at.getBoundingClientRect().top - a.top;
+          const d = anchorMoved(a, at.getBoundingClientRect().top, window.scrollY);
           if (Math.abs(d) >= 0.5) jump(window.scrollY + d);
         }
         // Being put back where it was left: a height that has settled (an open scheme's picture) moves the place, so the page is aligned to the place again, not kept to a neighbour.
         if (restoring.current) restoring.current.go(); else capture();
+        shiftDue.current = false;
         setTick((t) => t + 1);
       });
     }
@@ -150,7 +154,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
       if (nw <= 0 || Math.abs(nw - latest.current.width) <= 1) return;
       // The item at the reading line and how far down it the line was, as a fraction of its height (from the last frame before the turn).
       const a = anchor.current;
-      keep.current = a && a.h > 0 ? { id: a.id, frac: Math.min(1, Math.max(0, (latest.current.gap() - a.top) / a.h)) } : null;
+      keep.current = a && a.h > 0 ? { id: a.id, frac: Math.min(1, Math.max(0, (latest.current.gap() - (a.top + a.y - window.scrollY)) / a.h)) } : null;
       anchor.current = null;
       measured.clear();
       setWidth(nw);
@@ -200,7 +204,7 @@ export function FeedList<T extends { id: string }>({ items, estimate, render, li
       raf = 0;
       // A turn of the screen is in this frame: the width watcher has the reading line as it was (the page already shows the new layout), so it is not read again here.
       if (box.current && Math.abs(box.current.offsetWidth - latest.current.width) > 1) return;
-      capture();
+      if (shiftDue.current) shiftDue.current = false; else capture();
       fit();
       const h = here();
       const it = h ? latest.current.items[h.i] : undefined;
