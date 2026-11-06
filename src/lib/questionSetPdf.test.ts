@@ -1,46 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { earlierToRead, type BankPart } from "../content/questionBank";
-import { hasAnswerLines, writingStarts, type Pixels } from "./questionSetPdf";
-
-const part = (l: string, more: Partial<BankPart> = {}) => ({ id: l, p: "P1", s: "JUN25", l, m: 1, t: [], x: "", w: 100, h: 100, ...more }) as BankPart;
-const q3 = ["03.1", "03.2", "03.3", "03.4"].map(l => part(l));
-const ids = (ps: BankPart[]) => ps.map(p => p.l);
-
-test("a later part alone gets the parts before it", () => {
-  const read = earlierToRead([q3[2]], q3);
-  assert.deepEqual(ids(read.get("03.3")!.parts), ["03.1", "03.2"]);
-  assert.deepEqual(ids(read.get("03.3")!.needs), ["03.3"]);
-});
-
-test("a whole question gets nothing, in any order", () => {
-  assert.equal(earlierToRead(q3, q3).size, 0);
-  assert.equal(earlierToRead([...q3].reverse(), q3).size, 0);
-});
-
-test("each earlier part goes in once, above the first part that needs it", () => {
-  const read = earlierToRead([q3[1], q3[3]], q3);
-  assert.deepEqual(ids(read.get("03.2")!.parts), ["03.1"]);
-  assert.deepEqual(ids(read.get("03.2")!.needs), ["03.2", "03.4"]);
-  assert.deepEqual(ids(read.get("03.4")!.parts), ["03.3"]);
-  assert.deepEqual(ids(read.get("03.4")!.needs), ["03.4"]);
-});
-
-test("a part picked later in the set isn't repeated above an earlier pick", () => {
-  const read = earlierToRead([q3[2], q3[0]], q3);
-  assert.deepEqual(ids(read.get("03.3")!.parts), ["03.2"]);
-});
-
-test("neither side of a choice is something to read", () => {
-  const q = [part("1(a)"), part("1(b)", { or: 1 }), part("1(c)")];
-  assert.equal(earlierToRead([q[1]], q).size, 0);
-  assert.equal(earlierToRead([q[2]], q).size, 0);
-});
-
-test("10 sorts after 9", () => {
-  const q = ["01.9", "01.10", "01.11"].map(l => part(l));
-  assert.deepEqual(ids(earlierToRead([q[2]], [...q].reverse()).get("01.11")!.parts), ["01.9", "01.10"]);
-});
+import { hasAnswerLines, linesAtFoot, type Pixels } from "./questionSetPdf";
 
 /** A crop on a white page, drawn from rectangles: no files, no DOM. */
 function crop(height: number, boxes: [x0: number, y0: number, x1: number, y1: number][], width = 500): Pixels {
@@ -50,60 +10,94 @@ function crop(height: number, boxes: [x0: number, y0: number, x1: number, y1: nu
 }
 const WORDS: [number, number, number, number] = [60, 10, 300, 30];
 const rule = (y: number, x0 = 70, x1 = 500): [number, number, number, number] => [x0, y, x1, y + 2];
+/** A line of words: letters too close together to tell from a dotted line, tall enough to have ink above its baseline. */
+const words = (y: number, x0 = 60, x1 = 470): [number, number, number, number][] => Array.from({ length: Math.floor((x1 - x0) / 6) }, (_, i) => [x0 + i * 6, y, x0 + i * 6 + 3, y + 12]);
+/** A dotted line, as OCR's and WJEC's are. */
+const dots = (y: number, x0 = 70, x1 = 460): [number, number, number, number][] => Array.from({ length: Math.floor((x1 - x0) / 4) }, (_, i) => [x0 + i * 4, y, x0 + i * 4 + 2, y + 2]);
 
-test("two lines at a crop's foot are lines to write on, and it can stop above them", () => {
-  const c = crop(200, [WORDS, rule(100), rule(150)]);
-  assert.equal(hasAnswerLines(c), true);
-  const top = writingStarts(c)!;
-  assert.ok(top >= 30 && top <= 100, `cut at ${top}`);
+test("two lines at a crop's foot are lines to write on", () => {
+  assert.equal(hasAnswerLines(crop(200, [WORDS, rule(100), rule(150)])), true);
 });
 
-test("three lines still count, and the cut is above the first", () => {
-  const c = crop(260, [WORDS, rule(100), rule(150), rule(200)]);
-  assert.equal(hasAnswerLines(c), true);
-  assert.ok(writingStarts(c)! <= 100);
+test("three lines still count", () => {
+  assert.equal(hasAnswerLines(crop(260, [WORDS, rule(100), rule(150), rule(200)])), true);
 });
 
-test("a label beside the first line stays out of what's kept", () => {
-  const c = crop(200, [WORDS, [30, 90, 45, 102], rule(100), rule(150)]);
-  assert.ok(writingStarts(c)! <= 90);
+test("one line of a part's own is its answer space (AQA's 07.2, a 1-mark part that got two more)", () => {
+  const c = crop(200, [WORDS, rule(150, 70, 490)]);
+  assert.equal(linesAtFoot(c).length, 1);
+  assert.equal(hasAnswerLines(c, 1), true);
+  assert.equal(hasAnswerLines(c, 2), true);
 });
 
-test("a label sitting just above the first line goes with it, and the words above stay", () => {
-  const c = crop(200, [[60, 40, 300, 60], [30, 80, 45, 95], rule(100), rule(150)]);
-  const top = writingStarts(c)!;
-  assert.ok(top >= 60 && top <= 80, `cut at ${top}`);
+test("one line isn't enough room for many marks: the crop stopped at the page's end", () => {
+  const c = crop(200, [WORDS, rule(150, 70, 490)]);
+  assert.equal(hasAnswerLines(c, 3), false);
+  assert.equal(hasAnswerLines(c, 8), false);
 });
 
-test("a speck under the last line is the rule's edge, not words", () => {
-  const c = crop(200, [WORDS, rule(100), rule(150), [68, 152, 70, 153]]);
-  assert.ok(writingStarts(c)! <= 100);
+test("two lines do for up to 3 marks, three or more for any", () => {
+  const two = crop(200, [WORDS, rule(100, 70, 490), rule(150, 150, 490)]);
+  assert.equal(hasAnswerLines(two, 3), true);
+  assert.equal(hasAnswerLines(two, 4), false);
+  const three = crop(300, [WORDS, rule(100, 70, 490), rule(170, 200, 490), rule(260, 70, 490)]);
+  assert.equal(hasAnswerLines(three, 12), true);
 });
 
-test("a box over a wider rule isn't two lines (Edexcel History's total)", () => {
-  const c = crop(300, [WORDS, rule(200, 40, 480), rule(250, 5, 500)]);
-  assert.equal(hasAnswerLines(c), false);
-  assert.equal(writingStarts(c), null);
+test("a dotted line with its mark beside it counts (OCR's \"..... [2]\")", () => {
+  const c = crop(120, [WORDS, ...dots(90), [465, 78, 468, 96], [472, 80, 480, 94], [484, 78, 487, 96]]);
+  assert.equal(linesAtFoot(c).length, 1);
+  assert.equal(hasAnswerLines(c, 2), true);
+});
+
+test("a labelled line counts, and two make room for a 2-mark part (\"Reason ____\")", () => {
+  const c = crop(200, [WORDS, [70, 88, 150, 100], rule(100, 160, 490), [70, 138, 150, 150], rule(150, 160, 490)]);
+  assert.equal(linesAtFoot(c).length, 2);
+  assert.equal(hasAnswerLines(c, 2), true);
+});
+
+test("a question's last line of words isn't a line to write on", () => {
+  const c = crop(100, [...words(20), ...words(50)]);
+  assert.deepEqual(linesAtFoot(c), []);
+  assert.equal(hasAnswerLines(c, 2), false);
+});
+
+test("the rule right under a question's total isn't a line to write on (Edexcel's)", () => {
+  const c = crop(300, [WORDS, ...words(270, 280, 470), rule(284, 5, 500)]);
+  assert.deepEqual(linesAtFoot(c), []);
+  assert.equal(hasAnswerLines(c, 1), false);
+});
+
+test("a box's foot isn't a line to write on: its sides come down onto it (a poem in English Literature)", () => {
+  const c = crop(300, [[60, 20, 62, 282], [438, 20, 440, 282], rule(20, 60, 440), rule(280, 60, 440), ...words(100, 80, 400)]);
+  assert.deepEqual(linesAtFoot(c), []);
+  assert.equal(hasAnswerLines(c, 1), false);
 });
 
 test("a table's row isn't two lines: it has sides", () => {
   const c = crop(200, [WORDS, rule(100), rule(150), [70, 100, 72, 152], [498, 100, 500, 152]]);
-  assert.equal(hasAnswerLines(c), false);
-  assert.equal(writingStarts(c), null);
+  assert.equal(hasAnswerLines(c, 2), false);
+});
+
+test("a box around a question's total, over a wider rule, leaves an essay its lines (Edexcel History's)", () => {
+  const c = crop(300, [WORDS, rule(200, 40, 480), [40, 200, 42, 252], [478, 200, 480, 252], rule(250, 40, 480), ...words(220, 200, 460), rule(280, 5, 500)]);
+  assert.equal(hasAnswerLines(c, 12), false);
 });
 
 test("two rules far above the foot aren't lines to write on", () => {
-  const c = crop(400, [WORDS, rule(100), rule(150), [60, 300, 300, 320]]);
-  assert.equal(hasAnswerLines(c), false);
+  assert.equal(hasAnswerLines(crop(400, [WORDS, rule(100), rule(150), [60, 300, 300, 320]])), false);
 });
 
-test("words on the left under the lines keep the crop whole, as they may set up the next part", () => {
-  const c = crop(220, [WORDS, rule(100), rule(150), [60, 170, 300, 185]]);
-  assert.equal(hasAnswerLines(c), true);
-  assert.equal(writingStarts(c), null);
+test("words on the left under a line mean it isn't at the foot", () => {
+  const c = crop(220, [WORDS, rule(150), [60, 170, 300, 185]]);
+  assert.deepEqual(linesAtFoot(c), []);
+  assert.equal(hasAnswerLines(c, 1), false);
 });
 
-test("a mark on the right under the lines goes with them", () => {
-  const c = crop(220, [WORDS, rule(100), rule(150), [460, 170, 495, 185]]);
-  assert.ok(writingStarts(c)! <= 100);
+test("a mark or a total on the right under a line goes with it", () => {
+  assert.equal(linesAtFoot(crop(220, [WORDS, rule(150), [460, 170, 495, 185]])).length, 1);
+});
+
+test("a crop with no lines at all gets the PDF's", () => {
+  assert.equal(hasAnswerLines(crop(100, [WORDS]), 1), false);
 });

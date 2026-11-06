@@ -222,34 +222,6 @@ export const topicName = (t: BankTopic) => (topicRef(t) ? `${topicRef(t)} ${t.ti
 export const questionOf = (label: string) => label.match(/^\d+/)?.[0] ?? label;
 /** The whole question a part belongs to, across the bank: "74051-JUN23-01". */
 export const questionKey = (p: Pick<BankPart, "p" | "s" | "l">) => `${p.p}-${p.s}-${questionOf(p.l)}`;
-/** What a set's part has to read first (`parts`), and the set's parts of that question that come after them (`needs`). */
-export type EarlierParts = { parts: BankPart[]; needs: BankPart[] };
-/**
- * For a set of parts, the earlier parts of their questions it leaves out, by the part they go above: the first
- * that needs each, so each goes in once. A part of the set is never one, whatever order the set is in, so a whole
- * question has none. Nor is either side of a choice ("EITHER (d) OR (e)"): one isn't asked of someone answering the other.
- */
-export function earlierToRead(set: BankPart[], bank: BankPart[]) {
-  const inSet = new Set(set.map(p => p.id));
-  const keys = new Set(set.map(questionKey));
-  const questions = new Map<string, BankPart[]>();
-  for (const p of bank) {
-    const k = questionKey(p);
-    if (keys.has(k)) questions.set(k, [...(questions.get(k) ?? []), p]);
-  }
-  for (const q of questions.values()) q.sort((a, b) => a.l.localeCompare(b.l, undefined, { numeric: true }));
-  const read = new Map<string, EarlierParts>();
-  const taken = new Set<string>();
-  for (const p of set) {
-    const q = questions.get(questionKey(p)) ?? [];
-    const before = q.slice(0, Math.max(0, q.findIndex(x => x.id === p.id)));
-    const parts = before.filter((e, i) => !inSet.has(e.id) && !taken.has(e.id) && !e.or && !q[i + 1].or);
-    if (!parts.length) continue;
-    parts.forEach(e => taken.add(e.id));
-    read.set(p.id, { parts, needs: q.slice(q.indexOf(parts[0]) + 1).filter(x => inSet.has(x.id)) });
-  }
-  return read;
-}
 
 /** "AQA A-Level Chemistry" */
 /** How a bank's level reads: Pearson calls its IGCSE "International GCSE"; Cambridge's stays "IGCSE". Pearson's International A Level (IAL) reads in full. */
