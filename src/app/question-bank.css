@@ -645,3 +645,43 @@
 .qb-quiz-after strong { font-family: var(--f-px); font-size: 22px; color: var(--lp-orange); }
 .qb-quiz-low { color: var(--lp-orange); }
 .qb-quiz { grid-template-rows: auto minmax(0, 1fr) auto; }
+
+/* ── Saved questions: the bookmark and the note (SavedControls.tsx) ───────── */
+/* The sheet's top is kept clear for the ribbon, so it never covers the printed question. */
+.qb-sheet.has-bookmark { padding-top: 34px; }
+.has-bookmark .qb-stamp { right: 56px; }
+.lp .qb-bookmark { position: absolute; top: -2px; right: 8px; z-index: 2; appearance: none; display: flex; justify-content: center; width: 44px; height: 44px; padding: 0; color: var(--lp-line); background: none; border: 0; cursor: pointer; }
+.qb-bookmark svg { display: block; width: 24px; height: 32px; fill: #fffdf8; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; transition: transform .12s, fill .12s; }
+.lp .qb-bookmark:hover svg { fill: var(--lp-paper-2); transform: translateY(2px); }
+.lp .qb-bookmark.is-on svg { fill: var(--lp-orange); }
+.lp .qb-bookmark:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: -2px; border-radius: 8px; }
+
+/* Under the paper: the answer on the left, the note on the right; either one opened takes the whole line. */
+.qb-foot { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 10px; }
+.qb-foot > .qb-answer, .qb-foot > .qb-mynote { flex: 1 0 100%; min-width: 0; }
+.lp .qb-mynote-open { margin-left: auto; border-style: dashed; color: var(--lp-ink-soft); }
+
+/* A note to self, taped on: the student's, so warmer and plainer than the mark scheme's card. */
+.qb-mynote { position: relative; display: grid; gap: 4px; margin-top: 12px; padding: 14px 14px 8px; background: #fff7c9; border: 2px solid var(--lp-line); border-radius: 10px; transform: rotate(-.2deg); }
+.qb-mynote .lp-tape { top: -12px; width: 76px; margin-left: -38px; height: 22px; }
+.qb-mynote-label { font-family: var(--f-px); font-weight: 600; font-size: 14px; color: var(--lp-ink-soft); }
+.qb-mynote-label span { color: var(--lp-orange); }
+.lp .qb-mynote-area { display: block; width: 100%; min-height: 56px; resize: none; overflow: hidden; padding: 2px 0; box-sizing: border-box; font-family: var(--f-body); font-weight: 600; font-size: 16px; line-height: 1.5; color: var(--lp-ink); background: none; border: 0; }
+.lp .qb-mynote-area:focus { outline: none; }
+.qb-mynote:focus-within { box-shadow: 0 0 0 3px rgb(217 112 47 / .25); }
+.qb-mynote-area::placeholder { font-family: var(--f-hand); font-weight: 700; font-size: 22px; color: #8f8778; }
+.qb-mynote-foot { font-size: 12.5px; font-weight: 700; color: var(--lp-ink-soft); }
+
+/* By the count: the way back to them. */
+.lp .qb-saved-btn { background: var(--lp-paper-2); }
+.lp .qb-saved-btn.is-on { background: var(--lp-gold); }
+.qb-saved-btn svg { width: 12px; height: 16px; fill: var(--lp-orange); stroke: var(--lp-line); stroke-width: 3; stroke-linejoin: round; }
+.qb-saved-n { font-family: var(--f-body); font-weight: 800; font-size: 14px; }
+.lp .qb-saved-add { background: var(--lp-paper-2); }
+.lp .qb-saved-add:disabled { opacity: 1; cursor: default; box-shadow: none; }
+
+html[data-theme="dark"] .lp .qb-bookmark svg { fill: var(--lp-card-bg); }
+html[data-theme="dark"] .lp .qb-bookmark.is-on svg { fill: var(--lp-orange); }
+html[data-theme="dark"] .lp .qb-mynote { background: #3a2f25; border-color: #4a3f39; }
+html[data-theme="dark"] .lp .qb-mynote-area::placeholder { color: #a3968a; }
+@media (prefers-reduced-motion: reduce) { .qb-bookmark svg { transition: none; } .lp .qb-bookmark:hover svg { transform: none; } }
