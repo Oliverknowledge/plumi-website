@@ -13,7 +13,11 @@
 .au-lead { margin: -6px 0 6px; font-size: 15px; font-weight: 600; color: var(--lp-ink-soft); }
 
 .au-google { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; font: 800 16px/1 var(--f-body); color: #1f1f1f; background: #fff; border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 3px 0 var(--lp-shadow); }
-.au-google:hover { transform: translateY(-1px); }
+.au-google:hover, .au-apple:hover { transform: translateY(-1px); }
+.au-social { display: grid; gap: 10px; }
+/* Apple's rules for a web button: black with a white logo and label on a light page, white with black on a dark one; the lofi border and shadow stay. */
+.au-apple { appearance: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; font: 800 16px/1 var(--f-body); color: #fff; background: #000; border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 3px 0 var(--lp-shadow); }
+html[data-theme="dark"] .au-apple { color: #000; background: #fff; }
 .au-or { display: flex; align-items: center; gap: 12px; margin: 2px 0; font-size: 12.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--lp-ink-soft); }
 .au-or::before, .au-or::after { content: ""; flex: 1; border-top: 2px dashed var(--lp-dash); }
 
@@ -27,7 +31,7 @@
 .au-go { appearance: none; cursor: pointer; min-height: 52px; font: 700 17px/1 var(--f-px); color: #3a2a05; background: #f2c96b; border: 2px solid var(--lp-line); border-radius: 14px; box-shadow: 0 4px 0 var(--lp-shadow); }
 .au-go:hover:not(:disabled) { transform: translateY(-1px); }
 .au-go:disabled { cursor: not-allowed; opacity: .55; }
-.au-google:focus-visible, .au-go:focus-visible, .au-link:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
+.au-google:focus-visible, .au-apple:focus-visible, .au-go:focus-visible, .au-link:focus-visible { outline: 3px solid var(--lp-orange); outline-offset: 2px; }
 
 .au-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
 .au-link { appearance: none; cursor: pointer; padding: 2px 0; background: none; border: 0; font: 700 14.5px var(--f-body); color: var(--lp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
@@ -54,4 +58,4 @@ html[data-theme="dark"] .au-error { color: #f08a84; background: #3a2422; border-
   .au-logo { position: absolute; z-index: 2; top: -186px; left: 16px; padding: 6px 12px 6px 8px; background: var(--lp-card-bg); border: 2px solid var(--lp-line); border-radius: 12px; box-shadow: 0 3px 0 var(--lp-shadow); font-size: 20px; }
   .au-card { padding-block: 8px 24px; }
 }
-@media (prefers-reduced-motion: reduce) { .au-google:hover, .au-go:hover:not(:disabled) { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .au-google:hover, .au-apple:hover, .au-go:hover:not(:disabled) { transform: none; } }

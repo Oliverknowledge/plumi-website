@@ -4,15 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useId, useState } from "react";
-import { GoogleMark } from "@/components/account/Account";
-import { safeNext, sendCode, sendReset, setPassword, signInHref, signInWithGoogle, signInWithPassword, signUpWithPassword, useAccount, verifyCode, type SignInReason } from "@/lib/account";
+import { AppleMark, GoogleMark } from "@/components/account/Account";
+import { safeNext, sendCode, sendReset, setPassword, signInHref, signInWithApple, signInWithGoogle, signInWithPassword, signUpWithPassword, useAccount, verifyCode, type SignInReason } from "@/lib/account";
 import { track } from "@/lib/analytics";
+import { appleSignInOn } from "@/lib/appleSignIn";
 import { artUrl } from "@/lib/studyapp/library/art";
 
 /**
  * /sign-in and /sign-up: the form on one side and the Grand Library on the other, students
- * writing at its tables (founder, 31 October 2026, after lofi.town's sign-in). Google, an
- * email and password, or a code by email; "Forgot password?" is a code and a new password.
+ * writing at its tables (founder, 31 October 2026, after lofi.town's sign-in). Google (and Apple, when
+ * switched on), an email and password, or a code by email; "Forgot password?" is a code and a new password.
  * The code matters most to students who made their account on iPad, which has no passwords.
  *
  * Everything is one page with a few views, so going from "Sign in" to "Sign in with a code"
@@ -141,11 +142,19 @@ function AuthForm({ start }: { start: "sign-in" | "sign-up" }) {
   );
   const sentTo = <p className="au-sent">We sent a code to <strong>{mail}</strong>. It can take a minute, and it might be in spam.</p>;
 
+  // Apple's button only while the switch is on (lib/appleSignIn); Google's is always there. Both stack at the card's width.
   const google = (
     <>
-      <button type="button" className="au-google" onClick={() => void signInWithGoogle(reason, next)}>
-        <GoogleMark /> Continue with Google
-      </button>
+      <div className="au-social">
+        <button type="button" className="au-google" onClick={() => void run(() => signInWithGoogle(reason, next))}>
+          <GoogleMark /> Continue with Google
+        </button>
+        {appleSignInOn && (
+          <button type="button" className="au-apple" onClick={() => void run(() => signInWithApple(reason, next))}>
+            <AppleMark /> Continue with Apple
+          </button>
+        )}
+      </div>
       <p className="au-or"><span>or</span></p>
     </>
   );

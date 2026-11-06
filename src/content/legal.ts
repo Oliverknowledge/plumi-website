@@ -1,3 +1,5 @@
+import { appleSignInOn } from "@/lib/appleSignIn";
+
 export type LegalBlock = { kind: "text"; text: string } | { kind: "list"; items: readonly string[] } | { kind: "todo"; text: string };
 export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
@@ -105,7 +107,7 @@ export const privacy: LegalDoc = {
      * section changes in the same commit.
      */
     { heading: "The website", blocks: [
-      {kind:"text",text:"You can explore and use the website without an account. Two places ask for an email address: signing in, and the Android waitlist described below. Signing in uses the same Plumi account as the app, with Google, a code sent to your email, or an email and password, and you must be 13 or over. It keeps your question bank marks in your account (see What we collect) and lets you join the Grand Library. To keep you signed in, a sign-in token is stored in your browser; signing out from the account menu removes it. You can also leave the Grand Library from the account menu. Three measurement services run on the website and they do different things."},
+      {kind:"text",text:`You can explore and use the website without an account. Two places ask for an email address: signing in, and the Android waitlist described below. Signing in uses the same Plumi account as the app, with ${appleSignInOn ? "Apple (which may share your name and email, or an Apple relay address if you hide your email), " : ""}Google, a code sent to your email, or an email and password, and you must be 13 or over. It keeps your question bank marks in your account (see What we collect) and lets you join the Grand Library. To keep you signed in, a sign-in token is stored in your browser; signing out from the account menu removes it. You can also leave the Grand Library from the account menu. Three measurement services run on the website and they do different things.`},
       {kind:"list",items:[
         "Our own analytics records which sections of a page were read and which buttons were pressed, so we can tell whether the site explains Plumi well. It is hosted in the EU, it never creates a profile of you, it does not record your screen, and it never receives anything you type. Email addresses are stripped before any event leaves your browser.",
         "Vercel Web Analytics, from our hosting provider, counts page views and visitors so we can see how many people the site reaches. It sets no cookies and builds no profile: a visitor is recognised for one day by an anonymised value that is then discarded.",
