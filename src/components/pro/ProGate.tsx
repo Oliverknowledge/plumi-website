@@ -7,7 +7,7 @@ import { ProLockedPanel } from "./ProLockedPanel";
 
 /**
  * A Pro feature's gate on the screen. Children show when the student is Pro; `fallback` (a locked tile or placeholder, supplied by the caller) when they are
- * free; `pending` (default nothing) while it is not known yet, so a Pro student never sees a lock and a free student never sees a flash of the feature.
+ * free, or when their sign-in has run out (the plan is then not known, and the locked panel says to sign in again); `pending` (default nothing) while it is not known yet, so a Pro student never sees a lock and a free student never sees a flash of the feature.
  *
  *     <ProGate feature="mark-scheme-decks" fallback={<LockedTile />}>...</ProGate>
  *
@@ -17,7 +17,7 @@ import { ProLockedPanel } from "./ProLockedPanel";
 export function ProGate({ feature, fallback, pending = null, children }: { feature: string; fallback: ReactNode; pending?: ReactNode; children: ReactNode }) {
   const { state } = usePro();
   void feature;
-  return <>{state === "pro" ? children : state === "free" ? fallback : pending}</>;
+  return <>{state === "pro" ? children : state === "free" || state === "session" ? fallback : pending}</>;
 }
 
 /** For a locked thing's tap: `lock.tap()` records it and opens the panel; render `lock.panel` once beside it. */
