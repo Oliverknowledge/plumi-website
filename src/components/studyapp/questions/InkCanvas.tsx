@@ -80,13 +80,17 @@ const MAX_PIXELS = 6_500_000;
 /* ── a hand on the glass while the pen writes ──
  * A browser reads a pen and a resting palm as two fingers, and two fingers are a pinch: it cancels the pen (a stroke cut off after a tick) and zooms the page. So from the pen touching
  * the glass until a moment after it lifts, no touch anywhere on the page starts a browser gesture. The listeners are only there for that time: on a page full of cards they would make
- * every other scroll wait for the page. Controls still work, so a tap on Undo right after a stroke is not lost, and two fingers still zoom the rest of the time.
+ * every other scroll wait for the page. Once the pen is up a control still takes a tap, so Undo right after a stroke is not lost, and two fingers still zoom the rest of the time.
  */
 const HAND_REST = 400;   // ms after the pen lifts: the gap between the strokes of one word
 const TICK = 16;         // logical units: a cancelled stroke shorter than this is a cut-off tick, not writing
 const CONTROLS = "button, a, input, select, textarea, label, summary, [role=button]";
 let penOnGlass = false, lastContact = -Infinity, handGuard = false, handTimer: ReturnType<typeof setTimeout> | null = null;
-const holdHand = (e: TouchEvent) => { if (e.cancelable && !(e.target instanceof Element && e.target.closest(CONTROLS))) e.preventDefault(); };
+const holdHand = (e: TouchEvent) => {
+  // (a palm can land on a link as easily as on the page: only one touch, once the pen is up, is taken for a tap)
+  const tap = !penOnGlass && e.touches.length < 2 && e.target instanceof Element && !!e.target.closest(CONTROLS);
+  if (e.cancelable && !tap) e.preventDefault();
+};
 function penTouched() {
   penOnGlass = true; lastContact = nowMs();
   if (handTimer) { clearTimeout(handTimer); handTimer = null; }
