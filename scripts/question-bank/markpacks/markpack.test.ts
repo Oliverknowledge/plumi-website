@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { coverage, gatePack, packHash, parseExtraction, type BankPartRef } from "./markpack";
+import { coverage, gatePack, labelsMatch, packHash, parseExtraction, type BankPartRef } from "./markpack";
 
 const D = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "pilot-v2");
 const read = (f: string) => JSON.parse(readFileSync(join(D, f), "utf8"));
@@ -134,4 +134,57 @@ test("the hash is stable, and changes with the reading, either picture, or the c
   assert.notEqual(await packHash(pack, { ...SOURCES, msSha256: "c".repeat(64) }), h, "scheme picture re-cut");
   assert.notEqual(await packHash(pack, { ...SOURCES, qpSha256: "c".repeat(64) }), h, "question picture re-cut");
   assert.notEqual(await packHash(pack, { ...SOURCES, cropVersion: 4 }), h, "crop version");
+});
+
+// ---------------------------------------------------------------------------------------
+// Labels: some boards print only the last part ("(ii)") of a part the bank calls "5(b)(ii)"
+// ---------------------------------------------------------------------------------------
+
+test("a partial printed label matches the bank's when whatever is printed agrees", () => {
+  for (const printed of ["5bii", "5(b)(ii)", "5(ii)", "(ii)", "ii", "(b)(ii)", "5", "5(b)"]) assert.equal(labelsMatch(printed, "5(b)(ii)"), true, printed);
+});
+
+test("a partial label that disagrees with the bank's is refused", () => {
+  for (const printed of ["(i)", "i", "(iii)", "5(a)(ii)", "6(ii)", "6(b)(ii)", "(a)", "7"]) assert.equal(labelsMatch(printed, "5(b)(ii)"), false, printed);
+});
+
+test("labels made of digits alone must match exactly (AQA 05.1)", () => {
+  assert.equal(labelsMatch("05.1", "01.1"), false);
+  assert.equal(labelsMatch("05.1", "05.1"), true);
+  assert.equal(labelsMatch("05 . 1", "05.1"), true);
+  assert.equal(labelsMatch("5", "05.1"), false);
+  assert.equal(labelsMatch("1", "05.1"), false);
+});
+
+test("labels with a letter only (a part with no numeral)", () => {
+  assert.equal(labelsMatch("(b)", "3(b)"), true);
+  assert.equal(labelsMatch("(a)", "3(b)"), false);
+  assert.equal(labelsMatch("3(b)(i)", "3(b)"), false, "more specific than the bank's part is not the same part");
+});
+
+test("through the gate: a reading that printed only '(ii)' is ready, '(i)' is refused", () => {
+  const BANK = { id: "h03202-jun19-05-bii", l: "5(b)(ii)", m: 2 };
+  const base = structuredClone(fixture("74023-jun17-05-1"));
+  const ok = { ...base, question_label: "(ii)", scheme_label: "5(ii)" };
+  assert.equal(gatePack(ok, BANK, ocr["74023-jun17-05-1"]).status, "ready");
+  const bad = { ...base, question_label: "(i)", scheme_label: "(ii)" };
+  assert.equal(gatePack(bad, BANK, ocr["74023-jun17-05-1"]).status, "rejected");
+});
+
+test("leading zeros do not matter in a label, but the number does", () => {
+  assert.equal(labelsMatch("9.1", "09.1"), true);
+  assert.equal(labelsMatch("09.1", "9.1"), true);
+  assert.equal(labelsMatch("9.2", "09.1"), false);
+  assert.equal(labelsMatch("19.1", "09.1"), false);
+  assert.equal(labelsMatch("10", "010"), true);
+});
+
+test("a formula or number the bank's OCR split into pieces still counts as on the page; an invented one does not", () => {
+  const ocr = new Set(["page", "text"]);
+  const compact = "c2h5isonthepageandsoisbr2";
+  assert.equal(coverage("C2H5", ocr, compact), 1);
+  assert.equal(coverage("Br2", ocr, compact), 1);
+  assert.equal(coverage("C9H9", ocr, compact), 0);
+  assert.equal(coverage("page text", ocr, compact), 1);
+  assert.equal(coverage("page quokka", ocr, compact), 0.5, "plain words still need the OCR's word list");
 });

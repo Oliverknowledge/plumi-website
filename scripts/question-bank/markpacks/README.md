@@ -55,3 +55,37 @@ All 42 accept, reject and ignore items across the 20 readings occur in the page'
 1. A teacher or tutor checks all 11 ready readings and the 9 held ones against the images (about 3 minutes each): the first real fidelity number.
 2. Widen to ~100 parts (about $0.06) once v2 is accepted; add the "graded alternatives" shape (the numeric partial-credit layout) and a deterministic numeric path.
 3. `published` status, storage (private, content-hashed), and the marking function that reads packs: see the web marking plan.
+
+## Round results across the most-visited subjects (7 Nov 2026)
+
+Subjects chosen from the site's own analytics (Vercel: top question-bank pages): AQA A-level Biology, Edexcel A-level Maths, AQA A-level
+Chemistry, AQA GCSE Biology, OCR A-level Chemistry A, Edexcel GCSE Maths, AQA A-level Psychology, AQA GCSE Chemistry. 20 new parts each
+(a stratified sample of 1 to 3 mark parts; 1 to 4 for maths), read with prompt v3, then checked twice: the deterministic gates, a model critic
+(`critic.py`, calibrated: no false alarms on 11 confirmed readings, caught 6 of 7 deliberate corruptions) and six Claude reviewers that looked at
+the actual pictures. Cost, measured: about $0.0008 per reading, $0.12 for the 160, $0.024 for the model critic.
+
+| Subject | gates: ready / held / rejected | both critics clean | contested | blocked |
+|---|---|---|---|---|
+| AQA A-level Biology | 11 / 8 / 1 | 9 | 2 | 0 |
+| AQA A-level Chemistry | 11 / 7 / 2 | 8 | 3 | 0 |
+| OCR A-level Chemistry A | 9 / 7 / 4 | 7 | 2 | 0 |
+| AQA A-level Psychology | 6 / 11 / 3 | 6 | 0 | 0 |
+| AQA GCSE Biology | 8 / 12 / 0 | 6 | 1 | 1 |
+| AQA GCSE Chemistry | 5 / 15 / 0 | 2 | 2 | 1 |
+| Edexcel A-level Maths | 3 / 1 / 16 | 1 | 1 (+1 flagged by both) | 0 |
+| Edexcel GCSE Maths | 1 / 14 / 5 | 0 | 0 (+1 flagged by both) | 0 |
+
+**Maths is not ready, for structural reasons, not tuning:** the bank's unit for Edexcel maths is a whole multi-part question (the pack format
+has one label and one mark total), the bank's page text for maths is garbled symbols so the "words must be on the page" check cannot
+validate it, the readers misread a symbol ("= 2/7" read as "-2/7") and a text marker cannot mark method, accuracy and carried-forward marks.
+Held back on purpose.
+
+Build rounds that changed something (each re-checked against the 20 pilot parts a person had confirmed): stem pictures so GCSE sciences and OCR
+are readable at all (19 of 1,505 AQA GCSE Biology parts qualified without them, 1,336 with); a label check that accepts a part the paper prints
+as just "(ii)" (OCR Chemistry 2 -> 9 ready); leading zeros in labels; formulas split by the bank's OCR; "marks never null"; reject items without
+quotation marks; an "OR means one point" rule (the gate refused an unstable representation: fail closed); question-wide comments get `point: null`
+and "allow ..." comments go in the accept list. One rule (splitting alternatives on OR) made things worse and was removed.
+
+Known limits: readings vary between runs (a figure flag flipped on one pilot pack), so a pack should eventually need two agreeing reads; one
+question-wide "ignore" note is still scoped to the wrong point on one GCSE Biology pack; the two critics disagree on 11 packs, which a person
+should look at (the review page does that); the critics are the same model family (DeepSeek) or the author's own family (Claude), not examiners.

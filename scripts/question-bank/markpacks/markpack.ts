@@ -126,12 +126,43 @@ export function parseExtraction(raw: unknown): { pack: ExtractedPack } | { error
 
 const fold = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]/g, " ");
 const words = (s: string) => fold(s).split(/\s+/).filter((t) => t.length > 2);
-const label = (s: string) => s.toLowerCase().replace(/[^0-9a-z]/g, "");
+/** A label to compare: lower case, punctuation gone, leading zeros of each number gone ("09.1" and "9.1" are the same question). */
+const label = (s: string) => s.toLowerCase().split(/[^0-9a-z]+/).filter((t) => t.length > 0).map((t) => (/^\d+$/.test(t) ? t.replace(/^0+(?=\d)/, "") : t)).join("");
 
-/** The share of a phrase's words (3 letters or more) found in the OCR word set. 1 when it has none to check. */
-export function coverage(phrase: string, ocr: Set<string>): number {
+/** A printed question label split into its number, part letter and roman numeral: "5(b)(ii)" is 5, b, ii; "(ii)" is just ii. */
+function parseLabel(raw: string): { num: string | null; letter: string | null; roman: string | null } {
+  const s = label(raw);
+  const m = s.match(/^(\d+)(.*)$/);
+  const num = m ? m[1] : null, rest = m ? m[2] : s;
+  const ROMAN = /^(ix|iv|v?i{0,3}|x)$/;
+  if (rest === "") return { num, letter: null, roman: null };
+  if (ROMAN.test(rest)) return { num, letter: null, roman: rest };   // a bare "ii"
+  const tail = rest.slice(1);
+  return { num, letter: rest[0], roman: tail === "" ? null : ROMAN.test(tail) ? tail : "?" };
+}
+
+/**
+ * Does the label printed on the picture belong to the bank's part? Exactly, or, where the bank's label has a part letter or
+ * numeral ("5bii"), when the picture prints only the last part of it ("(ii)", "5(ii)"): whatever IS printed must equal the bank's
+ * (a "(i)" is not "5bii", nor is 6(ii)). Labels made of digits alone ("051") must match exactly.
+ */
+export function labelsMatch(printed: string, bank: string): boolean {
+  if (label(printed) === label(bank)) return true;
+  const b = parseLabel(bank), p = parseLabel(printed);
+  if (b.letter === null && b.roman === null) return false;
+  if (p.num !== null && b.num !== null && p.num !== b.num) return false;
+  if (p.letter !== null && p.letter !== b.letter) return false;
+  if (p.roman !== null && p.roman !== b.roman) return false;
+  return p.num !== null || p.letter !== null || p.roman !== null;
+}
+
+/**
+ * The share of a phrase's words (3 letters or more) found in the OCR. 1 when it has none to check. The bank's OCR splits chemical
+ * formulas and numbers into pieces ("C 2 H 5"), so a word that contains a digit is also looked for in the OCR with its spaces removed.
+ */
+export function coverage(phrase: string, ocr: Set<string>, compact = ""): number {
   const w = words(phrase);
-  return w.length === 0 ? 1 : w.filter((t) => ocr.has(t)).length / w.length;
+  return w.length === 0 ? 1 : w.filter((t) => ocr.has(t) || (/\d/.test(t) && compact.length > 0 && compact.includes(t))).length / w.length;
 }
 
 /** A point's wording may differ a little from the OCR (brackets, line breaks), so it needs most words; a list item is a quote. */
@@ -149,8 +180,8 @@ export function gatePack(raw: unknown, part: BankPartRef, ocrText: string | unde
 
   // Identity: the reading must be of THIS part (QuestionIdentity / MarkingRefusal's job on the iPad).
   if (part.m === null || part.m <= 0) rejected.push("the bank gives this part no marks");
-  if (label(pack.question_label) !== label(part.l)) rejected.push(`the question image says ${pack.question_label}, the bank says ${part.l}`);
-  if (label(pack.scheme_label) !== label(part.l)) rejected.push(`the scheme image says ${pack.scheme_label}, the bank says ${part.l}`);
+  if (!labelsMatch(pack.question_label, part.l)) rejected.push(`the question image says ${pack.question_label}, the bank says ${part.l}`);
+  if (!labelsMatch(pack.scheme_label, part.l)) rejected.push(`the scheme image says ${pack.scheme_label}, the bank says ${part.l}`);
   if (pack.marks_printed !== part.m) rejected.push(`marks printed ${pack.marks_printed} but the bank says ${part.m}`);
   if (pack.scheme_total !== part.m) rejected.push(`scheme total ${pack.scheme_total} but the bank says ${part.m}`);
 
@@ -170,12 +201,13 @@ export function gatePack(raw: unknown, part: BankPartRef, ocrText: string | unde
   // Nothing invented: every word must be on the page's own OCR.
   if (ocrText !== undefined && ocrText.length > 0) {
     const ocr = new Set(words(ocrText));
+    const compact = fold(ocrText).replace(/\s+/g, "");
     for (const p of pack.points) {
-      if (coverage(p.text, ocr) < POINT_COVERAGE_FLOOR) rejected.push(`point ${p.n} has words the page does not`);
+      if (coverage(p.text, ocr, compact) < POINT_COVERAGE_FLOOR) rejected.push(`point ${p.n} has words the page does not`);
     }
     for (const [name, list] of [["accept", pack.accept], ["reject", pack.reject], ["ignore", pack.ignore]] as const) {
       for (const it of list) {
-        if (coverage(it.text, ocr) < 1) rejected.push(`${name} item "${it.text.slice(0, 40)}" has words the page does not`);
+        if (coverage(it.text, ocr, compact) < 1) rejected.push(`${name} item "${it.text.slice(0, 40)}" has words the page does not`);
         if (it.point !== null && !pack.points.some((p) => p.n === it.point)) rejected.push(`${name} item names point ${it.point}, which does not exist`);
       }
     }

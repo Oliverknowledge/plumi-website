@@ -17,7 +17,9 @@ const tally: Record<string, number> = {};
 for (const part of parts) {
   const file = join(dir, `${part.id}.json`);
   if (!existsSync(file)) { console.log(`${part.id.padEnd(20)} (no reading)`); continue; }
-  const v = gatePack(JSON.parse(readFileSync(file, "utf8")), part, ocr[part.id]);
+  let raw: unknown;
+  try { raw = JSON.parse(readFileSync(file, "utf8")); } catch { raw = null; }   // a reading cut off at the token limit is not JSON: refused, not a crash
+  const v = raw === null ? { status: "rejected" as const, pack: null, reasons: ["the reading is not valid JSON (cut off?)"] } : gatePack(raw, part, ocr[part.id]);
   tally[v.status] = (tally[v.status] ?? 0) + 1;
   console.log(`${part.id.padEnd(20)} ${String(part.m).padStart(2)}m  ${v.status.padEnd(8)} ${v.reasons.join("; ")}`);
 }
