@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  addCard, addDeck, addPremade, addSession, addStarters, addTask, deleteCard, deleteDeck, deleteSession, dueNow, EMPTY, editCard, gradeCard, importCards, importInto,
-  removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last, type PremadeToAdd,
+  addCard, addDeck, addMistakeCards, addPremade, addSession, addStarters, addTask, deleteCard, deleteDeck, deleteSession, dueNow, EMPTY, editCard, gradeCard, importCards, importInto,
+  removeTask, renameDeck, renameSession, sanitise, setExam, setLast, setPerDay, toggleTask, type AppData, type Exam, type ImportTarget, type Last, type PictureCardToAdd, type PremadeToAdd,
 } from "./model";
 import type { SharedDeck } from "./sharing/contract";
 import { addSharedDeck } from "./sharing/add";
@@ -71,6 +71,12 @@ export const actions = {
   setExam: (exam: Exam | null) => change((d) => setExam(d, exam)),
   addStarters: (ids: string[]) => change((d) => addStarters(d, ids, now())),
   addPremade: (deck: PremadeToAdd) => change((d) => addPremade(d, deck, now())),
+  /** Mistakes (questions/mistakes.ts) as picture cards in the subject's "My mistakes" deck. */
+  addMistakes: (subject: string, cards: readonly PictureCardToAdd[]): { deckId: string | null; added: number } => {
+    let out: { deckId: string | null; added: number } = { deckId: null, added: 0 };
+    change((d) => { const r = addMistakeCards(d, subject, cards, now()); out = { deckId: r.deckId, added: r.added }; return r.data; });
+    return out;
+  },
   addDeck: (title: string, subject: string | null = null): string | null => {
     let id: string | null = null;
     change((d) => { const r = addDeck(d, title, now(), subject); id = r.deck?.id ?? null; return r.data; });

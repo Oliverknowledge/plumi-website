@@ -5,10 +5,9 @@ import { SHARE_LIMITS } from "./contract";
  * Which decks may be shared, and what is sent for one.
  *
  * Shared: a deck the student MADE (typed, or from a pasted list) or IMPORTED (an Anki or CSV file). Not shared: Plumi's own
- * ready-made decks (`starter` is set), which are ours, not the student's to hand out under their link. The web has no deck made
- * from exam-board mark schemes, past papers or the student's mistakes (those buttons are "On iPad" and disabled); if one ever
- * arrives it must carry its own marker on `Deck` and be refused here, and the test that lists a deck's fields will fail first
- * so that decision is made on purpose.
+ * ready-made decks (`starter` is set), which are ours, not the student's to hand out under their link. The decks made from the student's mistakes
+ * carry their own marker (`starter` is `mistakes:<subject>`) and are refused here like the ready-made ones; and `sharePayload` also refuses any deck that holds a
+ * picture card (cardPics.ts), whatever its marker.
  */
 export function canShare(deck: Pick<Deck, "title" | "starter"> | null | undefined): boolean {
   if (!deck) return false;
@@ -53,6 +52,8 @@ export interface SharePayload {
 export function sharePayload(data: Pick<AppData, "decks" | "cards">, deckId: string): SharePayload | null {
   const deck = data.decks.find((d) => d.id === deckId);
   if (!deck || !canShare(deck)) return null;
+  // Picture cards belong to the bank, not to the student: a deck that holds one is never sent (the server must not receive them).
+  if (data.cards.some((c) => c.deckId === deckId && c.pic)) return null;
   const made = data.cards.filter((c) => c.deckId === deckId).sort((a, b) => a.createdAt - b.createdAt);
   const kept: { front: string; back: string }[] = [];
   let dropped = 0;

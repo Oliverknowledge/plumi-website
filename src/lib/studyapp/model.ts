@@ -4,6 +4,7 @@
  * device and tells React.
  */
 import { newSchedule, schedule, queue, NEW_PER_DAY, type Grade, type Schedule } from "./srs";
+import { cleanCardPic, type CardPic } from "./cardPics";
 import { STARTER_DECKS } from "./starterDecks";
 import { addDays, dayOf, daysBetween } from "./time";
 import { EMPTY_QUESTIONS, sanitiseQuestions, type QuestionsData } from "./questions/model";
@@ -23,7 +24,11 @@ export interface Task {
 export interface Exam { name: string; date: string }
 
 export interface Deck { id: string; title: string; subject: string | null; createdAt: number; starter: string | null }
-export interface Card { id: string; deckId: string; front: string; back: string; createdAt: number; sch: Schedule; lastReviewed: number | null }
+export interface Card {
+  id: string; deckId: string; front: string; back: string; createdAt: number; sch: Schedule; lastReviewed: number | null;
+  /** A card made from a question in the bank ("From my mistakes"): its sides are pictures (cardPics.ts). `front` and `back` stay plain text beside them (a label, the student's marks and note), so every older surface still reads the card. Absent on every other card. */
+  pic?: CardPic;
+}
 
 /** Per London day: how many cards were reviewed, how many were not Again, and how many new ones were started. */
 export interface DayLog { n: number; right: number; fresh: number }
@@ -225,6 +230,38 @@ export function editCard(data: AppData, id: string, front: string, back: string)
 
 export const deleteCard = (data: AppData, id: string): AppData => ({ ...data, cards: data.cards.filter((c) => c.id !== id) });
 
+/** A picture card to add: its words and its pictures (questions/mistakes.ts makes them). */
+export interface PictureCardToAdd { front: string; back: string; pic: CardPic }
+
+/** The deck a subject's mistakes go to is found by this key, kept on the deck as `starter` (so it is never shared as the student's own, and survives a rename). */
+export const mistakesKey = (subject: string) => `mistakes:${subject.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+
+/**
+ * Turn mistakes into cards: one deck for the subject ("My mistakes \u00B7 Physics"), made if it is missing, the cards added to it. A part that is already a card
+ * (by `pic.part`) is not added again. Returns the deck's id and how many cards were added.
+ */
+export function addMistakeCards(data: AppData, subject: string, cards: readonly PictureCardToAdd[], now: number): { data: AppData; deckId: string | null; added: number } {
+  const key = mistakesKey(subject);
+  let next = data;
+  let deck = next.decks.find((d) => d.starter === key);
+  if (!deck) {
+    const made = addDeck(next, `My mistakes \u00B7 ${subject}`, now, (SUBJECTS as readonly string[]).includes(subject) ? subject : null, key);
+    if (!made.deck) return { data, deckId: null, added: 0 };
+    next = made.data; deck = made.deck;
+  }
+  const have = new Set(next.cards.flatMap((c) => (c.pic?.part ? [c.pic.part] : [])));
+  const made: Card[] = [];
+  for (const c of cards) {
+    const f = clip(c.front, 400), b = clip(c.back, 800), pic = cleanCardPic(c.pic);
+    if (!f || !b || !pic?.part || have.has(pic.part)) continue;
+    have.add(pic.part);
+    made.push({ id: makeId("c", now), deckId: deck.id, front: f, back: b, createdAt: now, sch: newSchedule(now), lastReviewed: null, pic });
+  }
+  // A deck made for nothing is not left behind.
+  if (made.length === 0) return { data, deckId: data.decks.find((d) => d.starter === key)?.id ?? null, added: 0 };
+  return { data: { ...next, cards: [...next.cards, ...made] }, deckId: deck.id, added: made.length };
+}
+
 /** Add the starter decks the student chose. A deck already added is not added twice. */
 export function addStarters(data: AppData, ids: readonly string[], now: number): AppData {
   let next = data;
@@ -335,7 +372,8 @@ export function reviewStreak(data: AppData, today: string): number {
 /** A deck as text: one card a line, front and back split by a tab (what the import reads back). Tabs and line breaks inside a card become spaces. */
 export function exportDeck(data: AppData, deckId: string): string {
   const flat = (s: string) => s.replace(/[\t\r\n]+/g, " ").trim();
-  return data.cards.filter((c) => c.deckId === deckId).map((c) => `${flat(c.front)}\t${flat(c.back)}`).join("\n");
+  // A picture card is a picture from the bank: its words alone would be a label and a mark, so it is left out (the editor says so).
+  return data.cards.filter((c) => c.deckId === deckId && !c.pic?.f?.length && !c.pic?.b?.length).map((c) => `${flat(c.front)}\t${flat(c.back)}`).join("\n");
 }
 
 /* ── Sessions: saved mixes of decks ──────────────────────────────────── */
@@ -402,6 +440,14 @@ function cleanSessions(raw: unknown, deckIds: ReadonlySet<string>): Session[] {
   return out;
 }
 
+/** A card with its picture descriptor checked (one that is not valid is dropped and the card is an ordinary text card). Cards without one are returned as they are. */
+function cleanPic(c: Card): Card {
+  if (c.pic === undefined) return c;
+  const pic = cleanCardPic(c.pic);
+  const { pic: _drop, ...rest } = c; void _drop;
+  return pic ? { ...rest, pic } : rest;
+}
+
 /** A tidy copy of whatever was in storage; anything unreadable becomes empty rather than breaking the page. */
 export function sanitise(raw: unknown): AppData {
   if (!raw || typeof raw !== "object") return EMPTY;
@@ -415,7 +461,7 @@ export function sanitise(raw: unknown): AppData {
     tasks: arr<Task>(r.tasks).filter((t) => t && typeof t.id === "string" && typeof t.text === "string" && typeof t.due === "string"),
     exam: r.exam && typeof r.exam.name === "string" && typeof r.exam.date === "string" ? r.exam : null,
     decks,
-    cards: arr<Card>(r.cards).filter((c) => c && typeof c.id === "string" && ids.has(c.deckId) && c.sch && typeof c.sch.due === "number"),
+    cards: arr<Card>(r.cards).filter((c) => c && typeof c.id === "string" && ids.has(c.deckId) && c.sch && typeof c.sch.due === "number").map(cleanPic),
     log: r.log && typeof r.log === "object" ? r.log : {},
     last: r.last && typeof r.last.label === "string" && typeof r.last.href === "string" ? r.last : null,
     perDay: typeof r.perDay === "number" && r.perDay >= 0 && r.perDay <= 200 ? r.perDay : NEW_PER_DAY,

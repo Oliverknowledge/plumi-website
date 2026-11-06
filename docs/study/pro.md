@@ -44,6 +44,13 @@ Signed out is `free` at once (no flash). The answer is kept for the visit; it is
 4. **Analytics**: the events are already declared (`pro_locked_tapped`, `pro_panel_opened`, `pro_status_checked`); pass your `id` as `feature`. No ids or emails.
 5. **Add a test**: a pure test for the new rule, and for a route a test with a mocked Supabase like `src/lib/pro/server.test.ts`.
 
+## Pro features that exist today
+
+| id | What | Server check |
+| --- | --- | --- |
+| `mark-scheme-decks` | The boards' own mark scheme decks | Yes: ships Pro-only content, so `requirePro` guards the route and the text is kept out of the client bundle |
+| `mistakes-cards` | Flashcards, "From my mistakes": the questions the student lost marks on (marked themselves), as picture cards in "My mistakes · <subject>" | **No server route, on purpose.** It is only the student's own marks and pictures from the question bank that the website already shows to everyone: no proprietary content is shipped and nothing costs money, so `ProGate` on the screen is the whole gate. (If Pro is ever to mean a server-side limit on it, add `requirePro` to whatever route that needs.) |
+
 ## Seeing the website as Pro without a purchase (test seam)
 
 In a build that is **not production** (`next dev`, tests) add `?pro=on` or `?pro=off` to the URL, or set `localStorage["plumi-pro-override"]` to `on` or `off` (`?pro=clear` removes it). It changes what the screen shows. **It does not bypass the server**: a free account that sees "Pro" gets the locked panel when it asks for content (the server says 403). In a production build it does nothing at all: `readProOverride` refuses and the hook never reads the URL or storage (tested).
