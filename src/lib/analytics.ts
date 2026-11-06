@@ -108,7 +108,9 @@ export type PlumiEvent =
    *  (a form id, or "all" for the whole topic). No student data. */
   | "topic_analysis_opened"
   | "topic_analysis_topic_viewed"
-  | "topic_analysis_practise_clicked";
+  | "topic_analysis_practise_clicked"
+  /** An Angles panel opened on a topic page (Pro): `subject`, `topic`, `form`. An example opened adds nothing: no ids. */
+  | "topic_angles_opened";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 
