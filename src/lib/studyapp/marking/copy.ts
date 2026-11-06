@@ -19,6 +19,7 @@ export function lineFor(o: Exclude<Outcome, { kind: "marked" }>, now: number = D
     case "unavailable": return "Plumi can’t mark right now. Use the mark scheme instead.";
     case "cannot": return "Plumi can’t mark this one.";
     case "too_long": return "That is too long to mark here. Keep it under 2,000 characters.";
+    case "unreadable": return "Plumi couldn’t read that. Try writing it a bit bigger, or type it.";
     case "failed": return "That didn’t work, and it wasn’t counted. Try again.";
   }
 }
