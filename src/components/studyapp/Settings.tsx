@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { deleteOwnAccountCall, signInHref, signOut, signOutLocal, useAccount } from "@/lib/account";
 import { MarkingSetting } from "./MarkingSetting";
+import { SyncSetting } from "./SyncSetting";
 import { CONFIRM_WORD, clearPlumiKeys, confirmOk, deleteAccount } from "@/lib/studyapp/accountDelete";
 import { readDark, subscribeAppearance, writeDark } from "@/components/study/appearance";
 import { ProPlanSection } from "@/components/pro/ProPlan";
@@ -98,6 +99,7 @@ export function Settings({ onClose }: { onClose(): void }) {
 
           <ProPlanSection path={path} />
           <MarkingSetting />
+          <SyncSetting />
 
           {!user && (
             <section className="stg-sec" aria-labelledby={`${title}-acct`}>
@@ -134,6 +136,7 @@ export function Settings({ onClose }: { onClose(): void }) {
                 <li><Cross />Your account and sign-in</li>
                 <li><Cross />Your profile, friends and Grand Library data</li>
                 <li><Cross />Your marked-question progress saved online</li>
+                <li><Cross />Decks, cards and tasks you backed up</li>
                 <li><Cross />The links to decks you shared</li>
               </ul>
             </div>

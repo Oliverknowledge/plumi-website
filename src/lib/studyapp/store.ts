@@ -9,11 +9,14 @@ import type { SharedDeck } from "./sharing/contract";
 import { addSharedDeck } from "./sharing/add";
 import type { Grade } from "./srs";
 import { noteQuestionsKey, QUESTIONS_KEY, questionsAreDurable, withoutQuestions } from "./questions/persist";
+import { noteAppChanged, startAppSync } from "./sync/browser";
 
 /**
- * The Desk's and the flashcards' data, kept on this device (localStorage) and shared between tabs. Signed out
- * or signed in, it is the same: nothing here is sent anywhere. Syncing to the account is a later step; the
- * data is one JSON document with a version for that reason (model.ts).
+ * The Desk's and the flashcards' data, kept on this device (localStorage) and shared between tabs. Signed out,
+ * nothing here is sent anywhere. Signed in, it is still only on this device unless the student chooses "Back up my
+ * notes" in Settings: then decks, cards and tasks are merged with their account in the background (sync/), and this
+ * file only tells that code when something changed and lets it change the data (`update`, one change at a time).
+ * The data is one JSON document with a version (model.ts).
  *
  * Storage can be missing or full (a private window, a blocked site): the app then works for the visit and
  * says nothing, because a student must never see an error. `persisted` reports whether it is actually kept.
@@ -43,14 +46,18 @@ function start() {
   state = load();
   try { noteQuestionsKey(localStorage.getItem(QUESTIONS_KEY)); } catch { /* no storage */ }
   window.addEventListener("storage", (e) => { if (e.key === KEY) { state = load(); emit(); } });
+  // Backing up to the account is opt-in and does nothing signed out; this only hands it the data and a way to change it.
+  startAppSync({ get: () => state.data, update: (fn) => { const next = fn(state.data); if (next !== state.data) commit(next, true); } });
 }
 
-function commit(next: AppData) {
+/** `fromBackup`: the change came from the background backup itself, which has nothing more to say about it. */
+function commit(next: AppData, fromBackup = false) {
   let persisted = state.persisted;
   // The Questions data has its own key (questions/store.ts). Once it is safely there, this document lets go of its old copy.
   try { localStorage.setItem(KEY, JSON.stringify(questionsAreDurable() ? withoutQuestions(next) : next)); persisted = true; } catch { persisted = false; }
   state = { ready: true, persisted, data: next };
   emit();
+  if (!fromBackup) noteAppChanged();
 }
 
 const subscribe = (cb: () => void) => { start(); listeners.add(cb); if (state !== SERVER) cb(); return () => { listeners.delete(cb); }; };

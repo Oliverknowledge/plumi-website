@@ -5,6 +5,8 @@
  * only words a student can be shown.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 import { createSyncClient, failureFor, type RpcApi } from "./client";
 import { SYNC_RPC } from "./contract";
@@ -100,5 +102,22 @@ describe("what a student can be shown", () => {
     assert.equal(reduce(OFF, { type: "failed" }), OFF);
     assert.equal(reduce(s, { type: "disabled" }), OFF);
     assert.equal(lineFor(OFF), null);
+  });
+});
+
+describe("the Settings row", () => {
+  const root = join(__dirname, "..", "..", "..", "components", "studyapp");
+  it("draws no words of its own: everything a student reads comes from status.ts, and no dash is written anywhere in it", () => {
+    const row = readFileSync(join(root, "SyncSetting.tsx"), "utf8");
+    assert.ok(!/[\u2013\u2014]/.test(row), "no dash in the component");
+    // JSX text between tags would be a word that escaped the check above (attribute values and {expressions} are not text)
+    const stray = [...row.matchAll(/>([^<>{}\n]*[A-Za-z][^<>{}\n]*)</g)].map((m) => m[1].trim()).filter(Boolean);
+    assert.deepEqual(stray, []);
+    assert.ok(/COPY\.title/.test(row) && /COPY\.offLine/.test(row) && /COPY\.onLine/.test(row) && /COPY\.note/.test(row));
+  });
+  it("sits in Settings as one row, and the delete dialog says the backup goes with the account", () => {
+    const settings = readFileSync(join(root, "Settings.tsx"), "utf8");
+    assert.equal((settings.match(/<SyncSetting \/>/g) ?? []).length, 1);
+    assert.match(settings, /Decks, cards and tasks you backed up/);
   });
 });
