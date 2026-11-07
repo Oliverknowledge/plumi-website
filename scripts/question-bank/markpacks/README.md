@@ -253,3 +253,20 @@ Chemistry 71, OCR A-level Chemistry A 69, AQA GCSE Combined Science 50, OCR GCSE
 Not done in wave 1: OCR A-level Physics A batch 2 (6 parts) and the 43 parts of OCR A-level Biology A batch 3 the two DeepSeek reads did not agree on. Physics yields are low
 (10 of 60 for OCR A-level Physics) because calculation, figure and graph answers are held by design; the recurring Physics audit defects are a compulsory mark plus "any N from M"
 flattened into equal points, and paired Either/Or routes whose pairing is lost. The mark-pack store has no representation for either, so those parts need a richer pack shape, not more reading.
+
+## Text-first route on a whole bank: OCR A-level Biology A (7 Nov 2026)
+
+Tools: `prepare_text_batch.py` (no images, no model calls), `run_text_reads.py` (two plain DeepSeek reads per part at temperatures 0 and 0.5, a dollar ceiling), `fetch_audit_images.py`
+(pictures only for packs that agreed), then the same independent Claude audit of EVERY agreed pack and the same publish rule as before. The reader prompt is `extraction_prompt_text_v5.txt`:
+its slash rule splits an "A / B" note only when each alternative is a complete answer and never drops a condition (the old rule, to split every slash, caused the audits' most frequent defect).
+
+Result on the 1,236 readable parts of the bank that had no pack: 21 batches read; 288 agreed (23 percent); 238 audited clean and loaded (83 percent of the agreed); 50 held for audit problems.
+The rest did not agree, flagged their own doubt (a figure, a drawing, an Either/Or pairing, an underline), or had no whole-paper scheme PDF to read (b18 and b21 mostly). OCR A-level Biology A: 337 packs live of 1,329
+readable parts (25 percent), plus 465 multiple-choice parts that are marked by the letter check (`src/lib/studyapp/marking/choice.ts`) and need no pack.
+
+Cost, measured with the app's prices ($0.30 / $1.20 per million tokens in / out): the 21 batches cost $3.00 of DeepSeek (about $0.14 for a batch of 60, two reads), against about 400 times the
+tokens for the picture route. Thinking mode is the expensive part (mostly output tokens): the first pilot's thinking read cost about $0.45 for one batch. Audit cost is unchanged: about 9,000 Claude tokens per agreed pack,
+which is now the main cost. Total DeepSeek spent on this work: about $3.70 against a $5 ceiling.
+
+What this route cannot do, and why the yield stops near a quarter: parts whose scheme depends on a figure, table or drawing, an underlined required word, an Either/Or pairing, a compulsory mark plus "any N from M", or a condition
+the text does not make clear. Those are held by design (the pack format cannot carry them), not failures of the reader.
