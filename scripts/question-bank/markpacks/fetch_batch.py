@@ -20,6 +20,7 @@ BAD = re.compile(r"figure|table|graph|diagram|shown|draw|tick|calculate|chart|pl
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("slug"); ap.add_argument("n", type=int); ap.add_argument("out")
     ap.add_argument("--seed", type=int, default=1); ap.add_argument("--exclude"); ap.add_argument("--text-only", action="store_true")
+    ap.add_argument("--ids", help="a file of exact part ids to prepare (one per line, in order): skips the random pick, so a round can be chosen by a person or by real use")
     a = ap.parse_args()
     skip = set(Path(a.exclude).read_text().split()) if a.exclude else set()
     pool, total = select_parts.candidates(a.slug)
@@ -28,7 +29,11 @@ def main():
     by_marks = {}
     for r in pool: by_marks.setdefault(r["m"], []).append(r)
     pick, seen, marks, i = [], {}, sorted(by_marks), 0
-    while len(pick) < min(a.n, len(pool)):          # round-robin over mark values, preferring series not yet used
+    if a.ids:   # exactly these parts, in this order (each must be a candidate: 1 to 3 marks, own scheme, no multiple choice)
+        want = Path(a.ids).read_text().split()
+        have = {r["id"]: r for r in select_parts.candidates(a.slug)[0]}
+        pick = [have[w] for w in want if w in have]
+    while not a.ids and len(pick) < min(a.n, len(pool)):          # round-robin over mark values, preferring series not yet used
         m = marks[i % len(marks)]; i += 1
         lst = by_marks[m]
         if not lst: continue

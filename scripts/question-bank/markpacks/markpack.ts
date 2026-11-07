@@ -168,6 +168,51 @@ export function coverage(phrase: string, ocr: Set<string>, compact = ""): number
 /** A point's wording may differ a little from the OCR (brackets, line breaks), so it needs most words; a list item is a quote. */
 export const POINT_COVERAGE_FLOOR = 0.6;
 
+/**
+ * Comment text that ALLOCATES marks ("allow for 1 mark ...", "max 1 out of M2 and M3", "up to 2"): a text marker cannot enforce that, so a pack carrying it
+ * would let a student be given more (or fewer) marks than the scheme allows. Found by an independent audit of a real pack (AQA GCSE Chemistry 8462/2H
+ * 09.1: three alternatives "for 1 mark" kept as three separate allowances). Such a pack is held, never published. A numeric range ("(a maximum of) 0.3 either
+ * side of the mean") is not mark allocation and does not match.
+ */
+export const MARK_ALLOCATION = /\bfor\s+(?:\d+|one|two|three)\s+marks?\b|\bmax(?:imum)?\s+(?:of\s+)?(?:\d+|one|two|three)\b|\bup to\s+(?:\d+|one|two|three)\b|\b(?:\d+|one|two|three)\s+marks?\s+(?:max|only|maximum)\b|\bout of\s+M\d/i;
+
+/** The comment texts of a reading that allocate marks (empty when none). */
+export function markAllocation(pack: ExtractedPack): string[] {
+  const texts = [...pack.accept, ...pack.reject, ...pack.ignore].map((i) => i.text).concat(pack.other_guidance);
+  return texts.filter((t) => MARK_ALLOCATION.test(t)).map((t) => t.slice(0, 80));
+}
+
+/**
+ * Words with which a board qualifies an accept/reject/ignore note in its own text ("do not allow it costs less UNLESS QUALIFIED", "if neither given allow ...",
+ * "... alone"). A pack item that quotes the phrase but drops the qualifier changes what is credited (the reject "it costs less" would also reject a qualified,
+ * correct answer: a student told they are wrong). Found by independent audit of real packs (AQA A-level Chemistry 74041-jun25-01-2; AQA GCSE Biology 84612h-jun24-04-8).
+ */
+export const BOARD_QUALIFIER = /\b(unless|if neither|only if|only when|alone|unqualified|provided|on its own)\b/i;
+
+/** The pack items whose phrase the board's text qualifies within the same clause, while the item's own text carries no qualifier. Needs the board's text layer. */
+export function lostQualifiers(pack: ExtractedPack, boardText: string | undefined): string[] {
+  if (!boardText) return [];
+  const flat = boardText.replace(/\s+/g, " ");
+  const out: string[] = [];
+  for (const it of [...pack.accept, ...pack.reject, ...pack.ignore]) {
+    if (BOARD_QUALIFIER.test(it.text)) continue;
+    const phrase = it.text.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    if (phrase.length < 6) continue;
+    if (new RegExp(`${phrase}[^.;]{0,40}?${BOARD_QUALIFIER.source}`, "i").test(flat)) out.push(it.text.slice(0, 60));
+  }
+  return out;
+}
+
+/**
+ * NOT a hold: guidance the reading left on no mark point although the scheme has several. In an independent audit of 373 real packs this was present in 21%
+ * of them and in 10 of the 22 packs the audit found defective (but 67 audited-clean packs carry it too), so it cannot decide a pack alone: it only says which
+ * packs to audit first.
+ */
+export function unattachedGuidance(pack: ExtractedPack): string[] {
+  if (pack.points.length < 2) return [];
+  return [...pack.accept, ...pack.reject, ...pack.ignore].filter((i) => i.point === null).map((i) => i.text.slice(0, 60));
+}
+
 // ---------------------------------------------------------------------------------------
 // The gates
 // ---------------------------------------------------------------------------------------
@@ -218,6 +263,8 @@ export function gatePack(raw: unknown, part: BankPartRef, ocrText: string | unde
   if (pack.needs_figure_or_table) held.push("needs a figure or table");
   if (pack.answer_kind !== "points") held.push(`answer kind is ${pack.answer_kind}`);
   if (pack.issues.length > 0) held.push("the reading flagged its own doubt");
+  if (markAllocation(pack).length > 0) held.push("a comment allocates marks, which a text marker cannot enforce");
+  if (lostQualifiers(pack, ocrText).length > 0) held.push("the board qualifies a note (unless, if neither, alone) and the pack's item does not");
 
   if (rejected.length > 0) return { status: "rejected", pack: null, reasons: rejected };
   if (held.length > 0) return { status: "held", pack, reasons: held };

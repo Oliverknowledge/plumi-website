@@ -154,3 +154,102 @@ readers also read the text file).
 writes a `.sql` file; it applies nothing. The SQL is board material and stays out of git. 52 agreed packs were generated across six subjects
 (Biology 35, A-level Chemistry 4, A-level Psychology 4, GCSE Biology 3, GCSE Chemistry 3, OCR Chemistry A 3) and applied to a throwaway local
 Postgres only: all 52 stored, twice, with no error.
+
+## Wave 1: the ten busiest banks, parts students actually attempted (7 Nov 2026)
+
+Scope (chosen with the founder): Chemistry, Biology, Physics and Combined Science, UK GCSE and A-level, the 10 banks students have marked most (real marks in
+`bank_attempt`): AQA GCSE Chemistry, OCR A-level Biology A, AQA A-level Chemistry, OCR A-level Chemistry A, AQA A-level Biology, AQA GCSE Biology, OCR GCSE Biology A,
+OCR A-level Physics A, OCR GCSE Physics A, AQA GCSE Combined Science. Wave 1 is the 1,589 parts in those banks that students have attempted AND the pipeline can
+read (1 to 3 marks, own scheme, no multiple choice, no figure/table/drawing/tick words) AND that were not packed yet. `prepare_wave.py` cuts them into batches of 60;
+`wave_step.py` runs the per-batch routine; `READER.md` / `AUDITOR.md` (in the wave folder) are the two agents' instructions.
+
+The routine for every batch, with the rules enforced in `wave_step.py`:
+1. Two independent Claude readers (outA, outB), four chunks of 15 each; `verify_pair.ts` keeps a part only if both pass the gates AND agree on everything that decides a mark.
+2. An independent Claude auditor checks a seeded sample of 12 agreed packs against the board's own scheme image (it did not write them).
+3. Nothing is loaded unless the audit is clean. If ANY audited pack has a problem, every other agreed pack in the batch is audited too, and only packs audited clean individually are loaded.
+4. A pack with an audit problem is never loaded. Loaded packs are applied to the live store with `mark_pack_publish` (idempotent); a live pack can be withdrawn with `mark_pack_withdraw`.
+
+| Bank / batch | parts | agreed | audit | loaded |
+|---|---|---|---|---|
+| AQA GCSE Chemistry b01 | 60 | 46 | 12 of 12 clean | 46 |
+| AQA GCSE Chemistry b02 | 60 | 41 | 12 of 12 clean | 41 |
+| AQA GCSE Chemistry b03 | 60 | 49 | 12 of 12 clean | 49 |
+| AQA GCSE Chemistry b04 | 53 | 37 | sample found 1 defect; all 37 audited, all clean | 37 |
+| AQA A-level Chemistry b01 | 60 | 37 | sample found 1 minor; all 37 audited: 35 clean, 2 minor | 35 |
+| AQA A-level Chemistry b02 | 60 | 21 | sample found 4 of 12 (1 marking); all 21 audited | 16 |
+| AQA A-level Biology b01 | 60 | 38 | 12 of 12 clean | 38 |
+| AQA GCSE Biology b01 | 60 | 49 | 12 of 12 clean | 49 |
+| AQA A-level Biology b02 | 60 | 33 | sample found 2 of 12 (1 marking); all 33 audited | 31 |
+| AQA GCSE Biology b02 | 60 | 33 | sample found 2 of 12 (2 marking); all 33 audited | 28 |
+| AQA A-level Biology b03 | 60 | 32 | 12 of 12 clean; all 32 audited, 1 minor | 31 |
+| AQA GCSE Biology b03 | 60 | 34 | 12 of 12 clean; all 34 audited, 1 marking | 33 |
+| AQA A-level Chemistry b03 | 60 | 16 | 12 of 12 clean; all 16 audited, all clean | 16 |
+| AQA GCSE Combined Science b01 | 60 | 43 | 12 of 12 clean; all 43 audited, all clean | 43 |
+| AQA A-level Biology b04 | 7 | 2 | all 2 audited, clean | 2 |
+| AQA GCSE Biology b04 | 7 | 5 | all 5 audited, 1 minor | 4 |
+| AQA GCSE Combined Science b02 | 13 | 8 | all 8 audited, 1 marking | 7 |
+| OCR A-level Biology A b01 (first read, before the text-layer fix) | 60 | 22 | sample found 4 of 12 (1 marking) | 0 (paused) |
+| OCR A-level Biology A b01 (same readings, after the fix) | 60 | 30 | 1 of 12 in the sample; all 30 audited: 9 problems (2 marking, 7 minor) | 21 |
+| OCR A-level Chemistry A b01 | 60 | 21 | sample found 2 of 12; all 21 audited | 20 |
+| OCR GCSE Biology A b01 | 60 | 21 | sample found 1 of 12; all 21 audited | 20 |
+| OCR A-level Biology A b02 | 60 | 31 | 12 of 12 clean; all 31 audited, 3 problems | 28 |
+| OCR A-level Chemistry A b02 | 60 | 26 | 12 of 12 clean; all 26 audited, all clean | 26 |
+| OCR A-level Biology A b03 (two DeepSeek reads, no pictures; Claude audit) | 60 | 17 | all 17 audited, 1 problem | 16 |
+| OCR A-level Biology A b04 | 60 | 23 | all 23 audited, 1 problem | 22 |
+| OCR A-level Chemistry A b03 | 38 | 21 | all 21 audited, 1 minor (label) | 20 |
+| OCR GCSE Physics A b01 | 56 | 24 | all 24 audited: 7 problems (5 marking) | 17 |
+| OCR A-level Physics A b01 | 60 | 10 | all 10 audited, 1 problem | 9 |
+| OCR A-level Biology A b05 | 16 | 6 | all 6 audited, all clean | 6 |
+| OCR GCSE Biology A b02 | 26 | 13 | all 13 audited: 2 problems (1 marking) | 11 |
+
+Live after the AQA batches: 558 packs (AQA GCSE Chemistry 176, A-level Biology 137, GCSE Biology 117, A-level Chemistry 71, GCSE Combined Science 50, A-level
+Psychology 4, OCR A-level Chemistry A 3). Even when a 12-pack sample was clean, every remaining agreed pack was audited before loading (the earlier batches had defects
+outside the sample). The recurring defect class in the audits: a scheme's single "allow A / B" note stored as separate bare accepts (so a half-phrase could earn the
+mark), or a condition ("if neither given", "1 mark for ...") stored as an unconditional accept. Both are caught by the audit; there is no deterministic gate for them yet.
+
+Cost, measured: about 18,000 tokens per part for the two readers, plus about 9,000 per audited part. Claude Haiku as a reader was tested on the 60-part Biology benchmark:
+same tokens per part (22,664), fewer agreed (22 against 32), and 3 of its 22 "agreed" packs were not confirmed by the Claude readers: not used.
+
+What the audits found (each is now a rule or a limit, not a surprise):
+- **Mark allocation in a comment** ("allow for 1 mark ... or ...", "max 1 out of M2 and M3"): a text marker cannot enforce it. `gatePack` now HOLDS any pack whose accept /
+  reject / ignore / guidance text allocates marks (`MARK_ALLOCATION`, `markpack.test.ts`). The same pattern was found in 2 live packs, which were withdrawn
+  (AQA A-level Chemistry `chem1-jan13-03-b`, AQA A-level Biology `74012-jun18-06-1`).
+- **Guidance attached to the whole question instead of one mark point** (OCR layouts, some AQA A-level): over-credit risk. Not yet a gate: OCR is paused (below).
+- **Conventions a text pack cannot carry**: underlined required words, "not X" rejects, drawn structures (A-level Chemistry). Those packs are caught by the audit and not loaded.
+- **OCR**: the board text layer for OCR schemes is cut from the WRONG question for many parts (e.g. 5(a)(i) got the chi-squared question's rows), so the word check rejects
+  them (correct, fail closed): 18 of 60 rejected, 15 disagree. Fix needed in `pdf_text.py` for OCR layouts before any more OCR reading is worth spending.
+- Agreement is not correctness, and the audit is the same model family as the readers, not an examiner; it checks fidelity to the printed scheme, not marking accuracy.
+
+## OCR text-layer fix, the gate measurement and the text-first pilot (7 Nov 2026)
+
+**OCR fix.** `pdf_text.py` ended a part's text at the first line that looked like another question's label, but OCR schemes number their mark POINTS ("1", "2", "3")
+inside the answer cell, so Q25(b) of H020/01 June 2016 was cut after its first point. A neighbouring label now counts only at the part's own left margin
+(`MARGIN_SLACK`). Same two readings of OCR A-level Biology A batch 1: 22 agreed became 30 (rejected 18 became 5), no model calls. `refresh_text.py` regenerates a prepared
+batch's text layer (no images fetched). Applied to all 13 prepared OCR batches (a third to a half of their segments changed).
+
+**Gate measurement (373 audited real packs, 22 found defective by the independent audit).** A deterministic rule can only be a HOLD if it is selective:
+
+| rule | flags | defects caught (of 22) | clean packs wrongly flagged |
+|---|---|---|---|
+| a qualifier the board prints ("unless qualified", "if neither given", "alone") missing from the pack's item (`lostQualifiers`) | 5 | 2 | 3 |
+| guidance left on no point although the scheme has several (`unattachedGuidance`) | 77 | 10 | 67 |
+| an "A / B" chain split into separate items, or a one-word fragment next to a slash | 28 | 4 | 24 |
+
+Only the first is a hold. The second is a report (which packs to audit first); the third is not usable because "xylem / phloem" and "atoms / elements" are genuinely
+separate alternatives. A deterministic gate cannot replace the audit: all four rules together flag 27 percent of packs for 14 of 22 defects.
+
+**Coverage.** 35 UK GCSE/A-level science banks hold 70,221 parts; 54,489 are readable by this pipeline (1 to 3 marks, own scheme, no multiple choice). With two readers plus
+audit at about 27,000 tokens a part, the 10 busiest banks alone are about 400 million tokens more and all 35 about 1.5 billion: not the route to "every question".
+
+**Text-first pilot (single reader, no pictures).** 66 parts already audited from picture reads (AQA GCSE Biology b02, AQA A-level Biology b02) were re-read from text only
+(the board's text layer plus the bank's OCR) and compared with the audited picture pack by the production agreement code. Of the 59 whose picture pack was audited clean,
+the text-only reading agreed on 44 (75 percent), held itself on 6 (it flagged its own doubt: the right outcome), and disagreed on 9, every one a difference in how a slash
+alternative is grouped, which text alone cannot settle. Of 7 parts whose picture pack the audit found defective, the text-only reading agreed with the defective pack on 3:
+agreement is not correctness. Cost: the text readers used about 11,000 tokens a part through agents, no cheaper than picture readers (about 9,000), because an agent re-reads its
+whole instruction set each turn. The saving has to come from one short prompt per part through a cheap API model, which this pilot does not test.
+
+**Position after the OCR batches.** 774 packs live in 11 banks (AQA GCSE Chemistry 176, AQA A-level Biology 137, AQA GCSE Biology 117, OCR A-level Biology A 93, AQA A-level
+Chemistry 71, OCR A-level Chemistry A 69, AQA GCSE Combined Science 50, OCR GCSE Biology A 31, OCR GCSE Physics A 17, OCR A-level Physics A 9, AQA A-level Psychology 4).
+Not done in wave 1: OCR A-level Physics A batch 2 (6 parts) and the 43 parts of OCR A-level Biology A batch 3 the two DeepSeek reads did not agree on. Physics yields are low
+(10 of 60 for OCR A-level Physics) because calculation, figure and graph answers are held by design; the recurring Physics audit defects are a compulsory mark plus "any N from M"
+flattened into equal points, and paired Either/Or routes whose pairing is lost. The mark-pack store has no representation for either, so those parts need a richer pack shape, not more reading.
