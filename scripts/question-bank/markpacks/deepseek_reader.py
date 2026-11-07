@@ -5,13 +5,13 @@
 
 <batchDir> holds prompt.txt (the instruction set, used as the system message), text/<id>.txt (the board's text layer for the scheme) and either ocr/<id>.txt or
 _ocr.json at the batch root (the bank's OCR: question then scheme). Writes <batchDir>/<out>/<id>.json with the model's JSON and <out>/_usage.json. The key is
-injected by the session's network proxy: nothing here reads or sends a credential. It STOPS when the token budget is spent (default 600,000 tokens, about
-$0.15 at DeepSeek list prices), so a mistake cannot become a bill. Model: deepseek-chat by default (the non-thinking mode of the same flash model the app uses); --model deepseek-flash --max-out 6000 is its thinking mode.
+injected by the session's network proxy: nothing here reads or sends a credential. It STOPS when the token budget is spent (default 600,000 tokens), so a mistake cannot become a bill. Model: deepseek-chat by default (the non-thinking mode of the same flash model the app uses); --model deepseek-flash --max-out 6000 is its thinking mode.
 """
 import argparse, concurrent.futures as cf, json, re, sys, threading, time, urllib.request
 from pathlib import Path
 
 URL = "https://api.deepseek.com/chat/completions"
+PRICE_IN, PRICE_OUT = 0.30, 1.20   # dollars per million tokens: the same figures extract.py and the app's cost meter use (thinking mode is mostly output tokens, so it costs several times more)
 MODEL = "deepseek-chat"
 USER = "BOARD TEXT LAYER (exact words, columns may be run together):\n<<<\n{text}\n>>>\n\nBANK OCR OF THE PART (question first, then its scheme, lossy):\n<<<\n{ocr}\n>>>\n\nReturn the JSON object only."
 
@@ -59,8 +59,8 @@ def main():
         for i, s in ex.map(one, ids): res[i] = s
     (out / "_usage.json").write_text(json.dumps(used, indent=1))
     counts = {s: sum(1 for v in res.values() if v == s) for s in set(res.values())}
-    est = used["prompt"] / 1e6 * 0.28 + used["completion"] / 1e6 * 0.42
-    print(json.dumps(counts), f"tokens in {used['prompt']} out {used['completion']} (about ${est:.3f} at list prices)")
+    est = used["prompt"] / 1e6 * PRICE_IN + used["completion"] / 1e6 * PRICE_OUT
+    print(json.dumps(counts), f"tokens in {used['prompt']} out {used['completion']} (about ${est:.3f} at the app's prices)")
     if used["failed"]: print("failed:", used["failed"][:3])
 
 if __name__ == "__main__": main()
