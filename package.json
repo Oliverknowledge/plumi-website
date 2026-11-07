@@ -37,6 +37,7 @@
     "library:test": "tsx --test src/lib/studyapp/library/*.test.ts src/lib/studyapp/library/people/*.test.ts src/lib/social/library.test.ts",
     "social:verify": "npm run -s social:test && npm run -s social:check-sql -- --check && npm run -s social:vectors -- --check",
     "seo:map": "tsx scripts/build-keyword-map.ts",
+    "papers:test": "tsx --test src/lib/ownPapers.test.ts",
     "papers:fetch": "for b in aqa edexcel ocr wjec cie; do python3 scripts/past-papers/boards/$b.py || exit 1; done",
     "papers:build": "python3 scripts/past-papers/build.py",
     "papers:upload": "python3 scripts/past-papers/upload.py",
