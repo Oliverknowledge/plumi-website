@@ -42,6 +42,9 @@ beside the A-Level languages' `aqa/audio/76521-…`).
   loses its notice page. The specimens regain what the old cut lost: `8692rf-spec-37` to `39` their chat, `8692rh-spec-04` to `07` their article.
   Foundation Writing's "Answer either..." moves to Question 4 whole. `8692lf-spec-04`'s crop was already clean, so
   only its search text changed. Marks and paper totals stayed the same, and French, German and Bengali weren't re-cut.
+- **`8692lh-spec-22` (November 2026):** it prints only "Answer both parts of question 22." and shares question 21's setup, "A local event".
+  The 4 November re-cut gave its two rows `st` but not `sk`, so the site asked for a crop that doesn't exist. They now carry `sk`, and
+  `recut_compare.py apply` writes it.
 - **Left out:** Paper 2 Speaking (teacher-marked role-plays and photo cards); questions whose text AQA
   removes from its copyright-removed copies, the only copies it publishes of nine Reading papers (Bengali
   Reading June 2024 and 2025, both tiers; Spanish Reading Foundation November 2020 and June 2024, Higher
