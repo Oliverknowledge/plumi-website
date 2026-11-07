@@ -37,6 +37,8 @@
   },
 
   "wire": {
+    "tombstones": "A tombstone needs only the row's key (id; task_id and day; or key), deleted_at_ms and the base revision it was made against: every other field is ignored. A tombstone for a row the server never had is refused as no_row (there is nothing to forget). A later content edit made after the deleting device last looked survives a delete; a review never brings a deleted card back.",
+    "last_writer_wins": "Decks, tasks, ticked occurrences and flags are whole-row last-writer-wins on (clamped time, device id); only a card's CONTENT keeps both (a conflict copy). A device that has seen the server's latest revision (base >= current) always applies.",
     "comment": "All times are milliseconds since the epoch (integers). All keys are snake_case. A key that is absent means 'not part of this change'; an explicit null is a value. `base_*_rev` is the revision of that group the device last saw from the server (0 when it has never seen the row): it is how the server tells a stale write from an up-to-date one.",
 
     "deck": {
@@ -83,9 +85,9 @@
   "push_response": {
     "rev": "integer: the account's revision after this push",
     "applied": "integer: rows changed",
-    "conflicts": "[{ kind, id, copy_id }]: a content conflict was kept as a copy; copy_id is the new card",
-    "refused": "[{ kind, id, reason }]: reason is one of quota, too_long, bad_row, no_row, bad_id",
-    "rows": "the server's current version of every row this push touched, in the pull row shape: apply these, do not guess"
+    "conflicts": "[{ kind, id, copy_id }]: a content conflict was kept as a copy; kind is always 'card'; copy_id is the new card",
+    "refused": "[{ kind, id, reason }]: kind is singular (deck, card, task, task_done, flag); a task_done id is '<task id>|<day>'; reason is one of quota, too_long, bad_row, no_row, bad_id. Only that row is refused: every other row in the push is applied",
+    "rows": "an OBJECT keyed like a pull (decks, cards, tasks, task_done, flags), each an array of pull rows: the server's current version of every row this push touched, including a row it left alone because the push was stale or already applied. Apply these, do not guess. A conflict copy is among them."
   },
 
   "pull_response": {
@@ -93,7 +95,7 @@
     "next": "integer: the cursor to send next time (the last revision in this page)",
     "more": "boolean: there are more rows after this page",
     "decks": "[pull row]", "cards": "[pull row]", "tasks": "[pull row]", "task_done": "[pull row]", "flags": "[pull row]",
-    "row_shape": "the wire shape above PLUS: rev, content_rev (card and deck), sched_rev (card), device_id (of the last writer), conflict_of (card: the id it is a copy of, or null), deleted_at_ms (null when alive)"
+    "row_shape": "the wire shape above PLUS: rev, content_rev (card and deck), sched_rev (card), device_id (of the last writer), conflict_of (card: the id it is a copy of, or null), deleted_at_ms (null when alive). A page never splits a revision: a revision bigger than p_limit is returned whole, and `more` is false when nothing is left. Real answers are in tools/sync-contract/fixtures."
   },
 
   "schedule": {

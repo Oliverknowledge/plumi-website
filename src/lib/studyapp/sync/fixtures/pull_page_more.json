@@ -1,0 +1,83 @@
+{
+    "rev": 2,
+    "more": true,
+    "next": 1,
+    "cards": [
+        {
+            "id": "FLASH-GOLDEN-0001",
+            "rev": 1,
+            "sched": {
+                "core": {
+                    "ease": 2.3,
+                    "due_ms": 1763000000000,
+                    "lapses": 0,
+                    "interval_days": 3,
+                    "last_reviewed_ms": 1762500000000
+                },
+                "extra": {
+                    "ios": {
+                        "box": 2
+                    }
+                }
+            },
+            "content": {
+                "back": "mass / volume",
+                "front": "Define density",
+                "position": 1,
+                "back_image": "crop-7.png",
+                "front_image": null
+            },
+            "deck_id": "d_golden",
+            "device_id": "device-WEB0001",
+            "sched_rev": 1,
+            "conflict_of": null,
+            "content_rev": 1,
+            "sched_at_ms": 1762400003000,
+            "content_at_ms": 1762400003000,
+            "created_at_ms": 1762400000000,
+            "deleted_at_ms": null
+        }
+    ],
+    "decks": [
+    ],
+    "flags": [
+        {
+            "key": "mark_scheme_redeemed",
+            "rev": 1,
+            "value": true,
+            "device_id": "device-WEB0001",
+            "edited_at_ms": 1762400005000,
+            "deleted_at_ms": null
+        }
+    ],
+    "tasks": [
+        {
+            "id": "t_golden1",
+            "day": "2026-11-09",
+            "rev": 1,
+            "text": "Past paper, Paper 1",
+            "has_ink": false,
+            "subject": "Chemistry",
+            "device_id": "device-WEB0001",
+            "done_at_ms": null,
+            "sort_order": 0,
+            "filed_at_ms": null,
+            "repeat_days": 0,
+            "edited_at_ms": 1762400004000,
+            "created_at_ms": 1762400000000,
+            "deleted_at_ms": null
+        }
+    ],
+    "task_done": [
+        {
+            "day": "2026-11-09",
+            "rev": 1,
+            "task_id": "t_golden1",
+            "device_id": "device-WEB0001",
+            "done_at_ms": 1762450000000,
+            "filed_at_ms": null,
+            "edited_at_ms": 1762450000000,
+            "deleted_at_ms": null
+        }
+    ]
+}

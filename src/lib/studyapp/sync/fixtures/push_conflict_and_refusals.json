@@ -1,0 +1,131 @@
+{
+    "rev": 2,
+    "rows": {
+        "cards": [
+            {
+                "id": "c_golden1",
+                "rev": 2,
+                "sched": {
+                    "core": {
+                        "ease": 2.5,
+                        "due_ms": 1763000000000,
+                        "lapses": 1,
+                        "interval_days": 6,
+                        "last_reviewed_ms": 1762500000000
+                    },
+                    "extra": {
+                        "web": {
+                            "reps": 4,
+                            "step": 0,
+                            "state": "review",
+                            "relearn_to": null
+                        }
+                    }
+                },
+                "content": {
+                    "back": "6.02e23 particles",
+                    "front": "What is a mole? (iPad edit)",
+                    "position": 0,
+                    "back_image": null,
+                    "front_image": null
+                },
+                "deck_id": "d_golden",
+                "device_id": "device-IOS0001",
+                "sched_rev": 1,
+                "conflict_of": null,
+                "content_rev": 2,
+                "sched_at_ms": 1762400002000,
+                "content_at_ms": 1762400007000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            },
+            {
+                "id": "c_golden1~c2",
+                "rev": 2,
+                "sched": {
+                    "core": {
+                        "ease": 2.5,
+                        "due_ms": 1763000000000,
+                        "lapses": 1,
+                        "interval_days": 6,
+                        "last_reviewed_ms": 1762500000000
+                    },
+                    "extra": {
+                        "web": {
+                            "reps": 4,
+                            "step": 0,
+                            "state": "review",
+                            "relearn_to": null
+                        }
+                    }
+                },
+                "content": {
+                    "back": "6.02e23 particles",
+                    "front": "What is a mole?",
+                    "position": 0,
+                    "back_image": null,
+                    "front_image": null
+                },
+                "deck_id": "d_golden",
+                "device_id": "device-IOS0001",
+                "sched_rev": 2,
+                "conflict_of": "c_golden1",
+                "content_rev": 2,
+                "sched_at_ms": 1762400002000,
+                "content_at_ms": 1762400002000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            }
+        ],
+        "decks": [
+            {
+                "id": "d_golden",
+                "rev": 2,
+                "title": "Chemistry",
+                "origin": "own",
+                "subject": "Chemistry",
+                "device_id": "device-IOS0001",
+                "content_rev": 1,
+                "edited_at_ms": 1762400001000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            }
+        ],
+        "flags": [
+        ],
+        "tasks": [
+        ],
+        "task_done": [
+        ]
+    },
+    "applied": 2,
+    "refused": [
+        {
+            "id": "d_too_long",
+            "kind": "deck",
+            "reason": "too_long"
+        },
+        {
+            "id": "bad id with spaces",
+            "kind": "card",
+            "reason": "bad_id"
+        },
+        {
+            "id": "c_never_seen",
+            "kind": "card",
+            "reason": "no_row"
+        },
+        {
+            "id": "t_bad_day",
+            "kind": "task",
+            "reason": "bad_row"
+        }
+    ],
+    "conflicts": [
+        {
+            "id": "c_golden1",
+            "kind": "card",
+            "copy_id": "c_golden1~c2"
+        }
+    ]
+}

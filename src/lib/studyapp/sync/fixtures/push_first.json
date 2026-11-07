@@ -1,0 +1,137 @@
+{
+    "rev": 1,
+    "rows": {
+        "cards": [
+            {
+                "id": "FLASH-GOLDEN-0001",
+                "rev": 1,
+                "sched": {
+                    "core": {
+                        "ease": 2.3,
+                        "due_ms": 1763000000000,
+                        "lapses": 0,
+                        "interval_days": 3,
+                        "last_reviewed_ms": 1762500000000
+                    },
+                    "extra": {
+                        "ios": {
+                            "box": 2
+                        }
+                    }
+                },
+                "content": {
+                    "back": "mass / volume",
+                    "front": "Define density",
+                    "position": 1,
+                    "back_image": "crop-7.png",
+                    "front_image": null
+                },
+                "deck_id": "d_golden",
+                "device_id": "device-WEB0001",
+                "sched_rev": 1,
+                "conflict_of": null,
+                "content_rev": 1,
+                "sched_at_ms": 1762400003000,
+                "content_at_ms": 1762400003000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            },
+            {
+                "id": "c_golden1",
+                "rev": 1,
+                "sched": {
+                    "core": {
+                        "ease": 2.5,
+                        "due_ms": 1763000000000,
+                        "lapses": 1,
+                        "interval_days": 6,
+                        "last_reviewed_ms": 1762500000000
+                    },
+                    "extra": {
+                        "web": {
+                            "reps": 4,
+                            "step": 0,
+                            "state": "review",
+                            "relearn_to": null
+                        }
+                    }
+                },
+                "content": {
+                    "back": "6.02e23 particles",
+                    "front": "What is a mole?",
+                    "position": 0,
+                    "back_image": null,
+                    "front_image": null
+                },
+                "deck_id": "d_golden",
+                "device_id": "device-WEB0001",
+                "sched_rev": 1,
+                "conflict_of": null,
+                "content_rev": 1,
+                "sched_at_ms": 1762400002000,
+                "content_at_ms": 1762400002000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            }
+        ],
+        "decks": [
+            {
+                "id": "d_golden",
+                "rev": 1,
+                "title": "Chemistry",
+                "origin": "own",
+                "subject": "Chemistry",
+                "device_id": "device-WEB0001",
+                "content_rev": 1,
+                "edited_at_ms": 1762400001000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            }
+        ],
+        "flags": [
+            {
+                "key": "mark_scheme_redeemed",
+                "rev": 1,
+                "value": true,
+                "device_id": "device-WEB0001",
+                "edited_at_ms": 1762400005000,
+                "deleted_at_ms": null
+            }
+        ],
+        "tasks": [
+            {
+                "id": "t_golden1",
+                "day": "2026-11-09",
+                "rev": 1,
+                "text": "Past paper, Paper 1",
+                "has_ink": false,
+                "subject": "Chemistry",
+                "device_id": "device-WEB0001",
+                "done_at_ms": null,
+                "sort_order": 0,
+                "filed_at_ms": null,
+                "repeat_days": 0,
+                "edited_at_ms": 1762400004000,
+                "created_at_ms": 1762400000000,
+                "deleted_at_ms": null
+            }
+        ],
+        "task_done": [
+            {
+                "day": "2026-11-09",
+                "rev": 1,
+                "task_id": "t_golden1",
+                "device_id": "device-WEB0001",
+                "done_at_ms": 1762450000000,
+                "filed_at_ms": null,
+                "edited_at_ms": 1762450000000,
+                "deleted_at_ms": null
+            }
+        ]
+    },
+    "applied": 6,
+    "refused": [
+    ],
+    "conflicts": [
+    ]
+}

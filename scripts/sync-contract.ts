@@ -6,7 +6,7 @@
  * single byte; says "skipped (no SYNC_CONTRACT_SOURCE)" and exits 0 when the variable is not set, so a checkout without the iPad
  * repo is not stopped.
  */
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const source = process.env.SYNC_CONTRACT_SOURCE;
@@ -23,5 +23,23 @@ const copy = join(__dirname, "..", "src", "lib", "studyapp", "sync", "CONTRACT.j
 if (!readFileSync(original).equals(readFileSync(copy))) {
   console.error(`FAILED: ${copy} differs from ${original}. Copy the original over it (the iPad repo owns the file).`);
   process.exit(1);
+}
+// The real answers written by the SQL (tools/sync-contract/fixtures): the website's copies must match too.
+const fixturesFrom = join(existsSync(source) && statSync(source).isDirectory() ? source : join(source, ".."), "fixtures");
+const fixturesTo = join(__dirname, "..", "src", "lib", "studyapp", "sync", "fixtures");
+if (existsSync(fixturesFrom)) {
+  const names = readdirSync(fixturesFrom).filter((n) => n.endsWith(".json")).sort();
+  const have = existsSync(fixturesTo) ? readdirSync(fixturesTo).filter((n) => n.endsWith(".json")).sort() : [];
+  if (names.join() !== have.join()) {
+    console.error(`FAILED: the fixtures differ: original has [${names.join(", ")}], the website has [${have.join(", ")}].`);
+    process.exit(1);
+  }
+  for (const n of names) {
+    if (!readFileSync(join(fixturesFrom, n)).equals(readFileSync(join(fixturesTo, n)))) {
+      console.error(`FAILED: fixtures/${n} differs from the original in ${fixturesFrom}.`);
+      process.exit(1);
+    }
+  }
+  console.log(`ok: ${names.length} fixtures are byte-identical to the originals`);
 }
 console.log("ok: the website's CONTRACT.json is byte-identical to the original");
