@@ -192,6 +192,15 @@ The routine for every batch, with the rules enforced in `wave_step.py`:
 | OCR A-level Biology A b01 (same readings, after the fix) | 60 | 30 | 1 of 12 in the sample; all 30 audited: 9 problems (2 marking, 7 minor) | 21 |
 | OCR A-level Chemistry A b01 | 60 | 21 | sample found 2 of 12; all 21 audited | 20 |
 | OCR GCSE Biology A b01 | 60 | 21 | sample found 1 of 12; all 21 audited | 20 |
+| OCR A-level Biology A b02 | 60 | 31 | 12 of 12 clean; all 31 audited, 3 problems | 28 |
+| OCR A-level Chemistry A b02 | 60 | 26 | 12 of 12 clean; all 26 audited, all clean | 26 |
+| OCR A-level Biology A b03 (two DeepSeek reads, no pictures; Claude audit) | 60 | 17 | all 17 audited, 1 problem | 16 |
+| OCR A-level Biology A b04 | 60 | 23 | all 23 audited, 1 problem | 22 |
+| OCR A-level Chemistry A b03 | 38 | 21 | all 21 audited, 1 minor (label) | 20 |
+| OCR GCSE Physics A b01 | 56 | 24 | all 24 audited: 7 problems (5 marking) | 17 |
+| OCR A-level Physics A b01 | 60 | 10 | all 10 audited, 1 problem | 9 |
+| OCR A-level Biology A b05 | 16 | 6 | all 6 audited, all clean | 6 |
+| OCR GCSE Biology A b02 | 26 | 13 | all 13 audited: 2 problems (1 marking) | 11 |
 
 Live after the AQA batches: 558 packs (AQA GCSE Chemistry 176, A-level Biology 137, GCSE Biology 117, A-level Chemistry 71, GCSE Combined Science 50, A-level
 Psychology 4, OCR A-level Chemistry A 3). Even when a 12-pack sample was clean, every remaining agreed pack was audited before loading (the earlier batches had defects
@@ -238,3 +247,9 @@ the text-only reading agreed on 44 (75 percent), held itself on 6 (it flagged it
 alternative is grouped, which text alone cannot settle. Of 7 parts whose picture pack the audit found defective, the text-only reading agreed with the defective pack on 3:
 agreement is not correctness. Cost: the text readers used about 11,000 tokens a part through agents, no cheaper than picture readers (about 9,000), because an agent re-reads its
 whole instruction set each turn. The saving has to come from one short prompt per part through a cheap API model, which this pilot does not test.
+
+**Position after the OCR batches.** 774 packs live in 11 banks (AQA GCSE Chemistry 176, AQA A-level Biology 137, AQA GCSE Biology 117, OCR A-level Biology A 93, AQA A-level
+Chemistry 71, OCR A-level Chemistry A 69, AQA GCSE Combined Science 50, OCR GCSE Biology A 31, OCR GCSE Physics A 17, OCR A-level Physics A 9, AQA A-level Psychology 4).
+Not done in wave 1: OCR A-level Physics A batch 2 (6 parts) and the 43 parts of OCR A-level Biology A batch 3 the two DeepSeek reads did not agree on. Physics yields are low
+(10 of 60 for OCR A-level Physics) because calculation, figure and graph answers are held by design; the recurring Physics audit defects are a compulsory mark plus "any N from M"
+flattened into equal points, and paired Either/Or routes whose pairing is lost. The mark-pack store has no representation for either, so those parts need a richer pack shape, not more reading.
