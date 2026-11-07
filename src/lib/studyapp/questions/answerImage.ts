@@ -15,6 +15,8 @@ export interface AnswerImageOptions {
   paper?: Bg;
   /** Crop to the ink (plus a margin on every side) rather than the whole answer zone. Default true. */
   crop?: boolean;
+  /** Draw the student's writing ON the printed question (their marks on the answer lines) instead of what is in the answer zone. Always cropped to the writing. */
+  onQuestion?: boolean;
 }
 
 /** Room left round the ink in a cropped picture, in logical units. */
@@ -29,7 +31,7 @@ const MAX_SIDE = 4000;
  * The picture is as big as the writing: cropped on all four sides with a small margin (a short answer is a short,
  * narrow picture, not a page that is mostly white), or the whole answer zone with `crop: false`.
  *
- * Built for the AI marking that is not switched on yet (docs/study/questions.md): nothing calls it today except tests.
+ * Used by AI marking (lib/studyapp/marking/picture.ts), which reads handwriting into words for the student to check.
  * The image is drawn from the stored strokes, so it is clean whatever the screen's size or pixel density.
  */
 export async function getAnswerImage(partId: string, o: AnswerImageOptions = {}): Promise<string | null> {
@@ -39,11 +41,11 @@ export async function getAnswerImage(partId: string, o: AnswerImageOptions = {})
     ?? q.sets.find((s) => s.parts.some((p) => p.id === partId));
   const part = set?.parts.find((p) => p.id === partId);
   if (!set || !part) return null;
-  const ink = await loadInk(keyOf(set.id, partId));
+  const ink = await loadInk(keyOf(set.id, partId) + (o.onQuestion ? ":q" : ""));
   const bounds = inkBounds(ink);
   if (!bounds) return null;
   const full = zoneHeight(part, q.answers[keyOf(set.id, partId)]);
-  const crop = o.crop ?? true;
+  const crop = o.onQuestion ? true : (o.crop ?? true);
   // the area to draw, in logical units
   const x0 = crop ? Math.max(0, bounds.x0 - MARGIN) : 0, y0 = crop ? Math.max(0, bounds.y0 - MARGIN) : 0;
   const x1 = crop ? Math.min(REF_W, bounds.x1 + MARGIN) : REF_W, y1 = crop ? Math.max(bounds.y1 + MARGIN, y0 + 40) : Math.max(full, bounds.y1);
