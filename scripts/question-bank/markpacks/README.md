@@ -179,7 +179,21 @@ The routine for every batch, with the rules enforced in `wave_step.py`:
 | AQA A-level Chemistry b02 | 60 | 21 | sample found 4 of 12 (1 marking); all 21 audited | 16 |
 | AQA A-level Biology b01 | 60 | 38 | 12 of 12 clean | 38 |
 | AQA GCSE Biology b01 | 60 | 49 | 12 of 12 clean | 49 |
+| AQA A-level Biology b02 | 60 | 33 | sample found 2 of 12 (1 marking); all 33 audited | 31 |
+| AQA GCSE Biology b02 | 60 | 33 | sample found 2 of 12 (2 marking); all 33 audited | 28 |
+| AQA A-level Biology b03 | 60 | 32 | 12 of 12 clean; all 32 audited, 1 minor | 31 |
+| AQA GCSE Biology b03 | 60 | 34 | 12 of 12 clean; all 34 audited, 1 marking | 33 |
+| AQA A-level Chemistry b03 | 60 | 16 | 12 of 12 clean; all 16 audited, all clean | 16 |
+| AQA GCSE Combined Science b01 | 60 | 43 | 12 of 12 clean; all 43 audited, all clean | 43 |
+| AQA A-level Biology b04 | 7 | 2 | all 2 audited, clean | 2 |
+| AQA GCSE Biology b04 | 7 | 5 | all 5 audited, 1 minor | 4 |
+| AQA GCSE Combined Science b02 | 13 | 8 | all 8 audited, 1 marking | 7 |
 | OCR A-level Biology A b01 | 60 | 22 | sample found 4 of 12 (1 marking) | **0 (paused)** |
+
+Live after the AQA batches: 558 packs (AQA GCSE Chemistry 176, A-level Biology 137, GCSE Biology 117, A-level Chemistry 71, GCSE Combined Science 50, A-level
+Psychology 4, OCR A-level Chemistry A 3). Even when a 12-pack sample was clean, every remaining agreed pack was audited before loading (the earlier batches had defects
+outside the sample). The recurring defect class in the audits: a scheme's single "allow A / B" note stored as separate bare accepts (so a half-phrase could earn the
+mark), or a condition ("if neither given", "1 mark for ...") stored as an unconditional accept. Both are caught by the audit; there is no deterministic gate for them yet.
 
 Cost, measured: about 18,000 tokens per part for the two readers, plus about 9,000 per audited part. Claude Haiku as a reader was tested on the 60-part Biology benchmark:
 same tokens per part (22,664), fewer agreed (22 against 32), and 3 of its 22 "agreed" packs were not confirmed by the Claude readers: not used.
