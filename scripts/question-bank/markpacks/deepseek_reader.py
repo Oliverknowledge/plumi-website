@@ -15,9 +15,9 @@ PRICE_IN, PRICE_OUT = 0.30, 1.20   # dollars per million tokens: the same figure
 MODEL = "deepseek-chat"
 USER = "BOARD TEXT LAYER (exact words, columns may be run together):\n<<<\n{text}\n>>>\n\nBANK OCR OF THE PART (question first, then its scheme, lossy):\n<<<\n{ocr}\n>>>\n\nReturn the JSON object only."
 
-def call(system, user, model=MODEL, max_out=2500, retries=3):
+def call(system, user, model=MODEL, max_out=2500, temp=0.0, retries=3):
     body = json.dumps({"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-                       "temperature": 0, "max_tokens": max_out, "response_format": {"type": "json_object"}}).encode()
+                       "temperature": temp, "max_tokens": max_out, "response_format": {"type": "json_object"}}).encode()
     for k in range(retries):
         try:
             req = urllib.request.Request(URL, data=body, headers={"Content-Type": "application/json"})
@@ -29,10 +29,11 @@ def call(system, user, model=MODEL, max_out=2500, retries=3):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("batch"); ap.add_argument("--out", default="outD"); ap.add_argument("--ids")
     ap.add_argument("--max-tokens", type=int, default=600_000); ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--prompt", help="system prompt file (default: <batch>/prompt.txt)"); ap.add_argument("--temp", type=float, default=0.0)
     ap.add_argument("--model", default=MODEL, help="deepseek-chat (non-thinking) or deepseek-flash (thinking: set --max-out 6000)"); ap.add_argument("--max-out", type=int, default=2500)
     a = ap.parse_args()
     b = Path(a.batch); out = b / a.out; out.mkdir(exist_ok=True)
-    system = (b / "prompt.txt").read_text()
+    system = Path(a.prompt or b / "prompt.txt").read_text()
     ids = (Path(a.ids) if a.ids else b / "ids.txt").read_text().split()
     ocr_all = json.loads((b / "_ocr.json").read_text()) if (b / "_ocr.json").exists() else {}
     used = {"prompt": 0, "completion": 0, "calls": 0, "failed": []}; lock = threading.Lock()
@@ -42,7 +43,7 @@ def main():
             if used["prompt"] + used["completion"] >= a.max_tokens: return i, "budget"
         text = (b / "text" / f"{i}.txt").read_text() if (b / "text" / f"{i}.txt").exists() else ""
         ocr = (b / "ocr" / f"{i}.txt").read_text() if (b / "ocr" / f"{i}.txt").exists() else ocr_all.get(i, "")
-        try: r = call(system, USER.format(text=text[:6000], ocr=ocr[:6000]), a.model, a.max_out)
+        try: r = call(system, USER.format(text=text[:6000], ocr=ocr[:6000]), a.model, a.max_out, a.temp)
         except Exception as e:
             with lock: used["failed"].append(f"{i}: {e}")
             return i, "error"
