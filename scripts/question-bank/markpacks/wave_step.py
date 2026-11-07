@@ -35,12 +35,12 @@ def verify(b):
     shutil.rmtree(b / "agreed", ignore_errors=True)
     print(run("npx", "tsx", "scripts/question-bank/markpacks/verify_pair.ts", str(b / "outA"), str(b / "outB"), str(b / "agreed")).splitlines()[-1])
     ag = agreed(b); pick = ag[:]; random.Random(5).shuffle(pick); pick = sorted(pick[:12])
-    (b / "audit_ids.txt").write_text("\n".join(pick))
+    (b / "audit_ids.txt").write_text("\n".join(pick) + "\n")
     print(f"{len(ag)} agreed of {len(verdicts(b))}; audit sample {len(pick)} written to audit_ids.txt")
 
 def audit_rest(b):
     a = audits(b); rest = sorted(i for i in agreed(b) if i not in a); h = len(rest) // 2
-    (b / "audit_ids_2a.txt").write_text("\n".join(rest[:h])); (b / "audit_ids_2b.txt").write_text("\n".join(rest[h:]))
+    (b / "audit_ids_2a.txt").write_text("\n".join(rest[:h]) + "\n"); (b / "audit_ids_2b.txt").write_text("\n".join(rest[h:]) + "\n")
     print(f"{len(rest)} agreed packs not yet audited: halves of {h} and {len(rest) - h}")
 
 def publish(b, slug, out):
