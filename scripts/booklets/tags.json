@@ -9936,9 +9936,6 @@
 "madas-integration-partial-fractions-004": [
 "integration-techniques"
 ],
-"madas-integration-partial-fractions-005": [
-"integration-techniques"
-],
 "madas-integration-structured-exam-questions-part-i-001": [
 "integration-techniques"
 ],
@@ -19263,9 +19260,6 @@
 "madas-transformations-of-graphs-practice-003": [
 "graphs-transformations"
 ],
-"madas-transformations-of-graphs-practice-004": [
-"graphs-transformations"
-],
 "madas-trigonometric-equations-001": [
 "trig-identities-equations"
 ],
@@ -22101,5 +22095,30 @@
 ],
 "madas-vector-algebra-introduction-046": [
 "vectors"
+],
+"madas-binomial-series-expansions-exam-questions-054b": [
+"binomial-expansion"
+],
+"madas-cubics-exam-questions-023": [
+"differentiation-applications",
+"quadratics"
+],
+"madas-equations-exam-questions-i-028b": [
+"equations-inequalities"
+],
+"madas-integration-intro-009": [
+"integration-techniques"
+],
+"madas-m2-work-and-energy-016b": [
+"work-energy-power"
+],
+"madas-probability-density-functions-019": [
+"continuous-random-variables"
+],
+"madas-probability-density-functions-020": [
+"continuous-random-variables"
+],
+"madas-probability-density-functions-021": [
+"continuous-random-variables"
 ]
 }
