@@ -33,6 +33,12 @@ specification's 86 numbered topics (4.1.1 Cell structure), with no year split.
 - **Notice page (November 2026):** `84611h-nov20-05-7` held a whole "There are no questions on this page" sheet, which `cut.py` now
   skips. Biology only: the check doesn't flag Chemistry or Physics. `cut.py`'s rule now leaves "Each organism may be..." and
   "The first box..." on their own part, as `setups.py`'s does, because without the notice page they'd have moved on `84612f-jun23-03-2`.
+- **Lines a part prints after its marks (November 2026):** `cut.py`'s rule moved a sentence after a part's marks to the next part, so "The first
+  stage has been completed for you." took 01.4's options and arrow chain to 01.5 on `84611f-jun22`, and "One difference has been completed for you." took
+  05.4's answer table to 05.5 on `84611h-jun23`. Both rules now leave a sentence ending "for you.", `cut.py`'s leaves "Complete...", and `setups.py`'s leaves a
+  line with a letter to its left, as those options can outnumber the question's lines and read as the text margin. Six Biology crops changed; old and new rules
+  gave the same regions on every other paper of the four AQA GCSE sciences (182 in all). `84611h-jun23-05-4`'s old edge also sliced "[3 marks]", so its row had no
+  marks and 05.5 had 4. They're 3 and 1 now, as the scheme says, and the paper still totals 100.
 - **Crops and rows go live together:** the study feed (`Crop.tsx`) draws a crop at its row's `w`/`h`, so
   a new crop with an old row is squashed (one grown from 601 to 2,174 tall drew at 28% of its height);
   the bank pages use the picture's own shape. And a `cropVersion` that goes live before its crops are up

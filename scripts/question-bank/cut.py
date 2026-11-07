@@ -264,7 +264,8 @@ def move_setups(doc, out):
                 paras.append((y, [t]))
             last_y = y
         split = next((y for y, ts in paras if " ".join(ts).endswith(".") and len(" ".join(ts).split()) >= 6
-                      and ts[0][:1].isupper() and not re.match(r"(Answer|Extra space|Show your working|Each \w+ may be|The first box)", ts[0])), None)
+                      and ts[0][:1].isupper() and not re.match(r"(Answer|Extra space|Show your working|Each \w+ may be|The first box|Complete\b)", ts[0])
+                      and not " ".join(ts).endswith("for you.")), None)
         if split is None:
             continue
         cut_y = split - 6

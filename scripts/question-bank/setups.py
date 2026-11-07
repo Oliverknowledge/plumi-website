@@ -51,15 +51,15 @@ def starts_setup(lines, i, margins, page, fills_gaps=False):
     if fills_gaps and (any(re.fullmatch(r"[.,]", l[4]) for l in lines[i + 1:] if l[0] == lines[i][0])
                        or any(b > y and a >= x - 4 for a, b, _, _ in rules(page)[1])):
         return False
-    if any(l[0] == lines[i][0] and abs(l[2] - y) < 3 and l[3] > x for l in lines):
-        return False  # something beside it: a row ("Conclusion 1:" and its words), not a sentence
+    if any(l[0] == lines[i][0] and abs(l[2] - y) < 3 and (l[3] > x or re.fullmatch(r"[A-Z]", l[4])) for l in lines):
+        return False  # something beside it: a row ("Conclusion 1:" and its words) or a lettered option ("A" and its words), not a sentence
     words = [t]
     for j in range(i + 1, len(lines)):
         if lines[j][0] != lines[i][0] or lines[j][2] - lines[j - 1][2] >= 17 or abs(lines[j][3] - x) >= 12:
             break
         words.append(lines[j][4])
     text = " ".join(words)
-    if not re.search(r"[.:’']$", text) or len(text.split()) < 3 or re.search(r"_{3}|\.{3}", text):
+    if not re.search(r"[.:’']$", text) or len(text.split()) < 3 or re.search(r"_{3}|\.{3}", text) or text.endswith("for you."):
         return False
     upright, flat = rules(page)
     bottom = lines[i][2] + 13 * len(words)
