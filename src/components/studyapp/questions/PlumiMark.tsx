@@ -10,6 +10,7 @@ import { markSource } from "@/lib/studyapp/marking/source";
 import { answerKey, getCached, putCached, type KV } from "@/lib/studyapp/marking/cache";
 import { CONSENT_COPY, giveConsent, hasConsent, type AgeBand } from "@/lib/studyapp/marking/consent";
 import { lineFor } from "@/lib/studyapp/marking/copy";
+import { CHOICE_LINE, markChoice, readChoice } from "@/lib/studyapp/marking/choice";
 import { aiMarkingOn, liveDeps } from "@/lib/studyapp/marking/live";
 import "../../../app/study/(app)/questions-plumimark.css";
 
@@ -71,7 +72,7 @@ function gather(key: string, userId: string, subject: string, cv: number, partId
   }, GATHER_MS);
 }
 
-function useAvailable(set: QSet, part: QPart, enabled: boolean, userId: string | null): boolean {
+function useAvailable(set: QSet, part: QPart, enabled: boolean, userId: string | null): { has: boolean; on: boolean } {
   const key = `${userId}|${set.subject}|${set.cv ?? 0}`;
   const [, redraw] = useState(0);
   useEffect(() => {
@@ -81,7 +82,8 @@ function useAvailable(set: QSet, part: QPart, enabled: boolean, userId: string |
     if (!slotFor(key).done.has(part.id)) gather(key, userId, set.subject, set.cv ?? 0, part.id);
     return () => { watchers.delete(w); };
   }, [enabled, userId, key, set.subject, set.cv, part.id]);
-  return enabled && !!userId && accountOn.get(userId) !== false && slots.get(key)?.has.has(part.id) === true;
+  const live = enabled && !!userId && accountOn.get(userId) !== false;
+  return { has: live && slots.get(key)?.has.has(part.id) === true, on: enabled && !!userId && accountOn.get(userId) === true };
 }
 
 type View =
@@ -103,11 +105,13 @@ export interface PlumiMarkUi {
 export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined): PlumiMarkUi {
   const { ready, user, on } = useAccount();
   const signedIn = aiMarkingOn && on && ready && !!user && user.is_anonymous !== true;
-  const available = useAvailable(set, part, signedIn, user?.id ?? null);
+  const { has: available, on: accountMarks } = useAvailable(set, part, signedIn, user?.id ?? null);
   // Which of the student's three places to write is the answer: what they can SEE (source.ts). Handwriting, in the answer zone or on the printed question's lines,
   // is read into words first (the student checks them), and only those words are marked.
   const source = markSource(answer);
-  const offered = signedIn && available && markable(part) && source !== null;
+  // A multiple-choice part (it has an answer letter) needs no mark scheme from the server: its letter is checked against the bank's key here. It is offered wherever marking is on for the account.
+  const choice = !!part.k;
+  const offered = signedIn && (choice ? accountMarks : available) && markable(part) && source !== null;
   const viaInk = source === "ink" || source === "ann";
   const text = answer?.text ?? "";
   const bank = set.subject, cv = set.cv ?? 0;
@@ -117,6 +121,13 @@ export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined
   const pending = useRef<string | null>(null);   // the words the student confirmed, kept so "Try again" does not read the page twice
 
   const markText = async (words: string, viewKey: string) => {
+    if (part.k) {   // multiple choice: exact, local, free. Nothing is sent and nothing is counted against the allowance.
+      const c = readChoice(words);
+      pending.current = null;
+      if (c.kind !== "letter") { setView({ k: "note", text: CHOICE_LINE }); return; }
+      setView({ k: "result", key: viewKey, reply: markChoice(part.k, part.m ?? 1, c.letter), allowance: null });
+      return;
+    }
     const kv = storage();
     const wordsKey = answerKey(bank, part.id, cv, words);
     const cached = getCached(kv, wordsKey);
