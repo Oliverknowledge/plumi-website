@@ -154,3 +154,42 @@ readers also read the text file).
 writes a `.sql` file; it applies nothing. The SQL is board material and stays out of git. 52 agreed packs were generated across six subjects
 (Biology 35, A-level Chemistry 4, A-level Psychology 4, GCSE Biology 3, GCSE Chemistry 3, OCR Chemistry A 3) and applied to a throwaway local
 Postgres only: all 52 stored, twice, with no error.
+
+## Wave 1: the ten busiest banks, parts students actually attempted (7 Nov 2026)
+
+Scope (chosen with the founder): Chemistry, Biology, Physics and Combined Science, UK GCSE and A-level, the 10 banks students have marked most (real marks in
+`bank_attempt`): AQA GCSE Chemistry, OCR A-level Biology A, AQA A-level Chemistry, OCR A-level Chemistry A, AQA A-level Biology, AQA GCSE Biology, OCR GCSE Biology A,
+OCR A-level Physics A, OCR GCSE Physics A, AQA GCSE Combined Science. Wave 1 is the 1,589 parts in those banks that students have attempted AND the pipeline can
+read (1 to 3 marks, own scheme, no multiple choice, no figure/table/drawing/tick words) AND that were not packed yet. `prepare_wave.py` cuts them into batches of 60;
+`wave_step.py` runs the per-batch routine; `READER.md` / `AUDITOR.md` (in the wave folder) are the two agents' instructions.
+
+The routine for every batch, with the rules enforced in `wave_step.py`:
+1. Two independent Claude readers (outA, outB), four chunks of 15 each; `verify_pair.ts` keeps a part only if both pass the gates AND agree on everything that decides a mark.
+2. An independent Claude auditor checks a seeded sample of 12 agreed packs against the board's own scheme image (it did not write them).
+3. Nothing is loaded unless the audit is clean. If ANY audited pack has a problem, every other agreed pack in the batch is audited too, and only packs audited clean individually are loaded.
+4. A pack with an audit problem is never loaded. Loaded packs are applied to the live store with `mark_pack_publish` (idempotent); a live pack can be withdrawn with `mark_pack_withdraw`.
+
+| Bank / batch | parts | agreed | audit | loaded |
+|---|---|---|---|---|
+| AQA GCSE Chemistry b01 | 60 | 46 | 12 of 12 clean | 46 |
+| AQA GCSE Chemistry b02 | 60 | 41 | 12 of 12 clean | 41 |
+| AQA GCSE Chemistry b03 | 60 | 49 | 12 of 12 clean | 49 |
+| AQA GCSE Chemistry b04 | 53 | 37 | sample found 1 defect; all 37 audited, all clean | 37 |
+| AQA A-level Chemistry b01 | 60 | 37 | sample found 1 minor; all 37 audited: 35 clean, 2 minor | 35 |
+| AQA A-level Chemistry b02 | 60 | 21 | sample found 4 of 12 (1 marking); all 21 audited | 16 |
+| AQA A-level Biology b01 | 60 | 38 | 12 of 12 clean | 38 |
+| AQA GCSE Biology b01 | 60 | 49 | 12 of 12 clean | 49 |
+| OCR A-level Biology A b01 | 60 | 22 | sample found 4 of 12 (1 marking) | **0 (paused)** |
+
+Cost, measured: about 18,000 tokens per part for the two readers, plus about 9,000 per audited part. Claude Haiku as a reader was tested on the 60-part Biology benchmark:
+same tokens per part (22,664), fewer agreed (22 against 32), and 3 of its 22 "agreed" packs were not confirmed by the Claude readers: not used.
+
+What the audits found (each is now a rule or a limit, not a surprise):
+- **Mark allocation in a comment** ("allow for 1 mark ... or ...", "max 1 out of M2 and M3"): a text marker cannot enforce it. `gatePack` now HOLDS any pack whose accept /
+  reject / ignore / guidance text allocates marks (`MARK_ALLOCATION`, `markpack.test.ts`). The same pattern was found in 2 live packs, which were withdrawn
+  (AQA A-level Chemistry `chem1-jan13-03-b`, AQA A-level Biology `74012-jun18-06-1`).
+- **Guidance attached to the whole question instead of one mark point** (OCR layouts, some AQA A-level): over-credit risk. Not yet a gate: OCR is paused (below).
+- **Conventions a text pack cannot carry**: underlined required words, "not X" rejects, drawn structures (A-level Chemistry). Those packs are caught by the audit and not loaded.
+- **OCR**: the board text layer for OCR schemes is cut from the WRONG question for many parts (e.g. 5(a)(i) got the chi-squared question's rows), so the word check rejects
+  them (correct, fail closed): 18 of 60 rejected, 15 disagree. Fix needed in `pdf_text.py` for OCR layouts before any more OCR reading is worth spending.
+- Agreement is not correctness, and the audit is the same model family as the readers, not an examiner; it checks fidelity to the printed scheme, not marking accuracy.
