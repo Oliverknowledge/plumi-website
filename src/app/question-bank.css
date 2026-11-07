@@ -116,6 +116,8 @@
 .qb-num { font-family: var(--f-px); font-weight: 700; font-size: 30px; line-height: 1; color: var(--lp-orange); }
 .qb-q { font-family: var(--f-px); font-weight: 700; font-size: 18px; }
 .qb-meta { font-size: 14px; font-weight: 700; color: var(--lp-ink-soft); line-height: 1.35; }
+/* a MadAsMaths question's difficulty, in its stars (QuestionRow) */
+.qb-stars { color: var(--lp-blue); letter-spacing: 1px; white-space: nowrap; }
 .qb-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .qb-marks { font-family: var(--f-px); font-weight: 600; font-size: 13px; background: var(--lp-gold); border: 2px solid var(--lp-line); border-radius: 8px; padding: 0 8px; }
 .lp .qb-topic { appearance: none; cursor: pointer; font-family: inherit; text-align: left; font-weight: 700; font-size: 13px; line-height: 1.3; color: var(--lp-ink); text-decoration: none; background: var(--lp-paper-2); border: 2px solid var(--lp-line); border-radius: 8px; padding: 2px 8px; }

@@ -449,7 +449,7 @@ function FeedReady({ entry, meta, rows, tier, q, extras: extras0, extrasReady, e
           <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10 16V4M4 9l6-6 6 6" /></svg>Top
         </button>
       )}
-      {analysis && hasAnalysis && <TopicAnalysis meta={meta} insights={insights} onClose={() => setAnalysis(false)} onPractise={practiseTopic} />}
+      {analysis && hasAnalysis && <TopicAnalysis meta={meta} rows={rows} insights={insights} onClose={() => setAnalysis(false)} onPractise={practiseTopic} />}
       <FeedPen prefs={q.prefs} subject={meta.subject} />
     </div>
   );

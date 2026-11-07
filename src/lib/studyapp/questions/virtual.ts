@@ -25,6 +25,14 @@ export function indexAt(off: ArrayLike<number>, y: number): number {
   return lo;
 }
 
+/**
+ * How far the page's content has moved since an item's position was taken: its position in the document now against then. Its place on the screen would also count the student's
+ * own scrolling as a move, and putting that "back" is what fights a swipe (the page snaps back to where it started).
+ */
+export function anchorMoved(was: { top: number; y: number }, topNow: number, scrollNow: number): number {
+  return topNow + scrollNow - (was.top + was.y);
+}
+
 /** The items that touch the span `top` to `bottom` (px down the list): `from` first, `to` one past the last. Empty list or a span past the end gives an empty range. */
 export function rangeOf(off: ArrayLike<number>, top: number, bottom: number): { from: number; to: number } {
   const n = off.length - 1;

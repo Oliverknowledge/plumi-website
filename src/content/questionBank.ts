@@ -75,7 +75,27 @@ export interface BankPart {
   auw?: 1;
   /** The opening words, for alt text and the static topic pages. */
   x: string;
+  /** A MadAsMaths question (series MADAS), mixed in by the bank's "Add MadAsMaths questions" switch: its booklet's name. See madasSubject. */
+  mm?: string;
+  /** Its difficulty, in MadAsMaths' stars as printed ("***+"). */
+  mst?: string;
 }
+
+/**
+ * MadAsMaths questions, cut from its topic booklets (scripts/booklets/cut.py) and tagged to the bank's topics
+ * (scripts/booklets/bank.py): a bank with a madas.json among its data has the switch. They're rows like the bank's
+ * own, whose "paper" is the booklet (p, "madas-logarithms-exam-questions") and whose "series" is MADAS, so a paper
+ * or year filter leaves them out, and their scheme crop is the answers with the worked solution.
+ */
+export const MADAS_SERIES = "MADAS";
+export const isMadas = (p: Pick<BankPart, "s">) => p.s === MADAS_SERIES;
+export const bankHasMadas = (s: Pick<BankSubject, "data">) => Boolean(s.data?.madas);
+/** The subject as its rows name things once MadAsMaths questions are in: each booklet a "paper", MadAsMaths a "series". */
+export const madasSubject = (subject: BankSubject, madas: BankPart[]): BankSubject => ({
+  ...subject,
+  papers: [...subject.papers, ...[...new Map(madas.map(p => [p.p, p.mm ?? "MadAsMaths"])).entries()].map(([id, name]) => ({ id, name, title: name, as: false }))],
+  series: [...subject.series, { id: MADAS_SERIES, label: "MadAsMaths" }],
+});
 
 export interface BankSubject {
   slug: string;
@@ -124,7 +144,7 @@ export interface BankSubject {
   data: Partial<Record<BankDataFile | "solutions", string>>;
 }
 
-export type BankDataFile = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers";
+export type BankDataFile = "parts" | "text" | "reports" | "practicals" | "year13" | "tiers" | "madas";
 
 /** Every bank in src/content/questionBank/, found by scripts/question-bank/bank-registry.mjs: a new meta is all a new bank needs. */
 export const bankSubjects = bankMetas as BankSubject[];
@@ -222,34 +242,6 @@ export const topicName = (t: BankTopic) => (topicRef(t) ? `${topicRef(t)} ${t.ti
 export const questionOf = (label: string) => label.match(/^\d+/)?.[0] ?? label;
 /** The whole question a part belongs to, across the bank: "74051-JUN23-01". */
 export const questionKey = (p: Pick<BankPart, "p" | "s" | "l">) => `${p.p}-${p.s}-${questionOf(p.l)}`;
-/** What a set's part has to read first (`parts`), and the set's parts of that question that come after them (`needs`). */
-export type EarlierParts = { parts: BankPart[]; needs: BankPart[] };
-/**
- * For a set of parts, the earlier parts of their questions it leaves out, by the part they go above: the first
- * that needs each, so each goes in once. A part of the set is never one, whatever order the set is in, so a whole
- * question has none. Nor is either side of a choice ("EITHER (d) OR (e)"): one isn't asked of someone answering the other.
- */
-export function earlierToRead(set: BankPart[], bank: BankPart[]) {
-  const inSet = new Set(set.map(p => p.id));
-  const keys = new Set(set.map(questionKey));
-  const questions = new Map<string, BankPart[]>();
-  for (const p of bank) {
-    const k = questionKey(p);
-    if (keys.has(k)) questions.set(k, [...(questions.get(k) ?? []), p]);
-  }
-  for (const q of questions.values()) q.sort((a, b) => a.l.localeCompare(b.l, undefined, { numeric: true }));
-  const read = new Map<string, EarlierParts>();
-  const taken = new Set<string>();
-  for (const p of set) {
-    const q = questions.get(questionKey(p)) ?? [];
-    const before = q.slice(0, Math.max(0, q.findIndex(x => x.id === p.id)));
-    const parts = before.filter((e, i) => !inSet.has(e.id) && !taken.has(e.id) && !e.or && !q[i + 1].or);
-    if (!parts.length) continue;
-    parts.forEach(e => taken.add(e.id));
-    read.set(p.id, { parts, needs: q.slice(q.indexOf(parts[0]) + 1).filter(x => inSet.has(x.id)) });
-  }
-  return read;
-}
 
 /** "AQA A-Level Chemistry" */
 /** How a bank's level reads: Pearson calls its IGCSE "International GCSE"; Cambridge's stays "IGCSE". Pearson's International A Level (IAL) reads in full. */

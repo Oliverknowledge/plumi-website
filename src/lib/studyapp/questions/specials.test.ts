@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { insertKind, needsInsert, paperSpecials, specialsFor, transcriptOf } from "./specials";
+import { insertKind, needsInsert, paperSpecials, specialsFor, transcriptOf, wholeFiles } from "./specials";
 
 const ins = { "81451AA-JUN22": "aqa/AQA-81451AA-INS-JUN22.pdf" };
 const hist = { subject: "History", ins };
@@ -83,4 +83,13 @@ test("a 40-mark English Language task with no reading words is a writing task wh
   assert.ok(!needsInsert("English Language", { x: "‘Choosing a future career should be based on helping others and making a positive contribution to society, not on earning money.’", m: 40 }));
   assert.ok(needsInsert("English Language", { x: "Compare how the writers convey their different perspectives on the sea.", m: 16 }));
   assert.ok(needsInsert("English Language", { x: "Analyse how language is used in Text A and Text B to present views.", m: 40 }));
+});
+
+test("a sitting's whole paper, scheme and report are links under the papers base, found whatever the case of the paper code", () => {
+  const meta = { qps: { "74051-JUN23": "aqa/AQA-74051-QP-JUN23.pdf" }, mss: { "74051-JUN23": "aqa/AQA-74051-MS-JUN23.pdf" } };
+  const f = wholeFiles(meta, "74051", "JUN23");
+  assert.ok(f.qp?.endsWith("/aqa/AQA-74051-QP-JUN23.pdf") && f.ms?.endsWith("/aqa/AQA-74051-MS-JUN23.pdf") && f.er === undefined);
+  assert.deepEqual(wholeFiles(meta, "74051", "JUN22"), {});
+  assert.ok(wholeFiles({ qps: { "84631H-JUN25": "aqa/a.pdf" } }, "84631h", "JUN25").qp);
+  assert.deepEqual(wholeFiles({ qps: { "74051-JUN23": "../etc/passwd" } }, "74051", "JUN23"), {});
 });

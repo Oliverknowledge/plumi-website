@@ -38,11 +38,18 @@ export type PlumiEvent =
   /** A question paper, mark scheme or examiner report opened from /past-papers.
    *  Carries `page`, `paper`, `kind` and `session`. */
   | "paper_opened"
+  /** A maths booklet opened from /maths-booklets (BookletClickTracker). Carries `page`, `booklet`, `group`
+   *  and `kind`: `full`, or `questions` for its questions-only version. */
+  | "booklet_opened"
+  /** A search on the booklets that settled (1.2s without typing): `page`, `query` (first 60 characters), `results`. */
+  | "booklet_searched"
   /** The question bank: filters settled on (`results`), a mark scheme or report
    *  opened (`kind`), a question added to a set (`size`), a set downloaded. */
   | "bank_filtered"
   /** "Mix them up" (or Reshuffle, `again`): a question from each topic in turn. */
   | "bank_mixed"
+  /** "Add MadAsMaths questions" switched on or off (`on`), in a bank that has them. */
+  | "bank_madas"
   /** The multiple-choice quiz (ChoiceQuiz): started (`questions`, `timed`) and finished (`score`, `answered`). */
   | "bank_quiz_started"
   | "bank_quiz_finished"
@@ -108,7 +115,9 @@ export type PlumiEvent =
    *  (a form id, or "all" for the whole topic). No student data. */
   | "topic_analysis_opened"
   | "topic_analysis_topic_viewed"
-  | "topic_analysis_practise_clicked";
+  | "topic_analysis_practise_clicked"
+  /** An Angles panel opened on a topic page (Pro): `subject`, `topic`, `form`. An example opened adds nothing: no ids. */
+  | "topic_angles_opened";
 
 export type EventProperties = Record<string, string | number | boolean | null | undefined>;
 

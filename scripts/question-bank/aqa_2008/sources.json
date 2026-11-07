@@ -1,0 +1,702 @@
+[
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JAN09",
+  "kind": "er",
+  "file": "AQA-CHEM1-ER-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jan/AQA-CHEM1-WRE-JAN09.PDF",
+  "bytes": 103337,
+  "sha256": "235fe0aa250de85fef55fef91ff5704a5e66e02ff3367c71d1375e04058c7767"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JAN09",
+  "kind": "ms",
+  "file": "AQA-CHEM1-MS-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jan/AQA-CHEM1-W-MS-JAN09.PDF",
+  "bytes": 122473,
+  "sha256": "8a99c45e121715c601da485a94ba250d7d5c89ca3d8d9b1eec72997beb227323"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JAN09",
+  "kind": "qp",
+  "file": "AQA-CHEM1-QP-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jan/AQA-CHEM1-W-QP-JAN09.PDF",
+  "bytes": 640446,
+  "sha256": "8c4fb1212f9c901089788ced08dab189604f091fd3b32333c1ad3f33b76507cc"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JUN09",
+  "kind": "er",
+  "file": "AQA-CHEM1-ER-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM1-W-WRE-JUN09.PDF",
+  "bytes": 99030,
+  "sha256": "964d32ac548aecbb4ff19d370096c664623b095940fbac2a3c347fa24fa2289e"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JUN09",
+  "kind": "ms",
+  "file": "AQA-CHEM1-MS-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM1-W-MS-JUN09.PDF",
+  "bytes": 128522,
+  "sha256": "945605341fb0b89576878a41a181e59107376bd77bc1c31ae63bd91f130a0c8a"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM1",
+  "series": "JUN09",
+  "kind": "qp",
+  "file": "AQA-CHEM1-QP-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM1-W-QP-JUN09.PDF",
+  "bytes": 609676,
+  "sha256": "96d5dca1b3e808a34cee2ff426f6684c00770d74e72905abe7a2820a4c6460c9"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM2",
+  "series": "JUN09",
+  "kind": "er",
+  "file": "AQA-CHEM2-ER-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM2-W-WRE-JUN09.PDF",
+  "bytes": 108769,
+  "sha256": "fc69b415b01664add2f71588904ce8356d4b9ed02e4f8465cd1b700428ddcf31"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM2",
+  "series": "JUN09",
+  "kind": "ms",
+  "file": "AQA-CHEM2-MS-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM2-W-MS-JUN09.PDF",
+  "bytes": 177823,
+  "sha256": "99120cda186a94e6a29b9f1b0da851fbbd9af083a96d6189417733121c40fb7f"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHEM2",
+  "series": "JUN09",
+  "kind": "qp",
+  "file": "AQA-CHEM2-QP-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jun/AQA-CHEM2-W-QP-JUN09.PDF",
+  "bytes": 690498,
+  "sha256": "00bb6ce27fd9ebae556ef583fed8e7102b5ea2134dc71e3d7fab3c4a6cd7a0e0"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-CHM1-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM1-W-MS-JAN08.PDF",
+  "bytes": 215870,
+  "sha256": "1563c425d4b5d7cd9c083570b65f32d42db7aa090e3348b1894fc8d36167fac9"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-CHM1-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM1-W-QP-JAN08.PDF",
+  "bytes": 104222,
+  "sha256": "e204082d6865bb8d527ff73e9e98d2d7131d9c68843f6d59423826c955b42bb0"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JAN09",
+  "kind": "ms",
+  "file": "AQA-CHM1-MS-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jan/MS.pdf",
+  "bytes": 122104,
+  "sha256": "843da43d527e35b324d37fa442587ff62f0fe802c918fa682ecd295ee72407dc"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JAN09",
+  "kind": "qp",
+  "file": "AQA-CHM1-QP-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2009-Jan/QP.pdf",
+  "bytes": 114800,
+  "sha256": "1ca2a0c5bb0f03010d6493194444f07da330e251a8ecaa6fa33982381e0020c5"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM1-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM1-W-MS-JUN08.PDF",
+  "bytes": 339503,
+  "sha256": "5405c0e410024d98cd511b583c989c6d8727ca8c26a6988876d8329cecff8996"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM1",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM1-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM1-W-QP-JUN08.PDF",
+  "bytes": 111538,
+  "sha256": "69c26a2723346d509c48e4370d128da871baea6c65f3bc740e9a3ed4ed50d530"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM2",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-CHM2-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM2-W-MS-JAN08.PDF",
+  "bytes": 113816,
+  "sha256": "a4f76fc0ac96751c435309a7c49f177de6bbba8c3c3135d35a9697eb73429a7b"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM2",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-CHM2-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM2-W-QP-JAN08.PDF",
+  "bytes": 100639,
+  "sha256": "e99f5a17588219a1f7bb8e11514f9888041ba72d48e7a08fce8468063a5ec40d"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM2",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM2-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM2-W-MS-JUN08.PDF",
+  "bytes": 154559,
+  "sha256": "9a99b348406e983b8697a31f214a11dbb133abc67eaafbe66c6ae9b19a62f705"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM2",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM2-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM2-W-QP-JUN08.PDF",
+  "bytes": 125373,
+  "sha256": "9fb22a67c94dbeece32117344004dec5f4c0960b48ec5d161f2fbc049e3fb395"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM3W",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-CHM3W-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM3W-W-MS-JAN08.PDF",
+  "bytes": 154047,
+  "sha256": "2c594f3a1cadde6f5abae976d742f214c4bd5263b3f5cad2a73ebd91fafe2590"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM3W",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-CHM3W-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM3W-W-QP-JAN08.PDF",
+  "bytes": 139751,
+  "sha256": "89c5be6ae7ce6838242b4ca5d8c1e97059e6fad8592330f8a3dc30a938354afa"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM3W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM3W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM3W-W-MS-JUN08.PDF",
+  "bytes": 349575,
+  "sha256": "b35c130c17d4c8bcc1f15a89156b3b6e0a24de37fb5f5f77e7f92296a359629a"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM3W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM3W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM3W-W-QP-JUN08.PDF",
+  "bytes": 133176,
+  "sha256": "07eecbb4e83b1faaadb35cd4ff8d92e6c721d3b820e602d1aacd8ef307fb50da"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM4",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-CHM4-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM4-W-MS-JAN08.PDF",
+  "bytes": 179938,
+  "sha256": "fc0fc6690802caf11d74f4c98f8735963a028fad9c63af44b82dd6d05b1717fe"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM4",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-CHM4-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jan/AQA-CHM4-W-QP-JAN08.PDF",
+  "bytes": 122518,
+  "sha256": "ff6bc989a7f447b074b8a8dbf815ca65afb937f2efb869b8c50bd093ea2eb015"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM4",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM4-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM4-W-MS-JUN08.PDF",
+  "bytes": 248256,
+  "sha256": "58647f493262ef926f57e734600e64540498041f9ca42a2677f333ce6c04d3e9"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM4",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM4-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM4-W-QP-JUN08.PDF",
+  "bytes": 127390,
+  "sha256": "5506f0773b6bb83c0c6c9fc3b5e16f763349f199a7ad516103ebb802b854553e"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM5",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM5-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM5-W-MS-JUN08.PDF",
+  "bytes": 206510,
+  "sha256": "54ec7bccec0d602f60cf87038110ca6708cd4eb012eb4bc91d5af3f38506b95c"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM5",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM5-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM5-W-QP-JUN08.PDF",
+  "bytes": 135735,
+  "sha256": "ce80a8e560d53ee733f309ac9bf99a23a0d206f32b9708601c8976f604878991"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM6W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-CHM6W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM6W-W-MS-JUN08.PDF",
+  "bytes": 102105,
+  "sha256": "46910f51970895b97ac666a6194e36b39917dd5e6351820efa118aa73a4fc25f"
+ },
+ {
+  "subject": "Chemistry",
+  "component": "CHM6W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-CHM6W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Chemistry/AQA/2420/2008-Jun/AQA-CHM6W-W-QP-JUN08.PDF",
+  "bytes": 227525,
+  "sha256": "542f6adba01984167b60131ff99064c36eb4fd1a5c243a7bde87f77429762a34"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-PA01-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA01-W-MS-JAN08.PDF",
+  "bytes": 155971,
+  "sha256": "bc9005793885fb457471ae33291621dc84a679e01fed13a2c8921eccf9920b03"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-PA01-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA01-W-QP-JAN08.PDF",
+  "bytes": 275395,
+  "sha256": "a29f909b88be2a7f6d0e8b0276680d298001aeac3e5c3134fd8336ec1a2b5b0e"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JAN09",
+  "kind": "ms",
+  "file": "AQA-PA01-MS-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PA01MSJAN09.pdf",
+  "bytes": 139901,
+  "sha256": "4e2993f992d707069fa40c79fe507cf065642855944c0988493eaacfb2440589"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JAN09",
+  "kind": "qp",
+  "file": "AQA-PA01-QP-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PA01QPJAN09.pdf",
+  "bytes": 211315,
+  "sha256": "1d2996fb468512d0ccc9e710369ac630b048787786b715f465bc67ff13e11cc9"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PA01-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA01-W-MS-JUN08.PDF",
+  "bytes": 160775,
+  "sha256": "ae88a36552b005e7e2e3b3dac8358997f554aa5102fe53010ae148d1ae665843"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA01",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PA01-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA01-W-QP-JUN08.PDF",
+  "bytes": 396360,
+  "sha256": "d772239062eb90502a308ebe6d2bbce34852cdd23e90d659c9dbd033a8edc8ca"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-PA02-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA02-W-MS-JAN08.PDF",
+  "bytes": 153513,
+  "sha256": "4cdcfa358b2a570ef30384dcc7211f20d2e3b4e755c95a061f8f03ec1db86c95"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-PA02-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA02-W-QP-JAN08.PDF",
+  "bytes": 186271,
+  "sha256": "2769845c0de9a7629eca3ef9dd12a22b930aa3f39959d28b7377d7beede48e6e"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JAN09",
+  "kind": "ms",
+  "file": "AQA-PA02-MS-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PA02MSJAN09.pdf",
+  "bytes": 114176,
+  "sha256": "85478cec49ffa708babef2d6dbb8e53dbc75d297ce90924d7224ca0c8a6af04a"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JAN09",
+  "kind": "qp",
+  "file": "AQA-PA02-QP-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PA02QPJAN09.pdf",
+  "bytes": 193428,
+  "sha256": "257fab5e3c5d17b0b9c72d7e396871db28e38e4e9a62c644dc758dac8b69ab93"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PA02-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA02-W-MS-JUN08.PDF",
+  "bytes": 143559,
+  "sha256": "dc5499c74cbe41a4f38ea4159bb232745b4f9fb8fad20cc7a53e173ca7a38021"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA02",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PA02-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA02-W-QP-JUN08.PDF",
+  "bytes": 412508,
+  "sha256": "ae2895be939f8111df23ad88a3c5f30020ac3b0674c21152648987beceb1b5ee"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA04",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-PA04-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA04-W-MS-JAN08.PDF",
+  "bytes": 190546,
+  "sha256": "95ccd1f16593a34409d672e98f51f8c3c5d2b8d7a8d11bf4e114335951cc9994"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA04",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-PA04-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA04-W-QP-JAN08.PDF",
+  "bytes": 271974,
+  "sha256": "44043a94b081d0d6336f9b3f6ae8934ffee1bb930b8399cec3302f2e342f41a1"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA04",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PA04-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA04-W-MS-JUN08.PDF",
+  "bytes": 164084,
+  "sha256": "17261a8bbb1204e954ff4022bb1e373c6d822a4b520d1458852f55e39675dc02"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA04",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PA04-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA04-W-QP-JUN08.PDF",
+  "bytes": 316124,
+  "sha256": "0921ac6f80ba37a26472ce4aa3330cfcf9bfdb3c7d521e0fb8d0130d25f2f671"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA04B",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-PA04B-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PA04B-W-QP-JAN08.PDF",
+  "bytes": 180528,
+  "sha256": "5bd57b4ddc1aec1b2e11eb789e12cd3e94843d3ecc5bf3dfefb97326bc79e6f4"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA10",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PA10-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA10-W-MS-JUN08.PDF",
+  "bytes": 223908,
+  "sha256": "f8a23311f30d6dde91d4486bf2385d453f9db65f2e461d68d2b86ab892074c9b"
+ },
+ {
+  "subject": "Physics",
+  "component": "PA10",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PA10-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PA10-W-QP-JUN08.PDF",
+  "bytes": 306358,
+  "sha256": "246133c51b2771dc074ab3a8b2cf8094e32d05c10890491e1d9aa466a4159936"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JAN08",
+  "kind": "ms",
+  "file": "AQA-PHA3W-MS-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PHA3W-W-MS-JAN08.PDF",
+  "bytes": 171649,
+  "sha256": "362b47b6fd3827aa3cdf7a241b6fa84b850240272c3f80b3946a7999d296fd8c"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JAN08",
+  "kind": "qp",
+  "file": "AQA-PHA3W-QP-JAN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jan/AQA-PHA3W-W-QP-JAN08.PDF",
+  "bytes": 253856,
+  "sha256": "70f62fd73e65996f1325b01761bdee5144b1b1f731bef6b7a3a6c70da7394177"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JAN09",
+  "kind": "ms",
+  "file": "AQA-PHA3W-MS-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PHA3MSJAN09.pdf",
+  "bytes": 162567,
+  "sha256": "f06854f138667f0dd2cfa52de57c4fc4fffa4426533cab6ce6b0e9a003587ce7"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JAN09",
+  "kind": "qp",
+  "file": "AQA-PHA3W-QP-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/PHA3QPJAN09.pdf",
+  "bytes": 187471,
+  "sha256": "0e02bc8e414caf6ed82a67904c2fb3b50f69f2df682db71bf09077fbf243c86b"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA3W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA3W-W-MS-JUN08.PDF",
+  "bytes": 158905,
+  "sha256": "37e4d315b51d9255beca3baf3cd384bcb1593dbe3da0cf961ee24a853b24a42b"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA3W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA3W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA3W-W-QP-JUN08.PDF",
+  "bytes": 396332,
+  "sha256": "824d963c4ab15cf6b81926512c95d63d5d93f98aa1bc0c7b66d78902019605ce"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA5W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA5W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA5W-W-MS-JUN08.PDF",
+  "bytes": 166313,
+  "sha256": "87dbf77ee58b46553932a0b4189e62bf7c8b5c37f071798360fa8af3d18a17d3"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA5W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA5W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA5W-W-QP-JUN08.PDF",
+  "bytes": 258680,
+  "sha256": "e09c84b9342b241a90eee89a9f7a28bc2d95acc79c8c7476541c73a32abe7fbf"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA6W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA6W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA6W-W-MS-JUN08.PDF",
+  "bytes": 129595,
+  "sha256": "a49d7abfbaab59aa1d154ebe542a2ad06fa0870a4af3aa968beb3f2f715e6ed1"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA6W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA6W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA6W-W-QP-JUN08.PDF",
+  "bytes": 296838,
+  "sha256": "305e24e0e991e31a1a824cdea56d63b7f1755d8c9c180108bfd89e6552c83434"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA7W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA7W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA7W-W-MS-JUN08.PDF",
+  "bytes": 183129,
+  "sha256": "1fb52adbdf37771ff2ab0f847637a0a9f6c8c4751d7f19d3bffaa45b5229d712"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA7W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA7W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA7W-W-QP-JUN08.PDF",
+  "bytes": 353833,
+  "sha256": "4049ee080289b3cd9e67cc871e7d214234f48e2766191f10a3af3fdeb77ef95f"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA8W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA8W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA8W-W-MS-JUN08.PDF",
+  "bytes": 162801,
+  "sha256": "54e85c87d1bf2bd62c410ba1e9def9bb5cebbf788aaa41510e0783c99d8762ff"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA8W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA8W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA8W-W-QP-JUN08.PDF",
+  "bytes": 258014,
+  "sha256": "e3d7114c0a6b8b5b3973df04db66c590ca94d72965f9631afc02a52582c0a931"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA9W",
+  "series": "JUN08",
+  "kind": "ms",
+  "file": "AQA-PHA9W-MS-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA9W-W-MS-JUN08.PDF",
+  "bytes": 138052,
+  "sha256": "a7f2843f057f96a7bd066db038af3fa4043a11900d94ba6b12610a1240f0de15"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHA9W",
+  "series": "JUN08",
+  "kind": "qp",
+  "file": "AQA-PHA9W-QP-JUN08.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2008-Jun/AQA-PHA9W-W-QP-JUN08.PDF",
+  "bytes": 272379,
+  "sha256": "981ddd0d474f6666a126e871110febc095774c7c9e8798e16fcf2e3f194acb5a"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHYA1",
+  "series": "JAN09",
+  "kind": "er",
+  "file": "AQA-PHYA1-ER-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/AQA-PHYA1-WRE-JAN09.PDF",
+  "bytes": 92323,
+  "sha256": "906feac3b0820aad9c468c767ab208bc3770371f23857499ce2c120d0c5ba657"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHYA1",
+  "series": "JUN09",
+  "kind": "er",
+  "file": "AQA-PHYA1-ER-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jun/AQA-PHYA1-W-WRE-JUN09.PDF",
+  "bytes": 103622,
+  "sha256": "6bf67616c01c3ba9577745c346008ca728fa95170f3eb50517f54c0acaf6f1d6"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHYA2",
+  "series": "JAN09",
+  "kind": "er",
+  "file": "AQA-PHYA2-ER-JAN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jan/AQA-PHYA2-WRE-JAN09.PDF",
+  "bytes": 94555,
+  "sha256": "b8db3b0f3caa6a7d0c340903625deedb324616101fc7a7e3c011c25de2d35b46"
+ },
+ {
+  "subject": "Physics",
+  "component": "PHYA2",
+  "series": "JUN09",
+  "kind": "er",
+  "file": "AQA-PHYA2-ER-JUN09.pdf",
+  "source": "https://freeexampapers.com/exam-papers/A-Level/Physics/AQA/Physics-A-2450/2009-Jun/AQA-PHYA2-W-WRE-JUN09.PDF",
+  "bytes": 95856,
+  "sha256": "d615dd17fa77d0d6934c9ccc3bf182cfadda5275bbd019e29ca9d328b6b4d6d0"
+ }
+]

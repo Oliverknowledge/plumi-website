@@ -5,6 +5,7 @@ import { bankLevel, bankSubjects, bankTitle } from "@/content/questionBank";
 import { tiersOf, type CatalogueSubject } from "@/lib/studyapp/questions/subject";
 import "../questions.css";
 import "../questions-home.css";
+import "../questions-papers.css";
 import "../questions-ink.css";
 import "../questions-sheet.css";
 import "../questions-setup.css";

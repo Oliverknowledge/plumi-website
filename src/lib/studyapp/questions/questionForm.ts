@@ -215,6 +215,33 @@ export function commandForm(text: string): Form | null {
   return best;
 }
 
+/** Tokens that end an opening phrase before they are reached: a figure or table reference ("fig. 2.1") is the paper's, not the board's wording. */
+const PAPER_WORDS = new Set(["fig", "figs", "figure", "figures"]);
+
+/**
+ * The words of the ask, lower case, from the command word on, for the clause that decided the form ("explain why the rate falls" gives explain, why, the, rate, falls), cut at the
+ * end of the sentence or at the first thing that belongs to the paper rather than to the board's wording (a number, a bracket, "fig"). Null when no clause start decided the form
+ * (a command word found in the middle of a line of diagram labels, say): then there is nothing safe to read a phrase from. Used by Angles (angles.ts); not by the form.
+ */
+export function askWords(text: string): string[] | null {
+  const best = commandForm(text);
+  if (!best) return null;
+  for (const raw of clauses(text)) {
+    if (clauseForm(raw) !== best) continue;
+    const c = raw.startsWith(SUB) ? raw.slice(1) : raw;
+    const out: string[] = [];
+    for (const tok of c.split(" ")) {
+      const end = /[.,:;?!]$/.test(tok);
+      const w = tok.replace(/^[\u2018\u2019\u201c\u201d"'(]+|[\u2018\u2019\u201c\u201d"'.,:;?!]+$/g, "");
+      if (!w || /[0-9()[\]=%\u00d7]/.test(tok) || PAPER_WORDS.has(w)) break;
+      out.push(w);
+      if (end || out.length >= 8) break;
+    }
+    return out.length ? out : null;
+  }
+  return null;
+}
+
 export function classifyForm(p: FormInput): Form {
   if (p.key && /^[A-D]$/.test(p.key)) return "choice";
   const said = commandForm(p.text);

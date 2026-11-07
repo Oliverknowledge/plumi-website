@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/config/site";
 import { indexableRoutes } from "@/config/routes";
 import { pastPaperPaths, pastPapersGenerated } from "@/content/pastPapers";
+import { bookletGroupPath, bookletGroups } from "@/content/booklets";
 import { practicePacks, packPath } from "@/content/practicePacks";
 import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
 
@@ -23,6 +24,8 @@ import { bankPath, bankSubjects, bankTopicPath } from "@/content/questionBank";
  * generated, and the date the question bank was last built. Bump BANK_BUILT after `npm run bank:build`.
  */
 const BANK_BUILT = "2026-10-23";
+/** When scripts/booklets/build.py last wrote src/content/booklets.json. */
+const BOOKLETS_ADDED = "2026-11-06";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -40,6 +43,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: path.split("/").length > 3 ? 0.7 : 0.8,
     })),
+    // The maths booklets' group pages, dated by when the booklets went up.
+    ...bookletGroups.map((g) => ({ url: absoluteUrl(bookletGroupPath(g.slug)), lastModified: BOOKLETS_ADDED, changeFrequency: "monthly" as const, priority: 0.7 })),
     // Plumi's own practice packs, one page each, dated by their last version.
     ...practicePacks.map((p) => ({ url: absoluteUrl(packPath(p.slug)), lastModified: p.updated, changeFrequency: "monthly" as const, priority: 0.9 })),
     // The question bank: each subject's bank, and a page per topic with questions.

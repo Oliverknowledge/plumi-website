@@ -96,6 +96,23 @@ export const routeIntents: readonly RouteIntent[] = [
     lastModified: "2026-10-25",
   },
   {
+    path: "/maths-booklets",
+    primaryQuery: "A-Level Maths booklets with worked solutions",
+    secondaryQueries: ["MadAsMaths booklets", "A-Level Maths topic booklets", "integration practice questions with solutions", "Further Maths practice questions with answers", "A-Level Mechanics practice questions", "A-Level Statistics practice questions"],
+    intent: "Find lots of questions on one maths topic, with answers and worked solutions to check against.",
+    objective: "Get the student to the booklet for their topic in two clicks, free and with no sign-up.",
+    title: "Free A-Level Maths Booklets With Worked Solutions | Plumi",
+    h1: "Maths booklets, every answer worked.",
+    description:
+      "250 free MadAsMaths topic booklets, from GCSE to beyond A-Level: over 11,000 questions, each with its answer and a worked solution. No sign-up.",
+    // Each group's page (/maths-booklets/<group>) is generated from src/content/booklets.ts
+    // and added to the sitemap by src/app/sitemap.ts.
+    linksTo: ["/question-bank"],
+    changeFrequency: "monthly",
+    priority: 0.8,
+    lastModified: "2026-11-06",
+  },
+  {
     path: "/past-papers",
     primaryQuery: "GCSE and A-Level past papers",
     secondaryQueries: ["A-Level past papers", "GCSE past papers", "A-Level Maths past papers", "A-Level Chemistry past papers", "AQA GCSE English Language past papers", "Edexcel GCSE English Language past papers", "Edexcel GCSE English Literature past papers", "Edexcel GCSE Computer Science past papers", "Edexcel A-Level Economics B past papers", "AQA GCSE Geography past papers", "A-Level English Literature past papers", "AQA GCSE English Literature past papers", "free past papers and mark schemes"],

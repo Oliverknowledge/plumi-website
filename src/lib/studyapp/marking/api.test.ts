@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fetchAvailable, fetchEnabled, MAX_ANSWER_CHARS, parseMarkReply, requestMark, type Deps } from "./api";
+import { fetchAvailable, fetchEnabled, MAX_ANSWER_CHARS, MAX_PICTURE_CHARS, parseMarkReply, requestMark, requestTranscript, type Deps } from "./api";
 import { lineFor } from "./copy";
 
 const REPLY = { marks: 1, outOf: 2, anyHeld: false, rulesVersion: 1, packHash: "a".repeat(64), points: [
@@ -105,4 +105,44 @@ test("the week's wait names the day marks return", () => {
   assert.match(lineFor({ kind: "allowance", pro: false, window: "week", retryAfter: 3 * 86400 }, sat), /Tuesday/);
   assert.match(lineFor({ kind: "allowance", pro: true, window: "day", retryAfter: 600 }, sat), /midnight/);
   assert.equal(lineFor({ kind: "cannot" }), "Plumi can’t mark this one.");
+});
+
+// ---- reading handwriting: a picture goes to /transcribe, words come back for the student to check, nothing is marked ----
+
+const PIC = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD=";
+
+test("transcript: the picture goes to /transcribe and the words come back trimmed", async () => {
+  const { d, calls } = deps(() => json(200, { ok: true, text: "  Glucagon activates enzymes. \n", unreadable: false }));
+  assert.deepEqual(await requestTranscript(d, PIC), { kind: "read", text: "Glucagon activates enzymes." });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://p.supabase.co/functions/v1/mark/transcribe");
+  assert.deepEqual(JSON.parse(String(calls[0].init.body)), { image: PIC });
+  assert.equal((calls[0].init.headers as Record<string, string>).authorization, "Bearer tok");
+});
+test("transcript: nobody signed in sends nothing; a picture over the limit is not sent", async () => {
+  const none = deps(() => json(200, {}), { token: async () => null });
+  assert.deepEqual(await requestTranscript(none.d, PIC), { kind: "signin" });
+  assert.equal(none.calls.length, 0);
+  const big = deps(() => json(200, {}));
+  assert.deepEqual(await requestTranscript(big.d, "x".repeat(MAX_PICTURE_CHARS + 1)), { kind: "failed" });
+  assert.equal(big.calls.length, 0);
+});
+test("transcript: unreadable or empty is 'unreadable', never an empty answer to mark", async () => {
+  assert.deepEqual(await requestTranscript(deps(() => json(200, { ok: true, text: "", unreadable: true })).d, PIC), { kind: "unreadable" });
+  assert.deepEqual(await requestTranscript(deps(() => json(200, { ok: true, text: "   ", unreadable: false })).d, PIC), { kind: "unreadable" });
+});
+test("transcript: every server answer becomes one calm outcome", async () => {
+  const cases: [number, unknown, string][] = [
+    [401, { ok: false, code: "unauthorized" }, "signin"], [403, { ok: false, code: "account_required" }, "signin"], [403, { ok: false, code: "consent_required", minVersion: 2 }, "consent"],
+    [429, { ok: false, code: "busy" }, "rate"], [503, { ok: false, code: "unavailable" }, "unavailable"], [413, { ok: false, code: "answer_too_long" }, "too_long"],
+    [502, { ok: false, code: "reading_unavailable" }, "failed"], [500, { ok: false, code: "error" }, "failed"], [200, { ok: true }, "failed"], [200, { ok: true, text: 5 }, "failed"],
+  ];
+  for (const [status, body, kind] of cases) assert.equal((await requestTranscript(deps(() => json(status, body)).d, PIC)).kind, kind, `${status} ${JSON.stringify(body)}`);
+  assert.equal((await requestTranscript(deps(() => json(200, { ok: true, text: "x".repeat(MAX_ANSWER_CHARS + 1), unreadable: false })).d, PIC)).kind, "too_long");
+  assert.equal((await requestTranscript(deps(() => { throw new Error("offline"); }).d, PIC)).kind, "failed");
+});
+test("transcript: the unreadable line is calm, has no dash, and names no machinery", () => {
+  const line = lineFor({ kind: "unreadable" });
+  assert.equal(line, "Plumi couldn’t read that. Try writing it a bit bigger, or type it.");
+  assert.ok(!/[—–]/.test(line));
 });

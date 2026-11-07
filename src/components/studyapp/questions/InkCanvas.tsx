@@ -77,6 +77,39 @@ const TAIL = 40;
 /** The most device pixels one zone's canvas may have: about 26 MB. */
 const MAX_PIXELS = 6_500_000;
 
+/* ── a hand on the glass while the pen writes ──
+ * A browser reads a pen and a resting palm as two fingers, and two fingers are a pinch: it cancels the pen (a stroke cut off after a tick) and zooms the page. So from the pen touching
+ * the glass until a moment after it lifts, no touch anywhere on the page starts a browser gesture. The listeners are only there for that time: on a page full of cards they would make
+ * every other scroll wait for the page. Once the pen is up a control still takes a tap, so Undo right after a stroke is not lost, and two fingers still zoom the rest of the time.
+ */
+const HAND_REST = 400;   // ms after the pen lifts: the gap between the strokes of one word
+const TICK = 16;         // logical units: a cancelled stroke shorter than this is a cut-off tick, not writing
+const CONTROLS = "button, a, input, select, textarea, label, summary, [role=button]";
+let penOnGlass = false, lastContact = -Infinity, handGuard = false, handTimer: ReturnType<typeof setTimeout> | null = null;
+const holdHand = (e: TouchEvent) => {
+  // (a palm can land on a link as easily as on the page: only one touch, once the pen is up, is taken for a tap)
+  const tap = !penOnGlass && e.touches.length < 2 && e.target instanceof Element && !!e.target.closest(CONTROLS);
+  if (e.cancelable && !tap) e.preventDefault();
+};
+function penTouched() {
+  penOnGlass = true; lastContact = nowMs();
+  if (handTimer) { clearTimeout(handTimer); handTimer = null; }
+  if (handGuard) return;
+  handGuard = true;
+  window.addEventListener("touchstart", holdHand, { capture: true, passive: false });
+  window.addEventListener("touchmove", holdHand, { capture: true, passive: false });
+}
+function penLifted() {
+  penOnGlass = false; lastContact = nowMs();
+  if (handTimer) clearTimeout(handTimer);
+  handTimer = setTimeout(() => {
+    handTimer = null; handGuard = false;
+    window.removeEventListener("touchstart", holdHand, { capture: true });
+    window.removeEventListener("touchmove", holdHand, { capture: true });
+  }, HAND_REST);
+}
+const inkLength = (pts: readonly Pt[]) => { let n = 0; for (let i = 1; i < pts.length; i++) n += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); return n; };
+
 /* ── momentum of a finger scroll, by hand (once a pen has been seen) ── */
 
 let inertia = 0;
@@ -330,6 +363,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
       live = false; unreg(); unremote(); unreset();
       if (pending.has(inkKey)) { const ink = pending.get(inkKey)!; pending.delete(inkKey); void saveInk(inkKey, ink); }
       cancelAnimationFrame(s.raf); s.raf = 0;
+      if (s.live?.type === "pen") penLifted();
     };
   }, [inkKey, jump, commit, changed, everything, schedule, touch]);
 
@@ -366,7 +400,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
 
   // A pen on the page, anywhere: from here on touch scrolling is ours. (Hover events too, where the device sends them.)
   useEffect(() => {
-    const seen = (e: PointerEvent) => { if (e.pointerType === "pen") { st.current.lastPen = nowMs(); setPenSeen(true); } };
+    const seen = (e: PointerEvent) => { if (e.pointerType === "pen") { st.current.lastPen = nowMs(); if (e.type === "pointerdown") lastContact = nowMs(); setPenSeen(true); } };
     const down = () => stopInertia();
     window.addEventListener("pointerover", seen, { capture: true, passive: true });
     window.addEventListener("pointerdown", seen, { capture: true, passive: true });
@@ -397,6 +431,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
   /** A pen is down, or is hovering or was a moment ago: a hand on the glass is a resting hand. */
   const penBusy = () => { const s = st.current; return s.live?.type === "pen" || nowMs() - s.lastPen < PALM_MS; };
   const palm = (e: RPointerEvent) => penBusy() || Math.max(e.width, e.height) > 34;
+  /** The pen is on the glass, or was a moment ago. Only hovering is not enough to stop a finger's scroll: a pen held in the hand that swipes hovers the whole time. */
+  const penWriting = () => penOnGlass || nowMs() - lastContact < PALM_MS;
 
   /** After a stroke ends low on the screen, bring the writing line up out from under the pen tray. */
   const keepVisible = (clientY: number) => {
@@ -416,6 +452,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     const l = s.live;
     s.live = null;
     if (!l) return;
+    if (l.type === "pen") penLifted();
     if (l.kind === "erase") {
       touch(ringRect(l.at, l.type));
       if (!cancelled && l.erased.size) commit(s.ink.filter((_, i) => !l.erased.has(i)), null);
@@ -456,8 +493,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     if (e.pointerType === "touch") {
       if (!touchDraws()) {
         // Fingers scroll. Natively while `touch-action` lets the browser; by hand once a pen has made it `pinch-zoom`.
-        // Not while a pen is writing: a resting palm must not move the page under it.
-        if (penBusy()) { s.scroll = null; return; }
+        // Not while a pen is writing: a resting palm must not move the page under it. While it only hovers, a palm-sized touch is still a hand at rest; a fingertip scrolls.
+        if (penWriting() || (penBusy() && Math.max(e.width, e.height) > 34)) { s.scroll = null; return; }
         s.scroll = { id: e.pointerId, y: e.clientY, samples: [{ y: e.clientY, t: e.timeStamp }], moved: 0, t0: nowMs() };
         if (props.current.penSeen) capture(e.currentTarget, e.pointerId);
         return;
@@ -476,6 +513,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     const flat = e.pointerType !== "pen";
     const first = point(e, rect, flat);
     s.live = { kind, id: e.pointerId, pts: kind === "pen" ? [first] : [], flat, erased: new Set(), at: null, type: e.pointerType };
+    if (e.pointerType === "pen") penTouched();
     if (kind === "erase") eraseTo(first.x, first.y);
     else { s.liveRect = tailRect(s.live.pts, props.current.width); touch(s.liveRect); }
     schedule();
@@ -485,7 +523,7 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     const s = st.current;
     if (e.pointerType === "pen") s.lastPen = nowMs();
     if (s.scroll && e.pointerId === s.scroll.id) {
-      if (penBusy()) { s.scroll = null; return; }     // a pen has come down under this hand
+      if (penWriting()) { s.scroll = null; return; }     // a pen has come down under this hand
       const dy = s.scroll.y - e.clientY;
       s.scroll.moved += Math.abs(dy);
       if (props.current.penSeen) {
@@ -541,8 +579,8 @@ export function InkCanvas({ inkKey, label, units, bg, tool, colour, width, finge
     if (s.scroll && e.pointerId === s.scroll.id) { s.scroll = null; return; }
     // The browser took a pen touch for a scroll or a system gesture: from now on the surface says `touch-action` without pan.
     if (e.pointerType === "pen") setPenSeen(true);
-    // What a pen or mouse had written is kept (a system gesture must not eat a line); a finger's is dropped (a pinch, a hand).
-    if (s.live && e.pointerId === s.live.id) finish(s.live.type === "touch");
+    // What a pen or mouse had written is kept (a system gesture must not eat a line); a finger's is dropped (a pinch, a hand), and so is a tick from a stroke cut off as it began.
+    if (s.live && e.pointerId === s.live.id) finish(s.live.type === "touch" || (s.live.kind === "pen" && inkLength(s.live.pts) < TICK));
   };
 
   const handlers = useRef<{ down(e: RPointerEvent<HTMLCanvasElement>): void; move(e: RPointerEvent<HTMLCanvasElement>): void; up(e: RPointerEvent<HTMLCanvasElement>): void; cancel(e: RPointerEvent<HTMLCanvasElement>): void } | null>(null);

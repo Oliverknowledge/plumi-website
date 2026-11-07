@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { supabase, useAccount } from "@/lib/account";
-import { hasText, markable, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
+import { hasInk, hasText, markable, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
-import { fetchAvailable, fetchEnabled, requestMark, type Allowance, type MarkReply, type Outcome } from "@/lib/studyapp/marking/api";
+import { fetchAvailable, fetchEnabled, MAX_ANSWER_CHARS, requestMark, requestTranscript, type Allowance, type MarkReply } from "@/lib/studyapp/marking/api";
+import { answerPicture } from "@/lib/studyapp/marking/picture";
 import { answerKey, getCached, putCached, type KV } from "@/lib/studyapp/marking/cache";
 import { CONSENT_COPY, giveConsent, hasConsent, type AgeBand } from "@/lib/studyapp/marking/consent";
 import { lineFor } from "@/lib/studyapp/marking/copy";
@@ -23,38 +24,71 @@ import "../../../app/study/(app)/questions-plumimark.css";
 
 const storage = (): KV | null => { try { return typeof localStorage === "undefined" ? null : localStorage; } catch { return null; } };
 
-// Is marking on for this account (the server decides, per account), and which parts of a subject have a mark scheme there? Asked once and kept;
-// a failure is not remembered. A student the server has not switched marking on for is never shown the button.
-const known = new Map<string, Set<string>>();
-const asking = new Map<string, Promise<void>>();
-const EMPTY: Set<string> = new Set();
-function useAvailable(set: QSet, enabled: boolean, userId: string | null): Set<string> | null {
+// Is marking on for this account (the server decides, per account), and does THIS part have a mark scheme there? Parts are asked about as they
+// appear (the question list does not hold a subject's parts up front, so there is no list to ask about in one go): a short wait gathers
+// the parts on screen into one request. An answer is kept; a failure is not remembered, so the next draw asks again. A student the server
+// has not switched marking on for is never shown the button.
+interface Slot { has: Set<string>; done: Set<string>; queue: Set<string>; timer: ReturnType<typeof setTimeout> | null }
+const slots = new Map<string, Slot>();
+const accountOn = new Map<string, boolean>();
+const accountAsk = new Map<string, Promise<boolean | null>>();
+const watchers = new Set<() => void>();
+const GATHER_MS = 60;
+const slotFor = (key: string): Slot => { let s = slots.get(key); if (!s) { s = { has: new Set(), done: new Set(), queue: new Set(), timer: null }; slots.set(key, s); } return s; };
+const tell = () => watchers.forEach((w) => w());
+
+async function isOn(userId: string): Promise<boolean | null> {
+  const known = accountOn.get(userId);
+  if (known !== undefined) return known;
+  let p = accountAsk.get(userId);
+  if (!p) {
+    const deps = liveDeps();
+    if (!deps) return null;
+    p = fetchEnabled(deps).then((on) => { if (on !== null) accountOn.set(userId, on); return on; }).finally(() => accountAsk.delete(userId));
+    accountAsk.set(userId, p);
+  }
+  return p;
+}
+
+function gather(key: string, userId: string, subject: string, cv: number, partId: string) {
+  const s = slotFor(key);
+  s.queue.add(partId);
+  if (s.timer) return;
+  s.timer = setTimeout(async () => {
+    s.timer = null;
+    const ids = [...s.queue].filter((x) => !s.done.has(x));
+    s.queue.clear();
+    if (!ids.length) return;
+    const on = await isOn(userId);
+    if (on === null) { tell(); return; }
+    if (on) {
+      const deps = liveDeps();
+      const found = deps ? await fetchAvailable(deps, subject, cv, ids) : null;
+      if (found) { found.forEach((x) => s.has.add(x)); ids.forEach((x) => s.done.add(x)); }
+    }
+    tell();
+  }, GATHER_MS);
+}
+
+function useAvailable(set: QSet, part: QPart, enabled: boolean, userId: string | null): boolean {
   const key = `${userId}|${set.subject}|${set.cv ?? 0}`;
   const [, redraw] = useState(0);
-  const ids = set.parts;
   useEffect(() => {
-    if (!enabled || known.has(key)) return;
-    let live = true;
-    let p = asking.get(key);
-    if (!p) {
-      const deps = liveDeps();
-      if (!deps) return;
-      p = fetchEnabled(deps)
-        .then((on) => (on === false ? EMPTY : on === true ? fetchAvailable(deps, set.subject, set.cv ?? 0, ids.map((x) => x.id)) : null))
-        .then((s) => { if (s) known.set(key, s); })
-        .finally(() => asking.delete(key));
-      asking.set(key, p);
-    }
-    void p.then(() => { if (live) redraw((n) => n + 1); });
-    return () => { live = false; };
-  }, [enabled, key, set.subject, set.cv, ids]);
-  return enabled ? known.get(key) ?? null : null;
+    if (!enabled || !userId) return;
+    const w = () => redraw((n) => n + 1);
+    watchers.add(w);
+    if (!slotFor(key).done.has(part.id)) gather(key, userId, set.subject, set.cv ?? 0, part.id);
+    return () => { watchers.delete(w); };
+  }, [enabled, userId, key, set.subject, set.cv, part.id]);
+  return enabled && !!userId && accountOn.get(userId) !== false && slots.get(key)?.has.has(part.id) === true;
 }
 
 type View =
   | { k: "idle" }
   | { k: "consent" }
   | { k: "marking" }
+  | { k: "reading" }
+  | { k: "confirm"; key: string; text: string }
   | { k: "result"; key: string; reply: MarkReply; allowance: Allowance | null }
   | { k: "note"; text: string; signin?: boolean; again?: boolean };
 
@@ -68,28 +102,52 @@ export interface PlumiMarkUi {
 export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined): PlumiMarkUi {
   const { ready, user, on } = useAccount();
   const signedIn = aiMarkingOn && on && ready && !!user && user.is_anonymous !== true;
-  const available = useAvailable(set, signedIn, user?.id ?? null);
-  const offered = signedIn && !!available?.has(part.id) && markable(part) && hasText(answer);
+  const available = useAvailable(set, part, signedIn, user?.id ?? null);
+  const written = hasText(answer), drawn = hasInk(answer);
+  const offered = signedIn && available && markable(part) && (written || drawn);
+  // Handwriting is read into words first (the student checks them), and only those words are marked. Typed words win unless the student is on the pen.
+  const viaInk = drawn && (!written || answer?.mode === "ink");
   const text = answer?.text ?? "";
   const bank = set.subject, cv = set.cv ?? 0;
-  const key = answerKey(bank, part.id, cv, text);
+  const key = answerKey(bank, part.id, cv, viaInk ? `ink:${answer?.ink?.n}.${answer?.ink?.b}` : text);
   const [view, setView] = useState<View>({ k: "idle" });
+  const pending = useRef<string | null>(null);   // the words the student confirmed, kept so "Try again" does not read the page twice
 
-  const run = async () => {
+  const markText = async (words: string, viewKey: string) => {
     const kv = storage();
-    const cached = getCached(kv, key);
-    if (cached) { setView({ k: "result", key, reply: cached, allowance: null }); return; }
+    const wordsKey = answerKey(bank, part.id, cv, words);
+    const cached = getCached(kv, wordsKey);
+    if (cached) { pending.current = null; setView({ k: "result", key: viewKey, reply: cached, allowance: null }); return; }
     const deps = liveDeps();
     const sb = supabase();
     if (!deps || !sb) { setView({ k: "note", text: lineFor({ kind: "unavailable" }) }); return; }
     setView({ k: "marking" });
     // Ask for consent BEFORE the answer is sent anywhere. (The server refuses without it as well.)
     if (!(await hasConsent(sb))) { setView({ k: "consent" }); return; }
-    const o: Outcome = await requestMark(deps, { bank, partId: part.id, cropVersion: cv, answer: text });
-    if (o.kind === "marked") { putCached(kv, key, o.reply); setView({ k: "result", key, reply: o.reply, allowance: o.allowance }); return; }
+    const o = await requestMark(deps, { bank, partId: part.id, cropVersion: cv, answer: words });
+    if (o.kind === "marked") { pending.current = null; putCached(kv, wordsKey, o.reply); setView({ k: "result", key: viewKey, reply: o.reply, allowance: o.allowance }); return; }
     if (o.kind === "consent") { setView({ k: "consent" }); return; }
     setView({ k: "note", text: lineFor(o), signin: o.kind === "signin", again: o.kind === "failed" || o.kind === "rate" });
   };
+
+  const run = async () => {
+    if (!viaInk) { await markText(text, key); return; }
+    if (pending.current) { await markText(pending.current, key); return; }
+    const deps = liveDeps();
+    const sb = supabase();
+    if (!deps || !sb) { setView({ k: "note", text: lineFor({ kind: "unavailable" }) }); return; }
+    setView({ k: "reading" });
+    // Consent BEFORE the picture of the handwriting is sent anywhere.
+    if (!(await hasConsent(sb))) { setView({ k: "consent" }); return; }
+    const picture = await answerPicture(part.id, set.id).catch(() => null);
+    if (!picture) { setView({ k: "note", text: lineFor({ kind: "failed" }), again: true }); return; }
+    const o = await requestTranscript(deps, picture);
+    if (o.kind === "read") { setView({ k: "confirm", key, text: o.text }); return; }
+    if (o.kind === "consent") { setView({ k: "consent" }); return; }
+    setView({ k: "note", text: lineFor(o), signin: o.kind === "signin", again: o.kind === "failed" || o.kind === "rate" });
+  };
+
+  const markConfirmed = async (words: string) => { pending.current = words; await markText(words, key); };
 
   const agree = async (age: AgeBand, parent: boolean) => {
     const sb = supabase();
@@ -99,16 +157,19 @@ export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined
 
   if (!offered) return { button: null, panel: null };
 
-  const stale = view.k === "result" && view.key !== key;
+  const stale = (view.k === "result" || view.k === "confirm") && view.key !== key;
   const shown: View = stale ? { k: "idle" } : view;
-  const marking = shown.k === "marking";
+  const marking = shown.k === "marking" || shown.k === "reading";
   const button = (
     <button type="button" className={`qs-schemebtn qs-pmbtn${shown.k === "result" ? " is-open" : ""}`} aria-busy={marking} disabled={marking} onClick={() => void run()} data-testid="plumi-mark">
-      {marking ? "Marking..." : "Mark with Plumi"}
+      {shown.k === "reading" ? "Reading your writing..." : marking ? "Marking..." : "Mark with Plumi"}
     </button>
   );
   const panel = (
     <div className="qs-pm" aria-live="polite">
+      {shown.k === "confirm" && (
+        <ConfirmWords text={shown.text} onChange={(t) => setView({ k: "confirm", key: shown.key, text: t })} onMark={() => void markConfirmed(shown.text.trim())} onCancel={() => { pending.current = null; setView({ k: "idle" }); }} />
+      )}
       {shown.k === "result" && <ResultCard part={part} answer={answer} reply={shown.reply} allowance={shown.allowance} set={set} onClose={() => setView({ k: "idle" })} />}
       {shown.k === "note" && (
         <p className="qs-pm-note" data-testid="plumi-mark-note">
@@ -166,6 +227,27 @@ function ResultCard({ set, part, answer, reply, allowance, onClose }: { set: QSe
             {used ? "Using this mark" : "Use this mark"}
           </button>
         )}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------------------
+// Checking the words Plumi read from the student's handwriting
+// ---------------------------------------------------------------------------------------
+
+/** The words Plumi read, in a box the student can fix. Nothing is marked until they tap "Mark this": a misread word must never cost a mark. */
+function ConfirmWords({ text, onChange, onMark, onCancel }: { text: string; onChange(t: string): void; onMark(): void; onCancel(): void }) {
+  const id = useId();
+  const unsure = text.includes("[?]");
+  return (
+    <section className="qs-pmcard qs-pmedit" data-testid="plumi-mark-confirm" aria-labelledby={`${id}-t`}>
+      <h3 id={`${id}-t`} className="qs-pme-title">Is this what you wrote?</h3>
+      <textarea className="qs-pme-text" value={text} maxLength={MAX_ANSWER_CHARS} rows={Math.min(8, Math.max(3, text.split("\n").length + 1))} onChange={(e) => onChange(e.target.value)} aria-label="What Plumi read from your writing" data-testid="plumi-mark-words" />
+      {unsure && <p className="qs-pme-note">Plumi couldn&rsquo;t read a word. Replace each [?] with it.</p>}
+      <div className="qs-pm-foot">
+        <button type="button" className="qs-mini qs-pm-use" disabled={text.trim() === ""} onClick={onMark} data-testid="plumi-mark-this">Mark this</button>
+        <button type="button" className="qs-link" onClick={onCancel}>Cancel</button>
       </div>
     </section>
   );
