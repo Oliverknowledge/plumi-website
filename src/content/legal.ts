@@ -5,8 +5,8 @@ export interface LegalSection { heading: string; blocks: readonly LegalBlock[] }
 export interface LegalDoc { title: string; description: string; updated: string; updatedIso: string; intro: string; sections: readonly LegalSection[] }
 const updated = "14 October 2026";
 const updatedIso = "2026-10-14";
-const privacyUpdated = "6 November 2026";
-const privacyUpdatedIso = "2026-11-06";
+const privacyUpdated = "7 November 2026";
+const privacyUpdatedIso = "2026-11-07";
 /**
  * Rewritten 27 October 2026 to cover the app as well as the website. The App Store listing and the
  * app's consent screen both link here, and the previous text said it covered the website only and that
@@ -25,6 +25,7 @@ export const privacy: LegalDoc = {
     { heading: "The short version", blocks: [{kind:"list",items:[
       "Your notebooks, handwriting and marked work are stored on your device. We do not keep a copy of them on our servers.",
       "When you ask Plumi to mark, explain or give a hint, in the app or on the website, the part of your work you asked about is sent, through Plumi, to our AI provider DeepSeek. This happens only after you agree, and you can say no or change your mind in Account (in the app) or Settings (on the website).",
+      "Back up my notes is optional and off until you turn it on, in the app and on the website. If you do, your flashcard decks, your flashcards and your to-do list are saved to your account, so they appear on your other devices and come back if you reinstall. Notebook pages and handwriting are not part of it.",
       "You do not need an account to use the app or the website. An account lets you keep your subscription, use the social features and, on the website, keep your question bank marks, bookmarks and notes on every device.",
       "Sharing a flashcard deck is your choice. Only if you tap Share, the deck’s name and the words on its cards are stored on our servers, and anyone with the link can read them until you stop sharing.",
       "The social features (friends, groups, the Grand Library) are optional. In the Grand Library strangers see a random nickname, never your name, and nobody can message you privately.",
@@ -39,6 +40,7 @@ export const privacy: LegalDoc = {
         "What you set up for studying: your subjects, exam boards, exam dates and target grades, which stay on your device, and a small summary used to run the subscription.",
         "If you turn friends on: a display name, an avatar look, a friend code, your streak and level, your groups and the messages you send in them. In the Grand Library: a random nickname, where you are standing, whether you are seated, the subject you are studying and how long you have been studying. If you start a study session anywhere in the app while friends are on, you appear in the library as studying until the session ends. Chat messages are checked by automatic rules before they are sent.",
         "A flashcard deck you choose to share by link: its name, an optional subject label and the text on its cards (not pictures, not how well you know them), kept with your account so you can see and stop your shared decks. The shared page shows no name, email address or avatar, and nobody who opens it needs an account. Anyone with the link can read it, and can add a copy to their own cards. A shared page can be reported; reports may be looked at by us, and a deck reported enough times is hidden.",
+        "Backed up flashcards and to-dos, only if you turn on Back up my notes while signed in: for each deck its name and subject label, for each card the words on both sides and the name of a picture if it has one (not the picture), how well you know it and when it is next due, for each to-do its words, subject, day, whether it is done and when, and when each thing last changed. They are kept with your account and can be read only by you. Flashcards Plumi makes for you, such as mark scheme cards, are not saved: your device makes them again.",
         "Reports and blocks: if you report or block someone, we keep the report and who made it so we can act on it.",
         "Question bank marks on the website, if you are signed in: for each question part you mark yourself on, its id, subject and topics, your score and what it was out of, the letter you picked for a multiple-choice question, and when. Signed out, these stay in your browser. Answers you type into the question bank stay in your browser unless you ask Plumi to mark one. If you have turned on AI marking on the website and you tap Mark with Plumi, that answer is sent, through Plumi, to our AI provider DeepSeek, which marks it against the official mark scheme. Plumi does not keep a copy of it.",
         "AI marking on the website, if you use it: how many marks you have used today or this week, so we can apply the limit, and a record that you agreed: the version of the wording you agreed to and whether you said you are under 18 or 18 and over. We do not collect a date of birth. These are kept with your account and deleted when you delete it.",
@@ -79,6 +81,7 @@ export const privacy: LegalDoc = {
     { heading: "How long we keep it", blocks: [{kind:"list",items:[
       "Your notebooks and marked work stay on your device until you delete them. We do not hold a copy.",
       "Account and social information is kept while your account exists and deleted when you delete your account.",
+      "Backed up flashcards and to-dos are kept while your account exists. When you delete one, we keep it for up to 30 days so your other devices learn that it is gone, and then remove it. Turning Back up my notes off stops new changes being saved and does not remove what is already saved: deleting your account does.",
       "A shared flashcard deck is kept until you stop sharing it, and then it can no longer be opened with its link. Your shared decks are also deleted when you delete your account. A copy someone has already added to their own cards is theirs and stays with them.",
 "Our email list is kept while you are subscribed. When you unsubscribe your address is taken off it, and if you delete your account it is removed before we next send. We keep only a note that you opted out, so that we do not email you again.",
       "Chat messages are kept until they are removed or your account is deleted.",
