@@ -20,7 +20,7 @@ mistyped year (`0011`); its cover confirms 2011. Three regional June 2013 papers
 need local OCR derivatives.
 
 **MadAsMaths** (6 November 2026): A-Level Maths has an "Add MadAsMaths questions" switch, off by default, that
-mixes 6,477 questions from MadAsMaths' topic booklets into its topics (`madas.json` among its data). How they're cut,
+mixes 6,479 questions from MadAsMaths' topic booklets into its topics (`madas.json` among its data). How they're cut,
 tagged and mapped to this bank's topics: `docs/BOOKLETS.md`.
 
 - **Source papers:** `fetch_edexcel.py` asks the public search index behind

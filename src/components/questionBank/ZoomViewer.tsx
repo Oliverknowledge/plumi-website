@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { track } from "@/lib/analytics";
-import { paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
+import { isMadas, paperName, partImage, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 import { AnswerReadBack } from "./AnswerBox";
 import { ChoicePick, SelfMark } from "./SelfMark";
 import { useDarkCrop } from "@/lib/darkCrops";
@@ -81,7 +81,7 @@ export function ZoomViewer() {
             {hasScheme && (
               <div className="qb-tabs qb-zoom-tabs" role="tablist" aria-label="Show">
                 <button type="button" role="tab" aria-selected={kind === "qp"} className={kind === "qp" ? "is-on" : ""} onClick={() => show("qp")}>Question</button>
-                <button type="button" role="tab" aria-selected={kind === "ms"} className={kind === "ms" ? "is-on" : ""} onClick={() => show("ms")}>{part.k ? "Answer" : "Mark scheme"}</button>
+                <button type="button" role="tab" aria-selected={kind === "ms"} className={kind === "ms" ? "is-on" : ""} onClick={() => show("ms")}>{part.k ? "Answer" : isMadas(part) ? "Answers" : "Mark scheme"}</button>
               </div>
             )}
           </header>
@@ -95,7 +95,7 @@ export function ZoomViewer() {
                 <img {...photo} src={stemImage(part, subject.cropVersion)} alt={`The start of question ${part.l}`} draggable={false} />
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img {...photo} src={partImage(part.id, kind, subject.cropVersion)} alt={kind === "qp" ? `Question ${part.l}: ${part.x}` : `Mark scheme for ${part.l}`} draggable={false} />
+              <img {...photo} src={partImage(part.id, kind, subject.cropVersion)} alt={kind === "qp" ? `Question ${part.l}: ${part.x}` : isMadas(part) ? `Answers and worked solution for ${part.l}` : `Mark scheme for ${part.l}`} draggable={false} />
             </Stage>
           )}
 
@@ -104,7 +104,7 @@ export function ZoomViewer() {
             {kind === "ms" && !part.k && <SelfMark subject={subject.slug} part={part} />}
             {kind === "qp" && part.k && /^[A-D]( or [A-D])*$/.test(part.k) && <ChoicePick subject={subject.slug} part={part} />}
             {kind === "qp" && !part.k && hasScheme && (
-              <button type="button" className="lp-btn qb-zoom-go" onClick={() => show("ms")}>Check the mark scheme</button>
+              <button type="button" className="lp-btn qb-zoom-go" onClick={() => show("ms")}>{isMadas(part) ? "Check the answers" : "Check the mark scheme"}</button>
             )}
             <p className="qb-zoom-hint">Pinch or double-tap to zoom · turn your phone sideways to read it bigger</p>
           </footer>

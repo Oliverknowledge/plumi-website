@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { isChoice } from "@/lib/markBands";
-import { bankOwner, fetchBankData, bankTitle, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
+import { bankOwner, fetchBankData, bankTitle, isMadas, paperName, partImage, questionOf, reportKey, seriesLabel, stemImage, type BankPart, type BankSubject } from "@/content/questionBank";
 
 const A4 = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
@@ -351,7 +351,7 @@ export async function buildSetPdf(subject: BankSubject, picked: BankPart[], opts
     }
     crops.push(want({ part: p, kind: "qp", label: labelFor(p) }));
   }
-  if (opts.markSchemes) for (const p of parts) if (p.ms && !isChoice(p)) msCrops.set(p, want({ part: p, kind: "ms", label: `Mark scheme · ${labelFor(p)}` }));
+  if (opts.markSchemes) for (const p of parts) if (p.ms && !isChoice(p)) msCrops.set(p, want({ part: p, kind: "ms", label: `${isMadas(p) ? "Answers and worked solution" : "Mark scheme"} · ${labelFor(p)}` }));
   const drawn = async (c: Crop) => place(c, await fetched.get(c)!);
 
   for (const c of crops) await drawn(c);

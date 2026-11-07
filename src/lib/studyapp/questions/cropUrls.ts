@@ -7,8 +7,17 @@ import { papersBase } from "@/config/papers";
 
 export { papersBase };
 const MS_VERSION = 2;
+/**
+ * MadAsMaths questions (ids "madas-…", scripts/booklets/cut.py) are versioned on their own, whatever bank they're mixed
+ * into, by folder (bank/m3/<id>-qp.webp) rather than ?v=, so a re-cut goes up beside the crops the live site uses and
+ * changes nothing there until the deploy that reads it. 3: the re-cut of 7 November 2026, which put every worked
+ * solution and every answer in the answers, where the first cut missed solutions set as strips and left some answers
+ * on the question. (The first cut, version 1, is bank/<id>-qp.webp.) Keep in step with MADAS_VERSION in scripts/booklets/bank.py.
+ */
+const MADAS_VERSION = 3;
 
 export function partImage(id: string, kind: "qp" | "ms" | "stem", version?: number): string {
+  if (id.startsWith("madas-")) return `${papersBase}/bank/m${MADAS_VERSION}/${id}-${kind}.webp`;
   const v = kind === "ms" ? Math.max(MS_VERSION, version ?? 0) : version;
   return (kind === "stem" ? `${papersBase}/bank/${id.replace(/-[^-]+$/, "")}-stem.webp` : `${papersBase}/bank/${id}-${kind}.webp`) + (v ? `?v=${v}` : "");
 }
