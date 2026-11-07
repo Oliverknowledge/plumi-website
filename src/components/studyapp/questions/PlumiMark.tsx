@@ -2,10 +2,11 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { supabase, useAccount } from "@/lib/account";
-import { hasInk, hasText, markable, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
+import { markable, type QAnswer, type QPart, type QSet } from "@/lib/studyapp/questions/model";
 import { qa } from "@/lib/studyapp/questions/store";
 import { fetchAvailable, fetchEnabled, MAX_ANSWER_CHARS, requestMark, requestTranscript, type Allowance, type MarkReply } from "@/lib/studyapp/marking/api";
 import { answerPicture } from "@/lib/studyapp/marking/picture";
+import { markSource } from "@/lib/studyapp/marking/source";
 import { answerKey, getCached, putCached, type KV } from "@/lib/studyapp/marking/cache";
 import { CONSENT_COPY, giveConsent, hasConsent, type AgeBand } from "@/lib/studyapp/marking/consent";
 import { lineFor } from "@/lib/studyapp/marking/copy";
@@ -103,13 +104,15 @@ export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined
   const { ready, user, on } = useAccount();
   const signedIn = aiMarkingOn && on && ready && !!user && user.is_anonymous !== true;
   const available = useAvailable(set, part, signedIn, user?.id ?? null);
-  const written = hasText(answer), drawn = hasInk(answer);
-  const offered = signedIn && available && markable(part) && (written || drawn);
-  // Handwriting is read into words first (the student checks them), and only those words are marked. Typed words win unless the student is on the pen.
-  const viaInk = drawn && (!written || answer?.mode === "ink");
+  // Which of the student's three places to write is the answer: what they can SEE (source.ts). Handwriting, in the answer zone or on the printed question's lines,
+  // is read into words first (the student checks them), and only those words are marked.
+  const source = markSource(answer);
+  const offered = signedIn && available && markable(part) && source !== null;
+  const viaInk = source === "ink" || source === "ann";
   const text = answer?.text ?? "";
   const bank = set.subject, cv = set.cv ?? 0;
-  const key = answerKey(bank, part.id, cv, viaInk ? `ink:${answer?.ink?.n}.${answer?.ink?.b}` : text);
+  const stamp = source === "ann" ? `ann:${answer?.ann?.n}.${answer?.ann?.b}` : `ink:${answer?.ink?.n}.${answer?.ink?.b}`;
+  const key = answerKey(bank, part.id, cv, viaInk ? stamp : text);
   const [view, setView] = useState<View>({ k: "idle" });
   const pending = useRef<string | null>(null);   // the words the student confirmed, kept so "Try again" does not read the page twice
 
@@ -139,7 +142,7 @@ export function usePlumiMark(set: QSet, part: QPart, answer: QAnswer | undefined
     setView({ k: "reading" });
     // Consent BEFORE the picture of the handwriting is sent anywhere.
     if (!(await hasConsent(sb))) { setView({ k: "consent" }); return; }
-    const picture = await answerPicture(part.id, set.id).catch(() => null);
+    const picture = await answerPicture(part.id, set.id, source === "ann").catch(() => null);
     if (!picture) { setView({ k: "note", text: lineFor({ kind: "failed" }), again: true }); return; }
     const o = await requestTranscript(deps, picture);
     if (o.kind === "read") { setView({ k: "confirm", key, text: o.text }); return; }

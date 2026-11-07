@@ -8,8 +8,8 @@ import { MAX_PICTURE_CHARS } from "./api";
  */
 const MAX_SIDE = 1500;
 
-export async function answerPicture(partId: string, setId: string): Promise<string | null> {
-  const png = await getAnswerImage(partId, { setId, scale: 1.5 });
+export async function answerPicture(partId: string, setId: string, onQuestion = false): Promise<string | null> {
+  const png = await getAnswerImage(partId, { setId, scale: 1.5, onQuestion });
   if (!png || typeof document === "undefined") return null;
   const img = new Image();
   await new Promise<void>((ok, no) => { img.onload = () => ok(); img.onerror = () => no(new Error("image")); img.src = png; });
