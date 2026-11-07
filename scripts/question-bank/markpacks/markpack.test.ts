@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { coverage, gatePack, labelsMatch, packHash, parseExtraction, type BankPartRef, type ExtractedPack } from "./markpack";
+import { coverage, gatePack, labelsMatch, markAllocation, packHash, parseExtraction, type BankPartRef, type ExtractedPack } from "./markpack";
 
 const D = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "pilot-v2");
 const read = (f: string) => JSON.parse(readFileSync(join(D, f), "utf8"));
@@ -188,4 +188,27 @@ test("a formula or number the bank's OCR split into pieces still counts as on th
   assert.equal(coverage("C9H9", ocr, compact), 0);
   assert.equal(coverage("page text", ocr, compact), 1);
   assert.equal(coverage("page quokka", ocr, compact), 0.5, "plain words still need the OCR's word list");
+});
+
+// ---------------------------------------------------------------------------------------
+// Comments that allocate marks are held (found by an independent audit of a real pack)
+// ---------------------------------------------------------------------------------------
+
+const noPageText = (raw: unknown) => gatePack(raw, partOf("74011-jun22-05-3"), undefined);   // the word check is not what these tests are about
+
+test("a comment that allocates marks holds the pack: the audited real case, and the old chemistry 'max 1 out of M2 and M3'", () => {
+  const base = fixture("74011-jun22-05-3") as ExtractedPack;
+  assert.equal(noPageText(base).status, "ready", "the unchanged reading is ready");
+  for (const text of ["for 1 mark some air (from the conical flask) is collected", "strong (ionic) bonds for max 1 out of M2 and M3", "accept for 2 marks, substance (X) and not agar", "up to 2 marks for any of these"]) {
+    const v = noPageText({ ...base, accept: [...base.accept, { point: null, text }] });
+    assert.equal(v.status, "held", text);
+    assert.ok(v.reasons.some((r) => /allocates marks/.test(r)), text);
+  }
+  assert.equal(noPageText({ ...base, other_guidance: [...base.other_guidance, "Allow 1 mark max for any of these"] }).status, "held", "also in the guidance notes");
+});
+
+test("a numeric range or a plain 'any one of' is not mark allocation", () => {
+  const base = fixture("74011-jun22-05-3") as ExtractedPack;
+  assert.deepEqual(markAllocation({ ...base, accept: [{ point: null, text: "values are (a maximum of) 0.3 (°C) either side of the mean" }], reject: [], ignore: [], other_guidance: ["Award one mark for any of the following points:", "Credit other relevant material."] }), []);
+  assert.equal(noPageText({ ...base, accept: [...base.accept, { point: null, text: "values are (a maximum of) 0.3 either side" }] }).status, "ready");
 });
