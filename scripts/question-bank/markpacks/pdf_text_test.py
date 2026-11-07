@@ -28,6 +28,27 @@ def test():
     plain = "text\n 20\n\x0c\n 2 0     Which of the following\n  Answer D\n"
     seg = segment(plain, "20", [])
     assert seg is not None and "Which of the following" in seg                        # a lone page number is not the question's row
+    # OCR schemes number their mark POINTS ("1", "2", "3") inside the answer cell; they must not be taken for the next QUESTION's row
+    # (real layout, OCR H020/01 June 2016 Q25(b): the segment used to stop after point 1 because the line "2 (assimilates) enter..." looked like question 2)
+    ocr = """  Question                          Answer                              Marks                        Guidance
+25 (a)       B C                       2   One mark for each correct answer
+25 (b)       1 sugar / sucrose / assimilates ,                          max 3
+                             in the sieve tube (elements)
+
+
+             2 (assimilates) enter , sieve tube / phloem (at source)            2 IGNORE details of loading mechanism and
+               and                                                                                                  companion cells
+             3 water enters (sieve tube) , by osmosis /
+                       down water potential gradient / described
+             6 (assimilates) move ,                                             6 IGNORE 'mass flow' as given in Q
+                 from high to low (hydrostatic) pressure
+26            Which of the following
+"""
+    seg = segment(ocr, "25(b)", ["25(a)", "2", "3", "6", "26"])
+    assert seg is not None and "sieve tube / phloem" in seg and "high to low (hydrostatic) pressure" in seg, seg   # all six points
+    assert "Which of the following" not in seg                                                                   # but not the next question
+    seg = segment(ocr, "25(a)", ["25(b)", "2", "3", "6", "26"])
+    assert seg is not None and "One mark for each correct answer" in seg and "sieve tube" not in seg, seg           # 25(a) stops at 25(b)
     print("ok")
 
 if __name__ == "__main__": test()

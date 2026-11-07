@@ -33,6 +33,18 @@ def label_regex(label):
     body = r"[\s.()\-]*".join(r"\s?".join(re.escape(c) for c in t) if t.isdigit() else re.escape(t) for t in toks)   # "09" is "0 9" in some schemes
     return re.compile(rf"^[ \t]*{body}(?=[\s(;:)]|$)", re.I | re.M)
 
+MARGIN_SLACK = 4   # characters: labels of one scheme share a left margin, give or take pdftotext's spacing
+
+def margin(text, pos):
+    """The left margin (leading spaces) of the line that contains `pos`."""
+    ls = text.rfind("\n", 0, pos + 1) + 1
+    return len(text[ls:]) - len(text[ls:].lstrip(" \t"))
+
+def at_margin(m, base):
+    """Is the label match `m` (it includes its line's leading spaces) at this scheme's label margin?"""
+    s = m.group()
+    return len(s) - len(s.lstrip(" \t")) <= base + MARGIN_SLACK
+
 SUB_ROW = re.compile(r"^[ \t]*(?:\d+\s*)?\([a-z]{1,2}\)(?:\s*\([ivx]+\))?[ \t]{2,}", re.M)   # OCR schemes: "(e)   For fuel OR energy ..."
 
 def ocr_style_starts(text, label):
@@ -58,18 +70,21 @@ def segment(text, label, other_labels):
     ocr_style = not me.search(text)
     best = None
     for st in starts:
+        base = margin(text, st)
         # In a tall table row pdftotext prints the label in the MIDDLE of the row, so a scheme's words can sit above the label line.
         # Start just after the previous part's label line (looser by one neighbouring row, but still local), end at the next label.
+        # A neighbouring part's label only counts at (about) THIS label's left margin: OCR schemes number their mark points "1", "2", "3"
+        # inside the answer cell, deeper in the line, and those are not the next question.
         prevs = []
         for o in other_labels:
             rx = label_regex(o)
-            ms = [m.start() for m in rx.finditer(text, 0, st)] if rx else []
+            ms = [m.start() for m in rx.finditer(text, 0, st) if at_margin(m, base)] if rx else []
             if ms: prevs.append(ms[-1])
         begin = (text.find("\n", max(prevs)) + 1) if prevs else max(0, st - 1500)
         ends = []
         for o in other_labels:
             rx = label_regex(o)
-            m = rx.search(text, st + 1) if rx else None
+            m = next((m for m in rx.finditer(text, st + 1) if at_margin(m, base)), None) if rx else None
             if m: ends.append(m.start())
         if ocr_style:
             nxt = SUB_ROW.search(text, st + 2)

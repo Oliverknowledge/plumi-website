@@ -182,6 +182,37 @@ export function markAllocation(pack: ExtractedPack): string[] {
   return texts.filter((t) => MARK_ALLOCATION.test(t)).map((t) => t.slice(0, 80));
 }
 
+/**
+ * Words with which a board qualifies an accept/reject/ignore note in its own text ("do not allow it costs less UNLESS QUALIFIED", "if neither given allow ...",
+ * "... alone"). A pack item that quotes the phrase but drops the qualifier changes what is credited (the reject "it costs less" would also reject a qualified,
+ * correct answer: a student told they are wrong). Found by independent audit of real packs (AQA A-level Chemistry 74041-jun25-01-2; AQA GCSE Biology 84612h-jun24-04-8).
+ */
+export const BOARD_QUALIFIER = /\b(unless|if neither|only if|only when|alone|unqualified|provided|on its own)\b/i;
+
+/** The pack items whose phrase the board's text qualifies within the same clause, while the item's own text carries no qualifier. Needs the board's text layer. */
+export function lostQualifiers(pack: ExtractedPack, boardText: string | undefined): string[] {
+  if (!boardText) return [];
+  const flat = boardText.replace(/\s+/g, " ");
+  const out: string[] = [];
+  for (const it of [...pack.accept, ...pack.reject, ...pack.ignore]) {
+    if (BOARD_QUALIFIER.test(it.text)) continue;
+    const phrase = it.text.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+    if (phrase.length < 6) continue;
+    if (new RegExp(`${phrase}[^.;]{0,40}?${BOARD_QUALIFIER.source}`, "i").test(flat)) out.push(it.text.slice(0, 60));
+  }
+  return out;
+}
+
+/**
+ * NOT a hold: guidance the reading left on no mark point although the scheme has several. In an independent audit of 373 real packs this was present in 21%
+ * of them and in 10 of the 22 packs the audit found defective (but 67 audited-clean packs carry it too), so it cannot decide a pack alone: it only says which
+ * packs to audit first.
+ */
+export function unattachedGuidance(pack: ExtractedPack): string[] {
+  if (pack.points.length < 2) return [];
+  return [...pack.accept, ...pack.reject, ...pack.ignore].filter((i) => i.point === null).map((i) => i.text.slice(0, 60));
+}
+
 // ---------------------------------------------------------------------------------------
 // The gates
 // ---------------------------------------------------------------------------------------
@@ -233,6 +264,7 @@ export function gatePack(raw: unknown, part: BankPartRef, ocrText: string | unde
   if (pack.answer_kind !== "points") held.push(`answer kind is ${pack.answer_kind}`);
   if (pack.issues.length > 0) held.push("the reading flagged its own doubt");
   if (markAllocation(pack).length > 0) held.push("a comment allocates marks, which a text marker cannot enforce");
+  if (lostQualifiers(pack, ocrText).length > 0) held.push("the board qualifies a note (unless, if neither, alone) and the pack's item does not");
 
   if (rejected.length > 0) return { status: "rejected", pack: null, reasons: rejected };
   if (held.length > 0) return { status: "held", pack, reasons: held };

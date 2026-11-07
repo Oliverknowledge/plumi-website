@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { coverage, gatePack, labelsMatch, markAllocation, packHash, parseExtraction, type BankPartRef, type ExtractedPack } from "./markpack";
+import { coverage, gatePack, labelsMatch, lostQualifiers, markAllocation, packHash, parseExtraction, unattachedGuidance, type BankPartRef, type ExtractedPack } from "./markpack";
 
 const D = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "pilot-v2");
 const read = (f: string) => JSON.parse(readFileSync(join(D, f), "utf8"));
@@ -211,4 +211,32 @@ test("a numeric range or a plain 'any one of' is not mark allocation", () => {
   const base = fixture("74011-jun22-05-3") as ExtractedPack;
   assert.deepEqual(markAllocation({ ...base, accept: [{ point: null, text: "values are (a maximum of) 0.3 (°C) either side of the mean" }], reject: [], ignore: [], other_guidance: ["Award one mark for any of the following points:", "Credit other relevant material."] }), []);
   assert.equal(noPageText({ ...base, accept: [...base.accept, { point: null, text: "values are (a maximum of) 0.3 either side" }] }).status, "ready");
+});
+
+// ---------------------------------------------------------------------------------------
+// A qualifier the board prints, lost in the pack's item
+// ---------------------------------------------------------------------------------------
+
+test("a note the board qualifies, copied without its qualifier, holds the pack (audited real case: 'do not allow it costs less unless qualified')", () => {
+  const base = fixture("74011-jun22-05-3") as ExtractedPack;
+  const board = "Question 01.2  Marking Guidance  Do not allow it costs less unless qualified  1 mark";
+  assert.deepEqual(lostQualifiers({ ...base, accept: [], reject: [{ point: null, text: "it costs less" }], ignore: [] }, board), ["it costs less"]);
+  // the item that KEEPS its qualifier is faithful
+  assert.deepEqual(lostQualifiers({ ...base, accept: [], reject: [{ point: null, text: "it costs less unless qualified" }], ignore: [] }, board), []);
+  // wrapped across lines in the board's text, still found
+  assert.deepEqual(lostQualifiers({ ...base, accept: [{ point: 1, text: "bigger yield" }], reject: [], ignore: [] }, "if neither given allow bigger\n yield (of apples)"), []);
+  assert.deepEqual(lostQualifiers({ ...base, accept: [{ point: 1, text: "growth" }], reject: [], ignore: [] }, "development / growth alone is not enough"), ["growth"]);
+  // no board text, nothing to compare with: no claim
+  assert.deepEqual(lostQualifiers({ ...base, accept: [], reject: [{ point: null, text: "it costs less" }], ignore: [] }, undefined), []);
+  const held = noPageText({ ...base, reject: [...base.reject, { point: null, text: "it costs less" }] });
+  assert.equal(held.status, "ready", "no board text passed: the word check and this check are both off");
+  const v = gatePack({ ...base, accept: [], reject: [{ point: null, text: "it costs less" }], ignore: [] }, partOf("74011-jun22-05-3"), `${ocr["74011-jun22-05-3"]} Do not allow it costs less unless qualified`);
+  assert.ok(v.status !== "ready" && v.reasons.some((r) => /qualifies a note/.test(r)), JSON.stringify(v.reasons));
+});
+
+test("unattachedGuidance only reports: it counts guidance with no point on a multi-point scheme, and never on a single point", () => {
+  const base = fixture("74011-jun22-05-3") as ExtractedPack;
+  const two = { ...base, points: [{ n: 1, text: "a", marks: 1 }, { n: 2, text: "b", marks: 1 }] };
+  assert.deepEqual(unattachedGuidance({ ...two, accept: [{ point: null, text: "x" }, { point: 2, text: "y" }], reject: [], ignore: [] }), ["x"]);
+  assert.deepEqual(unattachedGuidance({ ...two, points: [two.points[0]], accept: [{ point: null, text: "x" }], reject: [], ignore: [] }), []);
 });
