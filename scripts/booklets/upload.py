@@ -1,4 +1,4 @@
-"""Put the maths booklets on R2: everything build.py wrote under <work-dir>/r2/, at the same keys.
+"""Put the maths booklets on R2: everything build.py (and bank.py, bank/m<N>/) wrote under <work-dir>/r2/, at the same keys.
 
     python3 scripts/booklets/upload.py [work-dir] [--dry-run] [--verify] [--prune]
 
@@ -56,11 +56,13 @@ def main():
                 path = os.path.join(d, n)
                 local[os.path.relpath(path, base).replace(os.sep, "/")] = path
     remote = {}
-    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix="booklets/"):
-        for obj in page.get("Contents", []):
-            remote[obj["Key"]] = (obj["Size"], obj["ETag"].strip('"'))
+    # each top folder here (booklets/, and bank/m<N>/ for bank.py's question crops) is listed on R2
+    for prefix in sorted({"/".join(k.split("/")[:2]) + "/" if k.startswith("bank/") else k.split("/")[0] + "/" for k in local}):
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+            for obj in page.get("Contents", []):
+                remote[obj["Key"]] = (obj["Size"], obj["ETag"].strip('"'))
     jobs = sorted(k for k, p in local.items() if remote.get(k, (None,))[0] != os.path.getsize(p))
-    print(f"{len(local)} files here, {len(remote)} under booklets/ on R2; {len(jobs)} to upload", file=sys.stderr)
+    print(f"{len(local)} files here, {len(remote)} of theirs on R2; {len(jobs)} to upload", file=sys.stderr)
 
     def put(key):
         ctype = TYPES[os.path.splitext(key)[1]]
@@ -79,7 +81,7 @@ def main():
                     print(f"  {done}/{len(jobs)}", file=sys.stderr)
         print(f"uploaded {done}", file=sys.stderr)
 
-    stale = sorted(k for k in remote if k not in local)
+    stale = sorted(k for k in remote if k not in local and k.startswith("booklets/"))
     if stale:
         print(f"{len(stale)} under booklets/ on R2 that the build no longer writes, e.g. {stale[0]}"
               + ("" if PRUNE else " (--prune deletes them)"), file=sys.stderr)

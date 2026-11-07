@@ -1,7 +1,7 @@
 """Write a question bank's MadAsMaths questions: the rows its "Add MadAsMaths questions" switch mixes in.
 
     python3 scripts/booklets/bank.py <bank slug>     # after cut.py and tag.py merge; the bank needs a map in topics.json
-    python3 scripts/question-bank/upload_r2.py scripts/booklets/.work/bank-upload --crops-only
+    python3 scripts/booklets/upload.py --verify             # the crops, to bank/m<MADAS_VERSION>/
     python3 scripts/question-bank/upload_data.py <bank slug> --verify
 
 Reads <work-dir>/questions/questions.json (cut.py), scripts/booklets/tags.json (tag.py merge, committed), topics.json
@@ -18,7 +18,7 @@ reveal, saved question and downloaded set works on it as it is:
   l    the number it's printed with; m null (MadAsMaths prints no marks); ms 1 (its answers and worked solution)
   t    the bank's topic codes; w, h its question crop's size; x its opening words
   mm   the booklet's name, for the row's label ("Logarithms (exam questions)"); mst its stars as printed ("***+")
-and copies their crops to <work-dir>/bank-upload/img/ for upload_r2.py (which puts img/*.webp under bank/).
+and copies their crops to <work-dir>/r2/bank/m<MADAS_VERSION>/, which upload.py puts on R2 at the same path.
 """
 import json, os, re, shutil, sys
 
@@ -26,7 +26,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 WORK = os.path.join(HERE, ".work")
 Q = os.path.join(WORK, "questions")
-UPLOAD = os.path.join(WORK, "bank-upload", "img")
+# The crops' version folder on R2, bank/m<N>/: the same as MADAS_VERSION in src/content/questionBank.ts. A re-cut
+# goes up under a new one, beside the crops the live site uses, and the deploy that reads it switches over.
+MADAS_VERSION = 3
+UPLOAD = os.path.join(WORK, "r2", "bank", f"m{MADAS_VERSION}")
 
 
 def main():
@@ -48,13 +51,14 @@ def main():
     tags = json.load(open(os.path.join(HERE, "tags.json")))
     questions = json.load(open(os.path.join(Q, "questions.json")))
     rows, runs, last = [], {}, {}
-    shutil.rmtree(os.path.dirname(UPLOAD), ignore_errors=True)
+    shutil.rmtree(UPLOAD, ignore_errors=True)
     os.makedirs(UPLOAD)
     for q in questions:  # in booklet order, so a fall in the printed number starts a new run
         b = q["booklet"]
-        if q["n"] <= last.get(b, 0):
-            runs[b] = runs.get(b, 0) + 1
-        last[b] = q["n"]
+        if not q.get("suffix"):  # ("16b", a heading printed without its number, follows 16 in the same run)
+            if q["n"] <= last.get(b, 0):
+                runs[b] = runs.get(b, 0) + 1
+            last[b] = q["n"]
         topics = tags.get(q["id"])
         if not topics:
             continue
@@ -62,7 +66,7 @@ def main():
         # Every topic it needs must be in the specification: a question that also needs Poisson isn't for this bank.
         if not mapped or any(m is None for m in mapped):
             continue
-        row = {"id": q["id"], "p": f"madas-{b}" + (f"-{runs[b] + 1}" if runs.get(b) else ""), "s": "MADAS", "l": str(q["n"]), "m": None,
+        row = {"id": q["id"], "p": f"madas-{b}" + (f"-{runs[b] + 1}" if runs.get(b) else ""), "s": "MADAS", "l": f"{q['n']}{q.get('suffix', '')}", "m": None,
                "t": list(dict.fromkeys(mapped)), "w": q["w"], "h": q["h"], "ms": 1,
                "x": re.sub(r"\s+", " ", q["text"]).strip()[:160], "mm": names[b]}
         if q["stars"]:
@@ -79,7 +83,7 @@ def main():
             counts[c] = counts.get(c, 0) + 1
     tagged = sum(1 for q in questions if q["id"] in tags)
     print(f"{slug}: {len(rows)} MadAsMaths questions of {tagged} tagged ({tagged - len(rows)} need content beyond its specification); "
-          f"{len(rows) * 2} crops in {os.path.dirname(UPLOAD)}", file=sys.stderr)
+          f"{len(rows) * 2} crops in {UPLOAD}, for upload.py", file=sys.stderr)
     print("  by topic: " + ", ".join(f"{c} {n}" for c, n in sorted(counts.items(), key=lambda kv: (kv[0][0], int(kv[0].split('.')[1])))), file=sys.stderr)
 
 

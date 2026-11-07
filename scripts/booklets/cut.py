@@ -36,11 +36,11 @@ OUT = os.path.join(WORK, "questions")
 IMG = os.path.join(OUT, "img")
 SCALE = 2.2  # ~160 dpi, as the question bank's cutters
 GROUPS = {"basic": "Basic Topics", "standard": "Standard Topics", "further": "Further Topics", "mechanics": "Mechanics", "statistics": "Statistics"}
-HEAD = re.compile(r"^Question\s+(\d{1,3})\b\s*(\((\*{1,6})(\+?)\))?")
+# "Question 4 (**+)", and three headings MadAsMaths printed without their number, "Question (***+)" (headings).
+HEAD = re.compile(r"^Question(?:\s*(\d{1,3})\b)?\s*(\((\*{1,6})(\+?)\))?\s*$|^Question\s*(\d{1,3})\b")  # ("Question6": one is printed without its space)
 TOP, FOOT = 70, 775          # the page's text area, inside the repeated "Created by" lines (y 38–66 and 779–807)
 LEFT, RIGHT = 70, 525        # across the text, which starts at 90 and ends at 508
 RIGHT_MARGIN = 495           # an answer row ends at the right margin (its last box's right side, ~502)
-SOLUTION_ASPECT = (0.66, 0.75)  # a scanned A4 page, portrait
 
 
 def boxes(page):
@@ -62,7 +62,7 @@ def boxes(page):
     vert.sort()
     for i, (x0, y0, y1) in enumerate(vert):
         for x1, v0, v1 in vert[i + 1:]:
-            if x1 - x0 > 420:
+            if x1 - x0 > 480:  # (an answer box can run the text's whole width, about 420pt)
                 break
             if abs(v0 - y0) < 1.5 and abs(v1 - y1) < 1.5 and x1 - x0 >= 6:
                 top = any(abs(hy - y0) < 1.5 and hx0 <= x0 + 1.5 and hx1 >= x1 - 1.5 for hy, hx0, hx1 in horiz)
@@ -73,36 +73,66 @@ def boxes(page):
     return out
 
 
-def solution_images(page):
-    """The worked solution's scans on a page, as shown: [(rect, zoom)], top to bottom. A scan is a whole handwritten
-    page, with the working for several questions, clipped in the PDF to the part for this one, so it's the shown
-    part (the image block's box in the page's text dict, which is clipped) that's wanted, never the image itself.
-    `zoom` renders it at about the scan's own resolution."""
+def images(page):
+    """Every picture on a page but its blank background, as shown: [(rect, zoom)], top to bottom. The worked
+    solutions are scans of handwritten working: a whole A4 page clipped in the PDF to the part for one question, or
+    a few landscape strips stacked one under another, so it's the shown part (the image block's box in the page's
+    text dict, which is clipped) that's wanted, never the image itself. A question's own figures are pictures too;
+    what tells them apart is where they are (solution_images). `zoom` renders one at about its own resolution."""
     out = []
     for b in page.get_text("dict")["blocks"]:
-        if b["type"] != 1:
+        if b["type"] != 1 or b.get("width", 0) <= 2 or b.get("height", 0) <= 2:
             continue
-        w, h = b.get("width", 0), b.get("height", 0)
-        if not h or not (SOLUTION_ASPECT[0] < w / h < SOLUTION_ASPECT[1]) or w < 300:
+        shown = pymupdf.Rect(b["bbox"]).normalize() & page.rect
+        if shown.is_empty or shown.width < 4 or shown.height < 4 or shown.width * shown.height > 0.6 * page.rect.width * page.rect.height:
             continue
-        shown = pymupdf.Rect(b["bbox"]) & page.rect
-        if 0 < shown.width < 260 and shown.height > 8:
-            full = next((pymupdf.Rect(i["bbox"]) for i in page.get_image_info() if i["width"] == w and i["height"] == h
-                         and abs(i["bbox"][0] - b["bbox"][0]) < 1 and abs(i["bbox"][1] - b["bbox"][1]) < 1), shown)
-            out.append((shown, max(SCALE, min(5.0, w / max(full.width, 1)))))
-    return sorted(out, key=lambda t: t[0].y0)
+        out.append((shown, max(SCALE, min(5.0, b["width"] / max(shown.width, 1)))))
+    return sorted(out, key=lambda t: (t[0].y0, t[0].x0))
+
+
+def solution_images(doc, pieces, found):
+    """The worked solution of a question: [(page, rect, zoom)], each a run of pictures that touch (a solution in strips
+    is one). MadAsMaths sets it after the answers, so it's every picture below the answer row, or on a page after it,
+    before the next question; a picture above the answers is the question's own figure. Without an answer row, it's the
+    pictures set narrow on the right, as solutions are."""
+    picked = []
+    for p, rect in pieces:
+        for r, z in images(doc[p]):
+            if not rect.intersects(r) or (r & rect).height < 4:
+                continue
+            if found:
+                ap, ar = found
+                if p < ap or (p == ap and r.y0 < ar.y0 - 4):
+                    continue
+            elif not (r.x0 >= 280 and r.width < 260):
+                continue
+            picked.append((p, r & pymupdf.Rect(rect.x0, rect.y0, page_right(doc[p]), rect.y1), z))
+    runs = []
+    for p, r, z in sorted(picked, key=lambda t: (t[0], t[1].y0)):
+        last = runs[-1] if runs else None
+        if last and last[0] == p and r.y0 <= last[1].y1 + 8 and r.x0 < last[1].x1 and r.x1 > last[1].x0:
+            runs[-1] = (p, last[1] | r, max(last[2], z))
+        else:
+            runs.append((p, r, z))
+    return runs
+
+
+def page_right(page):
+    return page.rect.width
 
 
 def headings(doc):
-    """[(page, y top, number, stars)] for every "Question N" line, in reading order."""
+    """[(page, y top, number, stars)] for every "Question N" line, in reading order. A heading printed without its
+    number (three of them, each between two numbered questions) has number None."""
     out = []
     for i, page in enumerate(doc):
         for b in page.get_text("dict")["blocks"]:
             for line in b.get("lines", []):
                 text = "".join(s["text"] for s in line["spans"]).strip()
                 m = HEAD.match(text)
-                if m and line["bbox"][0] < 150:
-                    out.append((i, line["bbox"][1], int(m.group(1)), (m.group(3) or "") + (m.group(4) or "")))
+                if m and line["bbox"][0] < 150 and (m.group(1) or m.group(5) or m.group(2)):
+                    number = m.group(1) or m.group(5)
+                    out.append((i, line["bbox"][1], int(number) if number else None, (m.group(3) or "") + (m.group(4) or "")))
     return out
 
 
@@ -143,7 +173,16 @@ def cut_booklet(job):
     doc = pymupdf.open(path)
     heads = headings(doc)
     out, skipped = [], []
+    place, last = 0, 0
     for k, (pg, y, number, stars) in enumerate(heads):
+        # Ids count the numbered headings, so they hold between cuts; one printed without its number is the question
+        # before's with "b" ("madas-m2-work-and-energy-016b", shown as 16b), and moves nobody else's.
+        if number is None:
+            qid, number, suffix = f"madas-{slug}-{place:03d}b", last, "b"
+        else:
+            place += 1
+            qid, suffix = f"madas-{slug}-{place:03d}", ""
+            last = number
         nxt = heads[k + 1] if k + 1 < len(heads) else (len(doc), 0, None, None)
         # The question's pieces: this page from its heading, any pages before the next heading, the next heading's page above it.
         pieces = []
@@ -156,7 +195,7 @@ def cut_booklet(job):
             skipped.append((number, f"{len(pieces)} pieces"))
             continue
         found = answer_row(doc, pieces)
-        sols = [(p, r, x) for p, rect in pieces for r, x in solution_images(doc[p]) if rect.intersects(r)]
+        sols = solution_images(doc, pieces, found)
         if not found and not sols:
             skipped.append((number, "no answers or solution"))
             continue
@@ -172,7 +211,11 @@ def cut_booklet(job):
                 if r.height > 10:
                     q_pieces.append((p, r))
                 break
-        qp = stack([trim(_blank_images(doc[p], r)) for p, r in q_pieces])
+        # Answers boxed beside a part ("b) ∫ … dx   [21]") come out of the question, and go with the answers: each as
+        # its part's line, so the answers read "b) … [21]".
+        inline = [(p, b) for p, r in q_pieces for b in inline_answers(doc[p], r, closing=not found)]
+        notes = [(p, n) for p, r in q_pieces for n in overleaf_notes(doc[p], r)]
+        qp = stack([trim(_blank(doc[p], r, [s for sp, s, _ in sols if sp == p] + [b for bp, b in inline + notes if bp == p])) for p, r in q_pieces])
         if qp is None:
             skipped.append((number, "empty question"))
             continue
@@ -181,18 +224,25 @@ def cut_booklet(job):
             p, r = found
             answer = trim(render(doc[p], pymupdf.Rect(LEFT, r.y0 - 4, RIGHT, r.y1 + 4)))
         scans = [trim(render(doc[p], r, zoom), keep=10) for p, r, zoom in sols]
-        ms = stack([answer] + scans, gap=28)
+        # each line with answers once, however many boxes it has
+        bands = []
+        for p, b in inline:
+            if bands and bands[-1][0] == p and b.y0 < bands[-1][1].y1:
+                bands[-1] = (p, bands[-1][1] | b)
+            else:
+                bands.append((p, pymupdf.Rect(b)))
+        parts = [trim(render(doc[p], pymupdf.Rect(LEFT, b.y0 - 4, RIGHT, b.y1 + 4))) for p, b in bands]
+        ms = stack([stack(parts, gap=10) if parts else None, answer] + scans, gap=28)
         if ms is None:
             skipped.append((number, "answers came out blank"))
             continue
         # Numbering starts again in a booklet's sections (Poisson's "Introductory calculations", then …), so the id
         # is the question's place among the booklet's headings (left-out questions keep their place, so ids hold
         # between cuts); `n` keeps the number it's printed with.
-        qid = f"madas-{slug}-{k + 1:03d}"
         qp.save(os.path.join(IMG, f"{qid}-qp.webp"), "WEBP", quality=82, method=6)
         ms.save(os.path.join(IMG, f"{qid}-ms.webp"), "WEBP", quality=82, method=6)
         words = " ".join(text_in(doc[p], r) for p, r in q_pieces)
-        out.append({"id": qid, "booklet": slug, "group": group, "n": number, "stars": stars, "w": qp.width, "h": qp.height,
+        out.append({"id": qid, "booklet": slug, "group": group, "n": number, **({"suffix": suffix} if suffix else {}), "stars": stars, "w": qp.width, "h": qp.height,
                     "msw": ms.width, "msh": ms.height, "pages": sorted({p + 1 for p, _ in pieces}),
                     "text": re.sub(r"^Question\s+\d+\s*(\(\*+\+?\))?\s*", "", words)[:1500],
                     "answer": text_in(doc[found[0]], found[1]) if found else "", "solution": len(scans)})
@@ -201,45 +251,116 @@ def cut_booklet(job):
 
 def answer_row(doc, pieces):
     """(page, rect) of a question's answers, or None. Answers come last, after everything the question says: the
-    lowest row of answer boxes in the right half of the question ("[x = √2]", and "[  ], [proof]"), with a row just
-    above it where they run to two lines. Where MadAsMaths didn't box them, a line of text set to the right
+    lowest row of answer boxes in the right half of the question ("[x = √2]", and "[  ], [proof]"), with every row
+    above it the answers run on to, up to the question's last words. Where MadAsMaths didn't box them, a line of text set to the right
     ("0.1898 , 0.3423 , …") counts, if it is the whole line: justified question text comes out of the PDF in
     pieces, and a piece that ends at the margin isn't an answer. Nothing inside a solution scan counts (its frame
-    is drawn with lines too), and a row with question text below it isn't the answers."""
+    is drawn with lines too, and a picture's own frame isn't an answer box), and a row with question text below it isn't
+    the answers."""
     for p, rect in reversed(pieces):
         page = doc[p]
-        scans = [r + (-6, -6, 6, 6) for r, _ in solution_images(page)]
+        scans = [r + (-6, -6, 6, 6) for r, _ in images(page)]
         inside = lambda r: rect.contains(r) and not any(s.intersects(r) for s in scans)  # noqa: E731
         lines = []
         for b in page.get_text("dict")["blocks"]:
             for line in b.get("lines", []):
                 r = pymupdf.Rect(line["bbox"])
-                if "".join(s["text"] for s in line["spans"]).strip() and inside(r):
+                # (words only: the commas between answer boxes are lines of their own)
+                if re.sub(r"[\s,.;:]", "", "".join(s["text"] for s in line["spans"])) and inside(r):
                     lines.append(r)
         mid = lambda r: (r.y0 + r.y1) / 2  # noqa: E731
+        notes = overleaf_notes(page, rect)
+        lines = [r for r in lines if not any(n.intersects(r) for n in notes)]
         whole = [r for r in lines if r.x0 >= 250 and r.x1 >= RIGHT_MARGIN
                  and not any(o is not r and abs(mid(o) - mid(r)) < 4 and o.x1 <= r.x0 + 2 for o in lines)]
-        boxed = [b for b in boxes(page) if inside(b) and b.x1 >= 300]
+        # (a box beside question text on its line is that part's own answer: inline_answers takes it)
+        drawn = boxes(page)
+        # (text inside a box isn't question text: an answer row's first, "empty" box holds MadAsMaths' code, "SPX-N")
+        loose = [t for t in lines if not any(b.intersects(t) for b in drawn)]
+        boxed = [b for b in drawn if inside(b) and b.x1 >= 300 and not beside_text(b, loose)]
         anchors = boxed + whole
         if not anchors:
             continue
         last = max(anchors, key=lambda r: r.y0)
-        if any(r.y0 > last.y1 + 2 and r.x0 < 250 for r in lines):
-            return None  # question text after it: a table or a box in the question, not its answers
-        items = [b for b in boxes(page) if inside(b)] + whole
-        band = [r for r in items if abs(mid(r) - mid(last)) <= 9]
-        above = [r for r in anchors if 0 < mid(last) - mid(r) <= 32 and r.x0 > 150]
-        if above:
-            top = max(above, key=lambda r: r.y0)
-            band += [r for r in items if abs(mid(r) - mid(top)) <= 9]
+        if any(r.y0 > last.y1 + 2 and r.x0 < 250 and words_in(page, r) >= 3 for r in loose):
+            return None  # question text after it: a box in the question, or answers mid-question (inline_answers)
+        items = [b for b in drawn if inside(b) and not beside_text(b, loose)] + whole
+        # A row's boxes are as tall as their answers ("[A = 2]" beside a fraction), so a row is what overlaps it.
+        same = lambda a, b: min(a.y1, b.y1) - max(a.y0, b.y0) > 0  # noqa: E731
+        band = [r for r in items if same(r, last)]
+        band += [r for r in items if r not in band and any(same(r, b) for b in band)]
+        # The answers can run over several rows ("[ ], [I = …], [J = …]," then the next row), with room between for
+        # tall ones: take each row above while there's no question text between it and the answers so far.
+        text = [r for r in lines if not any(b.contains(r) or b.intersects(r) for b in items)]
+        while True:
+            top = min(r.y0 for r in band)
+            above = [r for r in anchors if r.y1 <= top + 2 and top - r.y1 <= 60]
+            if not above:
+                break
+            row = max(above, key=lambda r: r.y1)
+            if any(t.y0 >= row.y1 - 2 and t.y1 <= top + 2 and t.x0 < 250 for t in text):
+                break  # question text between: that row belongs to the question
+            band += [r for r in items if r not in band and same(r, row)]
         return p, pymupdf.Rect(min(r.x0 for r in band), min(r.y0 for r in band), max(r.x1 for r in band), max(r.y1 for r in band))
     return None
 
 
-def _blank_images(page, rect):
-    """The question's crop with any solution scan inside it painted out (a scan set beside the question's last lines)."""
+OVERLEAF = re.compile(r"solutions?\s+overleaf", re.I)
+
+
+def words_in(page, rect):
+    """Letters and digits in a rect: three or more is text; fewer, a diagram's label ("k", "A")."""
+    return len(re.sub(r"\W", "", page.get_text("text", clip=rect)))
+
+
+def overleaf_notes(page, rect):
+    """"[solution overleaf]": a note that the working is on the next page, neither question nor answer."""
+    return [t for t in text_lines(page, rect) if OVERLEAF.search(page.get_text("text", clip=t))]
+
+
+def beside_text(box, lines):
+    """Whether question text runs on the same line as a box, to its left: the box is that part's answer, inline."""
+    return any(t.x0 < 250 and t.x1 < box.x0 and min(t.y1, box.y1) - max(t.y0, box.y0) > 0.4 * min(t.height, box.height) for t in lines)
+
+
+def text_lines(page, rect=None):
+    out = []
+    for b in page.get_text("dict")["blocks"]:
+        for line in b.get("lines", []):
+            r = pymupdf.Rect(line["bbox"])
+            if "".join(s["text"] for s in line["spans"]).strip() and (rect is None or rect.contains(r)):
+                out.append(r)
+    return out
+
+
+def inline_answers(page, rect, closing=False):
+    """Answer boxes set beside a part inside the question, rather than in the answers at its end ("b) ∫ … dx   [21]"):
+    a box on the right with words in it, with the part's own words beside it on its line, on its own (a table's cells
+    share their sides, and a table stays in the question), and no wider than an answer is: a diagram's outlines and
+    labels ("A", "C") are boxes too. With `closing` (a question whose answers aren't in a row at its end), any box on
+    the right with three or more letters or digits in it is an answer too."""
+    drawn = boxes(page)
+    loose = [t for t in text_lines(page, rect) if not any(b.intersects(t) for b in drawn)
+             and re.sub(r"[\s,.;:]", "", page.get_text("text", clip=t))]
+    found = []
+    for b in drawn:
+        words = page.get_text("text", clip=b).strip()
+        if not (rect.contains(b) and words and words_in(page, b) >= 1 and not OVERLEAF.search(words)):
+            continue
+        # beside a part's words; or, in a question with no closing row of answers, any answer box on the right
+        # ("[proof]" before a closing note, "[t = π/15]"): real words, not a diagram's one-letter label
+        if b.x0 >= 300 and b.width <= 260 and beside_text(b, loose) or closing and b.x1 >= 400 and words_in(page, b) >= 3:
+            found.append(b)
+    near = lambda a, b: a is not b and abs(a.y0 - b.y0) < 2 and (abs(a.x1 - b.x0) < 2 or abs(a.x0 - b.x1) < 2) or a is not b and abs(a.x0 - b.x0) < 2 and (abs(a.y1 - b.y0) < 2 or abs(a.y0 - b.y1) < 2)  # noqa: E731
+    pics = [r + (-6, -6, 6, 6) for r, _ in images(page)]
+    return sorted((b for b in found if not any(near(b, o) for o in drawn) and not any(pr.intersects(b) for pr in pics)), key=lambda b: (b.y0, b.x0))
+
+
+def _blank(page, rect, scans):
+    """The question's crop with its solution painted out, where some of it is set beside the question's last lines, and
+    any answers boxed beside its parts."""
     img = render(page, rect)
-    for r, _ in solution_images(page):
+    for r in scans:
         if rect.intersects(r):
             x0, y0 = int((r.x0 - rect.x0) * SCALE), int((r.y0 - rect.y0) * SCALE)
             x1, y1 = int((r.x1 - rect.x0) * SCALE), int((r.y1 - rect.y0) * SCALE)
